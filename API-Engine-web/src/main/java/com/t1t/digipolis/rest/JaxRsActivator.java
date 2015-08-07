@@ -1,6 +1,5 @@
 package com.t1t.digipolis.rest;
-import com.t1t.digipolis.rest.resources.MemberResourceRESTService;
-import com.t1t.digipolis.rest.resources.TestConnectionResource;
+import com.t1t.digipolis.rest.resources.KongPassthroughResource;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
@@ -44,7 +43,7 @@ public class JaxRsActivator extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(TestConnectionResource.class);
+        resources.add(KongPassthroughResource.class);
         //resources.add(CORSRequestFilter.class);//CORS Request filter
         //resources.add(CORSResponseFilter.class);//CORS Response filter
     }

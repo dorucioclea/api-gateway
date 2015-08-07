@@ -1,6 +1,7 @@
 package com.t1t.digipolis.rest.resources;
 
-import com.google.gson.Gson;
+import com.t1t.digipolis.kong.model.KongInfo;
+import com.t1t.digipolis.kong.model.KongStatus;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.rest.KongClient;
 import io.swagger.annotations.Api;
@@ -15,22 +16,19 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * Created by michallispashidis on 02/08/15.
  */
-@Api(value = "/test", description = "Test endpoint. Should be used to validate the url.")
-
-
-@Path("/test")
+@Api(value = "/kong", description = "Test endpoint. Should be used to validate the url.")
+@Path("/kong")
 @RequestScoped
-public class TestConnectionResource {
+public class KongPassthroughResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TestConnectionResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KongPassthroughResource.class);
 
-    /**
-     * Retrofit Rest Client
-     */
     @Inject
     @APIEngineContext
     private KongClient restClient;
@@ -40,14 +38,21 @@ public class TestConnectionResource {
     @ApiResponses({
             @ApiResponse(code = 412, message = "JSON validation failed, a property is missing!"),
             @ApiResponse(code = 415, message = "Unsupported mediatype, add HTTP header: 'Content-Type = application/json' to the request"),
-            @ApiResponse(code = 200, response = String.class, message = "Result of the request.")
+            @ApiResponse(code = 200, response = KongInfo.class, message = "Result of the request.")
     })
 
     @GET
-    @Produces("text/plain")
-    public String testConnection() {
-        Gson gson = new Gson();
-        return gson.toJson(restClient.getInfo());
-        //return "0.0.1";
+    @Produces("appilcation/json")
+    public Response getInfo() {
+        KongInfo info = restClient.getInfo();
+        return Response.status(200).entity(info).type(MediaType.APPLICATION_JSON).build();
+    }
+
+    @GET
+    @Path("/status")
+    @Produces("application/json")
+    public Response getStatus(){
+        KongStatus stat = restClient.getStatus();
+        return Response.status(200).entity(stat).type(MediaType.APPLICATION_JSON).build();
     }
 }
