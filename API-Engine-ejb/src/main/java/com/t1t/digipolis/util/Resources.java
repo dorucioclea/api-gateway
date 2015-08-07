@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 package com.t1t.digipolis.util;
-
-import java.util.logging.Logger;
+import com.t1t.digipolis.qualifier.APIEngineContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -37,7 +38,8 @@ public class Resources {
     private EntityManager em;
 
     @Produces
+    @APIEngineContext
     public Logger produceLog(InjectionPoint injectionPoint) {
-        return Logger.getLogger(injectionPoint.getMember().getDeclaringClass().getName());
+        return LoggerFactory.getLogger(injectionPoint.getMember().getDeclaringClass().getName());
     }
 }

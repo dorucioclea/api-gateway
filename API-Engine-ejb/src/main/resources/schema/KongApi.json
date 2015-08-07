@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "id": {
+      "id": "id",
+      "type": "string"
+    },
+    "name": {
+      "id": "name",
+      "type": "string"
+    },
+    "public_dns": {
+      "id": "public_dns",
+      "type": "string"
+    },
+    "target_url": {
+      "id": "target_url",
+      "type": "string"
+    },
+    "created_at": {
+      "id": "created_at",
+      "type": "integer"
+    }
+  }
+}

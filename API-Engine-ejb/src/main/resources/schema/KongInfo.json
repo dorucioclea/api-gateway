@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "version": {
+      "id": "version",
+      "type": "string"
+    },
+    "lua_version": {
+      "id": "lua_version",
+      "type": "string"
+    },
+    "tagline": {
+      "id": "tagline",
+      "type": "string"
+    },
+    "hostname": {
+      "id": "hostname",
+      "type": "string"
+    },
+    "plugins": {
+      "id": "plugins",
+      "type": "object",
+      "properties": {
+        "enabled_in_cluster": {
+          "id": "enabled_in_cluster",
+          "type": "array",
+          "items": {
+            "id": "0",
+            "type": "string"
+          }
+        },
+        "available_on_server": {
+          "id": "available_on_server",
+          "type": "array",
+          "items": {
+            "id": "14",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

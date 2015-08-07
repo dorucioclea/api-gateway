@@ -23,8 +23,20 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="API-Engine-ear" />
-        <module name="API-Engine-ejb" />
+      </profile>
+      <profile default="false" name="Annotation profile for API-Engine-web" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
         <module name="API-Engine-web" />
+      </profile>
+      <profile default="false" name="Annotation profile for API-Engine-ejb" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="API-Engine-ejb" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

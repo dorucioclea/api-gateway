@@ -5,6 +5,7 @@
     <file url="file://$PROJECT_DIR$/.gitignore" charset="ISO-8859-1" />
     <file url="file://$PROJECT_DIR$/API-Engine-ear" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/API-Engine-ejb" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/API-Engine-ejb/src/main/java/com/t1t/digipolis/rest/RestServiceBuilder.java" charset="ISO-8859-1" />
     <file url="file://$PROJECT_DIR$/API-Engine-web" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/API-Engine-web/src/main/java/com/t1t/digipolis/rest/JaxRsActivator.java" charset="ISO-8859-1" />
     <file url="file://$PROJECT_DIR$/API-Engine-web/src/main/java/com/t1t/digipolis/rest/SwaggerJaxrsConfig.java" charset="ISO-8859-1" />

@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "total_requests": {
+      "id": "total_requests",
+      "type": "integer"
+    },
+    "connections_active": {
+      "id": "connections_active",
+      "type": "integer"
+    },
+    "connections_accepted": {
+      "id": "connections_accepted",
+      "type": "integer"
+    },
+    "connections_handled": {
+      "id": "connections_handled",
+      "type": "integer"
+    },
+    "connections_reading": {
+      "id": "connections_reading",
+      "type": "integer"
+    },
+    "connections_writing": {
+      "id": "connections_writing",
+      "type": "integer"
+    },
+    "connections_waiting": {
+      "id": "connections_waiting",
+      "type": "integer"
+    }
+  }
+}
