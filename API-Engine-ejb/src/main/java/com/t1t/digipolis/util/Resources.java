@@ -16,11 +16,14 @@
  */
 package com.t1t.digipolis.util;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import com.t1t.digipolis.rest.KongClient;
+import com.t1t.digipolis.rest.RestServiceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
@@ -32,6 +35,11 @@ import javax.persistence.PersistenceContext;
  * </p>
  */
 public class Resources {
+    /**
+     * REST Service Builder (Retrofit)
+     */
+    @Inject
+    private RestServiceBuilder serviceBuilder;
 
     @Produces
     @PersistenceContext
@@ -41,5 +49,11 @@ public class Resources {
     @APIEngineContext
     public Logger produceLog(InjectionPoint injectionPoint) {
         return LoggerFactory.getLogger(injectionPoint.getMember().getDeclaringClass().getName());
+    }
+
+    @Produces
+    @APIEngineContext
+    public KongClient produceRestClient() {
+        return serviceBuilder.getService(KongClient.class);
     }
 }

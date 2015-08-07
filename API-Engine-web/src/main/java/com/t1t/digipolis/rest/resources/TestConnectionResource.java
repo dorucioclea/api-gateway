@@ -1,5 +1,8 @@
 package com.t1t.digipolis.rest.resources;
 
+import com.google.gson.Gson;
+import com.t1t.digipolis.qualifier.APIEngineContext;
+import com.t1t.digipolis.rest.KongClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -25,6 +28,13 @@ public class TestConnectionResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestConnectionResource.class);
 
+    /**
+     * Retrofit Rest Client
+     */
+    @Inject
+    @APIEngineContext
+    private KongClient restClient;
+
     @ApiOperation(value = "Test the connection",
             notes = "Calling this endpoint will return a version number. It can be used to verify if a correct API-Engine URL was used.")
     @ApiResponses({
@@ -36,6 +46,8 @@ public class TestConnectionResource {
     @GET
     @Produces("text/plain")
     public String testConnection() {
-        return "0.0.1";
+        Gson gson = new Gson();
+        return gson.toJson(restClient.getInfo());
+        //return "0.0.1";
     }
 }

@@ -43,8 +43,8 @@ public class RestServiceBuilder {
 
         //Default converter = Gson convertor
         StringBuilder kongURL = new StringBuilder(config.getString(KongConstants.KONG_SCHEME)).append("://")
-                .append(KongConstants.KONG_URI).append(":")
-                .append(KongConstants.KONG_PORT_MGT).append("/");
+                .append(config.getString(KongConstants.KONG_URI)).append(":")
+                .append(config.getString(KongConstants.KONG_PORT_MGT)).append("/");
 
         restAdapter = new RestAdapter.Builder().setEndpoint(kongURL.toString())
                 .build();//.setRequestInterceptor(requestInterceptor)
