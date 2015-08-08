@@ -15,6 +15,14 @@
       "id": "public_dns",
       "type": "string"
     },
+    "path": {
+      "id": "path",
+      "type": "string"
+    },
+    "strip_path": {
+      "id": "strip_path",
+      "type": "boolean"
+    },
     "target_url": {
       "id": "target_url",
       "type": "string"

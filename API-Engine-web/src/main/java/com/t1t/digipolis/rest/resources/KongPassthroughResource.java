@@ -1,15 +1,13 @@
 package com.t1t.digipolis.rest.resources;
 
-import com.t1t.digipolis.kong.model.KongAPIList;
-import com.t1t.digipolis.kong.model.KongApi;
-import com.t1t.digipolis.kong.model.KongInfo;
-import com.t1t.digipolis.kong.model.KongStatus;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.rest.KongClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import io.swagger.jaxrs.PATCH;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,16 +83,55 @@ public class KongPassthroughResource {
         return Response.status(200).entity(resultApi).type(MediaType.APPLICATION_JSON).build();
     }
 
-    @ApiOperation(value = "Get all APIs",
-            notes = "Get all defined APIs for the Kong gateway")
+    @ApiOperation(value = "Lists all APIs",
+            notes = "Lists all defined APIs for the Kong gateway")
     @ApiResponses({
-            @ApiResponse(code = 200, response = KongAPIList.class, message = "List of API defintions")
+            @ApiResponse(code = 200, response = KongApiList.class, message = "List of API defintions")
     })
     @GET
     @Path("/apis")
     @Produces("application/json")
-    public Response getApi(){
-        KongAPIList apis = restClient.getApiDefinitions();
+    public Response listApis(){
+        KongApiList apis = restClient.listApis();
         return Response.status(200).entity(apis).type(MediaType.APPLICATION_JSON).build();
+    }
+
+    @ApiOperation(value = "Update API",
+            notes = "Update API with given id/name")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = KongApi.class, message = "Updated API definition")
+    })
+    @PATCH
+    @Path("/apis/{id}")
+    @Produces("application/json")
+    public Response updateApi(@PathParam("id")String id, KongApi api){
+        KongApi resultApi = restClient.updateApi(id, api);
+        return Response.status(200).entity(resultApi).type(MediaType.APPLICATION_JSON).build();
+    }
+
+    @ApiOperation(value = "Create or update API",
+            notes = "Creates or updates an existing API")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = KongApi.class, message = "Created or updated API")
+    })
+    @PUT
+    @Path("/apis")
+    @Produces("application/json")
+    public Response createOrUpdateApi(KongApi api){
+        KongApi resultApi = restClient.updateOrCreateApi(api);
+        return Response.status(200).entity(resultApi).type(MediaType.APPLICATION_JSON).build();
+    }
+
+    @ApiOperation(value = "Delete API",
+            notes = "Delete API with given id/name")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "no content")
+    })
+    @DELETE
+    @Path("/apis/{id}")
+    @Produces("application/json")
+    public Response deleteApi(@PathParam("id")String id){
+        restClient.deleteApi(id);
+        return Response.status(204).build();
     }
 }
