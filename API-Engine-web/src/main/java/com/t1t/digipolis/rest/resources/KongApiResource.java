@@ -1,6 +1,9 @@
 package com.t1t.digipolis.rest.resources;
 
-import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongApi;
+import com.t1t.digipolis.kong.model.KongApiList;
+import com.t1t.digipolis.kong.model.KongInfo;
+import com.t1t.digipolis.kong.model.KongStatus;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.rest.KongClient;
 import io.swagger.annotations.Api;
@@ -21,40 +24,15 @@ import javax.ws.rs.core.Response;
  * Created by michallispashidis on 02/08/15.
  */
 @Api(value = "/kong", description = "Test endpoint. Should be used to validate the url.")
-@Path("/kong")
+@Path("/kong/api")
 @RequestScoped
-public class KongPassthroughResource {
+public class KongApiResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(KongPassthroughResource.class);
-
+    private static final Logger LOG = LoggerFactory.getLogger(KongApiResource.class);
     @Inject
     @APIEngineContext
     private KongClient restClient;
 
-    @ApiOperation(value = "Get Kong information",
-            notes = "Direct call to Kong for basic information")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = KongInfo.class, message = "Kong information.")
-    })
-    @GET
-    @Produces("appilcation/json")
-    public Response getInfo() {
-        KongInfo info = restClient.getInfo();
-        return Response.status(200).entity(info).type(MediaType.APPLICATION_JSON).build();
-    }
-
-    @ApiOperation(value = "Get Kong status",
-            notes = "Direct call to Kong for status information")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = KongStatus.class, message = "Kong status.")
-    })
-    @GET
-    @Path("/status")
-    @Produces("application/json")
-    public Response getStatus(){
-        KongStatus stat = restClient.getStatus();
-        return Response.status(200).entity(stat).type(MediaType.APPLICATION_JSON).build();
-    }
 
     @ApiOperation(value = "Get API",
             notes = "Get API based on the API id or name")
@@ -62,7 +40,7 @@ public class KongPassthroughResource {
             @ApiResponse(code = 200, response = KongApi.class, message = "API for the given id/name")
     })
     @GET
-    @Path("/apis/{id}")
+    @Path("/{id}")
     @Produces("application/json")
     public Response getApi(@PathParam("id")String id){
         KongApi api = restClient.getApi(id);
@@ -75,7 +53,7 @@ public class KongPassthroughResource {
             @ApiResponse(code = 200, response = KongApi.class, message = "Persisted API definition")
     })
     @POST
-    @Path("/apis")
+    @Path("/")
     @Consumes("application/json")
     @Produces("application/json")
     public Response addApi(KongApi api){
@@ -89,7 +67,7 @@ public class KongPassthroughResource {
             @ApiResponse(code = 200, response = KongApiList.class, message = "List of API defintions")
     })
     @GET
-    @Path("/apis")
+    @Path("/all")
     @Produces("application/json")
     public Response listApis(){
         KongApiList apis = restClient.listApis();
@@ -102,7 +80,7 @@ public class KongPassthroughResource {
             @ApiResponse(code = 200, response = KongApi.class, message = "Updated API definition")
     })
     @PATCH
-    @Path("/apis/{id}")
+    @Path("/{id}")
     @Produces("application/json")
     public Response updateApi(@PathParam("id")String id, KongApi api){
         KongApi resultApi = restClient.updateApi(id, api);
@@ -115,7 +93,7 @@ public class KongPassthroughResource {
             @ApiResponse(code = 200, response = KongApi.class, message = "Created or updated API")
     })
     @PUT
-    @Path("/apis")
+    @Path("/")
     @Produces("application/json")
     public Response createOrUpdateApi(KongApi api){
         KongApi resultApi = restClient.updateOrCreateApi(api);
@@ -128,7 +106,7 @@ public class KongPassthroughResource {
             @ApiResponse(code = 204, message = "no content")
     })
     @DELETE
-    @Path("/apis/{id}")
+    @Path("/{id}")
     @Produces("application/json")
     public Response deleteApi(@PathParam("id")String id){
         restClient.deleteApi(id);
