@@ -21,7 +21,7 @@
     },
     "created_at": {
       "id": "created_at",
-      "type": "integer"
+      "type": "number"
     }
   }
 }
