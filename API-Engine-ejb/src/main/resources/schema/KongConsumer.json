@@ -15,10 +15,5 @@
       "id": "created_at",
       "type": "integer"
     }
-  },
-  "required": [
-    "id",
-    "custom_id",
-    "created_at"
-  ]
+  }
 }

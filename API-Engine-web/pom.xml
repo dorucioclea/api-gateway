@@ -18,11 +18,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
    <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+    </properties>
 
-   <parent>
+    <parent>
       <artifactId>API-Engine</artifactId>
       <groupId>com.t1t.digipolis</groupId>
-      <version>1.0.0-SNAPSHOT</version>
+      <version>${project.version}</version>
    </parent>
 
    <artifactId>API-Engine-web</artifactId>
@@ -48,28 +51,36 @@
          <type>ejb</type>
          <scope>provided</scope>
       </dependency>
-
       <!-- Import the JAX-RS API, we use provided scope as the API is included in JBoss WildFly -->
       <dependency>
          <groupId>org.jboss.resteasy</groupId>
          <artifactId>jaxrs-api</artifactId>
          <scope>provided</scope>
       </dependency>
-
+       <dependency>
+           <groupId>org.jboss.resteasy</groupId>
+           <artifactId>resteasy-jaxb-provider</artifactId>
+           <version>3.0.11.Final</version>
+           <scope>provided</scope>
+       </dependency>
+       <dependency>
+           <groupId>org.jboss.resteasy</groupId>
+           <artifactId>resteasy-jaxrs</artifactId>
+           <version>3.0.11.Final</version>
+           <scope>provided</scope>
+       </dependency>
       <!-- Import the CDI API, we use provided scope as the API is included in JBoss WildFly -->
       <dependency>
          <groupId>javax.enterprise</groupId>
          <artifactId>cdi-api</artifactId>
          <scope>provided</scope>
       </dependency>
-      
       <!-- Import the JSF API, we use provided scope as the API is included in JBoss WildFly -->
       <dependency>
          <groupId>org.jboss.spec.javax.faces</groupId>
          <artifactId>jboss-jsf-api_2.2_spec</artifactId>
          <scope>provided</scope>
       </dependency>
-
       <!-- Import the JPA API, we use provided scope as the API is included in JBoss WildFly -->
       <dependency>
          <groupId>org.hibernate.javax.persistence</groupId>
@@ -81,12 +92,12 @@
        <dependency>
            <groupId>io.swagger</groupId>
            <artifactId>swagger-jaxrs</artifactId>
-           <version>1.5.0</version>
+           <version>${swagger.version}</version>
        </dependency>
        <dependency>
            <groupId>io.swagger</groupId>
            <artifactId>swagger-core</artifactId>
-           <version>1.5.0</version>
+           <version>${swagger.version}</version>
        </dependency>
 
        <!--Javax.servlet dependency-->
@@ -99,7 +110,7 @@
        <dependency>
            <groupId>javax.servlet</groupId>
            <artifactId>javax.servlet-api</artifactId>
-           <version>3.1.0</version>
+           <version>${javax.servlet-api.version}</version>
            <scope>provided</scope>
        </dependency>
 
@@ -118,7 +129,6 @@
                </exclusion>
            </exclusions>
        </dependency>
-
    </dependencies>
 
    <build>
