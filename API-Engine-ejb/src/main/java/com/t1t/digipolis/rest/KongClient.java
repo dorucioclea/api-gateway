@@ -17,7 +17,7 @@ public interface KongClient {
     @GET("/apis") KongApiList listApis();
     @PATCH("/apis/{id}")KongApi updateApi(@Path("id")String id, @Body KongApi api);
     @PUT("/apis")KongApi updateOrCreateApi(@Body KongApi api);
-    @DELETE("/apis/{id}")void deleteApi(@Path("id")String id);
+    @DELETE("/apis/{id}")Object deleteApi(@Path("id")String id);
 
     /*********************   CONSUMER   ******************/
     @POST("/consumers/") KongConsumer createConsumer(@Body KongConsumer consumer);
@@ -25,7 +25,7 @@ public interface KongClient {
     @GET("/consumers/") KongConsumerList getConsumers();
     @PATCH("/consumers/{id}") KongConsumer updateConsumer(@Path("id")String id,@Body KongConsumer consumer);
     @PUT("/consumers/")KongConsumer updateOrCreateConsumer(@Body KongConsumer consumer);
-    @DELETE("/consumers/{id}")void deleteConsumer(@Path("id")String id);
+    @DELETE("/consumers/{id}")Object deleteConsumer(@Path("id")String id);
 
     /*********************   PLUGINS   *******************/
 }
