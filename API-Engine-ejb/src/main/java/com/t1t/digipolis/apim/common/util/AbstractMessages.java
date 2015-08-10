@@ -56,7 +56,6 @@ public class AbstractMessages {
 
     /**
      * Loads the resource bundle.
-     * @param c
      */
     private ResourceBundle loadBundle() {
         String pkg = clazz.getPackage().getName();
