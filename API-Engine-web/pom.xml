@@ -87,6 +87,16 @@
          <artifactId>hibernate-jpa-2.1-api</artifactId>
          <scope>provided</scope>
       </dependency>
+       <!--REST-->
+       <dependency>
+           <groupId>javax.ws.rs</groupId>
+           <artifactId>javax.ws.rs-api</artifactId>
+       </dependency>
+       <dependency>
+           <groupId>org.jboss.spec.javax.servlet</groupId>
+           <artifactId>jboss-servlet-api_3.0_spec</artifactId>
+           <scope>provided</scope>
+       </dependency>
 
        <!-- REST API documentation via swagger-->
        <dependency>
