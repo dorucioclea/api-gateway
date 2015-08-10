@@ -200,6 +200,7 @@
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
         </dependency>
+
         <!--Picketbox-->
         <dependency>
             <groupId>org.picketbox</groupId>
@@ -207,6 +208,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!--Infinispan-->
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
     <build>

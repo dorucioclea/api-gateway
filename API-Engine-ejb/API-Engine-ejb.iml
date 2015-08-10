@@ -103,5 +103,11 @@
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.2" level="project" />
     <orderEntry type="library" name="Maven: org.mvel:mvel2:2.2.2.Final" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.picketbox:jboss-security-spi:4.0.21.Final" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.infinispan:infinispan-core:6.0.2.Final" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.infinispan:infinispan-commons:6.0.2.Final" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.jgroups:jgroups:3.4.1.Final" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.spec.javax.transaction:jboss-transaction-api_1.1_spec:1.0.1.Final" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.marshalling:jboss-marshalling-river:1.4.4.Final" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.jboss.marshalling:jboss-marshalling:1.4.4.Final" level="project" />
   </component>
 </module>
