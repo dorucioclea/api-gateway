@@ -152,6 +152,17 @@
                <failOnMissingWebXml>false</failOnMissingWebXml>
             </configuration>
          </plugin>
+          <plugin>
+              <groupId>org.apache.felix</groupId>
+              <artifactId>maven-bundle-plugin</artifactId>
+              <extensions>true</extensions>
+              <configuration>
+                  <instructions>
+                      <Export-Package>com.t1t.digipolis.apim.rest.impl*</Export-Package>
+                      <Import-Package>!org.jboss.errai.common.client.api.annotations,!javax.enterprise.context,!javax.enterprise.inject,!javax.inject,*</Import-Package>
+                  </instructions>
+              </configuration>
+          </plugin>
       </plugins>
    </build>
 
