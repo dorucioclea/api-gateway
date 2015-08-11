@@ -1,63 +1,47 @@
-/*
- * Copyright 2014 JBoss Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.t1t.digipolis.apim.rest.impl;
 
-import io.apiman.common.util.AesEncrypter;
-import io.apiman.gateway.engine.beans.ServiceEndpoint;
-import io.apiman.manager.api.beans.BeanUtils;
-import io.apiman.manager.api.beans.apps.*;
-import io.apiman.manager.api.beans.audit.AuditEntryBean;
-import io.apiman.manager.api.beans.audit.data.EntityUpdatedData;
-import io.apiman.manager.api.beans.audit.data.MembershipData;
-import io.apiman.manager.api.beans.contracts.ContractBean;
-import io.apiman.manager.api.beans.contracts.NewContractBean;
-import io.apiman.manager.api.beans.gateways.GatewayBean;
-import io.apiman.manager.api.beans.idm.*;
-import io.apiman.manager.api.beans.members.MemberBean;
-import io.apiman.manager.api.beans.members.MemberRoleBean;
-import io.apiman.manager.api.beans.metrics.*;
-import io.apiman.manager.api.beans.orgs.NewOrganizationBean;
-import io.apiman.manager.api.beans.orgs.OrganizationBean;
-import io.apiman.manager.api.beans.orgs.UpdateOrganizationBean;
-import io.apiman.manager.api.beans.plans.*;
-import io.apiman.manager.api.beans.policies.*;
-import io.apiman.manager.api.beans.search.PagingBean;
-import io.apiman.manager.api.beans.search.SearchCriteriaBean;
-import io.apiman.manager.api.beans.search.SearchCriteriaFilterOperator;
-import io.apiman.manager.api.beans.search.SearchResultsBean;
-import io.apiman.manager.api.beans.services.*;
-import io.apiman.manager.api.beans.summary.*;
-import io.apiman.manager.api.core.*;
-import io.apiman.manager.api.core.exceptions.StorageException;
-import io.apiman.manager.api.core.logging.ApimanLogger;
-import io.apiman.manager.api.core.logging.IApimanLogger;
-import io.apiman.manager.api.core.util.PolicyTemplateUtil;
-import io.apiman.manager.api.gateway.GatewayAuthenticationException;
-import io.apiman.manager.api.gateway.IGatewayLink;
-import io.apiman.manager.api.gateway.IGatewayLinkFactory;
-import io.apiman.manager.api.rest.contract.IOrganizationResource;
-import io.apiman.manager.api.rest.contract.IRoleResource;
-import io.apiman.manager.api.rest.contract.IUserResource;
-import io.apiman.manager.api.rest.contract.exceptions.*;
-import io.apiman.manager.api.rest.impl.audit.AuditUtils;
-import io.apiman.manager.api.rest.impl.i18n.Messages;
-import io.apiman.manager.api.rest.impl.util.ExceptionFactory;
-import io.apiman.manager.api.rest.impl.util.FieldValidator;
-import io.apiman.manager.api.security.ISecurityContext;
+import com.t1t.digipolis.apim.beans.BeanUtils;
+import com.t1t.digipolis.apim.beans.apps.*;
+import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
+import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.members.MemberBean;
+import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
+import com.t1t.digipolis.apim.beans.metrics.*;
+import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
+import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
+import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
+import com.t1t.digipolis.apim.beans.plans.*;
+import com.t1t.digipolis.apim.beans.policies.*;
+import com.t1t.digipolis.apim.beans.search.PagingBean;
+import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
+import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
+import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.*;
+import com.t1t.digipolis.apim.beans.summary.*;
+import com.t1t.digipolis.apim.common.util.AesEncrypter;
+import com.t1t.digipolis.apim.core.*;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.logging.ApimanLogger;
+import com.t1t.digipolis.apim.core.logging.IApimanLogger;
+import com.t1t.digipolis.apim.core.util.PolicyTemplateUtil;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
+import com.t1t.digipolis.apim.gateway.IGatewayLink;
+import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
+import com.t1t.digipolis.apim.rest.impl.audit.AuditUtils;
+import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
+import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.impl.util.FieldValidator;
+import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
+import com.t1t.digipolis.apim.rest.resources.IRoleResource;
+import com.t1t.digipolis.apim.rest.resources.IUserResource;
+import com.t1t.digipolis.apim.rest.resources.exceptions.*;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
@@ -76,8 +60,6 @@ import java.util.Map.Entry;
 
 /**
  * Implementation of the Organization API.
- *
- * @author eric.wittmann@redhat.com
  */
 @RequestScoped
 public class OrganizationResourceImpl implements IOrganizationResource {
@@ -110,8 +92,10 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     @Inject IServiceValidator serviceValidator;
     @Inject IApiKeyGenerator apiKeyGenerator;
 
-    @Inject IUserResource users;
-    @Inject IRoleResource roles;
+    @Inject
+    IUserResource users;
+    @Inject
+    IRoleResource roles;
 
     @Inject ISecurityContext securityContext;
     @Inject IGatewayLinkFactory gatewayLinkFactory;
@@ -127,7 +111,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#create(io.apiman.manager.api.beans.orgs.NewOrganizationBean)
+     * @see IOrganizationResource#create(com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean)
      */
     @Override
     public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException {
@@ -189,7 +173,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#get(String)
+     * @see IOrganizationResource#get(String)
      */
     @Override
     public OrganizationBean get(String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
@@ -212,7 +196,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#update(String, io.apiman.manager.api.beans.orgs.UpdateOrganizationBean)
+     * @see IOrganizationResource#update(String, com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean)
      */
     @Override
     public void update(String organizationId, UpdateOrganizationBean bean)
@@ -245,7 +229,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#activity(String, int, int)
+     * @see IOrganizationResource#activity(String, int, int)
      */
     @Override
     public SearchResultsBean<AuditEntryBean> activity(String organizationId, int page, int pageSize)
@@ -272,7 +256,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createApp(String, io.apiman.manager.api.beans.apps.NewApplicationBean)
+     * @see IOrganizationResource#createApp(String, com.t1t.digipolis.apim.beans.apps.NewApplicationBean)
      */
     @Override
     public ApplicationBean createApp(String organizationId, NewApplicationBean bean)
@@ -324,7 +308,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getApp(String, String)
+     * @see IOrganizationResource#getApp(String, String)
      */
     @Override
     public ApplicationBean getApp(String organizationId, String applicationId)
@@ -348,7 +332,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getAppActivity(String, String, int, int)
+     * @see IOrganizationResource#getAppActivity(String, String, int, int)
      */
     @Override
     public SearchResultsBean<AuditEntryBean> getAppActivity(String organizationId, String applicationId,
@@ -375,7 +359,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listApps(String)
+     * @see IOrganizationResource#listApps(String)
      */
     @Override
     public List<ApplicationSummaryBean> listApps(String organizationId) throws OrganizationNotFoundException,
@@ -390,7 +374,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#updateApp(String, String, io.apiman.manager.api.beans.apps.UpdateApplicationBean)
+     * @see IOrganizationResource#updateApp(String, String, com.t1t.digipolis.apim.beans.apps.UpdateApplicationBean)
      */
     @Override
     public void updateApp(String organizationId, String applicationId, UpdateApplicationBean bean)
@@ -422,7 +406,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createAppVersion(String, String, io.apiman.manager.api.beans.apps.NewApplicationVersionBean)
+     * @see IOrganizationResource#createAppVersion(String, String, com.t1t.digipolis.apim.beans.apps.NewApplicationVersionBean)
      */
     @Override
     public ApplicationVersionBean createAppVersion(String organizationId, String applicationId,
@@ -510,7 +494,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getAppVersion(String, String, String)
+     * @see IOrganizationResource#getAppVersion(String, String, String)
      */
     @Override
     public ApplicationVersionBean getAppVersion(String organizationId, String applicationId, String version)
@@ -534,7 +518,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getAppVersionActivity(String, String, String, int, int)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getAppVersionActivity(String, String, String, int, int)
      */
     @Override
     public SearchResultsBean<AuditEntryBean> getAppVersionActivity(String organizationId,
@@ -562,7 +546,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getAppUsagePerService(String, String, String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getAppUsagePerService(String, String, String, String, String)
      */
     @Override
     public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId,
@@ -578,7 +562,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listAppVersions(String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listAppVersions(String, String)
      */
     @Override
     public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId)
@@ -594,7 +578,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createContract(String, String, String, io.apiman.manager.api.beans.contracts.NewContractBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createContract(String, String, String, com.t1t.digipolis.apim.beans.contracts.NewContractBean)
      */
     @Override
     public ContractBean createContract(String organizationId, String applicationId, String version,
@@ -728,7 +712,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getContract(String, String, String, Long)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getContract(String, String, String, Long)
      */
     @Override
     public ContractBean getContract(String organizationId, String applicationId, String version,
@@ -759,7 +743,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#deleteAllContracts(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deleteAllContracts(String, String, String)
      */
     @Override
     public void deleteAllContracts(String organizationId, String applicationId, String version)
@@ -773,7 +757,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#deleteContract(String, String, String, Long)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deleteContract(String, String, String, Long)
      */
     @Override
     public void deleteContract(String organizationId, String applicationId, String version, Long contractId)
@@ -811,7 +795,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getApplicationVersionContracts(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getApplicationVersionContracts(String, String, String)
      */
     @Override
     public List<ContractSummaryBean> getApplicationVersionContracts(String organizationId, String applicationId, String version)
@@ -841,7 +825,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getApiRegistryJSON(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getApiRegistryJSON(String, String, String)
      */
     @Override
     public ApiRegistryBean getApiRegistryJSON(String organizationId, String applicationId, String version)
@@ -850,7 +834,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getApiRegistryXML(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getApiRegistryXML(String, String, String)
      */
     @Override
     public ApiRegistryBean getApiRegistryXML(String organizationId, String applicationId, String version)
@@ -924,7 +908,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createAppPolicy(String, String, String, io.apiman.manager.api.beans.policies.NewPolicyBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createAppPolicy(String, String, String, com.t1t.digipolis.apim.beans.policies.NewPolicyBean)
      */
     @Override
     public PolicyBean createAppPolicy(String organizationId, String applicationId, String version,
@@ -943,7 +927,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getAppPolicy(String, String, String, long)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getAppPolicy(String, String, String, long)
      */
     @Override
     public PolicyBean getAppPolicy(String organizationId, String applicationId, String version, long policyId)
@@ -963,7 +947,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#updateAppPolicy(String, String, String, long, io.apiman.manager.api.beans.policies.UpdatePolicyBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updateAppPolicy(String, String, String, long, com.t1t.digipolis.apim.beans.policies.UpdatePolicyBean)
      */
     @Override
     public void updateAppPolicy(String organizationId, String applicationId, String version,
@@ -1000,7 +984,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#deleteAppPolicy(String, String, String, long)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deleteAppPolicy(String, String, String, long)
      */
     @Override
     public void deleteAppPolicy(String organizationId, String applicationId, String version, long policyId)
@@ -1034,7 +1018,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listAppPolicies(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listAppPolicies(String, String, String)
      */
     @Override
     public List<PolicySummaryBean> listAppPolicies(String organizationId, String applicationId, String version)
@@ -1050,7 +1034,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#reorderApplicationPolicies(String, String, String, io.apiman.manager.api.beans.policies.PolicyChainBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#reorderApplicationPolicies(String, String, String, com.t1t.digipolis.apim.beans.policies.PolicyChainBean)
      */
     @Override
     public void reorderApplicationPolicies(String organizationId, String applicationId, String version,
@@ -1081,7 +1065,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createService(String, io.apiman.manager.api.beans.services.NewServiceBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createService(String, com.t1t.digipolis.apim.beans.services.NewServiceBean)
      */
     @Override
     public ServiceBean createService(String organizationId, NewServiceBean bean)
@@ -1131,7 +1115,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getService(String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getService(String, String)
      */
     @Override
     public ServiceBean getService(String organizationId, String serviceId)
@@ -1154,7 +1138,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getServiceActivity(String, String, int, int)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceActivity(String, String, int, int)
      */
     @Override
     public SearchResultsBean<AuditEntryBean> getServiceActivity(String organizationId, String serviceId,
@@ -1178,7 +1162,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listServices(String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listServices(String)
      */
     @Override
     public List<ServiceSummaryBean> listServices(String organizationId) throws OrganizationNotFoundException,
@@ -1194,7 +1178,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#updateService(String, String, io.apiman.manager.api.beans.services.UpdateServiceBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updateService(String, String, com.t1t.digipolis.apim.beans.services.UpdateServiceBean)
      */
     @Override
     public void updateService(String organizationId, String serviceId, UpdateServiceBean bean)
@@ -1225,7 +1209,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createServiceVersion(String, String, io.apiman.manager.api.beans.services.NewServiceVersionBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createServiceVersion(String, String, com.t1t.digipolis.apim.beans.services.NewServiceVersionBean)
      */
     @Override
     public ServiceVersionBean createServiceVersion(String organizationId, String serviceId,
@@ -1365,7 +1349,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getServiceVersion(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersion(String, String, String)
      */
     @Override
     public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version)
@@ -1393,7 +1377,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getServiceDefinition(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceDefinition(String, String, String)
      */
     @Override
     public Response getServiceDefinition(String organizationId, String serviceId, String version)
@@ -1433,7 +1417,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getServiceVersionEndpointInfo(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersionEndpointInfo(String, String, String)
      */
     @Override
     public ServiceVersionEndpointSummaryBean getServiceVersionEndpointInfo(String organizationId,
@@ -1473,7 +1457,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getServiceVersionActivity(String, String, String, int, int)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersionActivity(String, String, String, int, int)
      */
     @Override
     public SearchResultsBean<AuditEntryBean> getServiceVersionActivity(String organizationId,
@@ -1498,7 +1482,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#updateServiceVersion(String, String, String, io.apiman.manager.api.beans.services.UpdateServiceVersionBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updateServiceVersion(String, String, String, com.t1t.digipolis.apim.beans.services.UpdateServiceVersionBean)
      */
     @Override
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version,
@@ -1612,7 +1596,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#updateServiceDefinition(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updateServiceDefinition(String, String, String)
      */
     @Override
     public void updateServiceDefinition(String organizationId, String serviceId, String version)
@@ -1642,7 +1626,6 @@ public class OrganizationResourceImpl implements IOrganizationResource {
      * @param organizationId
      * @param serviceId
      * @param version
-     * @param contentType
      * @param data
      */
     protected void storeServiceDefinition(String organizationId, String serviceId, String version,
@@ -1673,7 +1656,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listServiceVersions(String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listServiceVersions(String, String)
      */
     @Override
     public List<ServiceVersionSummaryBean> listServiceVersions(String organizationId, String serviceId)
@@ -1689,7 +1672,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getServiceVersionPlans(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersionPlans(String, String, String)
      */
     @Override
     public List<ServicePlanSummaryBean> getServiceVersionPlans(String organizationId, String serviceId,
@@ -1705,7 +1688,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createServicePolicy(String, String, String, io.apiman.manager.api.beans.policies.NewPolicyBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createServicePolicy(String, String, String, com.t1t.digipolis.apim.beans.policies.NewPolicyBean)
      */
     @Override
     public PolicyBean createServicePolicy(String organizationId, String serviceId, String version,
@@ -1725,7 +1708,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getServicePolicy(String, String, String, long)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServicePolicy(String, String, String, long)
      */
     @Override
     public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId)
@@ -1745,8 +1728,8 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#updateServicePolicy(String,
-     *      String, String, long, io.apiman.manager.api.beans.policies.UpdatePolicyBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updateServicePolicy(String,
+     *      String, String, long, com.t1t.digipolis.apim.beans.policies.UpdatePolicyBean)
      */
     @Override
     public void updateServicePolicy(String organizationId, String serviceId, String version,
@@ -1784,7 +1767,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#deleteServicePolicy(String, String, String, long)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deleteServicePolicy(String, String, String, long)
      */
     @Override
     public void deleteServicePolicy(String organizationId, String serviceId, String version, long policyId)
@@ -1819,7 +1802,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#deleteServiceDefinition(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deleteServiceDefinition(String, String, String)
      */
     @Override
     public void deleteServiceDefinition(String organizationId, String serviceId, String version)
@@ -1848,7 +1831,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listServicePolicies(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listServicePolicies(String, String, String)
      */
     @Override
     public List<PolicySummaryBean> listServicePolicies(String organizationId, String serviceId, String version)
@@ -1864,7 +1847,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#reorderServicePolicies(String, String, String, io.apiman.manager.api.beans.policies.PolicyChainBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#reorderServicePolicies(String, String, String, com.t1t.digipolis.apim.beans.policies.PolicyChainBean)
      */
     @Override
     public void reorderServicePolicies(String organizationId, String serviceId, String version,
@@ -1895,7 +1878,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getServicePolicyChain(String, String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServicePolicyChain(String, String, String, String)
      */
     @Override
     public PolicyChainBean getServicePolicyChain(String organizationId, String serviceId, String version,
@@ -1930,7 +1913,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getServiceVersionContracts(String, String, String, int, int)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersionContracts(String, String, String, int, int)
      */
     @Override
     public List<ContractSummaryBean> getServiceVersionContracts(String organizationId,
@@ -1963,7 +1946,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getUsage(String, String, String, io.apiman.manager.api.beans.metrics.HistogramIntervalType, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getUsage(String, String, String, com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType, String, String)
      */
     @Override
     public UsageHistogramBean getUsage(String organizationId, String serviceId, String version,
@@ -1982,7 +1965,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getUsagePerApp(String, String, String, Date, Date)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getUsagePerApp(String, String, String, String, String)
      */
     @Override
     public UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version,
@@ -1997,7 +1980,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getUsagePerPlan(String, String, String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getUsagePerPlan(String, String, String, String, String)
      */
     @Override
     public UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version,
@@ -2012,7 +1995,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getResponseStats(String, String, String, io.apiman.manager.api.beans.metrics.HistogramIntervalType, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getResponseStats(String, String, String, com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType, String, String)
      */
     @Override
     public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId,
@@ -2032,7 +2015,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getResponseStatsSummary(String, String, String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getResponseStatsSummary(String, String, String, String, String)
      */
     @Override
     public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId,
@@ -2048,7 +2031,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getResponseStatsPerApp(String, String, String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getResponseStatsPerApp(String, String, String, String, String)
      */
     @Override
     public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId,
@@ -2064,7 +2047,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getResponseStatsPerPlan(String, String, String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getResponseStatsPerPlan(String, String, String, String, String)
      */
     @Override
     public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId,
@@ -2080,8 +2063,8 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createPlan(String,
-     *      io.apiman.manager.api.beans.plans.NewPlanBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createPlan(String,
+     *      com.t1t.digipolis.apim.beans.plans.NewPlanBean)
      */
     @Override
     public PlanBean createPlan(String organizationId, NewPlanBean bean) throws OrganizationNotFoundException,
@@ -2129,7 +2112,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getPlan(String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlan(String, String)
      */
     @Override
     public PlanBean getPlan(String organizationId, String planId)
@@ -2153,7 +2136,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getPlanActivity(String, String, int, int)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlanActivity(String, String, int, int)
      */
     @Override
     public SearchResultsBean<AuditEntryBean> getPlanActivity(String organizationId, String planId, int page, int pageSize)
@@ -2177,7 +2160,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listPlans(String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listPlans(String)
      */
     @Override
     public List<PlanSummaryBean> listPlans(String organizationId) throws OrganizationNotFoundException,
@@ -2192,8 +2175,8 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#updatePlan(String,
-     * String, io.apiman.manager.api.beans.plans.UpdatePlanBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updatePlan(String,
+     * String, com.t1t.digipolis.apim.beans.plans.UpdatePlanBean)
      */
     @Override
     public void updatePlan(String organizationId, String planId, UpdatePlanBean bean)
@@ -2225,8 +2208,8 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createPlanVersion(String,
-     *      String, io.apiman.manager.api.beans.plans.NewPlanVersionBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createPlanVersion(String,
+     *      String, com.t1t.digipolis.apim.beans.plans.NewPlanVersionBean)
      */
     @Override
     public PlanVersionBean createPlanVersion(String organizationId, String planId, NewPlanVersionBean bean)
@@ -2303,7 +2286,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getPlanVersion(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlanVersion(String, String, String)
      */
     @Override
     public PlanVersionBean getPlanVersion(String organizationId, String planId, String version)
@@ -2327,7 +2310,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getPlanVersionActivity(String, String, String, int, int)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlanVersionActivity(String, String, String, int, int)
      */
     @Override
     public SearchResultsBean<AuditEntryBean> getPlanVersionActivity(String organizationId, String planId,
@@ -2352,7 +2335,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listPlanVersions(String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listPlanVersions(String, String)
      */
     @Override
     public List<PlanVersionSummaryBean> listPlanVersions(String organizationId, String planId)
@@ -2368,8 +2351,8 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#createPlanPolicy(String,
-     *      String, String, io.apiman.manager.api.beans.policies.NewPolicyBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createPlanPolicy(String,
+     *      String, String, com.t1t.digipolis.apim.beans.policies.NewPolicyBean)
      */
     @Override
     public PolicyBean createPlanPolicy(String organizationId, String planId, String version,
@@ -2389,7 +2372,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#getPlanPolicy(String, String, String, long)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlanPolicy(String, String, String, long)
      */
     @Override
     public PolicyBean getPlanPolicy(String organizationId, String planId, String version, long policyId)
@@ -2411,8 +2394,8 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#updatePlanPolicy(String,
-     *      String, String, long, io.apiman.manager.api.beans.policies.UpdatePolicyBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updatePlanPolicy(String,
+     *      String, String, long, com.t1t.digipolis.apim.beans.policies.UpdatePolicyBean)
      */
     @Override
     public void updatePlanPolicy(String organizationId, String planId, String version,
@@ -2450,7 +2433,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#deletePlanPolicy(String, String, String, long)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deletePlanPolicy(String, String, String, long)
      */
     @Override
     public void deletePlanPolicy(String organizationId, String planId, String version, long policyId)
@@ -2485,7 +2468,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listPlanPolicies(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listPlanPolicies(String, String, String)
      */
     @Override
     public List<PolicySummaryBean> listPlanPolicies(String organizationId, String planId, String version)
@@ -2501,7 +2484,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#reorderPlanPolicies(String, String, String, io.apiman.manager.api.beans.policies.PolicyChainBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#reorderPlanPolicies(String, String, String, com.t1t.digipolis.apim.beans.policies.PolicyChainBean)
      */
     @Override
     public void reorderPlanPolicies(String organizationId, String planId, String version,
@@ -2606,7 +2589,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#grant(String, io.apiman.manager.api.beans.idm.GrantRolesBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#grant(String, com.t1t.digipolis.apim.beans.idm.GrantRolesBean)
      */
     @Override
     public void grant(String organizationId, GrantRolesBean bean) throws OrganizationNotFoundException,
@@ -2649,7 +2632,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#revoke(String, String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#revoke(String, String, String)
      */
     @Override
     public void revoke(String organizationId, String roleId, String userId)
@@ -2689,7 +2672,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#revokeAll(String, String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#revokeAll(String, String)
      */
     @Override
     public void revokeAll(String organizationId, String userId) throws OrganizationNotFoundException,
@@ -2722,7 +2705,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IOrganizationResource#listMembers(String)
+     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listMembers(String)
      */
     @Override
     public List<MemberBean> listMembers(String organizationId) throws OrganizationNotFoundException,
@@ -2993,7 +2976,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
 
     /**
      * Parse the from date query param.
-     * @param fromDate
+     * @param toDate
      */
     private DateTime parseToDate(String toDate) {
         // Default to now

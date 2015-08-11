@@ -1,33 +1,15 @@
-/*
- * Copyright 2014 JBoss Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.t1t.digipolis.apim.rest.impl;
 
-import io.apiman.manager.api.beans.system.SystemStatusBean;
-import io.apiman.manager.api.config.Version;
-import io.apiman.manager.api.core.IStorage;
-import io.apiman.manager.api.rest.contract.ISystemResource;
+import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
+import com.t1t.digipolis.apim.config.Version;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.rest.resources.ISystemResource;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 /**
  * Implementation of the System API.
- *
- * @author eric.wittmann@redhat.com
  */
 @ApplicationScoped
 public class SystemResourceImpl implements ISystemResource {
@@ -44,15 +26,15 @@ public class SystemResourceImpl implements ISystemResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.ISystemResource#getStatus()
+     * @see ISystemResource#getStatus()
      */
     @Override
     public SystemStatusBean getStatus() {
         SystemStatusBean rval = new SystemStatusBean();
-        rval.setId("apiman-manager-api"); //$NON-NLS-1$
+        rval.setId("apim-manager-api"); //$NON-NLS-1$
         rval.setName("API Manager REST API"); //$NON-NLS-1$
-        rval.setDescription("The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any apiman task you wish.  For example, create new Organizations, Plans, Applications, and Services."); //$NON-NLS-1$
-        rval.setMoreInfo("http://www.apiman.io/latest/api-manager-restdocs.html"); //$NON-NLS-1$
+        rval.setDescription("The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services."); //$NON-NLS-1$
+        rval.setMoreInfo("http://www.trust1team.com"); //$NON-NLS-1$
         rval.setUp(getStorage() != null);
         if (getVersion() != null) {
             rval.setVersion(getVersion().getVersionString());

@@ -1,5 +1,25 @@
 package com.t1t.digipolis.apim.rest.impl;
 
+import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.search.PagingBean;
+import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
+import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
+import com.t1t.digipolis.apim.core.IIdmStorage;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IUserResource;
+import com.t1t.digipolis.apim.rest.resources.exceptions.InvalidSearchCriteriaException;
+import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
+import com.t1t.digipolis.apim.rest.resources.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.rest.resources.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.security.ISecurityContext;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.HashSet;
@@ -29,7 +49,7 @@ public class UserResourceImpl implements IUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IUserResource#get(String)
+     * @see IUserResource#get(String)
      */
     @Override
     public UserBean get(String userId) throws UserNotFoundException {
@@ -45,7 +65,7 @@ public class UserResourceImpl implements IUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IUserResource#update(String, io.apiman.manager.api.beans.idm.UpdateUserBean)
+     * @see IUserResource#update(String, UpdateUserBean)
      */
     @Override
     public void update(String userId, UpdateUserBean user) throws UserNotFoundException, NotAuthorizedException {
@@ -69,7 +89,7 @@ public class UserResourceImpl implements IUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IUserResource#search(io.apiman.manager.api.beans.search.SearchCriteriaBean)
+     * @see IUserResource#search(SearchCriteriaBean)
      */
     @Override
     public SearchResultsBean<UserBean> search(SearchCriteriaBean criteria)
@@ -82,7 +102,7 @@ public class UserResourceImpl implements IUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IUserResource#getOrganizations(String)
+     * @see IUserResource#getOrganizations(String)
      */
     @Override
     public List<OrganizationSummaryBean> getOrganizations(String userId) {
@@ -99,7 +119,7 @@ public class UserResourceImpl implements IUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IUserResource#getApplications(String)
+     * @see IUserResource#getApplications(String)
      */
     @Override
     public List<ApplicationSummaryBean> getApplications(String userId) {
@@ -118,7 +138,7 @@ public class UserResourceImpl implements IUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IUserResource#getServices(String)
+     * @see IUserResource#getServices(String)
      */
     @Override
     public List<ServiceSummaryBean> getServices(String userId) {
@@ -138,7 +158,7 @@ public class UserResourceImpl implements IUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IUserResource#getActivity(String, int, int)
+     * @see IUserResource#getActivity(String, int, int)
      */
     @Override
     public SearchResultsBean<AuditEntryBean> getActivity(String userId, int page, int pageSize) {

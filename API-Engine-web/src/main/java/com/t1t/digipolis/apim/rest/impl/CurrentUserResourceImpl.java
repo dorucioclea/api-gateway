@@ -1,33 +1,17 @@
-/*
- * Copyright 2014 JBoss Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.t1t.digipolis.apim.rest.impl;
 
-import io.apiman.manager.api.beans.idm.*;
-import io.apiman.manager.api.beans.summary.ApplicationSummaryBean;
-import io.apiman.manager.api.beans.summary.OrganizationSummaryBean;
-import io.apiman.manager.api.beans.summary.ServiceSummaryBean;
-import io.apiman.manager.api.core.IIdmStorage;
-import io.apiman.manager.api.core.IStorageQuery;
-import io.apiman.manager.api.core.exceptions.StorageException;
-import io.apiman.manager.api.core.logging.ApimanLogger;
-import io.apiman.manager.api.core.logging.IApimanLogger;
-import io.apiman.manager.api.rest.contract.ICurrentUserResource;
-import io.apiman.manager.api.rest.contract.exceptions.SystemErrorException;
-import io.apiman.manager.api.security.ISecurityContext;
+import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
+import com.t1t.digipolis.apim.core.IIdmStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.logging.ApimanLogger;
+import com.t1t.digipolis.apim.core.logging.IApimanLogger;
+import com.t1t.digipolis.apim.rest.resources.ICurrentUserResource;
+import com.t1t.digipolis.apim.rest.resources.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -38,8 +22,6 @@ import java.util.Set;
 
 /**
  * Implementation of the Current User API.
- *
- * @author eric.wittmann@redhat.com
  */
 @ApplicationScoped
 public class CurrentUserResourceImpl implements ICurrentUserResource {
@@ -61,7 +43,7 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.ICurrentUserResource#getInfo()
+     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getInfo()
      */
     @Override
     public CurrentUserBean getInfo() {
@@ -106,7 +88,7 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.ICurrentUserResource#updateInfo(io.apiman.manager.api.beans.idm.UpdateUserBean)
+     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#updateInfo(com.t1t.digipolis.apim.beans.idm.UpdateUserBean)
      */
     @Override
     public void updateInfo(UpdateUserBean info) {
@@ -130,7 +112,7 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.ICurrentUserResource#getAppOrganizations()
+     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getAppOrganizations()
      */
     @Override
     public List<OrganizationSummaryBean> getAppOrganizations() {
@@ -143,7 +125,7 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.ICurrentUserResource#getPlanOrganizations()
+     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getPlanOrganizations()
      */
     @Override
     public List<OrganizationSummaryBean> getPlanOrganizations() {
@@ -156,7 +138,7 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.ICurrentUserResource#getServiceOrganizations()
+     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getServiceOrganizations()
      */
     @Override
     public List<OrganizationSummaryBean> getServiceOrganizations() {
@@ -169,7 +151,7 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.ICurrentUserResource#getApplications()
+     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getApplications()
      */
     @Override
     public List<ApplicationSummaryBean> getApplications() {
@@ -182,7 +164,7 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.ICurrentUserResource#getServices()
+     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getServices()
      */
     @Override
     public List<ServiceSummaryBean> getServices() {

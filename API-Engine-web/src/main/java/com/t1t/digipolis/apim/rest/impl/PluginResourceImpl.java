@@ -1,43 +1,27 @@
-/*
- * Copyright 2014 JBoss Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.t1t.digipolis.apim.rest.impl;
 
-import io.apiman.common.plugin.Plugin;
-import io.apiman.common.plugin.PluginClassLoader;
-import io.apiman.common.plugin.PluginCoordinates;
-import io.apiman.manager.api.beans.BeanUtils;
-import io.apiman.manager.api.beans.plugins.NewPluginBean;
-import io.apiman.manager.api.beans.plugins.PluginBean;
-import io.apiman.manager.api.beans.policies.PolicyDefinitionBean;
-import io.apiman.manager.api.beans.summary.PluginSummaryBean;
-import io.apiman.manager.api.beans.summary.PolicyDefinitionSummaryBean;
-import io.apiman.manager.api.beans.summary.PolicyFormType;
-import io.apiman.manager.api.core.IPluginRegistry;
-import io.apiman.manager.api.core.IStorage;
-import io.apiman.manager.api.core.IStorageQuery;
-import io.apiman.manager.api.core.exceptions.InvalidPluginException;
-import io.apiman.manager.api.core.exceptions.StorageException;
-import io.apiman.manager.api.core.logging.ApimanLogger;
-import io.apiman.manager.api.core.logging.IApimanLogger;
-import io.apiman.manager.api.rest.contract.IPluginResource;
-import io.apiman.manager.api.rest.contract.exceptions.*;
-import io.apiman.manager.api.rest.impl.i18n.Messages;
-import io.apiman.manager.api.rest.impl.util.ExceptionFactory;
-import io.apiman.manager.api.security.ISecurityContext;
+import com.t1t.digipolis.apim.common.plugin.Plugin;
+import com.t1t.digipolis.apim.common.plugin.PluginClassLoader;
+import com.t1t.digipolis.apim.common.plugin.PluginCoordinates;
+import com.t1t.digipolis.apim.beans.BeanUtils;
+import com.t1t.digipolis.apim.beans.plugins.NewPluginBean;
+import com.t1t.digipolis.apim.beans.plugins.PluginBean;
+import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
+import com.t1t.digipolis.apim.beans.summary.PluginSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.PolicyDefinitionSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.PolicyFormType;
+import com.t1t.digipolis.apim.core.IPluginRegistry;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.InvalidPluginException;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.logging.ApimanLogger;
+import com.t1t.digipolis.apim.core.logging.IApimanLogger;
+import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
+import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IPluginResource;
+import com.t1t.digipolis.apim.rest.resources.exceptions.*;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -51,8 +35,6 @@ import java.util.List;
 
 /**
  * Implementation of the Plugin API.
- *
- * @author eric.wittmann@redhat.com
  */
 @ApplicationScoped
 public class PluginResourceImpl implements IPluginResource {
@@ -74,7 +56,7 @@ public class PluginResourceImpl implements IPluginResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPluginResource#list()
+     * @see IPluginResource#list()
      */
     @Override
     public List<PluginSummaryBean> list() throws NotAuthorizedException {
@@ -86,7 +68,7 @@ public class PluginResourceImpl implements IPluginResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPluginResource#create(io.apiman.manager.api.beans.plugins.NewPluginBean)
+     * @see IPluginResource#create(com.t1t.digipolis.apim.beans.plugins.NewPluginBean)
      */
     @Override
     public PluginBean create(NewPluginBean bean) throws PluginAlreadyExistsException, PluginNotFoundException {
@@ -160,7 +142,7 @@ public class PluginResourceImpl implements IPluginResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPluginResource#get(Long)
+     * @see IPluginResource#get(Long)
      */
     @Override
     public PluginBean get(Long pluginId) throws PluginNotFoundException, NotAuthorizedException {
@@ -184,7 +166,7 @@ public class PluginResourceImpl implements IPluginResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPluginResource#delete(Long)
+     * @see IPluginResource#delete(Long)
      */
     @Override
     public void delete(Long pluginId) throws PluginNotFoundException,
@@ -211,7 +193,7 @@ public class PluginResourceImpl implements IPluginResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPluginResource#getPolicyDefs(Long)
+     * @see IPluginResource#getPolicyDefs(Long)
      */
     @Override
     public List<PolicyDefinitionSummaryBean> getPolicyDefs(Long pluginId) throws PluginNotFoundException {
@@ -224,7 +206,7 @@ public class PluginResourceImpl implements IPluginResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPluginResource#getPolicyForm(Long, String)
+     * @see IPluginResource#getPolicyForm(Long, String)
      */
     @Override
     public String getPolicyForm(Long pluginId, String policyDefId) throws PluginNotFoundException,

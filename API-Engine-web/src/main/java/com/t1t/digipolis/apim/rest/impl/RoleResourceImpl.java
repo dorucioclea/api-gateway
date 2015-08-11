@@ -1,34 +1,18 @@
-/*
- * Copyright 2014 JBoss Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.t1t.digipolis.apim.rest.impl;
 
-import io.apiman.manager.api.beans.BeanUtils;
-import io.apiman.manager.api.beans.idm.NewRoleBean;
-import io.apiman.manager.api.beans.idm.RoleBean;
-import io.apiman.manager.api.beans.idm.UpdateRoleBean;
-import io.apiman.manager.api.beans.search.SearchCriteriaBean;
-import io.apiman.manager.api.beans.search.SearchResultsBean;
-import io.apiman.manager.api.core.IIdmStorage;
-import io.apiman.manager.api.core.exceptions.StorageException;
-import io.apiman.manager.api.rest.contract.IRoleResource;
-import io.apiman.manager.api.rest.contract.exceptions.*;
-import io.apiman.manager.api.rest.impl.util.ExceptionFactory;
-import io.apiman.manager.api.rest.impl.util.SearchCriteriaUtil;
-import io.apiman.manager.api.security.ISecurityContext;
+import com.t1t.digipolis.apim.beans.BeanUtils;
+import com.t1t.digipolis.apim.beans.idm.NewRoleBean;
+import com.t1t.digipolis.apim.beans.idm.RoleBean;
+import com.t1t.digipolis.apim.beans.idm.UpdateRoleBean;
+import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
+import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.core.IIdmStorage;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
+import com.t1t.digipolis.apim.rest.resources.IRoleResource;
+import com.t1t.digipolis.apim.rest.resources.exceptions.*;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -37,8 +21,6 @@ import java.util.List;
 
 /**
  * Implementation of the Role API.
- * 
- * @author eric.wittmann@redhat.com
  */
 @ApplicationScoped
 public class RoleResourceImpl implements IRoleResource {
@@ -55,7 +37,7 @@ public class RoleResourceImpl implements IRoleResource {
     }
     
     /**
-     * @see io.apiman.manager.api.rest.contract.IRoleResource#create(io.apiman.manager.api.beans.idm.NewRoleBean)
+     * @see IRoleResource#create(NewRoleBean)
      */
     @Override
     public RoleBean create(NewRoleBean bean) throws RoleAlreadyExistsException, NotAuthorizedException {
@@ -82,7 +64,7 @@ public class RoleResourceImpl implements IRoleResource {
     }
     
     /**
-     * @see io.apiman.manager.api.rest.contract.IRoleResource#get(String)
+     * @see IRoleResource#get(String)
      */
     @Override
     public RoleBean get(String roleId) throws RoleNotFoundException, NotAuthorizedException {
@@ -98,7 +80,7 @@ public class RoleResourceImpl implements IRoleResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IRoleResource#update(String, io.apiman.manager.api.beans.idm.UpdateRoleBean)
+     * @see IRoleResource#update(String, UpdateRoleBean)
      */
     @Override
     public void update(String roleId, UpdateRoleBean bean) throws RoleNotFoundException, NotAuthorizedException {
@@ -129,7 +111,7 @@ public class RoleResourceImpl implements IRoleResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IRoleResource#delete(String)
+     * @see IRoleResource#delete(String)
      */
     @Override
     public void delete(String roleId) throws RoleNotFoundException, NotAuthorizedException {
@@ -144,7 +126,7 @@ public class RoleResourceImpl implements IRoleResource {
     }
     
     /**
-     * @see io.apiman.manager.api.rest.contract.IRoleResource#list()
+     * @see IRoleResource#list()
      */
     @Override
     public List<RoleBean> list() throws NotAuthorizedException {
@@ -158,7 +140,7 @@ public class RoleResourceImpl implements IRoleResource {
     }
     
     /**
-     * @see io.apiman.manager.api.rest.contract.IRoleResource#search(io.apiman.manager.api.beans.search.SearchCriteriaBean)
+     * @see IRoleResource#search(SearchCriteriaBean)
      */
     @Override
     public SearchResultsBean<RoleBean> search(SearchCriteriaBean criteria)

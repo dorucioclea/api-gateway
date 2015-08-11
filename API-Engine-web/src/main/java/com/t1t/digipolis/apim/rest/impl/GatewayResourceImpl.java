@@ -1,40 +1,24 @@
-/*
- * Copyright 2014 JBoss Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.t1t.digipolis.apim.rest.impl;
 
-import io.apiman.common.util.AesEncrypter;
-import io.apiman.gateway.engine.beans.SystemStatus;
-import io.apiman.manager.api.beans.BeanUtils;
-import io.apiman.manager.api.beans.gateways.*;
-import io.apiman.manager.api.beans.summary.GatewaySummaryBean;
-import io.apiman.manager.api.beans.summary.GatewayTestResultBean;
-import io.apiman.manager.api.core.IStorage;
-import io.apiman.manager.api.core.IStorageQuery;
-import io.apiman.manager.api.core.exceptions.StorageException;
-import io.apiman.manager.api.core.logging.ApimanLogger;
-import io.apiman.manager.api.core.logging.IApimanLogger;
-import io.apiman.manager.api.gateway.GatewayAuthenticationException;
-import io.apiman.manager.api.gateway.IGatewayLink;
-import io.apiman.manager.api.gateway.IGatewayLinkFactory;
-import io.apiman.manager.api.rest.contract.IGatewayResource;
-import io.apiman.manager.api.rest.contract.exceptions.*;
-import io.apiman.manager.api.rest.impl.i18n.Messages;
-import io.apiman.manager.api.rest.impl.util.ExceptionFactory;
-import io.apiman.manager.api.security.ISecurityContext;
+import com.t1t.digipolis.apim.beans.BeanUtils;
+import com.t1t.digipolis.apim.beans.gateways.*;
+import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
+import com.t1t.digipolis.apim.beans.summary.GatewayTestResultBean;
+import com.t1t.digipolis.apim.common.util.AesEncrypter;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.logging.ApimanLogger;
+import com.t1t.digipolis.apim.core.logging.IApimanLogger;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
+import com.t1t.digipolis.apim.gateway.IGatewayLink;
+import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
+import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
+import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IGatewayResource;
+import com.t1t.digipolis.apim.rest.resources.exceptions.*;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -44,8 +28,6 @@ import java.util.List;
 
 /**
  * Implementation of the Gateway API.
- *
- * @author eric.wittmann@redhat.com
  */
 @ApplicationScoped
 public class GatewayResourceImpl implements IGatewayResource {
@@ -65,7 +47,7 @@ public class GatewayResourceImpl implements IGatewayResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IGatewayResource#test(io.apiman.manager.api.beans.gateways.NewGatewayBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IGatewayResource#test(com.t1t.digipolis.apim.beans.gateways.NewGatewayBean)
      */
     @Override
     public GatewayTestResultBean test(NewGatewayBean bean) throws NotAuthorizedException {
@@ -95,7 +77,7 @@ public class GatewayResourceImpl implements IGatewayResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IGatewayResource#list()
+     * @see com.t1t.digipolis.apim.rest.resources.IGatewayResource#list()
      */
     @Override
     public List<GatewaySummaryBean> list() throws NotAuthorizedException {
@@ -107,7 +89,7 @@ public class GatewayResourceImpl implements IGatewayResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IGatewayResource#create(io.apiman.manager.api.beans.gateways.NewGatewayBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IGatewayResource#create(com.t1t.digipolis.apim.beans.gateways.NewGatewayBean)
      */
     @Override
     public GatewayBean create(NewGatewayBean bean) throws GatewayAlreadyExistsException {
@@ -149,7 +131,7 @@ public class GatewayResourceImpl implements IGatewayResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IGatewayResource#get(String)
+     * @see com.t1t.digipolis.apim.rest.resources.IGatewayResource#get(String)
      */
     @Override
     public GatewayBean get(String gatewayId) throws GatewayNotFoundException, NotAuthorizedException {
@@ -178,7 +160,7 @@ public class GatewayResourceImpl implements IGatewayResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IGatewayResource#update(String, io.apiman.manager.api.beans.gateways.UpdateGatewayBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IGatewayResource#update(String, com.t1t.digipolis.apim.beans.gateways.UpdateGatewayBean)
      */
     @Override
     public void update(String gatewayId, UpdateGatewayBean bean) throws GatewayNotFoundException,
@@ -216,7 +198,7 @@ public class GatewayResourceImpl implements IGatewayResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IGatewayResource#delete(String)
+     * @see com.t1t.digipolis.apim.rest.resources.IGatewayResource#delete(String)
      */
     @Override
     public void delete(String gatewayId) throws GatewayNotFoundException,

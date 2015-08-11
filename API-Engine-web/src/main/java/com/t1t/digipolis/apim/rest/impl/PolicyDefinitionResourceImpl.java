@@ -1,34 +1,18 @@
-/*
- * Copyright 2014 JBoss Inc
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.t1t.digipolis.apim.rest.impl;
 
-import io.apiman.manager.api.beans.BeanUtils;
-import io.apiman.manager.api.beans.policies.PolicyDefinitionBean;
-import io.apiman.manager.api.beans.policies.UpdatePolicyDefinitionBean;
-import io.apiman.manager.api.beans.summary.PolicyDefinitionSummaryBean;
-import io.apiman.manager.api.beans.summary.PolicyFormType;
-import io.apiman.manager.api.core.IStorage;
-import io.apiman.manager.api.core.IStorageQuery;
-import io.apiman.manager.api.core.exceptions.StorageException;
-import io.apiman.manager.api.rest.contract.IPolicyDefinitionResource;
-import io.apiman.manager.api.rest.contract.exceptions.*;
-import io.apiman.manager.api.rest.impl.i18n.Messages;
-import io.apiman.manager.api.rest.impl.util.ExceptionFactory;
-import io.apiman.manager.api.security.ISecurityContext;
+import com.t1t.digipolis.apim.beans.BeanUtils;
+import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
+import com.t1t.digipolis.apim.beans.policies.UpdatePolicyDefinitionBean;
+import com.t1t.digipolis.apim.beans.summary.PolicyDefinitionSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.PolicyFormType;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
+import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IPolicyDefinitionResource;
+import com.t1t.digipolis.apim.rest.resources.exceptions.*;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -36,8 +20,6 @@ import java.util.List;
 
 /**
  * Implementation of the PolicyDefinition API.
- * 
- * @author eric.wittmann@redhat.com
  */
 @ApplicationScoped
 public class PolicyDefinitionResourceImpl implements IPolicyDefinitionResource {
@@ -53,7 +35,7 @@ public class PolicyDefinitionResourceImpl implements IPolicyDefinitionResource {
     }
     
     /**
-     * @see io.apiman.manager.api.rest.contract.IPolicyDefinitionResource#list()
+     * @see IPolicyDefinitionResource#list()
      */
     @Override
     public List<PolicyDefinitionSummaryBean> list() throws NotAuthorizedException {
@@ -65,7 +47,7 @@ public class PolicyDefinitionResourceImpl implements IPolicyDefinitionResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPolicyDefinitionResource#create(io.apiman.manager.api.beans.policies.PolicyDefinitionBean)
+     * @see IPolicyDefinitionResource#create(com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean)
      */
     @Override
     public PolicyDefinitionBean create(PolicyDefinitionBean bean) throws PolicyDefinitionAlreadyExistsException {
@@ -99,7 +81,7 @@ public class PolicyDefinitionResourceImpl implements IPolicyDefinitionResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPolicyDefinitionResource#get(String)
+     * @see IPolicyDefinitionResource#get(String)
      */
     @Override
     public PolicyDefinitionBean get(String policyDefinitionId) throws PolicyDefinitionNotFoundException, NotAuthorizedException {
@@ -121,7 +103,7 @@ public class PolicyDefinitionResourceImpl implements IPolicyDefinitionResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPolicyDefinitionResource#update(String, io.apiman.manager.api.beans.policies.UpdatePolicyDefinitionBean)
+     * @see IPolicyDefinitionResource#update(String, com.t1t.digipolis.apim.beans.policies.UpdatePolicyDefinitionBean)
      */
     @Override
     public void update(String policyDefinitionId, UpdatePolicyDefinitionBean bean)
@@ -155,7 +137,7 @@ public class PolicyDefinitionResourceImpl implements IPolicyDefinitionResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IPolicyDefinitionResource#delete(String)
+     * @see IPolicyDefinitionResource#delete(String)
      */
     @Override
     public void delete(String policyDefinitionId) throws PolicyDefinitionNotFoundException,

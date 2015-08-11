@@ -1,39 +1,40 @@
 package com.t1t.digipolis.apim.rest.impl;
 
-import io.apiman.gateway.engine.beans.Application;
-import io.apiman.gateway.engine.beans.Contract;
-import io.apiman.gateway.engine.beans.Policy;
-import io.apiman.gateway.engine.beans.Service;
-import io.apiman.gateway.engine.beans.exceptions.PublishingException;
-import io.apiman.manager.api.beans.actions.ActionBean;
-import io.apiman.manager.api.beans.apps.ApplicationStatus;
-import io.apiman.manager.api.beans.apps.ApplicationVersionBean;
-import io.apiman.manager.api.beans.gateways.GatewayBean;
-import io.apiman.manager.api.beans.idm.PermissionType;
-import io.apiman.manager.api.beans.plans.PlanStatus;
-import io.apiman.manager.api.beans.plans.PlanVersionBean;
-import io.apiman.manager.api.beans.policies.PolicyBean;
-import io.apiman.manager.api.beans.policies.PolicyType;
-import io.apiman.manager.api.beans.services.ServiceGatewayBean;
-import io.apiman.manager.api.beans.services.ServiceStatus;
-import io.apiman.manager.api.beans.services.ServiceVersionBean;
-import io.apiman.manager.api.beans.summary.ContractSummaryBean;
-import io.apiman.manager.api.beans.summary.PolicySummaryBean;
-import io.apiman.manager.api.core.IApplicationValidator;
-import io.apiman.manager.api.core.IServiceValidator;
-import io.apiman.manager.api.core.IStorage;
-import io.apiman.manager.api.core.IStorageQuery;
-import io.apiman.manager.api.core.exceptions.StorageException;
-import io.apiman.manager.api.core.logging.ApimanLogger;
-import io.apiman.manager.api.core.logging.IApimanLogger;
-import io.apiman.manager.api.gateway.IGatewayLink;
-import io.apiman.manager.api.gateway.IGatewayLinkFactory;
-import io.apiman.manager.api.rest.contract.IActionResource;
-import io.apiman.manager.api.rest.contract.exceptions.*;
-import io.apiman.manager.api.rest.impl.audit.AuditUtils;
-import io.apiman.manager.api.rest.impl.i18n.Messages;
-import io.apiman.manager.api.rest.impl.util.ExceptionFactory;
-import io.apiman.manager.api.security.ISecurityContext;
+import com.t1t.digipolis.apim.gateway.dto.Application;
+import com.t1t.digipolis.apim.gateway.dto.Contract;
+import com.t1t.digipolis.apim.gateway.dto.Policy;
+import com.t1t.digipolis.apim.gateway.dto.Service;
+import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.beans.actions.ActionBean;
+import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
+import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.plans.PlanStatus;
+import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
+import com.t1t.digipolis.apim.beans.policies.PolicyBean;
+import com.t1t.digipolis.apim.beans.policies.PolicyType;
+import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
+import com.t1t.digipolis.apim.beans.services.ServiceStatus;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
+import com.t1t.digipolis.apim.core.IApplicationValidator;
+import com.t1t.digipolis.apim.core.IServiceValidator;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.logging.ApimanLogger;
+import com.t1t.digipolis.apim.core.logging.IApimanLogger;
+import com.t1t.digipolis.apim.gateway.IGatewayLink;
+import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.rest.impl.audit.AuditUtils;
+import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
+import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IActionResource;
+import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
+import com.t1t.digipolis.apim.rest.resources.exceptions.*;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -48,7 +49,8 @@ public class ActionResourceImpl implements IActionResource {
     @Inject IStorage storage;
     @Inject IStorageQuery query;
     @Inject IGatewayLinkFactory gatewayLinkFactory;
-    @Inject IOrganizationResource orgs;
+    @Inject
+    IOrganizationResource orgs;
 
     @Inject IServiceValidator serviceValidator;
     @Inject IApplicationValidator applicationValidator;
@@ -64,7 +66,7 @@ public class ActionResourceImpl implements IActionResource {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.IActionResource#performAction(io.apiman.manager.api.beans.actions.ActionBean)
+     * @see com.t1t.digipolis.apim.rest.resources.IActionResource#performAction(com.t1t.digipolis.apim.beans.actions.ActionBean)
      */
     @Override
     public void performAction(ActionBean action) throws ActionException {
