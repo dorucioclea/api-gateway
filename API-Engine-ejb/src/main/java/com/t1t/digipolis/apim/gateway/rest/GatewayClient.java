@@ -51,9 +51,6 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
         }
     }
 
-    /**
-     * @see io.apiman.gateway.api.rest.contract.ISystemResource#getStatus()
-     */
     public SystemStatus getStatus() throws GatewayAuthenticationException {
         InputStream is = null;
         try {
@@ -78,9 +75,6 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
         }
     }
 
-    /**
-     * @see io.apiman.gateway.api.rest.contract.IServiceResource#getServiceEndpoint(String, String, String)
-     */
     public ServiceEndpoint getServiceEndpoint(String organizationId, String serviceId, String version)
             throws GatewayAuthenticationException {
         InputStream is = null;
@@ -107,9 +101,6 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
         }
     }
 
-    /**
-     * @see io.apiman.gateway.api.rest.contract.IApplicationResource#register(io.apiman.gateway.engine.beans.Application)
-     */
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
         try {
             URI uri = new URI(this.endpoint + APPLICATIONS);
@@ -140,9 +131,6 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
         }
     }
 
-    /**
-     * @see io.apiman.gateway.api.rest.contract.IApplicationResource#unregister(String, String, String)
-     */
     public void unregister(String organizationId, String applicationId, String version)
             throws RegistrationException, GatewayAuthenticationException {
         try {
@@ -171,9 +159,7 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
         }
     }
 
-    /**
-     * @see io.apiman.gateway.api.rest.contract.IServiceResource#publish(io.apiman.gateway.engine.beans.Service)
-     */
+
     public void publish(Service service) throws PublishingException, GatewayAuthenticationException {
         try {
             URI uri = new URI(this.endpoint + SERVICES);
@@ -204,9 +190,6 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
         }
     }
 
-    /**
-     * @see io.apiman.gateway.api.rest.contract.IServiceResource#retire(String, String, String)
-     */
     public void retire(String organizationId, String serviceId, String version) throws RegistrationException, GatewayAuthenticationException {
         try {
             @SuppressWarnings("nls")
