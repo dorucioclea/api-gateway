@@ -1,0 +1,295 @@
+package com.t1t.digipolis.apim.cdi;
+
+import com.t1t.digipolis.apim.common.plugin.Plugin;
+import com.t1t.digipolis.apim.common.plugin.PluginClassLoader;
+import com.t1t.digipolis.apim.common.plugin.PluginCoordinates;
+import com.t1t.digipolis.apim.common.util.ReflectionUtils;
+import com.t1t.digipolis.apim.core.*;
+import com.t1t.digipolis.apim.core.i18n.Messages;
+import com.t1t.digipolis.apim.core.logging.*;
+import com.t1t.digipolis.apim.core.noop.NoOpMetricsAccessor;
+import com.t1t.digipolis.apim.es.ESMetricsAccessor;
+import com.t1t.digipolis.apim.es.EsStorage;
+import com.t1t.digipolis.apim.jpa.JpaStorage;
+import com.t1t.digipolis.apim.jpa.roles.JpaIdmStorage;
+import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.apim.security.impl.DefaultSecurityContext;
+import com.t1t.digipolis.apim.security.impl.KeycloakSecurityContext;
+import io.searchbox.client.JestClient;
+import io.searchbox.client.JestClientFactory;
+import io.searchbox.client.config.HttpClientConfig;
+import org.apache.commons.lang.StringUtils;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.New;
+import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.InjectionPoint;
+import javax.inject.Named;
+import java.lang.reflect.Constructor;
+import java.util.Map;
+
+/**
+ * Attempt to create producer methods for CDI beans.
+ */
+@ApplicationScoped
+public class WarCdiFactory {
+
+    private static JestClient sStorageESClient;
+    private static JestClient sMetricsESClient;
+    private static EsStorage sESStorage;
+
+    @Produces @ApimanLogger
+    public static IApimanLogger provideLogger(WarApiManagerConfig config, InjectionPoint injectionPoint) {
+        try {
+            ApimanLogger logger = injectionPoint.getAnnotated().getAnnotation(ApimanLogger.class);
+            Class<?> klazz = logger.value();
+            return getDelegate(config).newInstance().createLogger(klazz);
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(String.format(
+                    Messages.i18n.format("LoggerFactory.InstantiationFailed")), e); //$NON-NLS-1$
+        }
+    }
+
+    @Produces @ApplicationScoped
+    public static ISecurityContext provideSecurityContext(WarApiManagerConfig config,
+            @New DefaultSecurityContext defaultSC, @New KeycloakSecurityContext keycloakSC) {
+        if ("default".equals(config.getSecurityContextType())) { //$NON-NLS-1$
+            return defaultSC;
+        } else if ("keycloak".equals(config.getSecurityContextType())) { //$NON-NLS-1$
+            return keycloakSC;
+        } else {
+            throw new RuntimeException("Unknown security context type: " + config.getSecurityContextType()); //$NON-NLS-1$
+        }
+    }
+
+    @Produces @ApplicationScoped
+    public static IStorage provideStorage(WarApiManagerConfig config, @New JpaStorage jpaStorage,
+            @New EsStorage esStorage, IPluginRegistry pluginRegistry) {
+        IStorage storage = null;
+        if ("jpa".equals(config.getStorageType())) { //$NON-NLS-1$
+            storage = jpaStorage;
+        } else if ("es".equals(config.getStorageType())) { //$NON-NLS-1$
+            storage = initES(config, esStorage);
+        } else {
+            try {
+                storage = createCustomComponent(IStorage.class, config.getStorageType(),
+                        config.getStorageProperties(), pluginRegistry);
+            } catch (Throwable t) {
+                throw new RuntimeException("Error or unknown storage type: " + config.getStorageType(), t); //$NON-NLS-1$
+            }
+        }
+        return storage;
+    }
+
+    @Produces @ApplicationScoped
+    public static IStorageQuery provideStorageQuery(WarApiManagerConfig config, @New JpaStorage jpaStorage,
+            @New EsStorage esStorage, IPluginRegistry pluginRegistry) {
+        if ("jpa".equals(config.getStorageType())) { //$NON-NLS-1$
+            return jpaStorage;
+        } else if ("es".equals(config.getStorageType())) { //$NON-NLS-1$
+            return initES(config, esStorage);
+        } else {
+            try {
+                return createCustomComponent(IStorageQuery.class, config.getStorageQueryType(),
+                        config.getStorageQueryProperties(), pluginRegistry);
+            } catch (Throwable t) {
+                throw new RuntimeException("Error or unknown storage query type: " + config.getStorageType(), t); //$NON-NLS-1$
+            }
+        }
+    }
+
+    @Produces @ApplicationScoped
+    public static IMetricsAccessor provideMetricsAccessor(WarApiManagerConfig config,
+            @New NoOpMetricsAccessor noopMetrics, @New ESMetricsAccessor esMetrics, IPluginRegistry pluginRegistry) {
+        IMetricsAccessor metrics = null;
+        if ("es".equals(config.getMetricsType())) { //$NON-NLS-1$
+            metrics = esMetrics;
+        } else {
+            try {
+                metrics = createCustomComponent(IMetricsAccessor.class, config.getMetricsType(),
+                        config.getMetricsProperties(), pluginRegistry);
+            } catch (Throwable t) {
+                System.err.println("Unknown apiman metrics accessor type: " + config.getMetricsType()); //$NON-NLS-1$
+                metrics = noopMetrics;
+            }
+        }
+        return metrics;
+    }
+
+    @Produces @ApplicationScoped
+    public static IApiKeyGenerator provideApiKeyGenerator(@New UuidApiKeyGenerator uuidApiKeyGen) {
+        return uuidApiKeyGen;
+    }
+
+    @Produces @ApplicationScoped
+    public static IIdmStorage provideIdmStorage(WarApiManagerConfig config, @New JpaIdmStorage jpaIdmStorage,
+            @New EsStorage esStorage, IPluginRegistry pluginRegistry) {
+        if ("jpa".equals(config.getStorageType())) { //$NON-NLS-1$
+            return jpaIdmStorage;
+        } else if ("es".equals(config.getStorageType())) { //$NON-NLS-1$
+            return initES(config, esStorage);
+        } else {
+            try {
+                return createCustomComponent(IIdmStorage.class, config.getIdmStorageType(),
+                        config.getIdmStorageProperties(), pluginRegistry);
+            } catch (Throwable t) {
+                throw new RuntimeException("Error or unknown IDM storage type: " + config.getIdmStorageType(), t); //$NON-NLS-1$
+            }
+        }
+    }
+
+    @Produces @ApplicationScoped @Named("storage")
+    public static JestClient provideStorageESClient(WarApiManagerConfig config) {
+        if ("es".equals(config.getStorageType())) { //$NON-NLS-1$
+            if (sStorageESClient == null) {
+                sStorageESClient = createStorageJestClient(config);
+            }
+        }
+        return sStorageESClient;
+    }
+
+    @Produces @ApplicationScoped @Named("metrics")
+    public static JestClient provideMetricsESClient(WarApiManagerConfig config) {
+        if ("es".equals(config.getMetricsType())) { //$NON-NLS-1$
+            if (sMetricsESClient == null) {
+                sMetricsESClient = createMetricsJestClient(config);
+            }
+        }
+        return sMetricsESClient;
+    }
+
+    /**
+     * @param config
+     * @return create a new test ES client
+     */
+    private static JestClient createStorageJestClient(WarApiManagerConfig config) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(config.getStorageESProtocol());
+        builder.append("://"); //$NON-NLS-1$
+        builder.append(config.getStorageESHost());
+        builder.append(":"); //$NON-NLS-1$
+        builder.append(config.getStorageESPort());
+        String connectionUrl = builder.toString();
+        JestClientFactory factory = new JestClientFactory();
+        factory.setHttpClientConfig(new HttpClientConfig.Builder(connectionUrl).multiThreaded(true)
+                .build());
+        return factory.getObject();
+    }
+
+    /**
+     * @param config
+     * @return create a new test ES client
+     */
+    private static JestClient createMetricsJestClient(WarApiManagerConfig config) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(config.getMetricsESProtocol());
+        builder.append("://"); //$NON-NLS-1$
+        builder.append(config.getMetricsESHost());
+        builder.append(":"); //$NON-NLS-1$
+        builder.append(config.getMetricsESPort());
+        String connectionUrl = builder.toString();
+        JestClientFactory factory = new JestClientFactory();
+        factory.setHttpClientConfig(new HttpClientConfig.Builder(connectionUrl).multiThreaded(true)
+                .build());
+        return factory.getObject();
+    }
+
+    /**
+     * Initializes the ES storage (if required).
+     * @param config
+     * @param esStorage
+     */
+    private static EsStorage initES(WarApiManagerConfig config, EsStorage esStorage) {
+        if (sESStorage == null) {
+            sESStorage = esStorage;
+            if (config.isInitializeStorageES()) {
+                sESStorage.initialize();
+            }
+        }
+        return sESStorage;
+    }
+
+    /**
+     * Creates a custom component from information found in the properties file.
+     * @param componentType
+     * @param componentSpec
+     * @param configProperties
+     * @param pluginRegistry
+     */
+    private static <T> T createCustomComponent(Class<T> componentType, String componentSpec,
+            Map<String, String> configProperties, IPluginRegistry pluginRegistry) throws Exception {
+        if (componentSpec == null) {
+            throw new IllegalArgumentException("Null component type."); //$NON-NLS-1$
+        }
+
+        if (componentSpec.startsWith("class:")) { //$NON-NLS-1$
+            Class<?> c = ReflectionUtils.loadClass(componentSpec.substring("class:".length())); //$NON-NLS-1$
+            return createCustomComponent(componentType, c, configProperties);
+        } else if (componentSpec.startsWith("plugin:")) { //$NON-NLS-1$
+            PluginCoordinates coordinates = PluginCoordinates.fromPolicySpec(componentSpec);
+            if (coordinates == null) {
+                throw new IllegalArgumentException("Invalid plugin component spec: " + componentSpec); //$NON-NLS-1$
+            }
+            int ssidx = componentSpec.indexOf('/');
+            if (ssidx == -1) {
+                throw new IllegalArgumentException("Invalid plugin component spec: " + componentSpec); //$NON-NLS-1$
+            }
+            String classname = componentSpec.substring(ssidx + 1);
+            Plugin plugin = pluginRegistry.loadPlugin(coordinates);
+            PluginClassLoader classLoader = plugin.getLoader();
+            Class<?> class1 = classLoader.loadClass(classname);
+            return createCustomComponent(componentType, class1, configProperties);
+        } else {
+            Class<?> c = ReflectionUtils.loadClass(componentSpec);
+            return createCustomComponent(componentType, c, configProperties);
+        }
+    }
+
+    /**
+     * Creates a custom component from a loaded class.
+     * @param componentType
+     * @param componentClass
+     * @param configProperties
+     */
+    @SuppressWarnings("unchecked")
+    private static <T> T createCustomComponent(Class<T> componentType, Class<?> componentClass,
+            Map<String, String> configProperties) throws Exception {
+        if (componentClass == null) {
+            throw new IllegalArgumentException("Invalid component spec (class not found)."); //$NON-NLS-1$
+        }
+        try {
+            Constructor<?> constructor = componentClass.getConstructor(Map.class);
+            return (T) constructor.newInstance(configProperties);
+        } catch (Exception e) {
+        }
+        return (T) componentClass.getConstructor().newInstance();
+    }
+
+    private static Class<? extends IApimanDelegateLogger> getDelegate(WarApiManagerConfig config) {
+        if(config.getLoggerName() == null || StringUtils.isEmpty(config.getLoggerName())) {
+            System.err.println(Messages.i18n.format("LoggerFactory.NoLoggerSpecified")); //$NON-NLS-1$
+            return StandardLoggerImpl.class;
+        }
+
+        switch(config.getLoggerName().toLowerCase()) {
+            case "json": //$NON-NLS-1$
+                return JsonLoggerImpl.class;
+            case "standard": //$NON-NLS-1$
+                return StandardLoggerImpl.class;
+            default:
+                return loadByFQDN(config.getLoggerName());
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Class<? extends IApimanDelegateLogger> loadByFQDN(String fqdn) {
+        try {
+            return (Class<? extends IApimanDelegateLogger>) Class.forName(fqdn);
+        } catch (ClassNotFoundException e) {
+            System.err.println(String.format(Messages.i18n.format("LoggerFactory.LoggerNotFoundOnClasspath"), //$NON-NLS-1$
+                    fqdn));
+            return StandardLoggerImpl.class;
+        }
+    }
+}
