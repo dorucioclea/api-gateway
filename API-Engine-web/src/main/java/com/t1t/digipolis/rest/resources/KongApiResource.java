@@ -2,8 +2,6 @@ package com.t1t.digipolis.rest.resources;
 
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongApiList;
-import com.t1t.digipolis.kong.model.KongInfo;
-import com.t1t.digipolis.kong.model.KongStatus;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.rest.KongClient;
 import io.swagger.annotations.Api;
@@ -14,7 +12,7 @@ import io.swagger.jaxrs.PATCH;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -25,7 +23,7 @@ import javax.ws.rs.core.Response;
  */
 @Api(value = "/kong", description = "Test endpoint. Should be used to validate the url.")
 @Path("/kong/api")
-@RequestScoped
+@ApplicationScoped
 public class KongApiResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(KongApiResource.class);
@@ -42,7 +40,7 @@ public class KongApiResource {
     @GET
     @Path("/{id}")
     @Produces("application/json")
-    public Response getApi(@PathParam("id")String id){
+    public Response getApi(@PathParam("id") String id) {
         KongApi api = restClient.getApi(id);
         return Response.status(200).entity(api).type(MediaType.APPLICATION_JSON).build();
     }
@@ -56,7 +54,7 @@ public class KongApiResource {
     @Path("/")
     @Consumes("application/json")
     @Produces("application/json")
-    public Response addApi(KongApi api){
+    public Response addApi(KongApi api) {
         KongApi resultApi = restClient.addApi(api);
         return Response.status(200).entity(resultApi).type(MediaType.APPLICATION_JSON).build();
     }
@@ -69,7 +67,7 @@ public class KongApiResource {
     @GET
     @Path("/all")
     @Produces("application/json")
-    public Response listApis(){
+    public Response listApis() {
         KongApiList apis = restClient.listApis();
         return Response.status(200).entity(apis).type(MediaType.APPLICATION_JSON).build();
     }
@@ -82,7 +80,7 @@ public class KongApiResource {
     @PATCH
     @Path("/{id}")
     @Produces("application/json")
-    public Response updateApi(@PathParam("id")String id, KongApi api){
+    public Response updateApi(@PathParam("id") String id, KongApi api) {
         KongApi resultApi = restClient.updateApi(id, api);
         return Response.status(200).entity(resultApi).type(MediaType.APPLICATION_JSON).build();
     }
@@ -95,7 +93,7 @@ public class KongApiResource {
     @PUT
     @Path("/")
     @Produces("application/json")
-    public Response createOrUpdateApi(KongApi api){
+    public Response createOrUpdateApi(KongApi api) {
         KongApi resultApi = restClient.updateOrCreateApi(api);
         return Response.status(200).entity(resultApi).type(MediaType.APPLICATION_JSON).build();
     }
@@ -108,7 +106,7 @@ public class KongApiResource {
     @DELETE
     @Path("/{id}")
     @Produces("application/json")
-    public Response deleteApi(@PathParam("id")String id){
+    public Response deleteApi(@PathParam("id") String id) {
         restClient.deleteApi(id);
         return Response.status(204).build();
     }

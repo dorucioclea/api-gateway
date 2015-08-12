@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -21,7 +21,7 @@ import javax.ws.rs.core.Response;
  */
 @Api(value = "/system", description = "Test endpoint. Can be used to validate the url endpoint.")
 @Path("/system")
-@RequestScoped
+@ApplicationScoped
 public class SystemResource {
 
     @Inject

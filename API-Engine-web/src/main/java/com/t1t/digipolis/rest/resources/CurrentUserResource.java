@@ -17,7 +17,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -31,7 +31,7 @@ import java.util.Set;
  */
 @Api(value = "/currentuser", description = "The Current User API. Returns information about the authenticated")
 @Path("/currentuser")
-@RequestScoped
+@ApplicationScoped
 public class CurrentUserResource {
 
     @Inject
@@ -131,7 +131,7 @@ public class CurrentUserResource {
     @ApiOperation(value = "Get Organizations (app-edit)",
             notes = "This endpoint returns a list of all the organizations for which the current user has permission to edit applications.  For example, when creating a new Application, the user interface must ask the user to choose within which Organization to create it.  This endpoint lists the valid choices for the current user.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = OrganizationSummaryBean.class, message = "A list of organizations.")
+            @ApiResponse(code = 200, responseContainer = "List", response = OrganizationSummaryBean.class, message = "A list of organizations.")
     })
     @GET
     @Path("/apporgs")
@@ -148,7 +148,7 @@ public class CurrentUserResource {
     @ApiOperation(value = "Get Organizations (plan-edit)",
             notes = "This endpoint returns a list of all the organizations for which the current user has permission to edit plans.  For example, when creating a new Plan, the user interface must ask the user to choose within which Organization to create it.  This endpoint lists the valid choices for the current user.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = OrganizationSummaryBean.class, message = "A list of organizations.")
+            @ApiResponse(code = 200, responseContainer = "List", response = OrganizationSummaryBean.class, message = "A list of organizations.")
     })
     @GET
     @Path("/planorgs")
@@ -199,7 +199,7 @@ public class CurrentUserResource {
     @ApiOperation(value = "Get Current User's Services",
             notes = "Use this endpoint to list all of the Services the current user has permission to edit.  This includes all Services from all Organizations the user has service edit privileges for.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ServiceSummaryBean.class, message = "A list of Services.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceSummaryBean.class, message = "A list of Services.")
     })
     @GET
     @Path("/services")

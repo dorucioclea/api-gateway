@@ -25,7 +25,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -34,7 +34,7 @@ import java.util.List;
 
 @Api(value = "/gateways", description = "The Gateway API.")
 @Path("/gateways")
-@RequestScoped
+@ApplicationScoped
 public class GatewayResource {
 
     @Inject
