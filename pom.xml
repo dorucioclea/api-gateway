@@ -64,6 +64,7 @@
         <module>API-Engine-ejb</module>
         <module>API-Engine-web</module>
         <module>API-Engine-ear</module>
+        <module>API-Engine-distro</module>
     </modules>
 
     <properties>
