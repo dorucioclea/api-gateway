@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 /**
- * An http filter that supports the {@link DefaultSecurityContext} imlementation.
+ * An http filter that supports the {@link DefaultSecurityContext} implementation.
  *
  */
 public class DefaultSecurityContextFilter implements Filter {

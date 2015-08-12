@@ -64,6 +64,8 @@
         <module>API-Engine-ejb</module>
         <module>API-Engine-web</module>
         <module>API-Engine-ear</module>
+        <module>API-Engine-distro</module>
+        <module>API-Engine-distro-package-wildfly2</module>
     </modules>
 
     <properties>

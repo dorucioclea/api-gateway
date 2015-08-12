@@ -22,7 +22,7 @@
     xsi:schemaLocation="http://www.jboss.org/ironjacamar/schema http://docs.jboss.org/ironjacamar/schema/datasources_1_0.xsd">
    <!-- The datasource is bound into JNDI at this location. We reference 
       this in META-INF/persistence.xml -->
-    <datasource jndi-name="java:jboss/datasources/API-EngineDS" pool-name="API-Engine"
+<!--    <datasource jndi-name="java:jboss/datasources/API-EngineDS" pool-name="API-Engine"
         enabled="true" use-java-context="true">
         <connection-url>jdbc:h2:mem:API-Engine;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1</connection-url>
         <driver>h2</driver>
@@ -30,6 +30,24 @@
             <user-name>sa</user-name>
             <password>sa</password>
         </security>
-    </datasource>
+    </datasource>-->
+<!--    <datasource jndi-name="java:jboss/datasources/apiman-manager" pool-name="apiman-manager-api" enabled="true"
+                use-java-context="true">
+        <connection-url>jdbc:h2:${jboss.server.data.dir}${/}h2${/}apiman-manager-api;MVCC=true</connection-url>
+        <driver>h2</driver>
+        <security>
+            <user-name>sa</user-name>
+            <password>sa</password>
+        </security>
+    </datasource>-->
+<!--    <datasource jndi-name="java:jboss/datasources/apiman-manager" pool-name="apiman-manager-api" enabled="true"
+                use-java-context="true">
+        <connection-url>jdbc:h2:${jboss.server.data.dir}${/}h2${/}apiman-manager-api;MVCC=true</connection-url>
+        <driver>h2</driver>
+        <security>
+            <user-name>sa</user-name>
+            <password>sa</password>
+        </security>
+    </datasource>-->
 </datasources>
  

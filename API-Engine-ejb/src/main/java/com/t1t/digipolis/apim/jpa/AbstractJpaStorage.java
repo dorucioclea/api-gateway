@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.persistence.EntityExistsException;
-import javax.persistence.EntityManager;
-import javax.persistence.RollbackException;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +22,10 @@ public abstract class AbstractJpaStorage {
 
     private static Logger logger = LoggerFactory.getLogger(AbstractJpaStorage.class);
 
-    @Inject
-    private IEntityManagerFactoryAccessor emfAccessor;
+/*    @Inject
+    private IEntityManagerFactoryAccessor emfAccessor;*/
+    @Inject @PersistenceContext
+    private EntityManager em;
 
     private static ThreadLocal<EntityManager> activeEM = new ThreadLocal<>();
     public static boolean isTxActive() {
@@ -46,7 +45,7 @@ public abstract class AbstractJpaStorage {
         if (activeEM.get() != null) {
             throw new StorageException("Transaction already active."); //$NON-NLS-1$
         }
-        EntityManager entityManager = emfAccessor.getEntityManagerFactory().createEntityManager();
+        EntityManager entityManager = em;
         activeEM.set(entityManager);
         entityManager.getTransaction().begin();
     }
@@ -335,15 +334,15 @@ public abstract class AbstractJpaStorage {
     /**
      * @return the emfAccessor
      */
-    public IEntityManagerFactoryAccessor getEmfAccessor() {
+/*    public IEntityManagerFactoryAccessor getEmfAccessor() {
         return emfAccessor;
-    }
+    }*/
 
     /**
      * @param emfAccessor the emfAccessor to set
      */
-    public void setEmfAccessor(IEntityManagerFactoryAccessor emfAccessor) {
+/*    public void setEmfAccessor(IEntityManagerFactoryAccessor emfAccessor) {
         this.emfAccessor = emfAccessor;
-    }
+    }*/
 
 }
