@@ -1,5 +1,5 @@
 package com.t1t.digipolis.rest;
-import com.t1t.digipolis.rest.resources.SystemResourceImpl;
+import com.t1t.digipolis.rest.resources.SystemResource;
 import com.t1t.digipolis.rest.resources.KongApiResource;
 import com.t1t.digipolis.rest.resources.KongInfoResource;
 
@@ -47,7 +47,7 @@ public class JaxRsActivator extends Application {
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(KongInfoResource.class);
         resources.add(KongApiResource.class);
-        resources.add(SystemResourceImpl.class);
+        resources.add(SystemResource.class);
         //resources.add(CORSRequestFilter.class);//CORS Request filter
         //resources.add(CORSResponseFilter.class);//CORS Response filter
     }

@@ -1,10 +1,5 @@
-package com.t1t.digipolis.apim.rest.impl;
+package com.t1t.digipolis.rest.resources;
 
-import com.t1t.digipolis.apim.gateway.dto.Application;
-import com.t1t.digipolis.apim.gateway.dto.Contract;
-import com.t1t.digipolis.apim.gateway.dto.Policy;
-import com.t1t.digipolis.apim.gateway.dto.Service;
-import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
@@ -28,47 +23,74 @@ import com.t1t.digipolis.apim.core.logging.ApimanLogger;
 import com.t1t.digipolis.apim.core.logging.IApimanLogger;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.Application;
+import com.t1t.digipolis.apim.gateway.dto.Contract;
+import com.t1t.digipolis.apim.gateway.dto.Policy;
+import com.t1t.digipolis.apim.gateway.dto.Service;
+import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.rest.impl.audit.AuditUtils;
 import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
 import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
-import com.t1t.digipolis.apim.rest.resources.IActionResource;
 import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
 import java.util.*;
 
 /**
  * Implementation of the Action API.
  */
-@ApplicationScoped
-public class ActionResourceImpl implements IActionResource {
+@Api(value = "/actions", description = "The Action API.  This API allows callers to perform actions on various entities - actions other than the standard REST crud actions.")
+@Path("/actions")
+@RequestScoped
+public class ActionResource {
 
-    @Inject IStorage storage;
-    @Inject IStorageQuery query;
-    @Inject IGatewayLinkFactory gatewayLinkFactory;
+    @Inject
+    IStorage storage;
+    @Inject
+    IStorageQuery query;
+    @Inject
+    IGatewayLinkFactory gatewayLinkFactory;
     @Inject
     IOrganizationResource orgs;
 
-    @Inject IServiceValidator serviceValidator;
-    @Inject IApplicationValidator applicationValidator;
+    @Inject
+    IServiceValidator serviceValidator;
+    @Inject
+    IApplicationValidator applicationValidator;
 
-    @Inject ISecurityContext securityContext;
+    @Inject
+    ISecurityContext securityContext;
 
-    @Inject @ApimanLogger(ActionResourceImpl.class) IApimanLogger log;
+    @Inject
+    @ApimanLogger(ActionResource.class)
+    IApimanLogger log;
 
     /**
      * Constructor.
      */
-    public ActionResourceImpl() {
+    public ActionResource() {
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IActionResource#performAction(com.t1t.digipolis.apim.beans.actions.ActionBean)
-     */
-    @Override
+    @ApiOperation(value = "Execute an Entity Action",
+            notes = "Call this endpoint in order to execute actions for apiman entities such" +
+                    " as Plans, Services, or Applications.  The type of the action must be" +
+                    " included in the request payload.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     public void performAction(ActionBean action) throws ActionException {
         switch (action.getType()) {
             case publishService:
@@ -93,6 +115,7 @@ public class ActionResourceImpl implements IActionResource {
 
     /**
      * Publishes a service to the gateway.
+     *
      * @param action
      */
     private void publishService(ActionBean action) throws ActionException {
@@ -181,6 +204,7 @@ public class ActionResourceImpl implements IActionResource {
 
     /**
      * Creates a gateway link given a gateway id.
+     *
      * @param gatewayId
      */
     private IGatewayLink createGatewayLink(String gatewayId) throws PublishingException {
@@ -200,6 +224,7 @@ public class ActionResourceImpl implements IActionResource {
 
     /**
      * Retires a service that is currently published to the Gateway.
+     *
      * @param action
      */
     private void retireService(ActionBean action) throws ActionException {
@@ -256,6 +281,7 @@ public class ActionResourceImpl implements IActionResource {
 
     /**
      * Registers an application (along with all of its contracts) to the gateway.
+     *
      * @param action
      */
     private void registerApplication(ActionBean action) throws ActionException {
@@ -350,39 +376,40 @@ public class ActionResourceImpl implements IActionResource {
 
     /**
      * Aggregates the service, app, and plan policies into a single ordered list.
+     *
      * @param contractBean
      */
     private List<Policy> aggregateContractPolicies(ContractSummaryBean contractBean) {
         try {
             List<Policy> policies = new ArrayList<>();
-            PolicyType [] types = new PolicyType[3];
+            PolicyType[] types = new PolicyType[3];
             types[0] = PolicyType.Application;
             types[1] = PolicyType.Plan;
             types[2] = PolicyType.Service;
             for (PolicyType policyType : types) {
                 String org, id, ver;
                 switch (policyType) {
-                  case Application: {
-                      org = contractBean.getAppOrganizationId();
-                      id = contractBean.getAppId();
-                      ver = contractBean.getAppVersion();
-                      break;
-                  }
-                  case Plan: {
-                      org = contractBean.getServiceOrganizationId();
-                      id = contractBean.getPlanId();
-                      ver = contractBean.getPlanVersion();
-                      break;
-                  }
-                  case Service: {
-                      org = contractBean.getServiceOrganizationId();
-                      id = contractBean.getServiceId();
-                      ver = contractBean.getServiceVersion();
-                      break;
-                  }
-                  default: {
-                      throw new RuntimeException("Missing case for switch!"); //$NON-NLS-1$
-                  }
+                    case Application: {
+                        org = contractBean.getAppOrganizationId();
+                        id = contractBean.getAppId();
+                        ver = contractBean.getAppVersion();
+                        break;
+                    }
+                    case Plan: {
+                        org = contractBean.getServiceOrganizationId();
+                        id = contractBean.getPlanId();
+                        ver = contractBean.getPlanVersion();
+                        break;
+                    }
+                    case Service: {
+                        org = contractBean.getServiceOrganizationId();
+                        id = contractBean.getServiceId();
+                        ver = contractBean.getServiceVersion();
+                        break;
+                    }
+                    default: {
+                        throw new RuntimeException("Missing case for switch!"); //$NON-NLS-1$
+                    }
                 }
                 List<PolicySummaryBean> appPolicies = query.getPolicies(org, id, ver, policyType);
                 storage.beginTx();
@@ -406,6 +433,7 @@ public class ActionResourceImpl implements IActionResource {
 
     /**
      * De-registers an application that is currently registered with the gateway.
+     *
      * @param action
      */
     private void unregisterApplication(ActionBean action) throws ActionException {
@@ -484,6 +512,7 @@ public class ActionResourceImpl implements IActionResource {
 
     /**
      * Locks the plan.
+     *
      * @param action
      */
     private void lockPlan(ActionBean action) throws ActionException {

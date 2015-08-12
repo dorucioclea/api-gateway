@@ -1,20 +1,26 @@
-package com.t1t.digipolis.apim.rest.impl;
+package com.t1t.digipolis.rest.resources;
 
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
+import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.core.logging.ApimanLogger;
 import com.t1t.digipolis.apim.core.logging.IApimanLogger;
-import com.t1t.digipolis.apim.rest.resources.ICurrentUserResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -23,8 +29,10 @@ import java.util.Set;
 /**
  * Implementation of the Current User API.
  */
-@ApplicationScoped
-public class CurrentUserResourceImpl implements ICurrentUserResource {
+@Api(value = "/currentuser", description = "The Current User API. Returns information about the authenticated")
+@Path("/currentuser")
+@RequestScoped
+public class CurrentUserResource {
 
     @Inject
     private IIdmStorage idmStorage;
@@ -32,20 +40,25 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
     private IStorageQuery query;
     @Inject
     private ISecurityContext securityContext;
-    @Inject @ApimanLogger(CurrentUserResourceImpl.class)
+    @Inject
+    @ApimanLogger(CurrentUserResource.class)
     private IApimanLogger log;
 
 
     /**
      * Constructor.
      */
-    public CurrentUserResourceImpl() {
+    public CurrentUserResource() {
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getInfo()
-     */
-    @Override
+    @ApiOperation(value = "Get Current User Information",
+            notes = "Use this endpoint to get information about the currently authenticated user.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = CurrentUserBean.class, message = "Information about the authenticated user.")
+    })
+    @GET
+    @Path("/info")
+    @Produces(MediaType.APPLICATION_JSON)
     public CurrentUserBean getInfo() {
         String userId = securityContext.getCurrentUser();
         try {
@@ -87,10 +100,14 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#updateInfo(com.t1t.digipolis.apim.beans.idm.UpdateUserBean)
-     */
-    @Override
+    @ApiOperation(value = "Update Current User Information",
+            notes = "This endpoint allows updating information about the authenticated user.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @PUT
+    @Path("/info")
+    @Consumes(MediaType.APPLICATION_JSON)
     public void updateInfo(UpdateUserBean info) {
         try {
             UserBean user = idmStorage.getUser(securityContext.getCurrentUser());
@@ -111,10 +128,14 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getAppOrganizations()
-     */
-    @Override
+    @ApiOperation(value = "Get Organizations (app-edit)",
+            notes = "This endpoint returns a list of all the organizations for which the current user has permission to edit applications.  For example, when creating a new Application, the user interface must ask the user to choose within which Organization to create it.  This endpoint lists the valid choices for the current user.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = OrganizationSummaryBean.class, message = "A list of organizations.")
+    })
+    @GET
+    @Path("/apporgs")
+    @Produces(MediaType.APPLICATION_JSON)
     public List<OrganizationSummaryBean> getAppOrganizations() {
         Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appEdit);
         try {
@@ -124,10 +145,14 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getPlanOrganizations()
-     */
-    @Override
+    @ApiOperation(value = "Get Organizations (plan-edit)",
+            notes = "This endpoint returns a list of all the organizations for which the current user has permission to edit plans.  For example, when creating a new Plan, the user interface must ask the user to choose within which Organization to create it.  This endpoint lists the valid choices for the current user.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = OrganizationSummaryBean.class, message = "A list of organizations.")
+    })
+    @GET
+    @Path("/planorgs")
+    @Produces(MediaType.APPLICATION_JSON)
     public List<OrganizationSummaryBean> getPlanOrganizations() {
         Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.planEdit);
         try {
@@ -137,10 +162,14 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getServiceOrganizations()
-     */
-    @Override
+    @ApiOperation(value = "Get Organizations (svc-edit)",
+            notes = "This endpoint returns a list of all the organizations for which the current user has permission to edit services.  For example, when creating a new Service, the user interface must ask the user to choose within which Organization to create it.  This endpoint lists the valid choices for the current user.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = OrganizationSummaryBean.class, message = "A list of organizations.")
+    })
+    @GET
+    @Path("/svcorgs")
+    @Produces(MediaType.APPLICATION_JSON)
     public List<OrganizationSummaryBean> getServiceOrganizations() {
         Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcEdit);
         try {
@@ -150,10 +179,14 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getApplications()
-     */
-    @Override
+    @ApiOperation(value = "Get Current User's Applications",
+            notes = "Use this endpoint to list all of the Applications the current user has permission to edit.  This includes all Applications from all Organizations the user has application edit privileges for.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SystemStatusBean.class, message = "A list of Applications.")
+    })
+    @GET
+    @Path("/applications")
+    @Produces(MediaType.APPLICATION_JSON)
     public List<ApplicationSummaryBean> getApplications() {
         Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appView);
         try {
@@ -163,10 +196,13 @@ public class CurrentUserResourceImpl implements ICurrentUserResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.ICurrentUserResource#getServices()
-     */
-    @Override
+    @ApiOperation(value = "Get Current User's Services",
+            notes = "Use this endpoint to list all of the Services the current user has permission to edit.  This includes all Services from all Organizations the user has service edit privileges for.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = ServiceSummaryBean.class, message = "A list of Services.")
+    })
+    @GET
+    @Path("/services")
     public List<ServiceSummaryBean> getServices() {
         Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcView);
         try {

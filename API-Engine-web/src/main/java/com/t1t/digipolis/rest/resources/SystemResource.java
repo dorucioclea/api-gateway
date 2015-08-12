@@ -19,10 +19,10 @@ import javax.ws.rs.core.Response;
 /**
  * Implementation of the System API.
  */
-@Api(value = "/system", description = "Test endpoint. Should be used to validate the url.")
+@Api(value = "/system", description = "Test endpoint. Can be used to validate the url endpoint.")
 @Path("/system")
 @RequestScoped
-public class SystemResourceImpl {
+public class SystemResource {
 
     @Inject
     private IStorage storage;
