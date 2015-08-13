@@ -10,7 +10,6 @@ import javax.ws.rs.core.MediaType;
 /**
  * A simple System API.
  */
-@Path("system")
 public interface ISystemResource {
 
     /**
@@ -21,9 +20,6 @@ public interface ISystemResource {
      * @statuscode 200 On success.
      * @return System status information.
      */
-    @GET
-    @Path("status")
-    @Produces(MediaType.APPLICATION_JSON)
     public SystemStatusBean getStatus();
 
 }

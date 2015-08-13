@@ -19,6 +19,7 @@ import com.t1t.digipolis.apim.core.logging.ApimanLogger;
 import com.t1t.digipolis.apim.core.logging.IApimanLogger;
 import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
 import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IPluginResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -42,7 +43,7 @@ import java.util.List;
 @Api(value = "/plugins", description = "The Plugin API.")
 @Path("/plugins")
 @ApplicationScoped
-public class PluginResource {
+public class PluginResource implements IPluginResource {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 

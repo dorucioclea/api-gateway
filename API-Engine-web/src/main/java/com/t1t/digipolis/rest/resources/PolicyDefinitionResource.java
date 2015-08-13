@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
 import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IPolicyDefinitionResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -27,7 +28,7 @@ import java.util.List;
 @Api(value = "/policyDefs", description = "The Policy Definition API.")
 @Path("/policyDefs")
 @ApplicationScoped
-public class PolicyDefinitionResource {
+public class PolicyDefinitionResource implements IPolicyDefinitionResource {
 
     @Inject
     IStorage storage;

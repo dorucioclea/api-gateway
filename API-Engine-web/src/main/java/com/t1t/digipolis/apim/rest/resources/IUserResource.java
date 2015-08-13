@@ -18,7 +18,6 @@ import java.util.List;
 /**
  * The User API.
  */
-@Path("/users")
 public interface IUserResource {
 
     /**

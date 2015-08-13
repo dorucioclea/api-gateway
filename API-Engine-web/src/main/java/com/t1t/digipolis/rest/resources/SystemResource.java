@@ -3,6 +3,7 @@ package com.t1t.digipolis.rest.resources;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.config.Version;
 import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.rest.resources.ISystemResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -22,7 +23,7 @@ import javax.ws.rs.core.Response;
 @Api(value = "/system", description = "Test endpoint. Can be used to validate the url endpoint.")
 @Path("/system")
 @ApplicationScoped
-public class SystemResource {
+public class SystemResource implements ISystemResource {
 
     @Inject
     private IStorage storage;
@@ -37,7 +38,7 @@ public class SystemResource {
     @GET
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getStatus() {
+    public SystemStatusBean getStatus() {
         SystemStatusBean rval = new SystemStatusBean();
         rval.setId("apim-manager-api"); //$NON-NLS-1$
         rval.setName("API Manager REST API"); //$NON-NLS-1$
@@ -48,6 +49,6 @@ public class SystemResource {
             rval.setVersion(version.getVersionString());
             rval.setBuiltOn(version.getVersionDate());
         }
-        return Response.status(200).entity(rval).type(MediaType.APPLICATION_JSON).build();
+        return rval;
     }
 }

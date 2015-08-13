@@ -31,6 +31,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.rest.impl.audit.AuditUtils;
 import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
 import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IActionResource;
 import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -54,7 +55,7 @@ import java.util.*;
 @Api(value = "/actions", description = "The Action API.  This API allows callers to perform actions on various entities - actions other than the standard REST crud actions.")
 @Path("/actions")
 @ApplicationScoped
-public class ActionResource {
+public class ActionResource implements IActionResource{
 
     @Inject
     IStorage storage;

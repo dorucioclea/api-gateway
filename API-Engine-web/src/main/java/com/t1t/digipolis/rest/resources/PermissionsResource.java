@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.beans.idm.UserPermissionsBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IPermissionsResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.rest.resources.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.rest.resources.exceptions.UserNotFoundException;
@@ -24,7 +25,7 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/permissions", description = "The Permissions API.")
 @Path("/permissions")
 @ApplicationScoped
-public class PermissionsResource {
+public class PermissionsResource implements IPermissionsResource {
 
     @Inject
     IIdmStorage idmStorage;

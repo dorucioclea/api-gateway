@@ -55,7 +55,7 @@ public interface IRoleResource {
      * @throws RoleNotFoundException when a request is sent for a role that does not exist
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    public RoleBean get(@PathParam("roleId") String roleId) throws RoleNotFoundException, NotAuthorizedException;
+    public RoleBean get(String roleId) throws RoleNotFoundException, NotAuthorizedException;
 
     /**
      * Use this endpoint to update the information about an existing role.  The
@@ -68,7 +68,7 @@ public interface IRoleResource {
      * @throws RoleNotFoundException when a request is sent for a role that does not exist
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    public void update(@PathParam("roleId") String roleId, UpdateRoleBean bean) throws RoleNotFoundException,
+    public void update(String roleId, UpdateRoleBean bean) throws RoleNotFoundException,
             NotAuthorizedException;
 
     /**
@@ -80,7 +80,7 @@ public interface IRoleResource {
      * @throws RoleNotFoundException when a request is sent for a role that does not exist
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    public void delete(@PathParam("roleId") String roleId) throws RoleNotFoundException, NotAuthorizedException;
+    public void delete(String roleId) throws RoleNotFoundException, NotAuthorizedException;
 
     /**
      * This endpoint provides a way to search for roles.  The search criteria is

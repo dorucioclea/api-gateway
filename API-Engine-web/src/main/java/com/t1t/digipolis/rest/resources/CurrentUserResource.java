@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.core.logging.ApimanLogger;
 import com.t1t.digipolis.apim.core.logging.IApimanLogger;
+import com.t1t.digipolis.apim.rest.resources.ICurrentUserResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
@@ -32,7 +33,7 @@ import java.util.Set;
 @Api(value = "/currentuser", description = "The Current User API. Returns information about the authenticated")
 @Path("/currentuser")
 @ApplicationScoped
-public class CurrentUserResource {
+public class CurrentUserResource implements ICurrentUserResource {
 
     @Inject
     private IIdmStorage idmStorage;

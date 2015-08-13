@@ -16,6 +16,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
 import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
 import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.rest.resources.IGatewayResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -35,7 +36,7 @@ import java.util.List;
 @Api(value = "/gateways", description = "The Gateway API.")
 @Path("/gateways")
 @ApplicationScoped
-public class GatewayResource {
+public class GatewayResource implements IGatewayResource {
 
     @Inject
     IStorage storage;

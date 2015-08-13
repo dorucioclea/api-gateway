@@ -13,7 +13,6 @@ import java.util.List;
 /**
  * The Policy Definition API.
  */
-@Path("policyDefs")
 public interface IPolicyDefinitionResource {
 
     /**
@@ -24,8 +23,6 @@ public interface IPolicyDefinitionResource {
      * @return A list of policy definitions.
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
     public List<PolicyDefinitionSummaryBean> list() throws NotAuthorizedException;
 
     /**
@@ -40,9 +37,6 @@ public interface IPolicyDefinitionResource {
      * @throws PolicyDefinitionAlreadyExistsException when trying to create a Policy Definition that already exists
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public PolicyDefinitionBean create(PolicyDefinitionBean bean) throws PolicyDefinitionAlreadyExistsException, NotAuthorizedException;
     
     /**
@@ -54,10 +48,7 @@ public interface IPolicyDefinitionResource {
      * @throws PolicyDefinitionNotFoundException when trying to get, update, or delete a policy definition that does not exist
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @GET
-    @Path("{policyDefinitionId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public PolicyDefinitionBean get(@PathParam("policyDefinitionId") String policyDefinitionId) throws PolicyDefinitionNotFoundException, NotAuthorizedException;
+    public PolicyDefinitionBean get(String policyDefinitionId) throws PolicyDefinitionNotFoundException, NotAuthorizedException;
 
     /**
      * Update the meta information about a policy definition.
@@ -69,9 +60,7 @@ public interface IPolicyDefinitionResource {
      * @throws PolicyDefinitionNotFoundException when trying to get, update, or delete a policy definition that does not exist
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @PUT
-    @Path("{policyDefinitionId}")
-    public void update(@PathParam("policyDefinitionId") String policyDefinitionId, UpdatePolicyDefinitionBean bean)
+    public void update(String policyDefinitionId, UpdatePolicyDefinitionBean bean)
             throws PolicyDefinitionNotFoundException, NotAuthorizedException;
 
     /**
@@ -85,9 +74,7 @@ public interface IPolicyDefinitionResource {
      * @throws PolicyDefinitionNotFoundException when trying to get, update, or delete a policy definition that does not exist
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @DELETE
-    @Path("{policyDefinitionId}")
-    public void delete(@PathParam("policyDefinitionId") String policyDefinitionId)
+    public void delete(String policyDefinitionId)
             throws PolicyDefinitionNotFoundException, NotAuthorizedException;
 
 }

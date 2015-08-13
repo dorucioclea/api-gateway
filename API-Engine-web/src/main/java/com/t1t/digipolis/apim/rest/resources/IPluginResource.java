@@ -16,7 +16,6 @@ import java.util.List;
 /**
  * The Plugin API.
  */
-@Path("plugins")
 public interface IPluginResource {
 
     /**
@@ -27,8 +26,6 @@ public interface IPluginResource {
      * @return A list of plugins.
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
     public List<PluginSummaryBean> list() throws NotAuthorizedException;
 
     /**
@@ -45,9 +42,6 @@ public interface IPluginResource {
      * @throws PluginNotFoundException when specified plugin not found
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public PluginBean create(NewPluginBean bean) throws PluginAlreadyExistsException, PluginNotFoundException, NotAuthorizedException;
     
     /**
@@ -63,10 +57,7 @@ public interface IPluginResource {
      * @throws PluginNotFoundException when specified plugin not found
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @GET
-    @Path("{pluginId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public PluginBean get(@PathParam("pluginId") Long pluginId) throws PluginNotFoundException, NotAuthorizedException;
+    public PluginBean get(Long pluginId) throws PluginNotFoundException, NotAuthorizedException;
 
     /**
      * Call this endpoint to delete a plugin.
@@ -77,9 +68,7 @@ public interface IPluginResource {
      * @throws PluginNotFoundException when specified plugin not found
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @DELETE
-    @Path("{pluginId}")
-    public void delete(@PathParam("pluginId") Long pluginId)
+    public void delete(Long pluginId)
             throws PluginNotFoundException, NotAuthorizedException;
 
     /**
@@ -91,10 +80,7 @@ public interface IPluginResource {
      * @return A list of policy definitions.
      * @throws PluginNotFoundException when specified plugin not found
      */
-    @GET
-    @Path("{pluginId}/policyDefs")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<PolicyDefinitionSummaryBean> getPolicyDefs(@PathParam("pluginId") Long pluginId)
+    public List<PolicyDefinitionSummaryBean> getPolicyDefs(Long pluginId)
             throws PluginNotFoundException;
     
     /**
@@ -115,11 +101,7 @@ public interface IPluginResource {
      * a policy definition that does not exist
      * @throws PluginResourceNotFoundException when plugin resource not found
      */
-    @GET
-    @Path("{pluginId}/policyDefs/{policyDefId}/form")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getPolicyForm(@PathParam("pluginId") Long pluginId,
-                                @PathParam("policyDefId") String policyDefId) throws PluginNotFoundException,
+    public String getPolicyForm( Long pluginId,String policyDefId) throws PluginNotFoundException,
             PolicyDefinitionNotFoundException, PluginResourceNotFoundException;
 
 }
