@@ -253,7 +253,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     @ApiOperation(value = "Get Organization Activity",
             notes = "Returns audit activity information for a single Organization.  The audit information that is returned represents all of the activity associated with this Organization (i.e. an audit log for everything in the Organization).")
     @ApiResponses({
-            @ApiResponse(code = 200, response = SystemStatusBean.class, message = "List of audit/activity entries.")
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "List of audit/activity entries.")
     })
     @GET
     @Path("/{organizationId}/activity")
@@ -282,12 +282,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     /*************APPLICATIONS**************/
-
+    @ApiOperation(value = "Create Application",
+            notes = "Use this endpoint to create a new Application.  Note that it is important to also create an initial version of the Application (e.g. 1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Application Version\".  If the former is done, then a first Application version will be created automatically by this endpoint.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApplicationBean.class, message = "Full details about the newly created Application.")
+    })
     @POST
     @Path("/{organizationId}/applications")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationBean createApp(String organizationId, NewApplicationBean bean)
+    public ApplicationBean createApp(@PathParam("organizationId") String organizationId, NewApplicationBean bean)
             throws OrganizationNotFoundException, ApplicationAlreadyExistsException, NotAuthorizedException,
             InvalidNameException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
@@ -335,11 +339,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see IOrganizationResource#getApp(String, String)
-     */
-    @Override
-    public ApplicationBean getApp(String organizationId, String applicationId)
+    @ApiOperation(value = "Get Application By ID",
+            notes = "Use this endpoint to retrieve information about a single Application by ID.  Note that this only returns information about the Application, not about any particular *version* of the Application.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApplicationBean.class, message = "An Application.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApplicationBean getApp(@PathParam("organizationId") String organizationId,@PathParam("applicationId") String applicationId)
             throws ApplicationNotFoundException, NotAuthorizedException {
         try {
             storage.beginTx();
@@ -359,12 +367,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see IOrganizationResource#getAppActivity(String, String, int, int)
-     */
-    @Override
-    public SearchResultsBean<AuditEntryBean> getAppActivity(String organizationId, String applicationId,
-            int page, int pageSize) throws ApplicationNotFoundException, NotAuthorizedException {
+    @ApiOperation(value = "Get Application Activity",
+            notes = "This endpoint returns audit activity information about the Application.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "A list of audit activity entries.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/activity")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<AuditEntryBean> getAppActivity(@PathParam("organizationId") String organizationId,@PathParam("applicationId")  String applicationId,
+                                                            @QueryParam("page") int page,@QueryParam("count")  int pageSize) throws ApplicationNotFoundException, NotAuthorizedException {
         if (page <= 1) {
             page = 1;
         }
@@ -386,11 +398,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see IOrganizationResource#listApps(String)
-     */
-    @Override
-    public List<ApplicationSummaryBean> listApps(String organizationId) throws OrganizationNotFoundException,
+    @ApiOperation(value = "List Applications",
+            notes = "Use this endpoint to get a list of all Applications in the Organization.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = ApplicationSummaryBean.class, message = "A list of Applications.")
+    })
+    @GET
+    @Path("/{organizationId}/applications")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ApplicationSummaryBean> listApps(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException,
             NotAuthorizedException {
         get(organizationId);
 
@@ -401,11 +417,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see IOrganizationResource#updateApp(String, String, com.t1t.digipolis.apim.beans.apps.UpdateApplicationBean)
-     */
-    @Override
-    public void updateApp(String organizationId, String applicationId, UpdateApplicationBean bean)
+    @ApiOperation(value = "Update Application",
+            notes = "Use this endpoint to update information about an Application.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/applications/{applicationId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void updateApp(@PathParam("organizationId") String organizationId,@PathParam("applicationId") String applicationId, UpdateApplicationBean bean)
             throws ApplicationNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -433,11 +454,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see IOrganizationResource#createAppVersion(String, String, com.t1t.digipolis.apim.beans.apps.NewApplicationVersionBean)
-     */
-    @Override
-    public ApplicationVersionBean createAppVersion(String organizationId, String applicationId,
+    @ApiOperation(value = "Create Application Version",
+            notes = "Use this endpoint to create a new version of the Application.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApplicationVersionBean.class, message = "Full details about the newly created Application version.")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/versions")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApplicationVersionBean createAppVersion(@PathParam("organizationId") String organizationId,@PathParam("applicationId")  String applicationId,
             NewApplicationVersionBean bean) throws ApplicationNotFoundException, NotAuthorizedException,
             InvalidVersionException, ApplicationVersionAlreadyExistsException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
@@ -521,11 +547,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return newVersion;
     }
 
-    /**
-     * @see IOrganizationResource#getAppVersion(String, String, String)
-     */
-    @Override
-    public ApplicationVersionBean getAppVersion(String organizationId, String applicationId, String version)
+    @ApiOperation(value = "Get Application Version",
+            notes = "Use this endpoint to get detailed information about a single version of an Application.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApplicationVersionBean.class, message = "An Application version.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApplicationVersionBean getAppVersion(@PathParam("organizationId") String organizationId,@PathParam("applicationId")  String applicationId,@PathParam("version")  String version)
             throws ApplicationVersionNotFoundException, NotAuthorizedException {
         try {
             storage.beginTx();
@@ -545,12 +575,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getAppVersionActivity(String, String, String, int, int)
-     */
-    @Override
-    public SearchResultsBean<AuditEntryBean> getAppVersionActivity(String organizationId,
-            String applicationId, String version, int page, int pageSize)
+    @ApiOperation(value = "Get Application Version Activity",
+            notes = "Use this endpoint to get audit activity information for a single version of the Application.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "A list of audit entries.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/activity")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<AuditEntryBean> getAppVersionActivity(@PathParam("organizationId") String organizationId,
+                                                                   @PathParam("applicationId") String applicationId,
+                                                                   @PathParam("version") String version,
+                                                                   @QueryParam("page") int page,
+                                                                   @QueryParam("count") int pageSize)
             throws ApplicationVersionNotFoundException, NotAuthorizedException {
         if (page <= 1) {
             page = 1;
@@ -573,12 +610,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getAppUsagePerService(String, String, String, String, String)
-     */
-    @Override
-    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId,
-            String version, String fromDate, String toDate) throws NotAuthorizedException,
+    @ApiOperation(value = "Get App Usage Metrics (per Service)",
+            notes = "Retrieves metrics/analytics information for a specific application.  This will return request count data broken down by service.  It basically answers the question \"which services is my app really using?\".")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = AppUsagePerServiceBean.class, message = "Usage metrics information.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/metrics/serviceUsage")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AppUsagePerServiceBean getAppUsagePerService(@PathParam("organizationId") String organizationId,
+                                                        @PathParam("applicationId") String applicationId,
+                                                        @PathParam("version") String version,
+                                                        @QueryParam("from") String fromDate,
+                                                        @QueryParam("to") String toDate) throws NotAuthorizedException,
             InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.appView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -589,11 +633,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return metrics.getAppUsagePerService(organizationId, applicationId, version, from, to);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listAppVersions(String, String)
-     */
-    @Override
-    public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId)
+    @ApiOperation(value = "List Application Versions",
+            notes = "Use this endpoint to list all of the versions of an Application.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = ApplicationVersionSummaryBean.class, message = "A list of Applications versions.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ApplicationVersionSummaryBean> listAppVersions(@PathParam("organizationId") String organizationId,@PathParam("applicationId")  String applicationId)
             throws ApplicationNotFoundException, NotAuthorizedException {
         // Try to get the application first - will throw a ApplicationNotFoundException if not found.
         getApp(organizationId, applicationId);
@@ -605,12 +653,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createContract(String, String, String, com.t1t.digipolis.apim.beans.contracts.NewContractBean)
-     */
-    @Override
-    public ContractBean createContract(String organizationId, String applicationId, String version,
-            NewContractBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
+    @ApiOperation(value = "Get System Status",
+            notes = "Use this endpoint to create a Contract between the Application and a Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ContractBean.class, message = "Full details about the newly created Contract.")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ContractBean createContract(@PathParam("organizationId") String organizationId,
+                                       @PathParam("applicationId") String applicationId,
+                                       @PathParam("version") String version,
+                                       NewContractBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
             ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException,
             NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
@@ -739,12 +794,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getContract(String, String, String, Long)
-     */
-    @Override
-    public ContractBean getContract(String organizationId, String applicationId, String version,
-            Long contractId) throws ApplicationNotFoundException, ContractNotFoundException, NotAuthorizedException {
+    @ApiOperation(value = "Get Service Contract",
+            notes = "Use this endpoint to retrieve detailed information about a single Service Contract for an Application.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ContractBean.class, message = "Details about a single Contract.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/{contractId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ContractBean getContract(@PathParam("organizationId") String organizationId,
+                                    @PathParam("applicationId") String applicationId,
+                                    @PathParam("version") String version,
+                                    @PathParam("contractId") Long contractId) throws ApplicationNotFoundException, ContractNotFoundException, NotAuthorizedException {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
         try {
             storage.beginTx();
@@ -770,11 +831,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deleteAllContracts(String, String, String)
-     */
-    @Override
-    public void deleteAllContracts(String organizationId, String applicationId, String version)
+    @ApiOperation(value = "Break All Contracts",
+            notes = "Use this endpoint to break all contracts between this application and its services.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts")
+    public void deleteAllContracts(@PathParam("organizationId") String organizationId,
+                                   @PathParam("applicationId") String applicationId,
+                                   @PathParam("version")  String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -822,11 +888,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getApplicationVersionContracts(String, String, String)
-     */
-    @Override
-    public List<ContractSummaryBean> getApplicationVersionContracts(String organizationId, String applicationId, String version)
+    @ApiOperation(value = "List All Contracts for an Application",
+            notes = "Use this endpoint to get a list of all Contracts for an Application.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = ContractSummaryBean.class, message = "A list of Contracts.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ContractSummaryBean> getApplicationVersionContracts(@PathParam("organizationId") String organizationId,
+                                                                    @PathParam("applicationId") String applicationId,
+                                                                    @PathParam("version")String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
 
@@ -852,21 +924,32 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getApiRegistryJSON(String, String, String)
-     */
-    @Override
-    public ApiRegistryBean getApiRegistryJSON(String organizationId, String applicationId, String version)
+    @ApiOperation(value = "Get API Registry (JSON)",
+            notes = "Use this endpoint to get registry style information about all Services that this Application consumes.  This is a useful endpoint to invoke in order to retrieve a summary of every Service consumed by the application.  The information returned by this endpoint could potentially be included directly in a client application as a way to lookup endpoint information for the APIs it wishes to consume.  This variant of the API Registry is formatted as JSON data.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApiRegistryBean.class, message = "API Registry information.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/apiregistry/json")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApiRegistryBean getApiRegistryJSON(@PathParam("organizationId") String organizationId,
+                                              @PathParam("applicationId")String applicationId,
+                                              @PathParam("version") String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
         return getApiRegistry(organizationId, applicationId, version);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getApiRegistryXML(String, String, String)
-     */
-    @Override
-    public ApiRegistryBean getApiRegistryXML(String organizationId, String applicationId, String version)
-            throws ApplicationNotFoundException, NotAuthorizedException {
+    @ApiOperation(value = "Get API Registry (XML)",
+            notes = "Use this endpoint to get registry style information about all Services that this Application consumes.  This is a useful endpoint to invoke in order to retrieve a summary of every Service consumed by the application.  The information returned by this endpoint could potentially be included directly in a client application as a way to lookup endpoint information for the APIs it wishes to consume.  This variant of the API Registry is formatted as XML data.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApiRegistryBean.class, message = "API Registry information.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/apiregistry/xml")
+    @Produces(MediaType.APPLICATION_XML)
+    public ApiRegistryBean getApiRegistryXML(@PathParam("organizationId") String organizationId,
+                                             @PathParam("applicationId") String applicationId,
+                                             @PathParam("version")  String version) throws ApplicationNotFoundException, NotAuthorizedException {
         return getApiRegistry(organizationId, applicationId, version);
     }
 
