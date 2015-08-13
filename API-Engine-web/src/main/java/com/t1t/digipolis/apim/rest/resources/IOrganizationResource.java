@@ -29,7 +29,6 @@ import java.util.List;
 /**
  * The Organization API.
  */
-@Path("/organizations")
 public interface IOrganizationResource {
 
     /**
@@ -42,9 +41,6 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      * @throws InvalidNameException when the user attempts to create an Organization with an invalid name
      */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException,
             NotAuthorizedException, InvalidNameException;
 
@@ -59,10 +55,7 @@ public interface IOrganizationResource {
      * @throws OrganizationNotFoundException when trying to get, update, or delete an organization that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public OrganizationBean get(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException;
+    public OrganizationBean get(String organizationId) throws OrganizationNotFoundException, NotAuthorizedException;
 
     /**
      * Updates meta-information about a single Organization.
@@ -74,10 +67,7 @@ public interface IOrganizationResource {
      * @throws OrganizationNotFoundException when trying to get, update, or delete an organization that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @PUT
-    @Path("/{organizationId}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void update(@PathParam("organizationId") String organizationId, UpdateOrganizationBean bean)
+    public void update(String organizationId, UpdateOrganizationBean bean)
             throws OrganizationNotFoundException, NotAuthorizedException;
 
     /**
@@ -94,12 +84,7 @@ public interface IOrganizationResource {
      * @throws OrganizationNotFoundException when trying to get, update, or delete an organization that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/activity")
-    @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<AuditEntryBean> activity(
-            @PathParam("organizationId") String organizationId, @QueryParam("page") int page,
-            @QueryParam("count") int pageSize) throws OrganizationNotFoundException, NotAuthorizedException;
+    public SearchResultsBean<AuditEntryBean> activity(String organizationId, int page, int pageSize) throws OrganizationNotFoundException, NotAuthorizedException;
 
     /*
      * APPLICATIONS
@@ -122,10 +107,6 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      * @throws InvalidNameException when the user attempts the create with an invalid name
      */
-    @POST
-    @Path("/{organizationId}/applications")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public ApplicationBean createApp(@PathParam("organizationId") String organizationId,
                                      NewApplicationBean bean) throws OrganizationNotFoundException, ApplicationAlreadyExistsException,
             NotAuthorizedException, InvalidNameException;

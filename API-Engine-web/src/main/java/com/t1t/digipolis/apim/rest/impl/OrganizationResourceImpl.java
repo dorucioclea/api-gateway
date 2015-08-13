@@ -23,6 +23,7 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
+import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -41,14 +42,21 @@ import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
+import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -58,10 +66,9 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.Map.Entry;
 
-/**
- * Implementation of the Organization API.
- */
-@RequestScoped
+@Api(value = "/organizations", description = "The Organization API.")
+@Path("/organizations")
+@ApplicationScoped
 public class OrganizationResourceImpl implements IOrganizationResource {
 
     @SuppressWarnings("nls")
@@ -110,10 +117,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     public OrganizationResourceImpl() {
     }
 
-    /**
-     * @see IOrganizationResource#create(com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean)
-     */
-    @Override
+    /*************ORGANIZATION**************/
+
+    @ApiOperation(value = "Create Organization",
+            notes = "Use this endpoint to create a new Organization.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = OrganizationBean.class, message = "Full details about the Organization that was created.")
+    })
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException {
         FieldValidator.validateName(bean.getName());
 
@@ -172,11 +185,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see IOrganizationResource#get(String)
-     */
+    @ApiOperation(value = "Get Organization By ID",
+            notes = "Use this endpoint to get information about a single Organization by its ID.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = OrganizationBean.class, message = "The Organization.")
+    })
+    @GET
+    @Path("/{organizationId}")
+    @Produces(MediaType.APPLICATION_JSON)
     @Override
-    public OrganizationBean get(String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
+    public OrganizationBean get(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
         try {
             storage.beginTx();
             OrganizationBean organizationBean = storage.getOrganization(organizationId);
@@ -195,11 +213,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see IOrganizationResource#update(String, com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean)
-     */
-    @Override
-    public void update(String organizationId, UpdateOrganizationBean bean)
+    @ApiOperation(value = "Update Organization By ID",
+            notes = "Updates meta-information about a single Organization.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void update(@PathParam("organizationId") String organizationId, UpdateOrganizationBean bean)
             throws OrganizationNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -228,11 +250,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see IOrganizationResource#activity(String, int, int)
-     */
-    @Override
-    public SearchResultsBean<AuditEntryBean> activity(String organizationId, int page, int pageSize)
+    @ApiOperation(value = "Get Organization Activity",
+            notes = "Returns audit activity information for a single Organization.  The audit information that is returned represents all of the activity associated with this Organization (i.e. an audit log for everything in the Organization).")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SystemStatusBean.class, message = "List of audit/activity entries.")
+    })
+    @GET
+    @Path("/{organizationId}/activity")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<AuditEntryBean> activity(@PathParam("organizationId") String organizationId,@QueryParam("page")  int page,@QueryParam("count")  int pageSize)
             throws OrganizationNotFoundException, NotAuthorizedException {
         if (page <= 1) {
             page = 1;
@@ -255,10 +281,12 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see IOrganizationResource#createApp(String, com.t1t.digipolis.apim.beans.apps.NewApplicationBean)
-     */
-    @Override
+    /*************APPLICATIONS**************/
+
+    @POST
+    @Path("/{organizationId}/applications")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public ApplicationBean createApp(String organizationId, NewApplicationBean bean)
             throws OrganizationNotFoundException, ApplicationAlreadyExistsException, NotAuthorizedException,
             InvalidNameException {
