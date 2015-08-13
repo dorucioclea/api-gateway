@@ -17,8 +17,9 @@ import java.util.List;
  * The Role API. Used to manage roles. Note: not used to manage users or user
  * membership in roles. This API simply provides a way to create and manage role
  * definitions. Typically this API is only available to system admins.
+ *
+ * @author eric.wittmann@redhat.com
  */
-@Path("/roles")
 public interface IRoleResource {
 
     /**
@@ -33,9 +34,6 @@ public interface IRoleResource {
      * @throws RoleAlreadyExistsException when role already exists
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public RoleBean create(NewRoleBean bean) throws RoleAlreadyExistsException, NotAuthorizedException;
 
     /**
@@ -45,8 +43,6 @@ public interface IRoleResource {
      * @return A list of roles.
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
     public List<RoleBean> list() throws NotAuthorizedException;
 
     /**
@@ -59,13 +55,10 @@ public interface IRoleResource {
      * @throws RoleNotFoundException when a request is sent for a role that does not exist
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @GET
-    @Path("/{roleId}")
-    @Produces(MediaType.APPLICATION_JSON)
     public RoleBean get(@PathParam("roleId") String roleId) throws RoleNotFoundException, NotAuthorizedException;
 
     /**
-     * Use this endpoint to update the information about an existing role.  The 
+     * Use this endpoint to update the information about an existing role.  The
      * role is identified by its ID.
      * @summary Update a Role by ID
      * @servicetag admin
@@ -75,9 +68,6 @@ public interface IRoleResource {
      * @throws RoleNotFoundException when a request is sent for a role that does not exist
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @PUT
-    @Path("/{roleId}")
-    @Consumes(MediaType.APPLICATION_JSON)
     public void update(@PathParam("roleId") String roleId, UpdateRoleBean bean) throws RoleNotFoundException,
             NotAuthorizedException;
 
@@ -90,8 +80,6 @@ public interface IRoleResource {
      * @throws RoleNotFoundException when a request is sent for a role that does not exist
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @DELETE
-    @Path("/{roleId}")
     public void delete(@PathParam("roleId") String roleId) throws RoleNotFoundException, NotAuthorizedException;
 
     /**
@@ -105,10 +93,6 @@ public interface IRoleResource {
      * @throws InvalidSearchCriteriaException when provided criteria are invalid
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @POST
-    @Path("/search")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public SearchResultsBean<RoleBean> search(SearchCriteriaBean criteria)
             throws InvalidSearchCriteriaException, NotAuthorizedException;
 
