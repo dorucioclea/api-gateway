@@ -1044,11 +1044,7 @@ public interface IOrganizationResource {
      * @throws PlanNotFoundException when trying to get, update, or delete an plan that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/plans/{planId}/versions")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<PlanVersionSummaryBean> listPlanVersions(@PathParam("organizationId") String organizationId,
-                                                         @PathParam("planId") String planId) throws PlanNotFoundException, NotAuthorizedException;
+    public List<PlanVersionSummaryBean> listPlanVersions(String organizationId, String planId) throws PlanNotFoundException, NotAuthorizedException;
 
     /**
      * Use this endpoint to get detailed information about a single version of
@@ -1063,11 +1059,7 @@ public interface IOrganizationResource {
      * @throws PlanVersionNotFoundException when trying to get, update, or delete a plan version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/plans/{planId}/versions/{version}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public PlanVersionBean getPlanVersion(@PathParam("organizationId") String organizationId,
-                                          @PathParam("planId") String planId, @PathParam("version") String version)
+    public PlanVersionBean getPlanVersion( String organizationId, String planId, String version)
             throws PlanVersionNotFoundException, NotAuthorizedException;
 
     /**
@@ -1085,12 +1077,7 @@ public interface IOrganizationResource {
      * @throws PlanVersionNotFoundException when trying to get, update, or delete a plan version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/plans/{planId}/versions/{version}/activity")
-    @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<AuditEntryBean> getPlanVersionActivity(@PathParam("organizationId") String organizationId,
-                                                                    @PathParam("planId") String planId, @PathParam("version") String version,
-                                                                    @QueryParam("page") int page, @QueryParam("count") int pageSize)
+    public SearchResultsBean<AuditEntryBean> getPlanVersionActivity(String organizationId, String planId, String version, int page, int pageSize)
             throws PlanVersionNotFoundException, NotAuthorizedException;
 
     /**
@@ -1107,13 +1094,7 @@ public interface IOrganizationResource {
      * @throws PlanVersionNotFoundException when trying to get, update, or delete a plan version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @POST
-    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean createPlanPolicy(@PathParam("organizationId") String organizationId,
-                                       @PathParam("planId") String planId, @PathParam("version") String version,
-                                       NewPolicyBean bean) throws OrganizationNotFoundException, PlanVersionNotFoundException,
+    public PolicyBean createPlanPolicy(String organizationId, String planId, String version, NewPolicyBean bean) throws OrganizationNotFoundException, PlanVersionNotFoundException,
             NotAuthorizedException;
 
     /**
@@ -1131,12 +1112,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or delete a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies/{policyId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean getPlanPolicy(@PathParam("organizationId") String organizationId,
-                                    @PathParam("planId") String planId, @PathParam("version") String version,
-                                    @PathParam("policyId") long policyId) throws OrganizationNotFoundException, PlanVersionNotFoundException,
+    public PolicyBean getPlanPolicy(String organizationId, String planId, String version, long policyId) throws OrganizationNotFoundException, PlanVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException;
 
     /**
@@ -1155,13 +1131,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or delete a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @PUT
-    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies/{policyId}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public void updatePlanPolicy(@PathParam("organizationId") String organizationId,
-                                 @PathParam("planId") String planId, @PathParam("version") String version,
-                                 @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
+    public void updatePlanPolicy(String organizationId, String planId, String version, long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
             PlanVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException;
 
     /**
@@ -1179,11 +1149,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or delete a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @DELETE
-    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies/{policyId}")
-    public void deletePlanPolicy(@PathParam("organizationId") String organizationId,
-                                 @PathParam("planId") String planId, @PathParam("version") String version,
-                                 @PathParam("policyId") long policyId) throws OrganizationNotFoundException, PlanVersionNotFoundException,
+    public void deletePlanPolicy(String organizationId, String planId, String version, long policyId) throws OrganizationNotFoundException, PlanVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException;
 
     /**
@@ -1199,11 +1165,7 @@ public interface IOrganizationResource {
      * @throws PlanVersionNotFoundException when trying to get, update, or delete a plan version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<PolicySummaryBean> listPlanPolicies(@PathParam("organizationId") String organizationId,
-                                                    @PathParam("planId") String planId, @PathParam("version") String version)
+    public List<PolicySummaryBean> listPlanPolicies(String organizationId, String planId, String version)
             throws OrganizationNotFoundException, PlanVersionNotFoundException,
             NotAuthorizedException;
 
@@ -1226,12 +1188,7 @@ public interface IOrganizationResource {
      * @throws PlanVersionNotFoundException when trying to get, update, or delete a plan version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @POST
-    @Path("/{organizationId}/plans/{planId}/versions/{version}/reorderPolicies")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void reorderPlanPolicies(@PathParam("organizationId") String organizationId,
-                                    @PathParam("planId") String planId, @PathParam("version") String version,
-                                    PolicyChainBean policyChain) throws OrganizationNotFoundException,
+    public void reorderPlanPolicies(String organizationId, String planId, String version, PolicyChainBean policyChain) throws OrganizationNotFoundException,
             PlanVersionNotFoundException, NotAuthorizedException;
 
     /*
@@ -1249,11 +1206,7 @@ public interface IOrganizationResource {
      * @throws UserNotFoundException when a request is sent for a user who does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @POST
-    @Path("/{organizationId}/roles")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void grant(@PathParam("organizationId") String organizationId, GrantRolesBean bean)
-            throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException, NotAuthorizedException;
+    public void grant(String organizationId, GrantRolesBean bean) throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException, NotAuthorizedException;
 
     /**
      * Revoke membership in a role.
@@ -1267,10 +1220,7 @@ public interface IOrganizationResource {
      * @throws UserNotFoundException when a request is sent for a user who does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @DELETE
-    @Path("/{organizationId}/roles/{roleId}/{userId}")
-    public void revoke(@PathParam("organizationId") String organizationId,
-                       @PathParam("roleId") String roleId, @PathParam("userId") String userId)
+    public void revoke(String organizationId, String roleId, String userId)
             throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException,
             NotAuthorizedException;
 
@@ -1286,10 +1236,7 @@ public interface IOrganizationResource {
      * @throws UserNotFoundException when a request is sent for a user who does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @DELETE
-    @Path("/{organizationId}/members/{userId}")
-    public void revokeAll(@PathParam("organizationId") String organizationId,
-                          @PathParam("userId") String userId) throws OrganizationNotFoundException, RoleNotFoundException,
+    public void revokeAll(String organizationId, String userId) throws OrganizationNotFoundException, RoleNotFoundException,
             UserNotFoundException, NotAuthorizedException;
 
     /**
@@ -1301,11 +1248,7 @@ public interface IOrganizationResource {
      * @throws OrganizationNotFoundException when trying to get, update, or delete an organization that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/members")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<MemberBean> listMembers(@PathParam("organizationId") String organizationId)
-            throws OrganizationNotFoundException, NotAuthorizedException;
+    public List<MemberBean> listMembers(String organizationId) throws OrganizationNotFoundException, NotAuthorizedException;
 
 
     /* -----------------------------------------------------------------

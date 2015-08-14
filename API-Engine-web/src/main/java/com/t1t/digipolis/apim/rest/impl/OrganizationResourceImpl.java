@@ -2593,11 +2593,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return newVersion;
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlanVersion(String, String, String)
-     */
-    @Override
-    public PlanVersionBean getPlanVersion(String organizationId, String planId, String version)
+    @ApiOperation(value = "Get Plan Version",
+            notes = "Use this endpoint to get detailed information about a single version of")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PlanVersionBean.class, message = "An Plan version.")
+    })
+    @GET
+    @Path("/{organizationId}/plans/{planId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PlanVersionBean getPlanVersion(@PathParam("organizationId") String organizationId,
+                                          @PathParam("planId") String planId,
+                                          @PathParam("version") String version)
             throws PlanVersionNotFoundException, NotAuthorizedException {
         try {
             storage.beginTx();
@@ -2617,12 +2623,20 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlanVersionActivity(String, String, String, int, int)
-     */
-    @Override
-    public SearchResultsBean<AuditEntryBean> getPlanVersionActivity(String organizationId, String planId,
-            String version, int page, int pageSize) throws PlanVersionNotFoundException,
+    @ApiOperation(value = "Get Plan Version Activity",
+            notes = "Use this endpoint to get audit activity information for a single version of the Plan.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "A list of audit entries.")
+    })
+    @GET
+    @Path("/{organizationId}/plans/{planId}/versions/{version}/activity")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<AuditEntryBean> getPlanVersionActivity(
+            @PathParam("organizationId") String organizationId,
+            @PathParam("planId") String planId,
+            @PathParam("version") String version,
+            @QueryParam("page") int page,
+            @QueryParam("count") int pageSize) throws PlanVersionNotFoundException,
             NotAuthorizedException {
         if (page <= 1) {
             page = 1;
@@ -2642,12 +2656,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listPlanVersions(String, String)
-     */
-    @Override
-    public List<PlanVersionSummaryBean> listPlanVersions(String organizationId, String planId)
-            throws PlanNotFoundException, NotAuthorizedException {
+    @ApiOperation(value = "List Plan Versions",
+            notes = "Use this endpoint to list all of the versions of a Plan.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = PlanVersionSummaryBean.class, message = "A list of Plans.")
+    })
+    @GET
+    @Path("/{organizationId}/plans/{planId}/versions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<PlanVersionSummaryBean> listPlanVersions(@PathParam("organizationId") String organizationId,
+                                                         @PathParam("planId") String planId) throws PlanNotFoundException, NotAuthorizedException {
         // Try to get the plan first - will throw a PlanNotFoundException if not found.
         getPlan(organizationId, planId);
 
@@ -2658,12 +2676,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createPlanPolicy(String,
-     *      String, String, com.t1t.digipolis.apim.beans.policies.NewPolicyBean)
-     */
-    @Override
-    public PolicyBean createPlanPolicy(String organizationId, String planId, String version,
+    @ApiOperation(value = "Add Plan Policy",
+            notes = "Use this endpoint to add a new Policy to the Plan version.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full details about the newly added Policy.")
+    })
+    @POST
+    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public PolicyBean createPlanPolicy(@PathParam("organizationId") String organizationId,
+                                       @PathParam("planId")String planId,
+                                       @PathParam("version") String version,
             NewPolicyBean bean) throws OrganizationNotFoundException, PlanVersionNotFoundException,
             NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
@@ -2679,11 +2703,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return doCreatePolicy(organizationId, planId, version, bean, PolicyType.Plan);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlanPolicy(String, String, String, long)
-     */
-    @Override
-    public PolicyBean getPlanPolicy(String organizationId, String planId, String version, long policyId)
+    @ApiOperation(value = "Get Plan Policy",
+            notes = "Use this endpoint to get information about a single Policy in the Plan version.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full information about the Policy.")
+    })
+    @GET
+    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies/{policyId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PolicyBean getPlanPolicy(@PathParam("organizationId") String organizationId,
+                                    @PathParam("planId") String planId,
+                                    @PathParam("version") String version,
+                                    @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, PlanVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException {
         boolean hasPermission = securityContext.hasPermission(PermissionType.planView, organizationId);
@@ -2701,13 +2732,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return policy;
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updatePlanPolicy(String,
-     *      String, String, long, com.t1t.digipolis.apim.beans.policies.UpdatePolicyBean)
-     */
-    @Override
-    public void updatePlanPolicy(String organizationId, String planId, String version,
-            long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
+    @ApiOperation(value = "Update Plan Policy",
+            notes = "Use this endpoint to update the meta-data or configuration of a single Plan Policy.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies/{policyId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void updatePlanPolicy(@PathParam("organizationId") String organizationId,
+                                 @PathParam("planId") String planId,
+                                 @PathParam("version") String version,
+                                 @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
             PlanVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2740,11 +2777,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deletePlanPolicy(String, String, String, long)
-     */
-    @Override
-    public void deletePlanPolicy(String organizationId, String planId, String version, long policyId)
+    @ApiOperation(value = "Remove Plan Policy",
+            notes = "Use this endpoint to remove a Policy from the Plan.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies/{policyId}")
+    public void deletePlanPolicy(@PathParam("organizationId") String organizationId,
+                                 @PathParam("planId") String planId,
+                                 @PathParam("version") String version,
+                                 @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, PlanVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
@@ -2775,11 +2818,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listPlanPolicies(String, String, String)
-     */
-    @Override
-    public List<PolicySummaryBean> listPlanPolicies(String organizationId, String planId, String version)
+    @ApiOperation(value = "List All Plan Policies",
+            notes = "Use this endpoint to list all of the Policies configured for the Plan.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = PolicySummaryBean.class, message = "A List of Policies.")
+    })
+    @GET
+    @Path("/{organizationId}/plans/{planId}/versions/{version}/policies")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<PolicySummaryBean> listPlanPolicies(@PathParam("organizationId") String organizationId,
+                                                    @PathParam("planId") String planId,
+                                                    @PathParam("version")String version)
             throws OrganizationNotFoundException, PlanVersionNotFoundException, NotAuthorizedException {
         // Try to get the plan first - will throw an exception if not found.
         getPlanVersion(organizationId, planId, version);
@@ -2791,11 +2840,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#reorderPlanPolicies(String, String, String, com.t1t.digipolis.apim.beans.policies.PolicyChainBean)
-     */
-    @Override
-    public void reorderPlanPolicies(String organizationId, String planId, String version,
+    @ApiOperation(value = "Re-Order Plan Policies",
+            notes = "Use this endpoint to change the order of Policies for a Plan.  When a Policy is added to the Plan, it is added as the last Policy in the list of Plan Policies.  Sometimes the order of Policies is important, so it is often useful to re-order the Policies by invoking this endpoint.  The body of the request should include all of the Policies for the Plan, in the new desired order.  Note that only the IDs of each of the Policies is actually required in the request, at a minimum.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/plans/{planId}/versions/{version}/reorderPolicies")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void reorderPlanPolicies(@PathParam("organizationId") String organizationId,
+                                    @PathParam("planId") String planId,
+                                    @PathParam("version") String version,
             PolicyChainBean policyChain) throws OrganizationNotFoundException,
             PlanVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
@@ -2896,11 +2951,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#grant(String, com.t1t.digipolis.apim.beans.idm.GrantRolesBean)
-     */
-    @Override
-    public void grant(String organizationId, GrantRolesBean bean) throws OrganizationNotFoundException,
+    @ApiOperation(value = "Grant Membership(s)",
+            notes = "Grant membership in a role to a user.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/roles")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void grant(@PathParam("organizationId") String organizationId, GrantRolesBean bean) throws OrganizationNotFoundException,
             RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2939,11 +2998,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#revoke(String, String, String)
-     */
-    @Override
-    public void revoke(String organizationId, String roleId, String userId)
+    @ApiOperation(value = "Revoke Single Membership",
+            notes = "Revoke membership in a role.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/roles/{roleId}/{userId}")
+    public void revoke(@PathParam("organizationId") String organizationId,
+                       @PathParam("roleId")  String roleId,
+                       @PathParam("userId")  String userId)
             throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException,
             NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
@@ -2979,17 +3043,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#revokeAll(String, String)
-     */
-    @Override
-    public void revokeAll(String organizationId, String userId) throws OrganizationNotFoundException,
+    @ApiOperation(value = "Revoke All Memberships",
+            notes = "Revoke all of a user's role memberships from the org.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/members/{userId}")
+    public void revokeAll(@PathParam("organizationId") String organizationId,@PathParam("userId")  String userId) throws OrganizationNotFoundException,
             RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         get(organizationId);
         users.get(userId);
-
         try {
             idmStorage.deleteMemberships(userId, organizationId);
         } catch (StorageException e) {
@@ -3012,11 +3078,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listMembers(String)
-     */
-    @Override
-    public List<MemberBean> listMembers(String organizationId) throws OrganizationNotFoundException,
+    @ApiOperation(value = "List Organization Members",
+            notes = "Lists all members of the organization.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List",response = MemberBean.class, message = "List of members.")
+    })
+    @GET
+    @Path("/{organizationId}/members")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<MemberBean> listMembers(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException,
             NotAuthorizedException {
         get(organizationId);
 
