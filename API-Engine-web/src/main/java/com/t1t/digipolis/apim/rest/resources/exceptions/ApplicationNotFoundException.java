@@ -3,7 +3,7 @@ package com.t1t.digipolis.apim.rest.resources.exceptions;
 
 
 /**
- * Thrown when trying to get, update, or delete an application that does not exist.
+ * Thrown when trying to get, update, or remove an application that does not exist.
  *
  */
 public class ApplicationNotFoundException extends AbstractNotFoundException {

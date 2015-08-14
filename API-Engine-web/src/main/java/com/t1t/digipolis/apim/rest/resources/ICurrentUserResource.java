@@ -14,7 +14,6 @@ import java.util.List;
  * The Current User API.  Returns information about the authenticated
  * user.
  */
-@Path("/currentuser")
 public interface ICurrentUserResource {
 
     /**
@@ -23,9 +22,6 @@ public interface ICurrentUserResource {
      * @statuscode 200 If the information is correctly returned.
      * @return Information about the authenticated user.
      */
-    @GET
-    @Path("/info")
-    @Produces(MediaType.APPLICATION_JSON)
     public CurrentUserBean getInfo();
 
     /**
@@ -34,9 +30,6 @@ public interface ICurrentUserResource {
      * @param info Data to use when updating the user.
      * @statuscode 204 If the update is successful.
      */
-    @PUT
-    @Path("/info")
-    @Consumes(MediaType.APPLICATION_JSON)
     public void updateInfo(UpdateUserBean info);
     
     /**
@@ -48,9 +41,6 @@ public interface ICurrentUserResource {
      * @statuscode 200 If the organizations are successfully returned.
      * @return A list of organizations.
      */
-    @GET
-    @Path("/apporgs")
-    @Produces(MediaType.APPLICATION_JSON)
     public List<OrganizationSummaryBean> getAppOrganizations();
     
     /**
@@ -62,9 +52,6 @@ public interface ICurrentUserResource {
      * @statuscode 200 If the organizations are successfully returned.
      * @return A list of organizations.
      */
-    @GET
-    @Path("/svcorgs")
-    @Produces(MediaType.APPLICATION_JSON)
     public List<OrganizationSummaryBean> getServiceOrganizations();
     
     /**
@@ -76,9 +63,6 @@ public interface ICurrentUserResource {
      * @statuscode 200 If the organizations are successfully returned.
      * @return A list of organizations.
      */
-    @GET
-    @Path("/planorgs")
-    @Produces(MediaType.APPLICATION_JSON)
     public List<OrganizationSummaryBean> getPlanOrganizations();
 
     /**
@@ -89,9 +73,6 @@ public interface ICurrentUserResource {
      * @statuscode 200 If the applications are successfully returned.
      * @return A list of Applications.
      */
-    @GET
-    @Path("/applications")
-    @Produces(MediaType.APPLICATION_JSON)
     public List<ApplicationSummaryBean> getApplications();
 
     /**
@@ -102,9 +83,6 @@ public interface ICurrentUserResource {
      * @statuscode 200 If the services are successfully returned.
      * @return A list of Services.
      */
-    @GET
-    @Path("/services")
-    @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceSummaryBean> getServices();
 
 }

@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.rest.impl;
+package com.t1t.digipolis.rest.resources;
 
 import com.t1t.digipolis.apim.beans.idm.UserPermissionsBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
@@ -9,32 +9,44 @@ import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.rest.resources.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.rest.resources.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
-/**
- * Implementation of the Permissions API.
- */
+@Api(value = "/permissions", description = "The Permissions API.")
+@Path("/permissions")
 @ApplicationScoped
-public class PermissionsResourceImpl implements IPermissionsResource {
-    
+public class PermissionsResource implements IPermissionsResource {
+
     @Inject
     IIdmStorage idmStorage;
     @Inject
     ISecurityContext securityContext;
-    
+
     /**
      * Constructor.
      */
-    public PermissionsResourceImpl() {
+    public PermissionsResource() {
     }
-    
-    /**
-     * @see IPermissionsResource#getPermissionsForUser(String)
-     */
-    @Override
-    public UserPermissionsBean getPermissionsForUser(String userId) throws UserNotFoundException, NotAuthorizedException {
+
+    @ApiOperation(value = "Get User's Permissions",
+            notes = "This endpoint returns all of the permissions assigned to a specific user.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = UserPermissionsBean.class, message = "All of the user's permissions.")
+    })
+    @GET
+    @Path("/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public UserPermissionsBean getPermissionsForUser(@PathParam("userId") String userId) throws UserNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin())
             throw ExceptionFactory.notAuthorizedException();
 
@@ -47,11 +59,14 @@ public class PermissionsResourceImpl implements IPermissionsResource {
             throw new SystemErrorException(e);
         }
     }
-    
-    /**
-     * @see IPermissionsResource#getPermissionsForCurrentUser()
-     */
-    @Override
+
+    @ApiOperation(value = "Get Current User's Permissions",
+            notes = "This endpoint returns all of the permissions assigned to the currently authenticated user.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = UserPermissionsBean.class, message = "All of the user's permissions.")
+    })
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public UserPermissionsBean getPermissionsForCurrentUser() throws UserNotFoundException {
         try {
             String currentUser = securityContext.getCurrentUser();
@@ -91,5 +106,5 @@ public class PermissionsResourceImpl implements IPermissionsResource {
     public void setSecurityContext(ISecurityContext securityContext) {
         this.securityContext = securityContext;
     }
-    
+
 }

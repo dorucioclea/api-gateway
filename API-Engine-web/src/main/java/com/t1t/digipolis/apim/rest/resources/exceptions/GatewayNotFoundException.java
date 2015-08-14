@@ -2,7 +2,7 @@ package com.t1t.digipolis.apim.rest.resources.exceptions;
 
 
 /**
- * Thrown when trying to get, update, or delete a gateay that does not exist.
+ * Thrown when trying to get, update, or remove a gateay that does not exist.
  *
  */
 public class GatewayNotFoundException extends AbstractNotFoundException {

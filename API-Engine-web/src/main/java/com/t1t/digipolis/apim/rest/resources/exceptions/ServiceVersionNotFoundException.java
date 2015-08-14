@@ -2,7 +2,7 @@ package com.t1t.digipolis.apim.rest.resources.exceptions;
 
 
 /**
- * Thrown when trying to get, update, or delete a service version that does not
+ * Thrown when trying to get, update, or remove a service version that does not
  * exist.
  */
 public class ServiceVersionNotFoundException extends AbstractNotFoundException {

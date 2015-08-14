@@ -2,7 +2,7 @@ package com.t1t.digipolis.apim.rest.resources.exceptions;
 
 
 /**
- * Thrown when trying to get, update, or delete a application version that does not
+ * Thrown when trying to get, update, or remove a application version that does not
  * exist.
  *
  */

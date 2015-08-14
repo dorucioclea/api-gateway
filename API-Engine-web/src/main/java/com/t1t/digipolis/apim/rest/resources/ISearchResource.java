@@ -17,7 +17,6 @@ import javax.ws.rs.core.MediaType;
 /**
  * The Search API.
  */
-@Path("/search")
 public interface ISearchResource {
 
     /**
@@ -30,10 +29,6 @@ public interface ISearchResource {
      * @return The search results (a page of organizations).
      * @throws InvalidSearchCriteriaException when provided criteria are invalid when provided criteria are invalid 
      */
-    @POST
-    @Path("/organizations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public SearchResultsBean<OrganizationSummaryBean> searchOrgs(SearchCriteriaBean criteria)
             throws InvalidSearchCriteriaException;
 
@@ -48,10 +43,6 @@ public interface ISearchResource {
      * @throws OrganizationNotFoundException when provided organization is not found
      * @throws InvalidSearchCriteriaException when provided criteria are invalid
      */
-    @POST
-    @Path("/applications")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public SearchResultsBean<ApplicationSummaryBean> searchApps(SearchCriteriaBean criteria)
             throws OrganizationNotFoundException, InvalidSearchCriteriaException;
 
@@ -66,10 +57,7 @@ public interface ISearchResource {
      * @throws OrganizationNotFoundException when provided organization is not found
      * @throws InvalidSearchCriteriaException when provided criteria are invalid
      */
-    @POST
-    @Path("/services")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+
     public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria)
             throws OrganizationNotFoundException, InvalidSearchCriteriaException;
 

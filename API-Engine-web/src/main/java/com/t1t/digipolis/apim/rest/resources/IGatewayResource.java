@@ -15,7 +15,6 @@ import java.util.List;
 /**
  * The Gateway API.
  */
-@Path("/gateways")
 public interface IGatewayResource {
     
     /**
@@ -30,9 +29,6 @@ public interface IGatewayResource {
      * @return The result of testing the Gateway settings.
      * @throws NotAuthorizedException when attempt to do something user is not authorized to do 
      */
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     public GatewayTestResultBean test(NewGatewayBean bean) throws NotAuthorizedException;
 
     /**
@@ -42,8 +38,6 @@ public interface IGatewayResource {
      * @return A list of configured Gateways.
      * @throws NotAuthorizedException when attempt to do something user is not authorized to do
      */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
     public List<GatewaySummaryBean> list() throws NotAuthorizedException;
 
     /**
@@ -56,9 +50,6 @@ public interface IGatewayResource {
      * @throws GatewayAlreadyExistsException when the gateway already exists
      * @throws NotAuthorizedException when attempt to do something user is not authorized to do
      */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public GatewayBean create(NewGatewayBean bean) throws GatewayAlreadyExistsException, NotAuthorizedException;
     
     /**
@@ -70,15 +61,12 @@ public interface IGatewayResource {
      * @throws GatewayNotFoundException when gateway is not found
      * @throws NotAuthorizedException when attempt to do something user is not authorized to do
      */
-    @GET
-    @Path("/{gatewayId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public GatewayBean get(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException, NotAuthorizedException;
+    public GatewayBean get(String gatewayId) throws GatewayNotFoundException, NotAuthorizedException;
 
     /**
      * Use this endpoint to update an existing Gateway.  Note that the name of the
      * Gateway cannot be changed, as the name is tied closely with the Gateway's
-     * ID.  If you wish to rename the Gateway you must delete it and create a new
+     * ID.  If you wish to rename the Gateway you must remove it and create a new
      * one.
      * @summary Update a Gateway
      * @servicetag admin
@@ -88,24 +76,19 @@ public interface IGatewayResource {
      * @throws GatewayNotFoundException when gateway is not found
      * @throws NotAuthorizedException when attempt to do something user is not authorized to do
      */
-    @PUT
-    @Path("/{gatewayId}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void update(@PathParam("gatewayId") String gatewayId, UpdateGatewayBean bean)
+    public void update(String gatewayId, UpdateGatewayBean bean)
             throws GatewayNotFoundException, NotAuthorizedException;
 
     /**
      * This endpoint deletes a Gateway by its unique ID.
      * @summary Delete a Gateway
      * @servicetag admin
-     * @param gatewayId The ID of the Gateway to delete.
-     * @statuscode 204 If the delete is successful.
+     * @param gatewayId The ID of the Gateway to remove.
+     * @statuscode 204 If the remove is successful.
      * @throws GatewayNotFoundException when gateway is not found
      * @throws NotAuthorizedException when attempt to do something user is not authorized to do
      */
-    @DELETE
-    @Path("/{gatewayId}")
-    public void delete(@PathParam("gatewayId") String gatewayId)
+    public void remove(String gatewayId)
             throws GatewayNotFoundException, NotAuthorizedException;
 
 }

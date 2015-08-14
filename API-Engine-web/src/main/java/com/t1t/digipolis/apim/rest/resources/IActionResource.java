@@ -12,7 +12,6 @@ import javax.ws.rs.core.MediaType;
  * The Action API.  This API allows callers to perform actions on various 
  * entities - actions other than the standard REST "crud" actions.
  */
-@Path("/actions")
 public interface IActionResource {
 
     /**
@@ -24,8 +23,6 @@ public interface IActionResource {
      * @statuscode 204 If the action completes successfully.
      * @throws ActionException action is performed but an error occurs during processing
      */
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
     public void performAction(ActionBean action) throws ActionException;
 
 }

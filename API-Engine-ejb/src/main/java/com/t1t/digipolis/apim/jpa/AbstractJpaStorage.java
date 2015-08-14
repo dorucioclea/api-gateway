@@ -22,8 +22,6 @@ public abstract class AbstractJpaStorage {
 
     private static Logger logger = LoggerFactory.getLogger(AbstractJpaStorage.class);
 
-/*    @Inject
-    private IEntityManagerFactoryAccessor emfAccessor;*/
     @Inject @PersistenceContext
     private EntityManager em;
 
@@ -331,18 +329,5 @@ public abstract class AbstractJpaStorage {
         }
     }
 
-    /**
-     * @return the emfAccessor
-     */
-/*    public IEntityManagerFactoryAccessor getEmfAccessor() {
-        return emfAccessor;
-    }*/
-
-    /**
-     * @param emfAccessor the emfAccessor to set
-     */
-/*    public void setEmfAccessor(IEntityManagerFactoryAccessor emfAccessor) {
-        this.emfAccessor = emfAccessor;
-    }*/
 
 }

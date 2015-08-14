@@ -18,7 +18,6 @@ import java.util.List;
 /**
  * The User API.
  */
-@Path("/users")
 public interface IUserResource {
 
     /**
@@ -29,10 +28,7 @@ public interface IUserResource {
      * @return Full user information.
      * @throws UserNotFoundException when specified user not found
      */
-    @GET
-    @Path("/{userId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public UserBean get(@PathParam("userId") String userId) throws UserNotFoundException;
+    public UserBean get(String userId) throws UserNotFoundException;
 
     /**
      * Use this endpoint to update the information about a user.  This will fail
@@ -45,10 +41,7 @@ public interface IUserResource {
      * @throws UserNotFoundException when specified user not found
      * @throws NotAuthorizedException when not authorized to invoke this method
      */
-    @PUT
-    @Path("/{userId}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void update(@PathParam("userId") String userId, UpdateUserBean user) throws UserNotFoundException, NotAuthorizedException;
+    public void update(String userId, UpdateUserBean user) throws UserNotFoundException, NotAuthorizedException;
 
     /**
      * Use this endpoint to search for users.  The search criteria is
@@ -60,10 +53,6 @@ public interface IUserResource {
      * @return The search results (a page of organizations).
      * @throws InvalidSearchCriteriaException when provided criteria are invalid
      */
-    @POST
-    @Path("/search")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public SearchResultsBean<UserBean> search(SearchCriteriaBean criteria) throws InvalidSearchCriteriaException;
 
     /**
@@ -74,10 +63,7 @@ public interface IUserResource {
      * @statuscode 200 If the organization list is successfully returned.
      * @return List of organizations.
      */
-    @GET
-    @Path("/{userId}/organizations")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<OrganizationSummaryBean> getOrganizations(@PathParam("userId") String userId);
+    public List<OrganizationSummaryBean> getOrganizations(String userId);
 
     /**
      * This endpoint returns all applications that the user has permission to edit.
@@ -86,10 +72,7 @@ public interface IUserResource {
      * @statuscode 200 If the application list is successfully returned.
      * @return List of applications.
      */
-    @GET
-    @Path("/{userId}/applications")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<ApplicationSummaryBean> getApplications(@PathParam("userId") String userId);
+    public List<ApplicationSummaryBean> getApplications(String userId);
 
     /**
      * This endpoint returns all services that the user has permission to edit.
@@ -98,10 +81,7 @@ public interface IUserResource {
      * @statuscode 200 If the service list is successfully returned.
      * @return List of services.
      */
-    @GET
-    @Path("/{userId}/services")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<ServiceSummaryBean> getServices(@PathParam("userId") String userId);
+    public List<ServiceSummaryBean> getServices(String userId);
 
     /**
      * Use this endpoint to get information about the user's audit history.  This
@@ -115,9 +95,6 @@ public interface IUserResource {
      * @statuscode 200 If the activity is successfully returned.
      * @return List of audit entries.
      */
-    @GET
-    @Path("/{userId}/activity")
-    @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<AuditEntryBean> getActivity(@PathParam("userId") String userId,@QueryParam("page") int page, @QueryParam("count") int pageSize);
+    public SearchResultsBean<AuditEntryBean> getActivity(String userId,int page, int pageSize);
     
 }
