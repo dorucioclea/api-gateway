@@ -66,7 +66,7 @@ public interface IGatewayResource {
     /**
      * Use this endpoint to update an existing Gateway.  Note that the name of the
      * Gateway cannot be changed, as the name is tied closely with the Gateway's
-     * ID.  If you wish to rename the Gateway you must delete it and create a new
+     * ID.  If you wish to rename the Gateway you must remove it and create a new
      * one.
      * @summary Update a Gateway
      * @servicetag admin
@@ -83,12 +83,12 @@ public interface IGatewayResource {
      * This endpoint deletes a Gateway by its unique ID.
      * @summary Delete a Gateway
      * @servicetag admin
-     * @param gatewayId The ID of the Gateway to delete.
-     * @statuscode 204 If the delete is successful.
+     * @param gatewayId The ID of the Gateway to remove.
+     * @statuscode 204 If the remove is successful.
      * @throws GatewayNotFoundException when gateway is not found
      * @throws NotAuthorizedException when attempt to do something user is not authorized to do
      */
-    public void delete(String gatewayId)
+    public void remove(String gatewayId)
             throws GatewayNotFoundException, NotAuthorizedException;
 
 }

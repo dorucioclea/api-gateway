@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.rest.impl;
+package com.t1t.digipolis.rest.resources;
 
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.apps.*;
@@ -53,7 +53,6 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -69,7 +68,7 @@ import java.util.Map.Entry;
 @Api(value = "/organizations", description = "The Organization API.")
 @Path("/organizations")
 @ApplicationScoped
-public class OrganizationResourceImpl implements IOrganizationResource {
+public class OrganizationResource implements IOrganizationResource {
 
     @SuppressWarnings("nls")
     public static final String [] DATE_FORMATS = {
@@ -109,12 +108,12 @@ public class OrganizationResourceImpl implements IOrganizationResource {
 
     @Context HttpServletRequest request;
 
-    @Inject @ApimanLogger(OrganizationResourceImpl.class) IApimanLogger log;
+    @Inject @ApimanLogger(OrganizationResource.class) IApimanLogger log;
 
     /**
      * Constructor.
      */
-    public OrganizationResourceImpl() {
+    public OrganizationResource() {
     }
 
     /*************ORGANIZATION**************/
@@ -2052,7 +2051,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     @ApiOperation(value = "Remove Service Definition",
-            notes = "Use this endpoint to delete a Service's definition document.  When this is done, the 'definitionType' field on the Service will be set to None.")
+            notes = "Use this endpoint to remove a Service's definition document.  When this is done, the 'definitionType' field on the Service will be set to None.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
     })
@@ -2225,12 +2224,21 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getUsage(String, String, String, com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType, String, String)
-     */
-    @Override
-    public UsageHistogramBean getUsage(String organizationId, String serviceId, String version,
-            HistogramIntervalType interval, String fromDate, String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
+    @ApiOperation(value = "Get Service Usage Metrics",
+            notes = "Retrieves metrics/analytics information for a specific service.  This will return a full histogram of request count data based on the provided date range and interval.  Valid intervals are:  month, week, day, hour, minute")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = UsageHistogramBean.class, message = "Usage metrics information.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/usage")
+    @Produces(MediaType.APPLICATION_JSON)
+    public UsageHistogramBean getUsage(
+            @PathParam("organizationId") String organizationId,
+            @PathParam("serviceId") String serviceId,
+            @PathParam("version")String version,
+            @QueryParam("interval") HistogramIntervalType interval,
+            @QueryParam("from") String fromDate,
+            @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
 
@@ -2244,12 +2252,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getUsagePerApp(String, String, String, String, String)
-     */
-    @Override
-    public UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version,
-            String fromDate, String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
+    @ApiOperation(value = "Get Service Usage Metrics (per App)",
+            notes = "Retrieves metrics/analytics information for a specific service.  This will return request count data broken down by application.  It basically answers the question \"who is calling my service?\".")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = UsagePerAppBean.class, message = "Usage metrics information.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/appUsage")
+    @Produces(MediaType.APPLICATION_JSON)
+    public UsagePerAppBean getUsagePerApp(@PathParam("organizationId") String organizationId,
+                                          @PathParam("serviceId")String serviceId,
+                                          @PathParam("version") String version,
+                                          @QueryParam("from") String fromDate,
+                                          @QueryParam("to")String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
 
@@ -2259,12 +2274,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return metrics.getUsagePerApp(organizationId, serviceId, version, from, to);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getUsagePerPlan(String, String, String, String, String)
-     */
-    @Override
-    public UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version,
-            String fromDate, String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
+    @ApiOperation(value = "Get Service Usage Metrics (per Plan)",
+            notes = "Retrieves metrics/analytics information for a specific service.  This will return request count data broken down by plan.  It basically answers the question which service plans are most used?.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = UsagePerPlanBean.class, message = "Usage metrics information.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/planUsage")
+    @Produces(MediaType.APPLICATION_JSON)
+    public UsagePerPlanBean getUsagePerPlan(@PathParam("organizationId") String organizationId,
+                                            @PathParam("serviceId")String serviceId,
+                                            @PathParam("version") String version,
+                                            @QueryParam("from") String fromDate,
+                                            @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
 
@@ -2274,12 +2296,20 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return metrics.getUsagePerPlan(organizationId, serviceId, version, from, to);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getResponseStats(String, String, String, com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType, String, String)
-     */
-    @Override
-    public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId,
-            String version, HistogramIntervalType interval, String fromDate, String toDate)
+    @ApiOperation(value = "Get System Status",
+            notes = "This endpoint simply returns the status of the apiman system. This is a useful endpoint to use when testing a client's connection to the apiman API Manager REST services.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SystemStatusBean.class, message = "System status information")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/responseStats")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ResponseStatsHistogramBean getResponseStats(@PathParam("organizationId") String organizationId,
+                                                       @PathParam("serviceId") String serviceId,
+                                                       @PathParam("version") String version,
+                                                       @QueryParam("interval") HistogramIntervalType interval,
+                                                       @QueryParam("from") String fromDate,
+                                                       @QueryParam("to") String toDate)
             throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2294,12 +2324,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getResponseStatsSummary(String, String, String, String, String)
-     */
-    @Override
-    public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId,
-            String version, String fromDate, String toDate) throws NotAuthorizedException,
+    @ApiOperation(value = "Get Service Response Statistics (Summary)",
+            notes = "Retrieves metrics/analytics information for a specific service.  This will return total response type statistics over the given date range.  Basically this will return three numbers: total request, # failed responses, # error responses.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ResponseStatsSummaryBean.class, message = "System status information")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/summaryResponseStats")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ResponseStatsSummaryBean getResponseStatsSummary(@PathParam("organizationId") String organizationId,
+                                                            @PathParam("serviceId") String serviceId,
+                                                            @PathParam("version") String version,
+                                                            @QueryParam("from") String fromDate,
+                                                            @QueryParam("to") String toDate) throws NotAuthorizedException,
             InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2310,12 +2347,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getResponseStatsPerApp(String, String, String, String, String)
-     */
-    @Override
-    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId,
-            String version, String fromDate, String toDate) throws NotAuthorizedException,
+    @ApiOperation(value = "Get Service Response Statistics (per App)",
+            notes = "Retrieves metrics/analytics information for a specific service.  This will return response type statistics broken down by application.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ResponseStatsPerAppBean.class, message = "Usage metrics information.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/appResponseStats")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ResponseStatsPerAppBean getResponseStatsPerApp(@PathParam("organizationId") String organizationId,
+                                                          @PathParam("serviceId")String serviceId,
+                                                          @PathParam("version") String version,
+                                                          @QueryParam("from") String fromDate,
+                                                          @QueryParam("to") String toDate) throws NotAuthorizedException,
             InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2326,12 +2370,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return metrics.getResponseStatsPerApp(organizationId, serviceId, version, from, to);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getResponseStatsPerPlan(String, String, String, String, String)
-     */
-    @Override
-    public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId,
-            String version, String fromDate, String toDate) throws NotAuthorizedException,
+    @ApiOperation(value = "Get Service Response Statistics (per Plan)",
+            notes = "Retrieves metrics/analytics information for a specific service.  This will return response type statistics broken down by plan.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SystemStatusBean.class, message = "Usage metrics information.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/planResponseStats")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ResponseStatsPerPlanBean getResponseStatsPerPlan(@PathParam("organizationId") String organizationId,
+                                                            @PathParam("serviceId") String serviceId,
+                                                            @PathParam("version") String version,
+                                                            @QueryParam("from") String fromDate,
+                                                            @QueryParam("to") String toDate) throws NotAuthorizedException,
             InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2513,7 +2564,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     @ApiOperation(value = "Create Plan Version",
             notes = "Use this endpoint to create a new version of the Plan.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PlanVersionBean.class, message = "Full details about the newly created Plan version. When trying to get, update, or delete an plan that does not exist")
+            @ApiResponse(code = 200, response = PlanVersionBean.class, message = "Full details about the newly created Plan version. When trying to get, update, or remove an plan that does not exist")
     })
     @POST
     @Path("/{organizationId}/plans/{planId}/versions")

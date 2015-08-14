@@ -3,7 +3,7 @@ package com.t1t.digipolis.apim.rest.resources.exceptions;
 
 
 /**
- * Thrown when trying to get, update, or delete a policy that does not exist.
+ * Thrown when trying to get, update, or remove a policy that does not exist.
  */
 public class PolicyNotFoundException extends AbstractNotFoundException {
 

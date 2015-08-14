@@ -3,7 +3,7 @@ package com.t1t.digipolis.apim.rest.resources.exceptions;
 
 
 /**
- * Thrown when trying to get, update, or delete an organization that does not exist.
+ * Thrown when trying to get, update, or remove an organization that does not exist.
  *
  */
 public class OrganizationNotFoundException extends AbstractNotFoundException {

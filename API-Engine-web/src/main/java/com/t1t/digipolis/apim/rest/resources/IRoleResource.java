@@ -72,7 +72,7 @@ public interface IRoleResource {
             NotAuthorizedException;
 
     /**
-     * Use this endpoint to delete a role by its ID.
+     * Use this endpoint to remove a role by its ID.
      * @summary Delete a Role by ID
      * @servicetag admin
      * @param roleId The role ID.

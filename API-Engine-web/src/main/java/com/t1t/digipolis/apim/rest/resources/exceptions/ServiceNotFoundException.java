@@ -2,7 +2,7 @@ package com.t1t.digipolis.apim.rest.resources.exceptions;
 
 
 /**
- * Thrown when trying to get, update, or delete an service that does not exist.
+ * Thrown when trying to get, update, or remove an service that does not exist.
  */
 public class ServiceNotFoundException extends AbstractNotFoundException {
 

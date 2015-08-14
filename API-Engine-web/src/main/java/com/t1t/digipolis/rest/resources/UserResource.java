@@ -82,7 +82,7 @@ public class UserResource implements IUserResource {
     @PUT
     @Path("/{userId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void update(String userId, UpdateUserBean user) throws UserNotFoundException, NotAuthorizedException {
+    public void update(@PathParam("userId") String userId, UpdateUserBean user) throws UserNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin() && !securityContext.getCurrentUser().equals(userId))
             throw ExceptionFactory.notAuthorizedException();
         try {

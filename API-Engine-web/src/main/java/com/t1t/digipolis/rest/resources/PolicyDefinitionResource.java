@@ -160,7 +160,7 @@ public class PolicyDefinitionResource implements IPolicyDefinitionResource {
     }
 
     @ApiOperation(value = "Delete policy definition.",
-            notes = "Use this endpoint to delete a policy definition by its ID.  If the policy definition was added automatically from an installed plugin, this will fail.  The only way to remove such policy definitions is to remove the plugin.")
+            notes = "Use this endpoint to remove a policy definition by its ID.  If the policy definition was added automatically from an installed plugin, this will fail.  The only way to remove such policy definitions is to remove the plugin.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
     })

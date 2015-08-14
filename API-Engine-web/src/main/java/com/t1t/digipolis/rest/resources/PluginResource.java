@@ -188,7 +188,7 @@ public class PluginResource implements IPluginResource {
     }
 
     @ApiOperation(value = "Delete a Plugin by ID",
-            notes = "Call this endpoint to delete a plugin.")
+            notes = "Call this endpoint to remove a plugin.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
     })

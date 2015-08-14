@@ -130,7 +130,7 @@ public class RoleResource implements IRoleResource {
     }
 
     @ApiOperation(value = "Delete a Role by ID",
-            notes = "Use this endpoint to delete a role by its ID.")
+            notes = "Use this endpoint to remove a role by its ID.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
     })

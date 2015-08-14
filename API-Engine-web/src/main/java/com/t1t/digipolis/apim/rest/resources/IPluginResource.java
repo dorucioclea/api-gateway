@@ -60,7 +60,7 @@ public interface IPluginResource {
     public PluginBean get(Long pluginId) throws PluginNotFoundException, NotAuthorizedException;
 
     /**
-     * Call this endpoint to delete a plugin.
+     * Call this endpoint to remove a plugin.
      * @summary Delete a Plugin by ID
      * @servicetag admin
      * @statuscode 204 If the plugin was deleted successfully.
@@ -97,7 +97,7 @@ public interface IPluginResource {
      * @statuscode 404 If the form does not exist.
      * @return A policy configuration form.
      * @throws PluginNotFoundException when specified plugin not found
-     * @throws PolicyDefinitionNotFoundException when trying to get, update, or delete 
+     * @throws PolicyDefinitionNotFoundException when trying to get, update, or remove
      * a policy definition that does not exist
      * @throws PluginResourceNotFoundException when plugin resource not found
      */

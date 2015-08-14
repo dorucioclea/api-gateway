@@ -59,7 +59,7 @@ public class GatewayResource implements IGatewayResource {
     }
 
     @ApiOperation(value = "Test a Gateway",
-            notes = "This endpoint is used to test the Gateway's settings prior to either creating or updating it.  The information will be used to attempt to create a link between the API Manager and the Gateway, by simply trying to ping the Gateway's status endpoint.")
+            notes = "This endpoint is used to test the Gateway his settings prior to either creating or updating it.  The information will be used to attempt to create a link between the API Manager and the Gateway, by simply trying to ping the Gateway his status endpoint.")
     @ApiResponses({
             @ApiResponse(code = 200, response = GatewayTestResultBean.class, message = "The result of testing the Gateway settings.")
     })
@@ -187,7 +187,7 @@ public class GatewayResource implements IGatewayResource {
     }
 
     @ApiOperation(value = "Update a Gateway",
-            notes = "Use this endpoint to update an existing Gateway.  Note that the name of the Gateway cannot be changed, as the name is tied closely with the Gateway's ID.  If you wish to rename the Gateway you must delete it and create a new one.")
+            notes = "Use this endpoint to update an existing Gateway.  Note that the name of the Gateway cannot be changed, as the name is tied closely with the Gateway his ID.  If you wish to rename the Gateway you must remove it and create a new one.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
     })
@@ -235,7 +235,7 @@ public class GatewayResource implements IGatewayResource {
     })
     @DELETE
     @Path("/{gatewayId}")
-    public void delete(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException,
+    public void remove(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException,
             NotAuthorizedException {
         if (!securityContext.isAdmin())
             throw ExceptionFactory.notAuthorizedException();
