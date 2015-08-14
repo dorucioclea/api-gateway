@@ -1213,11 +1213,7 @@ public class OrganizationResourceImpl implements IOrganizationResource {
     }
 
     @ApiOperation(value = "Create Service",
-            notes = "Use this endpoint to create a new Service.  Note that it is important to also\n" +
-                    "     * create an initial version of the Service (e.g. 1.0).  This can either be done\n" +
-                    "     * by including the 'initialVersion' property in the request, or by immediately following\n" +
-                    "     * up with a call to \"Create Service Version\".  If the former is done, then a first\n" +
-                    "     * Service version will be created automatically by this endpoint.")
+            notes = "Use this endpoint to create a new Service.  Note that it is important to also create an initial version of the Service (e.g. 1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Service Version\".  If the former is done, then a first Service version will be created automatically by this endpoint.")
     @ApiResponses({
             @ApiResponse(code = 200, response = ServiceBean.class, message = "Full details about the newly created Service.")
     })
@@ -1271,6 +1267,11 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
+    @ApiOperation(value = "Get Service By ID",
+            notes = "Use this endpoint to retrieve information about a single Service by ID.  Note that this only returns information about the Service, not about any particular *version* of the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceBean.class, message = "A Service.")
+    })
     @GET
     @Path("/{organizationId}/services/{serviceId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -1293,12 +1294,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceActivity(String, String, int, int)
-     */
-    @Override
-    public SearchResultsBean<AuditEntryBean> getServiceActivity(String organizationId, String serviceId,
-            int page, int pageSize) throws ServiceNotFoundException, NotAuthorizedException {
+    @ApiOperation(value = "Get Service Activity",
+            notes = "This endpoint returns audit activity information about the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "A list of audit activity entries.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/activity")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<AuditEntryBean> getServiceActivity(@PathParam("organizationId") String organizationId,
+                                                                @PathParam("serviceId") String serviceId,
+                                                                @QueryParam("page") int page,
+                                                                @QueryParam("count") int pageSize) throws ServiceNotFoundException, NotAuthorizedException {
         if (page <= 1) {
             page = 1;
         }
@@ -1317,11 +1324,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listServices(String)
-     */
-    @Override
-    public List<ServiceSummaryBean> listServices(String organizationId) throws OrganizationNotFoundException,
+    @ApiOperation(value = "List Services",
+            notes = "Use this endpoint to get a list of all Services in the Organization.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = ServiceSummaryBean.class, message = "A list of Services.")
+    })
+    @GET
+    @Path("/{organizationId}/services")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceSummaryBean> listServices(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException,
             NotAuthorizedException {
         // make sure the org exists
         get(organizationId);
@@ -1333,11 +1344,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updateService(String, String, com.t1t.digipolis.apim.beans.services.UpdateServiceBean)
-     */
-    @Override
-    public void updateService(String organizationId, String serviceId, UpdateServiceBean bean)
+    @ApiOperation(value = "Update Service",
+            notes = "Use this endpoint to update information about a Service.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/services/{serviceId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void updateService(@PathParam("organizationId") String organizationId,
+                              @PathParam("serviceId") String serviceId,
+                              UpdateServiceBean bean)
             throws ServiceNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1364,12 +1382,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createServiceVersion(String, String, com.t1t.digipolis.apim.beans.services.NewServiceVersionBean)
-     */
-    @Override
-    public ServiceVersionBean createServiceVersion(String organizationId, String serviceId,
-            NewServiceVersionBean bean) throws ServiceNotFoundException, NotAuthorizedException,
+    @ApiOperation(value = "Create Service Version",
+            notes = "Use this endpoint to create a new version of the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceVersionBean.class, message = "Full details about the newly created Service version.")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceVersionBean createServiceVersion(@PathParam("organizationId") String organizationId,
+                                                   @PathParam("serviceId") String serviceId,
+                                                   NewServiceVersionBean bean) throws ServiceNotFoundException, NotAuthorizedException,
             InvalidVersionException, ServiceVersionAlreadyExistsException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1504,11 +1528,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return newVersion;
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersion(String, String, String)
-     */
-    @Override
-    public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version)
+    @ApiOperation(value = "Get Service Version",
+            notes = "Use this endpoint to get detailed information about a single version of a Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceVersionBean.class, message = "A Service version.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceVersionBean getServiceVersion(@PathParam("organizationId") String organizationId,
+                                                @PathParam("serviceId") String serviceId,
+                                                @PathParam("version") String version)
             throws ServiceVersionNotFoundException, NotAuthorizedException {
         boolean hasPermission = securityContext.hasPermission(PermissionType.svcView, organizationId);
         try {
@@ -1532,11 +1562,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceDefinition(String, String, String)
-     */
-    @Override
-    public Response getServiceDefinition(String organizationId, String serviceId, String version)
+    @ApiOperation(value = "Get Service Definition",
+            notes = "Use this endpoint to retrieve the Service's definition document.  A service definition document can be several different types, depending on the Service type and technology used to define the service.  For example, this endpoint might return a WSDL document, or a Swagger JSON document.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = Response.class, message = "The Service Definition document (e.g. a Swagger JSON file).")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/definition")
+    @Produces({ MediaType.APPLICATION_JSON, "application/wsdl+xml", "application/x-yaml" })
+    public Response getServiceDefinition(@PathParam("organizationId") String organizationId,
+                                         @PathParam("serviceId") String serviceId,
+                                         @PathParam("version") String version)
             throws ServiceVersionNotFoundException, NotAuthorizedException {
         try {
             storage.beginTx();
@@ -1572,12 +1608,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersionEndpointInfo(String, String, String)
-     */
-    @Override
-    public ServiceVersionEndpointSummaryBean getServiceVersionEndpointInfo(String organizationId,
-            String serviceId, String version) throws ServiceVersionNotFoundException,
+    @ApiOperation(value = "Get Service Endpoint",
+            notes = "Use this endpoint to get information about the Managed Service's gateway endpoint.  In other words, this returns the actual live endpoint on the API Gateway - the endpoint that a client should use when invoking the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceVersionEndpointSummaryBean.class, message = "The live Service endpoint information.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/endpoint")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceVersionEndpointSummaryBean getServiceVersionEndpointInfo(@PathParam("organizationId") String organizationId,
+                                                                           @PathParam("serviceId") String serviceId,
+                                                                           @PathParam("version") String version) throws ServiceVersionNotFoundException,
             InvalidServiceStatusException, GatewayNotFoundException {
         try {
             storage.beginTx();
@@ -1612,13 +1653,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersionActivity(String, String, String, int, int)
-     */
-    @Override
-    public SearchResultsBean<AuditEntryBean> getServiceVersionActivity(String organizationId,
-            String serviceId, String version, int page, int pageSize) throws ServiceVersionNotFoundException,
-            NotAuthorizedException {
+    @ApiOperation(value = "Get Service Version Activity",
+            notes = "Use this endpoint to get audit activity information for a single version of the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "A list of audit entries.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/activity")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<AuditEntryBean> getServiceVersionActivity(@PathParam("organizationId") String organizationId,
+                                                                       @PathParam("serviceId") String serviceId,
+                                                                       @PathParam("version") String version,
+                                                                       @QueryParam("page")int page,
+                                                                       @QueryParam("count") int pageSize) throws ServiceVersionNotFoundException, NotAuthorizedException {
         if (page <= 1) {
             page = 1;
         }
@@ -1637,11 +1684,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updateServiceVersion(String, String, String, com.t1t.digipolis.apim.beans.services.UpdateServiceVersionBean)
-     */
-    @Override
-    public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version,
+    @ApiOperation(value = "Update Service Version",
+            notes = "Use this endpoint to update information about a single version of a Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceVersionBean.class, message = "The updated Service Version.")
+    })
+    @PUT
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceVersionBean updateServiceVersion(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version,
             UpdateServiceVersionBean bean) throws ServiceVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1751,11 +1803,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updateServiceDefinition(String, String, String)
-     */
-    @Override
-    public void updateServiceDefinition(String organizationId, String serviceId, String version)
+    @ApiOperation(value = "Update Service Definition",
+            notes = "Use this endpoint to update the Service's definition document.  A service definition will vary depending on the type of service, and the type of definition used.  For example, it might be a Swagger document or a WSDL file. To use this endpoint, simply PUT the updated Service Definition document in its entirety, making sure to set the Content-Type appropriately for the type of definition document.  The content will be stored and the Service's 'Definition Type' field will be updated.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/definition")
+    @Consumes({ MediaType.APPLICATION_JSON, "application/wsdl+xml", "application/x-yaml" })
+    public void updateServiceDefinition(@PathParam("organizationId") String organizationId,
+                                        @PathParam("serviceId")  String serviceId,
+                                        @PathParam("version") String version)
             throws ServiceVersionNotFoundException, NotAuthorizedException, InvalidServiceStatusException {
         String contentType = request.getContentType();
         InputStream data;
@@ -1811,11 +1869,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listServiceVersions(String, String)
-     */
-    @Override
-    public List<ServiceVersionSummaryBean> listServiceVersions(String organizationId, String serviceId)
+    @ApiOperation(value = "List Service Versions",
+            notes = "Use this endpoint to list all of the versions of a Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = ServiceVersionSummaryBean.class, message = "A list of Services.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceVersionSummaryBean> listServiceVersions(@PathParam("organizationId") String organizationId,
+                                                               @PathParam("serviceId") String serviceId)
             throws ServiceNotFoundException, NotAuthorizedException {
         // Try to get the service first - will throw a ServiceNotFoundException if not found.
         getService(organizationId, serviceId);
@@ -1827,12 +1890,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersionPlans(String, String, String)
-     */
-    @Override
-    public List<ServicePlanSummaryBean> getServiceVersionPlans(String organizationId, String serviceId,
-            String version) throws ServiceVersionNotFoundException, NotAuthorizedException {
+    @ApiOperation(value = "List Service Plans",
+            notes = "Use this endpoint to list the Plans configured for the given Service version.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = ServicePlanSummaryBean.class, message = "A list of Service plans.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/plans")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServicePlanSummaryBean> getServiceVersionPlans(@PathParam("organizationId") String organizationId,
+                                                               @PathParam("serviceId") String serviceId,
+                                                               @PathParam("version") String version) throws ServiceVersionNotFoundException, NotAuthorizedException {
         // Ensure the version exists first.
         getServiceVersion(organizationId, serviceId, version);
 
@@ -1843,11 +1911,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createServicePolicy(String, String, String, com.t1t.digipolis.apim.beans.policies.NewPolicyBean)
-     */
-    @Override
-    public PolicyBean createServicePolicy(String organizationId, String serviceId, String version,
+    @ApiOperation(value = "Add Service Policy",
+            notes = "Use this endpoint to add a new Policy to the Service version.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full details about the newly added Policy.")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public PolicyBean createServicePolicy(@PathParam("organizationId") String organizationId,
+                                          @PathParam("serviceId") String serviceId,
+                                          @PathParam("version") String version,
             NewPolicyBean bean) throws OrganizationNotFoundException, ServiceVersionNotFoundException,
             NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
@@ -1863,11 +1938,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return doCreatePolicy(organizationId, serviceId, version, bean, PolicyType.Service);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServicePolicy(String, String, String, long)
-     */
-    @Override
-    public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId)
+    @ApiOperation(value = "Get Service Policy",
+            notes = "Use this endpoint to get information about a single Policy in the Service version.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full information about the Policy.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PolicyBean getServicePolicy(@PathParam("organizationId") String organizationId,
+                                       @PathParam("serviceId") String serviceId,
+                                       @PathParam("version") String version,
+                                       @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, ServiceVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException {
 
@@ -1883,13 +1965,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return policy;
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updateServicePolicy(String,
-     *      String, String, long, com.t1t.digipolis.apim.beans.policies.UpdatePolicyBean)
-     */
-    @Override
-    public void updateServicePolicy(String organizationId, String serviceId, String version,
-            long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
+    @ApiOperation(value = "Update Service Policy",
+            notes = "Use this endpoint to update the meta-data or configuration of a single Service Policy.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void updateServicePolicy(@PathParam("organizationId") String organizationId,
+                                    @PathParam("serviceId") String serviceId,
+                                    @PathParam("version") String version,
+                                    @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
             ServiceVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1922,11 +2010,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deleteServicePolicy(String, String, String, long)
-     */
-    @Override
-    public void deleteServicePolicy(String organizationId, String serviceId, String version, long policyId)
+    @ApiOperation(value = "Remove Service Policy",
+            notes = "Use this endpoint to remove a Policy from the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
+    public void deleteServicePolicy(@PathParam("organizationId") String organizationId,
+                                    @PathParam("serviceId") String serviceId,
+                                    @PathParam("version") String version,
+                                    @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, ServiceVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
@@ -1957,11 +2051,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#deleteServiceDefinition(String, String, String)
-     */
-    @Override
-    public void deleteServiceDefinition(String organizationId, String serviceId, String version)
+    @ApiOperation(value = "Remove Service Definition",
+            notes = "Use this endpoint to delete a Service's definition document.  When this is done, the 'definitionType' field on the Service will be set to None.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/definition")
+    public void deleteServiceDefinition(@PathParam("organizationId") String organizationId,
+                                        @PathParam("serviceId") String serviceId,
+                                        @PathParam("version") String version)
             throws OrganizationNotFoundException, ServiceVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1986,11 +2085,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listServicePolicies(String, String, String)
-     */
-    @Override
-    public List<PolicySummaryBean> listServicePolicies(String organizationId, String serviceId, String version)
+    @ApiOperation(value = "List All Service Policies",
+            notes = "Use this endpoint to list all of the Policies configured for the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = PolicySummaryBean.class, message = "A List of Policies.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<PolicySummaryBean> listServicePolicies(@PathParam("organizationId") String organizationId,
+                                                       @PathParam("serviceId") String serviceId,
+                                                       @PathParam("version") String version)
             throws OrganizationNotFoundException, ServiceVersionNotFoundException, NotAuthorizedException {
         // Try to get the service first - will throw an exception if not found.
         getServiceVersion(organizationId, serviceId, version);
@@ -2002,11 +2107,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#reorderServicePolicies(String, String, String, com.t1t.digipolis.apim.beans.policies.PolicyChainBean)
-     */
-    @Override
-    public void reorderServicePolicies(String organizationId, String serviceId, String version,
+    @ApiOperation(value = "Re-Order Service Policies",
+            notes = "Use this endpoint to change the order of Policies for a Service.  When a Policy is added to the Service, it is added as the last Policy in the list of Service Policies.  Sometimes the order of Policies is important, so it is often useful to re-order the Policies by invoking this endpoint.  The body of the request should include all of the Policies for the Service, in the new desired order.  Note that only the IDs of each of the Policies is actually required in the request, at a minimum.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/reorderPolicies")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void reorderServicePolicies(@PathParam("organizationId") String organizationId,
+                                       @PathParam("serviceId") String serviceId,
+                                       @PathParam("version") String version,
             PolicyChainBean policyChain) throws OrganizationNotFoundException,
             ServiceVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
@@ -2033,12 +2144,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServicePolicyChain(String, String, String, String)
-     */
-    @Override
-    public PolicyChainBean getServicePolicyChain(String organizationId, String serviceId, String version,
-            String planId) throws ServiceVersionNotFoundException, PlanNotFoundException, NotAuthorizedException {
+    @ApiOperation(value = "Get Service Policy Chain",
+            notes = "Use this endpoint to get a Policy Chain for the specific Service version.  A Policy Chain is a useful summary to better understand which Policies would be executed for a request to this Service through a particular Plan offered by the Service.  Often this information is interesting prior to create a Contract with the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PolicyChainBean.class, message = "A Policy Chain.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/plans/{planId}/policyChain")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PolicyChainBean getServicePolicyChain(@PathParam("organizationId") String organizationId,
+                                                 @PathParam("serviceId") String serviceId,
+                                                 @PathParam("version") String version,
+                                                 @PathParam("planId") String planId) throws ServiceVersionNotFoundException, PlanNotFoundException, NotAuthorizedException {
         // Try to get the service first - will throw an exception if not found.
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
 
@@ -2068,12 +2185,19 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getServiceVersionContracts(String, String, String, int, int)
-     */
-    @Override
-    public List<ContractSummaryBean> getServiceVersionContracts(String organizationId,
-            String serviceId, String version, int page, int pageSize) throws ServiceVersionNotFoundException,
+    @ApiOperation(value = "List Service Contracts",
+            notes = "Use this endpoint to get a list of all Contracts created with this Service.  This will return Contracts created by between any Application and through any Plan.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List",response = ContractSummaryBean.class, message = "A list of Contracts.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ContractSummaryBean> getServiceVersionContracts(@PathParam("organizationId") String organizationId,
+                                                                @PathParam("serviceId")String serviceId,
+                                                                @PathParam("version") String version,
+                                                                @QueryParam("page") int page,
+                                                                @QueryParam("count") int pageSize) throws ServiceVersionNotFoundException,
             NotAuthorizedException {
         if (page <= 1) {
             page = 1;
@@ -2218,12 +2342,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         return metrics.getResponseStatsPerPlan(organizationId, serviceId, version, from, to);
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createPlan(String,
-     *      com.t1t.digipolis.apim.beans.plans.NewPlanBean)
-     */
-    @Override
-    public PlanBean createPlan(String organizationId, NewPlanBean bean) throws OrganizationNotFoundException,
+    @ApiOperation(value = "Create Plan",
+            notes = "Use this endpoint to create a new Plan.  Note that it is important to also create an initial version of the Plan (e.g. 1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Plan Version\".  If the former is done, then a first Plan version will be created automatically by this endpoint.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PlanBean.class, message = "Full details about the newly created Plan.")
+    })
+    @POST
+    @Path("/{organizationId}/plans")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public PlanBean createPlan(@PathParam("organizationId") String organizationId, NewPlanBean bean) throws OrganizationNotFoundException,
             PlanAlreadyExistsException, NotAuthorizedException, InvalidNameException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2267,11 +2395,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlan(String, String)
-     */
-    @Override
-    public PlanBean getPlan(String organizationId, String planId)
+    @ApiOperation(value = "Get Plan By ID",
+            notes = "Use this endpoint to retrieve information about a single Plan by ID.  Note that this only returns information about the Plan, not about any particular *version* of the Plan.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PlanBean.class, message = "A Plan")
+    })
+    @GET
+    @Path("/{organizationId}/plans/{planId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PlanBean getPlan(@PathParam("organizationId") String organizationId,@PathParam("planId")  String planId)
             throws PlanNotFoundException, NotAuthorizedException {
         try {
             storage.beginTx();
@@ -2291,11 +2423,18 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#getPlanActivity(String, String, int, int)
-     */
-    @Override
-    public SearchResultsBean<AuditEntryBean> getPlanActivity(String organizationId, String planId, int page, int pageSize)
+    @ApiOperation(value = "Get Plan Activity",
+            notes = "This endpoint returns audit activity information about the Plan.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "A list of audit activity entries.")
+    })
+    @GET
+    @Path("/{organizationId}/plans/{planId}/activity")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<AuditEntryBean> getPlanActivity(@PathParam("organizationId") String organizationId,
+                                                             @PathParam("planId") String planId,
+                                                             @QueryParam("page") int page,
+                                                             @QueryParam("count") int pageSize)
             throws PlanNotFoundException, NotAuthorizedException {
         if (page <= 1) {
             page = 1;
@@ -2315,11 +2454,15 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#listPlans(String)
-     */
-    @Override
-    public List<PlanSummaryBean> listPlans(String organizationId) throws OrganizationNotFoundException,
+    @ApiOperation(value = "List Plans",
+            notes = "Use this endpoint to get a list of all Plans in the Organization.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = PlanSummaryBean.class, message = "A list of Plans.")
+    })
+    @GET
+    @Path("/{organizationId}/plans")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<PlanSummaryBean> listPlans(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException,
             NotAuthorizedException {
         get(organizationId);
 
@@ -2330,12 +2473,16 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#updatePlan(String,
-     * String, com.t1t.digipolis.apim.beans.plans.UpdatePlanBean)
-     */
-    @Override
-    public void updatePlan(String organizationId, String planId, UpdatePlanBean bean)
+    @ApiOperation(value = "Update Plan",
+            notes = "Use this endpoint to update information about a Plan.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/plans/{planId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void updatePlan(@PathParam("organizationId") String organizationId,@PathParam("planId")  String planId, UpdatePlanBean bean)
             throws PlanNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2363,12 +2510,17 @@ public class OrganizationResourceImpl implements IOrganizationResource {
         }
     }
 
-    /**
-     * @see com.t1t.digipolis.apim.rest.resources.IOrganizationResource#createPlanVersion(String,
-     *      String, com.t1t.digipolis.apim.beans.plans.NewPlanVersionBean)
-     */
-    @Override
-    public PlanVersionBean createPlanVersion(String organizationId, String planId, NewPlanVersionBean bean)
+    @ApiOperation(value = "Create Plan Version",
+            notes = "Use this endpoint to create a new version of the Plan.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PlanVersionBean.class, message = "Full details about the newly created Plan version. When trying to get, update, or delete an plan that does not exist")
+    })
+    @POST
+    @Path("/{organizationId}/plans/{planId}/versions")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public PlanVersionBean createPlanVersion(@PathParam("organizationId") String organizationId,
+                                             @PathParam("planId") String planId, NewPlanVersionBean bean)
             throws PlanNotFoundException, NotAuthorizedException, InvalidVersionException,
             PlanVersionAlreadyExistsException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
