@@ -386,11 +386,7 @@ public interface IOrganizationResource {
      * @throws ContractNotFoundException when trying to get, update, or delete a contract that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @DELETE
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/{contractId}")
-    public void deleteContract(@PathParam("organizationId") String organizationId,
-                               @PathParam("applicationId") String applicationId, @PathParam("version") String version,
-                               @PathParam("contractId") Long contractId) throws ApplicationNotFoundException,
+    public void deleteContract(String organizationId, String applicationId, String version, Long contractId) throws ApplicationNotFoundException,
             ContractNotFoundException, NotAuthorizedException;
 
     /**
@@ -407,13 +403,7 @@ public interface IOrganizationResource {
      * @throws ApplicationVersionNotFoundException when trying to get, update, or delete a application version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @POST
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean createAppPolicy(@PathParam("organizationId") String organizationId,
-                                      @PathParam("applicationId") String applicationId, @PathParam("version") String version,
-                                      NewPolicyBean bean) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
+    public PolicyBean createAppPolicy(String organizationId, String applicationId, String version, NewPolicyBean bean) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             NotAuthorizedException;
 
     /**
@@ -431,12 +421,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or delete a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies/{policyId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean getAppPolicy(@PathParam("organizationId") String organizationId,
-                                   @PathParam("applicationId") String applicationId, @PathParam("version") String version,
-                                   @PathParam("policyId") long policyId) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
+    public PolicyBean getAppPolicy(String organizationId, String applicationId,  String version, long policyId) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException;
 
     /**
@@ -455,13 +440,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or delete a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @PUT
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies/{policyId}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public void updateAppPolicy(@PathParam("organizationId") String organizationId,
-                                @PathParam("applicationId") String applicationId, @PathParam("version") String version,
-                                @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
+    public void updateAppPolicy(String organizationId, String applicationId, String version, long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
             ApplicationVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException;
 
     /**
@@ -479,11 +458,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or delete a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @DELETE
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies/{policyId}")
-    public void deleteAppPolicy(@PathParam("organizationId") String organizationId,
-                                @PathParam("applicationId") String applicationId, @PathParam("version") String version,
-                                @PathParam("policyId") long policyId) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
+    public void deleteAppPolicy(String organizationId, String applicationId, String version, long policyId) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException;
 
     /**
@@ -499,12 +474,7 @@ public interface IOrganizationResource {
      * @throws ApplicationVersionNotFoundException when trying to get, update, or delete a application version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<PolicySummaryBean> listAppPolicies(@PathParam("organizationId") String organizationId,
-                                                   @PathParam("applicationId") String applicationId, @PathParam("version") String version)
-            throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
+    public List<PolicySummaryBean> listAppPolicies(String organizationId, String applicationId, String version) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             NotAuthorizedException;
 
     /**
@@ -526,12 +496,7 @@ public interface IOrganizationResource {
      * @throws ApplicationVersionNotFoundException when trying to get, update, or delete a application version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @POST
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/reorderPolicies")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void reorderApplicationPolicies(@PathParam("organizationId") String organizationId,
-                                           @PathParam("applicationId") String applicationId, @PathParam("version") String version,
-                                           PolicyChainBean policyChain) throws OrganizationNotFoundException,
+    public void reorderApplicationPolicies(String organizationId, String applicationId, String version, PolicyChainBean policyChain) throws OrganizationNotFoundException,
             ApplicationVersionNotFoundException, NotAuthorizedException;
 
     /*
@@ -555,11 +520,7 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      * @throws InvalidNameException when the user attempts the create with an invalid name
      */
-    @POST
-    @Path("/{organizationId}/services")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public ServiceBean createService(@PathParam("organizationId") String organizationId, NewServiceBean bean)
+    public ServiceBean createService(String organizationId, NewServiceBean bean)
             throws OrganizationNotFoundException, ServiceAlreadyExistsException, NotAuthorizedException,
             InvalidNameException;
 
@@ -577,11 +538,7 @@ public interface IOrganizationResource {
      * @throws ServiceNotFoundException when trying to get, update, or delete an service that does not exist when trying to get, update, or delete an service that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    @GET
-    @Path("/{organizationId}/services/{serviceId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public ServiceBean getService(@PathParam("organizationId") String organizationId,
-                                  @PathParam("serviceId") String serviceId) throws ServiceNotFoundException,
+    public ServiceBean getService(String organizationId, String serviceId) throws ServiceNotFoundException,
             NotAuthorizedException;
 
     /**
