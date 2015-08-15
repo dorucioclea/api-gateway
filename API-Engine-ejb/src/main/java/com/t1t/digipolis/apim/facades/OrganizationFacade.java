@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.facades;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
+import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.exceptions.AbstractRestException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
@@ -22,15 +23,16 @@ import java.util.Date;
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
-public class OrganizationFacade extends AbstractFacade<OrganizationBean> {
+public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
     @Inject @APIEngineContext private Logger log;
     @Inject @APIEngineContext private EntityManager em;
     @Inject private ISecurityContext securityContext;
+    @Inject private IStorage storage;
 
     //Default constructor
-    public OrganizationFacade() {
+   /* public OrganizationFacade() {
         super(OrganizationBean.class);
-    }
+    }*/
 
     //craete organization
     public OrganizationBean create(NewOrganizationBean bean){
@@ -44,10 +46,10 @@ public class OrganizationFacade extends AbstractFacade<OrganizationBean> {
         orgBean.setModifiedBy(securityContext.getCurrentUser());
         try {
             // Store/persist the new organization
-            if (find(orgBean.getId()) != null) {
+/*            if (find(orgBean.getId()) != null) {
                 throw ExceptionFactory.organizationAlreadyExistsException(bean.getName());
-            }
-            create(orgBean);
+            }*/
+            storage.createOrganization(orgBean);
             //storage.createAuditEntry(AuditUtils.organizationCreated(orgBean, securityContext));
 
             // Auto-grant memberships in roles to the creator of the organization
@@ -68,8 +70,8 @@ public class OrganizationFacade extends AbstractFacade<OrganizationBean> {
     }
 
 
-    @Override
+/*    @Override
     protected EntityManager getEntityManager() {
         return em;
-    }
+    }*/
 }
