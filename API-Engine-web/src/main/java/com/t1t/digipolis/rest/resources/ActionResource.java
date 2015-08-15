@@ -27,7 +27,7 @@ import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.apim.rest.impl.audit.AuditUtils;
+import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.rest.resources.IActionResource;

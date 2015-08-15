@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.rest.impl.audit;
+package com.t1t.digipolis.apim.facades.audit;
 
 /**
  * Models a change in an entity field's value for auditing purposes.

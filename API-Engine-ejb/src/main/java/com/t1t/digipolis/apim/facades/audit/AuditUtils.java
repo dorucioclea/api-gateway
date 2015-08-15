@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.rest.impl.audit;
+package com.t1t.digipolis.apim.facades.audit;
 
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;

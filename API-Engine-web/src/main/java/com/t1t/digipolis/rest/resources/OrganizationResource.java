@@ -37,7 +37,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.jpa.JpaStorage;
 import com.t1t.digipolis.apim.jpa.roles.JpaIdmStorage;
-import com.t1t.digipolis.apim.rest.impl.audit.AuditUtils;
+import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.rest.impl.util.FieldValidator;
