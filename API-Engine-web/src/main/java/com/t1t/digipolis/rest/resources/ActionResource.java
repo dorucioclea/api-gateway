@@ -83,7 +83,7 @@ public class ActionResource implements IActionResource {
     public ActionResource() {
     }
 
-    @ApiOperation(value = "Execute an Entity Action",
+    @ApiOperation(value = "Execute an Entity Action (lifecycle related)",
             notes = "Call this endpoint in order to execute actions for entities such" +
                     " as Plans, Services, or Applications.  The type of the action must be" +
                     " included in the request payload.")

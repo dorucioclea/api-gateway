@@ -60,7 +60,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createApplication(ApplicationBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createApplication(ApplicationBean application) throws StorageException {
         super.create(application);
     }
@@ -69,7 +69,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createApplicationVersion(ApplicationVersionBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createApplicationVersion(ApplicationVersionBean version) throws StorageException {
         super.create(version);
     }
@@ -78,7 +78,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createContract(ContractBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createContract(ContractBean contract) throws StorageException {
         super.create(contract);
     }
@@ -87,7 +87,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createGateway(GatewayBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createGateway(GatewayBean gateway) throws StorageException {
         super.create(gateway);
     }
@@ -96,7 +96,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createPlugin(PluginBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createPlugin(PluginBean plugin) throws StorageException {
         super.create(plugin);
     }
@@ -105,7 +105,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createOrganization(OrganizationBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createOrganization(OrganizationBean organization) throws StorageException {
         super.create(organization);
     }
@@ -114,7 +114,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createPlan(PlanBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createPlan(PlanBean plan) throws StorageException {
         super.create(plan);
     }
@@ -123,7 +123,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createPlanVersion(PlanVersionBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createPlanVersion(PlanVersionBean version) throws StorageException {
         super.create(version);
     }
@@ -132,7 +132,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createPolicy(PolicyBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createPolicy(PolicyBean policy) throws StorageException {
         super.create(policy);
     }
@@ -141,7 +141,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createPolicyDefinition(PolicyDefinitionBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createPolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException {
         super.create(policyDef);
     }
@@ -150,7 +150,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createService(ServiceBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createService(ServiceBean service) throws StorageException {
         super.create(service);
     }
@@ -159,7 +159,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createServiceVersion(ServiceVersionBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void createServiceVersion(ServiceVersionBean version) throws StorageException {
         super.create(version);
     }
@@ -168,7 +168,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updateApplication(ApplicationBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updateApplication(ApplicationBean application) throws StorageException {
         super.update(application);
     }
@@ -177,7 +177,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updateApplicationVersion(ApplicationVersionBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updateApplicationVersion(ApplicationVersionBean version) throws StorageException {
         super.update(version);
     }
@@ -186,7 +186,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updateGateway(GatewayBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updateGateway(GatewayBean gateway) throws StorageException {
         super.update(gateway);
     }
@@ -195,7 +195,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updateOrganization(OrganizationBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updateOrganization(OrganizationBean organization) throws StorageException {
         super.update(organization);
     }
@@ -204,7 +204,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updatePlan(PlanBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updatePlan(PlanBean plan) throws StorageException {
         super.update(plan);
     }
@@ -213,7 +213,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updatePlanVersion(PlanVersionBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updatePlanVersion(PlanVersionBean version) throws StorageException {
         super.update(version);
     }
@@ -222,7 +222,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updatePolicy(PolicyBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updatePolicy(PolicyBean policy) throws StorageException {
         super.update(policy);
     }
@@ -231,7 +231,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updatePolicyDefinition(PolicyDefinitionBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updatePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException {
         super.update(policyDef);
     }
@@ -240,7 +240,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updateService(ServiceBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updateService(ServiceBean service) throws StorageException {
         super.update(service);
     }
@@ -249,7 +249,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updateServiceVersion(ServiceVersionBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updateServiceVersion(ServiceVersionBean version) throws StorageException {
         super.update(version);
     }
@@ -258,7 +258,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#updateServiceDefinition(ServiceVersionBean, InputStream)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void updateServiceDefinition(ServiceVersionBean version, InputStream definitionStream)
             throws StorageException {
         try {
@@ -285,7 +285,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#deleteOrganization(OrganizationBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void deleteOrganization(OrganizationBean organization) throws StorageException {
         super.delete(organization);
     }
@@ -294,7 +294,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#deleteApplication(ApplicationBean)
      */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    
     public void deleteApplication(ApplicationBean application) throws StorageException {
         super.delete(application);
     }
