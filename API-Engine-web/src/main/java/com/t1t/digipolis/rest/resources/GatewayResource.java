@@ -8,8 +8,6 @@ import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.core.logging.ApimanLogger;
-import com.t1t.digipolis.apim.core.logging.IApimanLogger;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
@@ -20,11 +18,13 @@ import com.t1t.digipolis.apim.rest.resources.IGatewayResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -47,8 +47,8 @@ public class GatewayResource implements IGatewayResource {
     @Inject
     IGatewayLinkFactory gatewayLinkFactory;
     @Inject
-    @ApimanLogger(GatewayResource.class)
-    IApimanLogger log;
+    @APIEngineContext
+    Logger log;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -132,19 +132,15 @@ public class GatewayResource implements IGatewayResource {
         gateway.setModifiedBy(securityContext.getCurrentUser());
         gateway.setModifiedOn(now);
         try {
-            storage.beginTx();
             if (storage.getGateway(gateway.getId()) != null) {
                 throw ExceptionFactory.gatewayAlreadyExistsException(gateway.getName());
             }
             // Store/persist the new gateway
             encryptPasswords(gateway);
             storage.createGateway(gateway);
-            storage.commitTx();
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
         decryptPasswords(gateway);
@@ -163,7 +159,6 @@ public class GatewayResource implements IGatewayResource {
     @Produces(MediaType.APPLICATION_JSON)
     public GatewayBean get(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException, NotAuthorizedException {
         try {
-            storage.beginTx();
             GatewayBean bean = storage.getGateway(gatewayId);
             if (bean == null) {
                 throw ExceptionFactory.gatewayNotFoundException(gatewayId);
@@ -173,15 +168,11 @@ public class GatewayResource implements IGatewayResource {
             } else {
                 decryptPasswords(bean);
             }
-            storage.commitTx();
-
             log.debug(String.format("Successfully fetched gateway %s: %s", bean.getName(), bean)); //$NON-NLS-1$
             return bean;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
     }
@@ -199,7 +190,6 @@ public class GatewayResource implements IGatewayResource {
         if (!securityContext.isAdmin())
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
             Date now = new Date();
 
             GatewayBean gbean = storage.getGateway(gatewayId);
@@ -216,14 +206,10 @@ public class GatewayResource implements IGatewayResource {
                 gbean.setConfiguration(bean.getConfiguration());
             encryptPasswords(gbean);
             storage.updateGateway(gbean);
-            storage.commitTx();
-
             log.debug(String.format("Successfully updated gateway %s: %s", gbean.getName(), gbean)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
     }
@@ -240,20 +226,15 @@ public class GatewayResource implements IGatewayResource {
         if (!securityContext.isAdmin())
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
             GatewayBean gbean = storage.getGateway(gatewayId);
             if (gbean == null) {
                 throw ExceptionFactory.gatewayNotFoundException(gatewayId);
             }
             storage.deleteGateway(gbean);
-            storage.commitTx();
-
             log.debug(String.format("Successfully deleted gateway %s: %s", gbean.getName(), gbean)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
     }

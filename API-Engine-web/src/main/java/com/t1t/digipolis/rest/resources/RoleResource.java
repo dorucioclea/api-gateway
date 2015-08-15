@@ -15,10 +15,12 @@ import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -36,7 +38,8 @@ public class RoleResource implements IRoleResource {
     IIdmStorage idmStorage;
     @Inject
     ISecurityContext securityContext;
-    
+    @Inject @APIEngineContext
+    Logger log;
     /**
      * Constructor.
      */

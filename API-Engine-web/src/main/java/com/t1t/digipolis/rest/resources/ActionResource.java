@@ -19,8 +19,6 @@ import com.t1t.digipolis.apim.core.IServiceValidator;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.core.logging.ApimanLogger;
-import com.t1t.digipolis.apim.core.logging.IApimanLogger;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Application;
@@ -35,13 +33,14 @@ import com.t1t.digipolis.apim.rest.resources.IActionResource;
 import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -55,7 +54,7 @@ import java.util.*;
 @Api(value = "/actions", description = "The Action API.  This API allows callers to perform actions on various entities - actions other than the standard REST crud actions.")
 @Path("/actions")
 @ApplicationScoped
-public class ActionResource implements IActionResource{
+public class ActionResource implements IActionResource {
 
     @Inject
     IStorage storage;
@@ -75,8 +74,8 @@ public class ActionResource implements IActionResource{
     ISecurityContext securityContext;
 
     @Inject
-    @ApimanLogger(ActionResource.class)
-    IApimanLogger log;
+    @APIEngineContext
+    Logger log;
 
     /**
      * Constructor.
@@ -85,7 +84,7 @@ public class ActionResource implements IActionResource{
     }
 
     @ApiOperation(value = "Execute an Entity Action",
-            notes = "Call this endpoint in order to execute actions for apiman entities such" +
+            notes = "Call this endpoint in order to execute actions for entities such" +
                     " as Plans, Services, or Applications.  The type of the action must be" +
                     " included in the request payload.")
     @ApiResponses({
@@ -154,7 +153,6 @@ public class ActionResource implements IActionResource{
                 List<Policy> policiesToPublish = new ArrayList<>();
                 List<PolicySummaryBean> servicePolicies = query.getPolicies(action.getOrganizationId(),
                         action.getEntityId(), action.getEntityVersion(), PolicyType.Service);
-                storage.beginTx();
                 hasTx = true;
                 for (PolicySummaryBean policySummaryBean : servicePolicies) {
                     PolicyBean servicePolicy = storage.getPolicy(PolicyType.Service, action.getOrganizationId(),
@@ -168,15 +166,9 @@ public class ActionResource implements IActionResource{
             }
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
-        } finally {
-            if (hasTx) {
-                storage.rollbackTx();
-            }
         }
-
         // Publish the service to all relevant gateways
         try {
-            storage.beginTx();
             Set<ServiceGatewayBean> gateways = versionBean.getGateways();
             if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
@@ -192,11 +184,9 @@ public class ActionResource implements IActionResource{
 
             storage.updateServiceVersion(versionBean);
             storage.createAuditEntry(AuditUtils.servicePublished(versionBean, securityContext));
-            storage.commitTx();
         } catch (PublishingException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         } catch (Exception e) {
-            storage.rollbackTx();
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         }
 
@@ -252,7 +242,6 @@ public class ActionResource implements IActionResource{
 
         // Retire the service from all relevant gateways
         try {
-            storage.beginTx();
             Set<ServiceGatewayBean> gateways = versionBean.getGateways();
             if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
@@ -268,12 +257,9 @@ public class ActionResource implements IActionResource{
 
             storage.updateServiceVersion(versionBean);
             storage.createAuditEntry(AuditUtils.serviceRetired(versionBean, securityContext));
-            storage.commitTx();
         } catch (PublishingException e) {
-            storage.rollbackTx();
             throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
         } catch (Exception e) {
-            storage.rollbackTx();
             throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
         }
 
@@ -334,7 +320,6 @@ public class ActionResource implements IActionResource{
         // looking up all referenced services and getting the gateway information for them.
         // Each of those gateways must be told about the application.
         try {
-            storage.beginTx();
             Map<String, IGatewayLink> links = new HashMap<>();
             for (Contract contract : application.getContracts()) {
                 ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
@@ -353,9 +338,7 @@ public class ActionResource implements IActionResource{
                 gatewayLink.registerApplication(application);
                 gatewayLink.close();
             }
-            storage.commitTx();
         } catch (Exception e) {
-            storage.rollbackTx();
             throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
         }
 
@@ -363,12 +346,9 @@ public class ActionResource implements IActionResource{
         versionBean.setPublishedOn(new Date());
 
         try {
-            storage.beginTx();
             storage.updateApplicationVersion(versionBean);
             storage.createAuditEntry(AuditUtils.applicationRegistered(versionBean, securityContext));
-            storage.commitTx();
         } catch (Exception e) {
-            storage.rollbackTx();
             throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
         }
 
@@ -414,7 +394,6 @@ public class ActionResource implements IActionResource{
                     }
                 }
                 List<PolicySummaryBean> appPolicies = query.getPolicies(org, id, ver, policyType);
-                storage.beginTx();
                 try {
                     for (PolicySummaryBean policySummaryBean : appPolicies) {
                         PolicyBean policyBean = storage.getPolicy(policyType, org, id, ver, policySummaryBean.getId());
@@ -424,7 +403,6 @@ public class ActionResource implements IActionResource{
                         policies.add(policy);
                     }
                 } finally {
-                    storage.commitTx();
                 }
             }
             return policies;
@@ -469,7 +447,6 @@ public class ActionResource implements IActionResource{
         // looking up all referenced services and getting the gateway information for them.
         // Each of those gateways must be told about the application.
         try {
-            storage.beginTx();
             Map<String, IGatewayLink> links = new HashMap<>();
             for (ContractSummaryBean contractBean : contractBeans) {
                 ServiceVersionBean svb = storage.getServiceVersion(contractBean.getServiceOrganizationId(),
@@ -485,13 +462,11 @@ public class ActionResource implements IActionResource{
                     }
                 }
             }
-            storage.commitTx();
             for (IGatewayLink gatewayLink : links.values()) {
                 gatewayLink.unregisterApplication(application);
                 gatewayLink.close();
             }
         } catch (Exception e) {
-            storage.rollbackTx();
             throw ExceptionFactory.actionException(Messages.i18n.format("UnregisterError"), e); //$NON-NLS-1$
         }
 
@@ -499,12 +474,9 @@ public class ActionResource implements IActionResource{
         versionBean.setRetiredOn(new Date());
 
         try {
-            storage.beginTx();
             storage.updateApplicationVersion(versionBean);
             storage.createAuditEntry(AuditUtils.applicationUnregistered(versionBean, securityContext));
-            storage.commitTx();
         } catch (Exception e) {
-            storage.rollbackTx();
             throw ExceptionFactory.actionException(Messages.i18n.format("UnregisterError"), e); //$NON-NLS-1$
         }
 
@@ -537,12 +509,9 @@ public class ActionResource implements IActionResource{
         versionBean.setLockedOn(new Date());
 
         try {
-            storage.beginTx();
             storage.updatePlanVersion(versionBean);
             storage.createAuditEntry(AuditUtils.planLocked(versionBean, securityContext));
-            storage.commitTx();
         } catch (Exception e) {
-            storage.rollbackTx();
             throw ExceptionFactory.actionException(Messages.i18n.format("LockError"), e); //$NON-NLS-1$
         }
 

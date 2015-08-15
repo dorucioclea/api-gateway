@@ -28,8 +28,10 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.*;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
+import javax.enterprise.inject.Default;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -43,7 +45,7 @@ import java.util.*;
  * A JPA implementation of the storage interface.
  *
  */
-@ApplicationScoped @Alternative
+@ApplicationScoped @Default
 public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorageQuery {
 
     private static Logger logger = LoggerFactory.getLogger(JpaStorage.class);
@@ -53,35 +55,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      */
     public JpaStorage() {
     }
-    
-    /**
-     * @see IStorage#beginTx()
-     */
-    @Override
-    public void beginTx() throws StorageException {
-        super.beginTx();
-    }
-    
-    /**
-     * @see IStorage#commitTx()
-     */
-    @Override
-    public void commitTx() throws StorageException {
-        super.commitTx();
-    }
-    
-    /**
-     * @see IStorage#rollbackTx()
-     */
-    @Override
-    public void rollbackTx() {
-        super.rollbackTx();
-    }
 
     /**
      * @see IStorage#createApplication(ApplicationBean)
      */
     @Override
+    
     public void createApplication(ApplicationBean application) throws StorageException {
         super.create(application);
     }
@@ -90,6 +69,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createApplicationVersion(ApplicationVersionBean)
      */
     @Override
+    
     public void createApplicationVersion(ApplicationVersionBean version) throws StorageException {
         super.create(version);
     }
@@ -98,6 +78,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createContract(ContractBean)
      */
     @Override
+    
     public void createContract(ContractBean contract) throws StorageException {
         super.create(contract);
     }
@@ -106,6 +87,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createGateway(GatewayBean)
      */
     @Override
+    
     public void createGateway(GatewayBean gateway) throws StorageException {
         super.create(gateway);
     }
@@ -114,6 +96,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createPlugin(PluginBean)
      */
     @Override
+    
     public void createPlugin(PluginBean plugin) throws StorageException {
         super.create(plugin);
     }
@@ -122,6 +105,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createOrganization(OrganizationBean)
      */
     @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void createOrganization(OrganizationBean organization) throws StorageException {
         super.create(organization);
     }
@@ -393,6 +377,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#getOrganization(String)
      */
     @Override
+    
     public OrganizationBean getOrganization(String id) throws StorageException {
         return super.get(id, OrganizationBean.class);
     }
@@ -537,13 +522,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      */
     @Override
     protected <T> SearchResultsBean<T> find(SearchCriteriaBean criteria, Class<T> type) throws StorageException {
-        beginTx();
-        try {
             SearchResultsBean<T> rval = super.find(criteria, type);
             return rval;
-        } finally {
-            commitTx();
-        }
     }
 
     /**
@@ -648,6 +628,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorage#createAuditEntry(AuditEntryBean)
      */
     @Override
+    
     public void createAuditEntry(AuditEntryBean entry) throws StorageException {
         super.create(entry);
     }
@@ -720,8 +701,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      */
     @Override
     public List<GatewaySummaryBean> listGateways() throws StorageException {
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
 
             @SuppressWarnings("nls")
@@ -742,12 +722,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 gateways.add(gateway);
             }
             return gateways;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -755,8 +730,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      */
     @Override
     public List<PluginSummaryBean> listPlugins() throws StorageException {
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
 
             @SuppressWarnings("nls")
@@ -783,12 +757,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 plugins.add(plugin);
             }
             return plugins;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -796,8 +765,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      */
     @Override
     public List<PolicyDefinitionSummaryBean> listPolicyDefinitions() throws StorageException {
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
 
             @SuppressWarnings("nls")
@@ -825,25 +793,17 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 rval.add(bean);
             }
             return rval;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
      * @see IStorageQuery#getOrgs(Set)
      */
-    @Override
     public List<OrganizationSummaryBean> getOrgs(Set<String> orgIds) throws StorageException {
         List<OrganizationSummaryBean> orgs = new ArrayList<>();
         if (orgIds == null || orgIds.isEmpty()) {
             return orgs;
         }
-        beginTx();
-        try {
             EntityManager entityManager = getActiveEntityManager();
             String jpql = "SELECT o from OrganizationBean o WHERE o.id IN :orgs ORDER BY o.id ASC"; //$NON-NLS-1$
             Query query = entityManager.createQuery(jpql);
@@ -857,12 +817,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 orgs.add(summary);
             }
             return orgs;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -881,8 +836,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ApplicationSummaryBean> getApplicationsInOrgs(Set<String> orgIds) throws StorageException {
         List<ApplicationSummaryBean> rval = new ArrayList<>();
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
             String jpql = "SELECT a FROM ApplicationBean a JOIN a.organization o WHERE o.id IN :orgs ORDER BY a.id ASC"; //$NON-NLS-1$
             Query query = entityManager.createQuery(jpql);
@@ -902,12 +856,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 rval.add(summary);
             }
             return rval;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -926,8 +875,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ServiceSummaryBean> getServicesInOrgs(Set<String> orgIds) throws StorageException {
         List<ServiceSummaryBean> rval = new ArrayList<>();
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
             String jpql = "SELECT s FROM ServiceBean s JOIN s.organization o WHERE o.id IN :orgs ORDER BY s.id ASC"; //$NON-NLS-1$
             Query query = entityManager.createQuery(jpql);
@@ -946,12 +894,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 rval.add(summary);
             }
             return rval;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -996,8 +939,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ServiceVersionSummaryBean> getServiceVersions(String orgId, String serviceId)
             throws StorageException {
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
             @SuppressWarnings("nls")
             String jpql =
@@ -1028,12 +970,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 rval.add(svsb);
             }
             return rval;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -1044,8 +981,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             String version) throws StorageException {
         List<ServicePlanSummaryBean> plans = new ArrayList<>();
 
-        beginTx();
-        try {
             ServiceVersionBean versionBean = getServiceVersion(organizationId, serviceId, version);
             Set<ServicePlanBean> servicePlans = versionBean.getPlans();
             if (servicePlans != null) {
@@ -1060,12 +995,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 }
             }
             return plans;
-        } catch (StorageException e) {
-            rollbackTx();
-            throw e;
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -1075,8 +1005,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public List<ContractSummaryBean> getServiceContracts(String organizationId, String serviceId,
             String version, int page, int pageSize) throws StorageException {
         int start = (page - 1) * pageSize;
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
             @SuppressWarnings("nls")
             String jpql =
@@ -1129,12 +1058,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 rval.add(csb);
             }
             return rval;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
     }
 
     /**
@@ -1166,8 +1089,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ApplicationVersionSummaryBean> getApplicationVersions(String orgId, String applicationId)
             throws StorageException {
-        beginTx();
-        try {
             EntityManager entityManager = getActiveEntityManager();
             @SuppressWarnings("nls")
             String jpql =
@@ -1197,12 +1118,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 rval.add(avsb);
             }
             return rval;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -1213,8 +1129,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             String version) throws StorageException {
         List<ContractSummaryBean> rval = new ArrayList<>();
 
-        beginTx();
-        try {
             EntityManager entityManager = getActiveEntityManager();
             @SuppressWarnings("nls")
             String jpql =
@@ -1260,12 +1174,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
                 rval.add(csb);
             }
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
         return rval;
     }
 
@@ -1277,8 +1186,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             throws StorageException {
         ApiRegistryBean rval = new ApiRegistryBean();
 
-        beginTx();
-        try {
             EntityManager entityManager = getActiveEntityManager();
             @SuppressWarnings("nls")
             String jpql =
@@ -1322,12 +1229,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
                 rval.getApis().add(entry);
             }
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
         return rval;
     }
 
@@ -1347,8 +1249,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<PlanSummaryBean> getPlansInOrgs(Set<String> orgIds) throws StorageException {
         List<PlanSummaryBean> rval = new ArrayList<>();
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
             String jpql = "SELECT p FROM PlanBean p JOIN p.organization o WHERE o.id IN :orgs ORDER BY p.id ASC"; //$NON-NLS-1$
             Query query = entityManager.createQuery(jpql);
@@ -1367,12 +1268,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 rval.add(summary);
             }
             return rval;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -1403,8 +1299,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      */
     @Override
     public List<PlanVersionSummaryBean> getPlanVersions(String orgId, String planId) throws StorageException {
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
             @SuppressWarnings("nls")
             String jpql = "SELECT v from PlanVersionBean v" +
@@ -1431,12 +1326,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 rval.add(pvsb);
             }
             return rval;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -1446,8 +1336,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<PolicySummaryBean> getPolicies(String organizationId, String entityId, String version,
             PolicyType type) throws StorageException {
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
             String jpql =
                       "SELECT p from PolicyBean p "
@@ -1465,7 +1354,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             List<PolicyBean> policyBeans = (List<PolicyBean>) query.getResultList();
             List<PolicySummaryBean> rval = new ArrayList<>(policyBeans.size());
             for (PolicyBean policyBean : policyBeans) {
-                PolicyTemplateUtil.generatePolicyDescription(policyBean);
+                try {
+                    PolicyTemplateUtil.generatePolicyDescription(policyBean);
+                } catch (Exception e) {
+                    throw new StorageException(e.getMessage());
+                }
                 PolicySummaryBean psb = new PolicySummaryBean();
                 psb.setId(policyBean.getId());
                 psb.setName(policyBean.getName());
@@ -1477,12 +1370,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 rval.add(psb);
             }
             return rval;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
+
     }
 
     /**
@@ -1512,8 +1400,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      */
     @Override
     public List<PolicyDefinitionSummaryBean> listPluginPolicyDefs(Long pluginId) throws StorageException {
-        beginTx();
-        try {
+
             EntityManager entityManager = getActiveEntityManager();
             
             @SuppressWarnings("nls")
@@ -1543,12 +1430,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 beans.add(bean);
             }
             return beans;
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        } finally {
-            commitTx();
-        }
     }
 
 }

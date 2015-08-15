@@ -15,20 +15,20 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.InvalidPluginException;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.core.logging.ApimanLogger;
-import com.t1t.digipolis.apim.core.logging.IApimanLogger;
 import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
 import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
 import com.t1t.digipolis.apim.rest.resources.IPluginResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -57,8 +57,8 @@ public class PluginResource implements IPluginResource {
     IPluginRegistry pluginRegistry;
 
     @Inject
-    @ApimanLogger(PluginResource.class)
-    IApimanLogger log;
+    @APIEngineContext
+    Logger log;
 
     /**
      * Constructor.
@@ -115,7 +115,6 @@ public class PluginResource implements IPluginResource {
         pluginBean.setCreatedBy(securityContext.getCurrentUser());
         pluginBean.setCreatedOn(new Date());
         try {
-            storage.beginTx();
             if (storage.getPlugin(bean.getGroupId(), bean.getArtifactId()) != null) {
                 throw ExceptionFactory.pluginAlreadyExistsException();
             }
@@ -144,16 +143,12 @@ public class PluginResource implements IPluginResource {
                     policyDefCounter++;
                 }
             }
-
-            storage.commitTx();
             log.info(String.format("Created plugin mvn:%s:%s:%s", pluginBean.getGroupId(), pluginBean.getArtifactId(),  //$NON-NLS-1$
                     pluginBean.getVersion()));
             log.info(String.format("\tCreated %s policy definitions from plugin.", String.valueOf(policyDefCounter))); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
         return pluginBean;
@@ -171,18 +166,14 @@ public class PluginResource implements IPluginResource {
         if (!securityContext.isAdmin())
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
             PluginBean bean = storage.getPlugin(pluginId);
             if (bean == null) {
                 throw ExceptionFactory.pluginNotFoundException(pluginId);
             }
-            storage.commitTx();
             return bean;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
     }
@@ -199,20 +190,16 @@ public class PluginResource implements IPluginResource {
         if (!securityContext.isAdmin())
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
             PluginBean pbean = storage.getPlugin(pluginId);
             if (pbean == null) {
                 throw ExceptionFactory.pluginNotFoundException(pluginId);
             }
             storage.deletePlugin(pbean);
-            storage.commitTx();
             log.info(String.format("Deleted plugin mvn:%s:%s:%s", pbean.getGroupId(), pbean.getArtifactId(),  //$NON-NLS-1$
                     pbean.getVersion()));
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
     }
@@ -247,18 +234,14 @@ public class PluginResource implements IPluginResource {
         PluginBean pbean = null;
         PolicyDefinitionBean pdBean = null;
         try {
-            storage.beginTx();
             pbean = storage.getPlugin(pluginId);
             if (pbean == null) {
                 throw ExceptionFactory.pluginNotFoundException(pluginId);
             }
             pdBean = storage.getPolicyDefinition(policyDefId);
-            storage.commitTx();
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
         PluginCoordinates coordinates = new PluginCoordinates(pbean.getGroupId(), pbean.getArtifactId(),

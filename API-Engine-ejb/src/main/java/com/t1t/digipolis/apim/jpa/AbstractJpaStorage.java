@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.*;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,13 +23,8 @@ public abstract class AbstractJpaStorage {
 
     private static Logger logger = LoggerFactory.getLogger(AbstractJpaStorage.class);
 
-    @Inject @PersistenceContext
+    @Inject @APIEngineContext
     private EntityManager em;
-
-    private static ThreadLocal<EntityManager> activeEM = new ThreadLocal<>();
-    public static boolean isTxActive() {
-        return activeEM.get() != null;
-    }
 
     /**
      * Constructor.
@@ -37,65 +33,11 @@ public abstract class AbstractJpaStorage {
     }
 
     /**
-     * @see IStorage#beginTx()
-     */
-    protected void beginTx() throws StorageException {
-        if (activeEM.get() != null) {
-            throw new StorageException("Transaction already active."); //$NON-NLS-1$
-        }
-        EntityManager entityManager = em;
-        activeEM.set(entityManager);
-        entityManager.getTransaction().begin();
-    }
-
-    /**
-     * @see IStorage#commitTx()
-     */
-    protected void commitTx() throws StorageException {
-        if (activeEM.get() == null) {
-            throw new StorageException("Transaction not active."); //$NON-NLS-1$
-        }
-
-        try {
-            activeEM.get().getTransaction().commit();
-            activeEM.get().close();
-            activeEM.set(null);
-        } catch (EntityExistsException e) {
-            throw new StorageException(e);
-        } catch (RollbackException e) {
-            logger.error(e.getMessage(), e);
-            throw new StorageException(e);
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        }
-    }
-
-    /**
-     * @see IStorage#rollbackTx()
-     */
-    protected void rollbackTx() {
-        if (activeEM.get() == null) {
-            throw new RuntimeException("Transaction not active."); //$NON-NLS-1$
-        }
-        try {
-            JpaUtil.rollbackQuietly(activeEM.get());
-        } finally {
-            activeEM.get().close();
-            activeEM.set(null);
-        }
-    }
-
-    /**
      * @return the thread's entity manager
      * @throws StorageException if a storage problem occurs while storing a bean
      */
     protected EntityManager getActiveEntityManager() throws StorageException {
-        EntityManager entityManager = activeEM.get();
-        if (entityManager == null) {
-            throw new StorageException("Transaction not active."); //$NON-NLS-1$
-        }
-        return entityManager;
+        return em;
     }
 
     /**

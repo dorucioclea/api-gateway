@@ -2,13 +2,14 @@ package com.t1t.digipolis.apim.core;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
+import javax.enterprise.inject.Default;
 import java.util.UUID;
 
 /**
  * A simple api key generator using java UUIDs.
  *
  */
-@ApplicationScoped @Alternative
+@ApplicationScoped @Default
 public class UuidApiKeyGenerator implements IApiKeyGenerator {
     
     /**

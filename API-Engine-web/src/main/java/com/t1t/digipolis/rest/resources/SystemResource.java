@@ -4,10 +4,12 @@ import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.config.Version;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.rest.resources.ISystemResource;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -29,7 +31,8 @@ public class SystemResource implements ISystemResource {
     private IStorage storage;
     @Inject
     private Version version;
-
+    @Inject @APIEngineContext
+    Logger log;
     @ApiOperation(value = "Get System Status",
             notes = "This endpoint simply returns the status of the apiman system. This is a useful endpoint to use when testing a client's connection to the apiman API Manager REST services.")
     @ApiResponses({

@@ -43,16 +43,6 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
 
-  <!-- Transaction Watchdog -->
-  <filter>
-    <filter-name>TransactionWatchdog</filter-name>
-    <filter-class>com.t1t.digipolis.apim.cdi.TransactionWatchdogFilter</filter-class>
-  </filter>
-  <filter-mapping>
-    <filter-name>TransactionWatchdog</filter-name>
-    <url-pattern>/*</url-pattern>
-  </filter-mapping>
-
   <!-- Root Resource Filter -->
 <!--  <filter>
     <filter-name>RootResourceFilter</filter-name>

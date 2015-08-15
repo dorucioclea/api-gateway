@@ -18,8 +18,6 @@ import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.*;
 import com.t1t.digipolis.apim.beans.policies.*;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
-import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
-import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
@@ -27,13 +25,13 @@ import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.core.logging.ApimanLogger;
-import com.t1t.digipolis.apim.core.logging.IApimanLogger;
 import com.t1t.digipolis.apim.core.util.PolicyTemplateUtil;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
+import com.t1t.digipolis.apim.jpa.JpaStorage;
+import com.t1t.digipolis.apim.jpa.roles.JpaIdmStorage;
 import com.t1t.digipolis.apim.rest.impl.audit.AuditUtils;
 import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
 import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
@@ -44,6 +42,7 @@ import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.rest.resources.exceptions.*;
 import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -51,6 +50,7 @@ import io.swagger.annotations.ApiResponses;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -71,16 +71,16 @@ import java.util.Map.Entry;
 public class OrganizationResource implements IOrganizationResource {
 
     @SuppressWarnings("nls")
-    public static final String [] DATE_FORMATS = {
-        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-        "yyyy-MM-dd'T'HH:mm:ss'Z'",
-        "yyyy-MM-dd'T'HH:mm:ssz",
-        "yyyy-MM-dd'T'HH:mm:ss",
-        "yyyy-MM-dd'T'HH:mm",
-        "yyyy-MM-dd",
-        "EEE, dd MMM yyyy HH:mm:ss z",
-        "EEE, dd MMM yyyy HH:mm:ss",
-        "EEE, dd MMM yyyy"
+    public static final String[] DATE_FORMATS = {
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd'T'HH:mm:ssz",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm",
+            "yyyy-MM-dd",
+            "EEE, dd MMM yyyy HH:mm:ss z",
+            "EEE, dd MMM yyyy HH:mm:ss",
+            "EEE, dd MMM yyyy"
     };
 
     private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
@@ -89,26 +89,38 @@ public class OrganizationResource implements IOrganizationResource {
     private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
     private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
-    @Inject IStorage storage;
-    @Inject IIdmStorage idmStorage;
-    @Inject IStorageQuery query;
-    @Inject IMetricsAccessor metrics;
+    @Inject
+    IStorage storage;
+    @Inject
+    IIdmStorage idmStorage;
+    @Inject
+    IStorageQuery query;
+    @Inject
+    IMetricsAccessor metrics;
 
-    @Inject IApplicationValidator applicationValidator;
-    @Inject IServiceValidator serviceValidator;
-    @Inject IApiKeyGenerator apiKeyGenerator;
+    @Inject
+    IApplicationValidator applicationValidator;
+    @Inject
+    IServiceValidator serviceValidator;
+    @Inject
+    IApiKeyGenerator apiKeyGenerator;
 
     @Inject
     IUserResource users;
     @Inject
     IRoleResource roles;
 
-    @Inject ISecurityContext securityContext;
-    @Inject IGatewayLinkFactory gatewayLinkFactory;
+    @Inject
+    ISecurityContext securityContext;
+    @Inject
+    IGatewayLinkFactory gatewayLinkFactory;
 
-    @Context HttpServletRequest request;
+    @Context
+    HttpServletRequest request;
 
-    @Inject @ApimanLogger(OrganizationResource.class) IApimanLogger log;
+    @Inject
+    @APIEngineContext
+    Logger log;
 
     /**
      * Constructor.
@@ -116,7 +128,9 @@ public class OrganizationResource implements IOrganizationResource {
     public OrganizationResource() {
     }
 
-    /*************ORGANIZATION**************/
+    /*************
+     * ORGANIZATION
+     **************/
 
     @ApiOperation(value = "Create Organization",
             notes = "Use this endpoint to create a new Organization.")
@@ -129,7 +143,7 @@ public class OrganizationResource implements IOrganizationResource {
     public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException {
         FieldValidator.validateName(bean.getName());
 
-        List<RoleBean> autoGrantedRoles = null;
+/*        List<RoleBean> autoGrantedRoles = null;
         SearchCriteriaBean criteria = new SearchCriteriaBean();
         criteria.setPage(1);
         criteria.setPageSize(100);
@@ -144,42 +158,41 @@ public class OrganizationResource implements IOrganizationResource {
             if (autoGrantedRoles.isEmpty()) {
                 throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable")); //$NON-NLS-1$
             }
-        }
+        }*/
 
         OrganizationBean orgBean = new OrganizationBean();
         orgBean.setName(bean.getName());
         orgBean.setDescription(bean.getDescription());
         orgBean.setId(BeanUtils.idFromName(bean.getName()));
         orgBean.setCreatedOn(new Date());
-        orgBean.setCreatedBy(securityContext.getCurrentUser());
+        //orgBean.setCreatedBy(securityContext.getCurrentUser());
         orgBean.setModifiedOn(new Date());
-        orgBean.setModifiedBy(securityContext.getCurrentUser());
+        //orgBean.setModifiedBy(securityContext.getCurrentUser());
         try {
             // Store/persist the new organization
-            storage.beginTx();
+
             if (storage.getOrganization(orgBean.getId()) != null) {
                 throw ExceptionFactory.organizationAlreadyExistsException(bean.getName());
             }
             storage.createOrganization(orgBean);
             storage.createAuditEntry(AuditUtils.organizationCreated(orgBean, securityContext));
-            storage.commitTx();
+
 
             // Auto-grant memberships in roles to the creator of the organization
-            for (RoleBean roleBean : autoGrantedRoles) {
+/*            for (RoleBean roleBean : autoGrantedRoles) {
                 String currentUser = securityContext.getCurrentUser();
                 String orgId = orgBean.getId();
                 RoleMembershipBean membership = RoleMembershipBean.create(currentUser, roleBean.getId(), orgId);
                 membership.setCreatedOn(new Date());
                 idmStorage.createMembership(membership);
-            }
+            }*/
 
             log.debug(String.format("Created organization %s: %s", orgBean.getName(), orgBean)); //$NON-NLS-1$
             return orgBean;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
     }
@@ -195,19 +208,19 @@ public class OrganizationResource implements IOrganizationResource {
     @Override
     public OrganizationBean get(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
         try {
-            storage.beginTx();
+
             OrganizationBean organizationBean = storage.getOrganization(organizationId);
             if (organizationBean == null) {
                 throw ExceptionFactory.organizationNotFoundException(organizationId);
             }
-            storage.commitTx();
+
             log.debug(String.format("Got organization %s: %s", organizationBean.getName(), organizationBean)); //$NON-NLS-1$
             return organizationBean;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -225,7 +238,7 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
+
             OrganizationBean orgForUpdate = storage.getOrganization(organizationId);
             if (orgForUpdate == null) {
                 throw ExceptionFactory.organizationNotFoundException(organizationId);
@@ -238,13 +251,13 @@ public class OrganizationResource implements IOrganizationResource {
             }
             storage.updateOrganization(orgForUpdate);
             storage.createAuditEntry(AuditUtils.organizationUpdated(orgForUpdate, auditData, securityContext));
-            storage.commitTx();
+
             log.debug(String.format("Updated organization %s: %s", orgForUpdate.getName(), orgForUpdate)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -257,7 +270,7 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/activity")
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<AuditEntryBean> activity(@PathParam("organizationId") String organizationId,@QueryParam("page")  int page,@QueryParam("count")  int pageSize)
+    public SearchResultsBean<AuditEntryBean> activity(@PathParam("organizationId") String organizationId, @QueryParam("page") int page, @QueryParam("count") int pageSize)
             throws OrganizationNotFoundException, NotAuthorizedException {
         if (page <= 1) {
             page = 1;
@@ -273,14 +286,16 @@ public class OrganizationResource implements IOrganizationResource {
             rval = query.auditEntity(organizationId, null, null, null, paging);
             return rval;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
     }
 
-    /*************APPLICATIONS**************/
+    /*************
+     * APPLICATIONS
+     **************/
     @ApiOperation(value = "Create Application",
             notes = "Use this endpoint to create a new Application.  Note that it is important to also create an initial version of the Application (e.g. 1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Application Version\".  If the former is done, then a first Application version will be created automatically by this endpoint.")
     @ApiResponses({
@@ -305,7 +320,7 @@ public class OrganizationResource implements IOrganizationResource {
         newApp.setCreatedOn(new Date());
         try {
             // Store/persist the new application
-            storage.beginTx();
+
             OrganizationBean org = storage.getOrganization(organizationId);
             if (org == null) {
                 throw ExceptionFactory.organizationNotFoundException(organizationId);
@@ -325,15 +340,14 @@ public class OrganizationResource implements IOrganizationResource {
                 createAppVersionInternal(newAppVersion, newApp);
             }
 
-            storage.commitTx();
 
             log.debug(String.format("Created application %s: %s", newApp.getName(), newApp)); //$NON-NLS-1$
             return newApp;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -346,22 +360,22 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/applications/{applicationId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationBean getApp(@PathParam("organizationId") String organizationId,@PathParam("applicationId") String applicationId)
+    public ApplicationBean getApp(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId)
             throws ApplicationNotFoundException, NotAuthorizedException {
         try {
-            storage.beginTx();
+
             ApplicationBean applicationBean = storage.getApplication(organizationId, applicationId);
             if (applicationBean == null) {
                 throw ExceptionFactory.applicationNotFoundException(applicationId);
             }
-            storage.commitTx();
+
             log.debug(String.format("Got application %s: %s", applicationBean.getName(), applicationBean)); //$NON-NLS-1$
             return applicationBean;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -374,8 +388,8 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/applications/{applicationId}/activity")
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<AuditEntryBean> getAppActivity(@PathParam("organizationId") String organizationId,@PathParam("applicationId")  String applicationId,
-                                                            @QueryParam("page") int page,@QueryParam("count")  int pageSize) throws ApplicationNotFoundException, NotAuthorizedException {
+    public SearchResultsBean<AuditEntryBean> getAppActivity(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId,
+                                                            @QueryParam("page") int page, @QueryParam("count") int pageSize) throws ApplicationNotFoundException, NotAuthorizedException {
         if (page <= 1) {
             page = 1;
         }
@@ -390,7 +404,7 @@ public class OrganizationResource implements IOrganizationResource {
             rval = query.auditEntity(organizationId, applicationId, null, ApplicationBean.class, paging);
             return rval;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
@@ -400,7 +414,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List Applications",
             notes = "Use this endpoint to get a list of all Applications in the Organization.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ApplicationSummaryBean.class, message = "A list of Applications.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ApplicationSummaryBean.class, message = "A list of Applications.")
     })
     @GET
     @Path("/{organizationId}/applications")
@@ -425,12 +439,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/applications/{applicationId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void updateApp(@PathParam("organizationId") String organizationId,@PathParam("applicationId") String applicationId, UpdateApplicationBean bean)
+    public void updateApp(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, UpdateApplicationBean bean)
             throws ApplicationNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
+
             ApplicationBean appForUpdate = storage.getApplication(organizationId, applicationId);
             if (appForUpdate == null) {
                 throw ExceptionFactory.applicationNotFoundException(applicationId);
@@ -442,13 +456,13 @@ public class OrganizationResource implements IOrganizationResource {
             }
             storage.updateApplication(appForUpdate);
             storage.createAuditEntry(AuditUtils.applicationUpdated(appForUpdate, auditData, securityContext));
-            storage.commitTx();
+
             log.debug(String.format("Updated application %s: %s", appForUpdate.getName(), appForUpdate)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -462,8 +476,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/applications/{applicationId}/versions")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationVersionBean createAppVersion(@PathParam("organizationId") String organizationId,@PathParam("applicationId")  String applicationId,
-            NewApplicationVersionBean bean) throws ApplicationNotFoundException, NotAuthorizedException,
+    public ApplicationVersionBean createAppVersion(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId,
+                                                   NewApplicationVersionBean bean) throws ApplicationNotFoundException, NotAuthorizedException,
             InvalidVersionException, ApplicationVersionAlreadyExistsException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -471,7 +485,7 @@ public class OrganizationResource implements IOrganizationResource {
 
         ApplicationVersionBean newVersion;
         try {
-            storage.beginTx();
+
             ApplicationBean application = storage.getApplication(organizationId, applicationId);
             if (application == null) {
                 throw ExceptionFactory.applicationNotFoundException(applicationId);
@@ -482,12 +496,12 @@ public class OrganizationResource implements IOrganizationResource {
             }
 
             newVersion = createAppVersionInternal(bean, application);
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
 
@@ -520,12 +534,13 @@ public class OrganizationResource implements IOrganizationResource {
 
     /**
      * Creates a new application version.
+     *
      * @param bean
      * @param application
      * @throws StorageException
      */
     protected ApplicationVersionBean createAppVersionInternal(NewApplicationVersionBean bean,
-            ApplicationBean application) throws StorageException {
+                                                              ApplicationBean application) throws StorageException {
         if (!BeanUtils.isValidVersion(bean.getVersion())) {
             throw new StorageException("Invalid/illegal application version: " + bean.getVersion()); //$NON-NLS-1$
         }
@@ -554,22 +569,22 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationVersionBean getAppVersion(@PathParam("organizationId") String organizationId,@PathParam("applicationId")  String applicationId,@PathParam("version")  String version)
+    public ApplicationVersionBean getAppVersion(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version)
             throws ApplicationVersionNotFoundException, NotAuthorizedException {
         try {
-            storage.beginTx();
+
             ApplicationVersionBean applicationVersion = storage.getApplicationVersion(organizationId, applicationId, version);
             if (applicationVersion == null) {
                 throw ExceptionFactory.applicationVersionNotFoundException(applicationId, version);
             }
-            storage.commitTx();
+
             log.debug(String.format("Got new application version %s: %s", applicationVersion.getApplication().getName(), applicationVersion)); //$NON-NLS-1$
             return applicationVersion;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -602,7 +617,7 @@ public class OrganizationResource implements IOrganizationResource {
             rval = query.auditEntity(organizationId, applicationId, version, ApplicationBean.class, paging);
             return rval;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
@@ -635,12 +650,12 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List Application Versions",
             notes = "Use this endpoint to list all of the versions of an Application.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ApplicationVersionSummaryBean.class, message = "A list of Applications versions.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ApplicationVersionSummaryBean.class, message = "A list of Applications versions.")
     })
     @GET
     @Path("/{organizationId}/applications/{applicationId}/versions")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ApplicationVersionSummaryBean> listAppVersions(@PathParam("organizationId") String organizationId,@PathParam("applicationId")  String applicationId)
+    public List<ApplicationVersionSummaryBean> listAppVersions(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId)
             throws ApplicationNotFoundException, NotAuthorizedException {
         // Try to get the application first - will throw a ApplicationNotFoundException if not found.
         getApp(organizationId, applicationId);
@@ -671,17 +686,17 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
 
         try {
-            storage.beginTx();
+
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
 
-            storage.commitTx();
+
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             return contract;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             // Up above we are optimistically creating the contract.  If it fails, check to see
             // if it failed because it was a duplicate.  If so, throw something sensible.  We
             // only do this on failure (we would get a FK contraint failure, for example) to
@@ -696,6 +711,7 @@ public class OrganizationResource implements IOrganizationResource {
 
     /**
      * Creates a contract.
+     *
      * @param organizationId
      * @param applicationId
      * @param version
@@ -704,7 +720,7 @@ public class OrganizationResource implements IOrganizationResource {
      * @throws Exception
      */
     protected ContractBean createContractInternal(String organizationId, String applicationId,
-            String version, NewContractBean bean) throws StorageException, Exception {
+                                                  String version, NewContractBean bean) throws StorageException, Exception {
         ContractBean contract;
         ApplicationVersionBean avb;
         avb = storage.getApplicationVersion(organizationId, applicationId, version);
@@ -769,21 +785,21 @@ public class OrganizationResource implements IOrganizationResource {
     /**
      * Check to see if the contract already exists, by getting a list of all the
      * application's contracts and comparing with the one being created.
+     *
      * @param organizationId
      * @param applicationId
      * @param version
      * @param bean
      */
     private boolean contractAlreadyExists(String organizationId, String applicationId, String version,
-            NewContractBean bean) {
+                                          NewContractBean bean) {
         try {
             List<ContractSummaryBean> contracts = query.getApplicationContracts(organizationId, applicationId, version);
             for (ContractSummaryBean contract : contracts) {
                 if (contract.getServiceOrganizationId().equals(bean.getServiceOrgId()) &&
-                    contract.getServiceId().equals(bean.getServiceId()) &&
-                    contract.getServiceVersion().equals(bean.getServiceVersion()) &&
-                    contract.getPlanId().equals(bean.getPlanId()))
-                {
+                        contract.getServiceId().equals(bean.getServiceId()) &&
+                        contract.getServiceVersion().equals(bean.getServiceVersion()) &&
+                        contract.getPlanId().equals(bean.getPlanId())) {
                     return true;
                 }
             }
@@ -807,12 +823,11 @@ public class OrganizationResource implements IOrganizationResource {
                                     @PathParam("contractId") Long contractId) throws ApplicationNotFoundException, ContractNotFoundException, NotAuthorizedException {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
         try {
-            storage.beginTx();
+
             ContractBean contract = storage.getContract(contractId);
             if (contract == null)
                 throw ExceptionFactory.contractNotFoundException(contractId);
 
-            storage.commitTx();
 
             // Hide some data if the user doesn't have the appView permission
             if (!hasPermission) {
@@ -822,10 +837,10 @@ public class OrganizationResource implements IOrganizationResource {
             log.debug(String.format("Got contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             return contract;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -839,7 +854,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts")
     public void deleteAllContracts(@PathParam("organizationId") String organizationId,
                                    @PathParam("applicationId") String applicationId,
-                                   @PathParam("version")  String version)
+                                   @PathParam("version") String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -864,7 +879,7 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
+
             ContractBean contract = storage.getContract(contractId);
             if (contract == null) {
                 throw ExceptionFactory.contractNotFoundException(contractId);
@@ -882,13 +897,13 @@ public class OrganizationResource implements IOrganizationResource {
             storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
             storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
 
-            storage.commitTx();
+
             log.debug(String.format("Deleted contract: %s", contract)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -896,14 +911,14 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List All Contracts for an Application",
             notes = "Use this endpoint to get a list of all Contracts for an Application.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ContractSummaryBean.class, message = "A list of Contracts.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ContractSummaryBean.class, message = "A list of Contracts.")
     })
     @GET
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ContractSummaryBean> getApplicationVersionContracts(@PathParam("organizationId") String organizationId,
                                                                     @PathParam("applicationId") String applicationId,
-                                                                    @PathParam("version")String version)
+                                                                    @PathParam("version") String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
 
@@ -922,7 +937,7 @@ public class OrganizationResource implements IOrganizationResource {
 
             return contracts;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
@@ -938,7 +953,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/apiregistry/json")
     @Produces(MediaType.APPLICATION_JSON)
     public ApiRegistryBean getApiRegistryJSON(@PathParam("organizationId") String organizationId,
-                                              @PathParam("applicationId")String applicationId,
+                                              @PathParam("applicationId") String applicationId,
                                               @PathParam("version") String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
         return getApiRegistry(organizationId, applicationId, version);
@@ -954,12 +969,13 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_XML)
     public ApiRegistryBean getApiRegistryXML(@PathParam("organizationId") String organizationId,
                                              @PathParam("applicationId") String applicationId,
-                                             @PathParam("version")  String version) throws ApplicationNotFoundException, NotAuthorizedException {
+                                             @PathParam("version") String version) throws ApplicationNotFoundException, NotAuthorizedException {
         return getApiRegistry(organizationId, applicationId, version);
     }
 
     /**
      * Gets the API registry.
+     *
      * @param organizationId
      * @param applicationId
      * @param version
@@ -988,7 +1004,7 @@ public class OrganizationResource implements IOrganizationResource {
 
             List<ApiEntryBean> apis = apiRegistry.getApis();
 
-            storage.beginTx();
+
             txStarted = true;
             for (ApiEntryBean api : apis) {
                 String gatewayId = api.getGatewayId();
@@ -1011,17 +1027,18 @@ public class OrganizationResource implements IOrganizationResource {
             }
 
             return apiRegistry;
-        } catch (StorageException|GatewayAuthenticationException e) {
+        } catch (StorageException | GatewayAuthenticationException e) {
             throw new SystemErrorException(e);
         } finally {
             if (txStarted) {
-                storage.rollbackTx();
+
             }
             for (IGatewayLink link : gatewayLinks.values()) {
                 link.close();
             }
         }
     }
+
     @ApiOperation(value = "Add Application Policy",
             notes = "Use this endpoint to add a new Policy to the Application version.")
     @ApiResponses({
@@ -1034,7 +1051,7 @@ public class OrganizationResource implements IOrganizationResource {
     public PolicyBean createAppPolicy(@PathParam("organizationId") String organizationId,
                                       @PathParam("applicationId") String applicationId,
                                       @PathParam("version") String version,
-            NewPolicyBean bean) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
+                                      NewPolicyBean bean) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1057,7 +1074,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
     public PolicyBean getAppPolicy(@PathParam("organizationId") String organizationId,
-                                   @PathParam("applicationId")String applicationId,
+                                   @PathParam("applicationId") String applicationId,
                                    @PathParam("version") String version,
                                    @PathParam("policyId") long policyId) throws OrganizationNotFoundException, ApplicationVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
@@ -1091,7 +1108,7 @@ public class OrganizationResource implements IOrganizationResource {
         getAppVersion(organizationId, applicationId, version);
 
         try {
-            storage.beginTx();
+
             PolicyBean policy = this.storage.getPolicy(PolicyType.Application, organizationId, applicationId, version, policyId);
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
@@ -1104,12 +1121,12 @@ public class OrganizationResource implements IOrganizationResource {
             policy.setModifiedBy(this.securityContext.getCurrentUser());
             storage.updatePolicy(policy);
             storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Application, securityContext));
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1122,7 +1139,7 @@ public class OrganizationResource implements IOrganizationResource {
     @DELETE
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies/{policyId}")
     public void deleteAppPolicy(@PathParam("organizationId") String organizationId,
-                                @PathParam("applicationId") String applicationId,@PathParam("version") String version,@PathParam("policyId")  long policyId)
+                                @PathParam("applicationId") String applicationId, @PathParam("version") String version, @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
@@ -1135,19 +1152,19 @@ public class OrganizationResource implements IOrganizationResource {
         }
 
         try {
-            storage.beginTx();
+
             PolicyBean policy = this.storage.getPolicy(PolicyType.Application, organizationId, applicationId, version, policyId);
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
             storage.deletePolicy(policy);
             storage.createAuditEntry(AuditUtils.policyRemoved(policy, PolicyType.Application, securityContext));
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1155,7 +1172,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List All Application Policies",
             notes = "Use this endpoint to list all of the Policies configured for the Application.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = PolicySummaryBean.class, message = "System status information")
+            @ApiResponse(code = 200, responseContainer = "List", response = PolicySummaryBean.class, message = "System status information")
     })
     @GET
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies")
@@ -1185,7 +1202,7 @@ public class OrganizationResource implements IOrganizationResource {
     public void reorderApplicationPolicies(@PathParam("organizationId") String organizationId,
                                            @PathParam("applicationId") String applicationId,
                                            @PathParam("version") String version,
-            PolicyChainBean policyChain) throws OrganizationNotFoundException,
+                                           PolicyChainBean policyChain) throws OrganizationNotFoundException,
             ApplicationVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1194,19 +1211,19 @@ public class OrganizationResource implements IOrganizationResource {
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
 
         try {
-            storage.beginTx();
+
             List<Long> newOrder = new ArrayList<>(policyChain.getPolicies().size());
             for (PolicySummaryBean psb : policyChain.getPolicies()) {
                 newOrder.add(psb.getId());
             }
             storage.reorderPolicies(PolicyType.Application, organizationId, applicationId, version, newOrder);
             storage.createAuditEntry(AuditUtils.policiesReordered(avb, PolicyType.Application, securityContext));
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1236,7 +1253,7 @@ public class OrganizationResource implements IOrganizationResource {
         try {
             GatewaySummaryBean gateway = getSingularGateway();
 
-            storage.beginTx();
+
             OrganizationBean orgBean = storage.getOrganization(organizationId);
             if (orgBean == null) {
                 throw ExceptionFactory.organizationNotFoundException(organizationId);
@@ -1255,13 +1272,13 @@ public class OrganizationResource implements IOrganizationResource {
                 createServiceVersionInternal(newServiceVersion, newService, gateway);
             }
 
-            storage.commitTx();
+
             return newService;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1274,21 +1291,21 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/services/{serviceId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceBean getService(@PathParam("organizationId") String organizationId,@PathParam("serviceId")  String serviceId)
+    public ServiceBean getService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId)
             throws ServiceNotFoundException, NotAuthorizedException {
         try {
-            storage.beginTx();
+
             ServiceBean bean = storage.getService(organizationId, serviceId);
             if (bean == null) {
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
             }
-            storage.commitTx();
+
             return bean;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1326,7 +1343,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List Services",
             notes = "Use this endpoint to get a list of all Services in the Organization.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ServiceSummaryBean.class, message = "A list of Services.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceSummaryBean.class, message = "A list of Services.")
     })
     @GET
     @Path("/{organizationId}/services")
@@ -1359,7 +1376,7 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
+
             ServiceBean serviceForUpdate = storage.getService(organizationId, serviceId);
             if (serviceForUpdate == null) {
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
@@ -1371,12 +1388,12 @@ public class OrganizationResource implements IOrganizationResource {
             }
             storage.updateService(serviceForUpdate);
             storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1402,7 +1419,7 @@ public class OrganizationResource implements IOrganizationResource {
         try {
             GatewaySummaryBean gateway = getSingularGateway();
 
-            storage.beginTx();
+
             ServiceBean service = storage.getService(organizationId, serviceId);
             if (service == null) {
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
@@ -1413,12 +1430,12 @@ public class OrganizationResource implements IOrganizationResource {
             }
 
             newVersion = createServiceVersionInternal(bean, service, gateway);
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
 
@@ -1434,7 +1451,7 @@ public class OrganizationResource implements IOrganizationResource {
                 updatedService.setGateways(cloneSource.getGateways());
                 updatedService.setPlans(cloneSource.getPlans());
                 updatedService.setPublicService(cloneSource.isPublicService());
-                newVersion = updateServiceVersion(organizationId, serviceId, bean.getVersion(), updatedService );
+                newVersion = updateServiceVersion(organizationId, serviceId, bean.getVersion(), updatedService);
 
                 // Clone the service definition document
                 try {
@@ -1471,6 +1488,7 @@ public class OrganizationResource implements IOrganizationResource {
 
     /**
      * Creates a service version.
+     *
      * @param bean
      * @param service
      * @param gateway
@@ -1478,7 +1496,7 @@ public class OrganizationResource implements IOrganizationResource {
      * @throws StorageException
      */
     protected ServiceVersionBean createServiceVersionInternal(NewServiceVersionBean bean,
-            ServiceBean service, GatewaySummaryBean gateway) throws Exception, StorageException {
+                                                              ServiceBean service, GatewaySummaryBean gateway) throws Exception, StorageException {
         if (!BeanUtils.isValidVersion(bean.getVersion())) {
             throw new StorageException("Invalid/illegal service version: " + bean.getVersion()); //$NON-NLS-1$
         }
@@ -1541,22 +1559,22 @@ public class OrganizationResource implements IOrganizationResource {
             throws ServiceVersionNotFoundException, NotAuthorizedException {
         boolean hasPermission = securityContext.hasPermission(PermissionType.svcView, organizationId);
         try {
-            storage.beginTx();
+
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
-            storage.commitTx();
+
             if (!hasPermission) {
                 serviceVersion.setGateways(null);
             }
             decryptEndpointProperties(serviceVersion);
             return serviceVersion;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1568,13 +1586,13 @@ public class OrganizationResource implements IOrganizationResource {
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/definition")
-    @Produces({ MediaType.APPLICATION_JSON, "application/wsdl+xml", "application/x-yaml" })
+    @Produces({MediaType.APPLICATION_JSON, "application/wsdl+xml", "application/x-yaml"})
     public Response getServiceDefinition(@PathParam("organizationId") String organizationId,
                                          @PathParam("serviceId") String serviceId,
                                          @PathParam("version") String version)
             throws ServiceVersionNotFoundException, NotAuthorizedException {
         try {
-            storage.beginTx();
+
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
@@ -1582,7 +1600,7 @@ public class OrganizationResource implements IOrganizationResource {
             if (serviceVersion.getDefinitionType() == ServiceDefinitionType.None || serviceVersion.getDefinitionType() == null) {
                 throw ExceptionFactory.serviceDefinitionNotFoundException(serviceId, version);
             }
-            InputStream  definition = storage.getServiceDefinition(serviceVersion);
+            InputStream definition = storage.getServiceDefinition(serviceVersion);
             if (definition == null) {
                 throw ExceptionFactory.serviceDefinitionNotFoundException(serviceId, version);
             }
@@ -1596,13 +1614,13 @@ public class OrganizationResource implements IOrganizationResource {
             } else {
                 throw new Exception("Service definition type not supported: " + serviceVersion.getDefinitionType()); //$NON-NLS-1$
             }
-            storage.commitTx();
+
             return builder.build();
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1620,7 +1638,7 @@ public class OrganizationResource implements IOrganizationResource {
                                                                            @PathParam("version") String version) throws ServiceVersionNotFoundException,
             InvalidServiceStatusException, GatewayNotFoundException {
         try {
-            storage.beginTx();
+
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
@@ -1640,14 +1658,14 @@ public class OrganizationResource implements IOrganizationResource {
             ServiceEndpoint endpoint = link.getServiceEndpoint(organizationId, serviceId, version);
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
             rval.setManagedEndpoint(endpoint.getEndpoint());
-            storage.commitTx();
+
             log.debug(String.format("Got endpoint summary: %s", gateway)); //$NON-NLS-1$
             return rval;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1663,7 +1681,7 @@ public class OrganizationResource implements IOrganizationResource {
     public SearchResultsBean<AuditEntryBean> getServiceVersionActivity(@PathParam("organizationId") String organizationId,
                                                                        @PathParam("serviceId") String serviceId,
                                                                        @PathParam("version") String version,
-                                                                       @QueryParam("page")int page,
+                                                                       @QueryParam("page") int page,
                                                                        @QueryParam("count") int pageSize) throws ServiceVersionNotFoundException, NotAuthorizedException {
         if (page <= 1) {
             page = 1;
@@ -1693,7 +1711,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceVersionBean updateServiceVersion(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version,
-            UpdateServiceVersionBean bean) throws ServiceVersionNotFoundException, NotAuthorizedException {
+                                                   UpdateServiceVersionBean bean) throws ServiceVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
 
@@ -1770,7 +1788,7 @@ public class OrganizationResource implements IOrganizationResource {
 
         try {
             encryptEndpointProperties(svb);
-            storage.beginTx();
+
 
             // Ensure all of the plans are in the right status (locked)
             Set<ServicePlanBean> plans = svb.getPlans();
@@ -1789,15 +1807,15 @@ public class OrganizationResource implements IOrganizationResource {
 
             storage.updateServiceVersion(svb);
             storage.createAuditEntry(AuditUtils.serviceVersionUpdated(svb, data, securityContext));
-            storage.commitTx();
+
             log.debug(String.format("Successfully updated Service Version: %s", svb)); //$NON-NLS-1$
             decryptEndpointProperties(svb);
             return svb;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1809,9 +1827,9 @@ public class OrganizationResource implements IOrganizationResource {
     })
     @PUT
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/definition")
-    @Consumes({ MediaType.APPLICATION_JSON, "application/wsdl+xml", "application/x-yaml" })
+    @Consumes({MediaType.APPLICATION_JSON, "application/wsdl+xml", "application/x-yaml"})
     public void updateServiceDefinition(@PathParam("organizationId") String organizationId,
-                                        @PathParam("serviceId")  String serviceId,
+                                        @PathParam("serviceId") String serviceId,
                                         @PathParam("version") String version)
             throws ServiceVersionNotFoundException, NotAuthorizedException, InvalidServiceStatusException {
         String contentType = request.getContentType();
@@ -1842,11 +1860,11 @@ public class OrganizationResource implements IOrganizationResource {
      * @param data
      */
     protected void storeServiceDefinition(String organizationId, String serviceId, String version,
-            ServiceDefinitionType definitionType, InputStream data) {
+                                          ServiceDefinitionType definitionType, InputStream data) {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
+
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
@@ -1857,13 +1875,13 @@ public class OrganizationResource implements IOrganizationResource {
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
             storage.updateServiceDefinition(serviceVersion, data);
-            storage.commitTx();
+
             log.debug(String.format("Stored service definition %s: %s", serviceId, serviceVersion)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -1871,7 +1889,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List Service Versions",
             notes = "Use this endpoint to list all of the versions of a Service.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ServiceVersionSummaryBean.class, message = "A list of Services.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionSummaryBean.class, message = "A list of Services.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions")
@@ -1892,7 +1910,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List Service Plans",
             notes = "Use this endpoint to list the Plans configured for the given Service version.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ServicePlanSummaryBean.class, message = "A list of Service plans.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ServicePlanSummaryBean.class, message = "A list of Service plans.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/plans")
@@ -1922,7 +1940,7 @@ public class OrganizationResource implements IOrganizationResource {
     public PolicyBean createServicePolicy(@PathParam("organizationId") String organizationId,
                                           @PathParam("serviceId") String serviceId,
                                           @PathParam("version") String version,
-            NewPolicyBean bean) throws OrganizationNotFoundException, ServiceVersionNotFoundException,
+                                          NewPolicyBean bean) throws OrganizationNotFoundException, ServiceVersionNotFoundException,
             NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1985,7 +2003,7 @@ public class OrganizationResource implements IOrganizationResource {
         getServiceVersion(organizationId, serviceId, version);
 
         try {
-            storage.beginTx();
+
             PolicyBean policy = storage.getPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
@@ -1998,13 +2016,13 @@ public class OrganizationResource implements IOrganizationResource {
             policy.setModifiedBy(securityContext.getCurrentUser());
             storage.updatePolicy(policy);
             storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Service, securityContext));
-            storage.commitTx();
+
             log.debug(String.format("Updated service policy %s", policy)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2032,20 +2050,20 @@ public class OrganizationResource implements IOrganizationResource {
         }
 
         try {
-            storage.beginTx();
+
             PolicyBean policy = this.storage.getPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
             storage.deletePolicy(policy);
             storage.createAuditEntry(AuditUtils.policyRemoved(policy, PolicyType.Service, securityContext));
-            storage.commitTx();
+
             log.debug(String.format("Deleted service %s policy: %s", serviceId, policy)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2064,7 +2082,7 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
-            storage.beginTx();
+
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
@@ -2073,13 +2091,13 @@ public class OrganizationResource implements IOrganizationResource {
             storage.createAuditEntry(AuditUtils.serviceDefinitionDeleted(serviceVersion, securityContext));
             storage.deleteServiceDefinition(serviceVersion);
             storage.updateServiceVersion(serviceVersion);
-            storage.commitTx();
+
             log.debug(String.format("Deleted service %s definition %s", serviceId, serviceVersion)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2087,7 +2105,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List All Service Policies",
             notes = "Use this endpoint to list all of the Policies configured for the Service.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = PolicySummaryBean.class, message = "A List of Policies.")
+            @ApiResponse(code = 200, responseContainer = "List", response = PolicySummaryBean.class, message = "A List of Policies.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies")
@@ -2117,7 +2135,7 @@ public class OrganizationResource implements IOrganizationResource {
     public void reorderServicePolicies(@PathParam("organizationId") String organizationId,
                                        @PathParam("serviceId") String serviceId,
                                        @PathParam("version") String version,
-            PolicyChainBean policyChain) throws OrganizationNotFoundException,
+                                       PolicyChainBean policyChain) throws OrganizationNotFoundException,
             ServiceVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2126,19 +2144,19 @@ public class OrganizationResource implements IOrganizationResource {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
 
         try {
-            storage.beginTx();
+
             List<Long> newOrder = new ArrayList<>(policyChain.getPolicies().size());
             for (PolicySummaryBean psb : policyChain.getPolicies()) {
                 newOrder.add(psb.getId());
             }
             storage.reorderPolicies(PolicyType.Service, organizationId, serviceId, version, newOrder);
             storage.createAuditEntry(AuditUtils.policiesReordered(svb, PolicyType.Service, securityContext));
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2187,13 +2205,13 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List Service Contracts",
             notes = "Use this endpoint to get a list of all Contracts created with this Service.  This will return Contracts created by between any Application and through any Plan.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List",response = ContractSummaryBean.class, message = "A list of Contracts.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ContractSummaryBean.class, message = "A list of Contracts.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ContractSummaryBean> getServiceVersionContracts(@PathParam("organizationId") String organizationId,
-                                                                @PathParam("serviceId")String serviceId,
+                                                                @PathParam("serviceId") String serviceId,
                                                                 @PathParam("version") String version,
                                                                 @QueryParam("page") int page,
                                                                 @QueryParam("count") int pageSize) throws ServiceVersionNotFoundException,
@@ -2235,7 +2253,7 @@ public class OrganizationResource implements IOrganizationResource {
     public UsageHistogramBean getUsage(
             @PathParam("organizationId") String organizationId,
             @PathParam("serviceId") String serviceId,
-            @PathParam("version")String version,
+            @PathParam("version") String version,
             @QueryParam("interval") HistogramIntervalType interval,
             @QueryParam("from") String fromDate,
             @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
@@ -2261,10 +2279,10 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/appUsage")
     @Produces(MediaType.APPLICATION_JSON)
     public UsagePerAppBean getUsagePerApp(@PathParam("organizationId") String organizationId,
-                                          @PathParam("serviceId")String serviceId,
+                                          @PathParam("serviceId") String serviceId,
                                           @PathParam("version") String version,
                                           @QueryParam("from") String fromDate,
-                                          @QueryParam("to")String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
+                                          @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
 
@@ -2283,7 +2301,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/planUsage")
     @Produces(MediaType.APPLICATION_JSON)
     public UsagePerPlanBean getUsagePerPlan(@PathParam("organizationId") String organizationId,
-                                            @PathParam("serviceId")String serviceId,
+                                            @PathParam("serviceId") String serviceId,
                                             @PathParam("version") String version,
                                             @QueryParam("from") String fromDate,
                                             @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
@@ -2356,7 +2374,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/appResponseStats")
     @Produces(MediaType.APPLICATION_JSON)
     public ResponseStatsPerAppBean getResponseStatsPerApp(@PathParam("organizationId") String organizationId,
-                                                          @PathParam("serviceId")String serviceId,
+                                                          @PathParam("serviceId") String serviceId,
                                                           @PathParam("version") String version,
                                                           @QueryParam("from") String fromDate,
                                                           @QueryParam("to") String toDate) throws NotAuthorizedException,
@@ -2416,7 +2434,7 @@ public class OrganizationResource implements IOrganizationResource {
         newPlan.setCreatedBy(securityContext.getCurrentUser());
         try {
             // Store/persist the new plan
-            storage.beginTx();
+
             OrganizationBean orgBean = storage.getOrganization(organizationId);
             if (orgBean == null) {
                 throw ExceptionFactory.organizationNotFoundException(organizationId);
@@ -2434,14 +2452,14 @@ public class OrganizationResource implements IOrganizationResource {
                 createPlanVersionInternal(newPlanVersion, newPlan);
             }
 
-            storage.commitTx();
+
             log.debug(String.format("Created plan: %s", newPlan)); //$NON-NLS-1$
             return newPlan;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2454,22 +2472,22 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/plans/{planId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public PlanBean getPlan(@PathParam("organizationId") String organizationId,@PathParam("planId")  String planId)
+    public PlanBean getPlan(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId)
             throws PlanNotFoundException, NotAuthorizedException {
         try {
-            storage.beginTx();
+
             PlanBean bean = storage.getPlan(organizationId, planId);
             if (bean == null) {
                 throw ExceptionFactory.planNotFoundException(planId);
             }
-            storage.commitTx();
+
             log.debug(String.format("Got plan: %s", bean)); //$NON-NLS-1$
             return bean;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2508,7 +2526,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List Plans",
             notes = "Use this endpoint to get a list of all Plans in the Organization.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = PlanSummaryBean.class, message = "A list of Plans.")
+            @ApiResponse(code = 200, responseContainer = "List", response = PlanSummaryBean.class, message = "A list of Plans.")
     })
     @GET
     @Path("/{organizationId}/plans")
@@ -2533,13 +2551,13 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/plans/{planId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void updatePlan(@PathParam("organizationId") String organizationId,@PathParam("planId")  String planId, UpdatePlanBean bean)
+    public void updatePlan(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId, UpdatePlanBean bean)
             throws PlanNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         EntityUpdatedData auditData = new EntityUpdatedData();
         try {
-            storage.beginTx();
+
             PlanBean planForUpdate = storage.getPlan(organizationId, planId);
             if (planForUpdate == null) {
                 throw ExceptionFactory.planNotFoundException(planId);
@@ -2550,13 +2568,13 @@ public class OrganizationResource implements IOrganizationResource {
             }
             storage.updatePlan(planForUpdate);
             storage.createAuditEntry(AuditUtils.planUpdated(planForUpdate, auditData, securityContext));
-            storage.commitTx();
+
             log.debug(String.format("Updated plan: %s", planForUpdate)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2580,7 +2598,7 @@ public class OrganizationResource implements IOrganizationResource {
 
         PlanVersionBean newVersion = null;
         try {
-            storage.beginTx();
+
             PlanBean plan = storage.getPlan(organizationId, planId);
             if (plan == null) {
                 throw ExceptionFactory.planNotFoundException(planId);
@@ -2591,12 +2609,12 @@ public class OrganizationResource implements IOrganizationResource {
             }
 
             newVersion = createPlanVersionInternal(bean, plan);
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
 
@@ -2621,6 +2639,7 @@ public class OrganizationResource implements IOrganizationResource {
 
     /**
      * Creates a plan version.
+     *
      * @param bean
      * @param plan
      * @throws StorageException
@@ -2657,19 +2676,19 @@ public class OrganizationResource implements IOrganizationResource {
                                           @PathParam("version") String version)
             throws PlanVersionNotFoundException, NotAuthorizedException {
         try {
-            storage.beginTx();
+
             PlanVersionBean planVersion = storage.getPlanVersion(organizationId, planId, version);
             if (planVersion == null) {
                 throw ExceptionFactory.planVersionNotFoundException(planId, version);
             }
-            storage.commitTx();
+
             log.debug(String.format("Got plan %s version: %s", planId, planVersion)); //$NON-NLS-1$
             return planVersion;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2710,7 +2729,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List Plan Versions",
             notes = "Use this endpoint to list all of the versions of a Plan.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = PlanVersionSummaryBean.class, message = "A list of Plans.")
+            @ApiResponse(code = 200, responseContainer = "List", response = PlanVersionSummaryBean.class, message = "A list of Plans.")
     })
     @GET
     @Path("/{organizationId}/plans/{planId}/versions")
@@ -2737,9 +2756,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public PolicyBean createPlanPolicy(@PathParam("organizationId") String organizationId,
-                                       @PathParam("planId")String planId,
+                                       @PathParam("planId") String planId,
                                        @PathParam("version") String version,
-            NewPolicyBean bean) throws OrganizationNotFoundException, PlanVersionNotFoundException,
+                                       NewPolicyBean bean) throws OrganizationNotFoundException, PlanVersionNotFoundException,
             NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2804,7 +2823,7 @@ public class OrganizationResource implements IOrganizationResource {
         getPlanVersion(organizationId, planId, version);
 
         try {
-            storage.beginTx();
+
             PolicyBean policy = storage.getPolicy(PolicyType.Plan, organizationId, planId, version, policyId);
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
@@ -2817,13 +2836,13 @@ public class OrganizationResource implements IOrganizationResource {
             policy.setModifiedBy(this.securityContext.getCurrentUser());
             storage.updatePolicy(policy);
             storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Plan, securityContext));
-            storage.commitTx();
+
             log.debug(String.format("Updated plan policy %s", policy)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2851,20 +2870,20 @@ public class OrganizationResource implements IOrganizationResource {
         }
 
         try {
-            storage.beginTx();
+
             PolicyBean policy = this.storage.getPolicy(PolicyType.Plan, organizationId, planId, version, policyId);
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
             storage.deletePolicy(policy);
             storage.createAuditEntry(AuditUtils.policyRemoved(policy, PolicyType.Plan, securityContext));
-            storage.commitTx();
+
             log.debug(String.format("Deleted plan policy %s", policy)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2872,14 +2891,14 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List All Plan Policies",
             notes = "Use this endpoint to list all of the Policies configured for the Plan.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = PolicySummaryBean.class, message = "A List of Policies.")
+            @ApiResponse(code = 200, responseContainer = "List", response = PolicySummaryBean.class, message = "A List of Policies.")
     })
     @GET
     @Path("/{organizationId}/plans/{planId}/versions/{version}/policies")
     @Produces(MediaType.APPLICATION_JSON)
     public List<PolicySummaryBean> listPlanPolicies(@PathParam("organizationId") String organizationId,
                                                     @PathParam("planId") String planId,
-                                                    @PathParam("version")String version)
+                                                    @PathParam("version") String version)
             throws OrganizationNotFoundException, PlanVersionNotFoundException, NotAuthorizedException {
         // Try to get the plan first - will throw an exception if not found.
         getPlanVersion(organizationId, planId, version);
@@ -2902,7 +2921,7 @@ public class OrganizationResource implements IOrganizationResource {
     public void reorderPlanPolicies(@PathParam("organizationId") String organizationId,
                                     @PathParam("planId") String planId,
                                     @PathParam("version") String version,
-            PolicyChainBean policyChain) throws OrganizationNotFoundException,
+                                    PolicyChainBean policyChain) throws OrganizationNotFoundException,
             PlanVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2911,19 +2930,19 @@ public class OrganizationResource implements IOrganizationResource {
         PlanVersionBean pvb = getPlanVersion(organizationId, planId, version);
 
         try {
-            storage.beginTx();
+
             List<Long> newOrder = new ArrayList<>(policyChain.getPolicies().size());
             for (PolicySummaryBean psb : policyChain.getPolicies()) {
                 newOrder.add(psb.getId());
             }
             storage.reorderPolicies(PolicyType.Plan, organizationId, planId, version, newOrder);
             storage.createAuditEntry(AuditUtils.policiesReordered(pvb, PolicyType.Plan, securityContext));
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -2941,23 +2960,23 @@ public class OrganizationResource implements IOrganizationResource {
      * @throws NotAuthorizedException
      */
     protected PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion,
-            NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
+                                        NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
         if (bean.getDefinitionId() == null) {
             ExceptionFactory.policyDefNotFoundException("null"); //$NON-NLS-1$
         }
         PolicyDefinitionBean def = null;
         try {
-            storage.beginTx();
+
             def = storage.getPolicyDefinition(bean.getDefinitionId());
             if (def == null) {
                 throw ExceptionFactory.policyDefNotFoundException(bean.getDefinitionId());
             }
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
 
@@ -2984,20 +3003,20 @@ public class OrganizationResource implements IOrganizationResource {
             policy.setType(type);
             policy.setOrderIndex(newIdx);
 
-            storage.beginTx();
+
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
-            storage.commitTx();
+
 
             PolicyTemplateUtil.generatePolicyDescription(policy);
 
             log.debug(String.format("Created app policy: %s", policy)); //$NON-NLS-1$
             return policy;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -3037,14 +3056,14 @@ public class OrganizationResource implements IOrganizationResource {
             throw new SystemErrorException(e);
         }
         try {
-            storage.beginTx();
+
             storage.createAuditEntry(AuditUtils.membershipGranted(organizationId, auditData, securityContext));
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -3057,8 +3076,8 @@ public class OrganizationResource implements IOrganizationResource {
     @DELETE
     @Path("/{organizationId}/roles/{roleId}/{userId}")
     public void revoke(@PathParam("organizationId") String organizationId,
-                       @PathParam("roleId")  String roleId,
-                       @PathParam("userId")  String userId)
+                       @PathParam("roleId") String roleId,
+                       @PathParam("userId") String userId)
             throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException,
             NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
@@ -3080,15 +3099,15 @@ public class OrganizationResource implements IOrganizationResource {
 
         if (revoked) {
             try {
-                storage.beginTx();
+
                 storage.createAuditEntry(AuditUtils.membershipRevoked(organizationId, auditData, securityContext));
-                storage.commitTx();
+
                 log.debug(String.format("Revoked User %s Role %s Org %s", userId, roleId, organizationId)); //$NON-NLS-1$
             } catch (AbstractRestException e) {
-                storage.rollbackTx();
+
                 throw e;
             } catch (Exception e) {
-                storage.rollbackTx();
+
                 throw new SystemErrorException(e);
             }
         }
@@ -3101,7 +3120,7 @@ public class OrganizationResource implements IOrganizationResource {
     })
     @DELETE
     @Path("/{organizationId}/members/{userId}")
-    public void revokeAll(@PathParam("organizationId") String organizationId,@PathParam("userId")  String userId) throws OrganizationNotFoundException,
+    public void revokeAll(@PathParam("organizationId") String organizationId, @PathParam("userId") String userId) throws OrganizationNotFoundException,
             RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -3117,14 +3136,14 @@ public class OrganizationResource implements IOrganizationResource {
         auditData.setUserId(userId);
         auditData.addRole("*"); //$NON-NLS-1$
         try {
-            storage.beginTx();
+
             storage.createAuditEntry(AuditUtils.membershipRevoked(organizationId, auditData, securityContext));
-            storage.commitTx();
+
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -3132,7 +3151,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "List Organization Members",
             notes = "Lists all members of the organization.")
     @ApiResponses({
-            @ApiResponse(code = 200, responseContainer = "List",response = MemberBean.class, message = "List of members.")
+            @ApiResponse(code = 200, responseContainer = "List", response = MemberBean.class, message = "List of members.")
     })
     @GET
     @Path("/{organizationId}/members")
@@ -3175,6 +3194,7 @@ public class OrganizationResource implements IOrganizationResource {
     /**
      * Gets a policy by its id.  Also verifies that the policy really does belong to
      * the entity indicated.
+     *
      * @param type
      * @param organizationId
      * @param entityId
@@ -3184,14 +3204,14 @@ public class OrganizationResource implements IOrganizationResource {
      * @throws PolicyNotFoundException
      */
     protected PolicyBean doGetPolicy(PolicyType type, String organizationId, String entityId,
-            String entityVersion, long policyId) throws PolicyNotFoundException {
+                                     String entityVersion, long policyId) throws PolicyNotFoundException {
         try {
-            storage.beginTx();
+
             PolicyBean policy = storage.getPolicy(type, organizationId, entityId, entityVersion, policyId);
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
-            storage.commitTx();
+
             if (policy.getType() != type) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
@@ -3207,10 +3227,10 @@ public class OrganizationResource implements IOrganizationResource {
             PolicyTemplateUtil.generatePolicyDescription(policy);
             return policy;
         } catch (AbstractRestException e) {
-            storage.rollbackTx();
+
             throw e;
         } catch (Exception e) {
-            storage.rollbackTx();
+
             throw new SystemErrorException(e);
         }
     }
@@ -3262,7 +3282,7 @@ public class OrganizationResource implements IOrganizationResource {
     /**
      * @param storage the storage to set
      */
-    public void setStorage(IStorage storage) {
+    public void setStorage(JpaStorage storage) {
         this.storage = storage;
     }
 
@@ -3276,7 +3296,7 @@ public class OrganizationResource implements IOrganizationResource {
     /**
      * @param idmStorage the idmStorage to set
      */
-    public void setIdmStorage(IIdmStorage idmStorage) {
+    public void setIdmStorage(JpaIdmStorage idmStorage) {
         this.idmStorage = idmStorage;
     }
 
@@ -3332,7 +3352,7 @@ public class OrganizationResource implements IOrganizationResource {
     /**
      * @param query the query to set
      */
-    public void setQuery(IStorageQuery query) {
+    public void setQuery(JpaStorage query) {
         this.query = query;
     }
 
@@ -3394,6 +3414,7 @@ public class OrganizationResource implements IOrganizationResource {
 
     /**
      * Parse the to date query param.
+     *
      * @param fromDate
      */
     private DateTime parseFromDate(String fromDate) {
@@ -3405,6 +3426,7 @@ public class OrganizationResource implements IOrganizationResource {
 
     /**
      * Parse the from date query param.
+     *
      * @param toDate
      */
     private DateTime parseToDate(String toDate) {
@@ -3414,6 +3436,7 @@ public class OrganizationResource implements IOrganizationResource {
 
     /**
      * Parses a query param representing a date into an actual date object.
+     *
      * @param dateStr
      * @param defaultDate
      * @param floor
@@ -3442,6 +3465,7 @@ public class OrganizationResource implements IOrganizationResource {
 
     /**
      * Ensures that the given date range is valid.
+     *
      * @param from
      * @param to
      */
@@ -3454,6 +3478,7 @@ public class OrganizationResource implements IOrganizationResource {
     /**
      * Ensures that a time series can be created for the given date range and
      * interval, and that the
+     *
      * @param from
      * @param to
      * @param interval
@@ -3463,23 +3488,23 @@ public class OrganizationResource implements IOrganizationResource {
         long millis = to.getMillis() - from.getMillis();
         long divBy = ONE_DAY_MILLIS;
         switch (interval) {
-        case day:
-            divBy = ONE_DAY_MILLIS;
-            break;
-        case hour:
-            divBy = ONE_HOUR_MILLIS;
-            break;
-        case minute:
-            divBy = ONE_MINUTE_MILLIS;
-            break;
-        case month:
-            divBy = ONE_MONTH_MILLIS;
-            break;
-        case week:
-            divBy = ONE_WEEK_MILLIS;
-            break;
-        default:
-            break;
+            case day:
+                divBy = ONE_DAY_MILLIS;
+                break;
+            case hour:
+                divBy = ONE_HOUR_MILLIS;
+                break;
+            case minute:
+                divBy = ONE_MINUTE_MILLIS;
+                break;
+            case month:
+                divBy = ONE_MONTH_MILLIS;
+                break;
+            case week:
+                divBy = ONE_WEEK_MILLIS;
+                break;
+            default:
+                break;
         }
         long totalDataPoints = millis / divBy;
         if (totalDataPoints > 5000) {
