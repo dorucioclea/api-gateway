@@ -2,8 +2,7 @@ package com.t1t.digipolis.apim.es;
 
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
-import com.t1t.digipolis.apim.core.logging.ApimanLogger;
-import com.t1t.digipolis.apim.core.logging.IApimanLogger;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.searchbox.client.JestClient;
 import io.searchbox.core.Search;
 import io.searchbox.core.SearchResult;
@@ -15,6 +14,7 @@ import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
@@ -31,15 +31,18 @@ import java.util.Map;
  * implementation knows how to get metrics/analytics information out of an
  * elasticsearch store.
  */
-@ApplicationScoped @Alternative
+@ApplicationScoped
+@Alternative
 public class ESMetricsAccessor implements IMetricsAccessor {
 
     private static final String INDEX_NAME = "apiman_metrics"; //$NON-NLS-1$
 
-    @Inject @ApimanLogger(ESMetricsAccessor.class)
-    IApimanLogger log;
+    @Inject
+    @APIEngineContext
+    Logger log;
 
-    @Inject @Named("metrics")
+    @Inject
+    @Named("metrics")
     private JestClient esClient;
 
     /**
@@ -54,42 +57,42 @@ public class ESMetricsAccessor implements IMetricsAccessor {
     @SuppressWarnings("nls")
     @Override
     public UsageHistogramBean getUsage(String organizationId, String serviceId, String version,
-            HistogramIntervalType interval, DateTime from, DateTime to) {
+                                       HistogramIntervalType interval, DateTime from, DateTime to) {
         UsageHistogramBean rval = new UsageHistogramBean();
         Map<String, UsageDataPoint> index = generateHistogramSkeleton(rval, from, to, interval, UsageDataPoint.class);
 
         try {
             String query =
                     "{" +
-                    "  \"query\": {" +
-                    "    \"filtered\" : {" +
-                    "      \"query\" : {" +
-                    "        \"range\" : {" +
-                    "          \"requestStart\" : {" +
-                    "            \"gte\": \"${from}\"," +
-                    "            \"lte\": \"${to}\"" +
-                    "          }" +
-                    "        }" +
-                    "      }," +
-                    "      \"filter\": {" +
-                    "        \"and\" : [" +
-                    "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
-                    "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
-                    "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
-                    "        ]" +
-                    "      }" +
-                    "    }" +
-                    "  }," +
-                    "  \"size\": 0, " +
-                    "  \"aggs\" : {" +
-                    "      \"histogram\" : {" +
-                    "          \"date_histogram\" : {" +
-                    "              \"field\" : \"requestStart\"," +
-                    "              \"interval\" : \"${interval}\"" +
-                    "          }" +
-                    "      }" +
-                    "  }" +
-                    "}";
+                            "  \"query\": {" +
+                            "    \"filtered\" : {" +
+                            "      \"query\" : {" +
+                            "        \"range\" : {" +
+                            "          \"requestStart\" : {" +
+                            "            \"gte\": \"${from}\"," +
+                            "            \"lte\": \"${to}\"" +
+                            "          }" +
+                            "        }" +
+                            "      }," +
+                            "      \"filter\": {" +
+                            "        \"and\" : [" +
+                            "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
+                            "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
+                            "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
+                            "        ]" +
+                            "      }" +
+                            "    }" +
+                            "  }," +
+                            "  \"size\": 0, " +
+                            "  \"aggs\" : {" +
+                            "      \"histogram\" : {" +
+                            "          \"date_histogram\" : {" +
+                            "              \"field\" : \"requestStart\"," +
+                            "              \"interval\" : \"${interval}\"" +
+                            "          }" +
+                            "      }" +
+                            "  }" +
+                            "}";
             Map<String, String> params = new HashMap<>();
             params.put("from", formatDate(from));
             params.put("to", formatDate(to));
@@ -114,7 +117,7 @@ public class ESMetricsAccessor implements IMetricsAccessor {
                 }
             }
         } catch (IOException e) {
-            log.error(e);
+            log.error(e.getMessage());
         }
 
         return rval;
@@ -123,19 +126,20 @@ public class ESMetricsAccessor implements IMetricsAccessor {
     /**
      * Generate the histogram buckets based on the time frame requested and the interval.  This will
      * add an entry for each 'slot' or 'bucket' in the histogram, setting the count to 0.
+     *
      * @param rval
      * @param from
      * @param to
      * @param interval
      */
     public static <T extends HistogramDataPoint> Map<String, T> generateHistogramSkeleton(HistogramBean<T> rval, DateTime from, DateTime to,
-            HistogramIntervalType interval, Class<T> dataType) {
+                                                                                          HistogramIntervalType interval, Class<T> dataType) {
         Map<String, T> index = new HashMap<>();
 
         Calendar fromCal = from.toGregorianCalendar();
         Calendar toCal = to.toGregorianCalendar();
 
-        switch(interval) {
+        switch (interval) {
             case day:
                 fromCal.set(Calendar.HOUR_OF_DAY, 0);
                 fromCal.set(Calendar.MINUTE, 0);
@@ -211,40 +215,40 @@ public class ESMetricsAccessor implements IMetricsAccessor {
     @SuppressWarnings("nls")
     @Override
     public UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version,
-            DateTime from, DateTime to) {
+                                          DateTime from, DateTime to) {
         UsagePerAppBean rval = new UsagePerAppBean();
 
         try {
             String query =
                     "{" +
-                    "  \"query\": {" +
-                    "    \"filtered\" : {" +
-                    "      \"query\" : {" +
-                    "        \"range\" : {" +
-                    "          \"requestStart\" : {" +
-                    "            \"gte\": \"${from}\"," +
-                    "            \"lte\": \"${to}\"" +
-                    "          }" +
-                    "        }" +
-                    "      }," +
-                    "      \"filter\": {" +
-                    "        \"and\" : [" +
-                    "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
-                    "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
-                    "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
-                    "        ]" +
-                    "      }" +
-                    "    }" +
-                    "  }," +
-                    "  \"size\": 0, " +
-                    "  \"aggs\" : {" +
-                    "      \"usage_by_app\" : {" +
-                    "        \"terms\" : {" +
-                    "          \"field\" : \"applicationId\"" +
-                    "        }" +
-                    "      }" +
-                    "  }" +
-                    "}";
+                            "  \"query\": {" +
+                            "    \"filtered\" : {" +
+                            "      \"query\" : {" +
+                            "        \"range\" : {" +
+                            "          \"requestStart\" : {" +
+                            "            \"gte\": \"${from}\"," +
+                            "            \"lte\": \"${to}\"" +
+                            "          }" +
+                            "        }" +
+                            "      }," +
+                            "      \"filter\": {" +
+                            "        \"and\" : [" +
+                            "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
+                            "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
+                            "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
+                            "        ]" +
+                            "      }" +
+                            "    }" +
+                            "  }," +
+                            "  \"size\": 0, " +
+                            "  \"aggs\" : {" +
+                            "      \"usage_by_app\" : {" +
+                            "        \"terms\" : {" +
+                            "          \"field\" : \"applicationId\"" +
+                            "        }" +
+                            "      }" +
+                            "  }" +
+                            "}";
             Map<String, String> params = new HashMap<>();
             params.put("from", formatDate(from));
             params.put("to", formatDate(to));
@@ -270,7 +274,7 @@ public class ESMetricsAccessor implements IMetricsAccessor {
                 }
             }
         } catch (IOException e) {
-            log.error(e);
+            log.error(e.getMessage());
         }
 
         return rval;
@@ -282,40 +286,40 @@ public class ESMetricsAccessor implements IMetricsAccessor {
     @SuppressWarnings("nls")
     @Override
     public UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version,
-            DateTime from, DateTime to) {
+                                            DateTime from, DateTime to) {
         UsagePerPlanBean rval = new UsagePerPlanBean();
 
         try {
             String query =
                     "{" +
-                    "  \"query\": {" +
-                    "    \"filtered\" : {" +
-                    "      \"query\" : {" +
-                    "        \"range\" : {" +
-                    "          \"requestStart\" : {" +
-                    "            \"gte\": \"${from}\"," +
-                    "            \"lte\": \"${to}\"" +
-                    "          }" +
-                    "        }" +
-                    "      }," +
-                    "      \"filter\": {" +
-                    "        \"and\" : [" +
-                    "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
-                    "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
-                    "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
-                    "        ]" +
-                    "      }" +
-                    "    }" +
-                    "  }," +
-                    "  \"size\": 0, " +
-                    "  \"aggs\" : {" +
-                    "      \"usage_by_plan\" : {" +
-                    "        \"terms\" : {" +
-                    "          \"field\" : \"planId\"" +
-                    "        }" +
-                    "      }" +
-                    "  }" +
-                    "}";
+                            "  \"query\": {" +
+                            "    \"filtered\" : {" +
+                            "      \"query\" : {" +
+                            "        \"range\" : {" +
+                            "          \"requestStart\" : {" +
+                            "            \"gte\": \"${from}\"," +
+                            "            \"lte\": \"${to}\"" +
+                            "          }" +
+                            "        }" +
+                            "      }," +
+                            "      \"filter\": {" +
+                            "        \"and\" : [" +
+                            "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
+                            "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
+                            "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
+                            "        ]" +
+                            "      }" +
+                            "    }" +
+                            "  }," +
+                            "  \"size\": 0, " +
+                            "  \"aggs\" : {" +
+                            "      \"usage_by_plan\" : {" +
+                            "        \"terms\" : {" +
+                            "          \"field\" : \"planId\"" +
+                            "        }" +
+                            "      }" +
+                            "  }" +
+                            "}";
             Map<String, String> params = new HashMap<>();
             params.put("from", formatDate(from));
             params.put("to", formatDate(to));
@@ -336,7 +340,7 @@ public class ESMetricsAccessor implements IMetricsAccessor {
                 }
             }
         } catch (IOException e) {
-            log.error(e);
+            log.error(e.getMessage());
         }
 
         return rval;
@@ -348,50 +352,50 @@ public class ESMetricsAccessor implements IMetricsAccessor {
     @SuppressWarnings("nls")
     @Override
     public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId,
-            String version, HistogramIntervalType interval, DateTime from, DateTime to) {
+                                                       String version, HistogramIntervalType interval, DateTime from, DateTime to) {
         ResponseStatsHistogramBean rval = new ResponseStatsHistogramBean();
         Map<String, ResponseStatsDataPoint> index = generateHistogramSkeleton(rval, from, to, interval, ResponseStatsDataPoint.class);
 
         try {
             String query =
                     "{" +
-                    "  \"query\": {" +
-                    "    \"filtered\" : {" +
-                    "      \"query\" : {" +
-                    "        \"range\" : {" +
-                    "          \"requestStart\" : {" +
-                    "            \"gte\": \"${from}\"," +
-                    "            \"lte\": \"${to}\"" +
-                    "          }" +
-                    "        }" +
-                    "      }," +
-                    "      \"filter\": {" +
-                    "        \"and\" : [" +
-                    "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
-                    "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
-                    "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
-                    "        ]" +
-                    "      }" +
-                    "    }" +
-                    "  }," +
-                    "  \"size\": 0, " +
-                    "  \"aggs\" : {" +
-                    "      \"histogram\" : {" +
-                    "          \"date_histogram\" : {" +
-                    "              \"field\" : \"requestStart\"," +
-                    "              \"interval\" : \"${interval}\"" +
-                    "          }," +
-                    "          \"aggs\" : {" +
-                    "              \"total_failures\" : {" +
-                    "                  \"filter\" : { \"term\": { \"failure\": true } }" +
-                    "              }," +
-                    "              \"total_errors\" : {" +
-                    "                  \"filter\" : { \"term\": { \"error\": true } }" +
-                    "              }" +
-                    "          }" +
-                    "      }" +
-                    "  }" +
-                    "}";
+                            "  \"query\": {" +
+                            "    \"filtered\" : {" +
+                            "      \"query\" : {" +
+                            "        \"range\" : {" +
+                            "          \"requestStart\" : {" +
+                            "            \"gte\": \"${from}\"," +
+                            "            \"lte\": \"${to}\"" +
+                            "          }" +
+                            "        }" +
+                            "      }," +
+                            "      \"filter\": {" +
+                            "        \"and\" : [" +
+                            "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
+                            "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
+                            "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
+                            "        ]" +
+                            "      }" +
+                            "    }" +
+                            "  }," +
+                            "  \"size\": 0, " +
+                            "  \"aggs\" : {" +
+                            "      \"histogram\" : {" +
+                            "          \"date_histogram\" : {" +
+                            "              \"field\" : \"requestStart\"," +
+                            "              \"interval\" : \"${interval}\"" +
+                            "          }," +
+                            "          \"aggs\" : {" +
+                            "              \"total_failures\" : {" +
+                            "                  \"filter\" : { \"term\": { \"failure\": true } }" +
+                            "              }," +
+                            "              \"total_errors\" : {" +
+                            "                  \"filter\" : { \"term\": { \"error\": true } }" +
+                            "              }" +
+                            "          }" +
+                            "      }" +
+                            "  }" +
+                            "}";
             Map<String, String> params = new HashMap<>();
             params.put("from", formatDate(from));
             params.put("to", formatDate(to));
@@ -423,7 +427,7 @@ public class ESMetricsAccessor implements IMetricsAccessor {
                 }
             }
         } catch (IOException e) {
-            log.error(e);
+            log.error(e.getMessage());
         }
 
         return rval;
@@ -435,41 +439,41 @@ public class ESMetricsAccessor implements IMetricsAccessor {
     @Override
     @SuppressWarnings("nls")
     public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId,
-            String version, DateTime from, DateTime to) {
+                                                            String version, DateTime from, DateTime to) {
         ResponseStatsSummaryBean rval = new ResponseStatsSummaryBean();
 
         try {
             String query =
                     "{" +
-                    "  \"query\": {" +
-                    "    \"filtered\" : {" +
-                    "      \"query\" : {" +
-                    "        \"range\" : {" +
-                    "          \"requestStart\" : {" +
-                    "            \"gte\": \"${from}\"," +
-                    "            \"lte\": \"${to}\"" +
-                    "          }" +
-                    "        }" +
-                    "      }," +
-                    "      \"filter\": {" +
-                    "        \"and\" : [" +
-                    "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
-                    "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
-                    "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
-                    "        ]" +
-                    "      }" +
-                    "    }" +
-                    "  }," +
-                    "  \"size\": 0, " +
-                    "  \"aggs\" : {" +
-                    "    \"total_failures\" : {" +
-                    "      \"filter\" : { \"term\": { \"failure\": true } }" +
-                    "    }," +
-                    "    \"total_errors\" : {" +
-                    "      \"filter\" : { \"term\": { \"error\": true } }" +
-                    "    }" +
-                    "  }" +
-                    "}";
+                            "  \"query\": {" +
+                            "    \"filtered\" : {" +
+                            "      \"query\" : {" +
+                            "        \"range\" : {" +
+                            "          \"requestStart\" : {" +
+                            "            \"gte\": \"${from}\"," +
+                            "            \"lte\": \"${to}\"" +
+                            "          }" +
+                            "        }" +
+                            "      }," +
+                            "      \"filter\": {" +
+                            "        \"and\" : [" +
+                            "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
+                            "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
+                            "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
+                            "        ]" +
+                            "      }" +
+                            "    }" +
+                            "  }," +
+                            "  \"size\": 0, " +
+                            "  \"aggs\" : {" +
+                            "    \"total_failures\" : {" +
+                            "      \"filter\" : { \"term\": { \"failure\": true } }" +
+                            "    }," +
+                            "    \"total_errors\" : {" +
+                            "      \"filter\" : { \"term\": { \"error\": true } }" +
+                            "    }" +
+                            "  }" +
+                            "}";
             Map<String, String> params = new HashMap<>();
             params.put("from", formatDate(from));
             params.put("to", formatDate(to));
@@ -486,7 +490,7 @@ public class ESMetricsAccessor implements IMetricsAccessor {
             rval.setFailures(response.getAggregations().getFilterAggregation("total_failures").getCount());
             rval.setErrors(response.getAggregations().getFilterAggregation("total_errors").getCount());
         } catch (IOException e) {
-            log.error(e);
+            log.error(e.getMessage());
         }
 
         return rval;
@@ -498,48 +502,48 @@ public class ESMetricsAccessor implements IMetricsAccessor {
     @Override
     @SuppressWarnings("nls")
     public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId,
-            String version, DateTime from, DateTime to) {
+                                                          String version, DateTime from, DateTime to) {
         ResponseStatsPerAppBean rval = new ResponseStatsPerAppBean();
 
         try {
             String query =
                     "{" +
-                    "  \"query\": {" +
-                    "    \"filtered\" : {" +
-                    "      \"query\" : {" +
-                    "        \"range\" : {" +
-                    "          \"requestStart\" : {" +
-                    "            \"gte\": \"${from}\"," +
-                    "            \"lte\": \"${to}\"" +
-                    "          }" +
-                    "        }" +
-                    "      }," +
-                    "      \"filter\": {" +
-                    "        \"and\" : [" +
-                    "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
-                    "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
-                    "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
-                    "        ]" +
-                    "      }" +
-                    "    }" +
-                    "  }," +
-                    "  \"size\": 0, " +
-                    "  \"aggs\" : {" +
-                    "      \"by_app\" : {" +
-                    "        \"terms\" : {" +
-                    "          \"field\" : \"applicationId\"" +
-                    "        }," +
-                    "        \"aggs\" : {" +
-                    "          \"total_failures\" : {" +
-                    "            \"filter\" : { \"term\": { \"failure\": true } }" +
-                    "          }," +
-                    "          \"total_errors\" : {" +
-                    "            \"filter\" : { \"term\": { \"error\": true } }" +
-                    "          }" +
-                    "        }" +
-                    "      }" +
-                    "  }" +
-                    "}";
+                            "  \"query\": {" +
+                            "    \"filtered\" : {" +
+                            "      \"query\" : {" +
+                            "        \"range\" : {" +
+                            "          \"requestStart\" : {" +
+                            "            \"gte\": \"${from}\"," +
+                            "            \"lte\": \"${to}\"" +
+                            "          }" +
+                            "        }" +
+                            "      }," +
+                            "      \"filter\": {" +
+                            "        \"and\" : [" +
+                            "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
+                            "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
+                            "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
+                            "        ]" +
+                            "      }" +
+                            "    }" +
+                            "  }," +
+                            "  \"size\": 0, " +
+                            "  \"aggs\" : {" +
+                            "      \"by_app\" : {" +
+                            "        \"terms\" : {" +
+                            "          \"field\" : \"applicationId\"" +
+                            "        }," +
+                            "        \"aggs\" : {" +
+                            "          \"total_failures\" : {" +
+                            "            \"filter\" : { \"term\": { \"failure\": true } }" +
+                            "          }," +
+                            "          \"total_errors\" : {" +
+                            "            \"filter\" : { \"term\": { \"error\": true } }" +
+                            "          }" +
+                            "        }" +
+                            "      }" +
+                            "  }" +
+                            "}";
             Map<String, String> params = new HashMap<>();
             params.put("from", formatDate(from));
             params.put("to", formatDate(to));
@@ -568,7 +572,7 @@ public class ESMetricsAccessor implements IMetricsAccessor {
                 }
             }
         } catch (IOException e) {
-            log.error(e);
+            log.error(e.getMessage());
         }
 
         return rval;
@@ -580,48 +584,48 @@ public class ESMetricsAccessor implements IMetricsAccessor {
     @Override
     @SuppressWarnings("nls")
     public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId,
-            String version, DateTime from, DateTime to) {
+                                                            String version, DateTime from, DateTime to) {
         ResponseStatsPerPlanBean rval = new ResponseStatsPerPlanBean();
 
         try {
             String query =
                     "{" +
-                    "  \"query\": {" +
-                    "    \"filtered\" : {" +
-                    "      \"query\" : {" +
-                    "        \"range\" : {" +
-                    "          \"requestStart\" : {" +
-                    "            \"gte\": \"${from}\"," +
-                    "            \"lte\": \"${to}\"" +
-                    "          }" +
-                    "        }" +
-                    "      }," +
-                    "      \"filter\": {" +
-                    "        \"and\" : [" +
-                    "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
-                    "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
-                    "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
-                    "        ]" +
-                    "      }" +
-                    "    }" +
-                    "  }," +
-                    "  \"size\": 0, " +
-                    "  \"aggs\" : {" +
-                    "      \"by_plan\" : {" +
-                    "        \"terms\" : {" +
-                    "          \"field\" : \"planId\"" +
-                    "        }," +
-                    "        \"aggs\" : {" +
-                    "          \"total_failures\" : {" +
-                    "            \"filter\" : { \"term\": { \"failure\": true } }" +
-                    "          }," +
-                    "          \"total_errors\" : {" +
-                    "            \"filter\" : { \"term\": { \"error\": true } }" +
-                    "          }" +
-                    "        }" +
-                    "      }" +
-                    "  }" +
-                    "}";
+                            "  \"query\": {" +
+                            "    \"filtered\" : {" +
+                            "      \"query\" : {" +
+                            "        \"range\" : {" +
+                            "          \"requestStart\" : {" +
+                            "            \"gte\": \"${from}\"," +
+                            "            \"lte\": \"${to}\"" +
+                            "          }" +
+                            "        }" +
+                            "      }," +
+                            "      \"filter\": {" +
+                            "        \"and\" : [" +
+                            "          { \"term\" : { \"serviceOrgId\" : \"${serviceOrgId}\" } }," +
+                            "          { \"term\" : { \"serviceId\" : \"${serviceId}\" } }," +
+                            "          { \"term\" : { \"serviceVersion\" : \"${serviceVersion}\" } }" +
+                            "        ]" +
+                            "      }" +
+                            "    }" +
+                            "  }," +
+                            "  \"size\": 0, " +
+                            "  \"aggs\" : {" +
+                            "      \"by_plan\" : {" +
+                            "        \"terms\" : {" +
+                            "          \"field\" : \"planId\"" +
+                            "        }," +
+                            "        \"aggs\" : {" +
+                            "          \"total_failures\" : {" +
+                            "            \"filter\" : { \"term\": { \"failure\": true } }" +
+                            "          }," +
+                            "          \"total_errors\" : {" +
+                            "            \"filter\" : { \"term\": { \"error\": true } }" +
+                            "          }" +
+                            "        }" +
+                            "      }" +
+                            "  }" +
+                            "}";
             Map<String, String> params = new HashMap<>();
             params.put("from", formatDate(from));
             params.put("to", formatDate(to));
@@ -650,7 +654,7 @@ public class ESMetricsAccessor implements IMetricsAccessor {
                 }
             }
         } catch (IOException e) {
-            log.error(e);
+            log.error(e.getMessage());
         }
 
         return rval;
@@ -662,40 +666,40 @@ public class ESMetricsAccessor implements IMetricsAccessor {
     @Override
     @SuppressWarnings("nls")
     public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId,
-            String version, DateTime from, DateTime to) {
+                                                        String version, DateTime from, DateTime to) {
         AppUsagePerServiceBean rval = new AppUsagePerServiceBean();
 
         try {
             String query =
                     "{" +
-                    "  \"query\": {\n" +
-                    "    \"filtered\" : {\n" +
-                    "      \"query\" : {\n" +
-                    "        \"range\" : {\n" +
-                    "          \"requestStart\" : {\n" +
-                    "            \"gte\": \"${from}\",\n" +
-                    "            \"lte\": \"${to}\"\n" +
-                    "          }\n" +
-                    "        }\n" +
-                    "      },\n" +
-                    "      \"filter\": {\n" +
-                    "        \"and\" : [\n" +
-                    "          { \"term\" : { \"applicationOrgId\" : \"${applicationOrgId}\" } },\n" +
-                    "          { \"term\" : { \"applicationId\" : \"${applicationId}\" } },\n" +
-                    "          { \"term\" : { \"applicationVersion\" : \"${applicationVersion}\" } }\n" +
-                    "        ]\n" +
-                    "      }\n" +
-                    "    }\n" +
-                    "  },\n" +
-                    "  \"size\": 0, \n" +
-                    "  \"aggs\" : {\n" +
-                    "      \"usage_by_service\" : {\n" +
-                    "        \"terms\" : {\n" +
-                    "          \"field\" : \"serviceId\"\n" +
-                    "        }\n" +
-                    "      }\n" +
-                    "  }\n" +
-                    "}";
+                            "  \"query\": {\n" +
+                            "    \"filtered\" : {\n" +
+                            "      \"query\" : {\n" +
+                            "        \"range\" : {\n" +
+                            "          \"requestStart\" : {\n" +
+                            "            \"gte\": \"${from}\",\n" +
+                            "            \"lte\": \"${to}\"\n" +
+                            "          }\n" +
+                            "        }\n" +
+                            "      },\n" +
+                            "      \"filter\": {\n" +
+                            "        \"and\" : [\n" +
+                            "          { \"term\" : { \"applicationOrgId\" : \"${applicationOrgId}\" } },\n" +
+                            "          { \"term\" : { \"applicationId\" : \"${applicationId}\" } },\n" +
+                            "          { \"term\" : { \"applicationVersion\" : \"${applicationVersion}\" } }\n" +
+                            "        ]\n" +
+                            "      }\n" +
+                            "    }\n" +
+                            "  },\n" +
+                            "  \"size\": 0, \n" +
+                            "  \"aggs\" : {\n" +
+                            "      \"usage_by_service\" : {\n" +
+                            "        \"terms\" : {\n" +
+                            "          \"field\" : \"serviceId\"\n" +
+                            "        }\n" +
+                            "      }\n" +
+                            "  }\n" +
+                            "}";
             Map<String, String> params = new HashMap<>();
             params.put("from", formatDate(from));
             params.put("to", formatDate(to));
@@ -716,7 +720,7 @@ public class ESMetricsAccessor implements IMetricsAccessor {
                 }
             }
         } catch (IOException e) {
-            log.error(e);
+            log.error(e.getMessage());
         }
 
         return rval;

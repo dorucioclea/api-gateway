@@ -1,12 +1,7 @@
 package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
-import com.t1t.digipolis.apim.rest.resources.exceptions.ActionException;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
+import com.t1t.digipolis.apim.exceptions.ActionException;
 
 /**
  * The Action API.  This API allows callers to perform actions on various 

@@ -1,14 +1,10 @@
 package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.idm.UserPermissionsBean;
-import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
+import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 
 /**
  * The Permissions API.

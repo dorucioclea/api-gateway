@@ -5,19 +5,20 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
 import com.t1t.digipolis.apim.rest.resources.ISearchResource;
-import com.t1t.digipolis.apim.rest.resources.exceptions.InvalidSearchCriteriaException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.OrganizationNotFoundException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
+import com.t1t.digipolis.apim.exceptions.OrganizationNotFoundException;
+import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -36,7 +37,8 @@ public class SearchResource implements ISearchResource {
     IStorage storage;
     @Inject
     IStorageQuery query;
-    
+    @Inject @APIEngineContext
+    Logger log;
     /**
      * Constructor.
      */
@@ -97,7 +99,6 @@ public class SearchResource implements ISearchResource {
         try {
             return query.findServices(criteria);
         } catch (StorageException e) {
-            storage.rollbackTx();
             throw new SystemErrorException(e);
         }
     }

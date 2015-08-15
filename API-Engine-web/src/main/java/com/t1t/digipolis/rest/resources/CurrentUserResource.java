@@ -8,15 +8,15 @@ import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.core.logging.ApimanLogger;
-import com.t1t.digipolis.apim.core.logging.IApimanLogger;
+import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.rest.resources.ICurrentUserResource;
-import com.t1t.digipolis.apim.rest.resources.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -42,9 +42,8 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Inject
     private ISecurityContext securityContext;
     @Inject
-    @ApimanLogger(CurrentUserResource.class)
-    private IApimanLogger log;
-
+    @APIEngineContext
+    private Logger log;
 
     /**
      * Constructor.

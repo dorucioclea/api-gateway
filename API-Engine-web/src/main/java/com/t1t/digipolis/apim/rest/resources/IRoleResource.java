@@ -5,12 +5,11 @@ import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateRoleBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
-import com.t1t.digipolis.apim.rest.resources.exceptions.InvalidSearchCriteriaException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.RoleAlreadyExistsException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.RoleNotFoundException;
+import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
+import com.t1t.digipolis.apim.exceptions.RoleAlreadyExistsException;
+import com.t1t.digipolis.apim.exceptions.RoleNotFoundException;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 /**

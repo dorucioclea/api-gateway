@@ -3,8 +3,8 @@ package com.t1t.digipolis.apim.rest.impl.util;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
-import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
-import com.t1t.digipolis.apim.rest.resources.exceptions.InvalidSearchCriteriaException;
+import com.t1t.digipolis.apim.exceptions.i18n.Messages;
+import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -10,7 +10,7 @@
         </layout>
     </appender>
 
-    <logger name="com.t1t.visireg">
+    <logger name="com.t1t.digipolis">
         <level value="DEBUG"/>
         <appender-ref ref="console" />
     </logger>

@@ -6,13 +6,14 @@ import org.joda.time.DateTime;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
+import javax.enterprise.inject.Default;
 
 /**
  * A no-op implementaiton of {@link com.t1t.digipolis.apim.core.IMetricsAccessor}.  Useful for situations where
  * no metrics are available.
  *
  */
-@ApplicationScoped @Alternative
+@ApplicationScoped @Default
 public class NoOpMetricsAccessor implements IMetricsAccessor {
 
     /**

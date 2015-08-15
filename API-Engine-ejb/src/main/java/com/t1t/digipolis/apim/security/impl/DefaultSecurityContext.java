@@ -2,12 +2,13 @@ package com.t1t.digipolis.apim.security.impl;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
+import javax.enterprise.inject.Default;
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * The basic/default implementation of a security context.
  */
-@ApplicationScoped @Alternative
+@ApplicationScoped @Default
 public class DefaultSecurityContext extends AbstractSecurityContext {
 
     public static final ThreadLocal<HttpServletRequest> servletRequest = new ThreadLocal<>();
@@ -31,7 +32,8 @@ public class DefaultSecurityContext extends AbstractSecurityContext {
      */
     @Override
     public String getCurrentUser() {
-        return servletRequest.get().getRemoteUser();
+        //return servletRequest.get().getRemoteUser();
+        return "1";//fictive user id
     }
 
     /**
@@ -39,7 +41,7 @@ public class DefaultSecurityContext extends AbstractSecurityContext {
      */
     @Override
     public String getEmail() {
-        return null;
+        return "admin@example.org";
     }
 
     /**
@@ -47,7 +49,7 @@ public class DefaultSecurityContext extends AbstractSecurityContext {
      */
     @Override
     public String getFullName() {
-        return null;
+        return "admin";
     }
 
     /**
@@ -56,7 +58,8 @@ public class DefaultSecurityContext extends AbstractSecurityContext {
     @Override
     public boolean isAdmin() {
         // TODO warning - hard coded role value here
-        return servletRequest.get().isUserInRole("apiadmin"); //$NON-NLS-1$
+        //return servletRequest.get().isUserInRole("apiadmin"); //$NON-NLS-1$
+        return true;
     }
 
     /**

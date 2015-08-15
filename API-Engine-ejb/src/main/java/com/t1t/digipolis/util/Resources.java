@@ -41,7 +41,7 @@ public class Resources {
     @Inject
     private RestServiceBuilder serviceBuilder;
 
-    @Produces
+    @Produces @APIEngineContext
     @PersistenceContext
     private EntityManager em;
 
