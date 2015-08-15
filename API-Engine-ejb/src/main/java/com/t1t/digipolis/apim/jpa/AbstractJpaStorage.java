@@ -3,11 +3,9 @@ package com.t1t.digipolis.apim.jpa;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.*;
-import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.persistence.*;
@@ -21,7 +19,7 @@ import java.util.List;
  */
 public abstract class AbstractJpaStorage {
 
-    private static Logger logger = LoggerFactory.getLogger(AbstractJpaStorage.class);
+    @Inject @APIEngineContext private Logger log;
 
     @Inject @APIEngineContext
     private EntityManager em;
@@ -44,31 +42,22 @@ public abstract class AbstractJpaStorage {
      * @param bean the bean to create
      * @throws StorageException if a storage problem occurs while storing a bean
      */
-    public <T> void create(T bean) throws StorageException {
-        if (bean == null) {
-            return;
-        }
-        EntityManager entityManager = getActiveEntityManager();
-        try {
-            entityManager.persist(bean);
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        }
+    public <T> T create(T bean) throws StorageException {
+        log.debug("create:" + bean.toString());
+        em.persist(bean);
+        em.flush();
+        return bean;
     }
 
     /**
      * @param bean the bean to update
      * @throws StorageException if a storage problem occurs while storing a bean
      */
-    public <T> void update(T bean) throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        try {
-            entityManager.merge(bean);
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        }
+    public <T> T update(T bean) throws StorageException {
+        log.debug("update:" + bean.toString());
+        T result = em.merge(bean);
+        em.flush();
+        return result;
     }
 
     /**
@@ -78,13 +67,8 @@ public abstract class AbstractJpaStorage {
      * @throws StorageException if a storage problem occurs while storing a bean
      */
     public <T> void delete(T bean) throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        try {
-            entityManager.remove(bean);
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        }
+        log.debug("delete:" + bean.toString());
+        em.remove(em.merge(bean));
     }
 
     /**
@@ -101,7 +85,7 @@ public abstract class AbstractJpaStorage {
         try {
             rval = entityManager.find(type, id);
         } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
+            log.error(t.getMessage(), t);
             throw new StorageException(t);
         }
         return rval;
@@ -121,7 +105,7 @@ public abstract class AbstractJpaStorage {
         try {
             rval = entityManager.find(type, id);
         } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
+            log.error(t.getMessage(), t);
             throw new StorageException(t);
         }
         return rval;
@@ -144,7 +128,7 @@ public abstract class AbstractJpaStorage {
             Object key = new OrganizationBasedCompositeId(orgBean, id);
             rval = entityManager.find(type, key);
         } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
+            log.error(t.getMessage(), t);
             throw new StorageException(t);
         }
         return rval;
@@ -199,7 +183,7 @@ public abstract class AbstractJpaStorage {
             results.setBeans(resultList);
             return results;
         } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
+            log.error(t.getMessage(), t);
             throw new StorageException(t);
         }
     }

@@ -1,4 +1,5 @@
 package com.t1t.digipolis.rest;
+import com.t1t.digipolis.apim.rest.impl.mappers.RestExceptionMapper;
 import com.t1t.digipolis.rest.resources.*;
 
 import javax.ws.rs.ApplicationPath;
@@ -56,6 +57,7 @@ public class JaxRsActivator extends Application {
         resources.add(SearchResource.class);
         resources.add(UserResource.class);
         resources.add(OrganizationResource.class);
+        resources.add(RestExceptionMapper.class);
         //resources.add(CORSRequestFilter.class);//CORS Request filter
         //resources.add(CORSResponseFilter.class);//CORS Response filter
     }

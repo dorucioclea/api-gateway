@@ -3,11 +3,10 @@ package com.t1t.digipolis.apim.rest.resources;
 import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.policies.UpdatePolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.summary.PolicyDefinitionSummaryBean;
-import com.t1t.digipolis.apim.rest.resources.exceptions.PolicyDefinitionAlreadyExistsException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.PolicyDefinitionNotFoundException;
+import com.t1t.digipolis.apim.exceptions.PolicyDefinitionAlreadyExistsException;
+import com.t1t.digipolis.apim.exceptions.PolicyDefinitionNotFoundException;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 /**

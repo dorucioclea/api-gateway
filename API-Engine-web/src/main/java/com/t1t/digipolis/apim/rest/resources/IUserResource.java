@@ -8,11 +8,10 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.rest.resources.exceptions.InvalidSearchCriteriaException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
+import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 /**

@@ -1,7 +1,8 @@
 package com.t1t.digipolis.apim.rest.impl.util;
 
-import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
-import com.t1t.digipolis.apim.rest.resources.exceptions.InvalidNameException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.i18n.Messages;
+import com.t1t.digipolis.apim.exceptions.InvalidNameException;
 import org.apache.commons.lang.StringUtils;
 
 /**

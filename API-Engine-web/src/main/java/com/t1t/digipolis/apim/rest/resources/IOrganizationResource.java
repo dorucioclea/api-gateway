@@ -18,11 +18,9 @@ import com.t1t.digipolis.apim.beans.policies.UpdatePolicyBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
-import com.t1t.digipolis.apim.rest.resources.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.*;
 
-import javax.ws.rs.*;
 import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 

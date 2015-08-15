@@ -5,11 +5,10 @@ import com.t1t.digipolis.apim.beans.gateways.NewGatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.UpdateGatewayBean;
 import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.GatewayTestResultBean;
-import com.t1t.digipolis.apim.rest.resources.exceptions.GatewayAlreadyExistsException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.GatewayNotFoundException;
+import com.t1t.digipolis.apim.exceptions.GatewayAlreadyExistsException;
+import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 /**

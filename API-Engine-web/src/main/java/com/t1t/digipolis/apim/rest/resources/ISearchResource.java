@@ -5,14 +5,8 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.rest.resources.exceptions.InvalidSearchCriteriaException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.OrganizationNotFoundException;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
+import com.t1t.digipolis.apim.exceptions.OrganizationNotFoundException;
 
 /**
  * The Search API.

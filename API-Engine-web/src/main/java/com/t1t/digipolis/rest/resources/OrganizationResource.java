@@ -1,5 +1,6 @@
 package com.t1t.digipolis.rest.resources;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
@@ -7,6 +8,7 @@ import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
+import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -26,6 +28,9 @@ import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.core.util.PolicyTemplateUtil;
+import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
+import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
@@ -33,14 +38,12 @@ import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.jpa.JpaStorage;
 import com.t1t.digipolis.apim.jpa.roles.JpaIdmStorage;
 import com.t1t.digipolis.apim.rest.impl.audit.AuditUtils;
-import com.t1t.digipolis.apim.rest.impl.i18n.Messages;
-import com.t1t.digipolis.apim.rest.impl.util.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.i18n.Messages;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.rest.impl.util.FieldValidator;
 import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
-import com.t1t.digipolis.apim.rest.resources.exceptions.*;
-import com.t1t.digipolis.apim.rest.resources.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
@@ -97,6 +100,8 @@ public class OrganizationResource implements IOrganizationResource {
     IStorageQuery query;
     @Inject
     IMetricsAccessor metrics;
+    @Inject
+    private OrganizationFacade orgFacade;
 
     @Inject
     IApplicationValidator applicationValidator;
@@ -135,66 +140,16 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Create Organization",
             notes = "Use this endpoint to create a new Organization.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = OrganizationBean.class, message = "Full details about the Organization that was created.")
+            @ApiResponse(code = 200, response = OrganizationBean.class, message = "Full details about the Organization that was created."),
+            @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
     })
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException {
+        Preconditions.checkNotNull(bean);
         FieldValidator.validateName(bean.getName());
-
-/*        List<RoleBean> autoGrantedRoles = null;
-        SearchCriteriaBean criteria = new SearchCriteriaBean();
-        criteria.setPage(1);
-        criteria.setPageSize(100);
-        criteria.addFilter("autoGrant", "true", SearchCriteriaFilterOperator.bool_eq); //$NON-NLS-1$ //$NON-NLS-2$
-        try {
-            autoGrantedRoles = idmStorage.findRoles(criteria).getBeans();
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-
-        if ("true".equals(System.getProperty("apiman.manager.require-auto-granted-org", "true"))) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-            if (autoGrantedRoles.isEmpty()) {
-                throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable")); //$NON-NLS-1$
-            }
-        }*/
-
-        OrganizationBean orgBean = new OrganizationBean();
-        orgBean.setName(bean.getName());
-        orgBean.setDescription(bean.getDescription());
-        orgBean.setId(BeanUtils.idFromName(bean.getName()));
-        orgBean.setCreatedOn(new Date());
-        //orgBean.setCreatedBy(securityContext.getCurrentUser());
-        orgBean.setModifiedOn(new Date());
-        //orgBean.setModifiedBy(securityContext.getCurrentUser());
-        try {
-            // Store/persist the new organization
-
-            if (storage.getOrganization(orgBean.getId()) != null) {
-                throw ExceptionFactory.organizationAlreadyExistsException(bean.getName());
-            }
-            storage.createOrganization(orgBean);
-            storage.createAuditEntry(AuditUtils.organizationCreated(orgBean, securityContext));
-
-
-            // Auto-grant memberships in roles to the creator of the organization
-/*            for (RoleBean roleBean : autoGrantedRoles) {
-                String currentUser = securityContext.getCurrentUser();
-                String orgId = orgBean.getId();
-                RoleMembershipBean membership = RoleMembershipBean.create(currentUser, roleBean.getId(), orgId);
-                membership.setCreatedOn(new Date());
-                idmStorage.createMembership(membership);
-            }*/
-
-            log.debug(String.format("Created organization %s: %s", orgBean.getName(), orgBean)); //$NON-NLS-1$
-            return orgBean;
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-            throw new SystemErrorException(e);
-        }
+        return orgFacade.create(bean);
     }
 
     @ApiOperation(value = "Get Organization By ID",
@@ -208,19 +163,15 @@ public class OrganizationResource implements IOrganizationResource {
     @Override
     public OrganizationBean get(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
         try {
-
             OrganizationBean organizationBean = storage.getOrganization(organizationId);
             if (organizationBean == null) {
                 throw ExceptionFactory.organizationNotFoundException(organizationId);
             }
-
             log.debug(String.format("Got organization %s: %s", organizationBean.getName(), organizationBean)); //$NON-NLS-1$
             return organizationBean;
         } catch (AbstractRestException e) {
-
             throw e;
         } catch (Exception e) {
-
             throw new SystemErrorException(e);
         }
     }

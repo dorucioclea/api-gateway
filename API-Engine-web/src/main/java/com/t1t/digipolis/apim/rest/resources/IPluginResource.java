@@ -4,13 +4,12 @@ import com.t1t.digipolis.apim.beans.plugins.NewPluginBean;
 import com.t1t.digipolis.apim.beans.plugins.PluginBean;
 import com.t1t.digipolis.apim.beans.summary.PluginSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicyDefinitionSummaryBean;
-import com.t1t.digipolis.apim.rest.resources.exceptions.PluginAlreadyExistsException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.PluginNotFoundException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.PluginResourceNotFoundException;
-import com.t1t.digipolis.apim.rest.resources.exceptions.PolicyDefinitionNotFoundException;
+import com.t1t.digipolis.apim.exceptions.PluginAlreadyExistsException;
+import com.t1t.digipolis.apim.exceptions.PluginNotFoundException;
+import com.t1t.digipolis.apim.exceptions.PluginResourceNotFoundException;
+import com.t1t.digipolis.apim.exceptions.PolicyDefinitionNotFoundException;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 /**

@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.rest.impl.mappers;
 
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
-import com.t1t.digipolis.apim.rest.resources.exceptions.AbstractRestException;
+import com.t1t.digipolis.apim.exceptions.AbstractRestException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.apache.commons.io.output.StringBuilderWriter;
 
@@ -42,10 +42,10 @@ public class RestExceptionMapper implements ExceptionMapper<AbstractRestExceptio
         error.setMessage(data.getMessage());
         error.setMoreInfoUrl(data.getMoreInfoUrl());
         error.setStacktrace(getStackTrace(data));
-        ResponseBuilder builder = Response.status(data.getHttpCode()).header("X-Apiman-Error", "true"); //$NON-NLS-1$ //$NON-NLS-2$
+        ResponseBuilder builder = Response.status(data.getHttpCode()).header("X-ApiEngine-Error", "true"); //$NON-NLS-1$ //$NON-NLS-2$
         // If CORS is being used, make sure to add X-Apiman-Error to the exposed headers
         if (origin != null) {
-            builder = builder.header("Access-Control-Expose-Headers", "X-Apiman-Error") //$NON-NLS-1$ //$NON-NLS-2$
+            builder = builder.header("Access-Control-Expose-Headers", "X-ApiEngine-Error") //$NON-NLS-1$ //$NON-NLS-2$
                     .header("Access-Control-Allow-Origin", origin) //$NON-NLS-1$
                     .header("Access-Control-Allow-Credentials", "true"); //$NON-NLS-1$ //$NON-NLS-2$
         }

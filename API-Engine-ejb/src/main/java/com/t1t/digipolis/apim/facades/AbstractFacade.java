@@ -12,16 +12,11 @@ import java.util.List;
  * Created by Michallis
  */
 public abstract class AbstractFacade<T> {
-
-
-    private Logger LOG = LoggerFactory.getLogger(this.getClass());
-
+    private Logger log = LoggerFactory.getLogger(this.getClass());
     private Class<T> entityClass;
-
     public AbstractFacade(Class<T> entityClass) {
         this.entityClass = entityClass;
     }
-
     protected abstract EntityManager getEntityManager();
 
     /**
@@ -162,9 +157,9 @@ public abstract class AbstractFacade<T> {
      */
     private void log(String logMessage, T entity) {
         if (entity != null) {
-            LOG.debug("@ {} : logMessage", entity.getClass());
+            log.debug("@ {} : logMessage", entity.getClass());
         } else {
-            LOG.debug(logMessage);
+            log.debug(logMessage);
         }
     }
 
