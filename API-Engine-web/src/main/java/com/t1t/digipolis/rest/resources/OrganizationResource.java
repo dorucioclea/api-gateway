@@ -403,7 +403,7 @@ public class OrganizationResource implements IOrganizationResource {
         }
     }
 
-    @ApiOperation(value = "Get System Status",
+    @ApiOperation(value = "Create a Service Contract",
             notes = "Use this endpoint to create a Contract between the Application and a Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
             @ApiResponse(code = 200, response = ContractBean.class, message = "Full details about the newly created Contract.")
