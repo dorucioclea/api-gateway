@@ -498,7 +498,7 @@ public class OrganizationResource implements IOrganizationResource {
             NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        return createAppPolicy(organizationId, applicationId, version, bean);
+        return orgFacade.createAppPolicy(organizationId,applicationId,version,bean);
     }
 
     @ApiOperation(value = "Get Application Policy",
@@ -533,34 +533,11 @@ public class OrganizationResource implements IOrganizationResource {
                                 @PathParam("version") String version,
                                 @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
             ApplicationVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-
-        // Make sure the app version exists.
-        getAppVersion(organizationId, applicationId, version);
-
-        try {
-
-            PolicyBean policy = this.storage.getPolicy(PolicyType.Application, organizationId, applicationId, version, policyId);
-            if (policy == null) {
-                throw ExceptionFactory.policyNotFoundException(policyId);
-            }
-            if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(bean.getConfiguration());
-                // TODO figure out what changed an include that in the audit entry
-            }
-            policy.setModifiedOn(new Date());
-            policy.setModifiedBy(this.securityContext.getCurrentUser());
-            storage.updatePolicy(policy);
-            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Application, securityContext));
-
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-
-            throw new SystemErrorException(e);
-        }
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        orgFacade.updateAppPolicy(organizationId,applicationId,version,policyId,bean);
     }
 
     @ApiOperation(value = "Remove Application Policy",
@@ -574,31 +551,11 @@ public class OrganizationResource implements IOrganizationResource {
                                 @PathParam("applicationId") String applicationId, @PathParam("version") String version, @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-
-        // Make sure the app version exists;
-        ApplicationVersionBean app = getAppVersion(organizationId, applicationId, version);
-        if (app.getStatus() == ApplicationStatus.Registered || app.getStatus() == ApplicationStatus.Retired) {
-            throw ExceptionFactory.invalidApplicationStatusException();
-        }
-
-        try {
-
-            PolicyBean policy = this.storage.getPolicy(PolicyType.Application, organizationId, applicationId, version, policyId);
-            if (policy == null) {
-                throw ExceptionFactory.policyNotFoundException(policyId);
-            }
-            storage.deletePolicy(policy);
-            storage.createAuditEntry(AuditUtils.policyRemoved(policy, PolicyType.Application, securityContext));
-
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-
-            throw new SystemErrorException(e);
-        }
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        orgFacade.deleteAppPolicy(organizationId,applicationId,version,policyId);
     }
 
     @ApiOperation(value = "List All Application Policies",
@@ -613,6 +570,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                    @PathParam("applicationId") String applicationId,
                                                    @PathParam("version") String version)
             throws OrganizationNotFoundException, ApplicationVersionNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
         return orgFacade.listAppPolicies(organizationId, applicationId, version);
     }
 
@@ -629,28 +589,11 @@ public class OrganizationResource implements IOrganizationResource {
                                            @PathParam("version") String version,
                                            PolicyChainBean policyChain) throws OrganizationNotFoundException,
             ApplicationVersionNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-
-        // Make sure the app version exists.
-        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
-
-        try {
-
-            List<Long> newOrder = new ArrayList<>(policyChain.getPolicies().size());
-            for (PolicySummaryBean psb : policyChain.getPolicies()) {
-                newOrder.add(psb.getId());
-            }
-            storage.reorderPolicies(PolicyType.Application, organizationId, applicationId, version, newOrder);
-            storage.createAuditEntry(AuditUtils.policiesReordered(avb, PolicyType.Application, securityContext));
-
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-
-            throw new SystemErrorException(e);
-        }
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        orgFacade.reorderApplicationPolicies(organizationId,applicationId,version,policyChain);
     }
 
     @ApiOperation(value = "Create Service",

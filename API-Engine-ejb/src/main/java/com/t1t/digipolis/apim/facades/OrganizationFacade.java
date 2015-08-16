@@ -16,10 +16,7 @@ import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
-import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyType;
+import com.t1t.digipolis.apim.beans.policies.*;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
@@ -898,7 +895,65 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return getApiRegistry(organizationId, applicationId, version);
     }
 
-    
+    public void updateAppPolicy(String organizationId,String applicationId,String version,long policyId, UpdatePolicyBean bean){
+        // Make sure the app version exists.
+        getAppVersion(organizationId, applicationId, version);
+        try {
+            PolicyBean policy = this.storage.getPolicy(PolicyType.Application, organizationId, applicationId, version, policyId);
+            if (policy == null) {
+                throw ExceptionFactory.policyNotFoundException(policyId);
+            }
+            if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
+                policy.setConfiguration(bean.getConfiguration());
+                // TODO figure out what changed an include that in the audit entry
+            }
+            policy.setModifiedOn(new Date());
+            policy.setModifiedBy(this.securityContext.getCurrentUser());
+            storage.updatePolicy(policy);
+            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Application, securityContext));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteAppPolicy(String organizationId,String applicationId,String version,long policyId){
+        // Make sure the app version exists;
+        ApplicationVersionBean app = getAppVersion(organizationId, applicationId, version);
+        if (app.getStatus() == ApplicationStatus.Registered || app.getStatus() == ApplicationStatus.Retired) {
+            throw ExceptionFactory.invalidApplicationStatusException();
+        }
+        try {
+            PolicyBean policy = this.storage.getPolicy(PolicyType.Application, organizationId, applicationId, version, policyId);
+            if (policy == null) {
+                throw ExceptionFactory.policyNotFoundException(policyId);
+            }
+            storage.deletePolicy(policy);
+            storage.createAuditEntry(AuditUtils.policyRemoved(policy, PolicyType.Application, securityContext));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void reorderApplicationPolicies(String organizationId,String applicationId,String version,PolicyChainBean policyChain){
+        // Make sure the app version exists.
+        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
+        try {
+            List<Long> newOrder = new ArrayList<>(policyChain.getPolicies().size());
+            for (PolicySummaryBean psb : policyChain.getPolicies()) {
+                newOrder.add(psb.getId());
+            }
+            storage.reorderPolicies(PolicyType.Application, organizationId, applicationId, version, newOrder);
+            storage.createAuditEntry(AuditUtils.policiesReordered(avb, PolicyType.Application, securityContext));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
 
 
 
