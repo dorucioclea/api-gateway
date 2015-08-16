@@ -955,6 +955,122 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public ServiceBean getService(String organizationId, String serviceId){
+        try {
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            return bean;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public SearchResultsBean<AuditEntryBean> getServiceActivity(String organizationId,String serviceId,int page,int pageSize){
+        if (page <= 1) {
+            page = 1;
+        }
+        if (pageSize == 0) {
+            pageSize = 20;
+        }
+        try {
+            SearchResultsBean<AuditEntryBean> rval = null;
+            PagingBean paging = new PagingBean();
+            paging.setPage(page);
+            paging.setPageSize(pageSize);
+            rval = query.auditEntity(organizationId, serviceId, null, ServiceBean.class, paging);
+            return rval;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<ServiceSummaryBean> listServices(String organizationId){
+        // make sure the org exists
+        get(organizationId);
+        try {
+            return query.getServicesInOrg(organizationId);
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void updateService(String organizationId, String serviceId,UpdateServiceBean bean){
+        try {
+            ServiceBean serviceForUpdate = storage.getService(organizationId, serviceId);
+            if (serviceForUpdate == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            EntityUpdatedData auditData = new EntityUpdatedData();
+            if (AuditUtils.valueChanged(serviceForUpdate.getDescription(), bean.getDescription())) {
+                auditData.addChange("description", serviceForUpdate.getDescription(), bean.getDescription()); //$NON-NLS-1$
+                serviceForUpdate.setDescription(bean.getDescription());
+            }
+            storage.updateService(serviceForUpdate);
+            storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public ServiceVersionEndpointSummaryBean getServiceVersionEndpointInfo(String organizationId,String serviceId,String version){
+        try {
+            ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
+            if (serviceVersion == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
+            if (serviceVersion.getStatus() != ServiceStatus.Published) {
+                throw new InvalidServiceStatusException(Messages.i18n.format("ServiceNotPublished")); //$NON-NLS-1$
+            }
+            Set<ServiceGatewayBean> gateways = serviceVersion.getGateways();
+            if (gateways.isEmpty()) {
+                throw new SystemErrorException("No Gateways for published Service!"); //$NON-NLS-1$
+            }
+            GatewayBean gateway = storage.getGateway(gateways.iterator().next().getGatewayId());
+            if (gateway == null) {
+                throw new GatewayNotFoundException();
+            }
+            IGatewayLink link = gatewayLinkFactory.create(gateway);
+            ServiceEndpoint endpoint = link.getServiceEndpoint(organizationId, serviceId, version);
+            ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
+            rval.setManagedEndpoint(endpoint.getEndpoint());
+
+            log.debug(String.format("Got endpoint summary: %s", gateway)); //$NON-NLS-1$
+            return rval;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public SearchResultsBean<AuditEntryBean> getServiceVersionActivity(String organizationId, String serviceId, String version,int page,int pageSize){
+        if (page <= 1) {
+            page = 1;
+        }
+        if (pageSize == 0) {
+            pageSize = 20;
+        }
+        try {
+            SearchResultsBean<AuditEntryBean> rval = null;
+            PagingBean paging = new PagingBean();
+            paging.setPage(page);
+            paging.setPageSize(pageSize);
+            rval = query.auditEntity(organizationId, serviceId, version, ServiceBean.class, paging);
+            return rval;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+
+
+
 
 
     /*********************************************UTILITIES**********************************************/

@@ -626,21 +626,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceBean getService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId)
             throws ServiceNotFoundException, NotAuthorizedException {
-        try {
-
-            ServiceBean bean = storage.getService(organizationId, serviceId);
-            if (bean == null) {
-                throw ExceptionFactory.serviceNotFoundException(serviceId);
-            }
-
-            return bean;
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-
-            throw new SystemErrorException(e);
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        return orgFacade.getService(organizationId,serviceId);
     }
 
     @ApiOperation(value = "Get Service Activity",
@@ -655,22 +643,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                                 @PathParam("serviceId") String serviceId,
                                                                 @QueryParam("page") int page,
                                                                 @QueryParam("count") int pageSize) throws ServiceNotFoundException, NotAuthorizedException {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
-        try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, serviceId, null, ServiceBean.class, paging);
-            return rval;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        return orgFacade.getServiceActivity(organizationId,serviceId,page,pageSize);
     }
 
     @ApiOperation(value = "List Services",
@@ -681,16 +656,9 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/services")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ServiceSummaryBean> listServices(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException,
-            NotAuthorizedException {
-        // make sure the org exists
-        get(organizationId);
-
-        try {
-            return query.getServicesInOrg(organizationId);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+    public List<ServiceSummaryBean> listServices(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        return orgFacade.listServices(organizationId);
     }
 
     @ApiOperation(value = "Update Service",
@@ -706,29 +674,11 @@ public class OrganizationResource implements IOrganizationResource {
                               @PathParam("serviceId") String serviceId,
                               UpdateServiceBean bean)
             throws ServiceNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-        try {
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        orgFacade.updateService(organizationId,serviceId,bean);
 
-            ServiceBean serviceForUpdate = storage.getService(organizationId, serviceId);
-            if (serviceForUpdate == null) {
-                throw ExceptionFactory.serviceNotFoundException(serviceId);
-            }
-            EntityUpdatedData auditData = new EntityUpdatedData();
-            if (AuditUtils.valueChanged(serviceForUpdate.getDescription(), bean.getDescription())) {
-                auditData.addChange("description", serviceForUpdate.getDescription(), bean.getDescription()); //$NON-NLS-1$
-                serviceForUpdate.setDescription(bean.getDescription());
-            }
-            storage.updateService(serviceForUpdate);
-            storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));
-
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-
-            throw new SystemErrorException(e);
-        }
     }
 
     @ApiOperation(value = "Create Service Version",
@@ -750,9 +700,8 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkNotNull(bean);
         FieldValidator.validateVersion(bean.getVersion());
-        return createServiceVersion(organizationId, serviceId, bean);
+        return orgFacade.createServiceVersion(organizationId, serviceId, bean);
     }
-
 
     @ApiOperation(value = "Get Service Version",
             notes = "Use this endpoint to get detailed information about a single version of a Service.")
@@ -819,37 +768,10 @@ public class OrganizationResource implements IOrganizationResource {
                                                                            @PathParam("serviceId") String serviceId,
                                                                            @PathParam("version") String version) throws ServiceVersionNotFoundException,
             InvalidServiceStatusException, GatewayNotFoundException {
-        try {
-
-            ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
-            if (serviceVersion == null) {
-                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
-            }
-            if (serviceVersion.getStatus() != ServiceStatus.Published) {
-                throw new InvalidServiceStatusException(Messages.i18n.format("ServiceNotPublished")); //$NON-NLS-1$
-            }
-            Set<ServiceGatewayBean> gateways = serviceVersion.getGateways();
-            if (gateways.isEmpty()) {
-                throw new SystemErrorException("No Gateways for published Service!"); //$NON-NLS-1$
-            }
-            GatewayBean gateway = storage.getGateway(gateways.iterator().next().getGatewayId());
-            if (gateway == null) {
-                throw new GatewayNotFoundException();
-            }
-            IGatewayLink link = gatewayLinkFactory.create(gateway);
-            ServiceEndpoint endpoint = link.getServiceEndpoint(organizationId, serviceId, version);
-            ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
-            rval.setManagedEndpoint(endpoint.getEndpoint());
-
-            log.debug(String.format("Got endpoint summary: %s", gateway)); //$NON-NLS-1$
-            return rval;
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-
-            throw new SystemErrorException(e);
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getServiceVersionEndpointInfo(organizationId,serviceId,version);
     }
 
     @ApiOperation(value = "Get Service Version Activity",
@@ -865,22 +787,10 @@ public class OrganizationResource implements IOrganizationResource {
                                                                        @PathParam("version") String version,
                                                                        @QueryParam("page") int page,
                                                                        @QueryParam("count") int pageSize) throws ServiceVersionNotFoundException, NotAuthorizedException {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
-        try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, serviceId, version, ServiceBean.class, paging);
-            return rval;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getServiceVersionActivity(organizationId,serviceId,version,page,pageSize);
     }
 
     @ApiOperation(value = "Update Service Version",
