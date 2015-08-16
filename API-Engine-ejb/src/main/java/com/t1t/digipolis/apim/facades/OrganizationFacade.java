@@ -4,9 +4,11 @@ import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
+import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.idm.GrantRolesBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
@@ -45,7 +47,6 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -54,7 +55,7 @@ import java.util.*;
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
-public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
+public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     @Inject @APIEngineContext private Logger log;
     @Inject @APIEngineContext private EntityManager em;
     @Inject private ISecurityContext securityContext;
@@ -66,6 +67,8 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
     @Inject private IServiceValidator serviceValidator;
     @Inject private IMetricsAccessor metrics;
     @Inject private IGatewayLinkFactory gatewayLinkFactory;
+/*    @Inject private IUserResource users;
+    @Inject private IRoleResource roles;*/
 
 
     @SuppressWarnings("nls")
@@ -88,7 +91,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
     private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
     //craete organization
-    public OrganizationBean create(NewOrganizationBean bean){
+    public OrganizationBean create(NewOrganizationBean bean) {
         List<RoleBean> autoGrantedRoles = null;
         SearchCriteriaBean criteria = new SearchCriteriaBean();
         criteria.setPage(1);
@@ -138,7 +141,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public OrganizationBean get(String organizationId){
+    public OrganizationBean get(String organizationId) {
         try {
             OrganizationBean organizationBean = storage.getOrganization(organizationId);
             if (organizationBean == null) {
@@ -153,7 +156,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void update(String organizationId, UpdateOrganizationBean bean){
+    public void update(String organizationId, UpdateOrganizationBean bean) {
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
@@ -179,9 +182,13 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public SearchResultsBean<AuditEntryBean> activity(String organizationId, int page, int pageSize){
-        if (page <= 1) {page = 1;}
-        if (pageSize == 0) {pageSize = 20;}
+    public SearchResultsBean<AuditEntryBean> activity(String organizationId, int page, int pageSize) {
+        if (page <= 1) {
+            page = 1;
+        }
+        if (pageSize == 0) {
+            pageSize = 20;
+        }
         try {
             SearchResultsBean<AuditEntryBean> rval = null;
             PagingBean paging = new PagingBean();
@@ -197,7 +204,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ApplicationBean createApp(String organizationId, NewApplicationBean bean){
+    public ApplicationBean createApp(String organizationId, NewApplicationBean bean) {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         ApplicationBean newApp = new ApplicationBean();
@@ -232,7 +239,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ApplicationVersionBean createAppVersion(String organizationId,String applicationId, NewApplicationVersionBean bean){
+    public ApplicationVersionBean createAppVersion(String organizationId, String applicationId, NewApplicationVersionBean bean) {
         ApplicationVersionBean newVersion;
         try {
             ApplicationBean application = storage.getApplication(organizationId, applicationId);
@@ -274,7 +281,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return newVersion;
     }
 
-    public PolicyBean createAppPolicy(String organizationId,String applicationId,String version,NewPolicyBean bean){
+    public PolicyBean createAppPolicy(String organizationId, String applicationId, String version, NewPolicyBean bean) {
         // Make sure the app version exists and is in the right state.
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         if (avb.getStatus() == ApplicationStatus.Registered || avb.getStatus() == ApplicationStatus.Retired) {
@@ -283,7 +290,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return doCreatePolicy(organizationId, applicationId, version, bean, PolicyType.Application);
     }
 
-    public PolicyBean getAppPolicy(String organizationId,String applicationId,String version,long policyId){
+    public PolicyBean getAppPolicy(String organizationId, String applicationId, String version, long policyId) {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
         // Make sure the app version exists
         getAppVersion(organizationId, applicationId, version);
@@ -294,7 +301,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return policy;
     }
 
-    public List<PolicySummaryBean> listAppPolicies(String organizationId, String applicationId,String version){
+    public List<PolicySummaryBean> listAppPolicies(String organizationId, String applicationId, String version) {
         // Try to get the application first - will throw an exception if not found.
         getAppVersion(organizationId, applicationId, version);
         try {
@@ -304,7 +311,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ContractBean createContract(String organizationId,String applicationId,String version,NewContractBean bean){
+    public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
         try {
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
@@ -324,7 +331,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public List<ContractSummaryBean> getApplicationVersionContracts(String organizationId,String applicationId,String version){
+    public List<ContractSummaryBean> getApplicationVersionContracts(String organizationId, String applicationId, String version) {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
         // Try to get the application first - will throw a ApplicationNotFoundException if not found.
         getAppVersion(organizationId, applicationId, version);
@@ -344,7 +351,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ApplicationBean getApp(String organizationId,String applicationId){
+    public ApplicationBean getApp(String organizationId, String applicationId) {
         try {
             ApplicationBean applicationBean = storage.getApplication(organizationId, applicationId);
             if (applicationBean == null) {
@@ -359,9 +366,13 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public SearchResultsBean<AuditEntryBean> getAppActivity(String organizationId, String applicationId, int page, int pageSize){
-        if (page <= 1) {page = 1;}
-        if (pageSize == 0) {pageSize = 20;}
+    public SearchResultsBean<AuditEntryBean> getAppActivity(String organizationId, String applicationId, int page, int pageSize) {
+        if (page <= 1) {
+            page = 1;
+        }
+        if (pageSize == 0) {
+            pageSize = 20;
+        }
         try {
             SearchResultsBean<AuditEntryBean> rval = null;
             PagingBean paging = new PagingBean();
@@ -376,7 +387,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public List<ApplicationSummaryBean> listApps(String organizationId){
+    public List<ApplicationSummaryBean> listApps(String organizationId) {
         get(organizationId);
         try {
             return query.getApplicationsInOrg(organizationId);
@@ -385,7 +396,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void updateApp(String organizationId,String applicationId, UpdateApplicationBean bean){
+    public void updateApp(String organizationId, String applicationId, UpdateApplicationBean bean) {
         try {
             ApplicationBean appForUpdate = storage.getApplication(organizationId, applicationId);
             if (appForUpdate == null) {
@@ -407,7 +418,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ApplicationVersionBean getAppVersion(String organizationId,String applicationId, String version){
+    public ApplicationVersionBean getAppVersion(String organizationId, String applicationId, String version) {
         try {
             ApplicationVersionBean applicationVersion = storage.getApplicationVersion(organizationId, applicationId, version);
             if (applicationVersion == null) {
@@ -422,7 +433,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public PolicyBean getPlanPolicy(String organizationId,String planId,String version,long policyId){
+    public PolicyBean getPlanPolicy(String organizationId, String planId, String version, long policyId) {
         boolean hasPermission = securityContext.hasPermission(PermissionType.planView, organizationId);
 
         // Make sure the plan version exists
@@ -438,7 +449,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return policy;
     }
 
-    public PlanVersionBean getPlanVersion(String organizationId,String planId,String version){
+    public PlanVersionBean getPlanVersion(String organizationId, String planId, String version) {
         try {
             PlanVersionBean planVersion = storage.getPlanVersion(organizationId, planId, version);
             if (planVersion == null) {
@@ -453,7 +464,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public PolicyBean createPlanPolicy(String organizationId,String planId,String version, NewPolicyBean bean){
+    public PolicyBean createPlanPolicy(String organizationId, String planId, String version, NewPolicyBean bean) {
         // Make sure the plan version exists and is in the right state
         PlanVersionBean pvb = getPlanVersion(organizationId, planId, version);
         if (pvb.getStatus() == PlanStatus.Locked) {
@@ -463,7 +474,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return doCreatePolicy(organizationId, planId, version, bean, PolicyType.Plan);
     }
 
-    public PolicyBean createServicePolicy(String organizationId, String serviceId,String version,NewPolicyBean bean){
+    public PolicyBean createServicePolicy(String organizationId, String serviceId, String version, NewPolicyBean bean) {
         // Make sure the service exists
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired) {
@@ -473,7 +484,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return doCreatePolicy(organizationId, serviceId, version, bean, PolicyType.Service);
     }
 
-    public ServiceVersionBean getServiceVersion(String organizationId,String serviceId,String version){
+    public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version) {
         boolean hasPermission = securityContext.hasPermission(PermissionType.svcView, organizationId);
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
@@ -492,7 +503,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public PolicyBean getServicePolicy(String organizationId,String serviceId,String version,long policyId){
+    public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         // Make sure the service exists
         getServiceVersion(organizationId, serviceId, version);
         PolicyBean policy = doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
@@ -502,7 +513,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return policy;
     }
 
-    public ServiceVersionBean updateServiceVersion(String organizationId,String serviceId,String version,UpdateServiceVersionBean bean){
+    public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
@@ -598,7 +609,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ServiceBean createService(String organizationId, NewServiceBean bean){
+    public ServiceBean createService(String organizationId, NewServiceBean bean) {
         ServiceBean newService = new ServiceBean();
         newService.setName(bean.getName());
         newService.setDescription(bean.getDescription());
@@ -632,7 +643,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ServiceVersionBean createServiceVersion(String organizationId,String serviceId,NewServiceVersionBean bean){
+    public ServiceVersionBean createServiceVersion(String organizationId, String serviceId, NewServiceVersionBean bean) {
         ServiceVersionBean newVersion = null;
         try {
             GatewaySummaryBean gateway = getSingularGateway();
@@ -693,7 +704,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return newVersion;
     }
 
-    public InputStream getServiceDefinition(String organizationId,String serviceId,String version){
+    public InputStream getServiceDefinition(String organizationId, String serviceId, String version) {
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
@@ -714,7 +725,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void updateServiceDefinition(String organizationId,String serviceId,String version,String contentType, InputStream data){
+    public void updateServiceDefinition(String organizationId, String serviceId, String version, String contentType, InputStream data) {
         ServiceDefinitionType newDefinitionType = null;
         if (contentType.toLowerCase().contains("application/json")) { //$NON-NLS-1$
             newDefinitionType = ServiceDefinitionType.SwaggerJSON;
@@ -729,7 +740,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         log.debug(String.format("Updated service definition for %s", serviceId)); //$NON-NLS-1$
     }
 
-    public List<PolicySummaryBean> listServicePolicies(String organizationId,String serviceId,String version){
+    public List<PolicySummaryBean> listServicePolicies(String organizationId, String serviceId, String version) {
         // Try to get the service first - will throw an exception if not found.
         getServiceVersion(organizationId, serviceId, version);
         try {
@@ -739,7 +750,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public SearchResultsBean<AuditEntryBean> getAppVersionActivity(String organizationId,String applicationId,String version,int page,int pageSize){
+    public SearchResultsBean<AuditEntryBean> getAppVersionActivity(String organizationId, String applicationId, String version, int page, int pageSize) {
         if (page <= 1) {
             page = 1;
         }
@@ -760,14 +771,14 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId,String version,String fromDate, String toDate){
+    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getAppUsagePerService(organizationId, applicationId, version, from, to);
     }
 
-    public UsageHistogramBean getUsage(String organizationId,String serviceId,String version,HistogramIntervalType interval,String fromDate,String toDate){
+    public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         if (interval == null) {
@@ -778,21 +789,21 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
     }
 
-    public UsagePerAppBean getUsagePerApp(String organizationId,String serviceId, String version,String fromDate,String toDate){
+    public UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getUsagePerApp(organizationId, serviceId, version, from, to);
     }
 
-    public UsagePerPlanBean getUsagePerPlan(String organizationId,String serviceId,String version,String fromDate,String toDate){
+    public UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getUsagePerPlan(organizationId, serviceId, version, from, to);
     }
 
-    public ResponseStatsHistogramBean getResponseStats(String organizationId,String serviceId,String version,HistogramIntervalType interval,String fromDate,String toDate){
+    public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         if (interval == null) {
@@ -803,28 +814,28 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         return metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
     }
 
-    public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId,String serviceId,String version,String fromDate,String toDate){
+    public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
     }
 
-    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId,String serviceId,String version,String fromDate,String toDate){
+    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getResponseStatsPerApp(organizationId, serviceId, version, from, to);
     }
 
-    public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId,String serviceId,String version,String fromDate,String toDate){
+    public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getResponseStatsPerPlan(organizationId, serviceId, version, from, to);
     }
 
-    public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId){
+    public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId) {
         // Try to get the application first - will throw a ApplicationNotFoundException if not found.
         getApp(organizationId, applicationId);
         try {
@@ -834,7 +845,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ContractBean getContract(String organizationId,String applicationId,String version,Long contractId){
+    public ContractBean getContract(String organizationId, String applicationId, String version, Long contractId) {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
         try {
             ContractBean contract = storage.getContract(contractId);
@@ -853,14 +864,14 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void deleteAllContracts(String organizationId,String applicationId,String version){
+    public void deleteAllContracts(String organizationId, String applicationId, String version) {
         List<ContractSummaryBean> contracts = getApplicationVersionContracts(organizationId, applicationId, version);
         for (ContractSummaryBean contract : contracts) {
             deleteContract(organizationId, applicationId, version, contract.getContractId());
         }
     }
 
-    public void deleteContract(String organizationId,String applicationId,String version,Long contractId){
+    public void deleteContract(String organizationId, String applicationId, String version, Long contractId) {
         try {
             ContractBean contract = storage.getContract(contractId);
             if (contract == null) {
@@ -886,15 +897,15 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ApiRegistryBean getApiRegistryJSON(String organizationId,String applicationId,String version){
+    public ApiRegistryBean getApiRegistryJSON(String organizationId, String applicationId, String version) {
         return getApiRegistry(organizationId, applicationId, version);
     }
 
-    public ApiRegistryBean getApiRegistryXML(String organizationId,String applicationId,String version){
+    public ApiRegistryBean getApiRegistryXML(String organizationId, String applicationId, String version) {
         return getApiRegistry(organizationId, applicationId, version);
     }
 
-    public void updateAppPolicy(String organizationId,String applicationId,String version,long policyId, UpdatePolicyBean bean){
+    public void updateAppPolicy(String organizationId, String applicationId, String version, long policyId, UpdatePolicyBean bean) {
         // Make sure the app version exists.
         getAppVersion(organizationId, applicationId, version);
         try {
@@ -917,7 +928,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void deleteAppPolicy(String organizationId,String applicationId,String version,long policyId){
+    public void deleteAppPolicy(String organizationId, String applicationId, String version, long policyId) {
         // Make sure the app version exists;
         ApplicationVersionBean app = getAppVersion(organizationId, applicationId, version);
         if (app.getStatus() == ApplicationStatus.Registered || app.getStatus() == ApplicationStatus.Retired) {
@@ -937,7 +948,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void reorderApplicationPolicies(String organizationId,String applicationId,String version,PolicyChainBean policyChain){
+    public void reorderApplicationPolicies(String organizationId, String applicationId, String version, PolicyChainBean policyChain) {
         // Make sure the app version exists.
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         try {
@@ -954,7 +965,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ServiceBean getService(String organizationId, String serviceId){
+    public ServiceBean getService(String organizationId, String serviceId) {
         try {
             ServiceBean bean = storage.getService(organizationId, serviceId);
             if (bean == null) {
@@ -968,7 +979,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public SearchResultsBean<AuditEntryBean> getServiceActivity(String organizationId,String serviceId,int page,int pageSize){
+    public SearchResultsBean<AuditEntryBean> getServiceActivity(String organizationId, String serviceId, int page, int pageSize) {
         if (page <= 1) {
             page = 1;
         }
@@ -987,7 +998,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public List<ServiceSummaryBean> listServices(String organizationId){
+    public List<ServiceSummaryBean> listServices(String organizationId) {
         // make sure the org exists
         get(organizationId);
         try {
@@ -997,7 +1008,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void updateService(String organizationId, String serviceId,UpdateServiceBean bean){
+    public void updateService(String organizationId, String serviceId, UpdateServiceBean bean) {
         try {
             ServiceBean serviceForUpdate = storage.getService(organizationId, serviceId);
             if (serviceForUpdate == null) {
@@ -1017,7 +1028,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ServiceVersionEndpointSummaryBean getServiceVersionEndpointInfo(String organizationId,String serviceId,String version){
+    public ServiceVersionEndpointSummaryBean getServiceVersionEndpointInfo(String organizationId, String serviceId, String version) {
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
@@ -1048,7 +1059,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public SearchResultsBean<AuditEntryBean> getServiceVersionActivity(String organizationId, String serviceId, String version,int page,int pageSize){
+    public SearchResultsBean<AuditEntryBean> getServiceVersionActivity(String organizationId, String serviceId, String version, int page, int pageSize) {
         if (page <= 1) {
             page = 1;
         }
@@ -1067,7 +1078,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public List<ServiceVersionSummaryBean> listServiceVersions(String organizationId,String serviceId){
+    public List<ServiceVersionSummaryBean> listServiceVersions(String organizationId, String serviceId) {
         // Try to get the service first - will throw a ServiceNotFoundException if not found.
         getService(organizationId, serviceId);
         try {
@@ -1077,7 +1088,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public List<ServicePlanSummaryBean> getServiceVersionPlans(String organizationId,String serviceId,String version){
+    public List<ServicePlanSummaryBean> getServiceVersionPlans(String organizationId, String serviceId, String version) {
         // Ensure the version exists first.
         getServiceVersion(organizationId, serviceId, version);
         try {
@@ -1087,7 +1098,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void updateServicePolicy(String organizationId,String serviceId, String version,long policyId, UpdatePolicyBean bean){
+    public void updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) {
         // Make sure the service exists
         getServiceVersion(organizationId, serviceId, version);
         try {
@@ -1112,7 +1123,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void deleteServicePolicy(String organizationId,String serviceId,String version,long policyId){
+    public void deleteServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         // Make sure the service exists
         ServiceVersionBean service = getServiceVersion(organizationId, serviceId, version);
         if (service.getStatus() == ServiceStatus.Published || service.getStatus() == ServiceStatus.Retired) {
@@ -1133,7 +1144,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void deleteServiceDefinition(String organizationId,String serviceId,String version){
+    public void deleteServiceDefinition(String organizationId, String serviceId, String version) {
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
@@ -1151,7 +1162,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void reorderServicePolicies(String organizationId,String serviceId,String version,PolicyChainBean policyChain){
+    public void reorderServicePolicies(String organizationId, String serviceId, String version, PolicyChainBean policyChain) {
         // Make sure the service exists
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         try {
@@ -1168,7 +1179,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public PolicyChainBean getServicePolicyChain(String organizationId,String serviceId,String version,String planId){
+    public PolicyChainBean getServicePolicyChain(String organizationId, String serviceId, String version, String planId) {
         // Try to get the service first - will throw an exception if not found.
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         try {
@@ -1197,7 +1208,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public List<ContractSummaryBean> getServiceVersionContracts(String organizationId,String serviceId,String version,int page, int pageSize){
+    public List<ContractSummaryBean> getServiceVersionContracts(String organizationId, String serviceId, String version, int page, int pageSize) {
         if (page <= 1) {
             page = 1;
         }
@@ -1221,7 +1232,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public PlanBean createPlan(String organizationId, NewPlanBean bean){
+    public PlanBean createPlan(String organizationId, NewPlanBean bean) {
         PlanBean newPlan = new PlanBean();
         newPlan.setName(bean.getName());
         newPlan.setDescription(bean.getDescription());
@@ -1248,6 +1259,205 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
             }
             log.debug(String.format("Created plan: %s", newPlan)); //$NON-NLS-1$
             return newPlan;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public PlanBean getPlan(String organizationId, String planId) {
+        try {
+            PlanBean bean = storage.getPlan(organizationId, planId);
+            if (bean == null) {
+                throw ExceptionFactory.planNotFoundException(planId);
+            }
+            log.debug(String.format("Got plan: %s", bean)); //$NON-NLS-1$
+            return bean;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public SearchResultsBean<AuditEntryBean> getPlanActivity(String organizationId, String planId, int page, int pageSize) {
+        if (page <= 1) {
+            page = 1;
+        }
+        if (pageSize == 0) {
+            pageSize = 20;
+        }
+        try {
+            SearchResultsBean<AuditEntryBean> rval = null;
+            PagingBean paging = new PagingBean();
+            paging.setPage(page);
+            paging.setPageSize(pageSize);
+            rval = query.auditEntity(organizationId, planId, null, PlanBean.class, paging);
+            return rval;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<PlanSummaryBean> listPlans(String organizationId) {
+        get(organizationId);
+        try {
+            return query.getPlansInOrg(organizationId);
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void updatePlan(String organizationId, String planId, UpdatePlanBean bean) {
+        EntityUpdatedData auditData = new EntityUpdatedData();
+        try {
+            PlanBean planForUpdate = storage.getPlan(organizationId, planId);
+            if (planForUpdate == null) {
+                throw ExceptionFactory.planNotFoundException(planId);
+            }
+            if (AuditUtils.valueChanged(planForUpdate.getDescription(), bean.getDescription())) {
+                auditData.addChange("description", planForUpdate.getDescription(), bean.getDescription()); //$NON-NLS-1$
+                planForUpdate.setDescription(bean.getDescription());
+            }
+            storage.updatePlan(planForUpdate);
+            storage.createAuditEntry(AuditUtils.planUpdated(planForUpdate, auditData, securityContext));
+            log.debug(String.format("Updated plan: %s", planForUpdate)); //$NON-NLS-1$
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public PlanVersionBean createPlanVersion(String organizationId, String planId, NewPlanVersionBean bean) {
+        PlanVersionBean newVersion = null;
+        try {
+            PlanBean plan = storage.getPlan(organizationId, planId);
+            if (plan == null) {
+                throw ExceptionFactory.planNotFoundException(planId);
+            }
+            if (storage.getPlanVersion(organizationId, planId, bean.getVersion()) != null) {
+                throw ExceptionFactory.planVersionAlreadyExistsException(planId, bean.getVersion());
+            }
+            newVersion = createPlanVersionInternal(bean, plan);
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+        if (bean.isClone() && bean.getCloneVersion() != null) {
+            try {
+                List<PolicySummaryBean> policies = listPlanPolicies(organizationId, planId, bean.getCloneVersion());
+                for (PolicySummaryBean policySummary : policies) {
+                    PolicyBean policy = getPlanPolicy(organizationId, planId, bean.getCloneVersion(), policySummary.getId());
+                    NewPolicyBean npb = new NewPolicyBean();
+                    npb.setDefinitionId(policy.getDefinition().getId());
+                    npb.setConfiguration(policy.getConfiguration());
+                    createPlanPolicy(organizationId, planId, newVersion.getVersion(), npb);
+                }
+            } catch (Exception e) {
+                // TODO it's ok if the clone fails - we did our best
+            }
+        }
+        log.debug(String.format("Created plan %s version: %s", planId, newVersion)); //$NON-NLS-1$
+        return newVersion;
+    }
+
+    public List<PolicySummaryBean> listPlanPolicies(String organizationId, String planId, String version) {
+        // Try to get the plan first - will throw an exception if not found.
+        getPlanVersion(organizationId, planId, version);
+        try {
+            return query.getPolicies(organizationId, planId, version, PolicyType.Plan);
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public SearchResultsBean<AuditEntryBean> getPlanVersionActivity(String organizationId, String planId, String version, int page, int pageSize) {
+        if (page <= 1) {
+            page = 1;
+        }
+        if (pageSize == 0) {
+            pageSize = 20;
+        }
+        try {
+            SearchResultsBean<AuditEntryBean> rval = null;
+            PagingBean paging = new PagingBean();
+            paging.setPage(page);
+            paging.setPageSize(pageSize);
+            rval = query.auditEntity(organizationId, planId, version, PlanBean.class, paging);
+            return rval;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<PlanVersionSummaryBean> listPlanVersions(String organizationId, String planId) {
+        // Try to get the plan first - will throw a PlanNotFoundException if not found.
+        getPlan(organizationId, planId);
+        try {
+            return query.getPlanVersions(organizationId, planId);
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void updatePlanPolicy(String organizationId, String planId, String version, long policyId, UpdatePolicyBean bean) {
+        // Make sure the plan version exists
+        getPlanVersion(organizationId, planId, version);
+        try {
+            PolicyBean policy = storage.getPolicy(PolicyType.Plan, organizationId, planId, version, policyId);
+            if (policy == null) {
+                throw ExceptionFactory.policyNotFoundException(policyId);
+            }
+            if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
+                policy.setConfiguration(bean.getConfiguration());
+                // Note: we do not audit the policy configuration since it may have sensitive data
+            }
+            policy.setModifiedOn(new Date());
+            policy.setModifiedBy(this.securityContext.getCurrentUser());
+            storage.updatePolicy(policy);
+            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Plan, securityContext));
+            log.debug(String.format("Updated plan policy %s", policy)); //$NON-NLS-1$
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deletePlanPolicy(String organizationId, String planId, String version, long policyId) {
+        // Make sure the plan version exists
+        PlanVersionBean plan = getPlanVersion(organizationId, planId, version);
+        if (plan.getStatus() == PlanStatus.Locked) {
+            throw ExceptionFactory.invalidPlanStatusException();
+        }
+        try {
+            PolicyBean policy = this.storage.getPolicy(PolicyType.Plan, organizationId, planId, version, policyId);
+            if (policy == null) {
+                throw ExceptionFactory.policyNotFoundException(policyId);
+            }
+            storage.deletePolicy(policy);
+            storage.createAuditEntry(AuditUtils.policyRemoved(policy, PolicyType.Plan, securityContext));
+            log.debug(String.format("Deleted plan policy %s", policy)); //$NON-NLS-1$
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void reorderPlanPolicies(String organizationId, String planId, String version, PolicyChainBean policyChain) {
+        // Make sure the plan version exists
+        PlanVersionBean pvb = getPlanVersion(organizationId, planId, version);
+        try {
+            List<Long> newOrder = new ArrayList<>(policyChain.getPolicies().size());
+            for (PolicySummaryBean psb : policyChain.getPolicies()) {
+                newOrder.add(psb.getId());
+            }
+            storage.reorderPolicies(PolicyType.Plan, organizationId, planId, version, newOrder);
+            storage.createAuditEntry(AuditUtils.policiesReordered(pvb, PolicyType.Plan, securityContext));
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -1776,8 +1986,6 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         storage.createAuditEntry(AuditUtils.planVersionCreated(newVersion, securityContext));
         return newVersion;
     }
-
-
 
 
 }
