@@ -351,7 +351,7 @@ public class OrganizationResource implements IOrganizationResource {
             throws ApplicationNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        return orgFacade.listAppVersions(organizationId,applicationId);
+        return orgFacade.listAppVersions(organizationId, applicationId);
     }
 
     @ApiOperation(value = "Create a Service Contract",
@@ -409,7 +409,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        orgFacade.deleteAllContracts(organizationId,applicationId,version);
+        orgFacade.deleteAllContracts(organizationId, applicationId, version);
     }
 
     @ApiOperation(value = "Break Contract",
@@ -427,7 +427,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        orgFacade.deleteContract(organizationId,applicationId,version, contractId);
+        orgFacade.deleteContract(organizationId, applicationId, version, contractId);
     }
 
     @ApiOperation(value = "List All Contracts for an Application",
@@ -458,9 +458,11 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ApiRegistryBean getApiRegistryJSON(@PathParam("organizationId") String organizationId,
                                               @PathParam("applicationId") String applicationId,
-                                              @PathParam("version") String version)
-            throws ApplicationNotFoundException, NotAuthorizedException {
-        return getApiRegistry(organizationId, applicationId, version);
+                                              @PathParam("version") String version) throws ApplicationNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getApiRegistryJSON(organizationId,applicationId,version);
     }
 
     @ApiOperation(value = "Get API Registry (XML)",
@@ -474,73 +476,10 @@ public class OrganizationResource implements IOrganizationResource {
     public ApiRegistryBean getApiRegistryXML(@PathParam("organizationId") String organizationId,
                                              @PathParam("applicationId") String applicationId,
                                              @PathParam("version") String version) throws ApplicationNotFoundException, NotAuthorizedException {
-        return getApiRegistry(organizationId, applicationId, version);
-    }
-
-    /**
-     * Gets the API registry.
-     *
-     * @param organizationId
-     * @param applicationId
-     * @param version
-     * @throws ApplicationNotFoundException
-     * @throws NotAuthorizedException
-     */
-    protected ApiRegistryBean getApiRegistry(String organizationId, String applicationId, String version)
-            throws ApplicationNotFoundException, NotAuthorizedException {
-        boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
-        // Try to get the application first - will throw a ApplicationNotFoundException if not found.
-        getAppVersion(organizationId, applicationId, version);
-
-        Map<String, IGatewayLink> gatewayLinks = new HashMap<>();
-        Map<String, GatewayBean> gateways = new HashMap<>();
-        boolean txStarted = false;
-        try {
-            ApiRegistryBean apiRegistry = query.getApiRegistry(organizationId, applicationId, version);
-
-            // Hide some stuff if the user doesn't have the appView permission
-            if (!hasPermission) {
-                List<ApiEntryBean> apis = apiRegistry.getApis();
-                for (ApiEntryBean api : apis) {
-                    api.setApiKey(null);
-                }
-            }
-
-            List<ApiEntryBean> apis = apiRegistry.getApis();
-
-
-            txStarted = true;
-            for (ApiEntryBean api : apis) {
-                String gatewayId = api.getGatewayId();
-                // Don't return the gateway id.
-                api.setGatewayId(null);
-                GatewayBean gateway = gateways.get(gatewayId);
-                if (gateway == null) {
-                    gateway = storage.getGateway(gatewayId);
-                    gateways.put(gatewayId, gateway);
-                }
-                IGatewayLink link = gatewayLinks.get(gatewayId);
-                if (link == null) {
-                    link = gatewayLinkFactory.create(gateway);
-                    gatewayLinks.put(gatewayId, link);
-                }
-
-                ServiceEndpoint se = link.getServiceEndpoint(api.getServiceOrgId(), api.getServiceId(), api.getServiceVersion());
-                String apiEndpoint = se.getEndpoint();
-                api.setHttpEndpoint(apiEndpoint);
-            }
-
-            return apiRegistry;
-        } catch (StorageException | GatewayAuthenticationException e) {
-            throw new SystemErrorException(e);
-        } finally {
-            if (txStarted) {
-
-            }
-            for (IGatewayLink link : gatewayLinks.values()) {
-                link.close();
-            }
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getApiRegistryXML(organizationId,applicationId,version);
     }
 
     @ApiOperation(value = "Add Application Policy",

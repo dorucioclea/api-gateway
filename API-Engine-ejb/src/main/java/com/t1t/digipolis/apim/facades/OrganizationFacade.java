@@ -33,6 +33,10 @@ import com.t1t.digipolis.apim.core.util.PolicyTemplateUtil;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
+import com.t1t.digipolis.apim.gateway.IGatewayLink;
+import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.joda.time.DateTime;
@@ -65,6 +69,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
     @Inject private IApplicationValidator applicationValidator;
     @Inject private IServiceValidator serviceValidator;
     @Inject private IMetricsAccessor metrics;
+    @Inject private IGatewayLinkFactory gatewayLinkFactory;
 
 
     @SuppressWarnings("nls")
@@ -885,6 +890,16 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public ApiRegistryBean getApiRegistryJSON(String organizationId,String applicationId,String version){
+        return getApiRegistry(organizationId, applicationId, version);
+    }
+
+    public ApiRegistryBean getApiRegistryXML(String organizationId,String applicationId,String version){
+        return getApiRegistry(organizationId, applicationId, version);
+    }
+
+    
+
 
 
     /*********************************************UTILITIES**********************************************/
@@ -1325,4 +1340,62 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    /**
+     * Gets the API registry.
+     *
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @throws ApplicationNotFoundException
+     * @throws NotAuthorizedException
+     */
+    protected ApiRegistryBean getApiRegistry(String organizationId, String applicationId, String version)
+            throws ApplicationNotFoundException, NotAuthorizedException {
+        boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
+        // Try to get the application first - will throw a ApplicationNotFoundException if not found.
+        getAppVersion(organizationId, applicationId, version);
+        Map<String, IGatewayLink> gatewayLinks = new HashMap<>();
+        Map<String, GatewayBean> gateways = new HashMap<>();
+        boolean txStarted = false;
+        try {
+            ApiRegistryBean apiRegistry = query.getApiRegistry(organizationId, applicationId, version);
+
+            // Hide some stuff if the user doesn't have the appView permission
+            if (!hasPermission) {
+                List<ApiEntryBean> apis = apiRegistry.getApis();
+                for (ApiEntryBean api : apis) {
+                    api.setApiKey(null);
+                }
+            }
+            List<ApiEntryBean> apis = apiRegistry.getApis();
+            txStarted = true;
+            for (ApiEntryBean api : apis) {
+                String gatewayId = api.getGatewayId();
+                // Don't return the gateway id.
+                api.setGatewayId(null);
+                GatewayBean gateway = gateways.get(gatewayId);
+                if (gateway == null) {
+                    gateway = storage.getGateway(gatewayId);
+                    gateways.put(gatewayId, gateway);
+                }
+                IGatewayLink link = gatewayLinks.get(gatewayId);
+                if (link == null) {
+                    link = gatewayLinkFactory.create(gateway);
+                    gatewayLinks.put(gatewayId, link);
+                }
+                ServiceEndpoint se = link.getServiceEndpoint(api.getServiceOrgId(), api.getServiceId(), api.getServiceVersion());
+                String apiEndpoint = se.getEndpoint();
+                api.setHttpEndpoint(apiEndpoint);
+            }
+            return apiRegistry;
+        } catch (StorageException | GatewayAuthenticationException e) {
+            throw new SystemErrorException(e);
+        } finally {
+            if (txStarted) {
+            }
+            for (IGatewayLink link : gatewayLinks.values()) {
+                link.close();
+            }
+        }
+    }
 }
