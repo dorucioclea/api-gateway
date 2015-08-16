@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
+import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
@@ -37,6 +38,9 @@ import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 
 import javax.ejb.Stateless;
@@ -63,6 +67,27 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
     @Inject private IApiKeyGenerator apiKeyGenerator;
     @Inject private IApplicationValidator applicationValidator;
     @Inject private IServiceValidator serviceValidator;
+    @Inject private IMetricsAccessor metrics;
+
+
+    @SuppressWarnings("nls")
+    public static final String[] DATE_FORMATS = {
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd'T'HH:mm:ssz",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm",
+            "yyyy-MM-dd",
+            "EEE, dd MMM yyyy HH:mm:ss z",
+            "EEE, dd MMM yyyy HH:mm:ss",
+            "EEE, dd MMM yyyy"
+    };
+
+    private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
+    private static final long ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000;
+    private static final long ONE_DAY_MILLIS = 1 * 24 * 60 * 60 * 1000;
+    private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
+    private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
     //craete organization
     public OrganizationBean create(NewOrganizationBean bean){
@@ -716,7 +741,90 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public SearchResultsBean<AuditEntryBean> getAppVersionActivity(String organizationId,String applicationId,String version,int page,int pageSize){
+        if (page <= 1) {
+            page = 1;
+        }
+        if (pageSize == 0) {
+            pageSize = 20;
+        }
+        try {
+            SearchResultsBean<AuditEntryBean> rval = null;
+            PagingBean paging = new PagingBean();
+            paging.setPage(page);
+            paging.setPageSize(pageSize);
+            rval = query.auditEntity(organizationId, applicationId, version, ApplicationBean.class, paging);
+            return rval;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
 
+    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId,String version,String fromDate, String toDate){
+        DateTime from = parseFromDate(fromDate);
+        DateTime to = parseToDate(toDate);
+        validateMetricRange(from, to);
+        return metrics.getAppUsagePerService(organizationId, applicationId, version, from, to);
+    }
+
+    public UsageHistogramBean getUsage(String organizationId,String serviceId,String version,HistogramIntervalType interval,String fromDate,String toDate){
+        DateTime from = parseFromDate(fromDate);
+        DateTime to = parseToDate(toDate);
+        if (interval == null) {
+            interval = HistogramIntervalType.day;
+        }
+        validateMetricRange(from, to);
+        validateTimeSeriesMetric(from, to, interval);
+        return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
+    }
+
+    public UsagePerAppBean getUsagePerApp(String organizationId,String serviceId, String version,String fromDate,String toDate){
+        DateTime from = parseFromDate(fromDate);
+        DateTime to = parseToDate(toDate);
+        validateMetricRange(from, to);
+        return metrics.getUsagePerApp(organizationId, serviceId, version, from, to);
+    }
+
+    public UsagePerPlanBean getUsagePerPlan(String organizationId,String serviceId,String version,String fromDate,String toDate){
+        DateTime from = parseFromDate(fromDate);
+        DateTime to = parseToDate(toDate);
+        validateMetricRange(from, to);
+        return metrics.getUsagePerPlan(organizationId, serviceId, version, from, to);
+    }
+
+    public ResponseStatsHistogramBean getResponseStats(String organizationId,String serviceId,String version,HistogramIntervalType interval,String fromDate,String toDate){
+        DateTime from = parseFromDate(fromDate);
+        DateTime to = parseToDate(toDate);
+        if (interval == null) {
+            interval = HistogramIntervalType.day;
+        }
+        validateMetricRange(from, to);
+        validateTimeSeriesMetric(from, to, interval);
+        return metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
+    }
+
+    public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId,String serviceId,String version,String fromDate,String toDate){
+        DateTime from = parseFromDate(fromDate);
+        DateTime to = parseToDate(toDate);
+        validateMetricRange(from, to);
+        return metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
+    }
+
+    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId,String serviceId,String version,String fromDate,String toDate){
+        DateTime from = parseFromDate(fromDate);
+        DateTime to = parseToDate(toDate);
+        validateMetricRange(from, to);
+        return metrics.getResponseStatsPerApp(organizationId, serviceId, version, from, to);
+    }
+
+    public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId,String serviceId,String version,String fromDate,String toDate){
+        DateTime from = parseFromDate(fromDate);
+        DateTime to = parseToDate(toDate);
+        validateMetricRange(from, to);
+        return metrics.getResponseStatsPerPlan(organizationId, serviceId, version, from, to);
+    }
 
 
     /*********************************************UTILITIES**********************************************/
@@ -1035,8 +1143,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
      * @param version
      * @param data
      */
-    protected void storeServiceDefinition(String organizationId, String serviceId, String version,
-                                          ServiceDefinitionType definitionType, InputStream data) {
+    protected void storeServiceDefinition(String organizationId, String serviceId, String version, ServiceDefinitionType definitionType, InputStream data) {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
@@ -1058,5 +1165,104 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    /**
+     * Parse the to date query param.
+     *
+     * @param fromDate
+     */
+    private DateTime parseFromDate(String fromDate) {
+        // Default to the last 30 days
+        DateTime defaultFrom = DateTime.now().withZone(DateTimeZone.UTC).minusDays(30).withHourOfDay(0)
+                .withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
+        return parseDate(fromDate, defaultFrom, true);
+    }
+
+    /**
+     * Parse the from date query param.
+     *
+     * @param toDate
+     */
+    private DateTime parseToDate(String toDate) {
+        // Default to now
+        return parseDate(toDate, DateTime.now().withZone(DateTimeZone.UTC), false);
+    }
+
+    /**
+     * Parses a query param representing a date into an actual date object.
+     *
+     * @param dateStr
+     * @param defaultDate
+     * @param floor
+     */
+    private DateTime parseDate(String dateStr, DateTime defaultDate, boolean floor) {
+        if ("now".equals(dateStr)) { //$NON-NLS-1$
+            return DateTime.now();
+        }
+        if (dateStr.length() == 10) {
+            DateTime parsed = ISODateTimeFormat.date().withZoneUTC().parseDateTime(dateStr);
+            // If what we want is the floor, then just return it.  But if we want the
+            // ceiling of the date, then we need to set the right params.
+            if (!floor) {
+                parsed = parsed.plusDays(1).minusMillis(1);
+            }
+            return parsed;
+        }
+        if (dateStr.length() == 20) {
+            return ISODateTimeFormat.dateTimeNoMillis().withZoneUTC().parseDateTime(dateStr);
+        }
+        if (dateStr.length() == 24) {
+            return ISODateTimeFormat.dateTime().withZoneUTC().parseDateTime(dateStr);
+        }
+        return defaultDate;
+    }
+
+    /**
+     * Ensures that the given date range is valid.
+     *
+     * @param from
+     * @param to
+     */
+    private void validateMetricRange(DateTime from, DateTime to) throws InvalidMetricCriteriaException {
+        if (from.isAfter(to)) {
+            throw ExceptionFactory.invalidMetricCriteriaException(Messages.i18n.format("OrganizationResourceImpl.InvalidMetricDateRange")); //$NON-NLS-1$
+        }
+    }
+
+    /**
+     * Ensures that a time series can be created for the given date range and
+     * interval, and that the
+     *
+     * @param from
+     * @param to
+     * @param interval
+     */
+    private void validateTimeSeriesMetric(DateTime from, DateTime to, HistogramIntervalType interval)
+            throws InvalidMetricCriteriaException {
+        long millis = to.getMillis() - from.getMillis();
+        long divBy = ONE_DAY_MILLIS;
+        switch (interval) {
+            case day:
+                divBy = ONE_DAY_MILLIS;
+                break;
+            case hour:
+                divBy = ONE_HOUR_MILLIS;
+                break;
+            case minute:
+                divBy = ONE_MINUTE_MILLIS;
+                break;
+            case month:
+                divBy = ONE_MONTH_MILLIS;
+                break;
+            case week:
+                divBy = ONE_WEEK_MILLIS;
+                break;
+            default:
+                break;
+        }
+        long totalDataPoints = millis / divBy;
+        if (totalDataPoints > 5000) {
+            throw ExceptionFactory.invalidMetricCriteriaException(Messages.i18n.format("OrganizationResourceImpl.MetricDataSetTooLarge")); //$NON-NLS-1$
+        }
+    }
 
 }

@@ -87,25 +87,6 @@ import java.util.Map.Entry;
 @ApplicationScoped
 public class OrganizationResource implements IOrganizationResource {
 
-    @SuppressWarnings("nls")
-    public static final String[] DATE_FORMATS = {
-            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-            "yyyy-MM-dd'T'HH:mm:ss'Z'",
-            "yyyy-MM-dd'T'HH:mm:ssz",
-            "yyyy-MM-dd'T'HH:mm:ss",
-            "yyyy-MM-dd'T'HH:mm",
-            "yyyy-MM-dd",
-            "EEE, dd MMM yyyy HH:mm:ss z",
-            "EEE, dd MMM yyyy HH:mm:ss",
-            "EEE, dd MMM yyyy"
-    };
-
-    private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
-    private static final long ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000;
-    private static final long ONE_DAY_MILLIS = 1 * 24 * 60 * 60 * 1000;
-    private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
-    private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
-
     @Inject
     IStorage storage;
     @Inject
@@ -322,7 +303,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.getAppVersion(organizationId,applicationId,version);
+        return orgFacade.getAppVersion(organizationId, applicationId, version);
     }
 
     @ApiOperation(value = "Get Application Version Activity",
@@ -337,27 +318,11 @@ public class OrganizationResource implements IOrganizationResource {
                                                                    @PathParam("applicationId") String applicationId,
                                                                    @PathParam("version") String version,
                                                                    @QueryParam("page") int page,
-                                                                   @QueryParam("count") int pageSize)
-            throws ApplicationVersionNotFoundException, NotAuthorizedException {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
-        try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, applicationId, version, ApplicationBean.class, paging);
-            return rval;
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-            throw new SystemErrorException(e);
-        }
+                                                                   @QueryParam("count") int pageSize) throws ApplicationVersionNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getAppVersionActivity(organizationId, applicationId, version, page, pageSize);
     }
 
     @ApiOperation(value = "Get App Usage Metrics (per Service)",
@@ -372,15 +337,13 @@ public class OrganizationResource implements IOrganizationResource {
                                                         @PathParam("applicationId") String applicationId,
                                                         @PathParam("version") String version,
                                                         @QueryParam("from") String fromDate,
-                                                        @QueryParam("to") String toDate) throws NotAuthorizedException,
-            InvalidMetricCriteriaException {
+                                                        @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.appView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getAppUsagePerService(organizationId, applicationId, version, from, to);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getAppUsagePerService(organizationId,applicationId,version,fromDate,toDate);
     }
 
     @ApiOperation(value = "List Application Versions",
@@ -963,7 +926,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkNotNull(bean);
         FieldValidator.validateVersion(bean.getVersion());
-        return createServiceVersion(organizationId,serviceId,bean);
+        return createServiceVersion(organizationId, serviceId, bean);
     }
 
 
@@ -999,7 +962,7 @@ public class OrganizationResource implements IOrganizationResource {
             throws ServiceVersionNotFoundException, NotAuthorizedException {
         try {
             ServiceVersionBean serviceVersion = getServiceVersion(organizationId, serviceId, version);
-            InputStream definition = orgFacade.getServiceDefinition(organizationId,serviceId,version);
+            InputStream definition = orgFacade.getServiceDefinition(organizationId, serviceId, version);
             ResponseBuilder builder = Response.ok().entity(definition);
             if (serviceVersion.getDefinitionType() == ServiceDefinitionType.SwaggerJSON) {
                 builder.type(MediaType.APPLICATION_JSON);
@@ -1493,15 +1456,10 @@ public class OrganizationResource implements IOrganizationResource {
             @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        if (interval == null) {
-            interval = HistogramIntervalType.day;
-        }
-        validateMetricRange(from, to);
-        validateTimeSeriesMetric(from, to, interval);
-        return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getUsage(organizationId, serviceId, version, interval, fromDate, toDate);
     }
 
     @ApiOperation(value = "Get Service Usage Metrics (per App)",
@@ -1519,11 +1477,10 @@ public class OrganizationResource implements IOrganizationResource {
                                           @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getUsagePerApp(organizationId, serviceId, version, from, to);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getUsagePerApp(organizationId,serviceId,version,fromDate,toDate);
     }
 
     @ApiOperation(value = "Get Service Usage Metrics (per Plan)",
@@ -1541,11 +1498,10 @@ public class OrganizationResource implements IOrganizationResource {
                                             @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getUsagePerPlan(organizationId, serviceId, version, from, to);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getUsagePerPlan(organizationId,serviceId,version,fromDate,toDate);
     }
 
     @ApiOperation(value = "Get System Status",
@@ -1561,19 +1517,13 @@ public class OrganizationResource implements IOrganizationResource {
                                                        @PathParam("version") String version,
                                                        @QueryParam("interval") HistogramIntervalType interval,
                                                        @QueryParam("from") String fromDate,
-                                                       @QueryParam("to") String toDate)
-            throws NotAuthorizedException, InvalidMetricCriteriaException {
+                                                       @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        if (interval == null) {
-            interval = HistogramIntervalType.day;
-        }
-        validateMetricRange(from, to);
-        validateTimeSeriesMetric(from, to, interval);
-        return metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getResponseStats(organizationId,serviceId,version,interval,fromDate,toDate);
     }
 
     @ApiOperation(value = "Get Service Response Statistics (Summary)",
@@ -1588,15 +1538,13 @@ public class OrganizationResource implements IOrganizationResource {
                                                             @PathParam("serviceId") String serviceId,
                                                             @PathParam("version") String version,
                                                             @QueryParam("from") String fromDate,
-                                                            @QueryParam("to") String toDate) throws NotAuthorizedException,
-            InvalidMetricCriteriaException {
+                                                            @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getResponseStatsSummary(organizationId,serviceId,version,fromDate,toDate);
     }
 
     @ApiOperation(value = "Get Service Response Statistics (per App)",
@@ -1615,11 +1563,10 @@ public class OrganizationResource implements IOrganizationResource {
             InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getResponseStatsPerApp(organizationId, serviceId, version, from, to);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getResponseStatsPerApp(organizationId,serviceId,version,fromDate,toDate);
     }
 
     @ApiOperation(value = "Get Service Response Statistics (per Plan)",
@@ -1638,11 +1585,10 @@ public class OrganizationResource implements IOrganizationResource {
             InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getResponseStatsPerPlan(organizationId, serviceId, version, from, to);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getResponseStatsPerPlan(organizationId,serviceId,version,fromDate,toDate);
     }
 
     @ApiOperation(value = "Create Plan",
@@ -2465,106 +2411,6 @@ public class OrganizationResource implements IOrganizationResource {
      */
     public void setApiKeyGenerator(IApiKeyGenerator apiKeyGenerator) {
         this.apiKeyGenerator = apiKeyGenerator;
-    }
-
-    /**
-     * Parse the to date query param.
-     *
-     * @param fromDate
-     */
-    private DateTime parseFromDate(String fromDate) {
-        // Default to the last 30 days
-        DateTime defaultFrom = DateTime.now().withZone(DateTimeZone.UTC).minusDays(30).withHourOfDay(0)
-                .withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
-        return parseDate(fromDate, defaultFrom, true);
-    }
-
-    /**
-     * Parse the from date query param.
-     *
-     * @param toDate
-     */
-    private DateTime parseToDate(String toDate) {
-        // Default to now
-        return parseDate(toDate, DateTime.now().withZone(DateTimeZone.UTC), false);
-    }
-
-    /**
-     * Parses a query param representing a date into an actual date object.
-     *
-     * @param dateStr
-     * @param defaultDate
-     * @param floor
-     */
-    private static DateTime parseDate(String dateStr, DateTime defaultDate, boolean floor) {
-        if ("now".equals(dateStr)) { //$NON-NLS-1$
-            return DateTime.now();
-        }
-        if (dateStr.length() == 10) {
-            DateTime parsed = ISODateTimeFormat.date().withZoneUTC().parseDateTime(dateStr);
-            // If what we want is the floor, then just return it.  But if we want the
-            // ceiling of the date, then we need to set the right params.
-            if (!floor) {
-                parsed = parsed.plusDays(1).minusMillis(1);
-            }
-            return parsed;
-        }
-        if (dateStr.length() == 20) {
-            return ISODateTimeFormat.dateTimeNoMillis().withZoneUTC().parseDateTime(dateStr);
-        }
-        if (dateStr.length() == 24) {
-            return ISODateTimeFormat.dateTime().withZoneUTC().parseDateTime(dateStr);
-        }
-        return defaultDate;
-    }
-
-    /**
-     * Ensures that the given date range is valid.
-     *
-     * @param from
-     * @param to
-     */
-    private void validateMetricRange(DateTime from, DateTime to) throws InvalidMetricCriteriaException {
-        if (from.isAfter(to)) {
-            throw ExceptionFactory.invalidMetricCriteriaException(Messages.i18n.format("OrganizationResourceImpl.InvalidMetricDateRange")); //$NON-NLS-1$
-        }
-    }
-
-    /**
-     * Ensures that a time series can be created for the given date range and
-     * interval, and that the
-     *
-     * @param from
-     * @param to
-     * @param interval
-     */
-    private void validateTimeSeriesMetric(DateTime from, DateTime to, HistogramIntervalType interval)
-            throws InvalidMetricCriteriaException {
-        long millis = to.getMillis() - from.getMillis();
-        long divBy = ONE_DAY_MILLIS;
-        switch (interval) {
-            case day:
-                divBy = ONE_DAY_MILLIS;
-                break;
-            case hour:
-                divBy = ONE_HOUR_MILLIS;
-                break;
-            case minute:
-                divBy = ONE_MINUTE_MILLIS;
-                break;
-            case month:
-                divBy = ONE_MONTH_MILLIS;
-                break;
-            case week:
-                divBy = ONE_WEEK_MILLIS;
-                break;
-            default:
-                break;
-        }
-        long totalDataPoints = millis / divBy;
-        if (totalDataPoints > 5000) {
-            throw ExceptionFactory.invalidMetricCriteriaException(Messages.i18n.format("OrganizationResourceImpl.MetricDataSetTooLarge")); //$NON-NLS-1$
-        }
     }
 
 }
