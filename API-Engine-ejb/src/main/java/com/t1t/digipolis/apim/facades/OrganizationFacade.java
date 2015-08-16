@@ -25,10 +25,7 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
-import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
-import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
+import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -825,6 +822,69 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         validateMetricRange(from, to);
         return metrics.getResponseStatsPerPlan(organizationId, serviceId, version, from, to);
     }
+
+    public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId){
+        // Try to get the application first - will throw a ApplicationNotFoundException if not found.
+        getApp(organizationId, applicationId);
+        try {
+            return query.getApplicationVersions(organizationId, applicationId);
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public ContractBean getContract(String organizationId,String applicationId,String version,Long contractId){
+        boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
+        try {
+            ContractBean contract = storage.getContract(contractId);
+            if (contract == null)
+                throw ExceptionFactory.contractNotFoundException(contractId);
+            // Hide some data if the user doesn't have the appView permission
+            if (!hasPermission) {
+                contract.setApikey(null);
+            }
+            log.debug(String.format("Got contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
+            return contract;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteAllContracts(String organizationId,String applicationId,String version){
+        List<ContractSummaryBean> contracts = getApplicationVersionContracts(organizationId, applicationId, version);
+        for (ContractSummaryBean contract : contracts) {
+            deleteContract(organizationId, applicationId, version, contract.getContractId());
+        }
+    }
+
+    public void deleteContract(String organizationId,String applicationId,String version,Long contractId){
+        try {
+            ContractBean contract = storage.getContract(contractId);
+            if (contract == null) {
+                throw ExceptionFactory.contractNotFoundException(contractId);
+            }
+            if (!contract.getApplication().getApplication().getOrganization().getId().equals(organizationId)) {
+                throw ExceptionFactory.contractNotFoundException(contractId);
+            }
+            if (!contract.getApplication().getApplication().getId().equals(applicationId)) {
+                throw ExceptionFactory.contractNotFoundException(contractId);
+            }
+            if (!contract.getApplication().getVersion().equals(version)) {
+                throw ExceptionFactory.contractNotFoundException(contractId);
+            }
+            storage.deleteContract(contract);
+            storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
+            storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
+            log.debug(String.format("Deleted contract: %s", contract)); //$NON-NLS-1$
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
 
 
     /*********************************************UTILITIES**********************************************/
