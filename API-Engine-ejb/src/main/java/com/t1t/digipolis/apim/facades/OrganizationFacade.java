@@ -14,8 +14,7 @@ import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
-import com.t1t.digipolis.apim.beans.plans.PlanStatus;
-import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
+import com.t1t.digipolis.apim.beans.plans.*;
 import com.t1t.digipolis.apim.beans.policies.*;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -1068,9 +1067,193 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public List<ServiceVersionSummaryBean> listServiceVersions(String organizationId,String serviceId){
+        // Try to get the service first - will throw a ServiceNotFoundException if not found.
+        getService(organizationId, serviceId);
+        try {
+            return query.getServiceVersions(organizationId, serviceId);
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
 
+    public List<ServicePlanSummaryBean> getServiceVersionPlans(String organizationId,String serviceId,String version){
+        // Ensure the version exists first.
+        getServiceVersion(organizationId, serviceId, version);
+        try {
+            return query.getServiceVersionPlans(organizationId, serviceId, version);
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
 
+    public void updateServicePolicy(String organizationId,String serviceId, String version,long policyId, UpdatePolicyBean bean){
+        // Make sure the service exists
+        getServiceVersion(organizationId, serviceId, version);
+        try {
+            PolicyBean policy = storage.getPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
+            if (policy == null) {
+                throw ExceptionFactory.policyNotFoundException(policyId);
+            }
+            // TODO capture specific change values when auditing policy updates
+            if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
+                policy.setConfiguration(bean.getConfiguration());
+            }
+            policy.setModifiedOn(new Date());
+            policy.setModifiedBy(securityContext.getCurrentUser());
+            storage.updatePolicy(policy);
+            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Service, securityContext));
 
+            log.debug(String.format("Updated service policy %s", policy)); //$NON-NLS-1$
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteServicePolicy(String organizationId,String serviceId,String version,long policyId){
+        // Make sure the service exists
+        ServiceVersionBean service = getServiceVersion(organizationId, serviceId, version);
+        if (service.getStatus() == ServiceStatus.Published || service.getStatus() == ServiceStatus.Retired) {
+            throw ExceptionFactory.invalidServiceStatusException();
+        }
+        try {
+            PolicyBean policy = this.storage.getPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
+            if (policy == null) {
+                throw ExceptionFactory.policyNotFoundException(policyId);
+            }
+            storage.deletePolicy(policy);
+            storage.createAuditEntry(AuditUtils.policyRemoved(policy, PolicyType.Service, securityContext));
+            log.debug(String.format("Deleted service %s policy: %s", serviceId, policy)); //$NON-NLS-1$
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteServiceDefinition(String organizationId,String serviceId,String version){
+        try {
+            ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
+            if (serviceVersion == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
+            serviceVersion.setDefinitionType(ServiceDefinitionType.None);
+            storage.createAuditEntry(AuditUtils.serviceDefinitionDeleted(serviceVersion, securityContext));
+            storage.deleteServiceDefinition(serviceVersion);
+            storage.updateServiceVersion(serviceVersion);
+            log.debug(String.format("Deleted service %s definition %s", serviceId, serviceVersion)); //$NON-NLS-1$
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void reorderServicePolicies(String organizationId,String serviceId,String version,PolicyChainBean policyChain){
+        // Make sure the service exists
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        try {
+            List<Long> newOrder = new ArrayList<>(policyChain.getPolicies().size());
+            for (PolicySummaryBean psb : policyChain.getPolicies()) {
+                newOrder.add(psb.getId());
+            }
+            storage.reorderPolicies(PolicyType.Service, organizationId, serviceId, version, newOrder);
+            storage.createAuditEntry(AuditUtils.policiesReordered(svb, PolicyType.Service, securityContext));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public PolicyChainBean getServicePolicyChain(String organizationId,String serviceId,String version,String planId){
+        // Try to get the service first - will throw an exception if not found.
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        try {
+            String planVersion = null;
+            Set<ServicePlanBean> plans = svb.getPlans();
+            if (plans != null) {
+                for (ServicePlanBean servicePlanBean : plans) {
+                    if (servicePlanBean.getPlanId().equals(planId)) {
+                        planVersion = servicePlanBean.getVersion();
+                        break;
+                    }
+                }
+            }
+            if (planVersion == null) {
+                throw ExceptionFactory.planNotFoundException(planId);
+            }
+            List<PolicySummaryBean> servicePolicies = query.getPolicies(organizationId, serviceId, version, PolicyType.Service);
+            List<PolicySummaryBean> planPolicies = query.getPolicies(organizationId, planId, planVersion, PolicyType.Plan);
+
+            PolicyChainBean chain = new PolicyChainBean();
+            chain.getPolicies().addAll(planPolicies);
+            chain.getPolicies().addAll(servicePolicies);
+            return chain;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<ContractSummaryBean> getServiceVersionContracts(String organizationId,String serviceId,String version,int page, int pageSize){
+        if (page <= 1) {
+            page = 1;
+        }
+        if (pageSize == 0) {
+            pageSize = 20;
+        }
+        // Try to get the service first - will throw an exception if not found.
+        getServiceVersion(organizationId, serviceId, version);
+        try {
+            List<ContractSummaryBean> contracts = query.getServiceContracts(organizationId, serviceId, version, page, pageSize);
+
+            for (ContractSummaryBean contract : contracts) {
+                if (!securityContext.hasPermission(PermissionType.appView, contract.getAppOrganizationId())) {
+                    contract.setApikey(null);
+                }
+            }
+            log.debug(String.format("Got service %s version %s contracts: %s", serviceId, version, contracts)); //$NON-NLS-1$
+            return contracts;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public PlanBean createPlan(String organizationId, NewPlanBean bean){
+        PlanBean newPlan = new PlanBean();
+        newPlan.setName(bean.getName());
+        newPlan.setDescription(bean.getDescription());
+        newPlan.setId(BeanUtils.idFromName(bean.getName()));
+        newPlan.setCreatedOn(new Date());
+        newPlan.setCreatedBy(securityContext.getCurrentUser());
+        try {
+            // Store/persist the new plan
+            OrganizationBean orgBean = storage.getOrganization(organizationId);
+            if (orgBean == null) {
+                throw ExceptionFactory.organizationNotFoundException(organizationId);
+            }
+            if (storage.getPlan(orgBean.getId(), newPlan.getId()) != null) {
+                throw ExceptionFactory.planAlreadyExistsException(newPlan.getName());
+            }
+            newPlan.setOrganization(orgBean);
+            storage.createPlan(newPlan);
+            storage.createAuditEntry(AuditUtils.planCreated(newPlan, securityContext));
+
+            if (bean.getInitialVersion() != null) {
+                NewPlanVersionBean newPlanVersion = new NewPlanVersionBean();
+                newPlanVersion.setVersion(bean.getInitialVersion());
+                createPlanVersionInternal(newPlanVersion, newPlan);
+            }
+            log.debug(String.format("Created plan: %s", newPlan)); //$NON-NLS-1$
+            return newPlan;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
 
 
     /*********************************************UTILITIES**********************************************/
@@ -1520,8 +1703,7 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
      * @throws ApplicationNotFoundException
      * @throws NotAuthorizedException
      */
-    protected ApiRegistryBean getApiRegistry(String organizationId, String applicationId, String version)
-            throws ApplicationNotFoundException, NotAuthorizedException {
+    protected ApiRegistryBean getApiRegistry(String organizationId, String applicationId, String version) throws ApplicationNotFoundException, NotAuthorizedException {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
         // Try to get the application first - will throw a ApplicationNotFoundException if not found.
         getAppVersion(organizationId, applicationId, version);
@@ -1569,4 +1751,33 @@ public class OrganizationFacade  {//extends AbstractFacade<OrganizationBean>
             }
         }
     }
+
+    /**
+     * Creates a plan version.
+     *
+     * @param bean
+     * @param plan
+     * @throws StorageException
+     */
+    protected PlanVersionBean createPlanVersionInternal(NewPlanVersionBean bean, PlanBean plan)
+            throws StorageException {
+        if (!BeanUtils.isValidVersion(bean.getVersion())) {
+            throw new StorageException("Invalid/illegal plan version: " + bean.getVersion()); //$NON-NLS-1$
+        }
+        PlanVersionBean newVersion = new PlanVersionBean();
+        newVersion.setCreatedBy(securityContext.getCurrentUser());
+        newVersion.setCreatedOn(new Date());
+        newVersion.setModifiedBy(securityContext.getCurrentUser());
+        newVersion.setModifiedOn(new Date());
+        newVersion.setStatus(PlanStatus.Created);
+        newVersion.setPlan(plan);
+        newVersion.setVersion(bean.getVersion());
+        storage.createPlanVersion(newVersion);
+        storage.createAuditEntry(AuditUtils.planVersionCreated(newVersion, securityContext));
+        return newVersion;
+    }
+
+
+
+
 }
