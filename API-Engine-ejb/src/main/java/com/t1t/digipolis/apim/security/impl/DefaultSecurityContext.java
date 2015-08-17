@@ -33,7 +33,7 @@ public class DefaultSecurityContext extends AbstractSecurityContext {
     @Override
     public String getCurrentUser() {
         //return servletRequest.get().getRemoteUser();
-        return "1";//fictive user id
+        return "admin";//fictive user id
     }
 
     /**
@@ -49,7 +49,7 @@ public class DefaultSecurityContext extends AbstractSecurityContext {
      */
     @Override
     public String getFullName() {
-        return "admin";
+        return "Administrator";
     }
 
     /**
