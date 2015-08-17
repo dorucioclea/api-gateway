@@ -1477,39 +1477,8 @@ public class OrganizationResource implements IOrganizationResource {
     public void grant(@PathParam("organizationId") String organizationId, GrantRolesBean bean) throws OrganizationNotFoundException,
             RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) throw ExceptionFactory.notAuthorizedException();
-        // Verify that the references are valid.
-        get(organizationId);
-        users.get(bean.getUserId());
-        for (String roleId : bean.getRoleIds()) {
-            roles.get(roleId);
-        }
-
-        MembershipData auditData = new MembershipData();
-        auditData.setUserId(bean.getUserId());
-        try {
-            for (String roleId : bean.getRoleIds()) {
-                RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), roleId, organizationId);
-                membership.setCreatedOn(new Date());
-                // If the membership already exists, that's fine!
-                if (idmStorage.getMembership(bean.getUserId(), roleId, organizationId) == null) {
-                    idmStorage.createMembership(membership);
-                }
-                auditData.addRole(roleId);
-            }
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-        try {
-
-            storage.createAuditEntry(AuditUtils.membershipGranted(organizationId, auditData, securityContext));
-
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-
-            throw new SystemErrorException(e);
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        orgFacade.grant(organizationId,bean);
     }
 
     @ApiOperation(value = "Revoke Single Membership",
@@ -1522,39 +1491,12 @@ public class OrganizationResource implements IOrganizationResource {
     public void revoke(@PathParam("organizationId") String organizationId,
                        @PathParam("roleId") String roleId,
                        @PathParam("userId") String userId)
-            throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException,
-            NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-        get(organizationId);
-        users.get(userId);
-        roles.get(roleId);
-
-        MembershipData auditData = new MembershipData();
-        auditData.setUserId(userId);
-        boolean revoked = false;
-        try {
-            idmStorage.deleteMembership(userId, roleId, organizationId);
-            auditData.addRole(roleId);
-            revoked = true;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-
-        if (revoked) {
-            try {
-
-                storage.createAuditEntry(AuditUtils.membershipRevoked(organizationId, auditData, securityContext));
-
-                log.debug(String.format("Revoked User %s Role %s Org %s", userId, roleId, organizationId)); //$NON-NLS-1$
-            } catch (AbstractRestException e) {
-
-                throw e;
-            } catch (Exception e) {
-
-                throw new SystemErrorException(e);
-            }
-        }
+            throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(roleId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        orgFacade.revoke(organizationId,roleId,userId);
     }
 
     @ApiOperation(value = "Revoke All Memberships",
@@ -1566,30 +1508,10 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/members/{userId}")
     public void revokeAll(@PathParam("organizationId") String organizationId, @PathParam("userId") String userId) throws OrganizationNotFoundException,
             RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-        get(organizationId);
-        users.get(userId);
-        try {
-            idmStorage.deleteMemberships(userId, organizationId);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-
-        MembershipData auditData = new MembershipData();
-        auditData.setUserId(userId);
-        auditData.addRole("*"); //$NON-NLS-1$
-        try {
-
-            storage.createAuditEntry(AuditUtils.membershipRevoked(organizationId, auditData, securityContext));
-
-        } catch (AbstractRestException e) {
-
-            throw e;
-        } catch (Exception e) {
-
-            throw new SystemErrorException(e);
-        }
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        orgFacade.revokeAll(organizationId,userId);
     }
 
     @ApiOperation(value = "List Organization Members",
@@ -1600,179 +1522,8 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/members")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<MemberBean> listMembers(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException,
-            NotAuthorizedException {
-        get(organizationId);
-
-        try {
-            Set<RoleMembershipBean> memberships = idmStorage.getOrgMemberships(organizationId);
-            TreeMap<String, MemberBean> members = new TreeMap<>();
-            for (RoleMembershipBean membershipBean : memberships) {
-                String userId = membershipBean.getUserId();
-                MemberBean member = members.get(userId);
-                if (member == null) {
-                    UserBean user = idmStorage.getUser(userId);
-                    member = new MemberBean();
-                    member.setEmail(user.getEmail());
-                    member.setUserId(userId);
-                    member.setUserName(user.getFullName());
-                    member.setRoles(new ArrayList<MemberRoleBean>());
-                    members.put(userId, member);
-                }
-                String roleId = membershipBean.getRoleId();
-                RoleBean role = idmStorage.getRole(roleId);
-                MemberRoleBean mrb = new MemberRoleBean();
-                mrb.setRoleId(roleId);
-                mrb.setRoleName(role.getName());
-                member.getRoles().add(mrb);
-                if (member.getJoinedOn() == null || membershipBean.getCreatedOn().compareTo(member.getJoinedOn()) < 0) {
-                    member.setJoinedOn(membershipBean.getCreatedOn());
-                }
-            }
-            return new ArrayList<>(members.values());
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+    public List<MemberBean> listMembers(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        return orgFacade.listMembers(organizationId);
     }
-
-    /**
-     * @return the storage
-     */
-    public IStorage getStorage() {
-        return storage;
-    }
-
-    /**
-     * @param storage the storage to set
-     */
-    public void setStorage(JpaStorage storage) {
-        this.storage = storage;
-    }
-
-    /**
-     * @return the idmStorage
-     */
-    public IIdmStorage getIdmStorage() {
-        return idmStorage;
-    }
-
-    /**
-     * @param idmStorage the idmStorage to set
-     */
-    public void setIdmStorage(JpaIdmStorage idmStorage) {
-        this.idmStorage = idmStorage;
-    }
-
-    /**
-     * @return the users
-     */
-    public IUserResource getUsers() {
-        return users;
-    }
-
-    /**
-     * @param users the users to set
-     */
-    public void setUsers(IUserResource users) {
-        this.users = users;
-    }
-
-    /**
-     * @return the roles
-     */
-    public IRoleResource getRoles() {
-        return roles;
-    }
-
-    /**
-     * @param roles the roles to set
-     */
-    public void setRoles(IRoleResource roles) {
-        this.roles = roles;
-    }
-
-    /**
-     * @return the securityContext
-     */
-    public ISecurityContext getSecurityContext() {
-        return securityContext;
-    }
-
-    /**
-     * @param securityContext the securityContext to set
-     */
-    public void setSecurityContext(ISecurityContext securityContext) {
-        this.securityContext = securityContext;
-    }
-
-    /**
-     * @return the query
-     */
-    public IStorageQuery getQuery() {
-        return query;
-    }
-
-    /**
-     * @param query the query to set
-     */
-    public void setQuery(JpaStorage query) {
-        this.query = query;
-    }
-
-    /**
-     * @return the metrics
-     */
-    public IMetricsAccessor getMetrics() {
-        return this.metrics;
-    }
-
-    /**
-     * @param metrics the metrics to set
-     */
-    public void setMetrics(IMetricsAccessor metrics) {
-        this.metrics = metrics;
-    }
-
-    /**
-     * @return the applicationValidator
-     */
-    public IApplicationValidator getApplicationValidator() {
-        return applicationValidator;
-    }
-
-    /**
-     * @param applicationValidator the applicationValidator to set
-     */
-    public void setApplicationValidator(IApplicationValidator applicationValidator) {
-        this.applicationValidator = applicationValidator;
-    }
-
-    /**
-     * @return the serviceValidator
-     */
-    public IServiceValidator getServiceValidator() {
-        return serviceValidator;
-    }
-
-    /**
-     * @param serviceValidator the serviceValidator to set
-     */
-    public void setServiceValidator(IServiceValidator serviceValidator) {
-        this.serviceValidator = serviceValidator;
-    }
-
-    /**
-     * @return the apiKeyGenerator
-     */
-    public IApiKeyGenerator getApiKeyGenerator() {
-        return apiKeyGenerator;
-    }
-
-    /**
-     * @param apiKeyGenerator the apiKeyGenerator to set
-     */
-    public void setApiKeyGenerator(IApiKeyGenerator apiKeyGenerator) {
-        this.apiKeyGenerator = apiKeyGenerator;
-    }
-
 }

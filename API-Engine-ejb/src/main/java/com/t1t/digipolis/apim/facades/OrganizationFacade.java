@@ -8,10 +8,9 @@ import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
-import com.t1t.digipolis.apim.beans.idm.GrantRolesBean;
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
-import com.t1t.digipolis.apim.beans.idm.RoleBean;
-import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
+import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.members.MemberBean;
+import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
@@ -67,8 +66,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     @Inject private IServiceValidator serviceValidator;
     @Inject private IMetricsAccessor metrics;
     @Inject private IGatewayLinkFactory gatewayLinkFactory;
-/*    @Inject private IUserResource users;
-    @Inject private IRoleResource roles;*/
+    @Inject private UserFacade userFacade;
+    @Inject private RoleFacade roleFacade;
 
 
     @SuppressWarnings("nls")
@@ -1465,6 +1464,115 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public void grant(String organizationId, GrantRolesBean bean){
+        // Verify that the references are valid.
+        get(organizationId);
+        userFacade.get(bean.getUserId());
+        for (String roleId : bean.getRoleIds()) {
+            roleFacade.get(roleId);
+        }
+        MembershipData auditData = new MembershipData();
+        auditData.setUserId(bean.getUserId());
+        try {
+            for (String roleId : bean.getRoleIds()) {
+                RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), roleId, organizationId);
+                membership.setCreatedOn(new Date());
+                // If the membership already exists, that's fine!
+                if (idmStorage.getMembership(bean.getUserId(), roleId, organizationId) == null) {
+                    idmStorage.createMembership(membership);
+                }
+                auditData.addRole(roleId);
+            }
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+        try {
+            storage.createAuditEntry(AuditUtils.membershipGranted(organizationId, auditData, securityContext));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void revoke(String organizationId,String roleId,String userId){
+        get(organizationId);
+        userFacade.get(userId);
+        roleFacade.get(roleId);
+        MembershipData auditData = new MembershipData();
+        auditData.setUserId(userId);
+        boolean revoked = false;
+        try {
+            idmStorage.deleteMembership(userId, roleId, organizationId);
+            auditData.addRole(roleId);
+            revoked = true;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+        if (revoked) {
+            try {
+                storage.createAuditEntry(AuditUtils.membershipRevoked(organizationId, auditData, securityContext));
+                log.debug(String.format("Revoked User %s Role %s Org %s", userId, roleId, organizationId)); //$NON-NLS-1$
+            } catch (AbstractRestException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new SystemErrorException(e);
+            }
+        }
+    }
+
+    public void revokeAll(String organizationId,String userId){
+        get(organizationId);
+        userFacade.get(userId);
+        try {
+            idmStorage.deleteMemberships(userId, organizationId);
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+        MembershipData auditData = new MembershipData();
+        auditData.setUserId(userId);
+        auditData.addRole("*"); //$NON-NLS-1$
+        try {
+            storage.createAuditEntry(AuditUtils.membershipRevoked(organizationId, auditData, securityContext));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<MemberBean> listMembers(String organizationId){
+        get(organizationId);
+        try {
+            Set<RoleMembershipBean> memberships = idmStorage.getOrgMemberships(organizationId);
+            TreeMap<String, MemberBean> members = new TreeMap<>();
+            for (RoleMembershipBean membershipBean : memberships) {
+                String userId = membershipBean.getUserId();
+                MemberBean member = members.get(userId);
+                if (member == null) {
+                    UserBean user = idmStorage.getUser(userId);
+                    member = new MemberBean();
+                    member.setEmail(user.getEmail());
+                    member.setUserId(userId);
+                    member.setUserName(user.getFullName());
+                    member.setRoles(new ArrayList<MemberRoleBean>());
+                    members.put(userId, member);
+                }
+                String roleId = membershipBean.getRoleId();
+                RoleBean role = idmStorage.getRole(roleId);
+                MemberRoleBean mrb = new MemberRoleBean();
+                mrb.setRoleId(roleId);
+                mrb.setRoleName(role.getName());
+                member.getRoles().add(mrb);
+                if (member.getJoinedOn() == null || membershipBean.getCreatedOn().compareTo(member.getJoinedOn()) < 0) {
+                    member.setJoinedOn(membershipBean.getCreatedOn());
+                }
+            }
+            return new ArrayList<>(members.values());
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
 
     /*********************************************UTILITIES**********************************************/
     /**
