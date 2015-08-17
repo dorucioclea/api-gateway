@@ -1,5 +1,6 @@
 package com.t1t.digipolis.rest.resources;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
@@ -13,6 +14,7 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
@@ -24,6 +26,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -50,6 +53,7 @@ public class UserResource implements IUserResource {
     IStorageQuery query;
     @Inject @APIEngineContext
     Logger log;
+    @Inject private UserFacade userFacade;
     /**
      * Constructor.
      */
@@ -65,15 +69,8 @@ public class UserResource implements IUserResource {
     @Path("/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     public UserBean get(@PathParam("userId") String userId) throws UserNotFoundException {
-        try {
-            UserBean user = idmStorage.getUser(userId);
-            if (user == null) {
-                throw ExceptionFactory.userNotFoundException(userId);
-            }
-            return user;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        return userFacade.get(userId);
     }
 
     @ApiOperation(value = "Update a User by ID",
@@ -85,23 +82,10 @@ public class UserResource implements IUserResource {
     @Path("/{userId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void update(@PathParam("userId") String userId, UpdateUserBean user) throws UserNotFoundException, NotAuthorizedException {
-        if (!securityContext.isAdmin() && !securityContext.getCurrentUser().equals(userId))
-            throw ExceptionFactory.notAuthorizedException();
-        try {
-            UserBean updatedUser = idmStorage.getUser(userId);
-            if (updatedUser == null) {
-                throw ExceptionFactory.userNotFoundException(userId);
-            }
-            if (user.getEmail() != null) {
-                updatedUser.setEmail(user.getEmail());
-            }
-            if (user.getFullName() != null) {
-                updatedUser.setFullName(user.getFullName());
-            }
-            idmStorage.updateUser(updatedUser);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        if (!securityContext.isAdmin() && !securityContext.getCurrentUser().equals(userId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkNotNull(user);
+        userFacade.update(userId,user);
     }
 
     @ApiOperation(value = "Search for Users",
@@ -113,13 +97,8 @@ public class UserResource implements IUserResource {
     @Path("/search")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<UserBean> search(SearchCriteriaBean criteria)
-            throws InvalidSearchCriteriaException {
-        try {
-            return idmStorage.findUsers(criteria);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+    public SearchResultsBean<UserBean> search(SearchCriteriaBean criteria) throws InvalidSearchCriteriaException {
+        return userFacade.search(criteria);
     }
 
     @ApiOperation(value = "List User Organizations",
@@ -131,16 +110,8 @@ public class UserResource implements IUserResource {
     @Path("/{userId}/organizations")
     @Produces(MediaType.APPLICATION_JSON)
     public List<OrganizationSummaryBean> getOrganizations(@PathParam("userId") String userId) {
-        Set<String> permittedOrganizations = new HashSet<>();
-        try {
-            Set<RoleMembershipBean> memberships = idmStorage.getUserMemberships(userId);
-            for (RoleMembershipBean membership : memberships) {
-                permittedOrganizations.add(membership.getOrganizationId());
-            }
-            return query.getOrgs(permittedOrganizations);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        return userFacade.getOrganizations(userId);
     }
 
     @ApiOperation(value = "List User Applications",
@@ -152,18 +123,8 @@ public class UserResource implements IUserResource {
     @Path("/{userId}/applications")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ApplicationSummaryBean> getApplications(@PathParam("userId") String userId) {
-        Set<String> permittedOrganizations = new HashSet<>();
-        try {
-            Set<PermissionBean> permissions = idmStorage.getPermissions(userId);
-            for (PermissionBean permission : permissions) {
-                if (permission.getName() == PermissionType.appView) {
-                    permittedOrganizations.add(permission.getOrganizationId());
-                }
-            }
-            return query.getApplicationsInOrgs(permittedOrganizations);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        return userFacade.getApplications(userId);
     }
 
     @ApiOperation(value = "List User Services",
@@ -175,19 +136,8 @@ public class UserResource implements IUserResource {
     @Path("/{userId}/services")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceSummaryBean> getServices(@PathParam("userId") String userId) {
-        Set<String> permittedOrganizations = new HashSet<>();
-        try {
-            Set<PermissionBean> permissions = idmStorage.getPermissions(userId);
-            for (PermissionBean permission : permissions) {
-                if (permission.getName() == PermissionType.svcView) {
-                    permittedOrganizations.add(permission.getOrganizationId());
-                }
-            }
-            return query.getServicesInOrgs(permittedOrganizations);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        return userFacade.getServices(userId);
     }
 
     @ApiOperation(value = "Get User Activity",
@@ -199,77 +149,7 @@ public class UserResource implements IUserResource {
     @Path("/{userId}/activity")
     @Produces(MediaType.APPLICATION_JSON)
     public SearchResultsBean<AuditEntryBean> getActivity(@PathParam("userId") String userId, @QueryParam("page") int page,@QueryParam("count") int pageSize) {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
-        try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditUser(userId, paging);
-            return rval;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-    }
-
-    /**
-     * @return the idmStorage
-     */
-    public IIdmStorage getIdmStorage() {
-        return idmStorage;
-    }
-
-    /**
-     * @param idmStorage the idmStorage to set
-     */
-    public void setIdmStorage(IIdmStorage idmStorage) {
-        this.idmStorage = idmStorage;
-    }
-
-    /**
-     * @return the securityContext
-     */
-    public ISecurityContext getSecurityContext() {
-        return securityContext;
-    }
-
-    /**
-     * @param securityContext the securityContext to set
-     */
-    public void setSecurityContext(ISecurityContext securityContext) {
-        this.securityContext = securityContext;
-    }
-
-    /**
-     * @return the query
-     */
-    public IStorageQuery getQuery() {
-        return query;
-    }
-
-    /**
-     * @param query the query to set
-     */
-    public void setQuery(IStorageQuery query) {
-        this.query = query;
-    }
-
-    /**
-     * @return the storage
-     */
-    public IStorage getStorage() {
-        return storage;
-    }
-
-    /**
-     * @param storage the storage to set
-     */
-    public void setStorage(IStorage storage) {
-        this.storage = storage;
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        return userFacade.getActivity(userId,page,pageSize);
     }
 }
