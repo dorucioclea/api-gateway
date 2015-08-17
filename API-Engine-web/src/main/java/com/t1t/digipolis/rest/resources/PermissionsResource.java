@@ -1,9 +1,11 @@
 package com.t1t.digipolis.rest.resources;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.idm.UserPermissionsBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.facades.PermissionsFacade;
 import com.t1t.digipolis.apim.rest.resources.IPermissionsResource;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
@@ -14,6 +16,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -35,6 +38,7 @@ public class PermissionsResource implements IPermissionsResource {
     ISecurityContext securityContext;
     @Inject @APIEngineContext
     Logger log;
+    @Inject private PermissionsFacade permissionsFacade;
     /**
      * Constructor.
      */
@@ -50,17 +54,9 @@ public class PermissionsResource implements IPermissionsResource {
     @Path("/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     public UserPermissionsBean getPermissionsForUser(@PathParam("userId") String userId) throws UserNotFoundException, NotAuthorizedException {
-        if (!securityContext.isAdmin())
-            throw ExceptionFactory.notAuthorizedException();
-
-        try {
-            UserPermissionsBean bean = new UserPermissionsBean();
-            bean.setUserId(userId);
-            bean.setPermissions(idmStorage.getPermissions(userId));
-            return bean;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        return permissionsFacade.getPermissionsForUser(userId);
     }
 
     @ApiOperation(value = "Get Current User's Permissions",
@@ -71,43 +67,6 @@ public class PermissionsResource implements IPermissionsResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public UserPermissionsBean getPermissionsForCurrentUser() throws UserNotFoundException {
-        try {
-            String currentUser = securityContext.getCurrentUser();
-            UserPermissionsBean bean = new UserPermissionsBean();
-            bean.setUserId(currentUser);
-            bean.setPermissions(idmStorage.getPermissions(currentUser));
-            return bean;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        return permissionsFacade.getPermissionsForCurrentUser();
     }
-
-    /**
-     * @return the idmStorage
-     */
-    public IIdmStorage getIdmStorage() {
-        return idmStorage;
-    }
-
-    /**
-     * @param idmStorage the idmStorage to set
-     */
-    public void setIdmStorage(IIdmStorage idmStorage) {
-        this.idmStorage = idmStorage;
-    }
-
-    /**
-     * @return the securityContext
-     */
-    public ISecurityContext getSecurityContext() {
-        return securityContext;
-    }
-
-    /**
-     * @param securityContext the securityContext to set
-     */
-    public void setSecurityContext(ISecurityContext securityContext) {
-        this.securityContext = securityContext;
-    }
-
 }

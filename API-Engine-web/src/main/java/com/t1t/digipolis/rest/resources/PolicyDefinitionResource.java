@@ -62,7 +62,7 @@ public class PolicyDefinitionResource implements IPolicyDefinitionResource {
     }
 
     @ApiOperation(value = "Add Policy Definition",
-            notes = "Use this endpoint to add a policy definition.  The policy definition can optionall include the 'id' property.  If no 'id' is supplied, one will be generated based on the name.")
+            notes = "Use this endpoint to add a policy definition.  The policy definition can option all include the 'id' property.  If no 'id' is supplied, one will be generated based on the name.")
     @ApiResponses({
             @ApiResponse(code = 200, response = PolicyDefinitionBean.class, message = "Details about the policy definition that was added.")
     })
