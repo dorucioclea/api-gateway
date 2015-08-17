@@ -14,14 +14,10 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.RestServiceBuilder;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.http.HttpRequest;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import javax.inject.Inject;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 /**
  * An implementation of a Gateway Link that uses the Gateway's simple REST
@@ -29,9 +25,11 @@ import java.io.UnsupportedEncodingException;
  */
 public class RestGatewayLink implements IGatewayLink {
     private static RestServiceBuilder restServiceBuilder;
-    static{
+
+    static {
         restServiceBuilder = new RestServiceBuilder();
     }
+
     private static final ObjectMapper mapper = new ObjectMapper();
     @SuppressWarnings("unused")
     private GatewayBean gateway;

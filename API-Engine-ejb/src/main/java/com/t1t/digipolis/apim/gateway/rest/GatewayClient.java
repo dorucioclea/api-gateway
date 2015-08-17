@@ -27,7 +27,6 @@ import java.net.URI;
  */
 @SuppressWarnings("javadoc") // class is temporarily delinked from its interfaces
 public class GatewayClient /*implements ISystemResource, IServiceResource, IApplicationResource*/ {
-    /*private static final ObjectMapper mapper = new ObjectMapper();*/
     private KongClient httpClient;
 
     /**
