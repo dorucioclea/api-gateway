@@ -7,12 +7,11 @@ import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
-import com.t1t.digipolis.apim.rest.resources.ISearchResource;
 import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.OrganizationNotFoundException;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.facades.SearchFacade;
+import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
+import com.t1t.digipolis.apim.rest.resources.ISearchResource;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,8 +36,12 @@ public class SearchResource implements ISearchResource {
     IStorage storage;
     @Inject
     IStorageQuery query;
-    @Inject @APIEngineContext
+    @Inject
+    @APIEngineContext
     Logger log;
+    @Inject
+    private SearchFacade searchFacade;
+
     /**
      * Constructor.
      */
@@ -57,11 +60,7 @@ public class SearchResource implements ISearchResource {
     public SearchResultsBean<OrganizationSummaryBean> searchOrgs(SearchCriteriaBean criteria)
             throws InvalidSearchCriteriaException {
         SearchCriteriaUtil.validateSearchCriteria(criteria);
-        try {
-            return query.findOrganizations(criteria);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        return searchFacade.searchOrgs(criteria);
     }
 
     @ApiOperation(value = "Search for Organizations",
@@ -77,11 +76,7 @@ public class SearchResource implements ISearchResource {
             throws OrganizationNotFoundException, InvalidSearchCriteriaException {
         // TODO only return applications that the user is permitted to see?
         SearchCriteriaUtil.validateSearchCriteria(criteria);
-        try {
-            return query.findApplications(criteria);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        return searchFacade.searchApps(criteria);
     }
 
     @ApiOperation(value = "Search for Services",
@@ -96,24 +91,6 @@ public class SearchResource implements ISearchResource {
     public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria)
             throws OrganizationNotFoundException, InvalidSearchCriteriaException {
         SearchCriteriaUtil.validateSearchCriteria(criteria);
-        try {
-            return query.findServices(criteria);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-    }
-
-    /**
-     * @return the storage
-     */
-    public IStorage getStorage() {
-        return storage;
-    }
-
-    /**
-     * @param storage the storage to set
-     */
-    public void setStorage(IStorage storage) {
-        this.storage = storage;
+        return searchFacade.searchServices(criteria);
     }
 }
