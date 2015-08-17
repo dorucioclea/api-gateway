@@ -1,5 +1,6 @@
 package com.t1t.digipolis.rest.resources;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.idm.NewRoleBean;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
@@ -11,6 +12,7 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.facades.RoleFacade;
 import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -19,6 +21,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -39,6 +42,7 @@ public class RoleResource implements IRoleResource {
     ISecurityContext securityContext;
     @Inject @APIEngineContext
     Logger log;
+    @Inject private RoleFacade roleFacade;
     /**
      * Constructor.
      */
@@ -54,26 +58,9 @@ public class RoleResource implements IRoleResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public RoleBean create(NewRoleBean bean) throws RoleAlreadyExistsException, NotAuthorizedException {
-        if (!securityContext.isAdmin())
-            throw ExceptionFactory.notAuthorizedException();
-
-        RoleBean role = new RoleBean();
-        role.setAutoGrant(bean.getAutoGrant());
-        role.setCreatedBy(securityContext.getCurrentUser());
-        role.setCreatedOn(new Date());
-        role.setDescription(bean.getDescription());
-        role.setId(BeanUtils.idFromName(bean.getName()));
-        role.setName(bean.getName());
-        role.setPermissions(bean.getPermissions());
-        try {
-            if (idmStorage.getRole(role.getId()) != null) {
-                throw ExceptionFactory.roleAlreadyExistsException(role.getId());
-            }
-            idmStorage.createRole(role);
-            return role;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkNotNull(bean);
+        return roleFacade.create(bean);
     }
 
     @ApiOperation(value = "Get a Role by ID.",
@@ -85,15 +72,8 @@ public class RoleResource implements IRoleResource {
     @Path("/{roleId}")
     @Produces(MediaType.APPLICATION_JSON)
     public RoleBean get(@PathParam("roleId") String roleId) throws RoleNotFoundException, NotAuthorizedException {
-        try {
-            RoleBean role = idmStorage.getRole(roleId);
-            if (role == null) {
-                throw ExceptionFactory.roleNotFoundException(roleId);
-            }
-            return role;
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(roleId));
+        return roleFacade.get(roleId);
     }
 
     @ApiOperation(value = "Update a Role by ID",
@@ -105,30 +85,9 @@ public class RoleResource implements IRoleResource {
     @Path("/{roleId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void update(@PathParam("roleId") String roleId, UpdateRoleBean bean) throws RoleNotFoundException, NotAuthorizedException {
-        if (!securityContext.isAdmin())
-            throw ExceptionFactory.notAuthorizedException();
-        try {
-            RoleBean role = idmStorage.getRole(roleId);
-            if (role == null) {
-                throw ExceptionFactory.roleNotFoundException(roleId);
-            }
-            if (bean.getDescription() != null) {
-                role.setDescription(bean.getDescription());
-            }
-            if (bean.getAutoGrant() != null) {
-                role.setAutoGrant(bean.getAutoGrant());
-            }
-            if (bean.getName() != null) {
-                role.setName(bean.getName());
-            }
-            if (bean.getPermissions() != null) {
-                role.getPermissions().clear();
-                role.getPermissions().addAll(bean.getPermissions());
-            }
-            idmStorage.updateRole(role);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(roleId));
+        roleFacade.update(roleId, bean);
     }
 
     @ApiOperation(value = "Delete a Role by ID",
@@ -139,14 +98,9 @@ public class RoleResource implements IRoleResource {
     @DELETE
     @Path("/{roleId}")
     public void delete(@PathParam("roleId") String roleId) throws RoleNotFoundException, NotAuthorizedException {
-        if (!securityContext.isAdmin())
-            throw ExceptionFactory.notAuthorizedException();
-        RoleBean bean = get(roleId);
-        try {
-            idmStorage.deleteRole(bean);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(roleId));
+        roleFacade.delete(roleId);
     }
 
 
@@ -158,13 +112,7 @@ public class RoleResource implements IRoleResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<RoleBean> list() throws NotAuthorizedException {
-        try {
-            SearchCriteriaBean criteria = new SearchCriteriaBean();
-            criteria.setOrder("name", true); //$NON-NLS-1$
-            return idmStorage.findRoles(criteria).getBeans();
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
+        return roleFacade.list();
     }
 
     @ApiOperation(value = "Search for Roles",
@@ -176,41 +124,8 @@ public class RoleResource implements IRoleResource {
     @Path("/search")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<RoleBean> search(SearchCriteriaBean criteria)
-            throws InvalidSearchCriteriaException, NotAuthorizedException {
-        try {
-            SearchCriteriaUtil.validateSearchCriteria(criteria);
-            return idmStorage.findRoles(criteria);
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-    }
-
-    /**
-     * @return the idmStorage
-     */
-    public IIdmStorage getIdmStorage() {
-        return idmStorage;
-    }
-
-    /**
-     * @param idmStorage the idmStorage to set
-     */
-    public void setIdmStorage(IIdmStorage idmStorage) {
-        this.idmStorage = idmStorage;
-    }
-
-    /**
-     * @return the securityContext
-     */
-    public ISecurityContext getSecurityContext() {
-        return securityContext;
-    }
-
-    /**
-     * @param securityContext the securityContext to set
-     */
-    public void setSecurityContext(ISecurityContext securityContext) {
-        this.securityContext = securityContext;
+    public SearchResultsBean<RoleBean> search(SearchCriteriaBean criteria) throws InvalidSearchCriteriaException, NotAuthorizedException {
+        SearchCriteriaUtil.validateSearchCriteria(criteria);
+        return roleFacade.search(criteria);
     }
 }
