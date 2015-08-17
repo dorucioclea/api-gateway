@@ -44,8 +44,6 @@ public class JaxRsActivator extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(KongInfoResource.class);
-        resources.add(KongApiResource.class);
         resources.add(SystemResource.class);
         resources.add(ActionResource.class);
         resources.add(CurrentUserResource.class);

@@ -1,4 +1,4 @@
-package com.t1t.digipolis.rest;
+package com.t1t.digipolis.apim.kong;
 
 import com.t1t.digipolis.kong.model.*;
 import retrofit.http.*;

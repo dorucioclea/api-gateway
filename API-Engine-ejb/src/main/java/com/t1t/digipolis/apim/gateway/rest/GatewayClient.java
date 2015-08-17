@@ -8,6 +8,8 @@ import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.gateway.i18n.Messages;
+import com.t1t.digipolis.apim.kong.KongClient;
+import com.t1t.digipolis.kong.model.KongInfo;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -16,8 +18,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -27,57 +27,32 @@ import java.net.URI;
  */
 @SuppressWarnings("javadoc") // class is temporarily delinked from its interfaces
 public class GatewayClient /*implements ISystemResource, IServiceResource, IApplicationResource*/ {
-    
-    private static final String SYSTEM_STATUS = "/system/status"; //$NON-NLS-1$
-    private static final String SERVICES = "/services"; //$NON-NLS-1$
-    private static final String APPLICATIONS = "/applications"; //$NON-NLS-1$
-    
-    private static final ObjectMapper mapper = new ObjectMapper();
-    
-    private String endpoint;
-    private CloseableHttpClient httpClient;
-    
+    /*private static final ObjectMapper mapper = new ObjectMapper();*/
+    private KongClient httpClient;
+
     /**
      * Constructor.
-     * @param endpoint the endpoint
+     *
      * @param httpClient the http client
      */
-    public GatewayClient(String endpoint, CloseableHttpClient httpClient) {
-        this.endpoint = endpoint;
+    public GatewayClient(KongClient httpClient) {
         this.httpClient = httpClient;
-        
-        if (this.endpoint.endsWith("/")) { //$NON-NLS-1$
-            this.endpoint = this.endpoint.substring(0, this.endpoint.length() - 1);
-        }
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {
-        InputStream is = null;
-        try {
-            URI uri = new URI(this.endpoint + SYSTEM_STATUS);
-            HttpGet get = new HttpGet(uri);
-            HttpResponse response = httpClient.execute(get);
-            int actualStatusCode = response.getStatusLine().getStatusCode();
-            if (actualStatusCode == 401 || actualStatusCode == 403) {
-                throw new GatewayAuthenticationException();
-            }
-            if (actualStatusCode != 200) {
-                throw new Exception("System status check failed: " + actualStatusCode); //$NON-NLS-1$
-            }
-            is = response.getEntity().getContent();
-            return mapper.reader(SystemStatus.class).readValue(is);
-        } catch (GatewayAuthenticationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
+        KongInfo kongInformation = httpClient.getInfo();
+        SystemStatus systemStatus = new SystemStatus();
+        systemStatus.setDescription(kongInformation.getTagline());
+        systemStatus.setVersion(kongInformation.getVersion());
+        systemStatus.setName(kongInformation.getHostname());
+        systemStatus.setId(kongInformation.getHostname());
+        systemStatus.setUp(true);
+        return systemStatus;
     }
 
-    public ServiceEndpoint getServiceEndpoint(String organizationId, String serviceId, String version)
-            throws GatewayAuthenticationException {
-        InputStream is = null;
+    public ServiceEndpoint getServiceEndpoint(String organizationId, String serviceId, String version) throws GatewayAuthenticationException {
+        return null;
+/*        InputStream is = null;
         try {
             @SuppressWarnings("nls")
             URI uri = new URI(this.endpoint + SERVICES + "/" + organizationId + "/" + serviceId + "/" + version + "/endpoint");
@@ -98,11 +73,11 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
             throw new RuntimeException(e);
         } finally {
             IOUtils.closeQuietly(is);
-        }
+        }*/
     }
 
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
-        try {
+/*        try {
             URI uri = new URI(this.endpoint + APPLICATIONS);
             HttpPut put = new HttpPut(uri);
             put.setHeader("Content-Type", "application/json; charset=utf-8"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -124,16 +99,16 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
             if (actualStatusCode >= 300) {
                 throw new Exception(Messages.i18n.format("GatewayClient.AppRegistrationFailed", actualStatusCode)); //$NON-NLS-1$
             }
-        } catch (RegistrationException|GatewayAuthenticationException e) {
+        } catch (RegistrationException | GatewayAuthenticationException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
     public void unregister(String organizationId, String applicationId, String version)
             throws RegistrationException, GatewayAuthenticationException {
-        try {
+/*        try {
             @SuppressWarnings("nls")
             URI uri = new URI(this.endpoint + APPLICATIONS + "/" + organizationId + "/" + applicationId + "/" + version);
             HttpDelete put = new HttpDelete(uri);
@@ -152,16 +127,16 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
             if (actualStatusCode >= 300) {
                 throw new Exception(Messages.i18n.format("GatewayClient.AppUnregistrationFailed", actualStatusCode)); //$NON-NLS-1$
             }
-        } catch (RegistrationException|GatewayAuthenticationException e) {
+        } catch (RegistrationException | GatewayAuthenticationException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
 
     public void publish(Service service) throws PublishingException, GatewayAuthenticationException {
-        try {
+/*        try {
             URI uri = new URI(this.endpoint + SERVICES);
             HttpPut put = new HttpPut(uri);
             put.setHeader("Content-Type", "application/json; charset=utf-8"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -183,15 +158,15 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
             if (actualStatusCode >= 300) {
                 throw new Exception(Messages.i18n.format("GatewayClient.ServicePublishingFailed", actualStatusCode)); //$NON-NLS-1$
             }
-        } catch (PublishingException|GatewayAuthenticationException e) {
+        } catch (PublishingException | GatewayAuthenticationException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
     public void retire(String organizationId, String serviceId, String version) throws RegistrationException, GatewayAuthenticationException {
-        try {
+/*        try {
             @SuppressWarnings("nls")
             URI uri = new URI(this.endpoint + SERVICES + "/" + organizationId + "/" + serviceId + "/" + version);
             HttpDelete put = new HttpDelete(uri);
@@ -210,18 +185,19 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
             if (actualStatusCode >= 300) {
                 throw new Exception(Messages.i18n.format("GatewayClient.ServiceRetiringFailed", actualStatusCode)); //$NON-NLS-1$
             }
-        } catch (PublishingException|GatewayAuthenticationException e) {
+        } catch (PublishingException | GatewayAuthenticationException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
     /**
      * Reads a publishing exception from the response.
+     *
      * @param response
      */
-    private PublishingException readPublishingException(HttpResponse response) {
+/*    private PublishingException readPublishingException(HttpResponse response) {
         InputStream is = null;
         PublishingException exception;
         try {
@@ -235,13 +211,14 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
             IOUtils.closeQuietly(is);
         }
         return exception;
-    }
+    }*/
 
     /**
      * Reads a registration exception from the response body.
+     *
      * @param response
      */
-    private RegistrationException readRegistrationException(HttpResponse response) {
+/*    private RegistrationException readRegistrationException(HttpResponse response) {
         InputStream is = null;
         RegistrationException exception;
         try {
@@ -255,6 +232,6 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
             IOUtils.closeQuietly(is);
         }
         return exception;
-    }
+    }*/
 
 }

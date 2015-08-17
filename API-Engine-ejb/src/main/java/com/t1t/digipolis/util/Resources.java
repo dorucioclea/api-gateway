@@ -16,8 +16,8 @@
  */
 package com.t1t.digipolis.util;
 import com.t1t.digipolis.qualifier.APIEngineContext;
-import com.t1t.digipolis.rest.KongClient;
-import com.t1t.digipolis.rest.RestServiceBuilder;
+import com.t1t.digipolis.apim.kong.KongClient;
+import com.t1t.digipolis.apim.kong.RestServiceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,11 +49,5 @@ public class Resources {
     @APIEngineContext
     public Logger produceLog(InjectionPoint injectionPoint) {
         return LoggerFactory.getLogger(injectionPoint.getMember().getDeclaringClass().getName());
-    }
-
-    @Produces
-    @APIEngineContext
-    public KongClient produceRestClient() {
-        return serviceBuilder.getService(KongClient.class);
     }
 }
