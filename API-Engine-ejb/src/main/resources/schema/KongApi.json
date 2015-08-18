@@ -23,6 +23,10 @@
       "id": "strip_path",
       "type": "boolean"
     },
+    "strip_path": {
+      "id": "preserve_host",
+      "type": "boolean"
+    },
     "target_url": {
       "id": "target_url",
       "type": "string"

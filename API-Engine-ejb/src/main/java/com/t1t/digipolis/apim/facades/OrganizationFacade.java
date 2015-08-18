@@ -646,6 +646,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public ServiceVersionBean createServiceVersion(String organizationId, String serviceId, NewServiceVersionBean bean) {
         ServiceVersionBean newVersion = null;
         try {
+            //adds the default gateway - service can be updated to add another gateway
             GatewaySummaryBean gateway = getSingularGateway();
             ServiceBean service = storage.getService(organizationId, serviceId);
             if (service == null) {

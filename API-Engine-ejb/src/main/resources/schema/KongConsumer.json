@@ -8,6 +8,10 @@
       "type": "string"
     },
     "custom_id": {
+      "id": "username",
+      "type": "string"
+    },
+    "custom_id": {
       "id": "custom_id",
       "type": "string"
     },

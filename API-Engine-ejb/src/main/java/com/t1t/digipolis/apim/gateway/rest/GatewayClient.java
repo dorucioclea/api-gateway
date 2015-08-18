@@ -87,14 +87,17 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
         api.setStripPath(true);
         api.setPublicDns("");
         String nameAndDNS = generateServiceUniqueName(service);
+        //name wil be: organization.application.version
         api.setName(nameAndDNS);
+        //version wil be: organization.application.version
         api.setPublicDns(nameAndDNS);
+        //real URL to target
         api.setTargetUrl(service.getEndpoint());
+        //context path that will be stripped away
         api.setPath(validateServicePath(service));
         log.info("Send to Kong:{}",api.toString());
         //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
         httpClient.addApi(api);
-        //apply additional plugins (on service level)
     }
 
     /**
@@ -132,5 +135,4 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
     public void retire(String organizationId, String serviceId, String version) throws RegistrationException, GatewayAuthenticationException {
 
     }
-
 }

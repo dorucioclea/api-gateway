@@ -28,4 +28,12 @@ public interface KongClient {
     @DELETE("/consumers/{id}")Object deleteConsumer(@Path("id")String id);
 
     /*********************   PLUGINS   *******************/
+    @GET("/plugins/")KongEnabledPlugins getEnabledPlugins();
+    @GET("/plugins/{pluginname}/schema")KongPluginSchema getPluginSchema(@Path("pluginname") String pluginName);
+    @POST("/apis/{apinameorid}/plugins/")KongPluginConfig createPlugin(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
+    @GET("/apis/{apinameorid}/plugins/")KongApiPluginList getApiPluginList(@Path("apinameorid")String apiNameOrId);
+    @GET("/plugins_configurations/")KongApiList getAllPlugins();
+    @PATCH("/apis/{apinameorid}/plugins/{id}")KongPluginConfig updatePlugin(@Path("apinameorid")String apiNameOrId,@Path("id")String pluginId,@Body KongPluginConfig pluginConfig);
+    @PUT("/apis/{apinameorid}/plugins/")KongPluginConfig createOrUpdatePlugin(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
+    @DELETE("/apis/{apinameorid}/plugins/{id}")Object deletePlugin(@Path("apinameorid")String apiNameOrId);
 }

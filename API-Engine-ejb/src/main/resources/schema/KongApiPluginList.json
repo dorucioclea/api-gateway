@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "total": {
+      "id": "total",
+      "type": "integer"
+    },
+    "data": {
+      "id": "data",
+      "type": "array",
+      "items": {
+        "id": "0",
+        "type": "object",
+        "properties": {
+          "id": {
+            "id": "id",
+            "type": "string"
+          },
+          "api_id": {
+            "id": "api_id",
+            "type": "string"
+          },
+          "name": {
+            "id": "name",
+            "type": "string"
+          },
+          "value": {
+            "id": "value",
+            "type": "object",
+            "properties": {}
+          },
+          "enabled": {
+            "id": "enabled",
+            "type": "boolean"
+          },
+          "created_at": {
+            "id": "created_at",
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "next": {
+      "id": "next",
+      "type": "string"
+    }
+  }
+}
