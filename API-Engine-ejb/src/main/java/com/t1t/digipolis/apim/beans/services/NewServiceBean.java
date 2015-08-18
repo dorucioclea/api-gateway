@@ -16,6 +16,7 @@ public class NewServiceBean implements Serializable {
     private String name;
     private String description;
     private String initialVersion;
+    private String basepath;
 
     /**
      * Constructor.
@@ -65,14 +66,21 @@ public class NewServiceBean implements Serializable {
         this.initialVersion = initialVersion;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    @SuppressWarnings("nls")
-    public String toString() {
-        return "NewServiceBean [name=" + name + ", description=" + description + ", initialVersion="
-                + initialVersion + "]";
+    public String getBasepath() {
+        return basepath;
     }
 
+    public void setBasepath(String basepath) {
+        this.basepath = basepath;
+    }
+
+    @Override
+    public String toString() {
+        return "NewServiceBean{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", initialVersion='" + initialVersion + '\'' +
+                ", basepath='" + basepath + '\'' +
+                '}';
+    }
 }

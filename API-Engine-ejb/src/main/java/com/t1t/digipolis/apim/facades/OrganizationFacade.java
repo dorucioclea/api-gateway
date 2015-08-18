@@ -613,6 +613,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newService.setName(bean.getName());
         newService.setDescription(bean.getDescription());
         newService.setId(BeanUtils.idFromName(bean.getName()));
+        newService.setBasepath(bean.getBasepath());
         newService.setCreatedOn(new Date());
         newService.setCreatedBy(securityContext.getCurrentUser());
         try {
@@ -1859,6 +1860,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 newVersion.getGateways().add(sgb);
             }
         }
+        //TODO add path information to endpoint properties
         if (serviceValidator.isReady(newVersion)) {
             newVersion.setStatus(ServiceStatus.Ready);
         } else {

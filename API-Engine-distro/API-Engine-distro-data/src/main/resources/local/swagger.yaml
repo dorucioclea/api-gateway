@@ -2,7 +2,7 @@ swagger: '2.0'
 info:
   version: v1
   title: API Engine
-basePath: /API-Engine-web/v1
+basepath: /API-Engine-web/v1
 tags:
   - name: kong
   - name: currentuser

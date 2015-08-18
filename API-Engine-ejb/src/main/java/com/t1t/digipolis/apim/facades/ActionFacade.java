@@ -106,6 +106,7 @@ public class ActionFacade {
         gatewaySvc.setEndpointProperties(versionBean.getEndpointProperties());
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
         gatewaySvc.setServiceId(versionBean.getService().getId());
+        gatewaySvc.setBasepath(versionBean.getService().getBasepath());
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
         boolean hasTx = false;

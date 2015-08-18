@@ -23,6 +23,8 @@ import java.util.Set;
 public class ServiceVersionBean implements Serializable {
 
     private static final long serialVersionUID = -2218697175049442690L;
+    //key for endpoint properties
+    public static final String PROP_PATH = "service_path";
 
     @Id @GeneratedValue
     private Long id;

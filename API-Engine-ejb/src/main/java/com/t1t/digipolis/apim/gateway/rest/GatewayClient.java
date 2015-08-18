@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
+import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
@@ -9,8 +11,10 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
+import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongInfo;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -18,6 +22,9 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
+import org.elasticsearch.common.netty.util.internal.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -27,6 +34,7 @@ import java.net.URI;
  */
 @SuppressWarnings("javadoc") // class is temporarily delinked from its interfaces
 public class GatewayClient /*implements ISystemResource, IServiceResource, IApplicationResource*/ {
+    private static Logger log = LoggerFactory.getLogger(GatewayClient.class.getName());
     private KongClient httpClient;
 
     /**
@@ -51,186 +59,78 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
 
     public ServiceEndpoint getServiceEndpoint(String organizationId, String serviceId, String version) throws GatewayAuthenticationException {
         return null;
-/*        InputStream is = null;
-        try {
-            @SuppressWarnings("nls")
-            URI uri = new URI(this.endpoint + SERVICES + "/" + organizationId + "/" + serviceId + "/" + version + "/endpoint");
-            HttpGet get = new HttpGet(uri);
-            HttpResponse response = httpClient.execute(get);
-            int actualStatusCode = response.getStatusLine().getStatusCode();
-            if (actualStatusCode == 401 || actualStatusCode == 403) {
-                throw new GatewayAuthenticationException();
-            }
-            if (actualStatusCode != 200) {
-                throw new Exception("Failed to get the service endpoint: " + actualStatusCode); //$NON-NLS-1$
-            }
-            is = response.getEntity().getContent();
-            return mapper.reader(ServiceEndpoint.class).readValue(is);
-        } catch (GatewayAuthenticationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }*/
+
     }
 
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
-/*        try {
-            URI uri = new URI(this.endpoint + APPLICATIONS);
-            HttpPut put = new HttpPut(uri);
-            put.setHeader("Content-Type", "application/json; charset=utf-8"); //$NON-NLS-1$ //$NON-NLS-2$
-            String jsonPayload = mapper.writer().writeValueAsString(application);
-            HttpEntity entity = new StringEntity(jsonPayload);
-            put.setEntity(entity);
-            HttpResponse response = httpClient.execute(put);
-            int actualStatusCode = response.getStatusLine().getStatusCode();
-            if (actualStatusCode == 401 || actualStatusCode == 403) {
-                throw new GatewayAuthenticationException();
-            }
-            if (actualStatusCode == 500) {
-                Header[] headers = response.getHeaders("X-API-Gateway-Error"); //$NON-NLS-1$
-                if (headers != null && headers.length > 0) {
-                    RegistrationException re = readRegistrationException(response);
-                    throw re;
-                }
-            }
-            if (actualStatusCode >= 300) {
-                throw new Exception(Messages.i18n.format("GatewayClient.AppRegistrationFailed", actualStatusCode)); //$NON-NLS-1$
-            }
-        } catch (RegistrationException | GatewayAuthenticationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }*/
+
     }
 
-    public void unregister(String organizationId, String applicationId, String version)
-            throws RegistrationException, GatewayAuthenticationException {
-/*        try {
-            @SuppressWarnings("nls")
-            URI uri = new URI(this.endpoint + APPLICATIONS + "/" + organizationId + "/" + applicationId + "/" + version);
-            HttpDelete put = new HttpDelete(uri);
-            HttpResponse response = httpClient.execute(put);
-            int actualStatusCode = response.getStatusLine().getStatusCode();
-            if (actualStatusCode == 401 || actualStatusCode == 403) {
-                throw new GatewayAuthenticationException();
-            }
-            if (actualStatusCode == 500) {
-                Header[] headers = response.getHeaders("X-API-Gateway-Error"); //$NON-NLS-1$
-                if (headers != null && headers.length > 0) {
-                    RegistrationException re = readRegistrationException(response);
-                    throw re;
-                }
-            }
-            if (actualStatusCode >= 300) {
-                throw new Exception(Messages.i18n.format("GatewayClient.AppUnregistrationFailed", actualStatusCode)); //$NON-NLS-1$
-            }
-        } catch (RegistrationException | GatewayAuthenticationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }*/
+    public void unregister(String organizationId, String applicationId, String version) throws RegistrationException, GatewayAuthenticationException {
+
     }
 
-
+    /**
+     * Publishes an API to the kong gateway.
+     * The properties path and target_url are variable, and will be retrieved from the service dto.
+     * The properties strip_path, preserve_host and public_dns will be set equally for all registered endpoints
+     * The path should be: /organizationname/applicationname/version
+     *
+     * @param service
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
     public void publish(Service service) throws PublishingException, GatewayAuthenticationException {
-/*        try {
-            URI uri = new URI(this.endpoint + SERVICES);
-            HttpPut put = new HttpPut(uri);
-            put.setHeader("Content-Type", "application/json; charset=utf-8"); //$NON-NLS-1$ //$NON-NLS-2$
-            String jsonPayload = mapper.writer().writeValueAsString(service);
-            HttpEntity entity = new StringEntity(jsonPayload);
-            put.setEntity(entity);
-            HttpResponse response = httpClient.execute(put);
-            int actualStatusCode = response.getStatusLine().getStatusCode();
-            if (actualStatusCode == 401 || actualStatusCode == 403) {
-                throw new GatewayAuthenticationException();
-            }
-            if (actualStatusCode == 500) {
-                Header[] headers = response.getHeaders("X-API-Gateway-Error"); //$NON-NLS-1$
-                if (headers != null && headers.length > 0) {
-                    PublishingException pe = readPublishingException(response);
-                    throw pe;
-                }
-            }
-            if (actualStatusCode >= 300) {
-                throw new Exception(Messages.i18n.format("GatewayClient.ServicePublishingFailed", actualStatusCode)); //$NON-NLS-1$
-            }
-        } catch (PublishingException | GatewayAuthenticationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }*/
+        Preconditions.checkNotNull(service);
+        //create the service using path, and target_url
+        KongApi api = new KongApi();
+        api.setStripPath(true);
+        api.setPublicDns("");
+        String nameAndDNS = generateServiceUniqueName(service);
+        api.setName(nameAndDNS);
+        api.setPublicDns(nameAndDNS);
+        api.setTargetUrl(service.getEndpoint());
+        api.setPath(validateServicePath(service));
+        log.info("Send to Kong:{}",api.toString());
+        //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
+        httpClient.addApi(api);
+        //apply additional plugins (on service level)
+    }
+
+    /**
+     * Generates a unique service name for Kong.
+     * The name is constituted of the organizationid.serviceid.version
+     * @param service
+     * @return
+     */
+    private String generateServiceUniqueName(Service service) {
+        StringBuilder serviceGatewayName = new StringBuilder(service.getOrganizationId())
+                .append(".")
+                .append(service.getServiceId())
+                .append(".")
+                .append(service.getVersion());
+        return serviceGatewayName.toString().toLowerCase();
+    }
+
+    /**
+     * Validates the service path property before passing it to Kong.
+     *
+     * @param service
+     * @return
+     */
+    private String validateServicePath(Service service) {
+        Preconditions.checkArgument(!StringUtils.isEmpty(service.getBasepath()));
+        String servicePath=service.getBasepath();
+        if(!servicePath.startsWith("/"))servicePath="/"+servicePath;
+        if(!StringUtils.isEmpty(service.getVersion())){
+            if(servicePath.endsWith("/")) servicePath = servicePath+service.getVersion();
+            else servicePath = servicePath+"/"+service.getVersion();
+        }
+        return servicePath;
     }
 
     public void retire(String organizationId, String serviceId, String version) throws RegistrationException, GatewayAuthenticationException {
-/*        try {
-            @SuppressWarnings("nls")
-            URI uri = new URI(this.endpoint + SERVICES + "/" + organizationId + "/" + serviceId + "/" + version);
-            HttpDelete put = new HttpDelete(uri);
-            HttpResponse response = httpClient.execute(put);
-            int actualStatusCode = response.getStatusLine().getStatusCode();
-            if (actualStatusCode == 401 || actualStatusCode == 403) {
-                throw new GatewayAuthenticationException();
-            }
-            if (actualStatusCode == 500) {
-                Header[] headers = response.getHeaders("X-API-Gateway-Error"); //$NON-NLS-1$
-                if (headers != null && headers.length > 0) {
-                    PublishingException pe = readPublishingException(response);
-                    throw pe;
-                }
-            }
-            if (actualStatusCode >= 300) {
-                throw new Exception(Messages.i18n.format("GatewayClient.ServiceRetiringFailed", actualStatusCode)); //$NON-NLS-1$
-            }
-        } catch (PublishingException | GatewayAuthenticationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }*/
+
     }
-
-    /**
-     * Reads a publishing exception from the response.
-     *
-     * @param response
-     */
-/*    private PublishingException readPublishingException(HttpResponse response) {
-        InputStream is = null;
-        PublishingException exception;
-        try {
-            is = response.getEntity().getContent();
-            GatewayAuthenticationException error = mapper.reader(GatewayAuthenticationException.class).readValue(is);
-            exception = new PublishingException(error.getMessage());
-            // TODO parse the stack trace and set it on the exception
-        } catch (Exception e) {
-            exception = new PublishingException(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-        return exception;
-    }*/
-
-    /**
-     * Reads a registration exception from the response body.
-     *
-     * @param response
-     */
-/*    private RegistrationException readRegistrationException(HttpResponse response) {
-        InputStream is = null;
-        RegistrationException exception;
-        try {
-            is = response.getEntity().getContent();
-            GatewayAuthenticationException error = mapper.reader(GatewayAuthenticationException.class).readValue(is);
-            exception = new RegistrationException(error.getMessage());
-            // TODO parse the stack trace and set it on the exception
-        } catch (Exception e) {
-            exception = new RegistrationException(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-        return exception;
-    }*/
 
 }
