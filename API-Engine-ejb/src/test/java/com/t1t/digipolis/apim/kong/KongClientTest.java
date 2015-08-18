@@ -1,8 +1,6 @@
 package com.t1t.digipolis.apim.kong;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import static org.junit.Assert.*;
 
@@ -11,19 +9,19 @@ import static org.junit.Assert.*;
  */
 public class KongClientTest {
 
-    @Before
+    @BeforeClass
     public void setUp() throws Exception {
 
     }
 
-    @After
+    @AfterClass
     public void tearDown() throws Exception {
 
     }
 
     @Test
     public void testGetInfo() throws Exception {
-
+        assertTrue(false);
     }
 
     @Test
