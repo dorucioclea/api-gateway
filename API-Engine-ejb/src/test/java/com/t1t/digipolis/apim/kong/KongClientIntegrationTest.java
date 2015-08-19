@@ -2,10 +2,7 @@ package com.t1t.digipolis.apim.kong;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
-import com.t1t.digipolis.kong.model.KongApi;
-import com.t1t.digipolis.kong.model.KongApiList;
-import com.t1t.digipolis.kong.model.KongInfo;
-import com.t1t.digipolis.kong.model.Plugins;
+import com.t1t.digipolis.kong.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 import org.slf4j.Logger;
@@ -116,7 +113,7 @@ public class KongClientIntegrationTest {
     }
 
     @Test
-    public void testUpdateApi() throws Exception {
+    public void testUpdateOrCreateApi() throws Exception {
         String randomName = "randomname";
         String randomPath="/somerandompath";
         String randomUrl = "http://www.google.com/";
@@ -127,39 +124,63 @@ public class KongClientIntegrationTest {
         updatedApi.setPath(randomPath);
         updatedApi.setTargetUrl(randomUrl);
         updatedApi = kongClient.updateOrCreateApi(updatedApi);
-        assertNotEquals(api.getName(),updatedApi.getName());
-        assertNotEquals(api.getPath(),updatedApi.getPath());
-        assertNotEquals(api.getTargetUrl(),updatedApi.getTargetUrl());
+        assertNotEquals(api.getName(), updatedApi.getName());
+        assertNotEquals(api.getPath(), updatedApi.getPath());
+        assertNotEquals(api.getTargetUrl(), updatedApi.getTargetUrl());
         assertEquals(updatedApi.getName(), randomName);
         assertEquals(updatedApi.getPath(), randomPath);
-        assertEquals(updatedApi.getTargetUrl(),randomUrl);
+        assertEquals(updatedApi.getTargetUrl(), randomUrl);
         //clean up
         kongClient.deleteApi(updatedApi.getName());
     }
 
-    @Test
-    public void testUpdateOrCreateApi() throws Exception {
-
-    }
-
-    @Test
+    @Test(expected = RetrofitError.class)
     public void testDeleteApi() throws Exception {
-
+        KongApi api = createTestApi();
+        KongApi regApi = kongClient.addApi(api);
+        assertNotNull(regApi);
+        kongClient.deleteApi(regApi.getName());
+        regApi = kongClient.getApi(API_NAME);
     }
 
     @Test
     public void testCreateConsumer() throws Exception {
-
+        KongConsumer cons = new KongConsumer();
+        cons.setUsername("michallis");
+        cons.setCustomId("extid");
+        KongConsumer regCons = kongClient.createConsumer(cons);
+        assertNotNull(regCons);
+        assertEquals(cons.getUsername(), regCons.getUsername());
+        assertEquals(cons.getCustomId(), regCons.getCustomId());
+        //cleanup
+        kongClient.deleteConsumer(regCons.getId());
     }
 
     @Test
     public void testGetConsumer() throws Exception {
-
+        KongConsumer cons = new KongConsumer();
+        cons.setUsername("michallis");
+        cons.setCustomId("extid");
+        KongConsumer regCons = kongClient.createConsumer(cons);
+        assertNotNull(regCons);
+        //cleanup
+        kongClient.deleteConsumer(regCons.getId());
     }
 
     @Test
     public void testGetConsumers() throws Exception {
-
+        KongConsumerList consList = kongClient.getConsumers();
+        System.out.println("actual consumer count already registered for Kong: "+consList.getData().size());
+        KongConsumer consA = createDummyConsumer("1", "ConsumerA");
+        KongConsumer consB = createDummyConsumer("2","ConsumerB");
+        consA = kongClient.createConsumer(consA);
+        consB = kongClient.createConsumer(consB);
+        KongConsumerList updatedList = kongClient.getConsumers();
+        assertNotNull(updatedList);
+        assertTrue(updatedList.getData().size()==consList.getData().size()+2);
+        //clean up
+        kongClient.deleteConsumer(consA.getId());
+        kongClient.deleteConsumer(consB.getId());
     }
 
     @Test
@@ -238,5 +259,21 @@ public class KongClientIntegrationTest {
         print(api);
         return api;
     }
-    private void print(Object obj){System.out.println(gson.toJson(obj));}
+
+    private KongConsumer createTestConsumer(){
+        KongConsumer cons = new KongConsumer();
+        cons.setUsername("michallis");
+        cons.setCustomId("extid");
+        print(cons);
+        return cons;
+    }
+
+    private KongConsumer createDummyConsumer(String customId, String customName){
+        KongConsumer cons = new KongConsumer();
+        cons.setUsername(customName);
+        cons.setCustomId(customId);
+        print(cons);
+        return cons;
+    }
+    private void print(Object obj){System.out.println(gson.toJson(obj));};
 }
