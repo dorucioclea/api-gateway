@@ -117,7 +117,24 @@ public class KongClientIntegrationTest {
 
     @Test
     public void testUpdateApi() throws Exception {
-
+        String randomName = "randomname";
+        String randomPath="/somerandompath";
+        String randomUrl = "http://www.google.com/";
+        KongApi api = createTestApi();
+        KongApi updatedApi = kongClient.addApi(api);
+        print(updatedApi);
+        updatedApi.setName(randomName);
+        updatedApi.setPath(randomPath);
+        updatedApi.setTargetUrl(randomUrl);
+        updatedApi = kongClient.updateOrCreateApi(updatedApi);
+        assertNotEquals(api.getName(),updatedApi.getName());
+        assertNotEquals(api.getPath(),updatedApi.getPath());
+        assertNotEquals(api.getTargetUrl(),updatedApi.getTargetUrl());
+        assertEquals(updatedApi.getName(), randomName);
+        assertEquals(updatedApi.getPath(), randomPath);
+        assertEquals(updatedApi.getTargetUrl(),randomUrl);
+        //clean up
+        kongClient.deleteApi(updatedApi.getName());
     }
 
     @Test
