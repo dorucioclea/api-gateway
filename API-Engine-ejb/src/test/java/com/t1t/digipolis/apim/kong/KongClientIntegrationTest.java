@@ -15,9 +15,9 @@ import static org.junit.Assert.*;
  * Created by michallispashidis on 18/08/15.
  * This test has been provide to verify the impact of a new Kong version towards the implemented Kong client for the API Engine.
  * If all tests succeeds, the Kong gateway version tested complies with the API Engine implementation.
- * It is adviced to run the tests even for a minor version upgrade.
+ * It is advized to run the tests even for a minor version upgrade.
  * The integration tests have been build to test the Kong objects generated (based upon the included schemas) and NOT on the json responses
- * from the Kong gateway. We want to be sure that the deserialized json responses are valid for the API Engine.
+ * from the Kong gateway. We want to be sure that the serialization/deserialization of json responses are valid for the API Engine.
  *
  * It is possible that some json schema's should be updated, you can find the json schema's in the main/resources/schema folder.
  */
@@ -106,7 +106,7 @@ public class KongClientIntegrationTest {
         KongApiList apiUpdatedList = kongClient.listApis();
         assertNotNull(apiUpdatedList);
         print(apiUpdatedList);
-        assertTrue(apiUpdatedList.getData().size()==apiList.getData().size()+2);
+        assertTrue(apiUpdatedList.getData().size() == apiList.getData().size() + 2);
         //cleanup
         kongClient.deleteApi(apiA.getName());
         kongClient.deleteApi(apiB.getName());
@@ -158,9 +158,7 @@ public class KongClientIntegrationTest {
 
     @Test
     public void testGetConsumer() throws Exception {
-        KongConsumer cons = new KongConsumer();
-        cons.setUsername("michallis");
-        cons.setCustomId("extid");
+        KongConsumer cons = createTestConsumer();
         KongConsumer regCons = kongClient.createConsumer(cons);
         assertNotNull(regCons);
         //cleanup
@@ -170,14 +168,14 @@ public class KongClientIntegrationTest {
     @Test
     public void testGetConsumers() throws Exception {
         KongConsumerList consList = kongClient.getConsumers();
-        System.out.println("actual consumer count already registered for Kong: "+consList.getData().size());
+        System.out.println("actual consumer count already registered for Kong: " + consList.getData().size());
         KongConsumer consA = createDummyConsumer("1", "ConsumerA");
-        KongConsumer consB = createDummyConsumer("2","ConsumerB");
+        KongConsumer consB = createDummyConsumer("2", "ConsumerB");
         consA = kongClient.createConsumer(consA);
         consB = kongClient.createConsumer(consB);
         KongConsumerList updatedList = kongClient.getConsumers();
         assertNotNull(updatedList);
-        assertTrue(updatedList.getData().size()==consList.getData().size()+2);
+        assertTrue(updatedList.getData().size() == consList.getData().size() + 2);
         //clean up
         kongClient.deleteConsumer(consA.getId());
         kongClient.deleteConsumer(consB.getId());
@@ -185,17 +183,26 @@ public class KongClientIntegrationTest {
 
     @Test
     public void testUpdateConsumer() throws Exception {
-
+        String randomName="randomname";
+        String randomExtId="randomExtId";
+        KongConsumer cons = createTestConsumer();
+        KongConsumer regCons = kongClient.createConsumer(cons);
+        regCons.setUsername(randomName);
+        regCons.setCustomId(randomExtId);
+        KongConsumer updatedCons = kongClient.updateOrCreateConsumer(regCons);
+        assertNotNull(updatedCons);
+        assertEquals(updatedCons.getCustomId(), randomExtId);
+        assertEquals(updatedCons.getUsername(),randomName);
+        //cleanup
+        kongClient.deleteConsumer(updatedCons.getId());
     }
 
-    @Test
-    public void testUpdateOrCreateConsumer() throws Exception {
-
-    }
-
-    @Test
+    @Test(expected = RetrofitError.class)
     public void testDeleteConsumer() throws Exception {
-
+        KongConsumer cons = createTestConsumer();
+        KongConsumer regCons = kongClient.createConsumer(cons);
+        kongClient.deleteConsumer(regCons.getId());
+        kongClient.getConsumer(regCons.getId());
     }
 
     @Test
