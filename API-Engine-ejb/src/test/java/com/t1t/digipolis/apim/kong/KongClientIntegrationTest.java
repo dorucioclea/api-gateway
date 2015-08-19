@@ -2,12 +2,14 @@ package com.t1t.digipolis.apim.kong;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongInfo;
 import com.t1t.digipolis.kong.model.Plugins;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit.RetrofitError;
 
 import static org.junit.Assert.*;
 
@@ -59,13 +61,31 @@ public class KongClientIntegrationTest {
     }
 
     @Test
-    public void testGetStatus() throws Exception {
-
-    }
-
-    @Test
     public void testAddApi() throws Exception {
+        //create new api
+        KongApi api = new KongApi();
+        api.setName("newapi");
+        api.setPath("/testpath");
+        api.setStripPath(true);
+        api.setTargetUrl("http://trust1team.com");
+        print(api);
+        //registered api
+        KongApi regApi = kongClient.addApi(api);
+        assertNotNull(regApi);
+        print(regApi);
+        assertFalse(StringUtils.isEmpty(regApi.getId()));
+        assertFalse(StringUtils.isEmpty(regApi.getName()));
+        assertFalse(StringUtils.isEmpty(regApi.getPath()));
+        assertFalse(StringUtils.isEmpty(regApi.getTargetUrl()));
+        assertTrue(regApi.getStripPath());
 
+        //remove api
+        kongClient.deleteApi("newapi");
+        try{
+            kongClient.getApi("newapi");
+        }catch (RetrofitError re){
+            assertNotNull(re);
+        }
     }
 
     @Test
