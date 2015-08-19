@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.kong;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.kong.model.KongApi;
+import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongInfo;
 import com.t1t.digipolis.kong.model.Plugins;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,9 @@ public class KongClientIntegrationTest {
     private static Gson gson;
     //TODO make configurable in maven test profile
     private static final String KONG_UNDER_TEST_URL = "http://apim.t1t.be:8001";//should point to the admin url:port
+    private static final String API_NAME = "newapi";
+    private static final String API_PATH = "/testpath";
+    private static final String API_URL = "http://trust1team.com";
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -42,6 +46,13 @@ public class KongClientIntegrationTest {
     @AfterClass
     public static void tearDown() throws Exception {
         //nothing to do at the moment :-)
+    }
+
+    @After
+    public void cleanupApi()throws Exception{
+        try{
+            kongClient.deleteApi(API_NAME);
+        }catch (RetrofitError re){;}
     }
 
     @Test
@@ -61,14 +72,9 @@ public class KongClientIntegrationTest {
     }
 
     @Test
-    public void testAddApi() throws Exception {
+    public void testApiFunctionality() throws Exception {
         //create new api
-        KongApi api = new KongApi();
-        api.setName("newapi");
-        api.setPath("/testpath");
-        api.setStripPath(true);
-        api.setTargetUrl("http://trust1team.com");
-        print(api);
+        KongApi api = createTestApi();
         //registered api
         KongApi regApi = kongClient.addApi(api);
         assertNotNull(regApi);
@@ -78,24 +84,35 @@ public class KongClientIntegrationTest {
         assertFalse(StringUtils.isEmpty(regApi.getPath()));
         assertFalse(StringUtils.isEmpty(regApi.getTargetUrl()));
         assertTrue(regApi.getStripPath());
-
-        //remove api
-        kongClient.deleteApi("newapi");
-        try{
-            kongClient.getApi("newapi");
-        }catch (RetrofitError re){
-            assertNotNull(re);
-        }
     }
 
     @Test
     public void testGetApi() throws Exception {
-
+        KongApi api = createTestApi();
+        kongClient.addApi(api);
+        KongApi resultApi = kongClient.getApi(API_NAME);
+        assertNotNull(resultApi);
+        assertEquals(resultApi.getName(), api.getName());
     }
 
     @Test
     public void testListApis() throws Exception {
-
+        //get the actual api count
+        KongApiList apiList = kongClient.listApis();
+        assertNotNull(apiList);
+        print(apiList);
+        System.out.println("actual api count already configured on Kong:" + apiList.getData().size());
+        KongApi apiA = createDummyApi("apia", "/apia", API_URL);
+        KongApi apiB = createDummyApi("apib","/apib",API_URL);
+        kongClient.addApi(apiA);
+        kongClient.addApi(apiB);
+        KongApiList apiUpdatedList = kongClient.listApis();
+        assertNotNull(apiUpdatedList);
+        print(apiUpdatedList);
+        assertTrue(apiUpdatedList.getData().size()==apiList.getData().size()+2);
+        //cleanup
+        kongClient.deleteApi(apiA.getName());
+        kongClient.deleteApi(apiB.getName());
     }
 
     @Test
@@ -183,5 +200,26 @@ public class KongClientIntegrationTest {
 
     }
 
+    private KongApi createTestApi(){
+        //create new api
+        KongApi api = new KongApi();
+        api.setName(API_NAME);
+        api.setPath(API_PATH);
+        api.setStripPath(true);
+        api.setTargetUrl(API_URL);
+        print(api);
+        return api;
+    }
+
+    private KongApi createDummyApi(String name, String path, String url){
+        //create new api
+        KongApi api = new KongApi();
+        api.setName(name);
+        api.setPath(path);
+        api.setStripPath(true);
+        api.setTargetUrl(url);
+        print(api);
+        return api;
+    }
     private void print(Object obj){System.out.println(gson.toJson(obj));}
 }

@@ -3,10 +3,6 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "total": {
-      "id": "total",
-      "type": "integer"
-    },
     "data": {
       "id": "data",
       "type": "array",
@@ -26,21 +22,25 @@
             "id": "public_dns",
             "type": "string"
           },
-          "target_url": {
-            "id": "target_url",
-            "type": "string"
-          },
           "path": {
             "id": "path",
+            "type": "string"
+          },
+          "strip_path": {
+            "id": "strip_path",
+            "type": "boolean"
+          },
+          "strip_path": {
+            "id": "preserve_host",
+            "type": "boolean"
+          },
+          "target_url": {
+            "id": "target_url",
             "type": "string"
           },
           "created_at": {
             "id": "created_at",
             "type": "number"
-          },
-          "strip_path": {
-            "id": "strip_path",
-            "type": "boolean"
           }
         }
       }
