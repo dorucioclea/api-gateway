@@ -77,7 +77,7 @@ CREATE TABLE svc_plans (service_version_id BIGINT NOT NULL, plan_id VARCHAR(255)
 CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255), full_name VARCHAR(255), joined_on TIMESTAMP WITHOUT TIME ZONE);
 
 -- Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-1::apiman
-INSERT INTO gateways (id, configuration, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('TheGateway', '$CRYPT::PmrNC1m25oGSO8fC3XnxKSepmQsbxEZCldn+hYi9bQ10m8m4tEOHYU7gz5w2hcY2cMRPB3Rw+4FZYoeX0n3qEvyk+2Yf+ym3nKw3UtmtHViHLibBzWPY+8OTtJlZVb8dA8yd0TMkiwqk1WGHLSbyjmQujZ07RBK9wkwDahYwQEw=', 'admin', '2015-06-18 17:56:58.083', 'This is the gateway.', 'admin', '2015-06-18 17:56:58.083', 'The Gateway', 'REST');
+INSERT INTO gateways (id, configuration, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '$CRYPT::PmrNC1m25oGSO8fC3XnxKSPWd/jWE+9t0aek3Ncv1AmHt9J5/Crf/zjkoUK8rV3RgQ70TZcQlF9oTpenEyLio2Cjt8a2HprYxahGLbMv4wA=', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');
 
 -- Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-2::apiman
 INSERT INTO pd_templates (policydef_id, language, template) VALUES ('IPWhitelistPolicy', NULL, 'Only requests that originate from the set of @{ipList.size()} configured IP address(es) will be allowed to invoke the managed service.');
