@@ -1,4 +1,4 @@
-package com.t1t.digipolis.rest;
+package com.t1t.digipolis.apim.kong;
 
 /**
  * Created by michallispashidis on 7/08/15.

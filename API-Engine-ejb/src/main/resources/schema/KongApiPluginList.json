@@ -3,6 +3,10 @@
   "id": "/",
   "type": "object",
   "properties": {
+    "total": {
+      "id": "total",
+      "type": "integer"
+    },
     "data": {
       "id": "data",
       "type": "array",
@@ -14,33 +18,26 @@
             "id": "id",
             "type": "string"
           },
+          "api_id": {
+            "id": "api_id",
+            "type": "string"
+          },
           "name": {
             "id": "name",
             "type": "string"
           },
-          "public_dns": {
-            "id": "public_dns",
-            "type": "string"
+          "value": {
+            "id": "value",
+            "type": "object",
+            "properties": {}
           },
-          "path": {
-            "id": "path",
-            "type": "string"
-          },
-          "strip_path": {
-            "id": "strip_path",
+          "enabled": {
+            "id": "enabled",
             "type": "boolean"
-          },
-          "strip_path": {
-            "id": "preserve_host",
-            "type": "boolean"
-          },
-          "target_url": {
-            "id": "target_url",
-            "type": "string"
           },
           "created_at": {
             "id": "created_at",
-            "type": "number"
+            "type": "integer"
           }
         }
       }

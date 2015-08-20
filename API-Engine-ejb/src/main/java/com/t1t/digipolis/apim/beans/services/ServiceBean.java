@@ -31,6 +31,8 @@ public class ServiceBean implements Serializable {
     private String id;
     @Column(nullable=false)
     private String name;
+    @Column(nullable=false)
+    private String basepath;
     @Column(updatable=true, nullable=true, length=512)
     private String description;
     @Column(name = "created_by", updatable=false, nullable=false)
@@ -128,14 +130,24 @@ public class ServiceBean implements Serializable {
         this.organization = organization;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+    public String getBasepath() {
+        return basepath;
+    }
+
+    public void setBasepath(String basePath) {
+        this.basepath = basePath;
+    }
+
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "ServiceBean [organization=" + organization + ", id=" + id + ", name=" + name
-                + ", description=" + description + ", createdBy=" + createdBy + ", createdOn=" + createdOn
-                + "]";
+        return "ServiceBean{" +
+                "organization=" + organization +
+                ", id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", basePath='" + basepath + '\'' +
+                ", description='" + description + '\'' +
+                ", createdBy='" + createdBy + '\'' +
+                ", createdOn=" + createdOn +
+                '}';
     }
 }

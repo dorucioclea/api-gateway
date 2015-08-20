@@ -20,6 +20,7 @@ public class Service implements Serializable {
     private String version;
     private String endpointType;
     private String endpoint;
+    private String basepath;
     private Map<String, String> endpointProperties = new HashMap<>();
     private List<Policy> servicePolicies = new ArrayList<>();
     
@@ -141,6 +142,14 @@ public class Service implements Serializable {
         this.servicePolicies = servicePolicies;
     }
 
+    public String getBasepath() {
+        return basepath;
+    }
+
+    public void setBasepath(String basepath) {
+        this.basepath = basepath;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -184,4 +193,18 @@ public class Service implements Serializable {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "Service{" +
+                "publicService=" + publicService +
+                ", organizationId='" + organizationId + '\'' +
+                ", serviceId='" + serviceId + '\'' +
+                ", version='" + version + '\'' +
+                ", endpointType='" + endpointType + '\'' +
+                ", endpoint='" + endpoint + '\'' +
+                ", basepath='" + basepath + '\'' +
+                ", endpointProperties=" + endpointProperties +
+                ", servicePolicies=" + servicePolicies +
+                '}';
+    }
 }

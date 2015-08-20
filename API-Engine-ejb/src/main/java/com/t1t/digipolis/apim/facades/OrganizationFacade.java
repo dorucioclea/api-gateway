@@ -613,6 +613,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newService.setName(bean.getName());
         newService.setDescription(bean.getDescription());
         newService.setId(BeanUtils.idFromName(bean.getName()));
+        newService.setBasepath(bean.getBasepath());
         newService.setCreatedOn(new Date());
         newService.setCreatedBy(securityContext.getCurrentUser());
         try {
@@ -645,6 +646,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public ServiceVersionBean createServiceVersion(String organizationId, String serviceId, NewServiceVersionBean bean) {
         ServiceVersionBean newVersion = null;
         try {
+            //adds the default gateway - service can be updated to add another gateway
             GatewaySummaryBean gateway = getSingularGateway();
             ServiceBean service = storage.getService(organizationId, serviceId);
             if (service == null) {
@@ -1859,6 +1861,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 newVersion.getGateways().add(sgb);
             }
         }
+        //TODO add path information to endpoint properties
         if (serviceValidator.isReady(newVersion)) {
             newVersion.setStatus(ServiceStatus.Ready);
         } else {

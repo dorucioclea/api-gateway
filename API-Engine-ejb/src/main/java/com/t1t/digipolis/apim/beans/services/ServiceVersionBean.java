@@ -11,19 +11,20 @@ import java.util.Set;
 
 /**
  * Models a single version of a service "impl".  Every service in
- * APIMan has basic meta-data stored in {@link ServiceBean}.  All
+ * APIEngine has basic meta-data stored in {@link ServiceBean}.  All
  * other specifics of the service, such as endpoint information
  * and configured policies are associated with a particular version
  * of that Service.  This class represents that version.
  *
  */
 @Entity
-@Table(name = "service_versions",
-       uniqueConstraints = { @UniqueConstraint(columnNames = { "service_id", "service_org_id", "version" }) })
+@Table(name = "service_versions", uniqueConstraints = { @UniqueConstraint(columnNames = { "service_id", "service_org_id", "version" }) })
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class ServiceVersionBean implements Serializable {
 
     private static final long serialVersionUID = -2218697175049442690L;
+    //key for endpoint properties
+    public static final String PROP_PATH = "service_path";
 
     @Id @GeneratedValue
     private Long id;

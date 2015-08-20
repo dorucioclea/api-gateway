@@ -7,13 +7,17 @@
       "id": "id",
       "type": "string"
     },
+    "username": {
+      "id": "username",
+      "type": "string"
+    },
     "custom_id": {
       "id": "custom_id",
       "type": "string"
     },
     "created_at": {
       "id": "created_at",
-      "type": "integer"
+      "type": "number"
     }
   }
 }

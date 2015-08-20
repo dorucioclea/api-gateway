@@ -64,8 +64,8 @@
         <module>API-Engine-ejb</module>
         <module>API-Engine-web</module>
         <module>API-Engine-ear</module>
-        <module>API-Engine-distro</module>
-        <module>API-Engine-distro-package-wildfly2</module>
+<!--        <module>API-Engine-distro</module>
+        <module>API-Engine-distro-package-wildfly2</module>-->
     </modules>
 
     <properties>
@@ -129,6 +129,7 @@
         <version.joda-time>2.8.1</version.joda-time>
         <version.junit>4.11</version.junit>
         <version.org.apache.commons.commons-lang3>3.3.2</version.org.apache.commons.commons-lang3>
+        <version.org.apache.commons.codec>1.10</version.org.apache.commons.codec>
         <version.org.apache.commons.commons-pool2>2.2</version.org.apache.commons.commons-pool2>
         <version.org.apache.directory.server>1.5.7</version.org.apache.directory.server>
         <version.org.apache.felix.scr.annotations>1.7.0</version.org.apache.felix.scr.annotations>
@@ -204,18 +205,6 @@
                 <version>${version.jboss.bom}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <!--Logging-->
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>${version.org.slf4j}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>${version.org.slf4j}</version>
             </dependency>
 
             <!-- Internal Projects -->
@@ -655,6 +644,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-pool2</artifactId>
                 <version>${version.org.apache.commons.commons-pool2}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${version.org.apache.commons.codec}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.directory.server</groupId>

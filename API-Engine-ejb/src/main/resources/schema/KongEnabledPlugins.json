@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "enabled_plugins": {
+      "id": "enabled_plugins",
+      "type": "array",
+      "items": {
+        "id": "0",
+        "type": "string"
+      }
+    }
+  }
+}
