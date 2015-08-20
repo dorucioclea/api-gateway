@@ -1,7 +1,10 @@
 package com.t1t.digipolis.rest.resources;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.ServiceStatus;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
@@ -21,11 +24,9 @@ import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Api(value = "/search", description = "The Search API.")
 @Path("/search")
@@ -49,7 +50,7 @@ public class SearchResource implements ISearchResource {
     }
 
     @ApiOperation(value = "Search for Organizations",
-            notes = "Use this endpoint to search for organizations.  The search criteria is provided in the body of the request, including filters, order-by, and paging information.")
+            notes = "Use this endpoint to search for organizations.  The search criteria is provided in the body of the request, including filters, order-by, and paging information. Possible values are: publishService, retireService, registerApplication, unregisterApplciation, lockPlan")
     @ApiResponses({
             @ApiResponse(code = 200, response = SearchResultsBean.class, message = "The search results (a page of organizations)")
     })
@@ -72,8 +73,7 @@ public class SearchResource implements ISearchResource {
     @Path("/applications")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<ApplicationSummaryBean> searchApps(SearchCriteriaBean criteria)
-            throws OrganizationNotFoundException, InvalidSearchCriteriaException {
+    public SearchResultsBean<ApplicationSummaryBean> searchApps(SearchCriteriaBean criteria) throws OrganizationNotFoundException, InvalidSearchCriteriaException {
         // TODO only return applications that the user is permitted to see?
         SearchCriteriaUtil.validateSearchCriteria(criteria);
         return searchFacade.searchApps(criteria);
@@ -88,9 +88,22 @@ public class SearchResource implements ISearchResource {
     @Path("/services")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria)
-            throws OrganizationNotFoundException, InvalidSearchCriteriaException {
+    public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria) throws OrganizationNotFoundException, InvalidSearchCriteriaException {
         SearchCriteriaUtil.validateSearchCriteria(criteria);
         return searchFacade.searchServices(criteria);
+    }
+
+    @ApiOperation(value = "Search for Services with a specific status",
+            notes = "Use this endpoint to search for all services with given status. Possible values are: Created, Ready, Published, Retired")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = ServiceVersionBean.class, message = "If the search is successful.")
+    })
+    @GET
+    @Path("/services/{status}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceVersionBean> searchServicesByLifecycle(@PathParam("status") ServiceStatus status) {
+        Preconditions.checkNotNull(status);
+        return searchFacade.searchServicesByStatus(status);
     }
 }

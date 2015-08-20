@@ -5,6 +5,8 @@ import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.ServiceStatus;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 
@@ -55,6 +57,14 @@ public interface IStorageQuery {
      * @throws StorageException if a storage problem occurs while storing a bean.
      */
     public SearchResultsBean<ServiceSummaryBean> findServices(SearchCriteriaBean criteria) throws StorageException;
+
+    /**
+     * Find services in given status.
+     * @param status
+     * @return
+     * @throws StorageException
+     */
+    public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException;
     
     /**
      * Finds plans (within an organization) with the given criteria.

@@ -25,6 +25,8 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.core.util.PolicyTemplateUtil;
 import org.apache.commons.io.IOUtils;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.CriteriaQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -596,8 +598,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorageQuery#findServices(SearchCriteriaBean)
      */
     @Override
-    public SearchResultsBean<ServiceSummaryBean> findServices(SearchCriteriaBean criteria)
-            throws StorageException {
+    public SearchResultsBean<ServiceSummaryBean> findServices(SearchCriteriaBean criteria) throws StorageException {
         SearchResultsBean<ServiceBean> result = find(criteria, ServiceBean.class);
         SearchResultsBean<ServiceSummaryBean> rval = new SearchResultsBean<>();
         rval.setTotalSize(result.getTotalSize());
@@ -615,6 +616,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             rval.getBeans().add(summary);
         }
         return rval;
+    }
+
+    public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException{
+        return super.findAllServicesByStatus(status);
     }
 
     /**

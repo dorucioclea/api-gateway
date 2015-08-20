@@ -3,6 +3,9 @@ package com.t1t.digipolis.apim.jpa;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.*;
+import com.t1t.digipolis.apim.beans.services.ServiceBean;
+import com.t1t.digipolis.apim.beans.services.ServiceStatus;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.slf4j.Logger;
@@ -11,9 +14,11 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -175,6 +180,11 @@ public abstract class AbstractJpaStorage {
         results.setTotalSize(totalSize);
         results.setBeans(resultList);
         return results;
+    }
+
+    protected List<ServiceVersionBean> findAllServicesByStatus(ServiceStatus status){
+        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.status LIKE :status").setParameter("status",status);
+        return (List<ServiceVersionBean>) query.getResultList();
     }
 
     /**

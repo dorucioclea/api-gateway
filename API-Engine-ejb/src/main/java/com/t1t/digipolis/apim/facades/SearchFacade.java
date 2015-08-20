@@ -2,6 +2,8 @@ package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.ServiceStatus;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
@@ -18,6 +20,7 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import java.util.List;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -57,6 +60,14 @@ public class SearchFacade {
     public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria) {
         try {
             return query.findServices(criteria);
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<ServiceVersionBean> searchServicesByStatus(ServiceStatus status){
+        try {
+            return query.findServiceByStatus(status);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
