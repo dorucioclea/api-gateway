@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
@@ -26,6 +27,7 @@ import org.elasticsearch.common.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.InputStream;
 import java.net.URI;
 
@@ -36,7 +38,6 @@ import java.net.URI;
 public class GatewayClient /*implements ISystemResource, IServiceResource, IApplicationResource*/ {
     private static Logger log = LoggerFactory.getLogger(GatewayClient.class.getName());
     private KongClient httpClient;
-
     /**
      * Constructor.
      *
@@ -122,14 +123,7 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
      * @return
      */
     private String validateServicePath(Service service) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(service.getBasepath()));
-        String servicePath=service.getBasepath();
-        if(!servicePath.startsWith("/"))servicePath="/"+servicePath;
-        if(!StringUtils.isEmpty(service.getVersion())){
-            if(servicePath.endsWith("/")) servicePath = servicePath+service.getVersion();
-            else servicePath = servicePath+"/"+service.getVersion();
-        }
-        return servicePath;
+        return GatewayPathUtilities.generateGatewayContextPath(service);
     }
 
     public void retire(String organizationId, String serviceId, String version) throws RegistrationException, GatewayAuthenticationException {

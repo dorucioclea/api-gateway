@@ -26,17 +26,4 @@ public class KongUtils {
         byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
         return new String(authEncBytes);
     }
-
-    /**
-     * Utility to encrypt
-     * @param configuration
-     * @return
-     */
-    public String encryptGatewayConfig(RestGatewayConfigBean configBean){
-        return AesEncrypter.encrypt(configuration);
-    }
-
-    public String decryptGatewayConfig(String configuration){
-        return AesEncrypter.decrypt(configuration);
-    }
 }

@@ -452,8 +452,7 @@ public class ActionFacade {
      * @param action
      */
     private void lockPlan(ActionBean action) throws ActionException {
-        if (!securityContext.hasPermission(PermissionType.planAdmin, action.getOrganizationId()))
-            throw ExceptionFactory.notAuthorizedException();
+        if (!securityContext.hasPermission(PermissionType.planAdmin, action.getOrganizationId())) throw ExceptionFactory.notAuthorizedException();
 
         PlanVersionBean versionBean = null;
         try {
