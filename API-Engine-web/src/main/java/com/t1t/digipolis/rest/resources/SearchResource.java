@@ -124,7 +124,7 @@ public class SearchResource implements ISearchResource {
     }
 
     @ApiOperation(value = "Search for all Service versions within given category list",
-            notes = "Use this endpoint to search for all service versions, having a category defined in the given category list.")
+            notes = "Use this endpoint to search for all PUBLISHED service versions, having a category defined in the given category list.")
     @ApiResponses({
             @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionBean.class, message = "If the search is successful.")
     })
