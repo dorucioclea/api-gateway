@@ -614,6 +614,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newService.setDescription(bean.getDescription());
         newService.setId(BeanUtils.idFromName(bean.getName()));
         newService.setBasepath(bean.getBasepath());
+        newService.setCategories(bean.getCategories());
         newService.setCreatedOn(new Date());
         newService.setCreatedBy(securityContext.getCurrentUser());
         try {
@@ -1019,6 +1020,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (AuditUtils.valueChanged(serviceForUpdate.getDescription(), bean.getDescription())) {
                 auditData.addChange("description", serviceForUpdate.getDescription(), bean.getDescription()); //$NON-NLS-1$
                 serviceForUpdate.setDescription(bean.getDescription());
+            }
+            if (AuditUtils.valueChanged(serviceForUpdate.getCategories(), bean.getCategories())) {
+                auditData.addChange("categories", serviceForUpdate.getCategories().toString(), bean.getCategories().toString()); //$NON-NLS-1$
+                serviceForUpdate.setCategories(bean.getCategories());
             }
             storage.updateService(serviceForUpdate);
             storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));

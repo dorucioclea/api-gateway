@@ -3,6 +3,8 @@ package com.t1t.digipolis.apim.beans.services;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Bean used when creating a service.
@@ -17,6 +19,7 @@ public class NewServiceBean implements Serializable {
     private String description;
     private String initialVersion;
     private String basepath;
+    private Set<String> categories;
 
     /**
      * Constructor.
@@ -74,6 +77,14 @@ public class NewServiceBean implements Serializable {
         this.basepath = basepath;
     }
 
+    public Set<String> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Set<String> categories) {
+        this.categories = categories;
+    }
+
     @Override
     public String toString() {
         return "NewServiceBean{" +
@@ -81,6 +92,7 @@ public class NewServiceBean implements Serializable {
                 ", description='" + description + '\'' +
                 ", initialVersion='" + initialVersion + '\'' +
                 ", basepath='" + basepath + '\'' +
+                ", categories=" + categories +
                 '}';
     }
 }

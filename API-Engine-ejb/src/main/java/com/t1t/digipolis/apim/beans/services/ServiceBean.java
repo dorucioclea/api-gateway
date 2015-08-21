@@ -7,6 +7,8 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Models an service.
@@ -33,6 +35,10 @@ public class ServiceBean implements Serializable {
     private String name;
     @Column(nullable=false)
     private String basepath;
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name="categories")
+    @Column(name="category")
+    private Set<String> categories;
     @Column(updatable=true, nullable=true, length=512)
     private String description;
     @Column(name = "created_by", updatable=false, nullable=false)
@@ -138,13 +144,22 @@ public class ServiceBean implements Serializable {
         this.basepath = basePath;
     }
 
+    public Set<String> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Set<String> categories) {
+        this.categories = categories;
+    }
+
     @Override
     public String toString() {
         return "ServiceBean{" +
                 "organization=" + organization +
                 ", id='" + id + '\'' +
                 ", name='" + name + '\'' +
-                ", basePath='" + basepath + '\'' +
+                ", basepath='" + basepath + '\'' +
+                ", categories=" + categories +
                 ", description='" + description + '\'' +
                 ", createdBy='" + createdBy + '\'' +
                 ", createdOn=" + createdOn +
