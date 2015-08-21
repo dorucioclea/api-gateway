@@ -20,6 +20,7 @@ import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A base class that JPA storage impls can extend.
@@ -32,7 +33,7 @@ public abstract class AbstractJpaStorage {
 
     @Inject
     @APIEngineContext
-    private EntityManager em;
+    protected EntityManager em;
 
     /**
      * Constructor.
@@ -183,8 +184,13 @@ public abstract class AbstractJpaStorage {
     }
 
     protected List<ServiceVersionBean> findAllServicesByStatus(ServiceStatus status){
-        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.status LIKE :status").setParameter("status",status);
+        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.status LIKE :status").setParameter("status", status);
         return (List<ServiceVersionBean>) query.getResultList();
+    }
+
+    protected List<ServiceBean> findAllServiceDefinitions(){
+        Query query = em.createQuery("SELECT e FROM ServiceBean e");
+        return (List<ServiceBean>) query.getResultList();
     }
 
     /**

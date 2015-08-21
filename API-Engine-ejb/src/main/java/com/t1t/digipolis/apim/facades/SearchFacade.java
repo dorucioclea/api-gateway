@@ -21,6 +21,7 @@ import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -70,6 +71,14 @@ public class SearchFacade {
             return query.findServiceByStatus(status);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
+        }
+    }
+
+    public Set<String> searchCategories(){
+        try {
+            return query.findAllUniqueCategories();
+        } catch (StorageException e) {
+            throw new SystemErrorException();
         }
     }
 }

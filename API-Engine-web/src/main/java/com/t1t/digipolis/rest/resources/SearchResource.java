@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
+import java.util.Set;
 
 @Api(value = "/search", description = "The Search API.")
 @Path("/search")
@@ -96,7 +97,7 @@ public class SearchResource implements ISearchResource {
     @ApiOperation(value = "Search for Services with a specific status",
             notes = "Use this endpoint to search for all services with given status. Possible values are: Created, Ready, Published, Retired")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ServiceVersionBean.class, message = "If the search is successful.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionBean.class, message = "If the search is successful.")
     })
     @GET
     @Path("/services/{status}")
@@ -105,5 +106,18 @@ public class SearchResource implements ISearchResource {
     public List<ServiceVersionBean> searchServicesByLifecycle(@PathParam("status") ServiceStatus status) {
         Preconditions.checkNotNull(status);
         return searchFacade.searchServicesByStatus(status);
+    }
+
+    @ApiOperation(value = "Search for all used service categories",
+            notes = "Use this endpoint to search for all service categories. All categories are returned, also for unpublished service versions.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = String.class, message = "If the search is successful.")
+    })
+    @GET
+    @Path("/service/categories/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<String> searchCategories() {
+        return searchFacade.searchCategories();
     }
 }

@@ -65,6 +65,13 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException;
+
+    /**
+     * Returns all categories in a list (duplicates are possible).
+     * @return
+     * @throws StorageException
+     */
+    public Set<String> findAllUniqueCategories()throws StorageException;
     
     /**
      * Finds plans (within an organization) with the given criteria.
