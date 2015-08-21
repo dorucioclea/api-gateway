@@ -622,10 +622,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return super.findAllServicesByStatus(status);
     }
 
-    protected List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories){
-        Query query = em.createQuery("SELECT DISTINCT sv FROM ServiceVersionBean sv JOIN sv.service s JOIN s.categories c WHERE KEY(c) IN :keys")
-                .setParameter("keys",categories);
-        return (List<ServiceVersionBean>) query.getResultList();
+    public List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories)throws StorageException{
+        return findAllServiceVersionsInCategory(categories);
     }
 
     public Set<String> findAllUniqueCategories()throws StorageException{

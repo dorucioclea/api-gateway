@@ -193,6 +193,19 @@ public abstract class AbstractJpaStorage {
         return (List<ServiceBean>) query.getResultList();
     }
 
+    protected List<ServiceVersionBean> findAllServiceVersionsInCategory(List<String> categories)throws StorageException{
+        List<ServiceBean>services = findAllServiceDefinitions();
+        List<ServiceBean> filteredServices = new ArrayList<>();
+        for (ServiceBean service:services){
+            for(String cat:categories){
+                if(service.getCategories().contains(cat))filteredServices.add(service);
+            }
+        }
+        //get all service verisons with parent id
+        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.service IN :services AND e.status LIKE :status").setParameter("services",filteredServices).setParameter("status",ServiceStatus.Published);
+        return (List<ServiceVersionBean>) query.getResultList();
+    }
+
     /**
      * Gets a count of the number of rows that would be returned by the search.
      *

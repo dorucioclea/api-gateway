@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.rest.resources;
 
+import com.t1t.digipolis.apim.beans.categories.CategorySearchBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
@@ -79,5 +80,12 @@ public interface ISearchResource {
      * @summary Search for all used service categories
      */
     public Set<String> searchCategories();
+
+    /**
+     * Use this endpoint to search for all ServiceVersions within given categories.
+     * @param searchBean
+     * @return
+     */
+    public List<ServiceVersionBean> searchServiceVersionForCategories(CategorySearchBean searchBean);
 
 }

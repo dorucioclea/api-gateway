@@ -1,6 +1,7 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.beans.categories.CategorySearchBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
@@ -20,6 +21,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.jboss.resteasy.annotations.Body;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -119,5 +121,18 @@ public class SearchResource implements ISearchResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Set<String> searchCategories() {
         return searchFacade.searchCategories();
+    }
+
+    @ApiOperation(value = "Search for all Service versions within given category list",
+            notes = "Use this endpoint to search for all service versions, having a category defined in the given category list.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionBean.class, message = "If the search is successful.")
+    })
+    @POST
+    @Path("/services/versions")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceVersionBean> searchServiceVersionForCategories(CategorySearchBean catSearch) {
+        return searchFacade.searchServicesPublishedInCategories(catSearch.getCategories());
     }
 }
