@@ -1,8 +1,6 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.common.base.Preconditions;
-import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
-import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
@@ -10,26 +8,11 @@ import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
-import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongInfo;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.StringEntity;
-import org.elasticsearch.common.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.io.InputStream;
-import java.net.URI;
 
 /**
  * A REST client for accessing the Gateway API.
@@ -38,6 +21,7 @@ import java.net.URI;
 public class GatewayClient /*implements ISystemResource, IServiceResource, IApplicationResource*/ {
     private static Logger log = LoggerFactory.getLogger(GatewayClient.class.getName());
     private KongClient httpClient;
+
     /**
      * Constructor.
      *
@@ -96,7 +80,7 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
         api.setTargetUrl(service.getEndpoint());
         //context path that will be stripped away
         api.setPath(validateServicePath(service));
-        log.info("Send to Kong:{}",api.toString());
+        log.info("Send to Kong:{}", api.toString());
         //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
         httpClient.addApi(api);
     }
@@ -104,6 +88,7 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
     /**
      * Generates a unique service name for Kong.
      * The name is constituted of the organizationid.serviceid.version
+     *
      * @param service
      * @return
      */

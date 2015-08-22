@@ -206,7 +206,7 @@ public class KongClientIntegrationTest {
     }
 
     @Test
-    public void testGetEnabledPlugins() throws Exception {
+    public void testGetInstalledPlugins() throws Exception {
 
     }
 
