@@ -57,13 +57,14 @@ public interface IGatewayLink {
 
     /**
      * Gets the service endpoint from the gateway.
+     * @param basePath the base path declared in the service definition
      * @param organizationId the org id
      * @param serviceId the service id
      * @param version the version
      * @return the service endpoint
      * @throws GatewayAuthenticationException when unable to authenticate with gateway
      */
-    public ServiceEndpoint getServiceEndpoint(String organizationId, String serviceId, String version)
+    public ServiceEndpoint getServiceEndpoint(String basePath, String organizationId, String serviceId, String version)
             throws GatewayAuthenticationException;
 
     /**

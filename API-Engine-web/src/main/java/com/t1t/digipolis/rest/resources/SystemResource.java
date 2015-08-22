@@ -47,6 +47,8 @@ public class SystemResource implements ISystemResource {
         rval.setName("API Manager REST API"); //$NON-NLS-1$
         rval.setDescription("The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services."); //$NON-NLS-1$
         rval.setMoreInfo("http://www.trust1team.com"); //$NON-NLS-1$
+        //TODO version off maven project instead
+        rval.setVersion("0.0.1-dev");
         rval.setUp(storage != null);
         if (version != null) {
             rval.setVersion(version.getVersionString());

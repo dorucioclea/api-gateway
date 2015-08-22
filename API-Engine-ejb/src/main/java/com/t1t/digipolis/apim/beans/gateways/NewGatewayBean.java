@@ -15,7 +15,7 @@ public class NewGatewayBean implements Serializable {
     private String description;
     private GatewayType type;
     private String configuration;
-
+    private String endpoint;
     /**
      * Constructor.
      */
@@ -78,13 +78,22 @@ public class NewGatewayBean implements Serializable {
         this.configuration = configuration;
     }
 
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
     /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {
         return "NewGatewayBean [name=" + name + ", description=" + description + ", type=" + type
+                + ", endpoint="+endpoint
                 + ", configuration=***]";
     }
 

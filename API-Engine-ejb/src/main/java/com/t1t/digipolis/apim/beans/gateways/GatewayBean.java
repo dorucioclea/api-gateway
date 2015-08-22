@@ -25,6 +25,8 @@ public class GatewayBean implements Serializable {
     private String id;
     @Column(nullable=false)
     private String name;
+    @Column(nullable = false)
+    private String endpoint;
     @Column(updatable=true, nullable=true, length=512)
     private String description;
     @Column(name = "created_by", updatable=false, nullable=false)
@@ -188,14 +190,22 @@ public class GatewayBean implements Serializable {
         this.configuration = configuration;
     }
 
+    public String getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
     /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {
         return "GatewayBean [id=" + id + ", name=" + name + ", description=" + description + ", createdBy="
                 + createdBy + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy + ", modifiedOn="
-                + modifiedOn + ", type=" + type + ", configuration=***]";
+                + modifiedOn + ", endpoint=" + endpoint +", type=" + type + ", configuration=***]";
     }
 }

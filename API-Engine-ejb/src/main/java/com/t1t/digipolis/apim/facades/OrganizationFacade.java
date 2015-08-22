@@ -1052,7 +1052,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new GatewayNotFoundException();
             }
             IGatewayLink link = gatewayLinkFactory.create(gateway);
-            ServiceEndpoint endpoint = link.getServiceEndpoint(organizationId, serviceId, version);
+            ServiceBean serviceBean = storage.getService(organizationId,serviceId);
+            ServiceEndpoint endpoint = link.getServiceEndpoint(serviceBean.getBasepath(),organizationId, serviceId, version);
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
             rval.setManagedEndpoint(endpoint.getEndpoint());
 
@@ -2062,7 +2063,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     link = gatewayLinkFactory.create(gateway);
                     gatewayLinks.put(gatewayId, link);
                 }
-                ServiceEndpoint se = link.getServiceEndpoint(api.getServiceOrgId(), api.getServiceId(), api.getServiceVersion());
+                ServiceBean service = storage.getService(api.getServiceOrgId(), api.getServiceId());
+                ServiceEndpoint se = link.getServiceEndpoint(service.getBasepath(),api.getServiceOrgId(), api.getServiceId(), api.getServiceVersion());
                 String apiEndpoint = se.getEndpoint();
                 api.setHttpEndpoint(apiEndpoint);
             }

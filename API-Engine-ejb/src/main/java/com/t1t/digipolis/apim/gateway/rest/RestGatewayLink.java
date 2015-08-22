@@ -82,12 +82,12 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     /**
-     * @see IGatewayLink#getServiceEndpoint(String, String, String)
+     * @see IGatewayLink#getServiceEndpoint(String, String, String, String)
      */
     @Override
-    public ServiceEndpoint getServiceEndpoint(String organizationId, String serviceId, String version)
+    public ServiceEndpoint getServiceEndpoint(String basePath,String organizationId, String serviceId, String version)
             throws GatewayAuthenticationException {
-        return getClient().getServiceEndpoint(organizationId, serviceId, version);
+        return getClient().getServiceEndpoint(basePath,organizationId, serviceId, version);
     }
 
     /**
@@ -149,7 +149,7 @@ public class RestGatewayLink implements IGatewayLink {
      */
     private GatewayClient createClient() {
         String gatewayEndpoint = getConfig().getEndpoint();
-        return new GatewayClient(httpClient);
+        return new GatewayClient(httpClient,gateway);
     }
 
     /**

@@ -1,6 +1,9 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
@@ -11,24 +14,31 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongInfo;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.io.IOException;
 
 /**
  * A REST client for accessing the Gateway API.
  */
 @SuppressWarnings("javadoc") // class is temporarily delinked from its interfaces
-public class GatewayClient /*implements ISystemResource, IServiceResource, IApplicationResource*/ {
+public class GatewayClient { /*implements ISystemResource, IServiceResource, IApplicationResource*/
     private static Logger log = LoggerFactory.getLogger(GatewayClient.class.getName());
     private KongClient httpClient;
+    private GatewayBean gatewayBean;
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Constructor.
      *
      * @param httpClient the http client
      */
-    public GatewayClient(KongClient httpClient) {
+    public GatewayClient(KongClient httpClient, GatewayBean gateway) {
         this.httpClient = httpClient;
+        this.gatewayBean = gateway;
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {
@@ -42,8 +52,19 @@ public class GatewayClient /*implements ISystemResource, IServiceResource, IAppl
         return systemStatus;
     }
 
-    public ServiceEndpoint getServiceEndpoint(String organizationId, String serviceId, String version) throws GatewayAuthenticationException {
-        return null;
+    public ServiceEndpoint getServiceEndpoint(String basePath, String organizationId, String serviceId, String version) throws GatewayAuthenticationException {
+        ServiceEndpoint endpoint = new ServiceEndpoint();
+        StringBuilder url = new StringBuilder();
+        url.append(gatewayBean.getEndpoint());
+        Service service = new Service();
+        service.setOrganizationId(organizationId);
+        service.setServiceId(serviceId);
+        service.setVersion(version);
+        service.setBasepath(basePath);
+        //todo set basepath
+        url.append(GatewayPathUtilities.generateGatewayContextPath(service));
+        endpoint.setEndpoint(url.toString());
+        return endpoint;
 
     }
 
