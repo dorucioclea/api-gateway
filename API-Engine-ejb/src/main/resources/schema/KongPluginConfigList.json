@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "data": {
+      "id":"kongPluginConfig",
+      "type":"array",
+      "items":{
+        "$ref":"KongPluginConfig.json"
+      }
+    },
+    "next": {
+      "id": "next",
+      "type": "string"
+    }
+  }
+}

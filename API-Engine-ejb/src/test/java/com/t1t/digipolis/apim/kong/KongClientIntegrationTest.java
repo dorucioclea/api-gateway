@@ -192,7 +192,7 @@ public class KongClientIntegrationTest {
         KongConsumer updatedCons = kongClient.updateOrCreateConsumer(regCons);
         assertNotNull(updatedCons);
         assertEquals(updatedCons.getCustomId(), randomExtId);
-        assertEquals(updatedCons.getUsername(),randomName);
+        assertEquals(updatedCons.getUsername(), randomName);
         //cleanup
         kongClient.deleteConsumer(updatedCons.getId());
     }
@@ -213,17 +213,12 @@ public class KongClientIntegrationTest {
     }
 
     @Test
-    public void testGetPluginSchema() throws Exception {
-
-    }
-
-    @Test
     public void testCreatePlugin() throws Exception {
 
     }
 
     @Test
-    public void testGetApiPluginList() throws Exception {
+    public void testGetKongPluginConfigList() throws Exception {
 
     }
 
