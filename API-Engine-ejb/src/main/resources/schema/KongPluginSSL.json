@@ -1,0 +1,28 @@
+{
+  "fields": {
+    "_cert_der_cache": {
+      "type": "string",
+      "immutable": true
+    },
+    "cert": {
+      "type": "string",
+      "required": true,
+      "func": "function"
+    },
+    "only_https": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    "key": {
+      "type": "string",
+      "required": true,
+      "func": "function"
+    },
+    "_key_der_cache": {
+      "type": "string",
+      "immutable": true
+    }
+  },
+  "no_consumer": true
+}

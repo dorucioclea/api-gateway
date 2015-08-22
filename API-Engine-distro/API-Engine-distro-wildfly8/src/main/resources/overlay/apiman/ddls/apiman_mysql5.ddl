@@ -74,10 +74,10 @@ CREATE TABLE svc_plans (service_version_id BIGINT NOT NULL, plan_id VARCHAR(255)
 --  Changeset ::1436469846462-22::apiengine (generated)
 CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on datetime NULL);
 
---  Changeset
+--  Changeset ::1436469846462-22::apiengine (generated)
 CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organization_id VARCHAR(255) NOT NULL,category VARCHAR(255),FOREIGN KEY (ServiceBean_id, ServiceBean_organization_id) REFERENCES services (id, organization_id));
 
---  Changeset
+--  Changeset ::1436469846462-22::apiengine (generated)
 CREATE INDEX FK_huasdtal54l0isoauy6mrtmpx ON categories (ServiceBean_id, ServiceBean_organization_id);
 
 --  Changeset ::1436469846462-23::apiengine (generated)

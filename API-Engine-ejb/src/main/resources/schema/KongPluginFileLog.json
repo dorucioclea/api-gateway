@@ -1,0 +1,9 @@
+{
+  "fields": {
+    "path": {
+      "type": "string",
+      "required": true,
+      "func": "function"
+    }
+  }
+}

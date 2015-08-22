@@ -1,0 +1,23 @@
+{
+  "fields": {
+    "day": {
+      "type": "number"
+    },
+    "minute": {
+      "type": "number"
+    },
+    "second": {
+      "type": "number"
+    },
+    "hour": {
+      "type": "number"
+    },
+    "month": {
+      "type": "number"
+    },
+    "year": {
+      "type": "number"
+    }
+  },
+  "self_check": "function"
+}

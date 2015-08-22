@@ -1,0 +1,35 @@
+{
+  "fields": {
+    "methods": {
+      "type": "array",
+      "enum": [
+        "HEAD",
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+      ]
+    },
+    "credentials": {
+      "type": "boolean",
+      "default": false
+    },
+    "exposed_headers": {
+      "type": "array"
+    },
+    "origin": {
+      "type": "string"
+    },
+    "max_age": {
+      "type": "number"
+    },
+    "preflight_continue": {
+      "type": "boolean",
+      "default": false
+    },
+    "headers": {
+      "type": "array"
+    }
+  }
+}

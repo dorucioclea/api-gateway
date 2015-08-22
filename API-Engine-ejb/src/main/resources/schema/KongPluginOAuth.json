@@ -1,0 +1,34 @@
+{
+  "fields": {
+    "scopes": {
+      "type": "array",
+      "required": false
+    },
+    "mandatory_scope": {
+      "type": "boolean",
+      "required": true,
+      "func": "function",
+      "default": false
+    },
+    "token_expiration": {
+      "type": "number",
+      "required": true,
+      "default": 7200
+    },
+    "hide_credentials": {
+      "type": "boolean",
+      "default": false
+    },
+    "enable_implicit_grant": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "provision_key": {
+      "unique": true,
+      "required": false,
+      "func": "function",
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "hide_credentials": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

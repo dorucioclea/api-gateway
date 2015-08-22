@@ -1,0 +1,36 @@
+{
+  "fields": {
+    "remove": {
+      "type": "table",
+      "schema": {
+        "fields": {
+          "querystring": {
+            "type": "array"
+          },
+          "form": {
+            "type": "array"
+          },
+          "headers": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "add": {
+      "type": "table",
+      "schema": {
+        "fields": {
+          "querystring": {
+            "type": "array"
+          },
+          "form": {
+            "type": "array"
+          },
+          "headers": {
+            "type": "array"
+          }
+        }
+      }
+    }
+  }
+}

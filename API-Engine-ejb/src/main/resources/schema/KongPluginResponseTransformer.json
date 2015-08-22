@@ -1,0 +1,30 @@
+{
+  "fields": {
+    "remove": {
+      "type": "table",
+      "schema": {
+        "fields": {
+          "headers": {
+            "type": "array"
+          },
+          "json": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "add": {
+      "type": "table",
+      "schema": {
+        "fields": {
+          "headers": {
+            "type": "array"
+          },
+          "json": {
+            "type": "array"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "fields": {
+    "keepalive": {
+      "type": "number",
+      "default": 60000
+    },
+    "method": {
+      "enum": [
+        "POST",
+        "PUT",
+        "PATCH"
+      ],
+      "default": "POST"
+    },
+    "timeout": {
+      "type": "number",
+      "default": 10000
+    },
+    "http_endpoint": {
+      "type": "url",
+      "required": true
+    }
+  }
+}
