@@ -98,7 +98,7 @@ public class KongClientIntegrationTest {
         KongApiList apiList = kongClient.listApis();
         assertNotNull(apiList);
         print(apiList);
-        System.out.println("actual api count already configured on Kong:" + apiList.getData().size());
+        System.out.println("actual api count already configured on Kong:" + apiList.getKongApis().size());
         KongApi apiA = createDummyApi("apia", "/apia", API_URL);
         KongApi apiB = createDummyApi("apib","/apib",API_URL);
         kongClient.addApi(apiA);
@@ -106,7 +106,7 @@ public class KongClientIntegrationTest {
         KongApiList apiUpdatedList = kongClient.listApis();
         assertNotNull(apiUpdatedList);
         print(apiUpdatedList);
-        assertTrue(apiUpdatedList.getData().size() == apiList.getData().size() + 2);
+        assertTrue(apiUpdatedList.getKongApis().size() == apiList.getKongApis().size() + 2);
         //cleanup
         kongClient.deleteApi(apiA.getName());
         kongClient.deleteApi(apiB.getName());
@@ -168,14 +168,14 @@ public class KongClientIntegrationTest {
     @Test
     public void testGetConsumers() throws Exception {
         KongConsumerList consList = kongClient.getConsumers();
-        System.out.println("actual consumer count already registered for Kong: " + consList.getData().size());
+        System.out.println("actual consumer count already registered for Kong: " + consList.getKongConsumers().size());
         KongConsumer consA = createDummyConsumer("1", "ConsumerA");
         KongConsumer consB = createDummyConsumer("2", "ConsumerB");
         consA = kongClient.createConsumer(consA);
         consB = kongClient.createConsumer(consB);
         KongConsumerList updatedList = kongClient.getConsumers();
         assertNotNull(updatedList);
-        assertTrue(updatedList.getData().size() == consList.getData().size() + 2);
+        assertTrue(updatedList.getKongConsumers().size() == consList.getKongConsumers().size() + 2);
         //clean up
         kongClient.deleteConsumer(consA.getId());
         kongClient.deleteConsumer(consB.getId());
