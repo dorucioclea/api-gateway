@@ -3,7 +3,7 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "kongApis": {
+    "data": {
       "id": "kongApi",
       "type": "array",
       "items": {

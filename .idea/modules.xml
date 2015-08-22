@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/API-Engine-distro-package-wildfly2/API-Engine-distro-package-wildfly2.iml" filepath="$PROJECT_DIR$/API-Engine-distro-package-wildfly2/API-Engine-distro-package-wildfly2.iml" />
       <module fileurl="file://$PROJECT_DIR$/API-Engine-ear/API-Engine-ear.iml" filepath="$PROJECT_DIR$/API-Engine-ear/API-Engine-ear.iml" />
-      <module fileurl="file://$PROJECT_DIR$/API-Engine-ear/API-Engine-ear.iml" filepath="$PROJECT_DIR$/API-Engine-ear/API-Engine-ear.iml" />
-      <module fileurl="file://$PROJECT_DIR$/API-Engine-ejb/API-Engine-ejb.iml" filepath="$PROJECT_DIR$/API-Engine-ejb/API-Engine-ejb.iml" />
       <module fileurl="file://$PROJECT_DIR$/API-Engine-ejb/API-Engine-ejb.iml" filepath="$PROJECT_DIR$/API-Engine-ejb/API-Engine-ejb.iml" />
       <module fileurl="file://$PROJECT_DIR$/API-Engine-web/API-Engine-web.iml" filepath="$PROJECT_DIR$/API-Engine-web/API-Engine-web.iml" />
       <module fileurl="file://$PROJECT_DIR$/api-engine.iml" filepath="$PROJECT_DIR$/api-engine.iml" />
