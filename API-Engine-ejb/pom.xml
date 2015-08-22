@@ -263,6 +263,7 @@
                 </configuration>
             </plugin>
             <plugin>
+                <!--See: https://github.com/joelittlejohn/jsonschema2pojo/wiki/Reference-->
                 <groupId>org.jsonschema2pojo</groupId>
                 <artifactId>jsonschema2pojo-maven-plugin</artifactId>
                 <version>0.4.13</version>
@@ -272,6 +273,7 @@
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>
                     <annotationStyle>gson</annotationStyle>
+                    <generateBuilders>true</generateBuilders>
                 </configuration>
                 <executions>
                     <execution>

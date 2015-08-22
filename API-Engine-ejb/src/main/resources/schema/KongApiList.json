@@ -3,12 +3,11 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "data": {
-      "id": "data",
+    "KongApis": {
+      "id": "KongApi",
       "type": "array",
       "items": {
-        "id": "0",
-        "type": "object",
+        "type": "Object",
         "properties": {
           "id": {
             "id": "id",
