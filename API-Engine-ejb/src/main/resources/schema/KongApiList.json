@@ -3,45 +3,11 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "KongApis": {
-      "id": "KongApi",
+    "kongApis": {
+      "id": "kongApi",
       "type": "array",
       "items": {
-        "type": "Object",
-        "properties": {
-          "id": {
-            "id": "id",
-            "type": "string"
-          },
-          "name": {
-            "id": "name",
-            "type": "string"
-          },
-          "public_dns": {
-            "id": "public_dns",
-            "type": "string"
-          },
-          "path": {
-            "id": "path",
-            "type": "string"
-          },
-          "strip_path": {
-            "id": "strip_path",
-            "type": "boolean"
-          },
-          "strip_path": {
-            "id": "preserve_host",
-            "type": "boolean"
-          },
-          "target_url": {
-            "id": "target_url",
-            "type": "string"
-          },
-          "created_at": {
-            "id": "created_at",
-            "type": "number"
-          }
-        }
+        "$ref":"KongApi.json"
       }
     },
     "next": {

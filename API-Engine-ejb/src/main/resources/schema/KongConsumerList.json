@@ -3,34 +3,11 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "total": {
-      "id": "total",
-      "type": "integer"
-    },
-    "data": {
-      "id": "data",
+    "kongConsumers": {
+      "id": "kongConsumer",
       "type": "array",
-      "items": {
-        "id": "0",
-        "type": "object",
-        "properties": {
-          "id": {
-            "id": "id",
-            "type": "string"
-          },
-          "username": {
-            "id": "username",
-            "type": "string"
-          },
-          "custom_id": {
-            "id": "custom_id",
-            "type": "string"
-          },
-          "created_at": {
-            "id": "created_at",
-            "type": "number"
-          }
-        }
+       "items": {
+         "$ref":"KongConsumer.json"
       }
     },
     "next": {
