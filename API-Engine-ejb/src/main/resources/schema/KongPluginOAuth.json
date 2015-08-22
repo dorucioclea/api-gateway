@@ -1,5 +1,8 @@
 {
-  "fields": {
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
     "scopes": {
       "type": "array",
       "required": false
