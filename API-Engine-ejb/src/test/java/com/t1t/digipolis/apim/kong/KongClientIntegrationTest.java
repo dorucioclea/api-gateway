@@ -29,7 +29,7 @@ public class KongClientIntegrationTest {
     private static final String KONG_UNDER_TEST_URL = "http://apim.t1t.be:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
-    private static final String API_URL = "http://trust1team.com";
+    private static final String API_URL = "http://domain.com/app/rest/v1";
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -209,26 +209,55 @@ public class KongClientIntegrationTest {
     public void testGetInstalledPlugins() throws Exception {
         KongInstalledPlugins installedPlugins = kongClient.getInstalledPlugins();
         assertNotNull(installedPlugins);
-        assertTrue(installedPlugins.getEnabledPlugins().size()>0);
+        assertTrue(installedPlugins.getEnabledPlugins().size() > 0);
     }
 
     @Test
     public void testCreatePlugin() throws Exception {
-
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apic = createDummyApi("apic","/apic",API_URL);
+        KongConsumer consumer = createDummyConsumer("123", "apicuser");
+        apic = kongClient.addApi(apic);
+        consumer = kongClient.createConsumer(consumer);
+        //create a ratelimitation for the consumer and apply it for the api
+        KongPluginConfig pluginConfig = createTestPlugin(apic,consumer);
+        pluginConfig = kongClient.createPluginConfig(apic.getId(), pluginConfig);
+        print(pluginConfig);
+        kongClient.deleteApi(apic.getId());
+        kongClient.deleteConsumer(consumer.getId());
+        //is deleted automatically => kongClient.deletePlugin(pluginConfig.getId());
     }
 
     @Test
     public void testGetKongPluginConfigList() throws Exception {
-
+        //create api, consumer and plugin; verify list returns 1 configured plugin, add another user and config; verify total
+        KongApi apic = createDummyApi("apic","/apic",API_URL);
+        KongConsumer consumerA = createDummyConsumer("123", "apicusera");
+        KongConsumer consumerB = createDummyConsumer("234", "apicuserb");
+        apic = kongClient.addApi(apic);
+        consumerA = kongClient.createConsumer(consumerA);
+        consumerB = kongClient.createConsumer(consumerB);
+        //create a ratelimitation for the consumer and apply it for the api
+        KongPluginConfig pluginConfigA = createTestPlugin(apic,consumerA);
+        KongPluginConfig pluginConfigB = createTestPlugin(apic,consumerB);
+        pluginConfigA = kongClient.createPluginConfig(apic.getId(), pluginConfigA);
+        print(pluginConfigA);
+        //verify amount of plugins
+        KongPluginConfigList configList = kongClient.getKongPluginConfigList(apic.getId());
+        print(configList);
+        assertTrue(configList.getData().size()==1);
+        //add second pluginconfig
+        pluginConfigB = kongClient.createPluginConfig(apic.getId(), pluginConfigB);
+        print(pluginConfigB);
+        configList = kongClient.getKongPluginConfigList(apic.getId());
+        assertTrue(configList.getData().size() == 2);
+        kongClient.deleteApi(apic.getId());
+        kongClient.deleteConsumer(consumerA.getId());
+        kongClient.deleteConsumer(consumerB.getId());
     }
 
     @Test
     public void testGetAllPlugins() throws Exception {
-
-    }
-
-    @Test
-    public void testUpdatePlugin() throws Exception {
 
     }
 
@@ -242,6 +271,10 @@ public class KongClientIntegrationTest {
 
     }
 
+    /**
+     * Utility method, if used the api is automatically removed after the test.
+     * @return
+     */
     private KongApi createTestApi(){
         //create new api
         KongApi api = new KongApi();
@@ -278,6 +311,18 @@ public class KongClientIntegrationTest {
         cons.setCustomId(customId);
         print(cons);
         return cons;
+    }
+
+    private KongPluginConfig createTestPlugin(KongApi api, KongConsumer consumer) {
+        //create config value - 1 request/minute
+        KongPluginRateLimiting rateLimitingConfig = new KongPluginRateLimiting()
+                .withMinute(1);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withConsumerId(consumer.getId())
+                .withName("ratelimiting")
+                .withValue(rateLimitingConfig);
+        print(pluginConfig);
+        return pluginConfig;
     }
     private void print(Object obj){System.out.println(gson.toJson(obj));};
 }

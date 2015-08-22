@@ -7,22 +7,22 @@
   },
   "properties": {
     "day": {
-      "type": "number"
+      "type": "integer"
     },
     "minute": {
-      "type": "number"
+      "type": "integer"
     },
     "second": {
-      "type": "number"
+      "type": "integer"
     },
     "hour": {
-      "type": "number"
+      "type": "integer"
     },
     "month": {
-      "type": "number"
+      "type": "integer"
     },
     "year": {
-      "type": "number"
+      "type": "integer"
     }
   },
   "self_check": "function"
