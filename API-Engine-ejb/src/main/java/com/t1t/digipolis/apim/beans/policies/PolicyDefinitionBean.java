@@ -26,17 +26,12 @@ public class PolicyDefinitionBean implements Serializable {
     @Id
     @Column(nullable=false)
     private String id;
-    @Column(name = "policy_impl", updatable=false, nullable=false)
-    private String policyImpl;
     @Column(updatable=true, nullable=false)
     private String name;
     @Column(updatable=true, nullable=false, length=512)
     private String description;
     @Column(updatable=true, nullable=false)
     private String icon;
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "pd_templates", joinColumns = @JoinColumn(name = "policydef_id"))
-    private Set<PolicyDefinitionTemplateBean> templates = new HashSet<>();
     @Column(name = "plugin_id", updatable=false, nullable=true)
     private Long pluginId;
     @Column(name = "form_type", updatable=false, nullable=true)
@@ -63,20 +58,6 @@ public class PolicyDefinitionBean implements Serializable {
      */
     public void setId(String id) {
         this.id = id;
-    }
-
-    /**
-     * @return the policyImpl
-     */
-    public String getPolicyImpl() {
-        return policyImpl;
-    }
-
-    /**
-     * @param policyImpl the policyImpl to set
-     */
-    public void setPolicyImpl(String policyImpl) {
-        this.policyImpl = policyImpl;
     }
 
     /**
@@ -119,20 +100,6 @@ public class PolicyDefinitionBean implements Serializable {
      */
     public void setIcon(String icon) {
         this.icon = icon;
-    }
-
-    /**
-     * @return the templates
-     */
-    public Set<PolicyDefinitionTemplateBean> getTemplates() {
-        return templates;
-    }
-
-    /**
-     * @param templates the templates to set
-     */
-    public void setTemplates(Set<PolicyDefinitionTemplateBean> templates) {
-        this.templates = templates;
     }
 
     /**
@@ -215,9 +182,9 @@ public class PolicyDefinitionBean implements Serializable {
     @SuppressWarnings("nls")
     public String toString() {
         final int maxLen = 10;
-        return "PolicyDefinitionBean [id=" + id + ", policyImpl=" + policyImpl + ", name=" + name
+        return "PolicyDefinitionBean [id=" + id + ", name=" + name
                 + ", description=" + description + ", icon=" + icon + ", templates="
-                + (templates != null ? toString(templates, maxLen) : null) + ", pluginId=" + pluginId
+                + ", pluginId=" + pluginId
                 + ", formType=" + formType + ", form=" + form + "]";
     }
 

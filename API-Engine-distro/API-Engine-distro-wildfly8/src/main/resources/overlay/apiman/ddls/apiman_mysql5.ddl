@@ -32,9 +32,6 @@ CREATE TABLE memberships (id BIGINT NOT NULL, created_on datetime NULL, org_id V
 --  Changeset ::1436469846462-8::apiengine (generated)
 CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on datetime NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on datetime NOT NULL, name VARCHAR(255) NOT NULL);
 
---  Changeset ::1436469846462-9::apiengine (generated)
-CREATE TABLE pd_templates (policydef_id VARCHAR(255) NOT NULL, language VARCHAR(255) NULL, template VARCHAR(2048) NULL);
-
 --  Changeset ::1436469846462-10::apiengine (generated)
 CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 
@@ -51,7 +48,7 @@ CREATE TABLE plugins (id BIGINT NOT NULL, artifact_id VARCHAR(255) NOT NULL, cla
 CREATE TABLE policies (id BIGINT NOT NULL, configuration LONGTEXT NULL, created_by VARCHAR(255) NOT NULL, created_on datetime NOT NULL, entity_id VARCHAR(255) NOT NULL, entity_version VARCHAR(255) NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on datetime NOT NULL, name VARCHAR(255) NOT NULL, order_index INT NOT NULL, organization_id VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, definition_id VARCHAR(255) NOT NULL);
 
 --  Changeset ::1436469846462-15::apiengine (generated)
-CREATE TABLE policydefs (id VARCHAR(255) NOT NULL, description VARCHAR(512) NOT NULL, form VARCHAR(255) NULL, form_type VARCHAR(255) NULL, icon VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plugin_id BIGINT NULL, policy_impl VARCHAR(255) NOT NULL);
+CREATE TABLE policydefs (id VARCHAR(255) NOT NULL, description VARCHAR(512) NOT NULL, form VARCHAR(255) NULL, form_type VARCHAR(255) NULL, icon VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plugin_id BIGINT NULL);
 
 --  Changeset ::1436469846462-16::apiengine (generated)
 CREATE TABLE roles (id VARCHAR(255) NOT NULL, auto_grant BIT(1) NULL, created_by VARCHAR(255) NOT NULL, created_on datetime NOT NULL, description VARCHAR(512) NULL, name VARCHAR(255) NULL);
@@ -73,12 +70,6 @@ CREATE TABLE svc_plans (service_version_id BIGINT NOT NULL, plan_id VARCHAR(255)
 
 --  Changeset ::1436469846462-22::apiengine (generated)
 CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on datetime NULL);
-
---  Changeset ::1436469846462-22::apiengine (generated)
-CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organization_id VARCHAR(255) NOT NULL,category VARCHAR(255),FOREIGN KEY (ServiceBean_id, ServiceBean_organization_id) REFERENCES services (id, organization_id));
-
---  Changeset ::1436469846462-22::apiengine (generated)
-CREATE INDEX FK_huasdtal54l0isoauy6mrtmpx ON categories (ServiceBean_id, ServiceBean_organization_id);
 
 --  Changeset ::1436469846462-23::apiengine (generated)
 ALTER TABLE endpoint_properties ADD PRIMARY KEY (service_version_id, name);
@@ -176,9 +167,6 @@ ALTER TABLE contracts ADD CONSTRAINT FK_nyw8xu6m8cx4rwwbtrxbjneui FOREIGN KEY (p
 --  Changeset ::1436469846462-54::apiengine (generated)
 ALTER TABLE svc_gateways ADD CONSTRAINT FK_p5dm3cngljt6yrsnvc7uc6a75 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
 
---  Changeset ::1436469846462-55::apiengine (generated)
-ALTER TABLE pd_templates ADD CONSTRAINT FK_prbnn7j7m6m3pxt2dsn9gwlw8 FOREIGN KEY (policydef_id) REFERENCES policydefs (id);
-
 --  Changeset ::1436469846462-56::apiengine (generated)
 ALTER TABLE permissions ADD CONSTRAINT FK_sq51ihfrapwdr98uufenhcocg FOREIGN KEY (role_id) REFERENCES roles (id);
 
@@ -214,9 +202,6 @@ CREATE INDEX IDX_auditlog_1 ON auditlog(who);
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/200-apiman-manager-api.db.indexes.changelog.xml::createIndex-2::apiengine
 CREATE INDEX IDX_auditlog_2 ON auditlog(organization_id, entity_id, entity_version, entity_type);
-
---  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/200-apiman-manager-api.db.indexes.changelog.xml::createIndex-3::apiengine
-CREATE INDEX IDX_FK_pd_templates_1 ON pd_templates(policydef_id);
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/200-apiman-manager-api.db.indexes.changelog.xml::createIndex-4::apiengine
 CREATE INDEX IDX_users_1 ON users(username);
@@ -263,42 +248,15 @@ CREATE INDEX IDX_FK_contracts_s ON contracts(svcv_id);
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/200-apiman-manager-api.db.indexes.changelog.xml::createIndex-18::apiengine
 CREATE INDEX IDX_FK_contracts_a ON contracts(appv_id);
 
+--  Changeset ::1436469846462-22::apiengine (generated)
+CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organization_id VARCHAR(255) NOT NULL,category VARCHAR(255),FOREIGN KEY (ServiceBean_id, ServiceBean_organization_id) REFERENCES services (id, organization_id));
+
+--  Changeset ::1436469846462-22::apiengine (generated)
+CREATE INDEX FK_huasdtal54l0isoauy6mrtmpx ON categories (ServiceBean_id, ServiceBean_organization_id);
 
 
 -- DATA POPULATION
 INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '$CRYPT::PmrNC1m25oGSO8fC3XnxKSPWd/jWE+9t0aek3Ncv1AmHt9J5/Crf/zjkoUK8rV3RgQ70TZcQlF9oTpenEyLio2Cjt8a2HprYxahGLbMv4wA=','http://apim.t1t.be:8000', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');
-
---  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-2::apiengine
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('IPRestriction', 'json', 'Whitelist or Blacklist IPs that can make requests.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('SSL', 'json', 'Add an SSL certificate for an underlying service.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('BasicAuthentication', 'json', 'Add Basic Authentication to your APIs.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('KeyAuthentication', 'json', 'Add a Key Authentication to your APIs.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('OAuth2Authentication', 'json', 'Add an OAuth2 Authetication to your APIs.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('CORS', 'json', 'Allow consumers to make requests from browsers');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('RateLimiting', 'json', 'Rate Limit how many HTTP requests a consumer can make.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('RequestSizeLimiting', 'json', 'Block requests with bodies greater than a specific size.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('RequestTransformer', 'json', 'Modify the request before hitting the upstream server.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('ResponseTransformer', 'json', 'Modify the upstream response before returning it to the client.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('Analytics', 'json', 'Enable analytics, visualize and inspect API logs.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('HTTPLogging', 'json', 'Send request and response logs to an HTTP server.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('TCPLogging', 'json', 'Send request and response logs to an TCP server.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('UDPLogging', 'json', 'Send request and response logs to an UDP server.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('FileLogging', 'json', 'Send request and response data to a log file on disk.');
-
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-3::apiengine
 INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 1);

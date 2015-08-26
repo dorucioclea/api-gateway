@@ -23,7 +23,6 @@ import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.core.util.PolicyTemplateUtil;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.CriteriaQuery;
@@ -1392,11 +1391,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             List<PolicyBean> policyBeans = (List<PolicyBean>) query.getResultList();
             List<PolicySummaryBean> rval = new ArrayList<>(policyBeans.size());
             for (PolicyBean policyBean : policyBeans) {
-                try {
+/*                try {
                     PolicyTemplateUtil.generatePolicyDescription(policyBean);
                 } catch (Exception e) {
                     throw new StorageException(e.getMessage());
-                }
+                }*/
                 PolicySummaryBean psb = new PolicySummaryBean();
                 psb.setId(policyBean.getId());
                 psb.setName(policyBean.getName());

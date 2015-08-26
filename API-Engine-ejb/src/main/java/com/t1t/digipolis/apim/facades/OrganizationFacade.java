@@ -26,7 +26,6 @@ import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.core.util.PolicyTemplateUtil;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
@@ -1732,7 +1731,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!policy.getEntityVersion().equals(entityVersion)) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
-            PolicyTemplateUtil.generatePolicyDescription(policy);
+            //PolicyTemplateUtil.generatePolicyDescription(policy);
             return policy;
         } catch (AbstractRestException e) {
             throw e;
@@ -1791,7 +1790,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setOrderIndex(newIdx);
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
-            PolicyTemplateUtil.generatePolicyDescription(policy);
+            //PolicyTemplateUtil.generatePolicyDescription(policy);
             log.debug(String.format("Created app policy: %s", policy)); //$NON-NLS-1$
             return policy;
         } catch (AbstractRestException e) {
