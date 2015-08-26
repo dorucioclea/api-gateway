@@ -269,23 +269,36 @@ CREATE INDEX IDX_FK_contracts_a ON contracts(appv_id);
 INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '$CRYPT::PmrNC1m25oGSO8fC3XnxKSPWd/jWE+9t0aek3Ncv1AmHt9J5/Crf/zjkoUK8rV3RgQ70TZcQlF9oTpenEyLio2Cjt8a2HprYxahGLbMv4wA=','http://apim.t1t.be:8000', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-2::apiengine
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('IPWhitelistPolicy', NULL, 'Only requests that originate from the set of @{ipList.size()} configured IP address(es) will be allowed to invoke the managed service.');
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('IPRestriction', 'json', 'Whitelist or Blacklist IPs that can make requests.');
 
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('IPBlacklistPolicy', NULL, 'Requests that originate from the set of @{ipList.size()} configured IP address(es) will be denied access to the managed service.');
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('SSL', 'json', 'Add an SSL certificate for an underlying service.');
 
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('BASICAuthenticationPolicy', NULL, 'Access to the service is protected by BASIC Authentication through the ''@{realm}'' authentication realm.  @if{forwardIdentityHttpHeader != null}Successfully authenticated requests will forward the authenticated identity to the back end service via the ''@{forwardIdentityHttpHeader}'' custom HTTP header.@end{}');
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('BasicAuthentication', 'json', 'Add Basic Authentication to your APIs.');
 
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('RateLimitingPolicy', NULL, 'Consumers are limited to @{limit} requests per @{granularity} per @{period}.');
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('KeyAuthentication', 'json', 'Add a Key Authentication to your APIs.');
 
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('QuotaPolicy', NULL, 'Consumers cannot exceed their quota of @{limit} requests per @{granularity} per @{period}.');
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('OAuth2Authentication', 'json', 'Add an OAuth2 Authetication to your APIs.');
 
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('TransferQuotaPolicy', NULL, 'Consumers are limited to transferring @{limit} bytes per per @{granularity} per @{period}.');
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('CORS', 'json', 'Allow consumers to make requests from browsers');
 
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('IgnoredResourcesPolicy', NULL, 'Requests matching any of the @{pathsToIgnore.size()} regular expressions provided will receive a 404 error code.');
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('RateLimiting', 'json', 'Rate Limit how many HTTP requests a consumer can make.');
 
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('CachingPolicy', NULL, 'API responses will be cached for @{ttl} seconds.');
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('RequestSizeLimiting', 'json', 'Block requests with bodies greater than a specific size.');
 
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('AuthorizationPolicy', NULL, 'Appropriate authorization roles are required.  There are @{rules.size()} authorization rules defined.');
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('RequestTransformer', 'json', 'Modify the request before hitting the upstream server.');
+
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('ResponseTransformer', 'json', 'Modify the upstream response before returning it to the client.');
+
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('Analytics', 'json', 'Enable analytics, visualize and inspect API logs.');
+
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('HTTPLogging', 'json', 'Send request and response logs to an HTTP server.');
+
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('TCPLogging', 'json', 'Send request and response logs to an TCP server.');
+
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('UDPLogging', 'json', 'Send request and response logs to an UDP server.');
+
+INSERT INTO pd_templates (policydef_id, language, template) VALUES ('FileLogging', 'json', 'Send request and response data to a log file on disk.');
+
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-3::apiengine
 INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 1);
