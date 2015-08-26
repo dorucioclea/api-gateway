@@ -732,8 +732,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             newDefinitionType = ServiceDefinitionType.SwaggerJSON;
         } else if (contentType.toLowerCase().contains("application/x-yaml")) { //$NON-NLS-1$
             newDefinitionType = ServiceDefinitionType.SwaggerYAML;
-        } else if (contentType.toLowerCase().contains("application/wsdl+xml")) { //$NON-NLS-1$
-            newDefinitionType = ServiceDefinitionType.WSDL;
+/*        } else if (contentType.toLowerCase().contains("application/wsdl+xml")) { //$NON-NLS-1$
+            newDefinitionType = ServiceDefinitionType.WSDL;*/
         } else {
             throw new SystemErrorException(Messages.i18n.format("InvalidServiceDefinitionContentType", contentType)); //$NON-NLS-1$
         }

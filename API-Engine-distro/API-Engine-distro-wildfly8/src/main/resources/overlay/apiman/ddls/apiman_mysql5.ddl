@@ -302,23 +302,23 @@ INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 4);
 INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 10);
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-4::apiengine
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('IPWhitelistPolicy', 'Only requests that originate from a specified set of valid IP addresses will be allowed through.', NULL, 'Default', 'filter', 'IP Whitelist Policy', NULL, 'class:io.apiman.gateway.engine.policies.IPWhitelistPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('IPWhitelistPolicy', 'Only requests that originate from a specified set of valid IP addresses will be allowed through.', NULL, 'JsonSchema', 'filter', 'IP Whitelist Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('IPBlacklistPolicy', 'Requests that originate from a specified set of valid IP addresses will be denied access.', NULL, 'Default', 'thumbs-down', 'IP Blacklist Policy', NULL, 'class:io.apiman.gateway.engine.policies.IPBlacklistPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('IPBlacklistPolicy', 'Requests that originate from a specified set of valid IP addresses will be denied access.', NULL, 'JsonSchema', 'thumbs-down', 'IP Blacklist Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('BASICAuthenticationPolicy', 'Enables HTTP BASIC Authentication on a service.  Some configuration required.', NULL, 'Default', 'lock', 'BASIC Authentication Policy', NULL, 'class:io.apiman.gateway.engine.policies.BasicAuthenticationPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('BASICAuthenticationPolicy', 'Enables HTTP BASIC Authentication on a service.  Some configuration required.', NULL, 'JsonSchema', 'lock', 'BASIC Authentication Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('RateLimitingPolicy', 'Enforces rate configurable request rate limits on a service.  This ensures that consumers can''t overload a service with too many requests.', NULL, 'Default', 'tachometer', 'Rate Limiting Policy', NULL, 'class:io.apiman.gateway.engine.policies.RateLimitingPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RateLimitingPolicy', 'Enforces rate configurable request rate limits on a service.  This ensures that consumers can''t overload a service with too many requests.', NULL, 'JsonSchema', 'tachometer', 'Rate Limiting Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('QuotaPolicy', 'Provides a way to limit the total number of requests that can be sent to an API.', NULL, 'Default', 'exchange', 'Quota Policy', NULL, 'class:io.apiman.gateway.engine.policies.QuotaPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('QuotaPolicy', 'Provides a way to limit the total number of requests that can be sent to an API.', NULL, 'JsonSchema', 'exchange', 'Quota Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('TransferQuotaPolicy', 'Provides a way to limit the total number of bytes that can be transferred from (or to) an API.', NULL, 'Default', 'download', 'Transfer Quota Policy', NULL, 'class:io.apiman.gateway.engine.policies.TransferQuotaPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('TransferQuotaPolicy', 'Provides a way to limit the total number of bytes that can be transferred from (or to) an API.', NULL, 'JsonSchema', 'download', 'Transfer Quota Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('IgnoredResourcesPolicy', 'Requests satisfying the provided regular expression will be ignored.', NULL, 'Default', 'eye-slash', 'Ignored Resources Policy', NULL, 'class:io.apiman.gateway.engine.policies.IgnoredResourcesPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('IgnoredResourcesPolicy', 'Requests satisfying the provided regular expression will be ignored.', NULL, 'JsonSchema', 'eye-slash', 'Ignored Resources Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('CachingPolicy', 'Allows caching of API responses in the Gateway to reduce overall traffic to the back-end API.', NULL, 'Default', 'hdd-o', 'Cachine Policy', NULL, 'class:io.apiman.gateway.engine.policies.CachingPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('CachingPolicy', 'Allows caching of API responses in the Gateway to reduce overall traffic to the back-end API.', NULL, 'JsonSchema', 'hdd-o', 'Cachine Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('AuthorizationPolicy', 'Enables fine grained authorization to API resources based on authenticated user roles.', NULL, 'Default', 'users', 'Authorization Policy', NULL, 'class:io.apiman.gateway.engine.policies.AuthorizationPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('AuthorizationPolicy', 'Enables fine grained authorization to API resources based on authenticated user roles.', NULL, 'JsonSchema', 'users', 'Authorization Policy', NULL);
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-5::apiengine
 INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('OrganizationOwner', 1, 'admin', '2015-06-18 17:56:57.496', 'Automatically granted to the user who creates an Organization.  Grants all privileges.', 'Organization Owner');
