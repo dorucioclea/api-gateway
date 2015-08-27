@@ -432,86 +432,138 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
 }', 'JsonSchema', 'exchange', 'SSL Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('IPRestriction', 'Whitelist or Blacklist IPs that can make requests', '{
-  "fields": {
+  "type": "object",
+  "title": "IP Restriction",
+  "properties": {
     "blacklist": {
-      "type": "array",
-      "func": "function"
+      "type": "string",
+      "description": "Comma separated list of IPs or CIDR ranges to blacklist."
     },
     "whitelist": {
-      "type": "array",
-      "func": "function"
+      "type": "string",
+      "description": "Comma separated list of IPs or CIDR ranges to whitelist."
     },
     "_blacklist_cache": {
-      "type": "array"
+      "type": "string"
     },
     "_whitelist_cache": {
-      "type": "array"
+      "type": "string"
     }
   }
 }', 'JsonSchema', 'thumbs-down', 'IP Restriction Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('OAuth2', 'Add an OAuth2 Authentication to your APIs', '{
-  "fields": {
+  "type": "object",
+  "title": "OAuth2",
+  "properties": {
     "scopes": {
-      "type": "array",
-      "required": false
+      "title": "Scopes",
+      "type": "string",
+      "default": "user,admin",
+      "description": "Describes an array of comma separated scope names that will be available to the end user."
     },
     "mandatory_scope": {
+      "title": "Mandatory scope",
       "type": "boolean",
-      "required": true,
       "func": "function",
-      "default": false
+      "default": false,
+      "description": "An optional boolean value telling the plugin to require at least one scope to be authorized by the end user."
     },
     "token_expiration": {
+      "title": "Token expiration",
       "type": "number",
-      "required": true,
-      "default": 7200
+      "default": 7200,
+      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration."
     },
-    "hide_credentials": {
+    "enable_authorization_code": {
+      "title": "Enable Authorization Code Grant",
       "type": "boolean",
-      "default": false
+      "default": true,
+      "description": "An optional boolean value to enable the three-legged Authorization Code flow (RFC 6742 Section 4.1)."
     },
     "enable_implicit_grant": {
+      "title": "Enable Implicit Grant",
       "type": "boolean",
-      "required": true,
-      "default": false
+      "default": false,
+      "description": "An optional boolean value to enable the Implicit Grant flow which allows to provision a token as a result of the authorization process (RFC 6742 Section 4.2)."
+    },
+    "enable_client_credentials": {
+      "title": "Enable Client Credentials Grant",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value to enable the Client Credentials Grant flow (RFC 6742 Section 4.4)."
+    },
+    "enable_password_grant": {
+      "title": "Enable Resource Owner Password Grant",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value to enable the Resource Owner Password Credentials Grant flow (RFC 6742 Section 4.3)."
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by Kong before proxying the request."
     },
     "provision_key": {
+      "title": "Provisioning key",
       "unique": true,
-      "required": false,
       "func": "function",
-      "type": "string"
+      "type": "string",
+      "description": "TBD"
     }
-  }
+  },
+  "required": [
+    "mandatory_scope",
+    "token_expiration",
+    "enable_implicit_grant"
+  ]
 }', 'JsonSchema', 'oauth2', 'OAuth2 Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RateLimiting', 'Rate-limit how many HTTP requests a consumer can make', '{
-  "fields": {
+  "type": "object",
+  "title": "Rate Limiting",
+  "properties": {
     "day": {
+      "title": "Day(s)",
+      "description": "The amount of HTTP requests the developer can make per day. At least one limit must exist.",
       "type": "number"
     },
     "minute": {
+      "title": "Minute(s)",
+      "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
       "type": "number"
     },
     "second": {
+      "title": "Second(s)",
+      "description": "The amount of HTTP requests the developer can make per second. At least one limit must exist.",
       "type": "number"
     },
     "hour": {
+      "title": "Hour(s)",
+      "description": "The amount of HTTP requests the developer can make per hour. At least one limit must exist.",
       "type": "number"
     },
     "month": {
+      "title": "Month(s)",
+      "description": "The amount of HTTP requests the developer can make per month. At least one limit must exist.",
       "type": "number"
     },
     "year": {
+      "title": "Year(s)",
+      "description": "The amount of HTTP requests the developer can make per year. At least one limit must exist.",
       "type": "number"
     }
-  },
-  "self_check": "function"
+  }
 }', 'JsonSchema', 'tachometer', 'Rate Limiting Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RequestSizeLimiting', 'Block requests with bodies greater than a specific size', '{
-  "fields": {
+  "type": "object",
+  "title": "Request Size Limiting",
+  "properties": {
     "allowed_payload_size": {
+      "title": "Allowed payload size",
+      "description": "Allowed request payload size in megabytes, default is 128 (128 000 000 Bytes)",
       "type": "number",
       "default": 128
     }
@@ -519,68 +571,88 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
 }', 'JsonSchema', 'tachometer', 'Request Size Limiting Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
-  "fields": {
+  "type": "object",
+  "title": "Request Transformer",
+  "properties": {
     "remove": {
-      "type": "table",
-      "schema": {
-        "fields": {
+      "title": "Remove from request",
+      "type": "object",
+      "properties": {
           "querystring": {
-            "type": "array"
+            "title": "Querystring",
+            "type": "string",
+            "description": "Comma separated list of parameter names to remove from the request querystring."
           },
           "form": {
-            "type": "array"
+            "title": "Form",
+            "type": "string",
+            "description": "Comma separated list of parameter names to remove from the request body."
           },
           "headers": {
-            "type": "array"
+            "title": "Header",
+            "type": "string",
+            "description": "Comma separated list of header names to remove from the request."
           }
-        }
       }
     },
     "add": {
-      "type": "table",
-      "schema": {
-        "fields": {
+      "title": "Add to request",
+      "type": "object",
+      "properties": {
           "querystring": {
-            "type": "array"
+            "title": "Query",
+            "type": "string",
+            "description": "Comma separated list of paramname:value to add to the request querystring."
           },
           "form": {
-            "type": "array"
+            "title": "Form",
+            "type": "string",
+            "description": "Comma separated list of paramname:value to add to the request body in urlencoded format."
           },
           "headers": {
-            "type": "array"
+            "title": "Header",
+            "type": "string",
+            "description": "Comma separated list of headername:value to add to the request headers."
           }
-        }
       }
     }
   }
 }', 'JsonSchema', 'reqtx', 'Request Transformer Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('ResponseTransformer', 'Modify the upstream response before returning it to the client', '{
-  "fields": {
+  "type": "object",
+  "title": "Response Transformer",
+  "properties": {
     "remove": {
-      "type": "table",
-      "schema": {
-        "fields": {
+      "title": "Remove from request",
+      "type": "object",
+      "properties": {
           "headers": {
-            "type": "array"
+            "title": "Header",
+            "type": "string",
+            "description": "Comma separated list of header names to remove from the response headers."
           },
           "json": {
-            "type": "array"
+            "title": "JSON",
+            "type": "string",
+            "description": "Comma separated list of JSON key names to remove from a JSON response body."
           }
-        }
       }
     },
     "add": {
-      "type": "table",
-      "schema": {
-        "fields": {
+      "title": "Add to request",
+      "type": "object",
+      "properties": {
           "headers": {
-            "type": "array"
+            "title": "Header",
+            "type": "string",
+            "description": "Comma separated list of headername:value to add to the response headers."
           },
           "json": {
-            "type": "array"
+            "title": "JSON",
+            "type": "string",
+            "description": "Comma separated list of jsonkey:value to add to a JSON response body."
           }
-        }
       }
     }
   }
