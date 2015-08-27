@@ -659,76 +659,109 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
 }', 'JsonSchema', 'restx', 'Response Transformer Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('TCPLog', 'Send request and response logs to a TCP server', '{
-  "fields": {
+  "type": "object",
+  "title": "TCP Log",
+  "properties": {
     "host": {
-      "type": "string",
-      "required": true
+      "title": "Host",
+      "description": "The IP address or host name to send data to.",
+      "type": "string"
     },
     "keepalive": {
+      "title": "Keep alive",
+      "description": "Default 60000. An optional value in milliseconds that defines for how long an idle connection will live before being closed.",
       "type": "number",
       "default": 60000
     },
     "timeout": {
+      "title": "Time-out",
+      "description": "Default 10000. An optional timeout in milliseconds when sending data to the upstream server.",
       "type": "number",
       "default": 10000
     },
     "port": {
-      "type": "number",
-      "required": true
+      "title": "Port",
+      "description": "The port to send data to on the upstream server.",
+      "type": "number"
     }
-  }
+  },
+  "required": [
+    "host","port"
+  ]
 }', 'JsonSchema', 'tcplog', 'TCP Log Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('UDPLog', 'Send request and response logs to a UDP server', '{
-  "fields": {
+  "type": "object",
+  "title": "UDP Log",
+  "properties": {
     "host": {
-      "type": "string",
-      "required": true
+      "title": "Host",
+      "description": "The IP address or host name to send data to.",
+      "type": "string"
     },
     "timeout": {
+      "title": "Time-out",
+      "description": "Default 10000. An optional timeout in milliseconds when sending data to the upstream server.",
       "type": "number",
       "default": 10000
     },
     "port": {
-      "type": "number",
-      "required": true
+      "title": "Port",
+      "description": "The port to send data to on the upstream server.",
+      "type": "number"
     }
-  }
+  },
+  "required": [
+    "host","port"
+  ]
 }', 'JsonSchema', 'udplog', 'UDP Log Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('HTTPLog', 'Send request and response logs to a HTTP server', '{
-  "fields": {
+  "type": "object",
+  "title": "HTTP Log",
+  "properties": {
+    "http_endpoint": {
+      "title": "HTTP Endpoint",
+      "description": "The HTTP endpoint (including the protocol to use) where to send the data to.",
+      "type": "string"
+    },
+    "method": {
+      "title": "HTTP Method",
+      "description": "Default POST. An optional method used to send data to the http server, other supported values are PUT, PATCH.",
+      "type": "string",
+      "default": "POST"
+    },
     "keepalive": {
+      "title": "Keep alive",
+      "description": "Default 60000. An optional value in milliseconds that defines for how long an idle connection will live before being closed.",
       "type": "number",
       "default": 60000
     },
-    "method": {
-      "enum": [
-        "POST",
-        "PUT",
-        "PATCH"
-      ],
-      "default": "POST"
-    },
     "timeout": {
+      "title": "Time-out",
+      "description": "Default 10000. An optional timeout in milliseconds when sending data to the upstream server.",
       "type": "number",
       "default": 10000
-    },
-    "http_endpoint": {
-      "type": "url",
-      "required": true
     }
-  }
+  },
+  "required": [
+    "http_endpoint"
+  ]
 }', 'JsonSchema', 'httplog', 'HTTP Log Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('FileLog', 'Append request and response data to a log file on disk', '{
-  "fields": {
+  "type": "object",
+  "title": "File Log",
+  "properties": {
     "path": {
-      "type": "string",
-      "required": true,
-      "func": "function"
+      "title": "Path",
+      "description": "The file path of the output log file. The plugin will create the file if it doesn''t exist yet. Make sure Kong has write permissions to this file.",
+      "type": "string"
     }
-  }
+  },
+  "required": [
+    "path"
+  ]
 }', 'JsonSchema', 'filelog', 'File Log Policy', NULL);
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-6::apiengine
