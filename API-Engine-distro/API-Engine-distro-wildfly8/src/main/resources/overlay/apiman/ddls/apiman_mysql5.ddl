@@ -309,10 +309,14 @@ INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 4);
 
 INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 10);
 
-
+-- In order to generate schema's for auto form generation -> using: https://github.com/Textalk/angular-schema-form
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('BasicAuthentication', 'Add Basic Authentication to your APIs', '{
-  "fields": {
+  "type": "object",
+  "title": "Basic Authentication",
+  "properties": {
     "hide_credentials": {
+      "title": "Hide credentials",
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
       "type": "boolean",
       "default": false
     }
@@ -320,82 +324,111 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
 }', 'JsonSchema', 'lock', 'Basic Authentication Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('KeyAuthentication', 'Add Key Authentication to your APIs', '{
-  "fields": {
+  "type": "object",
+  "title": "Key Authentication",
+  "properties": {
     "key_names": {
-      "type": "array",
-      "required": true,
-      "default": "function"
+      "title": "Key name",
+      "type": "string",
+      "default": "apikey",
+      "description":"Describes an array of comma separated parameter names where the plugin will look for a valid credential. The client must send the authentication key in one of those key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order)."
     },
     "hide_credentials": {
+      "title": "Hide credentials",
+      "description":"An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
       "type": "boolean",
       "default": false
     }
-  }
+  },
+  "required": [
+    "key_names"
+  ]
 }', 'JsonSchema', 'filter', 'Key Authentication Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('CORS', 'Allow consumers to make requests from browsers to your APIs', '{
-  "fields": {
+  "type": "object",
+  "title": "CORS",
+  "properties": {
     "methods": {
-      "type": "array",
-      "enum": [
-        "HEAD",
-        "GET",
-        "POST",
-        "PUT",
-        "PATCH",
-        "DELETE"
-      ]
+      "title": "Methods",
+      "type": "string",
+      "default": "GET,HEAD,PUT,PATCH,POST,DELETE",
+      "description": "Value for the Access-Control-Allow-Methods header, expects a comma delimited string (e.g. GET,POST). Defaults to GET,HEAD,PUT,PATCH,POST,DELETE."
     },
     "credentials": {
+      "title": "Credentials",
+      "description": "Flag to determine whether the Access-Control-Allow-Credentials header should be sent with true as the value.",
       "type": "boolean",
       "default": false
+    },
+      "headers": {
+      "title": "Headers",
+      "type": "string",
+      "description": "Value for the Access-Control-Allow-Headers header, expects a comma delimited string (e.g. Origin, Authorization). Defaults to the value of the Access-Control-Request-Headers header.",
+      "default": "Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Auth-Token"
     },
     "exposed_headers": {
-      "type": "array"
+      "title": "Exposed headers",
+      "type": "string",
+      "description": "Value for the Access-Control-Expose-Headers header, expects a comma delimited string (e.g. Origin, Authorization). If not specified, no custom headers are exposed.",
+      "default": "X-Auth-Token"
     },
     "origin": {
-      "type": "string"
+      "title": "Origin",
+      "type": "string",
+      "default": "*",
+      "description": "Value for the Access-Control-Allow-Origin header, expects a String. Defaults to *."
     },
     "max_age": {
-      "type": "number"
+      "title": "Max age",
+      "type": "number",
+      "description": "Indicated how long the results of the preflight request can be cached, in seconds.",
+      "default": 3600
     },
     "preflight_continue": {
+      "title": "Preflight continue",
       "type": "boolean",
+      "description": "A boolean value that instructs the plugin to proxy the OPTIONS preflight request to the upstream API. Defaults to false.",
       "default": false
-    },
-    "headers": {
-      "type": "array"
     }
   }
 }', 'JsonSchema', 'exchange', 'CORS Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('SSL', 'Add an SSL certificate for an underlying service', '{
-  "fields": {
+  "type": "object",
+  "title": "SSL",
+  "properties": {
     "_cert_der_cache": {
+      "title": "Certificate DER cache",
       "type": "string",
-      "immutable": true
+      "description": "TBD."
     },
     "cert": {
-      "type": "string",
-      "required": true,
-      "func": "function"
+      "title": "Certificate",
+      "description": "Specify the path of the certificate file to upload.",
+      "type": "string"
     },
     "only_https": {
+      "title": "Only HTTPS allowed",
+      "description": "Specify if the service should only be available through an https protocol.",
       "type": "boolean",
-      "required": false,
       "default": false
     },
     "key": {
+      "title": "Key",
       "type": "string",
-      "required": true,
-      "func": "function"
+      "description": "Specify the path of the certificate key file to upload"
     },
     "_key_der_cache": {
+      "title": "Key DER cache",
       "type": "string",
-      "immutable": true
+      "description": "TBD."
     }
   },
-  "no_consumer": true
+  "required": [
+    "cert",
+    "key"
+  ]
 }', 'JsonSchema', 'exchange', 'SSL Policy', NULL);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('IPRestriction', 'Whitelist or Blacklist IPs that can make requests', '{
