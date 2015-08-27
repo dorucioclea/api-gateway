@@ -26,8 +26,8 @@ public class KongClientIntegrationTest {
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
-    //private static final String KONG_UNDER_TEST_URL = "http://apim.t1t.be:8001";//should point to the admin url:port
-    private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_URL = "http://apim.t1t.be:8001";//should point to the admin url:port
+    //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
     private static final String API_URL = "http://domain.com/app/rest/v1";
