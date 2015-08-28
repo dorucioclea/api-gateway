@@ -1,9 +1,12 @@
 package com.t1t.digipolis.apim.kong;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongInfo;
 import com.t1t.digipolis.kong.model.Plugins;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +28,7 @@ import java.io.InputStreamReader;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -45,31 +49,36 @@ public class KongBasicAuthTest {
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
-    private static final String KONG_UNDER_TEST_URL = "http://apim.t1t.be:8001";//should point to the admin url:port
-    //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
-    private static final String API_NAME = "newapibasicauth";
+    //private static final String KONG_UNDER_TEST_URL_ADMIN = "http://apim.t1t.be:8001";//should point to the admin url:port
+    //private static final String KONG_UNDER_TEST_URL = "http://apim.t1t.be:8000";
+    private static final String KONG_UNDER_TEST_URL_ADMIN = "http://localhost:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_URL = "http://localhost:8000";
+    private static final String SERVICE_DOMAIN = "localhost";
+    private static final String SERVICE_PATH = "/test";
     private static final int JETTY_SERVER_HTTP_PORT = 8089;
     private static final int JETTY_SERVER_HTTPS_PORT = 8489;
+    private static final String API_NAME = "testbasicauthpath";
     private static final String API_PATH = "/testbasicauthpath";
-    private static final String API_URL = "http://domain.com/app/rest/v1";
+    private static final String PREF_HTTP = "http://";
+    private static final String PREF_HTTPS = "https://";
 
-/*  If you want to use the same server instance for all tests:
-    @ClassRule
+    //If you want to use the same server instance for all tests:
+/*    @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(wireMockConfig()
             .port(JETTY_SERVER_HTTP_PORT)
             .httpsPort(JETTY_SERVER_HTTPS_PORT));
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;*/
 
-    @Rule
+/*    @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
-            .port(JETTY_SERVER_HTTP_PORT)
-            .httpsPort(JETTY_SERVER_HTTPS_PORT));
+            .port(JETTY_SERVER_HTTP_PORT));*/
 
     @BeforeClass
     public static void setUp() throws Exception {
+        //setup kong client
         RestGatewayConfigBean restConfig = new RestGatewayConfigBean();
-        restConfig.setEndpoint(KONG_UNDER_TEST_URL);
+        restConfig.setEndpoint(KONG_UNDER_TEST_URL_ADMIN);
         kongClient = new RestServiceBuilder().getService(restConfig, KongClient.class);
         assertNotNull(kongClient);
         gson = new Gson();
@@ -77,7 +86,7 @@ public class KongBasicAuthTest {
 
     @AfterClass
     public static void tearDown() throws Exception {
-        //nothing to do at the moment :-)
+        //nothing to do here at the moment :-)
     }
 
     @After
@@ -114,14 +123,20 @@ public class KongBasicAuthTest {
      */
     @Test
     public void exampleTest() {
-        stubFor(get(urlEqualTo(API_PATH))
+        //setup dummy server
+        WireMockServer wireMockServer;
+        wireMockServer = new WireMockServer(wireMockConfig()
+                .port(JETTY_SERVER_HTTP_PORT)
+        .bindAddress("127.0.0.1")); //No-args constructor will start on port 8080, no HTTPS
+        wireMockServer.start();
+        wireMockServer.stubFor(get(urlEqualTo("/infotest"))
                 .withHeader("Accept", equalTo("application/json"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"version\" : \"1.0\"}")));
         HttpClient client = HttpClientBuilder.create().build();
-        HttpGet request = new HttpGet("http://localhost:"+JETTY_SERVER_HTTP_PORT+API_PATH);
+        HttpGet request = new HttpGet("http://localhost:"+JETTY_SERVER_HTTP_PORT+"/infotest");
         request.setHeader(new BasicHeader("Accept", "application/json"));
         try {
             HttpResponse response = client.execute(request);
@@ -129,28 +144,61 @@ public class KongBasicAuthTest {
             String resultJson = parseJSONBody(response.getEntity().getContent());
             log.info("Response body:{}", resultJson);
             assertTrue(response.getStatusLine().getStatusCode()==200);
+            //we can verify that the service returns the correct version
             TestVersion testVersion = gson.fromJson(resultJson, TestVersion.class);
             assertTrue(testVersion.getVersion().equals("1.0"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        //WireMock.reset();
+        wireMockServer.stop();
     }
 
     @Test
     public void basicAuthTest(){
-        //setup endpoint
-        stubFor(get(urlEqualTo(API_PATH))
+        //setup dummy server
+        WireMockServer wireMockServer;
+        wireMockServer = new WireMockServer(wireMockConfig().port(9089)
+        .bindAddress("127.0.0.1")); //No-args constructor will start on port 8080, no HTTPS
+        wireMockServer.start();
+        wireMockServer.stubFor(get(urlEqualTo(SERVICE_PATH))
                 .withHeader("Accept", equalTo("application/json"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"version\" : \"1.0\"}")));
         //register api
+        KongApi api = new KongApi()
+                .withName(API_NAME)
+                .withPath(API_PATH)
+                .withStripPath(true)
+                .withTargetUrl(PREF_HTTP + SERVICE_DOMAIN +":"+ "9089" + SERVICE_PATH);
+        kongClient.addApi(api);
+        api = kongClient.getApi(API_NAME);
+        assertNotNull(api);
+        assertEquals(api.getName(),API_NAME);
+        print(api);
         //test api without basic auth
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpGet request = new HttpGet("http://localhost:8000"+API_PATH);
+        request.setHeader(new BasicHeader("Accept", "application/json"));
+        try {
+            HttpResponse response = client.execute(request);
+            String resultJson = parseJSONBody(response.getEntity().getContent());
+            log.info("---------"+resultJson);
+            assertTrue(response.getStatusLine().getStatusCode()==200);
+            //we can verify that the service returns the correct version
+            TestVersion testVersion = gson.fromJson(resultJson, TestVersion.class);
+            assertTrue(testVersion.getVersion().equals("1.0"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         //enable basic auth on api
         //create consumer
         //create login/pwd for consumer
         //access resource with encode Basic Auth header
+        wireMockServer.stop();
     }
 
     /**
