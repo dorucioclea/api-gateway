@@ -11,11 +11,10 @@ import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.kong.KongClient;
-import com.t1t.digipolis.kong.model.KongApi;
-import com.t1t.digipolis.kong.model.KongInfo;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
+import com.t1t.digipolis.kong.model.*;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jgroups.protocols.RATE_LIMITER;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +96,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //create the service using path, and target_url
         KongApi api = new KongApi();
         api.setStripPath(true);
-        api.setPublicDns("");
+        api.setPublicDns(Policies.CORS.getKongIdentifier());
         String nameAndDNS = generateServiceUniqueName(service);
         //name wil be: organization.application.version
         api.setName(nameAndDNS);
@@ -109,28 +108,30 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         api.setPath(validateServicePath(service));
         log.info("Send to Kong:{}", api.toString());
         //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
-        httpClient.addApi(api);
-        //TODO policy impl
-        List<Policy> policyList = service.getServicePolicies();
-        for(Policy policy:policyList){
-            //execute policy
-            Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
-            switch(policies){
-                case BASICAUTHENTICATION: createServicePolicyBasicAuthPolicy(api,policy);break;
-                case CORS: break;
-                case FILELOG: break;
-                case HTTPLOG: break;
-                case UDPLOG: break;
-                case TCPLOG: break;
-                case IPRESTRICTION: break;
-                case KEYAUTHENTICATION: break;
-                case OAUTH2: break;
-                case RATELIMITING: createServicePolicyRateLimiting(api, policy);break;
-                case REQUESTSIZELIMITING: break;
-                case REQUESTTRANSFORMER: break;
-                case RESPONSETRANSFORMER: break;
-                case SSL: break;
-                default:break;
+        api = httpClient.addApi(api);
+        //verify if api creation has been succesfull
+        if(!StringUtils.isEmpty(api.getId())){
+            List<Policy> policyList = service.getServicePolicies();
+            for(Policy policy:policyList){
+                //execute policy
+                Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
+                switch(policies){
+                    case BASICAUTHENTICATION: createServicePolicy(api, policy, Policies.BASICAUTHENTICATION.getKongIdentifier(),Policies.BASICAUTHENTICATION.getClazz());break;
+                    case CORS: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.CORS.getClazz());break;
+                    case FILELOG: createServicePolicy(api, policy, Policies.FILELOG.getKongIdentifier(),Policies.FILELOG.getClazz());break;
+                    case HTTPLOG: createServicePolicy(api, policy, Policies.HTTPLOG.getKongIdentifier(),Policies.HTTPLOG.getClazz());break;
+                    case UDPLOG: createServicePolicy(api, policy, Policies.UDPLOG.getKongIdentifier(),Policies.UDPLOG.getClazz());break;
+                    case TCPLOG: createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(),Policies.TCPLOG.getClazz());break;
+                    case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
+                    case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());break;
+                    case OAUTH2: createServicePolicy(api, policy, Policies.OAUTH2.getKongIdentifier(),Policies.OAUTH2.getClazz());break;
+                    case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
+                    case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
+                    case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
+                    case RESPONSETRANSFORMER: createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(),Policies.RESPONSETRANSFORMER.getClazz());break;
+                    case SSL: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.SSL.getClazz());break;
+                    default:break;
+                }
             }
         }
     }
@@ -169,17 +170,25 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
 
     /*Service policies*/
-    private void createServicePolicyBasicAuthPolicy(KongApi api, Policy policy) {
-    }
 
-    private void createServicePolicyRateLimiting(KongApi api, Policy policy) {
+    /**
+     * This method creates the policy on given api with pre-defined values.
+     *
+     * @param api
+     * @param policy
+     * @param kongIdentifier
+     * @param clazz
+     * @param <T>
+     */
+    private <T extends KongConfigValue> void createServicePolicy(KongApi api, Policy policy, String kongIdentifier,Class<T> clazz) {
         Gson gson = new Gson();
         //perform value mapping
-        KongPluginRateLimiting plugin = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRateLimiting.class);
-        //KongPluginConfig config = httpClient.createPluginConfig(api.getId(),plugin);
-        //validate
+        KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(kongIdentifier)//set required kong identifier
+                .withValue(plugin);
+        //TODO: how to validate?!
         //execute
-
-
+        config = httpClient.createPluginConfig(api.getId(),config);
     }
 }

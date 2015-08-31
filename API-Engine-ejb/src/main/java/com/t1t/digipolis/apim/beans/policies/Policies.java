@@ -7,29 +7,35 @@ import com.t1t.digipolis.kong.model.*;
  */
 public enum Policies {
     //TODO we can create a plugin framework for policies, but here it's still hard coded, but not a bad start :-)
-    BASICAUTHENTICATION(KongPluginBasicAuth.class)
-    , CORS(KongPluginCors.class)
-    , FILELOG(KongPluginFileLog.class)
-    , HTTPLOG(KongPluginHttpLog.class)
-    , UDPLOG(KongPluginUdpLog.class)
-    , TCPLOG(KongPluginTcpLog.class)
-    , IPRESTRICTION(KongPluginIPRestriction.class)
-    , KEYAUTHENTICATION(KongPluginKeyAuth.class)
-    , OAUTH2(KongPluginOAuth.class)
-    , RATELIMITING(KongPluginRateLimiting.class)
-    , REQUESTSIZELIMITING(KongPluginRequestSizeLimiting.class)
-    , REQUESTTRANSFORMER(KongPluginRequestTransformer.class)
-    , RESPONSETRANSFORMER(KongPluginResponseTransformer.class)
-    , SSL(KongPluginSSL.class);
+    BASICAUTHENTICATION(KongPluginBasicAuth.class,"basicauth")
+    , CORS(KongPluginCors.class,"cors")
+    , FILELOG(KongPluginFileLog.class,"filelog")
+    , HTTPLOG(KongPluginHttpLog.class,"httplog")
+    , UDPLOG(KongPluginUdpLog.class,"udplog")
+    , TCPLOG(KongPluginTcpLog.class,"tcplog")
+    , IPRESTRICTION(KongPluginIPRestriction.class,"ip_restriction")
+    , KEYAUTHENTICATION(KongPluginKeyAuth.class,"keyauth")
+    , OAUTH2(KongPluginOAuth.class,"oauth2")
+    , RATELIMITING(KongPluginRateLimiting.class,"ratelimiting")
+    , REQUESTSIZELIMITING(KongPluginRequestSizeLimiting.class,"requestsizelimiting")
+    , REQUESTTRANSFORMER(KongPluginRequestTransformer.class,"request_transformer")
+    , RESPONSETRANSFORMER(KongPluginResponseTransformer.class,"response_transformer")
+    , SSL(KongPluginSSL.class,"ssl");
 
     private Class clazz;
+    private String kongIdentifier;
 
-    Policies(Class clazz) {
+    Policies(Class clazz, String identifier) {
         this.clazz = clazz;
+        this.kongIdentifier = identifier;
     }
 
     public Class getClazz() {
         return clazz;
+    }
+
+    public String getKongIdentifier() {
+        return kongIdentifier;
     }
 
     @Override

@@ -333,6 +333,7 @@
                 <configuration>
                     <addCompileSourceRoot>true</addCompileSourceRoot>
                     <!--<sourceDirectory>${basedir}/src/main/resources/schema</sourceDirectory>-->
+                    <!--We didn't provided the sourceDirectory, because one schema -> KongConfigValue must be an interface and always gets generated as an abstract class, annoying stuff!-->
                     <sourcePaths>
                         <sourcePath>${basedir}/src/main/resources/schema/KongApi.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongApiList.json</sourcePath>
