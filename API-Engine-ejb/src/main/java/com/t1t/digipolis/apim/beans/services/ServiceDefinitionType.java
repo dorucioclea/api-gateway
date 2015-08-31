@@ -6,6 +6,6 @@ package com.t1t.digipolis.apim.beans.services;
  */
 public enum ServiceDefinitionType {
 
-    None, SwaggerJSON, SwaggerYAML, WSDL
+    None, SwaggerJSON, SwaggerYAML
 
 }

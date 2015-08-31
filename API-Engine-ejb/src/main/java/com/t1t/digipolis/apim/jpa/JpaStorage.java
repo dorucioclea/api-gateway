@@ -23,7 +23,6 @@ import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.core.util.PolicyTemplateUtil;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.CriteriaQuery;
@@ -808,7 +807,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
             @SuppressWarnings("nls")
             String sql =
-                    "SELECT pd.id, pd.policy_impl, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type" +
+                    "SELECT pd.id, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type" +
                     "  FROM policydefs pd" +
                     " ORDER BY pd.name ASC";
             Query query = entityManager.createNativeQuery(sql);
@@ -818,15 +817,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             for (Object [] row : rows) {
                 PolicyDefinitionSummaryBean bean = new PolicyDefinitionSummaryBean();
                 bean.setId(String.valueOf(row[0]));
-                bean.setPolicyImpl(String.valueOf(row[1]));
-                bean.setName(String.valueOf(row[2]));
-                bean.setDescription(String.valueOf(row[3]));
-                bean.setIcon(String.valueOf(row[4]));
-                if (row[5] != null) {
-                    bean.setPluginId(((Number) row[5]).longValue());
+                bean.setName(String.valueOf(row[1]));
+                bean.setDescription(String.valueOf(row[2]));
+                bean.setIcon(String.valueOf(row[3]));
+                if (row[4] != null) {
+                    bean.setPluginId(((Number) row[4]).longValue());
                 }
-                if (row[6] != null) {
-                    bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[6])));
+                if (row[5] != null) {
+                    bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[5])));
                 }
                 rval.add(bean);
             }
@@ -1392,11 +1390,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             List<PolicyBean> policyBeans = (List<PolicyBean>) query.getResultList();
             List<PolicySummaryBean> rval = new ArrayList<>(policyBeans.size());
             for (PolicyBean policyBean : policyBeans) {
-                try {
+/*                try {
                     PolicyTemplateUtil.generatePolicyDescription(policyBean);
                 } catch (Exception e) {
                     throw new StorageException(e.getMessage());
-                }
+                }*/
                 PolicySummaryBean psb = new PolicySummaryBean();
                 psb.setId(policyBean.getId());
                 psb.setName(policyBean.getName());
@@ -1443,7 +1441,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             
             @SuppressWarnings("nls")
             String sql = 
-                    "SELECT pd.id, pd.policy_impl, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type" +
+                    "SELECT pd.id, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type" +
                     "  FROM policydefs pd" + 
                     " WHERE pd.plugin_id = ?" +
                     " ORDER BY pd.name ASC";
@@ -1455,15 +1453,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             for (Object [] row : rows) {
                 PolicyDefinitionSummaryBean bean = new PolicyDefinitionSummaryBean();
                 bean.setId(String.valueOf(row[0]));
-                bean.setPolicyImpl(String.valueOf(row[1]));
-                bean.setName(String.valueOf(row[2]));
-                bean.setDescription(String.valueOf(row[3]));
-                bean.setIcon(String.valueOf(row[4]));
-                if (row[5] != null) {
-                    bean.setPluginId(((Number) row[5]).longValue());
+                bean.setName(String.valueOf(row[1]));
+                bean.setDescription(String.valueOf(row[2]));
+                bean.setIcon(String.valueOf(row[3]));
+                if (row[4] != null) {
+                    bean.setPluginId(((Number) row[4]).longValue());
                 }
-                if (row[6] != null) {
-                    bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[6])));
+                if (row[5] != null) {
+                    bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[5])));
                 }
                 beans.add(bean);
             }

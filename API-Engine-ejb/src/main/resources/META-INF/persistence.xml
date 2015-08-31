@@ -40,7 +40,6 @@
         <class>com.t1t.digipolis.apim.beans.plans.PlanVersionBean</class>
         <class>com.t1t.digipolis.apim.beans.contracts.ContractBean</class>
         <class>com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean</class>
-        <class>com.t1t.digipolis.apim.beans.policies.PolicyDefinitionTemplateBean</class>
         <class>com.t1t.digipolis.apim.beans.policies.PolicyBean</class>
         <class>com.t1t.digipolis.apim.beans.audit.AuditEntryBean</class>
         <class>com.t1t.digipolis.apim.beans.gateways.GatewayBean</class>

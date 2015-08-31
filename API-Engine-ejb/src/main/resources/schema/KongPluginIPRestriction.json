@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "extends" : {
+    "$ref" : "KongConfigValue.json"
+  },
+  "properties": {
+    "blacklist": {
+      "type": "array",
+      "func": "function"
+    },
+    "whitelist": {
+      "type": "array",
+      "func": "function"
+    },
+    "_blacklist_cache": {
+      "type": "array"
+    },
+    "_whitelist_cache": {
+      "type": "array"
+    }
+  }
+}

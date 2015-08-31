@@ -69,11 +69,15 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
+        //register API
+        //register consumer application
+        //register policies?
 
     }
 
     public void unregister(String organizationId, String applicationId, String version) throws RegistrationException, GatewayAuthenticationException {
-
+        //get all applicable policies
+        //remove policies
     }
 
     /**

@@ -740,8 +740,8 @@ public class OrganizationResource implements IOrganizationResource {
                 builder.type(MediaType.APPLICATION_JSON);
             } else if (serviceVersion.getDefinitionType() == ServiceDefinitionType.SwaggerYAML) {
                 builder.type("application/x-yaml"); //$NON-NLS-1$
-            } else if (serviceVersion.getDefinitionType() == ServiceDefinitionType.WSDL) {
-                builder.type("application/wsdl+xml"); //$NON-NLS-1$
+/*            } else if (serviceVersion.getDefinitionType() == ServiceDefinitionType.WSDL) {
+                builder.type("application/wsdl+xml"); //$NON-NLS-1$*/
             } else {
                 throw new Exception("Service definition type not supported: " + serviceVersion.getDefinitionType()); //$NON-NLS-1$
             }

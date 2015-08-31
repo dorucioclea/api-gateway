@@ -121,7 +121,7 @@ public class ActionFacade {
                             action.getEntityId(), action.getEntityVersion(), policySummaryBean.getId());
                     Policy policyToPublish = new Policy();
                     policyToPublish.setPolicyJsonConfig(servicePolicy.getConfiguration());
-                    policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getPolicyImpl());
+                    //policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getPolicyImpl());
                     policiesToPublish.add(policyToPublish);
                 }
                 gatewaySvc.setServicePolicies(policiesToPublish);
@@ -361,7 +361,7 @@ public class ActionFacade {
                         PolicyBean policyBean = storage.getPolicy(policyType, org, id, ver, policySummaryBean.getId());
                         Policy policy = new Policy();
                         policy.setPolicyJsonConfig(policyBean.getConfiguration());
-                        policy.setPolicyImpl(policyBean.getDefinition().getPolicyImpl());
+                        //policy.setPolicyImpl(policyBean.getDefinition().getPolicyImpl());
                         policies.add(policy);
                     }
                 } finally {

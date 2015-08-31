@@ -32,9 +32,6 @@ CREATE TABLE memberships (id BIGINT NOT NULL, created_on datetime NULL, org_id V
 --  Changeset ::1436469846462-8::apiengine (generated)
 CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on datetime NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on datetime NOT NULL, name VARCHAR(255) NOT NULL);
 
---  Changeset ::1436469846462-9::apiengine (generated)
-CREATE TABLE pd_templates (policydef_id VARCHAR(255) NOT NULL, language VARCHAR(255) NULL, template VARCHAR(2048) NULL);
-
 --  Changeset ::1436469846462-10::apiengine (generated)
 CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 
@@ -51,7 +48,7 @@ CREATE TABLE plugins (id BIGINT NOT NULL, artifact_id VARCHAR(255) NOT NULL, cla
 CREATE TABLE policies (id BIGINT NOT NULL, configuration LONGTEXT NULL, created_by VARCHAR(255) NOT NULL, created_on datetime NOT NULL, entity_id VARCHAR(255) NOT NULL, entity_version VARCHAR(255) NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on datetime NOT NULL, name VARCHAR(255) NOT NULL, order_index INT NOT NULL, organization_id VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, definition_id VARCHAR(255) NOT NULL);
 
 --  Changeset ::1436469846462-15::apiengine (generated)
-CREATE TABLE policydefs (id VARCHAR(255) NOT NULL, description VARCHAR(512) NOT NULL, form VARCHAR(255) NULL, form_type VARCHAR(255) NULL, icon VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plugin_id BIGINT NULL, policy_impl VARCHAR(255) NOT NULL);
+CREATE TABLE policydefs (id VARCHAR(255) NOT NULL, description VARCHAR(512) NOT NULL, form VARCHAR(4096) NULL, form_type VARCHAR(255) NULL, icon VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plugin_id BIGINT NULL);
 
 --  Changeset ::1436469846462-16::apiengine (generated)
 CREATE TABLE roles (id VARCHAR(255) NOT NULL, auto_grant BIT(1) NULL, created_by VARCHAR(255) NOT NULL, created_on datetime NOT NULL, description VARCHAR(512) NULL, name VARCHAR(255) NULL);
@@ -73,12 +70,6 @@ CREATE TABLE svc_plans (service_version_id BIGINT NOT NULL, plan_id VARCHAR(255)
 
 --  Changeset ::1436469846462-22::apiengine (generated)
 CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on datetime NULL);
-
---  Changeset ::1436469846462-22::apiengine (generated)
-CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organization_id VARCHAR(255) NOT NULL,category VARCHAR(255),FOREIGN KEY (ServiceBean_id, ServiceBean_organization_id) REFERENCES services (id, organization_id));
-
---  Changeset ::1436469846462-22::apiengine (generated)
-CREATE INDEX FK_huasdtal54l0isoauy6mrtmpx ON categories (ServiceBean_id, ServiceBean_organization_id);
 
 --  Changeset ::1436469846462-23::apiengine (generated)
 ALTER TABLE endpoint_properties ADD PRIMARY KEY (service_version_id, name);
@@ -176,9 +167,6 @@ ALTER TABLE contracts ADD CONSTRAINT FK_nyw8xu6m8cx4rwwbtrxbjneui FOREIGN KEY (p
 --  Changeset ::1436469846462-54::apiengine (generated)
 ALTER TABLE svc_gateways ADD CONSTRAINT FK_p5dm3cngljt6yrsnvc7uc6a75 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
 
---  Changeset ::1436469846462-55::apiengine (generated)
-ALTER TABLE pd_templates ADD CONSTRAINT FK_prbnn7j7m6m3pxt2dsn9gwlw8 FOREIGN KEY (policydef_id) REFERENCES policydefs (id);
-
 --  Changeset ::1436469846462-56::apiengine (generated)
 ALTER TABLE permissions ADD CONSTRAINT FK_sq51ihfrapwdr98uufenhcocg FOREIGN KEY (role_id) REFERENCES roles (id);
 
@@ -214,9 +202,6 @@ CREATE INDEX IDX_auditlog_1 ON auditlog(who);
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/200-apiman-manager-api.db.indexes.changelog.xml::createIndex-2::apiengine
 CREATE INDEX IDX_auditlog_2 ON auditlog(organization_id, entity_id, entity_version, entity_type);
-
---  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/200-apiman-manager-api.db.indexes.changelog.xml::createIndex-3::apiengine
-CREATE INDEX IDX_FK_pd_templates_1 ON pd_templates(policydef_id);
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/200-apiman-manager-api.db.indexes.changelog.xml::createIndex-4::apiengine
 CREATE INDEX IDX_users_1 ON users(username);
@@ -263,29 +248,23 @@ CREATE INDEX IDX_FK_contracts_s ON contracts(svcv_id);
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/200-apiman-manager-api.db.indexes.changelog.xml::createIndex-18::apiengine
 CREATE INDEX IDX_FK_contracts_a ON contracts(appv_id);
 
+--  Changeset ::1436469846462-22::apiengine (generated)
+CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organization_id VARCHAR(255) NOT NULL,category VARCHAR(255),FOREIGN KEY (ServiceBean_id, ServiceBean_organization_id) REFERENCES services (id, organization_id));
+
+--  Changeset ::1436469846462-22::apiengine (generated)
+CREATE INDEX FK_huasdtal54l0isoauy6mrtmpx ON categories (ServiceBean_id, ServiceBean_organization_id);
 
 
 -- DATA POPULATION
+
+--  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-5::apiengine
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('OrganizationOwner', 1, 'admin', '2015-06-18 17:56:57.496', 'Automatically granted to the user who creates an Organization.  Grants all privileges.', 'Organization Owner');
+
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('ApplicationDeveloper', NULL, 'admin', '2015-06-18 17:56:57.632', 'Users responsible for creating and managing applications should be granted this role within an Organization.', 'Application Developer');
+
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('ServiceDeveloper', NULL, 'admin', '2015-06-18 17:56:57.641', 'Users responsible for creating and managing services should be granted this role within an Organization.', 'Service Developer');
+
 INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '$CRYPT::PmrNC1m25oGSO8fC3XnxKSPWd/jWE+9t0aek3Ncv1AmHt9J5/Crf/zjkoUK8rV3RgQ70TZcQlF9oTpenEyLio2Cjt8a2HprYxahGLbMv4wA=','http://apim.t1t.be:8000', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');
-
---  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-2::apiengine
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('IPWhitelistPolicy', NULL, 'Only requests that originate from the set of @{ipList.size()} configured IP address(es) will be allowed to invoke the managed service.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('IPBlacklistPolicy', NULL, 'Requests that originate from the set of @{ipList.size()} configured IP address(es) will be denied access to the managed service.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('BASICAuthenticationPolicy', NULL, 'Access to the service is protected by BASIC Authentication through the ''@{realm}'' authentication realm.  @if{forwardIdentityHttpHeader != null}Successfully authenticated requests will forward the authenticated identity to the back end service via the ''@{forwardIdentityHttpHeader}'' custom HTTP header.@end{}');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('RateLimitingPolicy', NULL, 'Consumers are limited to @{limit} requests per @{granularity} per @{period}.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('QuotaPolicy', NULL, 'Consumers cannot exceed their quota of @{limit} requests per @{granularity} per @{period}.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('TransferQuotaPolicy', NULL, 'Consumers are limited to transferring @{limit} bytes per per @{granularity} per @{period}.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('IgnoredResourcesPolicy', NULL, 'Requests matching any of the @{pathsToIgnore.size()} regular expressions provided will receive a 404 error code.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('CachingPolicy', NULL, 'API responses will be cached for @{ttl} seconds.');
-
-INSERT INTO pd_templates (policydef_id, language, template) VALUES ('AuthorizationPolicy', NULL, 'Appropriate authorization roles are required.  There are @{rules.size()} authorization rules defined.');
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-3::apiengine
 INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 1);
@@ -330,31 +309,460 @@ INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 4);
 
 INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 10);
 
---  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-4::apiengine
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('IPWhitelistPolicy', 'Only requests that originate from a specified set of valid IP addresses will be allowed through.', NULL, 'Default', 'filter', 'IP Whitelist Policy', NULL, 'class:io.apiman.gateway.engine.policies.IPWhitelistPolicy');
+-- In order to generate schema's for auto form generation -> using: https://github.com/Textalk/angular-schema-form
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('BasicAuthentication', 'Add Basic Authentication to your APIs', '{
+  "type": "object",
+  "title": "Basic Authentication",
+  "properties": {
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}', 'JsonSchema', 'lock', 'Basic Authentication Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('IPBlacklistPolicy', 'Requests that originate from a specified set of valid IP addresses will be denied access.', NULL, 'Default', 'thumbs-down', 'IP Blacklist Policy', NULL, 'class:io.apiman.gateway.engine.policies.IPBlacklistPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('KeyAuthentication', 'Add Key Authentication to your APIs', '{
+  "type": "object",
+  "title": "Key Authentication",
+  "properties": {
+    "key_names": {
+      "title": "Key name",
+      "type": "string",
+      "default": "apikey",
+      "description":"Describes an array of comma separated parameter names where the plugin will look for a valid credential. The client must send the authentication key in one of those key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order)."
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "description":"An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "key_names"
+  ]
+}', 'JsonSchema', 'filter', 'Key Authentication Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('BASICAuthenticationPolicy', 'Enables HTTP BASIC Authentication on a service.  Some configuration required.', NULL, 'Default', 'lock', 'BASIC Authentication Policy', NULL, 'class:io.apiman.gateway.engine.policies.BasicAuthenticationPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('CORS', 'Allow consumers to make requests from browsers to your APIs', '{
+  "type": "object",
+  "title": "CORS",
+  "properties": {
+    "methods": {
+      "title": "Methods",
+      "type": "string",
+      "default": "GET,HEAD,PUT,PATCH,POST,DELETE",
+      "description": "Value for the Access-Control-Allow-Methods header, expects a comma delimited string (e.g. GET,POST). Defaults to GET,HEAD,PUT,PATCH,POST,DELETE."
+    },
+    "credentials": {
+      "title": "Credentials",
+      "description": "Flag to determine whether the Access-Control-Allow-Credentials header should be sent with true as the value.",
+      "type": "boolean",
+      "default": false
+    },
+      "headers": {
+      "title": "Headers",
+      "type": "string",
+      "description": "Value for the Access-Control-Allow-Headers header, expects a comma delimited string (e.g. Origin, Authorization). Defaults to the value of the Access-Control-Request-Headers header.",
+      "default": "Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Auth-Token"
+    },
+    "exposed_headers": {
+      "title": "Exposed headers",
+      "type": "string",
+      "description": "Value for the Access-Control-Expose-Headers header, expects a comma delimited string (e.g. Origin, Authorization). If not specified, no custom headers are exposed.",
+      "default": "X-Auth-Token"
+    },
+    "origin": {
+      "title": "Origin",
+      "type": "string",
+      "default": "*",
+      "description": "Value for the Access-Control-Allow-Origin header, expects a String. Defaults to *."
+    },
+    "max_age": {
+      "title": "Max age",
+      "type": "number",
+      "description": "Indicated how long the results of the preflight request can be cached, in seconds.",
+      "default": 3600
+    },
+    "preflight_continue": {
+      "title": "Preflight continue",
+      "type": "boolean",
+      "description": "A boolean value that instructs the plugin to proxy the OPTIONS preflight request to the upstream API. Defaults to false.",
+      "default": false
+    }
+  }
+}', 'JsonSchema', 'exchange', 'CORS Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('RateLimitingPolicy', 'Enforces rate configurable request rate limits on a service.  This ensures that consumers can''t overload a service with too many requests.', NULL, 'Default', 'tachometer', 'Rate Limiting Policy', NULL, 'class:io.apiman.gateway.engine.policies.RateLimitingPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('SSL', 'Add an SSL certificate for an underlying service', '{
+  "type": "object",
+  "title": "SSL",
+  "properties": {
+    "_cert_der_cache": {
+      "title": "Certificate DER cache",
+      "type": "string",
+      "description": "TBD."
+    },
+    "cert": {
+      "title": "Certificate",
+      "description": "Specify the path of the certificate file to upload.",
+      "type": "string"
+    },
+    "only_https": {
+      "title": "Only HTTPS allowed",
+      "description": "Specify if the service should only be available through an https protocol.",
+      "type": "boolean",
+      "default": false
+    },
+    "key": {
+      "title": "Key",
+      "type": "string",
+      "description": "Specify the path of the certificate key file to upload"
+    },
+    "_key_der_cache": {
+      "title": "Key DER cache",
+      "type": "string",
+      "description": "TBD."
+    }
+  },
+  "required": [
+    "cert",
+    "key"
+  ]
+}', 'JsonSchema', 'exchange', 'SSL Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('QuotaPolicy', 'Provides a way to limit the total number of requests that can be sent to an API.', NULL, 'Default', 'exchange', 'Quota Policy', NULL, 'class:io.apiman.gateway.engine.policies.QuotaPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('IPRestriction', 'Whitelist or Blacklist IPs that can make requests', '{
+  "type": "object",
+  "title": "IP Restriction",
+  "properties": {
+    "blacklist": {
+      "type": "string",
+      "description": "Comma separated list of IPs or CIDR ranges to blacklist."
+    },
+    "whitelist": {
+      "type": "string",
+      "description": "Comma separated list of IPs or CIDR ranges to whitelist."
+    },
+    "_blacklist_cache": {
+      "type": "string"
+    },
+    "_whitelist_cache": {
+      "type": "string"
+    }
+  }
+}', 'JsonSchema', 'thumbs-down', 'IP Restriction Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('TransferQuotaPolicy', 'Provides a way to limit the total number of bytes that can be transferred from (or to) an API.', NULL, 'Default', 'download', 'Transfer Quota Policy', NULL, 'class:io.apiman.gateway.engine.policies.TransferQuotaPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('OAuth2', 'Add an OAuth2 Authentication to your APIs', '{
+  "type": "object",
+  "title": "OAuth2",
+  "properties": {
+    "scopes": {
+      "title": "Scopes",
+      "type": "string",
+      "default": "user,admin",
+      "description": "Describes an array of comma separated scope names that will be available to the end user."
+    },
+    "mandatory_scope": {
+      "title": "Mandatory scope",
+      "type": "boolean",
+      "func": "function",
+      "default": false,
+      "description": "An optional boolean value telling the plugin to require at least one scope to be authorized by the end user."
+    },
+    "token_expiration": {
+      "title": "Token expiration",
+      "type": "number",
+      "default": 7200,
+      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration."
+    },
+    "enable_authorization_code": {
+      "title": "Enable Authorization Code Grant",
+      "type": "boolean",
+      "default": true,
+      "description": "An optional boolean value to enable the three-legged Authorization Code flow (RFC 6742 Section 4.1)."
+    },
+    "enable_implicit_grant": {
+      "title": "Enable Implicit Grant",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value to enable the Implicit Grant flow which allows to provision a token as a result of the authorization process (RFC 6742 Section 4.2)."
+    },
+    "enable_client_credentials": {
+      "title": "Enable Client Credentials Grant",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value to enable the Client Credentials Grant flow (RFC 6742 Section 4.4)."
+    },
+    "enable_password_grant": {
+      "title": "Enable Resource Owner Password Grant",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value to enable the Resource Owner Password Credentials Grant flow (RFC 6742 Section 4.3)."
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by Kong before proxying the request."
+    },
+    "provision_key": {
+      "title": "Provisioning key",
+      "unique": true,
+      "func": "function",
+      "type": "string",
+      "description": "TBD"
+    }
+  },
+  "required": [
+    "mandatory_scope",
+    "token_expiration",
+    "enable_implicit_grant"
+  ]
+}', 'JsonSchema', 'oauth2', 'OAuth2 Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('IgnoredResourcesPolicy', 'Requests satisfying the provided regular expression will be ignored.', NULL, 'Default', 'eye-slash', 'Ignored Resources Policy', NULL, 'class:io.apiman.gateway.engine.policies.IgnoredResourcesPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RateLimiting', 'Rate-limit how many HTTP requests a consumer can make', '{
+  "type": "object",
+  "title": "Rate Limiting",
+  "properties": {
+    "day": {
+      "title": "Day(s)",
+      "description": "The amount of HTTP requests the developer can make per day. At least one limit must exist.",
+      "type": "number"
+    },
+    "minute": {
+      "title": "Minute(s)",
+      "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
+      "type": "number"
+    },
+    "second": {
+      "title": "Second(s)",
+      "description": "The amount of HTTP requests the developer can make per second. At least one limit must exist.",
+      "type": "number"
+    },
+    "hour": {
+      "title": "Hour(s)",
+      "description": "The amount of HTTP requests the developer can make per hour. At least one limit must exist.",
+      "type": "number"
+    },
+    "month": {
+      "title": "Month(s)",
+      "description": "The amount of HTTP requests the developer can make per month. At least one limit must exist.",
+      "type": "number"
+    },
+    "year": {
+      "title": "Year(s)",
+      "description": "The amount of HTTP requests the developer can make per year. At least one limit must exist.",
+      "type": "number"
+    }
+  }
+}', 'JsonSchema', 'tachometer', 'Rate Limiting Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('CachingPolicy', 'Allows caching of API responses in the Gateway to reduce overall traffic to the back-end API.', NULL, 'Default', 'hdd-o', 'Cachine Policy', NULL, 'class:io.apiman.gateway.engine.policies.CachingPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RequestSizeLimiting', 'Block requests with bodies greater than a specific size', '{
+  "type": "object",
+  "title": "Request Size Limiting",
+  "properties": {
+    "allowed_payload_size": {
+      "title": "Allowed payload size",
+      "description": "Allowed request payload size in megabytes, default is 128 (128 000 000 Bytes)",
+      "type": "number",
+      "default": 128
+    }
+  }
+}', 'JsonSchema', 'tachometer', 'Request Size Limiting Policy', NULL);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, policy_impl) VALUES ('AuthorizationPolicy', 'Enables fine grained authorization to API resources based on authenticated user roles.', NULL, 'Default', 'users', 'Authorization Policy', NULL, 'class:io.apiman.gateway.engine.policies.AuthorizationPolicy');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
+  "type": "object",
+  "title": "Request Transformer",
+  "properties": {
+    "remove": {
+      "title": "Remove from request",
+      "type": "object",
+      "properties": {
+          "querystring": {
+            "title": "Querystring",
+            "type": "string",
+            "description": "Comma separated list of parameter names to remove from the request querystring."
+          },
+          "form": {
+            "title": "Form",
+            "type": "string",
+            "description": "Comma separated list of parameter names to remove from the request body."
+          },
+          "headers": {
+            "title": "Header",
+            "type": "string",
+            "description": "Comma separated list of header names to remove from the request."
+          }
+      }
+    },
+    "add": {
+      "title": "Add to request",
+      "type": "object",
+      "properties": {
+          "querystring": {
+            "title": "Query",
+            "type": "string",
+            "description": "Comma separated list of paramname:value to add to the request querystring."
+          },
+          "form": {
+            "title": "Form",
+            "type": "string",
+            "description": "Comma separated list of paramname:value to add to the request body in urlencoded format."
+          },
+          "headers": {
+            "title": "Header",
+            "type": "string",
+            "description": "Comma separated list of headername:value to add to the request headers."
+          }
+      }
+    }
+  }
+}', 'JsonSchema', 'reqtx', 'Request Transformer Policy', NULL);
 
---  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-5::apiengine
-INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('OrganizationOwner', 1, 'admin', '2015-06-18 17:56:57.496', 'Automatically granted to the user who creates an Organization.  Grants all privileges.', 'Organization Owner');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('ResponseTransformer', 'Modify the upstream response before returning it to the client', '{
+  "type": "object",
+  "title": "Response Transformer",
+  "properties": {
+    "remove": {
+      "title": "Remove from request",
+      "type": "object",
+      "properties": {
+          "headers": {
+            "title": "Header",
+            "type": "string",
+            "description": "Comma separated list of header names to remove from the response headers."
+          },
+          "json": {
+            "title": "JSON",
+            "type": "string",
+            "description": "Comma separated list of JSON key names to remove from a JSON response body."
+          }
+      }
+    },
+    "add": {
+      "title": "Add to request",
+      "type": "object",
+      "properties": {
+          "headers": {
+            "title": "Header",
+            "type": "string",
+            "description": "Comma separated list of headername:value to add to the response headers."
+          },
+          "json": {
+            "title": "JSON",
+            "type": "string",
+            "description": "Comma separated list of jsonkey:value to add to a JSON response body."
+          }
+      }
+    }
+  }
+}', 'JsonSchema', 'restx', 'Response Transformer Policy', NULL);
 
-INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('ApplicationDeveloper', NULL, 'admin', '2015-06-18 17:56:57.632', 'Users responsible for creating and managing applications should be granted this role within an Organization.', 'Application Developer');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('TCPLog', 'Send request and response logs to a TCP server', '{
+  "type": "object",
+  "title": "TCP Log",
+  "properties": {
+    "host": {
+      "title": "Host",
+      "description": "The IP address or host name to send data to.",
+      "type": "string"
+    },
+    "keepalive": {
+      "title": "Keep alive",
+      "description": "Default 60000. An optional value in milliseconds that defines for how long an idle connection will live before being closed.",
+      "type": "number",
+      "default": 60000
+    },
+    "timeout": {
+      "title": "Time-out",
+      "description": "Default 10000. An optional timeout in milliseconds when sending data to the upstream server.",
+      "type": "number",
+      "default": 10000
+    },
+    "port": {
+      "title": "Port",
+      "description": "The port to send data to on the upstream server.",
+      "type": "number"
+    }
+  },
+  "required": [
+    "host","port"
+  ]
+}', 'JsonSchema', 'tcplog', 'TCP Log Policy', NULL);
 
-INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('ServiceDeveloper', NULL, 'admin', '2015-06-18 17:56:57.641', 'Users responsible for creating and managing services should be granted this role within an Organization.', 'Service Developer');
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('UDPLog', 'Send request and response logs to a UDP server', '{
+  "type": "object",
+  "title": "UDP Log",
+  "properties": {
+    "host": {
+      "title": "Host",
+      "description": "The IP address or host name to send data to.",
+      "type": "string"
+    },
+    "timeout": {
+      "title": "Time-out",
+      "description": "Default 10000. An optional timeout in milliseconds when sending data to the upstream server.",
+      "type": "number",
+      "default": 10000
+    },
+    "port": {
+      "title": "Port",
+      "description": "The port to send data to on the upstream server.",
+      "type": "number"
+    }
+  },
+  "required": [
+    "host","port"
+  ]
+}', 'JsonSchema', 'udplog', 'UDP Log Policy', NULL);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('HTTPLog', 'Send request and response logs to a HTTP server', '{
+  "type": "object",
+  "title": "HTTP Log",
+  "properties": {
+    "http_endpoint": {
+      "title": "HTTP Endpoint",
+      "description": "The HTTP endpoint (including the protocol to use) where to send the data to.",
+      "type": "string"
+    },
+    "method": {
+      "title": "HTTP Method",
+      "description": "Default POST. An optional method used to send data to the http server, other supported values are PUT, PATCH.",
+      "type": "string",
+      "default": "POST"
+    },
+    "keepalive": {
+      "title": "Keep alive",
+      "description": "Default 60000. An optional value in milliseconds that defines for how long an idle connection will live before being closed.",
+      "type": "number",
+      "default": 60000
+    },
+    "timeout": {
+      "title": "Time-out",
+      "description": "Default 10000. An optional timeout in milliseconds when sending data to the upstream server.",
+      "type": "number",
+      "default": 10000
+    }
+  },
+  "required": [
+    "http_endpoint"
+  ]
+}', 'JsonSchema', 'httplog', 'HTTP Log Policy', NULL);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('FileLog', 'Append request and response data to a log file on disk', '{
+  "type": "object",
+  "title": "File Log",
+  "properties": {
+    "path": {
+      "title": "Path",
+      "description": "The file path of the output log file. The plugin will create the file if it doesn''t exist yet. Make sure Kong has write permissions to this file.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "path"
+  ]
+}', 'JsonSchema', 'filelog', 'File Log Policy', NULL);
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-6::apiengine
 INSERT INTO users (username, email, full_name, joined_on) VALUES ('admin', 'admin@example.org', 'Admin', '2015-06-18 17:56:54.794');
