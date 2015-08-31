@@ -1,25 +1,27 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.common.base.Preconditions;
+import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
-import com.t1t.digipolis.apim.gateway.dto.Application;
-import com.t1t.digipolis.apim.gateway.dto.Service;
-import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
-import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
+import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongInfo;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * A REST client for accessing the Gateway API.
@@ -108,7 +110,32 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         log.info("Send to Kong:{}", api.toString());
         //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
         httpClient.addApi(api);
+        //TODO policy impl
+        List<Policy> policyList = service.getServicePolicies();
+        for(Policy policy:policyList){
+            //execute policy
+            Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
+            switch(policies){
+                case BASICAUTHENTICATION: createServicePolicyBasicAuthPolicy(api,policy);break;
+                case CORS: break;
+                case FILELOG: break;
+                case HTTPLOG: break;
+                case UDPLOG: break;
+                case TCPLOG: break;
+                case IPRESTRICTION: break;
+                case KEYAUTHENTICATION: break;
+                case OAUTH2: break;
+                case RATELIMITING: createServicePolicyRateLimiting(api, policy);break;
+                case REQUESTSIZELIMITING: break;
+                case REQUESTTRANSFORMER: break;
+                case RESPONSETRANSFORMER: break;
+                case SSL: break;
+                default:break;
+            }
+        }
     }
+
+
 
     /**
      * Generates a unique service name for Kong.
@@ -137,6 +164,22 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     public void retire(String organizationId, String serviceId, String version) throws RegistrationException, GatewayAuthenticationException {
+
+    }
+
+
+    /*Service policies*/
+    private void createServicePolicyBasicAuthPolicy(KongApi api, Policy policy) {
+    }
+
+    private void createServicePolicyRateLimiting(KongApi api, Policy policy) {
+        Gson gson = new Gson();
+        //perform value mapping
+        KongPluginRateLimiting plugin = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRateLimiting.class);
+        //KongPluginConfig config = httpClient.createPluginConfig(api.getId(),plugin);
+        //validate
+        //execute
+
 
     }
 }

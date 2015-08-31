@@ -2,9 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "id": "/",
   "type": "object",
-  "extends" : {
-    "$ref" : "KongConfigValue.json"
-  },
+  "javaInterfaces" : ["com.t1t.digipolis.kong.model.KongConfigValue"],
   "properties": {
     "blacklist": {
       "type": "array",

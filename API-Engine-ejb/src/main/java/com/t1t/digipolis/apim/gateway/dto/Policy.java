@@ -11,7 +11,7 @@ public class Policy implements Serializable {
     private static final long serialVersionUID = -5945877012261045491L;
     
     private String policyJsonConfig; //config_info json str
-    private String policyImpl; //Reference to policy (classname?) we're going to load?
+    private String policyImpl; //Reference to policy def id
 
     /**
      * Constructor.
@@ -45,6 +45,14 @@ public class Policy implements Serializable {
      */
     public void setPolicyJsonConfig(String policyJsonConfig) {
         this.policyJsonConfig = policyJsonConfig;
+    }
+
+    @Override
+    public String toString() {
+        return "Policy{" +
+                "policyJsonConfig='" + policyJsonConfig + '\'' +
+                ", policyImpl='" + policyImpl + '\'' +
+                '}';
     }
 
     /**

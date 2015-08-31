@@ -332,7 +332,33 @@
                 <version>0.4.13</version>
                 <configuration>
                     <addCompileSourceRoot>true</addCompileSourceRoot>
-                    <sourceDirectory>${basedir}/src/main/resources/schema</sourceDirectory>
+                    <!--<sourceDirectory>${basedir}/src/main/resources/schema</sourceDirectory>-->
+                    <sourcePaths>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongApi.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongApiList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongConsumer.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongConsumerList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongInfo.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongInstalledPlugins.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuth.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginConfig.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginConfigList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginCors.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginFileLog.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginHttpLog.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginIPRestriction.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginKeyAuth.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuth.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRateLimiting.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestSizeLimiting.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformer.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformer.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginSchema.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginSSL.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginTcpLog.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginUdpLog.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongStatus.json</sourcePath>
+                    </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>
                     <annotationStyle>gson</annotationStyle>

@@ -85,7 +85,7 @@ public class UserResource implements IUserResource {
         if (!securityContext.isAdmin() && !securityContext.getCurrentUser().equals(userId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(userId));
         Preconditions.checkNotNull(user);
-        userFacade.update(userId,user);
+        userFacade.update(userId, user);
     }
 
     @ApiOperation(value = "Search for Users",
@@ -150,6 +150,19 @@ public class UserResource implements IUserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public SearchResultsBean<AuditEntryBean> getActivity(@PathParam("userId") String userId, @QueryParam("page") int page,@QueryParam("count") int pageSize) {
         Preconditions.checkArgument(!StringUtils.isEmpty(userId));
-        return userFacade.getActivity(userId,page,pageSize);
+        return userFacade.getActivity(userId, page, pageSize);
+    }
+
+    @ApiOperation(value = "User login",
+            notes = "Resource password credential owner login, in order to perform a SSO request to an IDP provider. A SAML2 signed bearer token will be returned that must be kept in the user's session.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "The search results (a page of organizations).")
+    })
+    @POST
+    @Path("/login")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<UserBean> login(SearchCriteriaBean criteria) throws InvalidSearchCriteriaException {
+        return userFacade.search(criteria);
     }
 }

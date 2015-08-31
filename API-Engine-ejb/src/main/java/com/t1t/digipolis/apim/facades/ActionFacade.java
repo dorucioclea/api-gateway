@@ -111,7 +111,8 @@ public class ActionFacade {
         gatewaySvc.setPublicService(versionBean.isPublicService());
         boolean hasTx = false;
         try {
-            if (versionBean.isPublicService()) {
+            //we don't restrict the application of service policies for only the public services
+            /*if (versionBean.isPublicService()) {*/
                 List<Policy> policiesToPublish = new ArrayList<>();
                 List<PolicySummaryBean> servicePolicies = query.getPolicies(action.getOrganizationId(),
                         action.getEntityId(), action.getEntityVersion(), PolicyType.Service);
@@ -121,11 +122,12 @@ public class ActionFacade {
                             action.getEntityId(), action.getEntityVersion(), policySummaryBean.getId());
                     Policy policyToPublish = new Policy();
                     policyToPublish.setPolicyJsonConfig(servicePolicy.getConfiguration());
+                    policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getId());
                     //policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getPolicyImpl());
                     policiesToPublish.add(policyToPublish);
                 }
                 gatewaySvc.setServicePolicies(policiesToPublish);
-            }
+            /*}*/
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         }
