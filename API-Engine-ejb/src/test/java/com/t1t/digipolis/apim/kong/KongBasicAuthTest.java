@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.kong;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
+/*import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -30,7 +30,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;*/
 
 /**
  * Created by michallispashidis on 20/08/15.
@@ -45,7 +45,7 @@ import static org.junit.Assert.assertTrue;
  * TODO at this moment a user can use his credentials for all api's, ACL will be activated in the 0.5 release of Kong
  */
 public class KongBasicAuthTest {
-    private static Logger log = LoggerFactory.getLogger(KongBasicAuthTest.class.getName());
+/*    private static Logger log = LoggerFactory.getLogger(KongBasicAuthTest.class.getName());
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
@@ -63,16 +63,16 @@ public class KongBasicAuthTest {
     private static final String PREF_HTTPS = "https://";
 
     //If you want to use the same server instance for all tests:
-/*    @ClassRule
+*//*    @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(wireMockConfig()
             .port(JETTY_SERVER_HTTP_PORT)
             .httpsPort(JETTY_SERVER_HTTPS_PORT));
     @Rule
-    public WireMockClassRule instanceRule = wireMockRule;*/
+    public WireMockClassRule instanceRule = wireMockRule;*//*
 
-/*    @Rule
+*//*    @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig()
-            .port(JETTY_SERVER_HTTP_PORT));*/
+            .port(JETTY_SERVER_HTTP_PORT));*//*
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -98,10 +98,10 @@ public class KongBasicAuthTest {
         }
     }
 
-    /**
+    *//**
      * Test if the Kong server is reachable, by requesting basic information.
      * @throws Exception
-     */
+     *//*
     @Test
     public void testGetInfo() throws Exception {
         KongInfo kongInfo = kongClient.getInfo();
@@ -118,9 +118,9 @@ public class KongBasicAuthTest {
         assertTrue(plugins.getAvailableOnServer().size() > 0);
     }
 
-    /**
+    *//**
      * Test that the jetty server basic test runs fine.
-     */
+     *//*
     @Test
     public void exampleTest() {
         //setup dummy server
@@ -201,19 +201,19 @@ public class KongBasicAuthTest {
         wireMockServer.stop();
     }
 
-    /**
+    *//**
      * Print json utility for Kong objects
      * @param obj
-     */
+     *//*
     private void print(Object obj) {
         log.info(gson.toJson(obj));
     }
 
-    /**
+    *//**
      * Utility method to parse apache response body inputstream.
      * @param is
      * @return
-     */
+     *//*
     private String parseJSONBody(InputStream is){
         BufferedReader rd = new BufferedReader(new InputStreamReader(is));
         StringBuffer result = new StringBuffer();
@@ -226,13 +226,13 @@ public class KongBasicAuthTest {
             e.printStackTrace();
         }
         return result.toString();
-    }
+    }*/
 }
 
 /**
  * Utility Test version object to serialize/deserialize dummy server response.
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+/*@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 class TestVersion{
     private String version;
     public String getVersion() {
@@ -248,4 +248,4 @@ class TestVersion{
                 "version='" + version + '\'' +
                 '}';
     }
-}
+}*/

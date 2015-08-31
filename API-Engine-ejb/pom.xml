@@ -245,12 +245,12 @@
         </dependency>
 
         <!--Jetty-->
-        <dependency>
+<!--        <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
             <version>1.57</version>
 
-            <!-- Include everything below here if you have dependency conflicts -->
+            &lt;!&ndash; Include everything below here if you have dependency conflicts &ndash;&gt;
             <classifier>standalone</classifier>
             <exclusions>
                 <exclusion>
@@ -294,7 +294,7 @@
                     <artifactId>jopt-simple</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
 
 
     </dependencies>
