@@ -180,14 +180,15 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      * @param clazz
      * @param <T>
      */
-    private <T extends KongConfigValue> void createServicePolicy(KongApi api, Policy policy, String kongIdentifier,Class<T> clazz) {
+    private <T extends KongConfigValue> void createServicePolicy(KongApi api, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
+
         Gson gson = new Gson();
         //perform value mapping
         KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(kongIdentifier)//set required kong identifier
                 .withValue(plugin);
-        //TODO: how to validate?!
+        //TODO: how to validate or rollback?!
         //execute
         config = httpClient.createPluginConfig(api.getId(),config);
     }

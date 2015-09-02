@@ -4,11 +4,15 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.apim.exceptions.ActionException;
+import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit.ErrorHandler;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
 
 import java.io.UnsupportedEncodingException;
 
@@ -60,6 +64,18 @@ public class RestServiceBuilder {
                     public void intercept(RequestFacade requestFacade) {
                         String authHeader = getBasicAuthValue(config);
                         requestFacade.addHeader("Authorization", getBasicAuthValue(config));
+                    }
+                }).setErrorHandler(new ErrorHandler() {
+                    @Override
+                    public Throwable handleError(RetrofitError retrofitError) {
+                        switch (retrofitError.getResponse().getStatus()) {
+                            case 400:
+                                throw new GatewayNotFoundException(retrofitError.getBody().toString());
+                            case 409:
+                                throw new ActionException(retrofitError.getBody().toString());
+                            default:
+                                throw new RuntimeException("");
+                        }
                     }
                 }).build();
         _LOG.info("Kong connection string:{}", kongURL.toString());
