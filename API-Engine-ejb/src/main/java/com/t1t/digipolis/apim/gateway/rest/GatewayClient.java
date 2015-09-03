@@ -5,6 +5,9 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.exceptions.ActionException;
+import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
+import com.t1t.digipolis.apim.exceptions.ServiceAlreadyExistsException;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
@@ -17,6 +20,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.jgroups.protocols.RATE_LIMITER;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit.RetrofitError;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -24,6 +28,7 @@ import java.util.List;
 
 /**
  * A REST client for accessing the Gateway API.
+ * TODO ACL groups cannot be mixed through API => unique naming
  */
 @SuppressWarnings("javadoc") // class is temporarily delinked from its interfaces
 public class GatewayClient { /*implements ISystemResource, IServiceResource, IApplicationResource*/
@@ -69,6 +74,24 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
     }
 
+    /**
+     * Register an application is:
+     * <ul>
+     *     <li>create the consumer (app.version)</li>
+     *     <li>create an acl (org.app.version.plan.version) and add to api</li>
+     *     <li>add acl group to the whitelist of the api</li>
+     *     <li>add client application to the group</li>
+     *     <li></li>
+     * </ul>
+     * Each plan should contain the following policies:
+     * <ul>
+     *     <li>HTTP Log configured for the metrics engine</li>
+     *     <li>Key authentication</li>
+     * </ul>
+     * @param application
+     * @throws RegistrationException
+     * @throws GatewayAuthenticationException
+     */
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
         //register API
         //register consumer application
@@ -77,8 +100,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     public void unregister(String organizationId, String applicationId, String version) throws RegistrationException, GatewayAuthenticationException {
-        //get all applicable policies
-        //remove policies
+        //When an API is remove all attached policies are removed as well
+
     }
 
     /**
@@ -86,6 +109,12 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      * The properties path and target_url are variable, and will be retrieved from the service dto.
      * The properties strip_path, preserve_host and public_dns will be set equally for all registered endpoints
      * The path should be: /organizationname/applicationname/version
+     *
+     * Default enable:
+     * <ul>
+     *     <li>Key authentication</li>
+     *     <li>CORS</li></loi>
+     * </ul>
      *
      * @param service
      * @throws PublishingException
@@ -96,7 +125,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //create the service using path, and target_url
         KongApi api = new KongApi();
         api.setStripPath(true);
-        api.setPublicDns(Policies.CORS.getKongIdentifier());
+        //api.setPublicDns();
         String nameAndDNS = generateServiceUniqueName(service);
         //name wil be: organization.application.version
         api.setName(nameAndDNS);
@@ -108,7 +137,15 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         api.setPath(validateServicePath(service));
         log.info("Send to Kong:{}", api.toString());
         //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
-        api = httpClient.addApi(api);
+        try{
+            api = httpClient.addApi(api);
+        }catch (RetrofitError error){
+            //start new client to comm with kong
+            throw new ActionException(error.getMessage());
+        }
+
+        //flag for custom CORS policy
+        boolean customCorsFlag = false;
         //verify if api creation has been succesfull
         if(!StringUtils.isEmpty(api.getId())){
             List<Policy> policyList = service.getServicePolicies();
@@ -116,8 +153,9 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                 //execute policy
                 Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
                 switch(policies){
+                    //all policies can be available here
                     case BASICAUTHENTICATION: createServicePolicy(api, policy, Policies.BASICAUTHENTICATION.getKongIdentifier(),Policies.BASICAUTHENTICATION.getClazz());break;
-                    case CORS: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.CORS.getClazz());break;
+                    case CORS: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.CORS.getClazz());customCorsFlag=true;break;
                     case FILELOG: createServicePolicy(api, policy, Policies.FILELOG.getKongIdentifier(),Policies.FILELOG.getClazz());break;
                     case HTTPLOG: createServicePolicy(api, policy, Policies.HTTPLOG.getKongIdentifier(),Policies.HTTPLOG.getClazz());break;
                     case UDPLOG: createServicePolicy(api, policy, Policies.UDPLOG.getKongIdentifier(),Policies.UDPLOG.getClazz());break;
@@ -134,9 +172,22 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                 }
             }
         }
+
+        //add default CORS Policy if no custom CORS defined
+        if(!customCorsFlag) registerDefaultCORSPolicy(api);
     }
 
-
+    /**
+     * Registers the default CORS for the service (service-scoped policy)
+     * @param api
+     */
+    private void registerDefaultCORSPolicy(KongApi api) {
+        KongPluginCors corsPolicy = new KongPluginCors(); //default values are ok
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(Policies.CORS.getKongIdentifier())
+                .withValue(corsPolicy);
+        httpClient.createPluginConfig(api.getId(),config);
+    }
 
     /**
      * Generates a unique service name for Kong.
@@ -146,11 +197,15 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      * @return
      */
     private String generateServiceUniqueName(Service service) {
-        StringBuilder serviceGatewayName = new StringBuilder(service.getOrganizationId())
+        return generateServiceUniqueName(service.getOrganizationId(), service.getServiceId(), service.getVersion());
+    }
+
+    private String generateServiceUniqueName(String orgId, String serviceId, String serviceVersionsId){
+        StringBuilder serviceGatewayName = new StringBuilder(orgId)
                 .append(".")
-                .append(service.getServiceId())
+                .append(serviceId)
                 .append(".")
-                .append(service.getVersion());
+                .append(serviceVersionsId);
         return serviceGatewayName.toString().toLowerCase();
     }
 
@@ -164,8 +219,22 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         return GatewayPathUtilities.generateGatewayContextPath(service);
     }
 
+    /**
+     * The retire functionality removes the api and deletes the policies that are applied on the api.
+     * The policies are removed as a responsability of Kong gateway.
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @throws RegistrationException
+     * @throws GatewayAuthenticationException
+     */
     public void retire(String organizationId, String serviceId, String version) throws RegistrationException, GatewayAuthenticationException {
-
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        //create the service using path, and target_url
+        String nameAndDNS = generateServiceUniqueName(organizationId,serviceId,version);
+        httpClient.deleteApi(nameAndDNS);
     }
 
 
@@ -188,7 +257,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         KongPluginConfig config = new KongPluginConfig()
                 .withName(kongIdentifier)//set required kong identifier
                 .withValue(plugin);
-        //TODO: how to validate or rollback?!
+        //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute
         config = httpClient.createPluginConfig(api.getId(),config);
     }
