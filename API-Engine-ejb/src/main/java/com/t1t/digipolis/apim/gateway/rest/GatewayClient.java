@@ -24,7 +24,10 @@ import retrofit.RetrofitError;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A REST client for accessing the Gateway API.
@@ -81,21 +84,59 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      *     <li>create an acl (org.app.version.plan.version) and add to api</li>
      *     <li>add acl group to the whitelist of the api</li>
      *     <li>add client application to the group</li>
-     *     <li></li>
+     *     <li>add keyauth with API key for specific API and consumer</li>
      * </ul>
+     *
      * Each plan should contain the following policies:
      * <ul>
-     *     <li>HTTP Log configured for the metrics engine</li>
+     *     <li>HTTP Log configured for the metrics engine for each service consumer</li>
      *     <li>Key authentication</li>
+     * </ul>
+     *
+     * The following policies can be part of a plan:
+     * <ul>
+     *     <li>IP Restriction</li>
+     *     <li>Rate Limiting</li>
+     *     <li>Request size limiting</li>
      * </ul>
      * @param application
      * @throws RegistrationException
      * @throws GatewayAuthenticationException
      */
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
-        //register API
+        //create consumer
+        KongConsumer consumer = new KongConsumer()
+                .withUsername(application.getOrganizationId()+"."+application.getApplicationId() + "." + application.getVersion())
+                .withCustomId(application.getOrganizationId() + "."+application.getApplicationId()+"."+application.getVersion());
+        consumer = httpClient.createConsumer(consumer);
+
         //register consumer application
-        //register policies?
+        //for each API register keyauth apikey for consumer on API
+        KongPluginKeyAuthRequest keyAuthRequest;
+        KongApi api;
+        //context of API
+        for(Contract contract:application.getContracts()){
+            keyAuthRequest = new KongPluginKeyAuthRequest().withKey(contract.getApiKey());
+            httpClient.createKeyAuthCredentials(consumer.getId(),keyAuthRequest);
+            //get the API
+            api = new KongApi().withName(generateServiceUniqueName(contract.getServiceOrgId(),contract.getServiceId(),contract.getServiceVersion()));
+            for(Policy policy:contract.getPolicies()){
+                //execute policy
+                Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
+                switch(policies){
+                    //all policies can be available here
+                    case IPRESTRICTION: createPlanPolicy(api, consumer, policy, Policies.IPRESTRICTION.getKongIdentifier(), Policies.IPRESTRICTION.getClazz());break;
+                    case RATELIMITING: createPlanPolicy(api, consumer, policy, Policies.RATELIMITING.getKongIdentifier(), Policies.RATELIMITING.getClazz());break;
+                    case REQUESTSIZELIMITING: createPlanPolicy(api, consumer, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
+                    default:break;
+                }
+            }
+        }
+
+        //register additional policies
+
+
+        //what about other authorization policies? actions on different endpoint?
 
     }
 
@@ -146,6 +187,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
         //flag for custom CORS policy
         boolean customCorsFlag = false;
+        //flag for custom KeyAuth policy
+        boolean customKeyAuth = false;
         //verify if api creation has been succesfull
         if(!StringUtils.isEmpty(api.getId())){
             List<Policy> policyList = service.getServicePolicies();
@@ -161,7 +204,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                     case UDPLOG: createServicePolicy(api, policy, Policies.UDPLOG.getKongIdentifier(),Policies.UDPLOG.getClazz());break;
                     case TCPLOG: createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(),Policies.TCPLOG.getClazz());break;
                     case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
-                    case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());break;
+                    case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
                     case OAUTH2: createServicePolicy(api, policy, Policies.OAUTH2.getKongIdentifier(),Policies.OAUTH2.getClazz());break;
                     case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
                     case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
@@ -175,6 +218,22 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
         //add default CORS Policy if no custom CORS defined
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
+        if(!customKeyAuth) registerDefaultKeyAuthPolicy(api);
+    }
+
+    /**
+     * Registers the default keyauth plugin with apikey key_value (service-scoped policy).
+     * Only consumers having an valid API key can access the API.
+     * TODO Kong 0.5.0 - add ACL group
+     * @param api
+     */
+    private void registerDefaultKeyAuthPolicy(KongApi api) {
+        KongPluginKeyAuth keyAuthPolicy = new KongPluginKeyAuth()
+                .withKeyNames(Arrays.asList("apikey"));
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(Policies.KEYAUTHENTICATION.getKongIdentifier())
+                .withValue(keyAuthPolicy);
+        httpClient.createPluginConfig(api.getId(),config);
     }
 
     /**
@@ -256,6 +315,29 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(kongIdentifier)//set required kong identifier
+                .withValue(plugin);
+        //TODO: strong validation should be done and rollback of the service registration upon error?!
+        //execute
+        config = httpClient.createPluginConfig(api.getId(),config);
+    }
+
+    /**
+     * This method creates a policy for a given plan, applied on an API.
+     *
+     * @param api
+     * @param policy
+     * @param kongIdentifier
+     * @param clazz
+     * @param <T>
+     * @throws PublishingException
+     */
+    private <T extends KongConfigValue> void createPlanPolicy(KongApi api, KongConsumer consumer, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
+        Gson gson = new Gson();
+        //perform value mapping
+        KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(kongIdentifier)//set required kong identifier
+                .withConsumerId(consumer.getId())
                 .withValue(plugin);
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute

@@ -11,7 +11,7 @@ import java.util.Set;
 public class Application implements Serializable {
     
     private static final long serialVersionUID = 4515000941548789924L;
-    
+    private String applicationName;
     private String organizationId;
     private String applicationId;
     private String version;
@@ -86,6 +86,14 @@ public class Application implements Serializable {
         this.contracts = contracts;
     }
 
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -129,4 +137,14 @@ public class Application implements Serializable {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "Application{" +
+                "applicationName='" + applicationName + '\'' +
+                ", organizationId='" + organizationId + '\'' +
+                ", applicationId='" + applicationId + '\'' +
+                ", version='" + version + '\'' +
+                ", contracts=" + contracts +
+                '}';
+    }
 }

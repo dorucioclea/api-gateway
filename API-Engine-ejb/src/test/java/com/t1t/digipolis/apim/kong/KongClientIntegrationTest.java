@@ -273,7 +273,7 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         //verify one has been added
         confList = kongClient.getAllPlugins();
-        assertTrue(confList.getData().size()==(initSize+1));
+        assertTrue(confList.getData().size() == (initSize + 1));
         kongClient.deleteApi(apie.getId());
         kongClient.deleteConsumer(consumer.getId());
     }
@@ -281,7 +281,7 @@ public class KongClientIntegrationTest {
     @Test
     public void testCreateOrUpdatePlugin() throws Exception {
         //create plugin config; read init value; update value and re-read to verify
-        KongApi apif = createDummyApi("apif","/apif",API_URL);
+        KongApi apif = createDummyApi("apif", "/apif", API_URL);
         KongConsumer consumer = createDummyConsumer("123f", "apifuser");
         apif = kongClient.addApi(apif);
         consumer = kongClient.createConsumer(consumer);
@@ -315,15 +315,38 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         KongPluginConfigList configList = kongClient.getKongPluginConfigList(apid.getId());
         print(configList);
-        assertTrue(configList.getData().size()==1);
+        assertTrue(configList.getData().size() == 1);
         //delete the plugin
-        kongClient.deletePlugin(pluginConfig.getApiId(),pluginConfig.getId());
+        kongClient.deletePlugin(pluginConfig.getApiId(), pluginConfig.getId());
         configList = kongClient.getKongPluginConfigList(apid.getId());
         print(configList);
         assertTrue(configList.getData().isEmpty());
         kongClient.deleteApi(apid.getId());
         kongClient.deleteConsumer(consumer.getId());
         //is deleted automatically => kongClient.deletePlugin(pluginConfig.getId());
+    }
+
+    @Test
+    public void testDeleteApiWithPlugins()throws Exception{
+        //when an api is deleted the plugin config for that API shouldn't exist anymore
+        KongApi apie = createDummyApi("apif","/apif",API_URL);
+        KongConsumer consumer = createDummyConsumer("1234567", "apicuserf");
+        apie = kongClient.addApi(apie);
+        consumer = kongClient.createConsumer(consumer);
+        //create a ratelimitation for the consumer and apply it for the api
+        KongPluginConfig pluginConfig = createTestPlugin(apie, consumer);
+        pluginConfig = kongClient.createPluginConfig(apie.getId(), pluginConfig);
+        print(pluginConfig);
+        KongPluginConfigList configList = kongClient.getKongPluginConfigList(apie.getId());
+        print(configList);
+        assertTrue(configList.getData().size() == 1);
+        kongClient.deleteApi(apie.getId());
+        //verify the config id is not in general list of plugins
+        KongPluginConfigList allPolicyConfs = kongClient.getAllPlugins();
+        for(KongPluginConfig config:allPolicyConfs.getData()){
+            assertFalse(config.getId().equals(pluginConfig.getId()));
+        }
+        kongClient.deleteConsumer(consumer.getId());
     }
 
     /**

@@ -240,6 +240,8 @@ public class ActionFacade {
         if (!securityContext.hasPermission(PermissionType.appAdmin, action.getOrganizationId()))
             throw ExceptionFactory.notAuthorizedException();
 
+        //TODO validate if consumer wit given consumer name exists
+
         ApplicationVersionBean versionBean = null;
         List<ContractSummaryBean> contractBeans = null;
         try {
@@ -266,6 +268,7 @@ public class ActionFacade {
         application.setOrganizationId(versionBean.getApplication().getOrganization().getId());
         application.setApplicationId(versionBean.getApplication().getId());
         application.setVersion(versionBean.getVersion());
+        application.setApplicationName(versionBean.getApplication().getName());
 
         Set<Contract> contracts = new HashSet<>();
         for (ContractSummaryBean contractBean : contractBeans) {
@@ -331,7 +334,7 @@ public class ActionFacade {
     private List<Policy> aggregateContractPolicies(ContractSummaryBean contractBean) {
         try {
             List<Policy> policies = new ArrayList<>();
-            PolicyType[] types = new PolicyType[3];
+            PolicyType[] types = new PolicyType[1];
             types[0] = PolicyType.Plan;
 /*            types[1] = PolicyType.Application;
             types[2] = PolicyType.Service;*/
