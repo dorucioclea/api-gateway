@@ -106,8 +106,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
         //create consumer
         KongConsumer consumer = new KongConsumer()
-                .withUsername(application.getOrganizationId()+"."+application.getApplicationId() + "." + application.getVersion())
-                .withCustomId(application.getOrganizationId() + "."+application.getApplicationId()+"."+application.getVersion());
+                .withUsername((application.getOrganizationId()+"."+application.getApplicationId() + "." + application.getVersion()).toLowerCase())
+                .withCustomId((application.getOrganizationId() + "."+application.getApplicationId()+"."+application.getVersion()).toLowerCase());//conventionally lower case
         consumer = httpClient.createConsumer(consumer);
 
         //register consumer application
