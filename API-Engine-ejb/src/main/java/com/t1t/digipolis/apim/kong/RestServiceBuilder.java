@@ -4,11 +4,14 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.apim.exceptions.*;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit.ErrorHandler;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
 
 import java.io.UnsupportedEncodingException;
 
@@ -61,7 +64,21 @@ public class RestServiceBuilder {
                         String authHeader = getBasicAuthValue(config);
                         requestFacade.addHeader("Authorization", getBasicAuthValue(config));
                     }
-                }).build();
+                })
+/*                .setErrorHandler(new ErrorHandler() {
+                    @Override
+                    public Throwable handleError(RetrofitError retrofitError) {
+                        switch (retrofitError.getResponse().getStatus()) {
+                            case ErrorCodes.HTTP_STATUS_CODE_INVALID_INPUT:
+                                throw new GatewayNotFoundException(retrofitError.getMessage());
+                            case ErrorCodes.HTTP_STATUS_CODE_INVALID_STATE:
+                                throw new AlreadyExistsException(retrofitError.getResponse().getReason());
+                            default:
+                                throw new RuntimeException("");
+                        }
+                    }
+                })*/
+                .build();
         _LOG.info("Kong connection string:{}", kongURL.toString());
         return restAdapter.create(iFace);
     }
