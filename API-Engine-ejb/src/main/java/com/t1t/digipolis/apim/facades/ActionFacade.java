@@ -322,6 +322,9 @@ public class ActionFacade {
 
     /**
      * Aggregates the service, app, and plan policies into a single ordered list.
+     * Application policies can be supported in the future.
+     * Service policies are already enforced for the service at publication.
+     * At the moment only Plan policies are important to aggregate
      *
      * @param contractBean
      */
@@ -329,30 +332,30 @@ public class ActionFacade {
         try {
             List<Policy> policies = new ArrayList<>();
             PolicyType[] types = new PolicyType[3];
-            types[0] = PolicyType.Application;
-            types[1] = PolicyType.Plan;
-            types[2] = PolicyType.Service;
+            types[0] = PolicyType.Plan;
+/*            types[1] = PolicyType.Application;
+            types[2] = PolicyType.Service;*/
             for (PolicyType policyType : types) {
                 String org, id, ver;
                 switch (policyType) {
-                    case Application: {
+/*                    case Application: {
                         org = contractBean.getAppOrganizationId();
                         id = contractBean.getAppId();
                         ver = contractBean.getAppVersion();
                         break;
-                    }
+                    }*/
                     case Plan: {
                         org = contractBean.getServiceOrganizationId();
                         id = contractBean.getPlanId();
                         ver = contractBean.getPlanVersion();
                         break;
                     }
-                    case Service: {
+/*                    case Service: {
                         org = contractBean.getServiceOrganizationId();
                         id = contractBean.getServiceId();
                         ver = contractBean.getServiceVersion();
                         break;
-                    }
+                    }*/
                     default: {
                         throw new RuntimeException("Missing case for switch!"); //$NON-NLS-1$
                     }
@@ -363,7 +366,7 @@ public class ActionFacade {
                         PolicyBean policyBean = storage.getPolicy(policyType, org, id, ver, policySummaryBean.getId());
                         Policy policy = new Policy();
                         policy.setPolicyJsonConfig(policyBean.getConfiguration());
-                        //policy.setPolicyImpl(policyBean.getDefinition().getPolicyImpl());
+                        policy.setPolicyImpl(policyBean.getDefinition().getId());
                         policies.add(policy);
                     }
                 } finally {
