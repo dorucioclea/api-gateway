@@ -9,6 +9,9 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
+import com.t1t.digipolis.apim.beans.user.LoginRequestBean;
+import com.t1t.digipolis.apim.beans.user.LoginResponseBean;
+import com.t1t.digipolis.apim.beans.user.SAMLRequest;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -162,7 +165,26 @@ public class UserResource implements IUserResource {
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<UserBean> login(SearchCriteriaBean criteria) throws InvalidSearchCriteriaException {
-        return userFacade.search(criteria);
+    public LoginResponseBean login(LoginRequestBean credentials) throws InvalidSearchCriteriaException {
+        Preconditions.checkNotNull(credentials);
+        return userFacade.login(credentials);
+    }
+
+    @ApiOperation(value = "Get the Identity provider url with the SAML2 Authentication request",
+            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL.")
+    @ApiResponses({
+            @ApiResponse(code = 200,response = String.class, message = "SAML2 authentication request"),
+            @ApiResponse(code = 500,response = String.class, message = "Server error generating the SAML2 request")
+    })
+    @POST
+    @Path("/idp/redirect")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getSAML2AuthRequestUri(SAMLRequest request) {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
+        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(),request.getSpUrl(),request.getSpName());
     }
 }

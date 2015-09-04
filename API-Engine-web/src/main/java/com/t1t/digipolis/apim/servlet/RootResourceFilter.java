@@ -32,7 +32,7 @@ public class RootResourceFilter implements Filter {
         HttpServletRequest httpReq = (HttpServletRequest) request;
         String path = httpReq.getPathInfo();
         if ("/".equals(path)) { //$NON-NLS-1$
-            httpReq.getRequestDispatcher("/system/status").forward(request, response); //$NON-NLS-1$
+            httpReq.getRequestDispatcher("/API-Engine-web/").forward(request, response); //$NON-NLS-1$
         } else {
             chain.doFilter(request, response);
         }
