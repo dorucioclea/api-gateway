@@ -31,11 +31,17 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,9 +60,11 @@ public class UserResource implements IUserResource {
     ISecurityContext securityContext;
     @Inject
     IStorageQuery query;
-    @Inject @APIEngineContext
-    Logger log;
+/*    @Inject @APIEngineContext
+    Logger log;*/
     @Inject private UserFacade userFacade;
+
+    public static final Logger log = LoggerFactory.getLogger(UserResource.class.getName());
     /**
      * Constructor.
      */
@@ -170,7 +178,7 @@ public class UserResource implements IUserResource {
         return userFacade.login(credentials);
     }
 
-    @ApiOperation(value = "Get the Identity provider url with the SAML2 Authentication request",
+    @ApiOperation(value = "IDP Callback URL for the Marketplace",
             notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL.")
     @ApiResponses({
             @ApiResponse(code = 200,response = String.class, message = "SAML2 authentication request"),
@@ -185,6 +193,34 @@ public class UserResource implements IUserResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
-        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(),request.getSpUrl(),request.getSpName());
+        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName());
+    }
+
+    @ApiOperation(value = "Get the Identity provider url with the SAML2 Authentication request",
+            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL.")
+    @ApiResponses({
+            @ApiResponse(code = 200,response = String.class, message = "SAML2 authentication request"),
+            @ApiResponse(code = 500,response = String.class, message = "Server error generating the SAML2 request")
+    })
+    @POST
+    @Path("/idp/callback")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response executeSAML2Callback(String request){
+        log.info("Request received from idp:"+request);
+        Preconditions.checkNotNull(request);
+/*        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
+        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(),request.getSpUrl(),request.getSpName());*/
+        URI uri = null;
+        try {
+            uri = new URL("http://localhost:9000/").toURI();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        if(uri!=null)return Response.seeOther(uri).build();
+        return Response.ok(request).build();
     }
 }

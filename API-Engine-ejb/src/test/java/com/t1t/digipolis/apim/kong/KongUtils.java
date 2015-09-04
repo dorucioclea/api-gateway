@@ -14,6 +14,9 @@ public class KongUtils {
     private static Logger log = LoggerFactory.getLogger(KongUtils.class.getName());
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    public static void main(String []args){
+        log.info("basic auth header: "+getBasicAuthHeaderValueEncoded("W6FcDk905p5jT5_C_DDec4hAwBMa","nyu7u2If6XBBcQXxi7M6wfHkoK4a"));
+    }
     /**
      * Utility method that encodes a name and password for basic authentication.
      * @param name

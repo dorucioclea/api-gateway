@@ -24,12 +24,7 @@ import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
-import org.opensaml.saml2.core.AuthnContextClassRef;
-import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.NameIDPolicy;
-import org.opensaml.saml2.core.RequestedAuthnContext;
+import org.opensaml.saml2.core.*;
 import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
 import org.opensaml.saml2.core.impl.AuthnRequestBuilder;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
@@ -52,6 +47,7 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -216,7 +212,7 @@ public class UserFacade {
         // NameIDPolicy
         nameIdPolicyBuilder = new NameIDPolicyBuilder();
         nameIdPolicy = nameIdPolicyBuilder.buildObject();
-        nameIdPolicy.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:persistent");
+        nameIdPolicy.setFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");//TODO can be set aswel as param?
         nameIdPolicy.setSPNameQualifier("Isser");
         nameIdPolicy.setAllowCreate(new Boolean(true));
 
@@ -238,14 +234,13 @@ public class UserFacade {
         authRequest.setForceAuthn(new Boolean(false));
         authRequest.setIsPassive(new Boolean(false));
         authRequest.setIssueInstant(issueInstant);
-        authRequest.setProtocolBinding("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");
+        authRequest.setProtocolBinding("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");//urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
         authRequest.setAssertionConsumerServiceURL(spUrl);
         authRequest.setIssuer(issuer);
         authRequest.setNameIDPolicy(nameIdPolicy);
         authRequest.setRequestedAuthnContext(requestedAuthnContext);
         authRequest.setID(Integer.toHexString(new Double(Math.random()).intValue())); //random id
         authRequest.setVersion(SAMLVersion.VERSION_20);
-
         return authRequest;
     }
 
@@ -272,6 +267,73 @@ public class UserFacade {
         encodedRequestMessage = URLEncoder.encode(encodedRequestMessage, "UTF-8").trim(); // encoding string
         return encodedRequestMessage;
     }
+
+    //TODO check travelocity example for decryption when using X509 certificates
+/*    private void processSSOResponse(HttpServletRequest request) throws SSOAgentException {
+        SSOAgentSessionBean sessionBean = new SSOAgentSessionBean();
+        sessionBean.getClass();
+        sessionBean.setSAMLSSOSessionBean(new SAMLSSOSessionBean(sessionBean));
+        request.getSession().setAttribute(SSOAgentConfigs.getSessionBeanName(), sessionBean);
+        String samlResponseString = new String(Base64.decode(request.getParameter("SAMLResponse")));
+        Response samlResponse = (Response)this.unmarshall(samlResponseString);
+        sessionBean.getSAMLSSOSessionBean().setSAMLResponseString(samlResponseString);
+        sessionBean.getSAMLSSOSessionBean().setSAMLResponse(samlResponse);
+        Assertion assertion = null;
+        List subject;
+        if(SSOAgentConfigs.isAssertionEncripted()) {
+            subject = samlResponse.getEncryptedAssertions();
+            EncryptedAssertion sessionId = null;
+            if(subject != null && subject.size() > 0) {
+                sessionId = (EncryptedAssertion)subject.get(0);
+
+                try {
+                    assertion = getDecryptedAssertion(sessionId, this.credential);
+                } catch (Exception var9) {
+                    throw new SSOAgentException("Unable to decrypt the SAML Assertion");
+                }
+            }
+        } else {
+            subject = samlResponse.getAssertions();
+            if(subject != null && subject.size() > 0) {
+                assertion = (Assertion)subject.get(0);
+            }
+        }
+
+        if(assertion == null) {
+            if(samlResponse.getStatus() != null && samlResponse.getStatus().getStatusCode() != null && samlResponse.getStatus().getStatusCode().getValue().equals("urn:oasis:names:tc:SAML:2.0:status:Responder") && samlResponse.getStatus().getStatusCode().getStatusCode() != null && samlResponse.getStatus().getStatusCode().getStatusCode().getValue().equals("urn:oasis:names:tc:SAML:2.0:status:NoPassive")) {
+                request.getSession().removeAttribute(SSOAgentConfigs.getSessionBeanName());
+            } else {
+                throw new SSOAgentException("SAML Assertion not found in the Response");
+            }
+        } else {
+            sessionBean.getSAMLSSOSessionBean().setSAMLAssertion(assertion);
+            String subject1 = null;
+            if(assertion.getSubject() != null && assertion.getSubject().getNameID() != null) {
+                subject1 = assertion.getSubject().getNameID().getValue();
+            }
+
+            if(subject1 == null) {
+                throw new SSOAgentException("SAML Response does not contain the name of the subject");
+            } else {
+                sessionBean.getSAMLSSOSessionBean().setSubjectId(subject1);
+                request.getSession().setAttribute(SSOAgentConfigs.getSessionBeanName(), sessionBean);
+                this.validateAudienceRestriction(assertion);
+                this.validateSignature(samlResponse, assertion);
+                sessionBean.getSAMLSSOSessionBean().setSAMLAssertionString(marshall(assertion));
+                ((SSOAgentSessionBean)request.getSession().getAttribute(SSOAgentConfigs.getSessionBeanName())).getSAMLSSOSessionBean().setSAMLSSOAttributes(this.getAssertionStatements(assertion));
+                if(SSOAgentConfigs.isSLOEnabled()) {
+                    String sessionId1 = ((AuthnStatement)assertion.getAuthnStatements().get(0)).getSessionIndex();
+                    if(sessionId1 == null) {
+                        throw new SSOAgentException("Single Logout is enabled but IdP Session ID not found in SAML Assertion");
+                    }
+
+                    ((SSOAgentSessionBean)request.getSession().getAttribute(SSOAgentConfigs.getSessionBeanName())).getSAMLSSOSessionBean().setIdPSessionIndex(sessionId1);
+                    SSOAgentSessionManager.addAuthenticatedSession(sessionId1, request.getSession());
+                }
+
+            }
+        }
+    }*/
 /*
     public String processResponseMessage(String responseMessage) {
 
