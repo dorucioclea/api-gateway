@@ -35,6 +35,10 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import io.swagger.models.Swagger;
+import io.swagger.parser.SwaggerParser;
+import io.swagger.util.Json;
+import org.apache.commons.io.IOUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
@@ -45,6 +49,8 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -1911,6 +1917,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 storage.updateServiceVersion(serviceVersion);
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
+            data = transformSwaggerDef(data);
             storage.updateServiceDefinition(serviceVersion, data);
             log.debug(String.format("Stored service definition %s: %s", serviceId, serviceVersion)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
@@ -1918,6 +1925,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    /**
+     * The method parses the json def to an object in order to perform some modificaitons.
+     * In the API engine, conventionally all base paths must be set to "/" in the defintion.
+     *
+     * @param data
+     * @return
+     * @throws IOException
+     */
+    private InputStream transformSwaggerDef(InputStream data)throws IOException{
+        //set all base paths to "/" because the path is decided by the APi engine
+        Swagger swaggerJson = new SwaggerParser().parse(IOUtils.toString(data));//IOUtils.closequietly?
+        swaggerJson.setBasePath("/");
+        //TODO update documentation + location
+        return new ByteArrayInputStream((Json.pretty(swaggerJson)).getBytes());
     }
 
     /**

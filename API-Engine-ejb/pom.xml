@@ -244,6 +244,11 @@
             <artifactId>commons-codec</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-parser</artifactId>
+        </dependency>
+
         <!--Jetty-->
 <!--        <dependency>
             <groupId>com.github.tomakehurst</groupId>

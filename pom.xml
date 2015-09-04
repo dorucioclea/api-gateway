@@ -172,6 +172,7 @@
         <retrofit.version>1.9.0</retrofit.version>
         <config.version>1.3.0</config.version>
         <swagger.version>1.5.0</swagger.version>
+        <swagger-parser.version>1.0.10</swagger-parser.version>
     </properties>
 
     <dependencyManagement>
@@ -913,6 +914,14 @@
                 <version>${version.io.vertx.testtools}</version>
                 <scope>test</scope>
             </dependency>
+
+            <!--Swagger parser-->
+            <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-parser</artifactId>
+                <version>${swagger-parser.version}</version>
+            </dependency>
+
 
             <!-- Test -->
             <dependency>
