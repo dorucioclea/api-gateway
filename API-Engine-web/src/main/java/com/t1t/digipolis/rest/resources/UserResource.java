@@ -2,8 +2,8 @@ package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
-import com.t1t.digipolis.apim.beans.idm.*;
-import com.t1t.digipolis.apim.beans.search.PagingBean;
+import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
+import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
@@ -15,42 +15,42 @@ import com.t1t.digipolis.apim.beans.user.SAMLRequest;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.facades.UserFacade;
-import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.facades.UserFacade;
+import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
+import org.opensaml.xml.ConfigurationException;
+import org.opensaml.xml.io.UnmarshallingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Api(value = "/users", description = "The User API.")
 @Path("/users")
 @ApplicationScoped
 public class UserResource implements IUserResource {
-    
+
     @Inject
     private
     IStorage storage;
@@ -60,11 +60,13 @@ public class UserResource implements IUserResource {
     ISecurityContext securityContext;
     @Inject
     IStorageQuery query;
-/*    @Inject @APIEngineContext
-    Logger log;*/
-    @Inject private UserFacade userFacade;
+    /*    @Inject @APIEngineContext
+        Logger log;*/
+    @Inject
+    private UserFacade userFacade;
 
     public static final Logger log = LoggerFactory.getLogger(UserResource.class.getName());
+
     /**
      * Constructor.
      */
@@ -93,7 +95,8 @@ public class UserResource implements IUserResource {
     @Path("/{userId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void update(@PathParam("userId") String userId, UpdateUserBean user) throws UserNotFoundException, NotAuthorizedException {
-        if (!securityContext.isAdmin() && !securityContext.getCurrentUser().equals(userId)) throw ExceptionFactory.notAuthorizedException();
+        if (!securityContext.isAdmin() && !securityContext.getCurrentUser().equals(userId))
+            throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(userId));
         Preconditions.checkNotNull(user);
         userFacade.update(userId, user);
@@ -115,7 +118,7 @@ public class UserResource implements IUserResource {
     @ApiOperation(value = "List User Organizations",
             notes = "This endpoint returns the list of organizations that the user is a member of.  The user is a member of an organization if she has at least one role for the org.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = OrganizationSummaryBean.class, message = "List of organizations.")
+            @ApiResponse(code = 200, responseContainer = "List", response = OrganizationSummaryBean.class, message = "List of organizations.")
     })
     @GET
     @Path("/{userId}/organizations")
@@ -128,7 +131,7 @@ public class UserResource implements IUserResource {
     @ApiOperation(value = "List User Applications",
             notes = "This endpoint returns all applications that the user has permission to edit.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ApplicationSummaryBean.class, message = "List of applications.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ApplicationSummaryBean.class, message = "List of applications.")
     })
     @GET
     @Path("/{userId}/applications")
@@ -141,7 +144,7 @@ public class UserResource implements IUserResource {
     @ApiOperation(value = "List User Services",
             notes = "This endpoint returns all services that the user has permission to edit.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = ServiceSummaryBean.class, message = "List of services.")
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceSummaryBean.class, message = "List of services.")
     })
     @GET
     @Path("/{userId}/services")
@@ -154,12 +157,12 @@ public class UserResource implements IUserResource {
     @ApiOperation(value = "Get User Activity",
             notes = "Use this endpoint to get information about the user's audit history.  This returns audit entries corresponding to each of the actions taken by the user.  For example, when a user creates a new Organization, an audit entry is recorded and would be included in the result of this endpoint.")
     @ApiResponses({
-            @ApiResponse(code = 200,response = SearchResultsBean.class, message = "List of audit entries.")
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "List of audit entries.")
     })
     @GET
     @Path("/{userId}/activity")
     @Produces(MediaType.APPLICATION_JSON)
-    public SearchResultsBean<AuditEntryBean> getActivity(@PathParam("userId") String userId, @QueryParam("page") int page,@QueryParam("count") int pageSize) {
+    public SearchResultsBean<AuditEntryBean> getActivity(@PathParam("userId") String userId, @QueryParam("page") int page, @QueryParam("count") int pageSize) {
         Preconditions.checkArgument(!StringUtils.isEmpty(userId));
         return userFacade.getActivity(userId, page, pageSize);
     }
@@ -181,8 +184,8 @@ public class UserResource implements IUserResource {
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
             notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL.")
     @ApiResponses({
-            @ApiResponse(code = 200,response = String.class, message = "SAML2 authentication request"),
-            @ApiResponse(code = 500,response = String.class, message = "Server error generating the SAML2 request")
+            @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
+            @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
     })
     @POST
     @Path("/idp/redirect")
@@ -199,19 +202,17 @@ public class UserResource implements IUserResource {
     @ApiOperation(value = "Get the Identity provider url with the SAML2 Authentication request",
             notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL.")
     @ApiResponses({
-            @ApiResponse(code = 200,response = String.class, message = "SAML2 authentication request"),
-            @ApiResponse(code = 500,response = String.class, message = "Server error generating the SAML2 request")
+            @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
+            @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
     })
     @POST
     @Path("/idp/callback")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response executeSAML2Callback(String request){
-        log.info("Request received from idp:"+request);
-        Preconditions.checkArgument(!StringUtils.isEmpty(request));
-
+    public Response executeSAML2Callback(String request) {
         URI uri = null;
         try {
-            uri = new URL("http://localhost:9000/?bearer="+userFacade.processSAML2Response(request)).toURI();//TODO should be url from config file or other way!
+            String bearerToken = userFacade.processSAML2Response(request);
+            uri = new URL("http://localhost:9000/?bearer="+bearerToken).toURI();//TODO should be url from config file or other way!
             //Get the audience using the assertion => create new table for registered audiences == client applications.
             //String audience = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
         } catch (URISyntaxException e) {
@@ -221,5 +222,7 @@ public class UserResource implements IUserResource {
         }
         if(uri!=null)return Response.seeOther(uri).build();
         return Response.ok(request).build();
+
+
     }
 }

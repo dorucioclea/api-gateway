@@ -28,12 +28,13 @@ public class DefaultSecurityContextFilter implements Filter {
      */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        DefaultSecurityContext.setServletRequest((HttpServletRequest) request);
+        //DefaultSecurityContext.setServletRequest((HttpServletRequest) request);
+        ApiEngineSecurityContext.setServletRequest((HttpServletRequest) request);
         try {
             chain.doFilter(request, response);
         } finally {
-            DefaultSecurityContext.clearServletRequest();
-            DefaultSecurityContext.clearPermissions();
+            ApiEngineSecurityContext.clearServletRequest();
+            ApiEngineSecurityContext.clearPermissions();
         }
     }
     

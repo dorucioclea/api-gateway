@@ -19,47 +19,42 @@ import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
-import org.joda.time.DateTime;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.*;
-import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
-import org.opensaml.saml2.core.impl.AuthnRequestBuilder;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.NameIDPolicyBuilder;
-import org.opensaml.saml2.core.impl.RequestedAuthnContextBuilder;
+import org.opensaml.saml2.core.impl.*;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.io.MarshallingException;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallerFactory;
-import org.opensaml.xml.io.UnmarshallingException;
+import org.opensaml.xml.io.*;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.XMLHelper;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
-import sun.jvm.hotspot.utilities.Assert;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,14 +67,22 @@ import java.util.zip.DeflaterOutputStream;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class UserFacade {
-    @Inject @APIEngineContext private Logger log;
-    @Inject @APIEngineContext private EntityManager em;
-    @Inject private ISecurityContext securityContext;
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private IIdmStorage idmStorage;
+    @Inject
+    @APIEngineContext
+    private Logger log;
+    @Inject
+    @APIEngineContext
+    private EntityManager em;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private IIdmStorage idmStorage;
 
-    public UserBean get(String userId){
+    public UserBean get(String userId) {
         try {
             UserBean user = idmStorage.getUser(userId);
             if (user == null) {
@@ -91,7 +94,7 @@ public class UserFacade {
         }
     }
 
-    public void update(String userId, UpdateUserBean user){
+    public void update(String userId, UpdateUserBean user) {
         try {
             UserBean updatedUser = idmStorage.getUser(userId);
             if (updatedUser == null) {
@@ -109,7 +112,7 @@ public class UserFacade {
         }
     }
 
-    public SearchResultsBean<UserBean> search(SearchCriteriaBean criteria){
+    public SearchResultsBean<UserBean> search(SearchCriteriaBean criteria) {
         try {
             return idmStorage.findUsers(criteria);
         } catch (StorageException e) {
@@ -117,7 +120,7 @@ public class UserFacade {
         }
     }
 
-    public List<OrganizationSummaryBean> getOrganizations(String userId){
+    public List<OrganizationSummaryBean> getOrganizations(String userId) {
         Set<String> permittedOrganizations = new HashSet<>();
         try {
             Set<RoleMembershipBean> memberships = idmStorage.getUserMemberships(userId);
@@ -130,7 +133,7 @@ public class UserFacade {
         }
     }
 
-    public List<ApplicationSummaryBean> getApplications(String userId){
+    public List<ApplicationSummaryBean> getApplications(String userId) {
         Set<String> permittedOrganizations = new HashSet<>();
         try {
             Set<PermissionBean> permissions = idmStorage.getPermissions(userId);
@@ -145,7 +148,7 @@ public class UserFacade {
         }
     }
 
-    public List<ServiceSummaryBean> getServices(String userId){
+    public List<ServiceSummaryBean> getServices(String userId) {
         Set<String> permittedOrganizations = new HashSet<>();
         try {
             Set<PermissionBean> permissions = idmStorage.getPermissions(userId);
@@ -160,7 +163,7 @@ public class UserFacade {
         }
     }
 
-    public SearchResultsBean<AuditEntryBean> getActivity(String userId, int page,int pageSize){
+    public SearchResultsBean<AuditEntryBean> getActivity(String userId, int page, int pageSize) {
         if (page <= 1) {
             page = 1;
         }
@@ -179,26 +182,33 @@ public class UserFacade {
         }
     }
 
-    public LoginResponseBean login(LoginRequestBean credentials){
+    public LoginResponseBean login(LoginRequestBean credentials) {
 
         return null;
     }
 
-    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName){
+    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName) {
         // Initialize the library
-        try{
+        try {
             //Bootstrap OpenSAML
             DefaultBootstrap.bootstrap();
             //Generate the request
             AuthnRequest authnRequest = buildAuthnRequestObject(spUrl, spName);
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
-            return idpUrl+ "?SAMLRequest=" + encodedRequestMessage;
+            return idpUrl + "?SAMLRequest=" + encodedRequestMessage;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
-        }catch(MarshallingException |IOException |ConfigurationException ex){
-            throw new SAMLAuthException("Could not generate the SAML2 Auth Request: "+ex.getMessage());
+        } catch (MarshallingException | IOException | ConfigurationException ex) {
+            throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
         }
     }
 
+    /**
+     * Build SAML2 authentication request
+     *
+     * @param spUrl
+     * @param spName
+     * @return
+     */
     private AuthnRequest buildAuthnRequestObject(String spUrl, String spName) {
         IssuerBuilder issuerBuilder = null;
         Issuer issuer = null;
@@ -252,6 +262,14 @@ public class UserFacade {
         return authRequest;
     }
 
+    /**
+     * Encode the Authentication Request (base64 and URL encoded)
+     *
+     * @param authnRequest
+     * @return
+     * @throws MarshallingException
+     * @throws IOException
+     */
     private String encodeAuthnRequest(AuthnRequest authnRequest) throws MarshallingException, IOException {
         Marshaller marshaller = null;
         org.w3c.dom.Element authDOM = null;
@@ -276,26 +294,49 @@ public class UserFacade {
         return encodedRequestMessage;
     }
 
-    public String processSAML2Response(String response){
+    /**
+     * Processes the SAML Assertion and returns a SAML2 Bearer token.
+     *
+     * @param response
+     * @return
+     */
+    public String processSAML2Response(String response) {
         // Initialize the library
-        try{
-            //Bootstrap OpenSAML
+        //get only the samlResponse
+        String samlResp = response.split("&")[0];//remove other form params
+        String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
+        return base64EncodedResponse; //be aware that this is enflated.
+
+        //Bootstrap OpenSAML - only Assertion?!
+/*      try {
             DefaultBootstrap.bootstrap();
             Assertion assertion = processSSOResponse(response);
-            //TODO must be signed
             return encodeSAML2BearerToken(assertion);//bearer token as a query param
-        }catch(SAXException| ParserConfigurationException| MarshallingException|UnmarshallingException |IOException |ConfigurationException ex){
-            throw new SAMLAuthException("Could not process the SAML2 Response: "+ex.getMessage());
-        }
+        } catch (SAXException | ParserConfigurationException | MarshallingException | UnmarshallingException | IOException | ConfigurationException ex) {
+            throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
+        }*/
     }
 
     //TODO check travelocity example for decryption when using X509 certificates
     //we have to take out only the saml assertion in order to construct the saml bearer token.
+
+    /**
+     * Method processes the SAML2 Response in order to capture the SAML Assertion.
+     * See {@link http://sureshatt.blogspot.be/2012/11/how-to-read-saml-20-response-with.html}
+     *
+     * @param responseString
+     * @return
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     * @throws ConfigurationException
+     * @throws IOException
+     * @throws UnmarshallingException
+     */
     private Assertion processSSOResponse(String responseString) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
         //remove other query params
         String samlResp = responseString.split("&")[0];
         String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
-        String base64URLDecodedResponse = URLDecoder.decode(base64EncodedResponse,"UTF-8");
+        String base64URLDecodedResponse = URLDecoder.decode(base64EncodedResponse, "UTF-8");
         byte[] base64DecodedResponse = Base64.decode(base64URLDecodedResponse);
         String samlResponseString = new String(base64DecodedResponse);
         log.info("Decoded SAML response:{}", samlResponseString);
@@ -317,9 +358,17 @@ public class UserFacade {
         return assertion;
     }
 
+    /**
+     * Encodes the SAML2 Bearer token - only the assertion
+     *
+     * @param assertion
+     * @return
+     * @throws MarshallingException
+     * @throws IOException
+     */
     private String encodeSAML2BearerToken(Assertion assertion) throws MarshallingException, IOException {
         Marshaller marshaller = null;
-        org.w3c.dom.Element authDOM = null;
+        org.w3c.dom.Element assertionDOM = null;
         StringWriter requestWriter = null;
         String requestMessage = null;
         Deflater deflater = null;
@@ -327,17 +376,104 @@ public class UserFacade {
         DeflaterOutputStream deflaterOutputStream = null;
         String encodedRequestMessage = null;
         marshaller = org.opensaml.Configuration.getMarshallerFactory().getMarshaller(assertion); // object to DOM converter
-        authDOM = marshaller.marshall(assertion); // converting to a DOM
+        assertionDOM = marshaller.marshall(assertion); // converting to a DOM
         requestWriter = new StringWriter();
-        XMLHelper.writeNode(authDOM, requestWriter);
+        XMLHelper.writeNode(assertionDOM, requestWriter);
         requestMessage = requestWriter.toString(); // DOM to string
-        deflater = new Deflater(Deflater.DEFLATED, true);
+/*        deflater = new Deflater(Deflater.DEFLATED, true);
         byteArrayOutputStream = new ByteArrayOutputStream();
         deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
         deflaterOutputStream.write(requestMessage.getBytes()); // compressing
-        deflaterOutputStream.close();
-        encodedRequestMessage = Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
+        deflaterOutputStream.close();*/
+        //encodedRequestMessage = Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
+        encodedRequestMessage = Base64.encodeBytes(requestMessage.getBytes(), Base64.DONT_BREAK_LINES);
         encodedRequestMessage = URLEncoder.encode(encodedRequestMessage, "UTF-8").trim(); // encoding string
         return encodedRequestMessage;
+    }
+
+    public String userFromSAML2BearerToken(String token) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
+        //Bootstrap OpenSAML
+        DefaultBootstrap.bootstrap();
+        String base64URLDecodedResponse = URLDecoder.decode(token, "UTF-8");
+        byte[] base64DecodedResponse = Base64.decode(base64URLDecodedResponse);
+        String samlResponseString = new String(base64DecodedResponse);
+        //log.info("Decoded SAML response:{}", samlResponseString);
+
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        Document document = documentBuilder.parse(new ByteArrayInputStream(samlResponseString.trim().getBytes()));
+        Element element = document.getDocumentElement();
+        UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+        Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
+        Response response = (Response) unmarshaller.unmarshall(element);
+        //Return user
+        return response.getAssertions().get(0).getSubject().getNameID().getValue();
+    }
+
+    /**
+     * TODO we don't use this method, retest SAML exchange for OAuth when certificates are present.
+     *
+     * @param responseMessage
+     * @return
+     * @throws ConfigurationException
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     * @throws UnmarshallingException
+     */
+    public String exchangeSAMLTokenToOauth(String responseMessage) throws ConfigurationException, ParserConfigurationException, IOException, SAXException, UnmarshallingException {
+        DefaultBootstrap.bootstrap();
+        String samlResp = responseMessage.split("&")[0];
+        String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
+        String base64URLDecodedResponse = URLDecoder.decode(base64EncodedResponse, "UTF-8");
+        byte[] base64DecodedResponse = Base64.decode(base64URLDecodedResponse);
+        ByteArrayInputStream is = new ByteArrayInputStream(base64DecodedResponse);
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
+        Document document = docBuilder.parse(is);
+        Element element = document.getDocumentElement();
+        UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+        Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
+        XMLObject responseXmlObj = unmarshaller.unmarshall(element);
+        Response responseObj = (Response) responseXmlObj;
+        // Get the SAML2 Assertion part from the response
+        StringWriter rspWrt = new StringWriter();
+        XMLHelper.writeNode(responseObj.getAssertions().get(0).getDOM(), rspWrt);
+        String requestMessage = rspWrt.toString();
+        // Get the Base64 encoded string of the message
+        // Then Get it prepared to send it over HTTP protocol
+        String encodedRequestMessage = Base64.encodeBytes(requestMessage.getBytes(), Base64.DONT_BREAK_LINES);
+        String enc_rslt = URLEncoder.encode(encodedRequestMessage, "UTF-8").trim();
+        //Create connection to the Token endpoint of API manger
+        URL url = new URL("https://idp.t1t.be:9443/oauth2/token/");
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(url.toString());
+        //add header
+        post.setHeader("Content-Type", "application/x-www-form-urlencoded");
+        String userCredentials = "W6FcDk905p5jT5_C_DDec4hAwBMa:nyu7u2If6XBBcQXxi7M6wfHkoK4a";
+        String basicAuth = "Basic " + new String(Base64.encodeBytes(userCredentials.getBytes()));
+        basicAuth = basicAuth.replaceAll("\\r|\\n", "");
+        post.setHeader("Authorization", basicAuth);
+        //add content
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("grant_type", "urn:ietf:params:oauth:grant-type:saml2-bearer"));
+        urlParameters.add(new BasicNameValuePair("assertion", enc_rslt));
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+        //Execute
+        HttpResponse response = client.execute(post);
+        System.out.println("Response Code : "
+                + response.getStatusLine().getStatusCode());
+
+        BufferedReader rd = new BufferedReader(
+                new InputStreamReader(response.getEntity().getContent()));
+
+        StringBuffer result = new StringBuffer();
+        String line = "";
+        while ((line = rd.readLine()) != null) {
+            result.append(line);
+        }
+        return result.toString();
     }
 }
