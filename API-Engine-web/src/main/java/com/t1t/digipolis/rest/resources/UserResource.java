@@ -207,14 +207,13 @@ public class UserResource implements IUserResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response executeSAML2Callback(String request){
         log.info("Request received from idp:"+request);
-        Preconditions.checkNotNull(request);
-/*        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
-        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(),request.getSpUrl(),request.getSpName());*/
+        Preconditions.checkArgument(!StringUtils.isEmpty(request));
+
         URI uri = null;
         try {
-            uri = new URL("http://localhost:9000/").toURI();
+            uri = new URL("http://localhost:9000/?bearer="+userFacade.processSAML2Response(request)).toURI();//TODO should be url from config file or other way!
+            //Get the audience using the assertion => create new table for registered audiences == client applications.
+            //String audience = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {

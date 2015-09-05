@@ -40,7 +40,10 @@ import org.opensaml.xml.io.UnmarshallingException;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.XMLHelper;
 import org.slf4j.Logger;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+import sun.jvm.hotspot.utilities.Assert;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
@@ -48,9 +51,14 @@ import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.List;
@@ -212,7 +220,7 @@ public class UserFacade {
         // NameIDPolicy
         nameIdPolicyBuilder = new NameIDPolicyBuilder();
         nameIdPolicy = nameIdPolicyBuilder.buildObject();
-        nameIdPolicy.setFormat("urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress");//TODO can be set aswel as param?
+        nameIdPolicy.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");//TODO can be set aswel as param?
         nameIdPolicy.setSPNameQualifier("Isser");
         nameIdPolicy.setAllowCreate(new Boolean(true));
 
@@ -268,162 +276,68 @@ public class UserFacade {
         return encodedRequestMessage;
     }
 
+    public String processSAML2Response(String response){
+        // Initialize the library
+        try{
+            //Bootstrap OpenSAML
+            DefaultBootstrap.bootstrap();
+            Assertion assertion = processSSOResponse(response);
+            //TODO must be signed
+            return encodeSAML2BearerToken(assertion);//bearer token as a query param
+        }catch(SAXException| ParserConfigurationException| MarshallingException|UnmarshallingException |IOException |ConfigurationException ex){
+            throw new SAMLAuthException("Could not process the SAML2 Response: "+ex.getMessage());
+        }
+    }
+
     //TODO check travelocity example for decryption when using X509 certificates
-/*    private void processSSOResponse(HttpServletRequest request) throws SSOAgentException {
-        SSOAgentSessionBean sessionBean = new SSOAgentSessionBean();
-        sessionBean.getClass();
-        sessionBean.setSAMLSSOSessionBean(new SAMLSSOSessionBean(sessionBean));
-        request.getSession().setAttribute(SSOAgentConfigs.getSessionBeanName(), sessionBean);
-        String samlResponseString = new String(Base64.decode(request.getParameter("SAMLResponse")));
-        Response samlResponse = (Response)this.unmarshall(samlResponseString);
-        sessionBean.getSAMLSSOSessionBean().setSAMLResponseString(samlResponseString);
-        sessionBean.getSAMLSSOSessionBean().setSAMLResponse(samlResponse);
-        Assertion assertion = null;
-        List subject;
-        if(SSOAgentConfigs.isAssertionEncripted()) {
-            subject = samlResponse.getEncryptedAssertions();
-            EncryptedAssertion sessionId = null;
-            if(subject != null && subject.size() > 0) {
-                sessionId = (EncryptedAssertion)subject.get(0);
+    //we have to take out only the saml assertion in order to construct the saml bearer token.
+    private Assertion processSSOResponse(String responseString) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
+        //remove other query params
+        String samlResp = responseString.split("&")[0];
+        String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
+        String base64URLDecodedResponse = URLDecoder.decode(base64EncodedResponse,"UTF-8");
+        byte[] base64DecodedResponse = Base64.decode(base64URLDecodedResponse);
+        String samlResponseString = new String(base64DecodedResponse);
+        log.info("Decoded SAML response:{}", samlResponseString);
 
-                try {
-                    assertion = getDecryptedAssertion(sessionId, this.credential);
-                } catch (Exception var9) {
-                    throw new SSOAgentException("Unable to decrypt the SAML Assertion");
-                }
-            }
-        } else {
-            subject = samlResponse.getAssertions();
-            if(subject != null && subject.size() > 0) {
-                assertion = (Assertion)subject.get(0);
-            }
-        }
-
-        if(assertion == null) {
-            if(samlResponse.getStatus() != null && samlResponse.getStatus().getStatusCode() != null && samlResponse.getStatus().getStatusCode().getValue().equals("urn:oasis:names:tc:SAML:2.0:status:Responder") && samlResponse.getStatus().getStatusCode().getStatusCode() != null && samlResponse.getStatus().getStatusCode().getStatusCode().getValue().equals("urn:oasis:names:tc:SAML:2.0:status:NoPassive")) {
-                request.getSession().removeAttribute(SSOAgentConfigs.getSessionBeanName());
-            } else {
-                throw new SSOAgentException("SAML Assertion not found in the Response");
-            }
-        } else {
-            sessionBean.getSAMLSSOSessionBean().setSAMLAssertion(assertion);
-            String subject1 = null;
-            if(assertion.getSubject() != null && assertion.getSubject().getNameID() != null) {
-                subject1 = assertion.getSubject().getNameID().getValue();
-            }
-
-            if(subject1 == null) {
-                throw new SSOAgentException("SAML Response does not contain the name of the subject");
-            } else {
-                sessionBean.getSAMLSSOSessionBean().setSubjectId(subject1);
-                request.getSession().setAttribute(SSOAgentConfigs.getSessionBeanName(), sessionBean);
-                this.validateAudienceRestriction(assertion);
-                this.validateSignature(samlResponse, assertion);
-                sessionBean.getSAMLSSOSessionBean().setSAMLAssertionString(marshall(assertion));
-                ((SSOAgentSessionBean)request.getSession().getAttribute(SSOAgentConfigs.getSessionBeanName())).getSAMLSSOSessionBean().setSAMLSSOAttributes(this.getAssertionStatements(assertion));
-                if(SSOAgentConfigs.isSLOEnabled()) {
-                    String sessionId1 = ((AuthnStatement)assertion.getAuthnStatements().get(0)).getSessionIndex();
-                    if(sessionId1 == null) {
-                        throw new SSOAgentException("Single Logout is enabled but IdP Session ID not found in SAML Assertion");
-                    }
-
-                    ((SSOAgentSessionBean)request.getSession().getAttribute(SSOAgentConfigs.getSessionBeanName())).getSAMLSSOSessionBean().setIdPSessionIndex(sessionId1);
-                    SSOAgentSessionManager.addAuthenticatedSession(sessionId1, request.getSession());
-                }
-
-            }
-        }
-    }*/
-/*
-    public String processResponseMessage(String responseMessage) {
-
-        XMLObject responseObject = null;
-
-        try {
-
-            responseObject = this.unmarshall(responseMessage);
-
-        } catch (ConfigurationException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (UnmarshallingException e) {
-            e.printStackTrace();
-        }
-
-        return this.getResult(responseObject);
-    }
-
-    private XMLObject unmarshall(String responseMessage)
-            throws ConfigurationException, ParserConfigurationException,
-            SAXException, IOException, UnmarshallingException {
-
-        DocumentBuilderFactory documentBuilderFactory = null;
-        DocumentBuilder docBuilder = null;
-        Document document = null;
-        Element element = null;
-        UnmarshallerFactory unmarshallerFactory = null;
-        Unmarshaller unmarshaller = null;
-
-        DefaultBootstrap.bootstrap();
-
-        documentBuilderFactory = DocumentBuilderFactory.newInstance();
-
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        Document document = documentBuilder.parse(new ByteArrayInputStream(samlResponseString.trim().getBytes()));
+        Element element = document.getDocumentElement();
+        UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+        Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
+        Response response = (Response) unmarshaller.unmarshall(element);
 
-        docBuilder = documentBuilderFactory.newDocumentBuilder();
-
-        document = docBuilder.parse(new ByteArrayInputStream(responseMessage
-                .trim().getBytes())); // response to DOM
-
-        element = document.getDocumentElement(); // the DOM element
-
-        unmarshallerFactory = Configuration.getUnmarshallerFactory();
-
-        unmarshaller = unmarshallerFactory.getUnmarshaller(element);
-
-        return unmarshaller.unmarshall(element); // Response object
-
+        //TODO validate signature - see SSOAgent example of WSO2
+        //String certificate = response.getSignature().getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue();
+        //get assertion
+        Assertion assertion = response.getAssertions().get(0);
+        //Return base64url encoded assertion
+        return assertion;
     }
 
-    private String getResult(XMLObject responseObject) {
-        Element ele = null;
-        NodeList statusNodeList = null;
-        Node statusNode = null;
-        NamedNodeMap statusAttr = null;
-        Node valueAtt = null;
-        String statusValue = null;
-
-        String[] word = null;
-        String result = null;
-
-        NodeList nameIDNodeList = null;
-        Node nameIDNode = null;
-        String nameID = null;
-
-        // reading the Response Object
-        ele = responseObject.getDOM();
-        statusNodeList = ele.getElementsByTagName("samlp:StatusCode");
-        statusNode = statusNodeList.item(0);
-        statusAttr = statusNode.getAttributes();
-        valueAtt = statusAttr.item(0);
-        statusValue = valueAtt.getNodeValue();
-
-        word = statusValue.split(":");
-        result = word[word.length - 1];
-
-        nameIDNodeList = ele.getElementsByTagNameNS(
-                "urn:oasis:names:tc:SAML:2.0:assertion", "NameID");
-        nameIDNode = nameIDNodeList.item(0);
-        nameID = nameIDNode.getFirstChild().getNodeValue();
-
-        result = nameID + ":" + result;
-
-        return result;
-    }*/
-
+    private String encodeSAML2BearerToken(Assertion assertion) throws MarshallingException, IOException {
+        Marshaller marshaller = null;
+        org.w3c.dom.Element authDOM = null;
+        StringWriter requestWriter = null;
+        String requestMessage = null;
+        Deflater deflater = null;
+        ByteArrayOutputStream byteArrayOutputStream = null;
+        DeflaterOutputStream deflaterOutputStream = null;
+        String encodedRequestMessage = null;
+        marshaller = org.opensaml.Configuration.getMarshallerFactory().getMarshaller(assertion); // object to DOM converter
+        authDOM = marshaller.marshall(assertion); // converting to a DOM
+        requestWriter = new StringWriter();
+        XMLHelper.writeNode(authDOM, requestWriter);
+        requestMessage = requestWriter.toString(); // DOM to string
+        deflater = new Deflater(Deflater.DEFLATED, true);
+        byteArrayOutputStream = new ByteArrayOutputStream();
+        deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
+        deflaterOutputStream.write(requestMessage.getBytes()); // compressing
+        deflaterOutputStream.close();
+        encodedRequestMessage = Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
+        encodedRequestMessage = URLEncoder.encode(encodedRequestMessage, "UTF-8").trim(); // encoding string
+        return encodedRequestMessage;
+    }
 }
