@@ -288,16 +288,22 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     public KongConsumer getConsumer(String id){
-        return httpClient.getConsumer(id);
+        KongConsumer responseConsumer = new KongConsumer();
+        try {
+            responseConsumer = httpClient.getConsumer(id);
+            return responseConsumer;
+        }catch (RetrofitError err){
+            //user is not existing
+            return null;
+        }
     }
 
     public KongConsumer createConsumer(String customId){
-        return httpClient.createConsumer(new KongConsumer().withCustomId(customId));
+        return httpClient.createConsumer(new KongConsumer().withUsername(customId));
     }
 
     public KongPluginKeyAuthResponseList getConsumerKeyAuth(String id){
-        httpClient.getConsumerKeyAuthCredentials(id);
-        return null;
+        return httpClient.getConsumerKeyAuthCredentials(id);
     }
 
     public KongPluginKeyAuthResponse createConsumerKeyAuth(String id){

@@ -1,11 +1,16 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
+import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.user.LoginRequestBean;
@@ -16,12 +21,21 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.exceptions.i18n.Messages;
+import com.t1t.digipolis.apim.facades.audit.AuditUtils;
+import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import net.sf.ehcache.Ehcache;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -57,10 +71,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -70,14 +81,25 @@ import java.util.zip.DeflaterOutputStream;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class UserFacade {
-    @Inject @APIEngineContext private Logger log;
-    @Inject @APIEngineContext private EntityManager em;
-    @Inject private ISecurityContext securityContext;
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private IIdmStorage idmStorage;
-    @Inject private IGatewayLinkFactory gatewayLinkFactory;
-    @Inject @APIEngineContext private Ehcache ehcache;
+    @Inject
+    @APIEngineContext
+    private Logger log;
+    @Inject
+    @APIEngineContext
+    private EntityManager em;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private IIdmStorage idmStorage;
+    @Inject
+    @APIEngineContext
+    private Ehcache ehcache;
 
     public UserBean get(String userId) {
         try {
@@ -184,7 +206,7 @@ public class UserFacade {
         return null;
     }
 
-    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName,String clientUrl) {
+    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl) {
         // Initialize the library
         try {
             //Bootstrap OpenSAML
@@ -192,7 +214,7 @@ public class UserFacade {
             //Generate the request
             AuthnRequest authnRequest = buildAuthnRequestObject(spUrl, spName);
             //set client application name and callback in the cache
-            ehcache.put(new net.sf.ehcache.Element(spName,clientUrl));
+            ehcache.put(new net.sf.ehcache.Element(spName, clientUrl));
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
             return idpUrl + "?SAMLRequest=" + encodedRequestMessage;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
@@ -305,18 +327,22 @@ public class UserFacade {
         String samlResp = response.split("&")[0];//remove other form params
         String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
         String clientAppName = "";
+        String userName="";
         StringBuffer clientUrl = new StringBuffer("");
         try {
             Assertion assertion = processSSOResponse(response);
             clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
-            log.info("Audience URI found: {}",clientAppName);
+            userName = assertion.getSubject().getNameID().getValue();
+            log.info("Audience URI found: {}", clientAppName);
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
-        responseRedirect.setToken(base64EncodedResponse);
+        //return the SAML2 Bearer token
+        //responseRedirect.setToken(base64EncodedResponse);
+        responseRedirect.setToken(updateOrCreateConsumerOnGateway(userName));
         clientUrl.append((String) ehcache.get(clientAppName).getObjectValue());
-        if(!clientUrl.toString().endsWith("/"))clientUrl.append("/");
+        if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
         return responseRedirect; //be aware that this is enflated.
 
@@ -490,4 +516,81 @@ public class UserFacade {
         }
         return result.toString();
     }
+
+    /**
+     * Return default gateway - normally one should be supported for each environment.
+     * The Kong gateway will sync all actions towards the other shards in the same environment.
+     *
+     * @return
+     * @throws StorageException
+     */
+    private GatewaySummaryBean getDefaultGateway() throws StorageException {
+        return query.listGateways().get(0);
+    }
+
+    /**
+     * Updates or creates a consumer on the gateway and in the data model.
+     * TODO: should updated with ACL
+     * @param userName
+     * @return
+     */
+    private String updateOrCreateConsumerOnGateway(String userName) {
+        String keytoken = "";
+        // Publish the service to all relevant gateways
+        try {
+            String gatewayId = getDefaultGateway().getId();
+            Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
+            IGatewayLink gatewayLink = createGatewayLink(gatewayId);
+            KongConsumer consumer = gatewayLink.getConsumer(userName);
+            if(consumer==null){
+                //user doesn't exists, implicit creation
+                consumer = gatewayLink.createConsumer(userName);
+                KongPluginKeyAuthResponse keyAuthResponse = gatewayLink.addConsumerKeyAuth(consumer.getId());
+                keytoken = keyAuthResponse.getKey();
+                //we are sure that this consumer must be a physical user
+                UserBean tempUser = idmStorage.getUser(userName);
+                if(tempUser==null){
+                    //create user
+                    UserBean newUser = new UserBean();
+                    newUser.setUsername(userName);
+                    //TODO add apikey to datamodel
+                    idmStorage.createUser(newUser);
+                    //TODO add apike/user to ACL -> version 0.5.0 of Kong
+                }
+            }else{
+                //TEMP list, but should be ACL - a consumer can have more keys
+                KongPluginKeyAuthResponseList response = gatewayLink.getConsumerKeyAuth(consumer.getId());
+                if(response.getData().size()>0)keytoken = response.getData().get(0).getKey();
+            }
+            gatewayLink.close();
+            //TODO add audit trail for consumer actions
+        } catch (PublishingException e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
+        } catch (Exception e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
+        }
+        return keytoken;
+    }
+
+    /**
+     * Creates a gateway link given a gateway id.
+     * TODO duplicated in ActionFacade => set as utility
+     *
+     * @param gatewayId
+     */
+    private IGatewayLink createGatewayLink(String gatewayId) throws PublishingException {
+        try {
+            GatewayBean gateway = storage.getGateway(gatewayId);
+            if (gateway == null) {
+                throw new GatewayNotFoundException();
+            }
+            IGatewayLink link = gatewayLinkFactory.create(gateway);
+            return link;
+        } catch (GatewayNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PublishingException(e.getMessage(), e);
+        }
+    }
+
 }

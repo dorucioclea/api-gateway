@@ -351,13 +351,18 @@ public class KongClientIntegrationTest {
 
     @Test
     public void createConsumerKeyAuth()throws Exception{
-        KongConsumer consumer = new KongConsumer().withCustomId("someid");
+        KongConsumer consumer = new KongConsumer().withUsername("someid");
         consumer = kongClient.createConsumer(consumer);
         KongPluginKeyAuthResponse response = kongClient.createConsumerKeyAuthCredentials(consumer.getId(), new KongPluginKeyAuthRequest());
         //get key auth and compare
         KongPluginKeyAuthResponseList responseList = kongClient.getConsumerKeyAuthCredentials(consumer.getId());
         assertTrue(responseList.getData().get(0).getKey().equals(response.getKey()));
         kongClient.deleteConsumer(consumer.getId());
+    }
+
+    @Test(expected = RetrofitError.class)
+    public void getNonExistingConsumer(){
+        KongConsumer consumer = kongClient.getConsumer("nonexistingid");
     }
 
     /**

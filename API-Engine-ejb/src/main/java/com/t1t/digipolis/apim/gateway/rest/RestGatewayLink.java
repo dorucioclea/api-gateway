@@ -75,7 +75,7 @@ public class RestGatewayLink implements IGatewayLink {
 
     @Override
     public KongPluginKeyAuthResponseList getConsumerKeyAuth(String id) throws ConsumerException {
-        return null;
+        return getClient().getConsumerKeyAuth(id);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class RestGatewayLink implements IGatewayLink {
 
     @Override
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id) throws ConsumerException {
-        return null;
+        return getClient().createConsumerKeyAuth(id);
     }
 
     /**
