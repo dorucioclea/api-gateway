@@ -26,7 +26,8 @@ public interface KongClient {
     /*@PATCH("/consumers/{id}") KongConsumer updateConsumer(@Path("id")String id,@Body KongConsumer consumer);*/
     @PUT("/consumers/")KongConsumer updateOrCreateConsumer(@Body KongConsumer consumer);
     @DELETE("/consumers/{id}")Object deleteConsumer(@Path("id")String id);
-    @POST("/consumers/{id}/keyauth") KongConsumer createKeyAuthCredentials(@Path("id")String id,@Body KongPluginKeyAuthRequest kongPluginKeyAuthRequest);
+    @POST("/consumers/{id}/keyauth") KongPluginKeyAuthResponse createConsumerKeyAuthCredentials(@Path("id") String id, @Body KongPluginKeyAuthRequest kongPluginKeyAuthRequest);
+    @GET("/consumers/{id}/keyauth") KongPluginKeyAuthResponseList getConsumerKeyAuthCredentials(@Path("id")String id);
 
     /*********************   PLUGINS   *******************/
     @GET("/plugins/")KongInstalledPlugins getInstalledPlugins();

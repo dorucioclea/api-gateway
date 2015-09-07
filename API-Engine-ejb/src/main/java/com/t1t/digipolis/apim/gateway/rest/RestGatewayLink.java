@@ -9,11 +9,14 @@ import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
+import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
+import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.RestServiceBuilder;
+import com.t1t.digipolis.kong.model.*;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -63,6 +66,26 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void close() {
         //deprecated, handled by the retrofit client
+    }
+
+    @Override
+    public KongConsumer getConsumer(String id) throws ConsumerException {
+        return getClient().getConsumer(id);
+    }
+
+    @Override
+    public KongPluginKeyAuthResponseList getConsumerKeyAuth(String id) throws ConsumerException {
+        return null;
+    }
+
+    @Override
+    public KongConsumer createConsumer(String id) throws ConsumerAlreadyExistsException {
+        return getClient().createConsumer(id);
+    }
+
+    @Override
+    public KongPluginKeyAuthResponse addConsumerKeyAuth(String id) throws ConsumerException {
+        return null;
     }
 
     /**

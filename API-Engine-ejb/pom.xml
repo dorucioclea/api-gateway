@@ -381,6 +381,8 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginTcpLog.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginUdpLog.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongStatus.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginKeyAuthResponse.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginKeyAuthResponseList.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>

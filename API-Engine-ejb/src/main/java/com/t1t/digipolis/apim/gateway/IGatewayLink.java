@@ -4,8 +4,11 @@ import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
+import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
+import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
+import com.t1t.digipolis.kong.model.*;
 
 /**
  * Links the design time API with a Gateway.  This allows the design time API
@@ -71,5 +74,40 @@ public interface IGatewayLink {
      * Close down the gateway link when it's no longer needed.
      */
     public void close();
+
+    /**
+     * Returns the consumer object for given consumer id.
+     *
+     * @param id
+     * @return
+     * @throws ConsumerException
+     */
+    public KongConsumer getConsumer(String id) throws ConsumerException;
+
+    /**
+     * Retrieve a consumer information with it's API key.
+     *
+     * @param id
+     * @return
+     * @throws ConsumerException
+     */
+    public KongPluginKeyAuthResponseList getConsumerKeyAuth(String id) throws ConsumerException;
+
+    /**
+     * Creates a new consumer.
+     *
+     * @param customId
+     * @return
+     * @throws ConsumerException
+     */
+    public KongConsumer createConsumer(String customId) throws ConsumerAlreadyExistsException;
+
+    /**
+     * Adds key auth to a consumer, generating a new API Key.
+     * @param id
+     * @return
+     * @throws ConsumerException
+     */
+    public KongPluginKeyAuthResponse addConsumerKeyAuth(String id) throws ConsumerException;
     
 }

@@ -18,6 +18,7 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import net.sf.ehcache.Ehcache;
@@ -69,22 +70,14 @@ import java.util.zip.DeflaterOutputStream;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class UserFacade {
-    @Inject
-    @APIEngineContext
-    private Logger log;
-    @Inject
-    @APIEngineContext
-    private EntityManager em;
-    @Inject
-    private ISecurityContext securityContext;
-    @Inject
-    private IStorage storage;
-    @Inject
-    private IStorageQuery query;
-    @Inject
-    private IIdmStorage idmStorage;
-    @Inject @APIEngineContext
-    private Ehcache ehcache;
+    @Inject @APIEngineContext private Logger log;
+    @Inject @APIEngineContext private EntityManager em;
+    @Inject private ISecurityContext securityContext;
+    @Inject private IStorage storage;
+    @Inject private IStorageQuery query;
+    @Inject private IIdmStorage idmStorage;
+    @Inject private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject @APIEngineContext private Ehcache ehcache;
 
     public UserBean get(String userId) {
         try {

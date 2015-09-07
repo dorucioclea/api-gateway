@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "data": {
+      "id": "kongPluginKeyAuthResponse",
+      "type": "array",
+       "items": {
+         "$ref":"KongPluginKeyAuthResponse.json"
+      }
+    },
+    "next": {
+      "id": "next",
+      "type": "string"
+    }
+  }
+}

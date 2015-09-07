@@ -3,12 +3,8 @@ package com.t1t.digipolis.apim.gateway.rest;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
-import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.exceptions.ActionException;
-import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
-import com.t1t.digipolis.apim.exceptions.ServiceAlreadyExistsException;
-import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
@@ -17,17 +13,12 @@ import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jgroups.protocols.RATE_LIMITER;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
-import javax.inject.Inject;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A REST client for accessing the Gateway API.
@@ -117,7 +108,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //context of API
         for(Contract contract:application.getContracts()){
             keyAuthRequest = new KongPluginKeyAuthRequest().withKey(contract.getApiKey());
-            httpClient.createKeyAuthCredentials(consumer.getId(),keyAuthRequest);
+            httpClient.createConsumerKeyAuthCredentials(consumer.getId(), keyAuthRequest);
             //get the API
             api = new KongApi().withName(generateServiceUniqueName(contract.getServiceOrgId(),contract.getServiceId(),contract.getServiceVersion()));
             for(Policy policy:contract.getPolicies()){
@@ -294,6 +285,23 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //create the service using path, and target_url
         String nameAndDNS = generateServiceUniqueName(organizationId,serviceId,version);
         httpClient.deleteApi(nameAndDNS);
+    }
+
+    public KongConsumer getConsumer(String id){
+        return httpClient.getConsumer(id);
+    }
+
+    public KongConsumer createConsumer(String customId){
+        return httpClient.createConsumer(new KongConsumer().withCustomId(customId));
+    }
+
+    public KongPluginKeyAuthResponseList getConsumerKeyAuth(String id){
+        httpClient.getConsumerKeyAuthCredentials(id);
+        return null;
+    }
+
+    public KongPluginKeyAuthResponse createConsumerKeyAuth(String id){
+        return httpClient.createConsumerKeyAuthCredentials(id,new KongPluginKeyAuthRequest());
     }
 
 

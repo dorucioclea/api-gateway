@@ -349,6 +349,17 @@ public class KongClientIntegrationTest {
         kongClient.deleteConsumer(consumer.getId());
     }
 
+    @Test
+    public void createConsumerKeyAuth()throws Exception{
+        KongConsumer consumer = new KongConsumer().withCustomId("someid");
+        consumer = kongClient.createConsumer(consumer);
+        KongPluginKeyAuthResponse response = kongClient.createConsumerKeyAuthCredentials(consumer.getId(), new KongPluginKeyAuthRequest());
+        //get key auth and compare
+        KongPluginKeyAuthResponseList responseList = kongClient.getConsumerKeyAuthCredentials(consumer.getId());
+        assertTrue(responseList.getData().get(0).getKey().equals(response.getKey()));
+        kongClient.deleteConsumer(consumer.getId());
+    }
+
     /**
      * Utility method, if used the api is automatically removed after the test.
      * @return
