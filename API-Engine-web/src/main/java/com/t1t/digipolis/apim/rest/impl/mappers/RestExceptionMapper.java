@@ -35,7 +35,7 @@ public class RestExceptionMapper implements ExceptionMapper<AbstractRestExceptio
      */
     @Override
     public Response toResponse(AbstractRestException data) {
-        String origin = securityContext.getRequestHeader("Origin"); //$NON-NLS-1$
+        //String origin = securityContext.getRequestHeader("Origin"); //$NON-NLS-1$
         ErrorBean error = new ErrorBean();
         error.setType(data.getClass().getSimpleName());
         error.setErrorCode(data.getErrorCode());
@@ -44,11 +44,11 @@ public class RestExceptionMapper implements ExceptionMapper<AbstractRestExceptio
         error.setStacktrace(getStackTrace(data));
         ResponseBuilder builder = Response.status(data.getHttpCode()).header("X-ApiEngine-Error", "true"); //$NON-NLS-1$ //$NON-NLS-2$
         // If CORS is being used, make sure to add X-Apiman-Error to the exposed headers
-        if (origin != null) {
+/*        if (origin != null) {
             builder = builder.header("Access-Control-Expose-Headers", "X-ApiEngine-Error") //$NON-NLS-1$ //$NON-NLS-2$
                     .header("Access-Control-Allow-Origin", origin) //$NON-NLS-1$
                     .header("Access-Control-Allow-Credentials", "true"); //$NON-NLS-1$ //$NON-NLS-2$
-        }
+        }*/
         builder.type(MediaType.APPLICATION_JSON_TYPE);
         return builder.entity(error).build();
     }

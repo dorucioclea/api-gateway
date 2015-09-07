@@ -22,10 +22,12 @@ public class UserBean implements Serializable {
     private String email;
     @Column(name = "joined_on", updatable=false)
     private Date joinedOn;
+    @Column(name="admin")
+    private Boolean admin=false;//default
 
     // Used only when returning information about the current user
-    @Transient
-    private boolean admin;
+/*    @Transient
+    private boolean admin;*/
 
     /**
      * Constructor.
@@ -120,17 +122,11 @@ public class UserBean implements Serializable {
         return true;
     }
 
-    /**
-     * @return the admin
-     */
-    public boolean isAdmin() {
+    public Boolean getAdmin() {
         return admin;
     }
 
-    /**
-     * @param admin the admin to set
-     */
-    public void setAdmin(boolean admin) {
+    public void setAdmin(Boolean admin) {
         this.admin = admin;
     }
 

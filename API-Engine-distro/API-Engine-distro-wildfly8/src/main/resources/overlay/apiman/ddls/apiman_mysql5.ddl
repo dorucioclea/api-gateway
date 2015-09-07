@@ -69,7 +69,7 @@ CREATE TABLE svc_gateways (service_version_id BIGINT NOT NULL, gateway_id VARCHA
 CREATE TABLE svc_plans (service_version_id BIGINT NOT NULL, plan_id VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL);
 
 --  Changeset ::1436469846462-22::apiengine (generated)
-CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on datetime NULL);
+CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on datetime NULL, admin BOOL DEFAULT FALSE );
 
 --  Changeset ::1436469846462-23::apiengine (generated)
 ALTER TABLE endpoint_properties ADD PRIMARY KEY (service_version_id, name);
@@ -765,6 +765,6 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
 }', 'JsonSchema', 'fa-file-text-o', 'File Log Policy', NULL);
 
 --  Changeset c:/Users/ewittman/git/apiman/apiman/distro/ddl/src/main/liquibase/current/050-apiman-manager-api.db.data.changelog.xml::1434686531709-6::apiengine
-INSERT INTO users (username, email, full_name, joined_on) VALUES ('admin', 'admin@example.org', 'Admin', '2015-06-18 17:56:54.794');
+INSERT INTO users (username, email, full_name, joined_on,admin) VALUES ('admin', 'admin@example.org', 'Admin', '2015-06-18 17:56:54.794',TRUE );
 
 --  Changeset
