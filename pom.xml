@@ -175,6 +175,7 @@
         <swagger-parser.version>1.0.10</swagger-parser.version>
         <wso2.client.version>1.2.0</wso2.client.version>
         <opensaml.version>2.6.4</opensaml.version>
+        <ehcache.version>2.10.0</ehcache.version>
     </properties>
 
     <dependencyManagement>
@@ -938,6 +939,12 @@
                 <version>${opensaml.version}</version>
             </dependency>
 
+            <!--EHCache-->
+            <dependency>
+                <groupId>net.sf.ehcache</groupId>
+                <artifactId>ehcache</artifactId>
+                <version>${ehcache.version}</version>
+            </dependency>
 
             <!-- Test -->
             <dependency>

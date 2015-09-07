@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.user.LoginRequestBean;
 import com.t1t.digipolis.apim.beans.user.LoginResponseBean;
+import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -19,6 +20,7 @@ import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import net.sf.ehcache.Ehcache;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -81,6 +83,8 @@ public class UserFacade {
     private IStorageQuery query;
     @Inject
     private IIdmStorage idmStorage;
+    @Inject @APIEngineContext
+    private Ehcache ehcache;
 
     public UserBean get(String userId) {
         try {
@@ -187,13 +191,15 @@ public class UserFacade {
         return null;
     }
 
-    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName) {
+    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName,String clientUrl) {
         // Initialize the library
         try {
             //Bootstrap OpenSAML
             DefaultBootstrap.bootstrap();
             //Generate the request
             AuthnRequest authnRequest = buildAuthnRequestObject(spUrl, spName);
+            //set client application name and callback in the cache
+            ehcache.put(new net.sf.ehcache.Element(spName,clientUrl));
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
             return idpUrl + "?SAMLRequest=" + encodedRequestMessage;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
@@ -300,12 +306,26 @@ public class UserFacade {
      * @param response
      * @return
      */
-    public String processSAML2Response(String response) {
+    public SAMLResponseRedirect processSAML2Response(String response) {
         // Initialize the library
         //get only the samlResponse
         String samlResp = response.split("&")[0];//remove other form params
         String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
-        return base64EncodedResponse; //be aware that this is enflated.
+        String clientAppName = "";
+        StringBuffer clientUrl = new StringBuffer("");
+        try {
+            Assertion assertion = processSSOResponse(response);
+            clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
+            log.info("Audience URI found: {}",clientAppName);
+        } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
+            throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
+        }
+        SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
+        responseRedirect.setToken(base64EncodedResponse);
+        clientUrl.append((String) ehcache.get(clientAppName).getObjectValue());
+        if(!clientUrl.toString().endsWith("/"))clientUrl.append("/");
+        responseRedirect.setClientUrl(clientUrl.toString());
+        return responseRedirect; //be aware that this is enflated.
 
         //Bootstrap OpenSAML - only Assertion?!
 /*      try {
@@ -333,6 +353,7 @@ public class UserFacade {
      * @throws UnmarshallingException
      */
     private Assertion processSSOResponse(String responseString) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
+        DefaultBootstrap.bootstrap();
         //remove other query params
         String samlResp = responseString.split("&")[0];
         String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();

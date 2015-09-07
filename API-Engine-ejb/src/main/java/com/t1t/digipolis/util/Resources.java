@@ -18,6 +18,7 @@ package com.t1t.digipolis.util;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.RestServiceBuilder;
+import net.sf.ehcache.Ehcache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,4 +51,11 @@ public class Resources {
     public Logger produceLog(InjectionPoint injectionPoint) {
         return LoggerFactory.getLogger(injectionPoint.getMember().getDeclaringClass().getName());
     }
+
+    @Produces
+    @APIEngineContext
+    public Ehcache produceClientAppCache(){
+        return CacheUtil.getClientAppCache();
+    }
+
 }

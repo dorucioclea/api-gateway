@@ -249,6 +249,12 @@
             <artifactId>swagger-parser</artifactId>
         </dependency>
 
+        <!--EHCache-->
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+        </dependency>
+
 <!--        <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.identity.sso.agent</artifactId>

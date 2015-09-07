@@ -12,6 +12,7 @@ import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.user.LoginRequestBean;
 import com.t1t.digipolis.apim.beans.user.LoginResponseBean;
 import com.t1t.digipolis.apim.beans.user.SAMLRequest;
+import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -196,7 +197,8 @@ public class UserResource implements IUserResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
-        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName());
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
+        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(),request.getClientAppRedirect());
     }
 
     @ApiOperation(value = "Get the Identity provider url with the SAML2 Authentication request",
@@ -211,8 +213,9 @@ public class UserResource implements IUserResource {
     public Response executeSAML2Callback(String request) {
         URI uri = null;
         try {
-            String bearerToken = userFacade.processSAML2Response(request);
-            uri = new URL("http://localhost:9000/?bearer="+bearerToken).toURI();//TODO should be url from config file or other way!
+            SAMLResponseRedirect response = userFacade.processSAML2Response(request);
+            String bearerToken = response.getToken();
+            uri = new URL(response.getClientUrl()+"?apikey="+bearerToken).toURI();//TODO should be url from config file or other way!
             //Get the audience using the assertion => create new table for registered audiences == client applications.
             //String audience = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
         } catch (URISyntaxException e) {

@@ -9,14 +9,16 @@ public class SAMLRequest implements Serializable{
     private String idpUrl;
     private String spUrl;
     private String spName;
+    private String clientAppRedirect;
 
     public SAMLRequest() {
     }
 
-    public SAMLRequest(String idpUrl, String spUrl, String spName) {
+    public SAMLRequest(String idpUrl, String spUrl, String spName, String clientAppRedirect) {
         this.idpUrl = idpUrl;
         this.spUrl = spUrl;
         this.spName = spName;
+        this.clientAppRedirect = clientAppRedirect;
     }
 
     public String getSpName() {
@@ -43,12 +45,21 @@ public class SAMLRequest implements Serializable{
         this.idpUrl = idpUrl;
     }
 
+    public String getClientAppRedirect() {
+        return clientAppRedirect;
+    }
+
+    public void setClientAppRedirect(String clientAppRedirect) {
+        this.clientAppRedirect = clientAppRedirect;
+    }
+
     @Override
     public String toString() {
         return "SAMLRequest{" +
                 "idpUrl='" + idpUrl + '\'' +
                 ", spUrl='" + spUrl + '\'' +
                 ", spName='" + spName + '\'' +
+                ", clientAppRedirect='" + clientAppRedirect + '\'' +
                 '}';
     }
 }
