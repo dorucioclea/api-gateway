@@ -187,7 +187,7 @@ public class OrganizationResource implements IOrganizationResource {
      * APPLICATIONS
      **************/
     @ApiOperation(value = "Create Application",
-            notes = "Use this endpoint to create a new Application.  Note that it is important to also create an initial version of the Application (e.g. 1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Application Version\".  If the former is done, then a first Application version will be created automatically by this endpoint.")
+            notes = "Use this endpoint to create a new Application.  Note that it is important to also create an initial version of the Application (e.g. v1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Application Version\".  If the former is done, then a first Application version will be created automatically by this endpoint. When providing a logo, the logo can not be greater than 10k")
     @ApiResponses({
             @ApiResponse(code = 200, response = ApplicationBean.class, message = "Full details about the newly created Application.")
     })
@@ -198,6 +198,7 @@ public class OrganizationResource implements IOrganizationResource {
     public ApplicationBean createApp(@PathParam("organizationId") String organizationId, NewApplicationBean bean) throws OrganizationNotFoundException, ApplicationAlreadyExistsException, NotAuthorizedException, InvalidNameException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(bean.getBase64logo().length()<=10000L,"Logo should not be greater than 10k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createApp(organizationId, bean);
     }
