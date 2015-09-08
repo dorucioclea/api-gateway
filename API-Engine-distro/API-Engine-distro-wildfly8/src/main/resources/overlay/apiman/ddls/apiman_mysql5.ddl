@@ -310,7 +310,7 @@ INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 4);
 INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 10);
 
 -- In order to generate schema's for auto form generation -> using: https://github.com/Textalk/angular-schema-form
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('BasicAuthentication', 'Add Basic Authentication to your APIs', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('BasicAuthentication', 'Add Basic Authentication to your APIs', '{
   "type": "object",
   "title": "Basic Authentication",
   "properties": {
@@ -323,7 +323,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   }
 }', 'JsonSchema', 'fa-user', 'Basic Authentication Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('KeyAuthentication', 'Add Key Authentication to your APIs', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('KeyAuthentication', 'Add Key Authentication to your APIs', '{
   "type": "object",
   "title": "Key Authentication",
   "properties": {
@@ -345,7 +345,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   ]
 }', 'JsonSchema', 'fa-key', 'Key Authentication Policy', NULL ,TRUE ,FALSE ,TRUE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('CORS', 'Allow consumers to make requests from browsers to your APIs', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('CORS', 'Allow consumers to make requests from browsers to your APIs', '{
   "type": "object",
   "title": "CORS",
   "properties": {
@@ -394,7 +394,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   }
 }', 'JsonSchema', 'fa-code', 'CORS Policy', NULL ,TRUE ,FALSE ,TRUE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('SSL', 'Add an SSL certificate for an underlying service', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('SSL', 'Add an SSL certificate for an underlying service', '{
   "type": "object",
   "title": "SSL",
   "properties": {
@@ -431,7 +431,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   ]
 }', 'JsonSchema', 'fa-lock', 'SSL Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('IPRestriction', 'Whitelist or Blacklist IPs that can make requests', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('IPRestriction', 'Whitelist or Blacklist IPs that can make requests', '{
   "type": "object",
   "title": "IP Restriction",
   "properties": {
@@ -452,7 +452,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   }
 }', 'JsonSchema', 'fa-table', 'IP Restriction Policy', NULL ,TRUE ,TRUE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('OAuth2', 'Add an OAuth2 Authentication to your APIs', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('OAuth2', 'Add an OAuth2 Authentication to your APIs', '{
   "type": "object",
   "title": "OAuth2",
   "properties": {
@@ -520,7 +520,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   ]
 }', 'JsonSchema', 'fa-sign-in', 'OAuth2 Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RateLimiting', 'Rate-limit how many HTTP requests a consumer can make', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RateLimiting', 'Rate-limit how many HTTP requests a consumer can make', '{
   "type": "object",
   "title": "Rate Limiting",
   "properties": {
@@ -557,7 +557,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   }
 }', 'JsonSchema', 'fa-tachometer', 'Rate Limiting Policy', NULL ,TRUE ,TRUE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RequestSizeLimiting', 'Block requests with bodies greater than a specific size', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RequestSizeLimiting', 'Block requests with bodies greater than a specific size', '{
   "type": "object",
   "title": "Request Size Limiting",
   "properties": {
@@ -570,7 +570,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   }
 }', 'JsonSchema', 'fa-compress', 'Request Size Limiting Policy', NULL ,TRUE ,TRUE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
   "type": "object",
   "title": "Request Transformer",
   "properties": {
@@ -619,7 +619,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   }
 }', 'JsonSchema', 'fa-chevron-circle-right', 'Request Transformer Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('ResponseTransformer', 'Modify the upstream response before returning it to the client', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ResponseTransformer', 'Modify the upstream response before returning it to the client', '{
   "type": "object",
   "title": "Response Transformer",
   "properties": {
@@ -658,7 +658,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   }
 }', 'JsonSchema', 'fa-chevron-circle-left', 'Response Transformer Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('TCPLog', 'Send request and response logs to a TCP server', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('TCPLog', 'Send request and response logs to a TCP server', '{
   "type": "object",
   "title": "TCP Log",
   "properties": {
@@ -690,7 +690,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   ]
 }', 'JsonSchema', 'fa-random', 'TCP Log Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('UDPLog', 'Send request and response logs to a UDP server', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('UDPLog', 'Send request and response logs to a UDP server', '{
   "type": "object",
   "title": "UDP Log",
   "properties": {
@@ -716,7 +716,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   ]
 }', 'JsonSchema', 'fa-crosshairs', 'UDP Log Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('HTTPLog', 'Send request and response logs to a HTTP server', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('HTTPLog', 'Send request and response logs to a HTTP server', '{
   "type": "object",
   "title": "HTTP Log",
   "properties": {
@@ -749,7 +749,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id)
   ]
 }', 'JsonSchema', 'fa-exchange', 'HTTP Log Policy', NULL ,TRUE ,FALSE ,TRUE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id) VALUES ('FileLog', 'Append request and response data to a log file on disk', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('FileLog', 'Append request and response data to a log file on disk', '{
   "type": "object",
   "title": "File Log",
   "properties": {

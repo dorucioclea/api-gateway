@@ -74,6 +74,13 @@ public interface IStorageQuery {
     public Set<String> findAllUniqueCategories()throws StorageException;
 
     /**
+     * Returns all categories that are set on PUBLISHED service versions in a list.
+     * @return
+     * @throws StorageException
+     */
+    public Set<String> findAllUniquePublishedCategories()throws StorageException;
+
+    /**
      * Returns all published services within given categories.
      * @param categories
      * @return

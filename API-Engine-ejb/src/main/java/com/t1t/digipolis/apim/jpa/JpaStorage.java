@@ -635,6 +635,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return catSet;
     }
 
+    public Set<String> findAllUniquePublishedCategories()throws StorageException{
+//TODO
+                return null;
+    }
+
     /**
      * @see IStorageQuery#findPlans(String, SearchCriteriaBean)
      */
