@@ -35,6 +35,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import com.t1t.digipolis.util.GatewayPathUtilities;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
@@ -1917,8 +1918,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 storage.updateServiceVersion(serviceVersion);
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
-            //TODO construct path
-            data = transformSwaggerDef(data);
+            String svPath = GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),serviceVersion.getVersion());
+            data = transformSwaggerDef(data,svPath);
             storage.updateServiceDefinition(serviceVersion, data);
             log.debug(String.format("Stored service definition %s: %s", serviceId, serviceVersion)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
@@ -1936,10 +1937,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @return
      * @throws IOException
      */
-    private InputStream transformSwaggerDef(InputStream data)throws IOException{
+    private InputStream transformSwaggerDef(InputStream data, String serviceVersionPath)throws IOException{
         //set all base paths to "/" because the path is decided by the APi engine
         Swagger swaggerJson = new SwaggerParser().parse(IOUtils.toString(data));//IOUtils.closequietly?
-        swaggerJson.setBasePath("/");
+        swaggerJson.setBasePath(serviceVersionPath);
         //TODO update documentation + location
         return new ByteArrayInputStream((Json.pretty(swaggerJson)).getBytes());
     }
