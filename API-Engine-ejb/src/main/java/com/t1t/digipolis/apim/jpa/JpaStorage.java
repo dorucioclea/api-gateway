@@ -636,8 +636,24 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     public Set<String> findAllUniquePublishedCategories()throws StorageException{
-//TODO
-                return null;
+        EntityManager entityManager = getActiveEntityManager();
+        @SuppressWarnings("nls")
+        String jpql =
+                "SELECT s "
+                        + "  FROM ServiceVersionBean v"
+                        + "  JOIN v.service s"
+                        + " WHERE v.status = :status"
+                        + " ORDER BY s.id DESC";
+        Query query = entityManager.createQuery(jpql);
+        query.setMaxResults(500);
+        query.setParameter("status", ServiceStatus.Published); //$NON-NLS-1$
+
+        List<ServiceBean> services = (List<ServiceBean>) query.getResultList();
+        Set<String> catSet = new TreeSet<>();
+        for(ServiceBean service:services){
+            catSet.addAll(service.getCategories());
+        }
+        return catSet;
     }
 
     /**
