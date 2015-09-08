@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.util.NameConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -110,7 +111,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
             keyAuthRequest = new KongPluginKeyAuthRequest().withKey(contract.getApiKey());
             httpClient.createConsumerKeyAuthCredentials(consumer.getId(), keyAuthRequest);
             //get the API
-            api = new KongApi().withName(generateServiceUniqueName(contract.getServiceOrgId(),contract.getServiceId(),contract.getServiceVersion()));
+            api = new KongApi().withName(NameConventionUtil.generateServiceUniqueName(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion()));
             for(Policy policy:contract.getPolicies()){
                 //execute policy
                 Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
@@ -158,7 +159,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         KongApi api = new KongApi();
         api.setStripPath(true);
         //api.setPublicDns();
-        String nameAndDNS = generateServiceUniqueName(service);
+        String nameAndDNS = NameConventionUtil.generateServiceUniqueName(service);
         //name wil be: organization.application.version
         api.setName(nameAndDNS);
         //version wil be: organization.application.version
@@ -240,26 +241,6 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     /**
-     * Generates a unique service name for Kong.
-     * The name is constituted of the organizationid.serviceid.version
-     *
-     * @param service
-     * @return
-     */
-    private String generateServiceUniqueName(Service service) {
-        return generateServiceUniqueName(service.getOrganizationId(), service.getServiceId(), service.getVersion());
-    }
-
-    private String generateServiceUniqueName(String orgId, String serviceId, String serviceVersionsId){
-        StringBuilder serviceGatewayName = new StringBuilder(orgId)
-                .append(".")
-                .append(serviceId)
-                .append(".")
-                .append(serviceVersionsId);
-        return serviceGatewayName.toString().toLowerCase();
-    }
-
-    /**
      * Validates the service path property before passing it to Kong.
      *
      * @param service
@@ -283,7 +264,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         //create the service using path, and target_url
-        String nameAndDNS = generateServiceUniqueName(organizationId,serviceId,version);
+        String nameAndDNS = NameConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
         httpClient.deleteApi(nameAndDNS);
     }
 

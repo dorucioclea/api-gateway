@@ -1917,6 +1917,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 storage.updateServiceVersion(serviceVersion);
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
+            //TODO construct path
             data = transformSwaggerDef(data);
             storage.updateServiceDefinition(serviceVersion, data);
             log.debug(String.format("Stored service definition %s: %s", serviceId, serviceVersion)); //$NON-NLS-1$
