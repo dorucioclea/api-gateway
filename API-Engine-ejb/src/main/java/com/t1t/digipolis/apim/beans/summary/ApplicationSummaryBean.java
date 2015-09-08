@@ -20,6 +20,7 @@ public class ApplicationSummaryBean implements Serializable {
     private String name;
     private String description;
     private int numContracts;
+    private String base64logo;
 
     /**
      * Constructor.
@@ -118,6 +119,14 @@ public class ApplicationSummaryBean implements Serializable {
         return serialVersionUID;
     }
 
+    public String getBase64logo() {
+        return base64logo;
+    }
+
+    public void setBase64logo(String base64logo) {
+        this.base64logo = base64logo;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -155,15 +164,17 @@ public class ApplicationSummaryBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "ApplicationSummaryBean [organizationId=" + organizationId + ", organizationName="
-                + organizationName + ", id=" + id + ", name=" + name + ", description=" + description
-                + ", numContracts=" + numContracts + "]";
+        return "ApplicationSummaryBean{" +
+                "organizationId='" + organizationId + '\'' +
+                ", organizationName='" + organizationName + '\'' +
+                ", id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", numContracts=" + numContracts +
+                ", base64logo='" + base64logo + '\'' +
+                '}';
     }
 
 }

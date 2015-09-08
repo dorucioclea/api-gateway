@@ -37,6 +37,9 @@ public class ApplicationBean implements Serializable {
     private String createdBy;
     @Column(name = "created_on", updatable=false, nullable=false)
     private Date createdOn;
+    @Column(name = "logo")
+    @Lob
+    private String base64logo;
 
     /**
      * @return the id
@@ -122,9 +125,17 @@ public class ApplicationBean implements Serializable {
         this.createdBy = createdBy;
     }
 
+    public String getBase64logo() {
+        return base64logo;
+    }
+
+    public void setBase64logo(String base64logo) {
+        this.base64logo = base64logo;
+    }
+
     /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {
