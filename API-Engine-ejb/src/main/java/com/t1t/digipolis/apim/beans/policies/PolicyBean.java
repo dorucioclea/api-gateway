@@ -60,18 +60,6 @@ public class PolicyBean implements Serializable {
     public PolicyBean() {
     }
 
-    @PrePersist @PreUpdate
-    protected void encryptData() {
-        // Encrypt the endpoint properties.
-        configuration = AesEncrypter.encrypt(configuration);
-    }
-
-    @PostPersist @PostUpdate @PostLoad
-    protected void decryptData() {
-        // Encrypt the endpoint properties.
-        configuration = AesEncrypter.decrypt(configuration);
-    }
-
     /**
      * @return the id
      */

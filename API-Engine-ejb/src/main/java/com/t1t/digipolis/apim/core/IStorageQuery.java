@@ -67,11 +67,18 @@ public interface IStorageQuery {
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException;
 
     /**
-     * Returns all categories in a list (duplicates are possible).
+     * Returns all categories in a list.
      * @return
      * @throws StorageException
      */
     public Set<String> findAllUniqueCategories()throws StorageException;
+
+    /**
+     * Returns all categories that are set on PUBLISHED service versions in a list.
+     * @return
+     * @throws StorageException
+     */
+    public Set<String> findAllUniquePublishedCategories()throws StorageException;
 
     /**
      * Returns all published services within given categories.

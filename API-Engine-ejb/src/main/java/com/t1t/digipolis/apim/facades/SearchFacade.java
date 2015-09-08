@@ -82,6 +82,14 @@ public class SearchFacade {
         }
     }
 
+    public Set<String> searchPublishedCategories(){
+        try {
+            return query.findAllUniquePublishedCategories();
+        } catch (StorageException e) {
+            throw new SystemErrorException();
+        }
+    }
+
     public List<ServiceVersionBean> searchServicesPublishedInCategories(List<String> categories){
         try {
             return query.findAllServicesWithCategory(categories);

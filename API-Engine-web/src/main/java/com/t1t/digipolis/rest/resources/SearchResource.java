@@ -116,11 +116,24 @@ public class SearchResource implements ISearchResource {
             @ApiResponse(code = 200, responseContainer = "List", response = String.class, message = "If the search is successful.")
     })
     @GET
-    @Path("/service/categories/")
+    @Path("/service/categories/all")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Set<String> searchCategories() {
         return searchFacade.searchCategories();
+    }
+
+    @ApiOperation(value = "Search for all used service categories",
+            notes = "Use this endpoint to search for all service categories. All categories are returned, also for unpublished service versions.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = String.class, message = "If the search is successful.")
+    })
+    @GET
+    @Path("/service/categories/published")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<String> searchPublishedCategories() {
+        return searchFacade.searchPublishedCategories();
     }
 
     @ApiOperation(value = "Search for all Service versions within given category list",
@@ -135,4 +148,6 @@ public class SearchResource implements ISearchResource {
     public List<ServiceVersionBean> searchServiceVersionForCategories(CategorySearchBean catSearch) {
         return searchFacade.searchServicesPublishedInCategories(catSearch.getCategories());
     }
+
+
 }

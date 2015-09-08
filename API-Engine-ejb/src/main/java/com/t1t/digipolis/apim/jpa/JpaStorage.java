@@ -635,6 +635,27 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return catSet;
     }
 
+    public Set<String> findAllUniquePublishedCategories()throws StorageException{
+        EntityManager entityManager = getActiveEntityManager();
+        @SuppressWarnings("nls")
+        String jpql =
+                "SELECT s "
+                        + "  FROM ServiceVersionBean v"
+                        + "  JOIN v.service s"
+                        + " WHERE v.status = :status"
+                        + " ORDER BY s.id DESC";
+        Query query = entityManager.createQuery(jpql);
+        query.setMaxResults(500);
+        query.setParameter("status", ServiceStatus.Published); //$NON-NLS-1$
+
+        List<ServiceBean> services = (List<ServiceBean>) query.getResultList();
+        Set<String> catSet = new TreeSet<>();
+        for(ServiceBean service:services){
+            catSet.addAll(service.getCategories());
+        }
+        return catSet;
+    }
+
     /**
      * @see IStorageQuery#findPlans(String, SearchCriteriaBean)
      */
@@ -807,7 +828,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
             @SuppressWarnings("nls")
             String sql =
-                    "SELECT pd.id, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type" +
+                    "SELECT pd.id, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type, pd.scope_service, pd.scope_plan, pd.scope_auto" +
                     "  FROM policydefs pd" +
                     " ORDER BY pd.name ASC";
             Query query = entityManager.createNativeQuery(sql);
@@ -826,6 +847,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 if (row[5] != null) {
                     bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[5])));
                 }
+                bean.setScopeService(((Boolean)row[6]).booleanValue());
+                bean.setScopePlan(((Boolean) row[7]).booleanValue());
+                bean.setScopeAuto(((Boolean)row[8]).booleanValue());
                 rval.add(bean);
             }
             return rval;
