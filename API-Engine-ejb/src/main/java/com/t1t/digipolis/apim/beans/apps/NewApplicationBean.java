@@ -16,6 +16,7 @@ public class NewApplicationBean implements Serializable {
     private String name;
     private String description;
     private String initialVersion;
+    private String base64logo;
 
     /**
      * Constructor.
@@ -65,14 +66,22 @@ public class NewApplicationBean implements Serializable {
         this.initialVersion = initialVersion;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+    public String getBase64logo() {
+        return base64logo;
+    }
+
+    public void setBase64logo(String base64logo) {
+        this.base64logo = base64logo;
+    }
+
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "NewApplicationBean [name=" + name + ", description=" + description + ", initialVersion="
-                + initialVersion + "]";
+        return "NewApplicationBean{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", initialVersion='" + initialVersion + '\'' +
+                ", base64logo='" + base64logo + '\'' +
+                '}';
     }
 
 }

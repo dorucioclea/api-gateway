@@ -907,6 +907,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 ApplicationSummaryBean summary = new ApplicationSummaryBean();
                 summary.setId(bean.getId());
                 summary.setName(bean.getName());
+                summary.setBase64logo(bean.getBase64logo());
                 summary.setDescription(bean.getDescription());
                 // TODO find the number of contracts - probably need a native SQL query to pull that together
                 summary.setNumContracts(0);

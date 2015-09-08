@@ -215,6 +215,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         ApplicationBean newApp = new ApplicationBean();
         newApp.setId(BeanUtils.idFromName(bean.getName()));
         newApp.setName(bean.getName());
+        newApp.setBase64logo(bean.getBase64logo());
         newApp.setDescription(bean.getDescription());
         newApp.setCreatedBy(securityContext.getCurrentUser());
         newApp.setCreatedOn(new Date());
