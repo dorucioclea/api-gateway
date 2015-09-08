@@ -67,7 +67,7 @@ public interface IStorageQuery {
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException;
 
     /**
-     * Returns all categories in a list (duplicates are possible).
+     * Returns all categories in a list.
      * @return
      * @throws StorageException
      */

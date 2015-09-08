@@ -135,4 +135,6 @@ public class SearchResource implements ISearchResource {
     public List<ServiceVersionBean> searchServiceVersionForCategories(CategorySearchBean catSearch) {
         return searchFacade.searchServicesPublishedInCategories(catSearch.getCategories());
     }
+
+
 }
