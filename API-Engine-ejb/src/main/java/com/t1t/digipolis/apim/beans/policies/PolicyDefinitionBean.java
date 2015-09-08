@@ -39,6 +39,12 @@ public class PolicyDefinitionBean implements Serializable {
     private PolicyFormType formType;
     @Column(updatable=false, nullable=true)
     private String form;
+    @Column(name="scope_service")
+    private Boolean scopeService;
+    @Column(name="scope_plan")
+    private Boolean scopePlan;
+    @Column(name="scope_auto")
+    private Boolean scopeAuto;
 
     /**
      * Constructor.
@@ -144,6 +150,30 @@ public class PolicyDefinitionBean implements Serializable {
         this.form = form;
     }
 
+    public Boolean getScopeService() {
+        return scopeService;
+    }
+
+    public void setScopeService(Boolean scopeService) {
+        this.scopeService = scopeService;
+    }
+
+    public Boolean getScopePlan() {
+        return scopePlan;
+    }
+
+    public void setScopePlan(Boolean scopePlan) {
+        this.scopePlan = scopePlan;
+    }
+
+    public Boolean getScopeAuto() {
+        return scopeAuto;
+    }
+
+    public void setScopeAuto(Boolean scopeAuto) {
+        this.scopeAuto = scopeAuto;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -175,17 +205,20 @@ public class PolicyDefinitionBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        final int maxLen = 10;
-        return "PolicyDefinitionBean [id=" + id + ", name=" + name
-                + ", description=" + description + ", icon=" + icon + ", templates="
-                + ", pluginId=" + pluginId
-                + ", formType=" + formType + ", form=" + form + "]";
+        return "PolicyDefinitionBean{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", icon='" + icon + '\'' +
+                ", pluginId=" + pluginId +
+                ", formType=" + formType +
+                ", form='" + form + '\'' +
+                ", scopeService=" + scopeService +
+                ", scopePlan=" + scopePlan +
+                ", scopeAuto=" + scopeAuto +
+                '}';
     }
 
     @SuppressWarnings("nls")
