@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="ear" name="API-Engine-ear:ear">
-    <output-path>$PROJECT_DIR$/API-Engine-ear/target</output-path>
-    <root id="archive" name="API-Engine-ear.ear">
-      <element id="artifact" artifact-name="API-Engine-ear:ear exploded" />
-    </root>
-  </artifact>
-</component>
