@@ -16,6 +16,9 @@ public class PolicyDefinitionSummaryBean implements Serializable {
     private String description;
     private String icon;
     private PolicyFormType formType;
+    private Boolean scopeService;
+    private Boolean scopePlan;
+    private Boolean scopeAuto;
     private Long pluginId;
 
     /**
@@ -122,6 +125,30 @@ public class PolicyDefinitionSummaryBean implements Serializable {
         this.formType = formType;
     }
 
+    public Boolean getScopeService() {
+        return scopeService;
+    }
+
+    public void setScopeService(Boolean scopeService) {
+        this.scopeService = scopeService;
+    }
+
+    public Boolean getScopePlan() {
+        return scopePlan;
+    }
+
+    public void setScopePlan(Boolean scopePlan) {
+        this.scopePlan = scopePlan;
+    }
+
+    public Boolean getScopeAuto() {
+        return scopeAuto;
+    }
+
+    public void setScopeAuto(Boolean scopeAuto) {
+        this.scopeAuto = scopeAuto;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -153,15 +180,19 @@ public class PolicyDefinitionSummaryBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "PolicyDefinitionSummaryBean [id=" + id + ", policyImpl=" + policyImpl + ", name=" + name
-                + ", description=" + description + ", icon=" + icon + ", formType=" + formType
-                + ", pluginId=" + pluginId + "]";
+        return "PolicyDefinitionSummaryBean{" +
+                "id='" + id + '\'' +
+                ", policyImpl='" + policyImpl + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", icon='" + icon + '\'' +
+                ", formType=" + formType +
+                ", scopeService=" + scopeService +
+                ", scopePlan=" + scopePlan +
+                ", scopeAuto=" + scopeAuto +
+                ", pluginId=" + pluginId +
+                '}';
     }
-
 }
