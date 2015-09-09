@@ -2139,5 +2139,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return newVersion;
     }
 
-
+    public void setEm(EntityManager em) {
+        this.em = em;
+    }
 }
