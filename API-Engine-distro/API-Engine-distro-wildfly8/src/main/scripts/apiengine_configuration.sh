@@ -1,9 +1,10 @@
 #register api
-curl -X POST http://apim.t1t.be:8001/apis \
-    --data "name=api.engine"
-    --data "path="
-    --data "strip_path=true"
-    --data "target_url=http://api.t1t.be/API-Engine-web/v1/"
+curl -i -X POST \
+  --url http://apim.t1t.be:8001/apis/ \
+  --data 'path=/dev/apiengine/v1' \
+  --data 'name=dev.apiengine.v1' \
+  --data 'target_url=http://api.t1t.be/API-Engine-web/v1/' \
+  --data 'strip_path=true'
 
 #enable CORS
 curl -X POST http://apim.t1t.be:8001/apis/{api}/plugins \
