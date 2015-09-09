@@ -234,7 +234,9 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      * @param api
      */
     private void registerDefaultCORSPolicy(KongApi api) {
+        List<Object> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "apikey");
         KongPluginCors corsPolicy = new KongPluginCors(); //default values are ok
+        corsPolicy.setHeaders(headers);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.CORS.getKongIdentifier())
                 .withValue(corsPolicy);

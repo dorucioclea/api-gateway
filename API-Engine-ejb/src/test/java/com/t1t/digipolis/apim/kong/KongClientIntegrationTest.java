@@ -9,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
@@ -227,6 +230,24 @@ public class KongClientIntegrationTest {
         kongClient.deleteApi(apic.getId());
         kongClient.deleteConsumer(consumer.getId());
         //is deleted automatically => kongClient.deletePlugin(pluginConfig.getId());
+    }
+
+    @Test
+    public void testCreateCorsPlugin() throws Exception {
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apicors = createDummyApi("apicors","/apicors",API_URL);
+        KongConsumer consumer = createDummyConsumer("cors123", "apicosruser");
+        apicors = kongClient.addApi(apicors);
+        //create a ratelimitation for the consumer and apply it for the api
+        List<Object> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "apikey");
+        KongPluginCors corsConfig = new KongPluginCors()
+                .withHeaders(headers);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("cors")//as an example
+                .withValue(corsConfig);
+        print(pluginConfig);
+        kongClient.createPluginConfig(apicors.getId(),pluginConfig);
+        kongClient.deleteApi(apicors.getId());
     }
 
     @Test
