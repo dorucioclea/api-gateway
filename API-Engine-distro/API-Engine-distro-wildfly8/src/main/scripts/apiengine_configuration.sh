@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #register api
 curl -i -X POST \
   --url http://apim.t1t.be:8001/apis/ \
@@ -7,18 +8,31 @@ curl -i -X POST \
   --data 'strip_path=true'
 
 #enable CORS
-curl -X POST http://apim.t1t.be:8001/apis/{api}/plugins \
+curl -X POST http://apim.t1t.be:8001/apis/dev.apiengine.v1/plugins \
     --data "name=cors" \
     --data "value.origin=*" \
     --data "value.methods=GET,HEAD,PUT,PATCH,POST,DELETE" \
     --data "value.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey" \
-    --data "value.exposed_headers=X-Auth-Token" \
     --data "value.credentials=true" \
     --data "value.max_age=3600"
 
 #enable Keyauth
+curl -X POST http://apim.t1t.be:8001/apis/dev.apiengine.v1/plugins \
+    --data "name=keyauth" \
+    --data "value.key_names=apikey"
 
-#create marketplace consumer
-#enable keyauth for marketplace and return API key
+#create marketplace consumer, username should be unique
+curl -X POST http://apim.t1t.be:8001/consumers \
+    --data "username=dev.marketplace.v1"
+
 #create publisher consumer
-#enable keyauth for publisher and return API key
+curl -X POST http://apim.t1t.be:8001/consumers \
+    --data "username=dev.publisher.v1"
+
+#enable keyauth for marketplace and return API key, result should be captured and is the API key for the given consumer
+curl -X POST http://apim.t1t.be:8001/consumers/dev.marketplace.v1/keyauth \
+    --data "key=440fa49f914d431ec30ae030f5409c38"
+
+#enable keyauth for publisher and return API key, result should be captured and is the API key for the given consumer
+curl -X POST http://apim.t1t.be:8001/consumers/dev.publisher.v1/keyauth \
+    --data "key=***REMOVED***"
