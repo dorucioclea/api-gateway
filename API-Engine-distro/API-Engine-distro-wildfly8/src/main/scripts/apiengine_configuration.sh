@@ -36,3 +36,8 @@ curl -X POST http://apim.t1t.be:8001/consumers/dev.marketplace.v1/keyauth \
 #enable keyauth for publisher and return API key, result should be captured and is the API key for the given consumer
 curl -X POST http://apim.t1t.be:8001/consumers/dev.publisher.v1/keyauth \
     --data "key=***REMOVED***"
+
+#create base organization
+curl -X POST http://api.t1t.be/API-Engine-web/v1/organizations -H "X-Consumer-Username: admin" \
+    --data "name=Digipolis" \
+    --data "description=Digipolis"
