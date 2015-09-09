@@ -476,6 +476,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (pvb.getStatus() == PlanStatus.Locked) {
             throw ExceptionFactory.invalidPlanStatusException();
         }
+        //validate no other policy of the same type has been added for this plan verions - only one policy of the same type is allowed
+        List<PolicySummaryBean> policies = listPlanPolicies(organizationId, planId, version);
+        for(PolicySummaryBean polsum:policies){
+            if(polsum.getPolicyDefinitionId().equals(bean.getDefinitionId()))throw new PolicyDefinitionAlreadyExistsException("The policy already exists for the service: "+bean.getDefinitionId());
+        }
         log.debug(String.format("Creating plan %s policy %s", planId, pvb)); //$NON-NLS-1$
         return doCreatePolicy(organizationId, planId, version, bean, PolicyType.Plan);
     }
@@ -485,6 +490,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
+        }
+        //validate no other policy of the same type has been added for this service - only on policy of the same type is allowed
+        List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
+        for(PolicySummaryBean polsum:policies){
+            if(polsum.getPolicyDefinitionId().equals(bean.getDefinitionId()))throw new PolicyDefinitionAlreadyExistsException("The policy already exists for the service: "+bean.getDefinitionId());
         }
         log.debug(String.format("Created service policy %s", svb)); //$NON-NLS-1$
         return doCreatePolicy(organizationId, serviceId, version, bean, PolicyType.Service);
@@ -1769,7 +1779,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (def == null) {
                 throw ExceptionFactory.policyDefNotFoundException(bean.getDefinitionId());
             }
-
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -2130,5 +2139,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return newVersion;
     }
 
-
+    public void setEm(EntityManager em) {
+        this.em = em;
+    }
 }
