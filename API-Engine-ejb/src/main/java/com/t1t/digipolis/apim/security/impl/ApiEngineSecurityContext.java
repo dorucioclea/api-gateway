@@ -16,8 +16,8 @@ import javax.servlet.http.HttpServletRequest;
  * Created by michallispashidis on 5/09/15.
  */
 @ApplicationScoped
-//@Default
-@Alternative
+@Default
+//@Alternative
 public class ApiEngineSecurityContext extends AbstractSecurityContext {
     @Inject
     private IIdmStorage idmStorage;
