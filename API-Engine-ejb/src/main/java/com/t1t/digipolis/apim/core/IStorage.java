@@ -98,6 +98,10 @@ public interface IStorage {
     /*
      * Anything that doesn't fall into the above categories!
      */
-    public void reorderPolicies(PolicyType type, String organizationId, String entityId,
-                                String entityVersion, List<Long> newOrder) throws StorageException;
+    public void reorderPolicies(PolicyType type, String organizationId, String entityId, String entityVersion, List<Long> newOrder) throws StorageException;
+
+    /**
+     * Defaults
+     */
+    public OrganizationBean getDefaultOrganizationForConsumers()throws StorageException;
 }

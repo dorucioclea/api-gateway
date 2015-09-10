@@ -1512,7 +1512,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
         try {
-            storage.createAuditEntry(AuditUtils.membershipGranted(organizationId, auditData, securityContext));
+            storage.createAuditEntry(AuditUtils.membershipGrantedImplicit(organizationId, auditData, securityContext,true));
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {

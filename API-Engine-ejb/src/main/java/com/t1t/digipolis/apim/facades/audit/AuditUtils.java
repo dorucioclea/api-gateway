@@ -195,9 +195,24 @@ public class AuditUtils {
      * @param securityContext the security context
      * @return the audit entry
      */
-    public static AuditEntryBean membershipGranted(String organizationId, MembershipData data,
-            ISecurityContext securityContext) {
+    public static AuditEntryBean membershipGranted(String organizationId, MembershipData data, ISecurityContext securityContext) {
         AuditEntryBean entry = newEntry(organizationId, AuditEntityType.Organization, securityContext);
+        entry.setEntityId(null);
+        entry.setEntityVersion(null);
+        entry.setWhat(AuditEntryType.Grant);
+        entry.setData(toJSON(data));
+        return entry;
+    }
+
+    /**
+     * Creates an IMPLICIT audit entry for the 'membership granted' even.
+     * @param organizationId the organization id
+     * @param data the membership data
+     * @param securityContext the security context
+     * @return the audit entry
+     */
+    public static AuditEntryBean membershipGrantedImplicit(String organizationId, MembershipData data, ISecurityContext securityContext,boolean implicit) {
+        AuditEntryBean entry = newEntry(organizationId, AuditEntityType.Organization, securityContext,implicit);
         entry.setEntityId(null);
         entry.setEntityVersion(null);
         entry.setWhat(AuditEntryType.Grant);
@@ -761,6 +776,17 @@ public class AuditUtils {
      * @return the audit entry
      */
     private static AuditEntryBean newEntry(String orgId, AuditEntityType type, ISecurityContext securityContext) {
+        return newEntry(orgId, type, securityContext,false);
+    }
+
+    /**
+     * Creates an implicit audit entry.
+     * @param orgId the organization id
+     * @param type
+     * @param securityContext the security context
+     * @return the audit entry
+     */
+    private static AuditEntryBean newEntry(String orgId, AuditEntityType type, ISecurityContext securityContext, boolean implicit) {
         // Wait for 1 ms to guarantee that two audit entries are never created at the same moment in time (which would
         // result in non-deterministic sorting by the storage layer)
         try { Thread.sleep(1); } catch (InterruptedException e) { throw new RuntimeException(e); }
@@ -769,9 +795,11 @@ public class AuditUtils {
         entry.setOrganizationId(orgId);
         entry.setEntityType(type);
         entry.setCreatedOn(new Date());
-        entry.setWho(securityContext.getCurrentUser());
+        if(!implicit) entry.setWho(securityContext.getCurrentUser());
+        else entry.setWho("admin");//TODO hardcoded user -> should change
         return entry;
     }
+
 
     /**
      * Converts the list of plans to a string for display/comparison.

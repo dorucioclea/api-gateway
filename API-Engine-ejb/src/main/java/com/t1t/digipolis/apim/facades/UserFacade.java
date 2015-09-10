@@ -7,8 +7,6 @@ import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
-import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
-import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
@@ -25,7 +23,6 @@ import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
-import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
@@ -59,9 +56,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
+import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.xml.parsers.DocumentBuilder;
@@ -100,6 +95,7 @@ public class UserFacade {
     @Inject
     @APIEngineContext
     private Ehcache ehcache;
+    @Inject private OrganizationFacade organizationFacade;
 
     public UserBean get(String userId) {
         try {
@@ -327,7 +323,7 @@ public class UserFacade {
         String samlResp = response.split("&")[0];//remove other form params
         String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
         String clientAppName = "";
-        String userName="";
+        String userName = "";
         StringBuffer clientUrl = new StringBuffer("");
         try {
             Assertion assertion = processSSOResponse(response);
@@ -531,6 +527,7 @@ public class UserFacade {
     /**
      * Updates or creates a consumer on the gateway and in the data model.
      * TODO: should updated with ACL
+     *
      * @param userName
      * @return
      */
@@ -542,34 +539,47 @@ public class UserFacade {
             Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
             IGatewayLink gatewayLink = createGatewayLink(gatewayId);
             KongConsumer consumer = gatewayLink.getConsumer(userName);
-            if(consumer==null){
+            if (consumer == null) {
                 //user doesn't exists, implicit creation
                 consumer = gatewayLink.createConsumer(userName);
                 KongPluginKeyAuthResponse keyAuthResponse = gatewayLink.addConsumerKeyAuth(consumer.getId());
                 keytoken = keyAuthResponse.getKey();
                 //we are sure that this consumer must be a physical user
                 UserBean tempUser = idmStorage.getUser(userName);
-                if(tempUser==null){
+                if (tempUser == null) {
                     //create user
                     UserBean newUser = new UserBean();
                     newUser.setUsername(userName);
-                    //TODO add apikey to datamodel
                     idmStorage.createUser(newUser);
                     //TODO add apike/user to ACL -> version 0.5.0 of Kong
+                    //assign to default company
+                    //assign default roles in company
+                    initNewUser(userName);
                 }
-            }else{
+            } else {
                 //TEMP list, but should be ACL - a consumer can have more keys
                 KongPluginKeyAuthResponseList response = gatewayLink.getConsumerKeyAuth(consumer.getId());
-                if(response.getData().size()>0)keytoken = response.getData().get(0).getKey();
+                if (response.getData().size() > 0) keytoken = response.getData().get(0).getKey();
             }
             gatewayLink.close();
             //TODO add audit trail for consumer actions
         } catch (PublishingException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         } catch (Exception e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
+            throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
         return keytoken;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    private void initNewUser(String username){
+        Set<String> roles = new TreeSet<>();
+        roles.add("ApplicationDeveloper");
+        roles.add("ServiceDeveloper");
+        GrantRolesBean usergrants = new GrantRolesBean();
+        usergrants.setRoleIds(roles);
+        usergrants.setUserId(username);
+        organizationFacade.grant("Digipolis",usergrants);
     }
 
     /**

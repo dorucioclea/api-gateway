@@ -63,7 +63,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         service.setServiceId(serviceId);
         service.setVersion(version);
         service.setBasepath(basePath);
-        //todo set basepath
+        //TODO set basepath
         url.append(GatewayPathUtilities.generateGatewayContextPath(service));
         endpoint.setEndpoint(url.toString());
         return endpoint;
@@ -212,6 +212,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //add default CORS Policy if no custom CORS defined
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
         if(!customKeyAuth) registerDefaultKeyAuthPolicy(api);
+        //add HTTP log for marketplace
     }
 
     /**

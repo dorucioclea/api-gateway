@@ -23,6 +23,9 @@ import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigBeanFactory;
+import com.typesafe.config.ConfigFactory;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.CriteriaQuery;
@@ -535,6 +538,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             storedPolicy.setOrderIndex(orderIndex++);
             updatePolicy(storedPolicy);
         }
+    }
+
+    @Override
+    public OrganizationBean getDefaultOrganizationForConsumers() throws StorageException {
+        Config config = ConfigFactory.load();
+        String defaultOrgId = config.getString("apiapp.defaults.orgId");
+        return super.get(defaultOrgId,OrganizationBean.class);
     }
 
     /**
