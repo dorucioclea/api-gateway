@@ -243,10 +243,12 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "title": "Key Authentication",
   "properties": {
     "key_names": {
-      "title": "Key name",
-      "type": "string",
-      "default": "apikey",
-      "description":"Describes an array of comma separated parameter names where the plugin will look for a valid credential. The client must send the authentication key in one of those key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order)."
+      "title":"Key names",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description":"Describes a name where the plugin will look for a valid credential. The client must send the authentication key in one of the specified key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order)."
+      }
     },
     "hide_credentials": {
       "title": "Hide credentials",
@@ -265,10 +267,14 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "title": "CORS",
   "properties": {
     "methods": {
-      "title": "Methods",
-      "type": "string",
-      "default": "GET,HEAD,PUT,PATCH,POST,DELETE",
-      "description": "Value for the Access-Control-Allow-Methods header, expects a comma delimited string (e.g. GET,POST). Defaults to GET,HEAD,PUT,PATCH,POST,DELETE."
+      "type": "array",
+      "items": {
+        "title": "Methods",
+        "type": "string",
+        "pattern": "^POST$|^GET$|^HEAD$|^PUT$|^PATCH$|^DELETE$",
+        "validationMessage": "Should be one of: GET,HEAD,PUT,PATCH,POST,DELETE",
+        "description": "Value for the Access-Control-Allow-Methods header, expects a string (e.g. GET or POST). Defaults to the values GET,HEAD,PUT,PATCH,POST,DELETE."
+      }
     },
     "credentials": {
       "title": "Credentials",
@@ -277,16 +283,20 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "default": false
     },
       "headers": {
-      "title": "Headers",
-      "type": "string",
-      "description": "Value for the Access-Control-Allow-Headers header, expects a comma delimited string (e.g. Origin, Authorization). Defaults to the value of the Access-Control-Request-Headers header.",
-      "default": "Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Auth-Token"
+        "type": "array",
+        "items": {
+          "title": "Headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Allow-Headers header (e.g. Origin, Authorization). Defaults to the value of the Access-Control-Request-Headers header."
+        }
     },
     "exposed_headers": {
-      "title": "Exposed headers",
-      "type": "string",
-      "description": "Value for the Access-Control-Expose-Headers header, expects a comma delimited string (e.g. Origin, Authorization). If not specified, no custom headers are exposed.",
-      "default": "X-Auth-Token"
+                "type": "array",
+        "items": {
+          "title": "Exposed headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Expose-Headers header (e.g. Origin, Authorization). If not specified, no custom headers are exposed."
+        }
     },
     "origin": {
       "title": "Origin",
@@ -313,11 +323,6 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "type": "object",
   "title": "SSL",
   "properties": {
-    "_cert_der_cache": {
-      "title": "Certificate DER cache",
-      "type": "string",
-      "description": "TBD."
-    },
     "cert": {
       "title": "Certificate",
       "description": "Specify the path of the certificate file to upload.",
@@ -333,11 +338,6 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "title": "Key",
       "type": "string",
       "description": "Specify the path of the certificate key file to upload"
-    },
-    "_key_der_cache": {
-      "title": "Key DER cache",
-      "type": "string",
-      "description": "TBD."
     }
   },
   "required": [
@@ -351,18 +351,22 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "title": "IP Restriction",
   "properties": {
     "blacklist": {
-      "type": "string",
-      "description": "Comma separated list of IPs or CIDR ranges to blacklist."
+        "type": "array",
+        "items":{
+               "type": "string",
+               "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$",
+                "description": "List of IPs or CIDR ranges to blacklist.",
+                "validationMessage":"IP or CIDR required"
+        }
     },
     "whitelist": {
-      "type": "string",
-      "description": "Comma separated list of IPs or CIDR ranges to whitelist."
-    },
-    "_blacklist_cache": {
-      "type": "string"
-    },
-    "_whitelist_cache": {
-      "type": "string"
+        "type": "array",
+        "items":{
+            "type": "string",
+            "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$",
+            "description": "List of IPs or CIDR ranges to whitelist.",
+            "validationMessage":"IP or CIDR required"
+        }
     }
   }
 }', 'JsonSchema', 'fa-table', 'IP Restriction Policy', NULL ,TRUE ,TRUE ,FALSE );
@@ -372,10 +376,12 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "title": "OAuth2",
   "properties": {
     "scopes": {
-      "title": "Scopes",
-      "type": "string",
-      "default": "user,admin",
-      "description": "Describes an array of comma separated scope names that will be available to the end user."
+      "type": "array",
+      "items": {
+          "title": "Scopes",
+          "type": "string",
+          "description": "Describes a scope name that will be available to the end user."
+      }
     },
     "mandatory_scope": {
       "title": "Mandatory scope",
@@ -425,7 +431,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "unique": true,
       "func": "function",
       "type": "string",
-      "description": "TBD"
+      "description": "Upon registration of the application at the Authorization Server (publisher API), an provisioning key has been provided."
     }
   },
   "required": [
@@ -494,19 +500,28 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "type": "object",
       "properties": {
           "querystring": {
-            "title": "Querystring",
-            "type": "string",
-            "description": "Comma separated list of parameter names to remove from the request querystring."
+              "type": "array",
+              "items": {
+                "title": "Querystring",
+                "type": "string",
+                "description": "Parameter name to remove from the request querystring."
+              }
           },
           "form": {
-            "title": "Form",
-            "type": "string",
-            "description": "Comma separated list of parameter names to remove from the request body."
+              "type": "array",
+              "items": {
+                "title": "Form",
+                "type": "string",
+                "description": "Parameter names to remove from the request body."
+              }
           },
           "headers": {
-            "title": "Header",
-            "type": "string",
-            "description": "Comma separated list of header names to remove from the request."
+              "type": "array",
+              "items": {
+                "title": "Header",
+                "type": "string",
+                "description": "Header names to remove from the request."
+              }
           }
       }
     },
@@ -515,19 +530,28 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "type": "object",
       "properties": {
           "querystring": {
-            "title": "Query",
-            "type": "string",
-            "description": "Comma separated list of paramname:value to add to the request querystring."
+              "type": "array",
+              "items": {
+                "title": "Query",
+                "type": "string",
+                "description": "Paramname:value to add to the request querystring."
+              }
           },
           "form": {
-            "title": "Form",
-            "type": "string",
-            "description": "Comma separated list of paramname:value to add to the request body in urlencoded format."
+              "type": "array",
+              "items": {
+                "title": "Form",
+                "type": "string",
+                "description": "Paramname:value to add to the request body in urlencoded format."
+              }
           },
           "headers": {
-            "title": "Header",
-            "type": "string",
-            "description": "Comma separated list of headername:value to add to the request headers."
+              "type": "array",
+              "items": {
+                "title": "Header",
+                "type": "string",
+                "description": "Headername:value to add to the request headers."
+              }
           }
       }
     }
@@ -543,14 +567,20 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "type": "object",
       "properties": {
           "headers": {
-            "title": "Header",
-            "type": "string",
-            "description": "Comma separated list of header names to remove from the response headers."
+              "type": "array",
+              "items": {
+                    "title": "Header",
+                    "type": "string",
+                    "description": "Header name to remove from the response headers."
+              }
           },
           "json": {
-            "title": "JSON",
-            "type": "string",
-            "description": "Comma separated list of JSON key names to remove from a JSON response body."
+              "type": "array",
+              "items": {
+                "title": "JSON",
+                "type": "string",
+                "description": "JSON key name to remove from a JSON response body."
+              }
           }
       }
     },
@@ -559,14 +589,20 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "type": "object",
       "properties": {
           "headers": {
-            "title": "Header",
-            "type": "string",
-            "description": "Comma separated list of headername:value to add to the response headers."
+              "type": "array",
+              "items": {
+                "title": "Header",
+                "type": "string",
+                "description": "Headername:value to add to the response headers."
+              }
           },
           "json": {
-            "title": "JSON",
-            "type": "string",
-            "description": "Comma separated list of jsonkey:value to add to a JSON response body."
+              "type": "array",
+              "items": {
+                "title": "JSON",
+                "type": "string",
+                "description": "Jsonkey:value to add to a JSON response body."
+              }
           }
       }
     }
