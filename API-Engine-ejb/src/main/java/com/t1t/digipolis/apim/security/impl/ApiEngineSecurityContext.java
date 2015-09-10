@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Alternative;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -15,7 +16,8 @@ import javax.servlet.http.HttpServletRequest;
  * Created by michallispashidis on 5/09/15.
  */
 @ApplicationScoped
-@Default
+//@Default
+@Alternative
 public class ApiEngineSecurityContext extends AbstractSecurityContext {
     @Inject
     private IIdmStorage idmStorage;

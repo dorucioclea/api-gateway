@@ -8,7 +8,9 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * The basic/default implementation of a security context.
  */
-@ApplicationScoped @Alternative
+@ApplicationScoped
+//@Alternative
+@Default
 public class DefaultSecurityContext extends AbstractSecurityContext {
 
     public static final ThreadLocal<HttpServletRequest> servletRequest = new ThreadLocal<>();

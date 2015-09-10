@@ -99,8 +99,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
         //create consumer
         KongConsumer consumer = new KongConsumer()
-                .withUsername((application.getOrganizationId()+"."+application.getApplicationId() + "." + application.getVersion()).toLowerCase())
-                .withCustomId((application.getOrganizationId() + "."+application.getApplicationId()+"."+application.getVersion()).toLowerCase());//conventionally lower case
+                .withUsername((application.getOrganizationId()+"."+application.getApplicationId() + "." + application.getVersion()).toLowerCase());
+                //.withCustomId((application.getOrganizationId() + "."+application.getApplicationId()+"."+application.getVersion()).toLowerCase());//conventionally lower case
         consumer = httpClient.createConsumer(consumer);
 
         //register consumer application
@@ -112,7 +112,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
             keyAuthRequest = new KongPluginKeyAuthRequest().withKey(contract.getApiKey());
             httpClient.createConsumerKeyAuthCredentials(consumer.getId(), keyAuthRequest);
             //get the API
-            api = new KongApi().withName(NameConventionUtil.generateServiceUniqueName(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion()));
+            String apiName = NameConventionUtil.generateServiceUniqueName(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
+            api = httpClient.getApi(apiName);
             for(Policy policy:contract.getPolicies()){
                 //execute policy
                 Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
@@ -127,7 +128,6 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         }
 
         //register additional policies
-
 
         //what about other authorization policies? actions on different endpoint?
 

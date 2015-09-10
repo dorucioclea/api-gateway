@@ -150,7 +150,7 @@ public class KongClientIntegrationTest {
     @Test
     public void testCreateConsumer() throws Exception {
         KongConsumer cons = new KongConsumer();
-        cons.setUsername("michallis");
+        cons.setUsername("michallisxyz");
         cons.setCustomId("extid");
         KongConsumer regCons = kongClient.createConsumer(cons);
         assertNotNull(regCons);
@@ -414,7 +414,7 @@ public class KongClientIntegrationTest {
 
     private KongConsumer createTestConsumer(){
         KongConsumer cons = new KongConsumer();
-        cons.setUsername("michallis");
+        cons.setUsername("michallisxyw");
         cons.setCustomId("extid");
         print(cons);
         return cons;
