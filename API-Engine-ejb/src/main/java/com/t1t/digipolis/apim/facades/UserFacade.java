@@ -576,6 +576,7 @@ public class UserFacade {
         Set<String> roles = new TreeSet<>();
         roles.add("ApplicationDeveloper");
         roles.add("ServiceDeveloper");
+        roles.add("OrganizationOwner");
         GrantRolesBean usergrants = new GrantRolesBean();
         usergrants.setRoleIds(roles);
         usergrants.setUserId(username);
