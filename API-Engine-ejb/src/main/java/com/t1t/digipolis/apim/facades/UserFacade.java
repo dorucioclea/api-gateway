@@ -199,11 +199,6 @@ public class UserFacade {
         }
     }
 
-    public LoginResponseBean login(LoginRequestBean credentials) {
-
-        return null;
-    }
-
     public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token) {
         // Initialize the library
         try {

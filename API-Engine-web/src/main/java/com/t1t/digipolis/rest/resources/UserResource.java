@@ -165,20 +165,6 @@ public class UserResource implements IUserResource {
         return userFacade.getActivity(userId, page, pageSize);
     }
 
-    @ApiOperation(value = "User login",
-            notes = "Resource password credential owner login, in order to perform a SSO request to an IDP provider. A SAML2 signed bearer token will be returned that must be kept in the user's session.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "The search results (a page of organizations).")
-    })
-    @POST
-    @Path("/login")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public LoginResponseBean login(LoginRequestBean credentials) throws InvalidSearchCriteriaException {
-        Preconditions.checkNotNull(credentials);
-        return userFacade.login(credentials);
-    }
-
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
             notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, you can chose between 'opaque' or 'saml2bearer'.")
     @ApiResponses({
@@ -195,8 +181,8 @@ public class UserResource implements IUserResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
-        Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque)||request.getToken().equals(ClientTokeType.saml2bearer));
-        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(),request.getClientAppRedirect(),request.getToken());
+        Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.saml2bearer));
+        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken());
     }
 
     @ApiOperation(value = "The service provider for the SAML2 Authentication request",
@@ -223,7 +209,29 @@ public class UserResource implements IUserResource {
         }
         if(uri!=null)return Response.seeOther(uri).build();
         return Response.ok(request).build();
+    }
 
-
+    @ApiOperation(value = "User logout callback",
+            notes = "This endpoint performs actions upon an IDP triggered logout SAML2 request.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "The search results (a page of organizations).")
+    })
+    @POST
+    @Path("/idp/logout")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response logout() {
+        //don't do anything, logout triggered from client
+        //TODO config
+        String url = "https://idp.t1t.be:9443/dashboard";
+        URI redirectURL = null;
+        try {
+            redirectURL = new URL(url).toURI();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return Response.seeOther(redirectURL).build();
     }
 }
