@@ -10,15 +10,17 @@ public class SAMLRequest implements Serializable{
     private String spUrl;
     private String spName;
     private String clientAppRedirect;
+    private ClientTokeType token;
 
     public SAMLRequest() {
     }
 
-    public SAMLRequest(String idpUrl, String spUrl, String spName, String clientAppRedirect) {
+    public SAMLRequest(String idpUrl, String spUrl, String spName, String clientAppRedirect,ClientTokeType token) {
         this.idpUrl = idpUrl;
         this.spUrl = spUrl;
         this.spName = spName;
         this.clientAppRedirect = clientAppRedirect;
+        this.token=token;
     }
 
     public String getSpName() {
@@ -53,6 +55,14 @@ public class SAMLRequest implements Serializable{
         this.clientAppRedirect = clientAppRedirect;
     }
 
+    public ClientTokeType getToken() {
+        return token;
+    }
+
+    public void setToken(ClientTokeType token) {
+        this.token = token;
+    }
+
     @Override
     public String toString() {
         return "SAMLRequest{" +
@@ -60,6 +70,7 @@ public class SAMLRequest implements Serializable{
                 ", spUrl='" + spUrl + '\'' +
                 ", spName='" + spName + '\'' +
                 ", clientAppRedirect='" + clientAppRedirect + '\'' +
+                ", token=" + token +
                 '}';
     }
 }

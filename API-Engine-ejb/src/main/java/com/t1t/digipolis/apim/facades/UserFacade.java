@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
+import com.t1t.digipolis.apim.beans.user.ClientTokeType;
 import com.t1t.digipolis.apim.beans.user.LoginRequestBean;
 import com.t1t.digipolis.apim.beans.user.LoginResponseBean;
 import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
@@ -95,7 +96,8 @@ public class UserFacade {
     @Inject
     @APIEngineContext
     private Ehcache ehcache;
-    @Inject private OrganizationFacade organizationFacade;
+    @Inject
+    private OrganizationFacade organizationFacade;
 
     public UserBean get(String userId) {
         try {
@@ -202,7 +204,7 @@ public class UserFacade {
         return null;
     }
 
-    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl) {
+    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token) {
         // Initialize the library
         try {
             //Bootstrap OpenSAML
@@ -211,6 +213,7 @@ public class UserFacade {
             AuthnRequest authnRequest = buildAuthnRequestObject(spUrl, spName);
             //set client application name and callback in the cache
             ehcache.put(new net.sf.ehcache.Element(spName, clientUrl));
+            ehcache.put(new net.sf.ehcache.Element(spName + "token", token));
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
             return idpUrl + "?SAMLRequest=" + encodedRequestMessage;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
@@ -325,8 +328,9 @@ public class UserFacade {
         String clientAppName = "";
         String userName = "";
         StringBuffer clientUrl = new StringBuffer("");
+        Assertion assertion = null;
         try {
-            Assertion assertion = processSSOResponse(response);
+            assertion = processSSOResponse(response);
             clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
             userName = assertion.getSubject().getNameID().getValue();
             log.info("Audience URI found: {}", clientAppName);
@@ -336,7 +340,9 @@ public class UserFacade {
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
         //return the SAML2 Bearer token
         //responseRedirect.setToken(base64EncodedResponse);
-        responseRedirect.setToken(updateOrCreateConsumerOnGateway(userName));
+        if (assertion != null && ehcache.get(clientAppName.trim() + "token").getObjectValue().equals(ClientTokeType.saml2bearer))
+            responseRedirect.setToken(encodeSAML2BearerToken(assertion));
+        else responseRedirect.setToken(updateOrCreateConsumerOnGateway(userName));
         clientUrl.append((String) ehcache.get(clientAppName).getObjectValue());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
@@ -402,29 +408,35 @@ public class UserFacade {
      * @throws MarshallingException
      * @throws IOException
      */
-    private String encodeSAML2BearerToken(Assertion assertion) throws MarshallingException, IOException {
-        Marshaller marshaller = null;
-        org.w3c.dom.Element assertionDOM = null;
-        StringWriter requestWriter = null;
-        String requestMessage = null;
-        Deflater deflater = null;
-        ByteArrayOutputStream byteArrayOutputStream = null;
-        DeflaterOutputStream deflaterOutputStream = null;
-        String encodedRequestMessage = null;
-        marshaller = org.opensaml.Configuration.getMarshallerFactory().getMarshaller(assertion); // object to DOM converter
-        assertionDOM = marshaller.marshall(assertion); // converting to a DOM
-        requestWriter = new StringWriter();
-        XMLHelper.writeNode(assertionDOM, requestWriter);
-        requestMessage = requestWriter.toString(); // DOM to string
+    private String encodeSAML2BearerToken(Assertion assertion) {
+        try {
+            Marshaller marshaller = null;
+            org.w3c.dom.Element assertionDOM = null;
+            StringWriter requestWriter = null;
+            String requestMessage = null;
+            Deflater deflater = null;
+            ByteArrayOutputStream byteArrayOutputStream = null;
+            DeflaterOutputStream deflaterOutputStream = null;
+            String encodedRequestMessage = null;
+            marshaller = org.opensaml.Configuration.getMarshallerFactory().getMarshaller(assertion); // object to DOM converter
+
+            assertionDOM = marshaller.marshall(assertion); // converting to a DOM
+            requestWriter = new StringWriter();
+            XMLHelper.writeNode(assertionDOM, requestWriter);
+            requestMessage = requestWriter.toString(); // DOM to string
 /*        deflater = new Deflater(Deflater.DEFLATED, true);
         byteArrayOutputStream = new ByteArrayOutputStream();
         deflaterOutputStream = new DeflaterOutputStream(byteArrayOutputStream, deflater);
         deflaterOutputStream.write(requestMessage.getBytes()); // compressing
         deflaterOutputStream.close();*/
-        //encodedRequestMessage = Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
-        encodedRequestMessage = Base64.encodeBytes(requestMessage.getBytes(), Base64.DONT_BREAK_LINES);
-        encodedRequestMessage = URLEncoder.encode(encodedRequestMessage, "UTF-8").trim(); // encoding string
-        return encodedRequestMessage;
+            //encodedRequestMessage = Base64.encodeBytes(byteArrayOutputStream.toByteArray(), Base64.DONT_BREAK_LINES);
+            encodedRequestMessage = Base64.encodeBytes(requestMessage.getBytes(), Base64.DONT_BREAK_LINES);
+            encodedRequestMessage = URLEncoder.encode(encodedRequestMessage, "UTF-8").trim(); // encoding string
+            return encodedRequestMessage;
+        } catch (MarshallingException | UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return "error";
+        }
     }
 
     public String userFromSAML2BearerToken(String token) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
@@ -572,7 +584,7 @@ public class UserFacade {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    private void initNewUser(String username){
+    private void initNewUser(String username) {
         Set<String> roles = new TreeSet<>();
         roles.add("ApplicationDeveloper");
         roles.add("ServiceDeveloper");
@@ -580,7 +592,7 @@ public class UserFacade {
         GrantRolesBean usergrants = new GrantRolesBean();
         usergrants.setRoleIds(roles);
         usergrants.setUserId(username);
-        organizationFacade.grant("Digipolis",usergrants);
+        organizationFacade.grant("Digipolis", usergrants);
     }
 
     /**

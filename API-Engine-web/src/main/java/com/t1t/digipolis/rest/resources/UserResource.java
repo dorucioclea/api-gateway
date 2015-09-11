@@ -9,10 +9,7 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.beans.user.LoginRequestBean;
-import com.t1t.digipolis.apim.beans.user.LoginResponseBean;
-import com.t1t.digipolis.apim.beans.user.SAMLRequest;
-import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
+import com.t1t.digipolis.apim.beans.user.*;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -183,7 +180,7 @@ public class UserResource implements IUserResource {
     }
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
-            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL.")
+            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, you can chose between 'opaque' or 'saml2bearer'.")
     @ApiResponses({
             @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
             @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
@@ -198,11 +195,12 @@ public class UserResource implements IUserResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
-        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(),request.getClientAppRedirect());
+        Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque)||request.getToken().equals(ClientTokeType.saml2bearer));
+        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(),request.getClientAppRedirect(),request.getToken());
     }
 
-    @ApiOperation(value = "Get the Identity provider url with the SAML2 Authentication request",
-            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL.")
+    @ApiOperation(value = "The service provider for the SAML2 Authentication request",
+            notes = "This endpoint should be used by an IDP who's responding with a SAML2 Authentication response. The endpoint will provide an authorization token in return, towards the configured client URL (provided with the /idp/redirect request).")
     @ApiResponses({
             @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
             @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
