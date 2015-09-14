@@ -77,6 +77,7 @@ public class CurrentUserFacade {
 
     public void updateInfo(UpdateUserBean info){
         try {
+            String username = securityContext.getCurrentUser();
             UserBean user = idmStorage.getUser(securityContext.getCurrentUser());
             if (user == null) {
                 throw new StorageException("User not found: " + securityContext.getCurrentUser()); //$NON-NLS-1$
@@ -87,6 +88,9 @@ public class CurrentUserFacade {
             if (info.getFullName() != null) {
                 user.setFullName(info.getFullName());
             }
+            if (info.getPic()!=null){
+                user.setBase64pic(info.getPic());
+            }else user.setBase64pic("");
             idmStorage.updateUser(user);
 
             log.debug(String.format("Successfully updated user %s: %s", user.getUsername(), user)); //$NON-NLS-1$

@@ -12,6 +12,7 @@ public class UpdateUserBean implements Serializable {
 
     private String fullName;
     private String email;
+    private String pic;
 
     /**
      * Constructor.
@@ -47,9 +48,17 @@ public class UpdateUserBean implements Serializable {
         this.email = email;
     }
 
+    public String getPic() {
+        return pic;
+    }
+
+    public void setPic(String pic) {
+        this.pic = pic;
+    }
+
     /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {

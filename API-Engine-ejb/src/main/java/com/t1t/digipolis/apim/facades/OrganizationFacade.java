@@ -632,6 +632,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newService.setId(BeanUtils.idFromName(bean.getName()));
         newService.setBasepath(bean.getBasepath());
         newService.setCategories(bean.getCategories());
+        newService.setBase64logo(bean.getBase64logo());
         newService.setCreatedOn(new Date());
         newService.setCreatedBy(securityContext.getCurrentUser());
         try {

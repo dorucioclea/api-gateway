@@ -24,6 +24,9 @@ public class UserBean implements Serializable {
     private Date joinedOn;
     @Column(name="admin")
     private Boolean admin=false;//default
+    @Column(name = "pic")
+    @Lob
+    private String base64pic;
 
     // Used only when returning information about the current user
 /*    @Transient
@@ -89,6 +92,14 @@ public class UserBean implements Serializable {
      */
     public void setJoinedOn(Date joinedOn) {
         this.joinedOn = joinedOn;
+    }
+
+    public String getBase64pic() {
+        return base64pic;
+    }
+
+    public void setBase64pic(String base64pic) {
+        this.base64pic = base64pic;
     }
 
     /**

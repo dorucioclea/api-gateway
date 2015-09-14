@@ -41,6 +41,7 @@ public class CurrentUserBean extends UserBean {
         setFullName(user.getFullName());
         setJoinedOn(user.getJoinedOn());
         setUsername(user.getUsername());
+        setBase64pic(user.getBase64pic());
     }
 
     /* (non-Javadoc)

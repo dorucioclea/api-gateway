@@ -123,6 +123,9 @@ public class UserFacade {
             if (user.getFullName() != null) {
                 updatedUser.setFullName(user.getFullName());
             }
+            if (user.getPic()!=null){
+                updatedUser.setBase64pic(user.getPic());
+            }else updatedUser.setBase64pic("");
             idmStorage.updateUser(updatedUser);
         } catch (StorageException e) {
             throw new SystemErrorException(e);

@@ -4,9 +4,15 @@ import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
 import org.joda.time.DateTime;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Alternative;
+import javax.enterprise.inject.Default;
+
 /**
  * Created by michallispashidis on 12/09/15.
  */
+@ApplicationScoped
+@Alternative
 public class MongoMetricsAccessor implements IMetricsAccessor {
     @Override
     public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {

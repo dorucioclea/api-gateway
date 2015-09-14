@@ -133,6 +133,8 @@ public class ApplicationBean implements Serializable {
         this.base64logo = base64logo;
     }
 
+
+
     /* (non-Javadoc)
          * @see java.lang.Object#toString()
          */

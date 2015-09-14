@@ -45,6 +45,9 @@ public class ServiceBean implements Serializable {
     private String createdBy;
     @Column(name = "created_on", updatable=false, nullable=false)
     private Date createdOn;
+    @Column(name = "logo")
+    @Lob
+    private String base64logo;
 
     /**
      * Constructor.
@@ -150,6 +153,14 @@ public class ServiceBean implements Serializable {
 
     public void setCategories(Set<String> categories) {
         this.categories = categories;
+    }
+
+    public String getBase64logo() {
+        return base64logo;
+    }
+
+    public void setBase64logo(String base64logo) {
+        this.base64logo = base64logo;
     }
 
     @Override

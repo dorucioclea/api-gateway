@@ -613,6 +613,7 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkNotNull(bean);
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(bean.getBase64logo().length()<=10000L,"Logo should not be greater than 10k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createService(organizationId, bean);
     }
