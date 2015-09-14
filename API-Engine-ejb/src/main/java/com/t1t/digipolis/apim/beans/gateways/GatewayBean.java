@@ -52,7 +52,7 @@ public class GatewayBean implements Serializable {
     public GatewayBean() {
     }
 
-    @PrePersist @PreUpdate
+/*    @PrePersist @PreUpdate
     protected void encryptData() {
         // Encrypt the endpoint properties.
         configuration = AesEncrypter.encrypt(configuration);
@@ -62,7 +62,7 @@ public class GatewayBean implements Serializable {
     protected void decryptData() {
         // Encrypt the endpoint properties.
         configuration = AesEncrypter.decrypt(configuration);
-    }
+    }*/
 
     /**
      * @return the id

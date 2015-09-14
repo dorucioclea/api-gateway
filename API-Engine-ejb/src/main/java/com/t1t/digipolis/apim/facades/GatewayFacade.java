@@ -91,14 +91,14 @@ public class GatewayFacade {
                 throw ExceptionFactory.gatewayAlreadyExistsException(gateway.getName());
             }
             // Store/persist the new gateway
-            encryptPasswords(gateway);
+            // encryptPasswords(gateway);
             storage.createGateway(gateway);
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
-        decryptPasswords(gateway);
+        //decryptPasswords(gateway);
         log.debug(String.format("Successfully created new gateway %s: %s", gateway.getName(), gateway)); //$NON-NLS-1$
         return gateway;
     }
@@ -111,9 +111,10 @@ public class GatewayFacade {
             }
             if (!securityContext.isAdmin()) {
                 bean.setConfiguration(null);
-            } else {
-                decryptPasswords(bean);
             }
+/*            else {
+                decryptPasswords(bean);
+            }*/
             log.debug(String.format("Successfully fetched gateway %s: %s", bean.getName(), bean)); //$NON-NLS-1$
             return bean;
         } catch (AbstractRestException e) {
@@ -139,7 +140,7 @@ public class GatewayFacade {
                 gbean.setType(bean.getType());
             if (bean.getConfiguration() != null)
                 gbean.setConfiguration(bean.getConfiguration());
-            encryptPasswords(gbean);
+            //encryptPasswords(gbean);
             storage.updateGateway(gbean);
             log.debug(String.format("Successfully updated gateway %s: %s", gbean.getName(), gbean)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
