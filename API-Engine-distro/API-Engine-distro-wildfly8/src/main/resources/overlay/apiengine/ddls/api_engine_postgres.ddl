@@ -721,4 +721,4 @@ INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('adm
 
 INSERT INTO organizations (id,description,name,created_by,created_on,modified_by,modified_on) VALUES ('Digipolis','Digipolis','Digipolis','admin',CURRENT_DATE,'admin',CURRENT_DATE);
 
-INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (1000,CURRENT_DATE,'Digipolis','OrganizationOwner','admin');
+INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CURRENT_DATE,'Digipolis','OrganizationOwner','admin');
