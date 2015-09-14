@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.exceptions.ActionException;
@@ -13,6 +14,8 @@ import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.NameConventionUtil;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -32,6 +35,21 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     private KongClient httpClient;
     private GatewayBean gatewayBean;
     private static final ObjectMapper mapper = new ObjectMapper();
+    private static Config config;
+    private static String metricsURI;
+
+    static {
+        metricsURI = null;
+        config = ConfigFactory.load();
+        if(config!=null){
+            metricsURI = new StringBuffer("")
+                    .append(config.getString(IConfig.METRICS_SCHEME))
+                    .append("://")
+                    .append(config.getString(IConfig.METRICS_DNS))
+                    .append((!StringUtils.isEmpty(config.getString(IConfig.METRICS_PORT)))?":"+config.getString(IConfig.METRICS_PORT):"")
+                    .append("/").toString();
+        }
+    }
 
     /**
      * Constructor.
@@ -182,6 +200,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         boolean customCorsFlag = false;
         //flag for custom KeyAuth policy
         boolean customKeyAuth = false;
+        //flag for custom HTTP policy
+        boolean customHttp = false;
         //verify if api creation has been succesfull
         if(!StringUtils.isEmpty(api.getId())){
             List<Policy> policyList = service.getServicePolicies();
@@ -193,7 +213,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                     case BASICAUTHENTICATION: createServicePolicy(api, policy, Policies.BASICAUTHENTICATION.getKongIdentifier(),Policies.BASICAUTHENTICATION.getClazz());break;
                     case CORS: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.CORS.getClazz());customCorsFlag=true;break;
                     case FILELOG: createServicePolicy(api, policy, Policies.FILELOG.getKongIdentifier(),Policies.FILELOG.getClazz());break;
-                    case HTTPLOG: createServicePolicy(api, policy, Policies.HTTPLOG.getKongIdentifier(),Policies.HTTPLOG.getClazz());break;
+                    case HTTPLOG: createServicePolicy(api, policy, Policies.HTTPLOG.getKongIdentifier(),Policies.HTTPLOG.getClazz());customHttp=true;break;
                     case UDPLOG: createServicePolicy(api, policy, Policies.UDPLOG.getKongIdentifier(),Policies.UDPLOG.getClazz());break;
                     case TCPLOG: createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(),Policies.TCPLOG.getClazz());break;
                     case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
@@ -212,7 +232,22 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //add default CORS Policy if no custom CORS defined
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
         if(!customKeyAuth) registerDefaultKeyAuthPolicy(api);
-        //add HTTP log for marketplace
+        if(!customHttp&&!StringUtils.isEmpty(metricsURI)) registerDefaultHttpPolicy(api);
+    }
+
+    /**
+     * Registers the default httplog plugin pointing to the metrics server.
+     * We cannot add 2x HTTP logs instances.
+     * @param api
+     */
+    private void registerDefaultHttpPolicy(KongApi api) {
+        KongPluginHttpLog httpPolicy = new KongPluginHttpLog()
+                .withHttpEndpoint(metricsURI)
+                .withMethod(KongPluginHttpLog.Method.POST);
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(Policies.HTTPLOG.getKongIdentifier())
+                .withValue(httpPolicy);
+        httpClient.createPluginConfig(api.getId(),config);
     }
 
     /**
@@ -341,5 +376,9 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute
         config = httpClient.createPluginConfig(api.getId(),config);
+    }
+
+    public static String getMetricsURI() {
+        return metricsURI;
     }
 }
