@@ -720,3 +720,5 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
 INSERT INTO users (username, email, full_name, joined_on,admin) VALUES ('admin', 'admin@example.org', 'Admin', '2015-06-18 17:56:54.794',TRUE );
 
 INSERT INTO organizations (id,description,name,created_by,created_on,modified_by,modified_on) VALUES ('Digipolis','Digipolis','Digipolis','admin',CURRENT_DATE,'admin',CURRENT_DATE);
+
+INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (1000,CURRENT_DATE,'Digipolis','OrganizationOwner','admin');
