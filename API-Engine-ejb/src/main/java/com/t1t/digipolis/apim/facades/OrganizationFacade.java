@@ -894,6 +894,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void deleteContract(String organizationId, String applicationId, String version, Long contractId) {
         try {
             ContractBean contract = storage.getContract(contractId);
+            ApplicationVersionBean avb;
+            avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if (contract == null) {
                 throw ExceptionFactory.contractNotFoundException(contractId);
             }
@@ -907,6 +909,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.contractNotFoundException(contractId);
             }
             storage.deleteContract(contract);
+            //validate application state
+            // Validate the state of the application.
+            if (!applicationValidator.isReady(avb)) {
+                avb.setStatus(ApplicationStatus.Created);
+            }
             storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
             storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
             log.debug(String.format("Deleted contract: %s", contract)); //$NON-NLS-1$
