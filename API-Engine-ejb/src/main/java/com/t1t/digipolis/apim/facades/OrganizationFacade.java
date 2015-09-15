@@ -411,8 +411,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             EntityUpdatedData auditData = new EntityUpdatedData();
             if (AuditUtils.valueChanged(appForUpdate.getDescription(), bean.getDescription())) {
                 auditData.addChange("description", appForUpdate.getDescription(), bean.getDescription()); //$NON-NLS-1$
-                auditData.addChange("logo", appForUpdate.getBase64logo(),bean.getDescription());
                 appForUpdate.setDescription(bean.getDescription());
+            }
+            if(AuditUtils.valueChanged(appForUpdate.getBase64logo(),bean.getBase64logo())){
+                auditData.addChange("logo", appForUpdate.getBase64logo(), bean.getDescription());
                 appForUpdate.setBase64logo(bean.getBase64logo());
             }
             storage.updateApplication(appForUpdate);
@@ -1051,6 +1053,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (AuditUtils.valueChanged(serviceForUpdate.getCategories(), bean.getCategories())) {
                 auditData.addChange("categories", serviceForUpdate.getCategories().toString(), bean.getCategories().toString()); //$NON-NLS-1$
                 serviceForUpdate.setCategories(bean.getCategories());
+            }
+            if (AuditUtils.valueChanged(serviceForUpdate.getBase64logo(), bean.getBase64logo())) {
+                auditData.addChange("logo", serviceForUpdate.getBase64logo(), bean.getBase64logo()); //$NON-NLS-1$
+                serviceForUpdate.setBase64logo(bean.getBase64logo());
             }
             storage.updateService(serviceForUpdate);
             storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));

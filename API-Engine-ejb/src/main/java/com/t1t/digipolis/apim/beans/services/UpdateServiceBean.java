@@ -15,7 +15,7 @@ public class UpdateServiceBean implements Serializable {
     private static final long serialVersionUID = 8811488441452291116L;
 
     private String description;
-
+    private String base64logo;
     private Set<String> categories;
 
     /**
@@ -44,6 +44,14 @@ public class UpdateServiceBean implements Serializable {
 
     public void setCategories(Set<String> categories) {
         this.categories = categories;
+    }
+
+    public String getBase64logo() {
+        return base64logo;
+    }
+
+    public void setBase64logo(String base64logo) {
+        this.base64logo = base64logo;
     }
 
     @Override
