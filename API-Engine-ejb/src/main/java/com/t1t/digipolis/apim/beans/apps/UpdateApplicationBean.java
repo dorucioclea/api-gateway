@@ -14,6 +14,7 @@ public class UpdateApplicationBean implements Serializable {
     private static final long serialVersionUID = 5549391329361400489L;
 
     private String description;
+    private String base64logo;
 
     /**
      * Constructor.
@@ -35,9 +36,17 @@ public class UpdateApplicationBean implements Serializable {
         this.description = description;
     }
 
+    public String getBase64logo() {
+        return base64logo;
+    }
+
+    public void setBase64logo(String base64logo) {
+        this.base64logo = base64logo;
+    }
+
     /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {

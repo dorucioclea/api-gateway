@@ -411,7 +411,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             EntityUpdatedData auditData = new EntityUpdatedData();
             if (AuditUtils.valueChanged(appForUpdate.getDescription(), bean.getDescription())) {
                 auditData.addChange("description", appForUpdate.getDescription(), bean.getDescription()); //$NON-NLS-1$
+                auditData.addChange("logo", appForUpdate.getBase64logo(),bean.getDescription());
                 appForUpdate.setDescription(bean.getDescription());
+                appForUpdate.setBase64logo(bean.getBase64logo());
             }
             storage.updateApplication(appForUpdate);
             storage.createAuditEntry(AuditUtils.applicationUpdated(appForUpdate, auditData, securityContext));
