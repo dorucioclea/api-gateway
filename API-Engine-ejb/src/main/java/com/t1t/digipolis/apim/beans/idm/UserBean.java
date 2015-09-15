@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.beans.idm;
 
+import org.apache.commons.codec.binary.Base64;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
@@ -26,7 +28,7 @@ public class UserBean implements Serializable {
     private Boolean admin=false;//default
     @Column(name = "pic")
     @Lob
-    private String base64pic;
+    private byte[] base64pic;
 
     // Used only when returning information about the current user
 /*    @Transient
@@ -95,11 +97,11 @@ public class UserBean implements Serializable {
     }
 
     public String getBase64pic() {
-        return base64pic;
+        return Base64.encodeBase64String(base64pic);
     }
 
     public void setBase64pic(String base64pic) {
-        this.base64pic = base64pic;
+        this.base64pic = Base64.decodeBase64(base64pic.getBytes());
     }
 
     /**

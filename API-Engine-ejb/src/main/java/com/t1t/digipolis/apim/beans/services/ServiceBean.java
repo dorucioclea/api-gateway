@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.beans.services;
 
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
+import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
@@ -47,7 +48,7 @@ public class ServiceBean implements Serializable {
     private Date createdOn;
     @Column(name = "logo")
     @Lob
-    private String base64logo;
+    private byte[] base64logo;
 
     /**
      * Constructor.
@@ -156,11 +157,11 @@ public class ServiceBean implements Serializable {
     }
 
     public String getBase64logo() {
-        return base64logo;
+        return Base64.encodeBase64String(base64logo);
     }
 
     public void setBase64logo(String base64logo) {
-        this.base64logo = base64logo;
+        this.base64logo = Base64.decodeBase64(base64logo.getBytes());
     }
 
     @Override
