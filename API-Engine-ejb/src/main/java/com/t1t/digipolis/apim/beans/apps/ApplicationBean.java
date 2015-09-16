@@ -40,6 +40,7 @@ public class ApplicationBean implements Serializable {
     private Date createdOn;
     @Column(name = "logo")
     @Lob
+    @Basic(fetch=FetchType.EAGER)
     private byte[] base64logo;
 
     /**

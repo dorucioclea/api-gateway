@@ -1,13 +1,12 @@
 package com.t1t.digipolis.apim.security.impl;
 
 import com.t1t.digipolis.apim.beans.idm.UserBean;
-import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.facades.UserFacade;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Alternative;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 //@Alternative
 public class ApiEngineSecurityContext extends AbstractSecurityContext {
     @Inject
-    private IIdmStorage idmStorage;
+    private UserFacade userFacade;
 
     public static final ThreadLocal<HttpServletRequest> servletRequest = new ThreadLocal<>();
     private static final String AUTHENTICATED_USER_KEY = "authenticated_user";
@@ -34,16 +33,12 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
         String user = "";
         String authHeader = servletRequest.get().getHeader(HEADER_APIKEY_USER);
         if (!StringUtils.isEmpty(authHeader)) {
-            try {
-                UserBean userName = idmStorage.getUser(authHeader);
-                if(userName==null){
-                    clearPermissions();
-                    clearServletRequest();
-                    throw new UserNotFoundException("Unauthorized access");
-                }else user = authHeader;
-            } catch (StorageException e) {
-                throw new UserNotFoundException("User not fount: " + e.getMessage());
-            }
+            UserBean userName = userFacade.get(authHeader);
+            if (userName == null) {
+                clearPermissions();
+                clearServletRequest();
+                throw new UserNotFoundException("Unauthorized access");
+            } else user = authHeader;
         } else {
             clearPermissions();
             clearServletRequest();
@@ -77,16 +72,11 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
     }
 
 
-
     @Override
     public boolean isAdmin() {
         boolean result = false;
-        try {
-            if (!StringUtils.isEmpty(getCurrentUser())) {
-                result = idmStorage.getUser(getCurrentUser()).getAdmin();
-            }
-        } catch (StorageException e) {
-            e.printStackTrace();
+        if (!StringUtils.isEmpty(getCurrentUser())) {
+            result = userFacade.get(getCurrentUser()).getAdmin();
         }
         return result;
     }

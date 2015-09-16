@@ -12,8 +12,6 @@ import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
-import com.t1t.digipolis.apim.beans.user.LoginRequestBean;
-import com.t1t.digipolis.apim.beans.user.LoginResponseBean;
 import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
@@ -123,9 +121,9 @@ public class UserFacade {
             if (user.getFullName() != null) {
                 updatedUser.setFullName(user.getFullName());
             }
-            if (user.getPic()!=null){
+            if (user.getPic() != null) {
                 updatedUser.setBase64pic(user.getPic());
-            }else updatedUser.setBase64pic("");
+            }
             idmStorage.updateUser(updatedUser);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
