@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Created by michallispashidis on 9/09/15.
  */
 public class AuthConsumerBean implements Serializable {
-    private String uniqueUserName;//SAML2 nameid
+    private String uniqueUserName;//uniqueness = orgid.applicationversionid.version.username
     private String token;
 
     public AuthConsumerBean() {
