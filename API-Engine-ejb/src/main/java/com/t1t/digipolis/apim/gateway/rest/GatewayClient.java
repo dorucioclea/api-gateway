@@ -12,6 +12,16 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongApi;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongInfo;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginCors;
+import com.t1t.digipolis.kong.model.KongPluginHttpLog;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.NameConventionUtil;
 import com.typesafe.config.Config;
@@ -224,6 +234,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                     case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
                     case RESPONSETRANSFORMER: createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(),Policies.RESPONSETRANSFORMER.getClazz());break;
                     case SSL: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.SSL.getClazz());break;
+                    case ANALYTICS: createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());break;
                     default:break;
                 }
             }
