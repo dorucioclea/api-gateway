@@ -6,18 +6,25 @@ import java.io.Serializable;
  * Created by michallispashidis on 9/09/15.
  */
 public class AuthConsumerBean implements Serializable {
-    private String uniqueUserName;//uniqueness = orgid.applicationversionid.version.username
+    //generated:: org.app.version.customid
+    private String userId;
+    private String customId;
     private String token;
 
-    public AuthConsumerBean() {
+    public String getUserId() {
+        return userId;
     }
 
-    public String getUniqueUserName() {
-        return uniqueUserName;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public void setUniqueUserName(String uniqueUserName) {
-        this.uniqueUserName = uniqueUserName;
+    public String getCustomId() {
+        return customId;
+    }
+
+    public void setCustomId(String customId) {
+        this.customId = customId;
     }
 
     public String getToken() {
@@ -31,26 +38,27 @@ public class AuthConsumerBean implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AuthConsumerBean)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
 
         AuthConsumerBean that = (AuthConsumerBean) o;
 
-        if (!uniqueUserName.equals(that.uniqueUserName)) return false;
-        return !(token != null ? !token.equals(that.token) : that.token != null);
+        if (!userId.equals(that.userId)) return false;
+        return customId.equals(that.customId);
 
     }
 
     @Override
     public int hashCode() {
-        int result = uniqueUserName.hashCode();
-        result = 31 * result + (token != null ? token.hashCode() : 0);
+        int result = userId.hashCode();
+        result = 31 * result + customId.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return "AuthConsumer{" +
-                "uniqueUserName='" + uniqueUserName + '\'' +
+        return "AuthConsumerBean{" +
+                "userId='" + userId + '\'' +
+                ", customId='" + customId + '\'' +
                 ", token='" + token + '\'' +
                 '}';
     }
