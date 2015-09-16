@@ -1,10 +1,9 @@
-package com.t1t.digipolis.rest.resources;
+package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestBasicAuth;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestOAuth;
-import com.t1t.digipolis.apim.rest.resources.IAuthorizationResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;

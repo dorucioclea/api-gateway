@@ -64,8 +64,7 @@
         <module>API-Engine-ejb</module>
         <module>API-Engine-web</module>
         <module>API-Engine-ear</module>
-<!--        <module>API-Engine-distro</module>
-        <module>API-Engine-distro-package-wildfly2</module>-->
+        <module>Api-Engine-auth</module>
     </modules>
 
     <properties>
@@ -190,6 +189,13 @@
             <dependency>
                 <groupId>com.t1t.digipolis</groupId>
                 <artifactId>API-Engine-web</artifactId>
+                <version>${project.version}</version>
+                <type>war</type>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.t1t.digipolis</groupId>
+                <artifactId>API-Engine-auth</artifactId>
                 <version>${project.version}</version>
                 <type>war</type>
                 <scope>compile</scope>

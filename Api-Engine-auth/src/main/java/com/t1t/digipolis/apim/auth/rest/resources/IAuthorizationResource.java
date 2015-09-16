@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.rest.resources;
+package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestBasicAuth;

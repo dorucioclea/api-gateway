@@ -1,6 +1,7 @@
-package com.t1t.digipolis.rest;
-import com.t1t.digipolis.apim.rest.impl.mappers.RestExceptionMapper;
-import com.t1t.digipolis.rest.resources.*;
+package com.t1t.digipolis.apim.auth.rest;
+
+import com.t1t.digipolis.apim.auth.rest.impl.mappers.RestExceptionMapper;
+import com.t1t.digipolis.apim.auth.rest.resources.AuthorizationResource;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
@@ -44,20 +45,8 @@ public class JaxRsActivator extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(SystemResource.class);
-        resources.add(ActionResource.class);
-        resources.add(CurrentUserResource.class);
-        resources.add(GatewayResource.class);
-        resources.add(PermissionsResource.class);
-        resources.add(PluginResource.class);
-        resources.add(PolicyDefinitionResource.class);
-        resources.add(RoleResource.class);
-        resources.add(SearchResource.class);
-        resources.add(UserResource.class);
-        resources.add(OrganizationResource.class);
+        resources.add(AuthorizationResource.class);
         resources.add(RestExceptionMapper.class);
-        //resources.add(CORSRequestFilter.class);//CORS Request filter
-        //resources.add(CORSResponseFilter.class);//CORS Response filter
     }
 }
 
