@@ -1,5 +1,9 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
+import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -33,6 +37,21 @@ public class AuthorizationFacade {
     @Inject private IGatewayLinkFactory gatewayLinkFactory;
     @Inject private UserFacade userFacade;
     @Inject private RoleFacade roleFacade;
+    @Inject private OrganizationFacade organizationFacade;
 
+    public AuthConsumerBean createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+        //get application version
+        ApplicationVersionBean avb = organizationFacade.getAppVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        //verify API key
+        //create consumer with optional key
+        //add consumer to Appversion -> API ACLs
+        //or enforce policies for consumer (IPrestriction - RateLimit - RequestSizeLimit)
+        //issue apikey/existing optional key
+        //return consumer
+        return null;
+    }
 
+    public AuthConsumerBean getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+        return null;
+    }
 }

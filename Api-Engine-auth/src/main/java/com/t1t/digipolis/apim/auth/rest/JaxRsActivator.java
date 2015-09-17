@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.auth.rest;
 
 import com.t1t.digipolis.apim.auth.rest.impl.mappers.RestExceptionMapper;
-import com.t1t.digipolis.apim.auth.rest.resources.KeyAuthorization;
+import com.t1t.digipolis.apim.auth.rest.resources.KeyAuthorizationResource;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
@@ -45,7 +45,7 @@ public class JaxRsActivator extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(KeyAuthorization.class);
+        resources.add(KeyAuthorizationResource.class);
         resources.add(RestExceptionMapper.class);
     }
 }

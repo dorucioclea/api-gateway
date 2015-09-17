@@ -2,12 +2,14 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
+import com.t1t.digipolis.apim.facades.AuthorizationFacade;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -18,7 +20,10 @@ import javax.ws.rs.core.Response;
 @Api(value = "/authorization", description = "The Authorization API.  This API facilitates the creation of authorizations.")
 @Path("/authorization")
 @ApplicationScoped
-public class KeyAuthorization implements IKeyAuthorization {
+public class KeyAuthorizationResource implements IKeyAuthorization {
+    @Inject
+    private AuthorizationFacade authorizationFacade;
+
     @ApiOperation(value = "Create Key Authorization credentials for an application consumer.",
             notes = "Use this endpoint to register an application user, with key authorization credentials, in the context of your application version.")
     @ApiResponses({
@@ -30,7 +35,7 @@ public class KeyAuthorization implements IKeyAuthorization {
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
     public AuthConsumerBean createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
-        return null;
+        return authorizationFacade.createKeyAuthConsumer(criteria);
     }
 
     @ApiOperation(value = "Retrieve Key Authorization credentials for an application consumer.",
