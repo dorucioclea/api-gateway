@@ -97,6 +97,9 @@ public class UserFacade {
     @Inject
     private OrganizationFacade organizationFacade;
 
+    //Default organization
+    private static final String DEFAULT_ORG = "Digipolis";
+
     public UserBean get(String userId) {
         try {
             UserBean user = idmStorage.getUser(userId);
@@ -555,22 +558,19 @@ public class UserFacade {
                 //we are sure that this consumer must be a physical user
                 UserBean tempUser = idmStorage.getUser(userName);
                 if (tempUser == null) {
-                    //create user
-                    UserBean newUser = new UserBean();
-                    newUser.setUsername(userName);
-                    idmStorage.createUser(newUser);
-                    //TODO add apike/user to ACL -> version 0.5.0 of Kong
-                    //assign to default company
-                    //assign default roles in company
                     initNewUser(userName);
                 }
             } else {
                 //TEMP list, but should be ACL - a consumer can have more keys
                 KongPluginKeyAuthResponseList response = gatewayLink.getConsumerKeyAuth(consumer.getId());
                 if (response.getData().size() > 0) keytoken = response.getData().get(0).getKey();
+                //it is possible that the user exists in the gateway but not in the API Engine
+                UserBean userToBeVerified = idmStorage.getUser(userName);
+                if(userToBeVerified==null||StringUtils.isEmpty(userToBeVerified.getUsername())){
+                    initNewUser(userName);
+                }
             }
             gatewayLink.close();
-            //TODO add audit trail for consumer actions
         } catch (PublishingException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         } catch (Exception e) {
@@ -581,14 +581,26 @@ public class UserFacade {
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private void initNewUser(String username) {
-        Set<String> roles = new TreeSet<>();
-        roles.add("ApplicationDeveloper");
-        roles.add("ServiceDeveloper");
-        roles.add("OrganizationOwner");
-        GrantRolesBean usergrants = new GrantRolesBean();
-        usergrants.setRoleIds(roles);
-        usergrants.setUserId(username);
-        organizationFacade.grant("Digipolis", usergrants);
+        try {
+            //TODO add apike/user to ACL -> version 0.5.0 of Kong
+            //create user
+            UserBean newUser = new UserBean();
+            newUser.setUsername(username);
+            newUser.setAdmin(false);
+            idmStorage.createUser(newUser);
+            //assign default roles in company
+            Set<String> roles = new TreeSet<>();
+            roles.add("ApplicationDeveloper");
+            roles.add("ServiceDeveloper");
+            roles.add("OrganizationOwner");
+            //assign to default company
+            GrantRolesBean usergrants = new GrantRolesBean();
+            usergrants.setRoleIds(roles);
+            usergrants.setUserId(username);
+            organizationFacade.grant(DEFAULT_ORG, usergrants);
+        } catch (StorageException e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
+        }
     }
 
     /**
