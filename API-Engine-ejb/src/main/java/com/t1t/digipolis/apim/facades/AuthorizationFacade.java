@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.*;
+import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
@@ -52,6 +53,9 @@ public class AuthorizationFacade {
     }
 
     public AuthConsumerBean getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+        String gatewayId = getDefaultGateway().getId();
+        IGatewayLink gatewayLink = createGatewayLink(gatewayId);
+
         return null;
     }
 }
