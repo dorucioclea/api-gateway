@@ -1076,21 +1076,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (serviceVersion.getStatus() != ServiceStatus.Published) {
                 throw new InvalidServiceStatusException(Messages.i18n.format("ServiceNotPublished")); //$NON-NLS-1$
             }
-            Set<ServiceGatewayBean> gateways = serviceVersion.getGateways();
-            if (gateways.isEmpty()) {
-                throw new SystemErrorException("No Gateways for published Service!"); //$NON-NLS-1$
-            }
-            GatewayBean gateway = storage.getGateway(gateways.iterator().next().getGatewayId());
-            if (gateway == null) {
-                throw new GatewayNotFoundException();
-            }
-            IGatewayLink link = gatewayLinkFactory.create(gateway);
-            ServiceBean serviceBean = storage.getService(organizationId,serviceId);
-            ServiceEndpoint endpoint = link.getServiceEndpoint(serviceBean.getBasepath(),organizationId, serviceId, version);
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
-            rval.setManagedEndpoint(endpoint.getEndpoint());
-
-            log.debug(String.format("Got endpoint summary: %s", gateway)); //$NON-NLS-1$
+            rval.setManagedEndpoint(serviceVersion.getEndpoint());
             return rval;
         } catch (AbstractRestException e) {
             throw e;

@@ -13,6 +13,10 @@ public class UpdateUserBean implements Serializable {
     private String fullName;
     private String email;
     private String pic;
+    private String company;
+    private String location;
+    private String website;
+    private String bio;
 
     /**
      * Constructor.
@@ -56,12 +60,47 @@ public class UpdateUserBean implements Serializable {
         this.pic = pic;
     }
 
-    /* (non-Javadoc)
-         * @see java.lang.Object#toString()
-         */
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "UpdateUserBean [fullName=" + fullName + ", email=" + email + "]";
+        return "UpdateUserBean{" +
+                "fullName='" + fullName + '\'' +
+                ", email='" + email + '\'' +
+                ", company='" + company + '\'' +
+                ", location='" + location + '\'' +
+                ", website='" + website + '\'' +
+                ", bio='" + bio + '\'' +
+                '}';
     }
 }

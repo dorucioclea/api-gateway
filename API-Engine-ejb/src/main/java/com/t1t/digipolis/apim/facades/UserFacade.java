@@ -115,18 +115,14 @@ public class UserFacade {
     public void update(String userId, UpdateUserBean user) {
         try {
             UserBean updatedUser = idmStorage.getUser(userId);
-            if (updatedUser == null) {
-                throw ExceptionFactory.userNotFoundException(userId);
-            }
-            if (user.getEmail() != null) {
-                updatedUser.setEmail(user.getEmail());
-            }
-            if (user.getFullName() != null) {
-                updatedUser.setFullName(user.getFullName());
-            }
-            if (user.getPic() != null) {
-                updatedUser.setBase64pic(user.getPic());
-            }
+            if (updatedUser == null)throw ExceptionFactory.userNotFoundException(userId);
+            if (user.getEmail() != null)updatedUser.setEmail(user.getEmail());
+            if (user.getFullName() != null)updatedUser.setFullName(user.getFullName());
+            if (user.getPic() != null)updatedUser.setBase64pic(user.getPic());
+            if (user.getCompany()!=null)updatedUser.setCompany(user.getCompany());
+            if (user.getLocation()!=null)updatedUser.setLocation(user.getLocation());
+            if (user.getWebsite()!=null) updatedUser.setWebsite(user.getWebsite());
+            if (user.getBio()!=null)updatedUser.setBio(user.getBio());
             idmStorage.updateUser(updatedUser);
         } catch (StorageException e) {
             throw new SystemErrorException(e);

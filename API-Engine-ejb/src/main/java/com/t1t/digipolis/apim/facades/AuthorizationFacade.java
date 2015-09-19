@@ -53,8 +53,8 @@ public class AuthorizationFacade {
     }
 
     public AuthConsumerBean getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
-        String gatewayId = getDefaultGateway().getId();
-        IGatewayLink gatewayLink = createGatewayLink(gatewayId);
+/*        String gatewayId = getDefaultGateway().getId();
+        IGatewayLink gatewayLink = createGatewayLink(gatewayId);*/
 
         return null;
     }

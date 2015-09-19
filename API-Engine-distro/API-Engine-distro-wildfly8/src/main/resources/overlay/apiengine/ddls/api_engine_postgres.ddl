@@ -48,7 +48,7 @@ CREATE TABLE svc_gateways (service_version_id BIGINT NOT NULL, gateway_id VARCHA
 
 CREATE TABLE svc_plans (service_version_id BIGINT NOT NULL, plan_id VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL);
 
-CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on TIMESTAMP WITHOUT TIME ZONE NULL, admin BOOL DEFAULT FALSE, pic OID );
+CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on TIMESTAMP WITHOUT TIME ZONE NULL, admin BOOL DEFAULT FALSE,company VARCHAR(255),location VARCHAR(255),website VARCHAR(255),bio TEXT, pic OID );
 
 ALTER TABLE endpoint_properties ADD PRIMARY KEY (service_version_id, name);
 

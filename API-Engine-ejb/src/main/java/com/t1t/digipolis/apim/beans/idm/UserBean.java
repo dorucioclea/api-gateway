@@ -3,9 +3,11 @@ package com.t1t.digipolis.apim.beans.idm;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.netty.util.internal.StringUtil;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -28,10 +30,21 @@ public class UserBean implements Serializable {
     private Date joinedOn;
     @Column(name="admin")
     private Boolean admin=false;//default
+    @Column(name="company")
+    private String company;
+    @Column(name="location")
+    private String location;
+    @Column(name="website")
+    private String website;
+    @Lob
+    @Column(name="bio")
+    @Type(type = "org.hibernate.type.TextType")
+    private String bio;
     @Column(name = "pic")
     @Lob
     @Basic(fetch=FetchType.EAGER)
     private byte[] base64pic;
+
 
     // Used only when returning information about the current user
 /*    @Transient
@@ -109,6 +122,42 @@ public class UserBean implements Serializable {
         else this.base64pic = null;
     }
 
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public void setBase64pic(byte[] base64pic) {
+        this.base64pic = base64pic;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -148,13 +197,18 @@ public class UserBean implements Serializable {
         this.admin = admin;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "UserBean [username=" + username + ", fullName=" + fullName + ", email=" + email
-                + ", joinedOn=" + joinedOn + ", admin=" + admin + "]";
+        return "UserBean{" +
+                "username='" + username + '\'' +
+                ", fullName='" + fullName + '\'' +
+                ", email='" + email + '\'' +
+                ", joinedOn=" + joinedOn +
+                ", admin=" + admin +
+                ", company='" + company + '\'' +
+                ", location='" + location + '\'' +
+                ", website='" + website + '\'' +
+                ", bio='" + bio + '\'' +
+                '}';
     }
 }

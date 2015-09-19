@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
@@ -82,17 +83,15 @@ public class CurrentUserFacade {
             if (user == null) {
                 throw new StorageException("User not found: " + securityContext.getCurrentUser()); //$NON-NLS-1$
             }
-            if (info.getEmail() != null) {
-                user.setEmail(info.getEmail());
-            }
-            if (info.getFullName() != null) {
-                user.setFullName(info.getFullName());
-            }
-            if (info.getPic()!=null){
-                user.setBase64pic(info.getPic());
-            }else user.setBase64pic("");
-            idmStorage.updateUser(user);
+            if (info.getEmail() != null)user.setEmail(info.getEmail());
+            if (info.getFullName() != null)user.setFullName(info.getFullName());
+            if (info.getPic() != null)user.setBase64pic(info.getPic());else user.setBase64pic("");
+            if (info.getCompany() != null) user.setCompany(info.getCompany());
+            if (info.getLocation()!=null)user.setLocation(info.getLocation());
+            if (info.getWebsite()!=null) user.setWebsite(info.getWebsite());
+            if (info.getBio()!=null)user.setBio(info.getBio());
 
+            idmStorage.updateUser(user);
             log.debug(String.format("Successfully updated user %s: %s", user.getUsername(), user)); //$NON-NLS-1$
         } catch (StorageException e) {
             throw new SystemErrorException(e);
