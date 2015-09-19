@@ -13,6 +13,16 @@ public class ConsumerConventionUtil {
                 .append(appVersionId)
                 .append(".")
                 .append(userId);
-        return uniqueName.toString();
+        return uniqueName.toString().toLowerCase();
+    }
+
+    public static String createAppUniqueId(String orgId, String appId, String appVersionId){
+        StringBuilder uniqueName = new StringBuilder("");
+        uniqueName.append(orgId)
+                .append(".")
+                .append(appId)
+                .append(".")
+                .append(appVersionId);
+        return uniqueName.toString().toLowerCase();
     }
 }

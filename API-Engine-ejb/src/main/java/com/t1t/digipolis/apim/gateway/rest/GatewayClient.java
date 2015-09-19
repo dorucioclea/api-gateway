@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
-import com.t1t.digipolis.apim.exceptions.ActionException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
@@ -22,8 +21,9 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
-import com.t1t.digipolis.util.NameConventionUtil;
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -127,10 +127,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
         //create consumer
         KongConsumer consumer = new KongConsumer()
-                .withUsername((application.getOrganizationId()+"."+application.getApplicationId() + "." + application.getVersion()).toLowerCase());
-                //.withCustomId((application.getOrganizationId() + "."+application.getApplicationId()+"."+application.getVersion()).toLowerCase());//conventionally lower case
+                .withUsername(ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(),application.getApplicationId(),application.getVersion()));
         consumer = httpClient.createConsumer(consumer);
-
         //register consumer application
         //for each API register keyauth apikey for consumer on API
         KongPluginKeyAuthRequest keyAuthRequest;
@@ -140,7 +138,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
             keyAuthRequest = new KongPluginKeyAuthRequest().withKey(contract.getApiKey());
             httpClient.createConsumerKeyAuthCredentials(consumer.getId(), keyAuthRequest);
             //get the API
-            String apiName = NameConventionUtil.generateServiceUniqueName(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
+            String apiName = ServiceConventionUtil.generateServiceUniqueName(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
             api = httpClient.getApi(apiName);
             for(Policy policy:contract.getPolicies()){
                 //execute policy
@@ -154,16 +152,34 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                 }
             }
         }
+    }
 
-        //register additional policies
-
-        //what about other authorization policies? actions on different endpoint?
-
+    public void registerAppConsumer(Application application, KongConsumer appConsumer){
+        //register consumer application
+        //for each API register keyauth apikey for consumer on API
+        KongPluginKeyAuthRequest keyAuthRequest;
+        KongApi api;
+        //context of API
+        for(Contract contract:application.getContracts()){
+            //get the API
+            String apiName = ServiceConventionUtil.generateServiceUniqueName(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
+            api = httpClient.getApi(apiName);
+            for(Policy policy:contract.getPolicies()){
+                //execute policy
+                Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
+                switch(policies){
+                    //all policies can be available here
+                    case IPRESTRICTION: createPlanPolicy(api, appConsumer, policy, Policies.IPRESTRICTION.getKongIdentifier(), Policies.IPRESTRICTION.getClazz());break;
+                    case RATELIMITING: createPlanPolicy(api, appConsumer, policy, Policies.RATELIMITING.getKongIdentifier(), Policies.RATELIMITING.getClazz());break;
+                    case REQUESTSIZELIMITING: createPlanPolicy(api, appConsumer, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
+                    default:break;
+                }
+            }
+        }
     }
 
     public void unregister(String organizationId, String applicationId, String version) throws RegistrationException, GatewayAuthenticationException {
         //When an API is remove all attached policies are removed as well
-
     }
 
     /**
@@ -188,7 +204,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         KongApi api = new KongApi();
         api.setStripPath(true);
         //api.setPublicDns();
-        String nameAndDNS = NameConventionUtil.generateServiceUniqueName(service);
+        String nameAndDNS = ServiceConventionUtil.generateServiceUniqueName(service);
         //name wil be: organization.application.version
         api.setName(nameAndDNS);
         //version wil be: organization.application.version
@@ -329,7 +345,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         //create the service using path, and target_url
-        String nameAndDNS = NameConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
+        String nameAndDNS = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
         httpClient.deleteApi(nameAndDNS);
     }
 
@@ -344,8 +360,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         }
     }
 
-    public KongConsumer createConsumer(String customId){
-        return httpClient.createConsumer(new KongConsumer().withUsername(customId));
+    public KongConsumer createConsumer(String userUniqueName){
+        return httpClient.createConsumer(new KongConsumer().withUsername(userUniqueName));
     }
 
     public KongConsumer createConsumer(String userUniqueId, String customId){
@@ -362,6 +378,10 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
     public KongPluginKeyAuthResponse createConsumerKeyAuth(String id, String apiKey){
         return httpClient.createConsumerKeyAuthCredentials(id,new KongPluginKeyAuthRequest().withKey(apiKey));
+    }
+
+    public KongApi getApi(String id){
+        return httpClient.getApi(id);
     }
 
 

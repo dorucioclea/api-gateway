@@ -5,7 +5,7 @@ import com.t1t.digipolis.apim.gateway.dto.Service;
 /**
  * Created by michallispashidis on 08/09/15.
  */
-public class NameConventionUtil {
+public class ServiceConventionUtil {
     /**
      * Generates a unique service name for Kong.
      * The name is constituted of the organizationid.serviceid.version

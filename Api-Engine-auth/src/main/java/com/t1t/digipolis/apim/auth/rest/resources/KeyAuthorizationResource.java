@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.auth.rest.resources;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.facades.AuthorizationFacade;
@@ -7,6 +8,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -25,7 +27,7 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     private AuthorizationFacade authorizationFacade;
 
     @ApiOperation(value = "Create Key Authorization credentials for an application consumer.",
-            notes = "Use this endpoint to register an application user, with key authorization credentials, in the context of your application version.")
+            notes = "Use this endpoint to register an application user, with key authorization credentials (received from 1 registered service), in the context of your application version.")
     @ApiResponses({
             @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username and generated KeyAuth token.")
     })
@@ -35,7 +37,13 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
     public Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getOrgId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getAppId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getAppVersion()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getCustomId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getContractApiKey()));
+        AuthConsumerBean result = authorizationFacade.createKeyAuthConsumer(criteria);
+        return Response.ok().entity(result).build();
     }
 
     @ApiOperation(value = "Retrieve Key Authorization credentials for an application consumer.",
@@ -49,7 +57,13 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
     public Response getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getOrgId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getAppId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getAppVersion()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getCustomId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getContractApiKey()));
+        AuthConsumerBean result = authorizationFacade.getKeyAuthConsumer(criteria);
+        return Response.ok().entity(result).build();
     }
 
     @ApiOperation(value = "Update Key Authorization credentials for an application consumer.",
@@ -69,7 +83,7 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @ApiOperation(value = "Delete authorization for a consumer in the context of an application version.",
             notes = "Use this endpoint to delete an application user (consumer), in the context of your application version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username and generated KeyAuth token."),
+            @ApiResponse(code = 200, message = "The result unique username and generated KeyAuth token."),
             @ApiResponse(code = 401, message = "Unauthorized.")
     })
     @DELETE

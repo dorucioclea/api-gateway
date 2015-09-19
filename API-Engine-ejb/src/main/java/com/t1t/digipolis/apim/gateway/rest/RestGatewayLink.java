@@ -16,12 +16,14 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.RestServiceBuilder;
+import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
 
@@ -87,6 +89,11 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
+    public KongConsumer createConsumer(String userId, String customId) throws ConsumerAlreadyExistsException {
+        return getClient().createConsumer(userId, customId);
+    }
+
+    @Override
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id) throws ConsumerException {
         return getClient().createConsumerKeyAuth(id);
     }
@@ -95,6 +102,11 @@ public class RestGatewayLink implements IGatewayLink {
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id, String apiKey) throws ConsumerException {
         if(StringUtils.isEmpty(apiKey))return addConsumerKeyAuth(id);
         else return getClient().createConsumerKeyAuth(id, apiKey);
+    }
+
+    @Override
+    public KongApi getApi(String id) throws GatewayException {
+        return getClient().getApi(id);
     }
 
     /**
@@ -120,6 +132,11 @@ public class RestGatewayLink implements IGatewayLink {
     public ServiceEndpoint getServiceEndpoint(String basePath,String organizationId, String serviceId, String version)
             throws GatewayAuthenticationException {
         return getClient().getServiceEndpoint(basePath,organizationId, serviceId, version);
+    }
+
+    @Override
+    public void registerAppConsumer(Application application, KongConsumer consumer) throws GatewayAuthenticationException {
+        getClient().registerAppConsumer(application, consumer);
     }
 
     /**
