@@ -201,16 +201,17 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
         try{
             //If service exists already on the gateway due to an invalid action before, delete the existing with the same name (republish)
-            KongApi existingAPI = httpClient.getApi(api.getId());
+            KongApi existingAPI = httpClient.getApi(api.getName());
             if(existingAPI!=null&&!StringUtils.isEmpty(existingAPI.getId())){
                 //the API exists already - please override - this is restricted due to the naming convention
                 httpClient.deleteApi(api.getId());
             }
-            api = httpClient.addApi(api);
-        }catch (RetrofitError error){
+        }catch (Exception ex){
             //start new client to comm with kong
-            throw new ActionException(error.getMessage());
+            log.info("Warning during service publication: {}",ex.getMessage());
+            //continue
         }
+        api = httpClient.addApi(api);
 
         //flag for custom CORS policy
         boolean customCorsFlag = false;

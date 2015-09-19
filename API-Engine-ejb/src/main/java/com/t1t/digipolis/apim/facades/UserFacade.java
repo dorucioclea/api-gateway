@@ -23,7 +23,6 @@ import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
-import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -86,7 +85,7 @@ public class UserFacade {
     @Inject
     private IStorage storage;
     @Inject
-    private IGatewayLinkFactory gatewayLinkFactory;
+    private GatewayFacade gatewayFacade;
     @Inject
     private IStorageQuery query;
     @Inject
@@ -521,17 +520,6 @@ public class UserFacade {
     }
 
     /**
-     * Return default gateway - normally one should be supported for each environment.
-     * The Kong gateway will sync all actions towards the other shards in the same environment.
-     *
-     * @return
-     * @throws StorageException
-     */
-    private GatewaySummaryBean getDefaultGateway() throws StorageException {
-        return query.listGateways().get(0);
-    }
-
-    /**
      * Updates or creates a consumer on the gateway and in the data model.
      * TODO: should updated with ACL
      *
@@ -542,9 +530,9 @@ public class UserFacade {
         String keytoken = "";
         // Publish the service to all relevant gateways
         try {
-            String gatewayId = getDefaultGateway().getId();
+            String gatewayId = gatewayFacade.getDefaultGateway().getId();
             Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
-            IGatewayLink gatewayLink = createGatewayLink(gatewayId);
+            IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
             KongConsumer consumer = gatewayLink.getConsumer(userName);
             if (consumer == null) {
                 //user doesn't exists, implicit creation
@@ -596,27 +584,6 @@ public class UserFacade {
             organizationFacade.grant(DEFAULT_ORG, usergrants);
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
-        }
-    }
-
-    /**
-     * Creates a gateway link given a gateway id.
-     * TODO duplicated in ActionFacade => set as utility
-     *
-     * @param gatewayId
-     */
-    private IGatewayLink createGatewayLink(String gatewayId) throws PublishingException {
-        try {
-            GatewayBean gateway = storage.getGateway(gatewayId);
-            if (gateway == null) {
-                throw new GatewayNotFoundException();
-            }
-            IGatewayLink link = gatewayLinkFactory.create(gateway);
-            return link;
-        } catch (GatewayNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new PublishingException(e.getMessage(), e);
         }
     }
 

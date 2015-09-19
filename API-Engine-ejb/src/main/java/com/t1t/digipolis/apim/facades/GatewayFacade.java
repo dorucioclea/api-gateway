@@ -10,12 +10,14 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.AbstractRestException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
+import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -199,6 +201,38 @@ public class GatewayFacade {
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Return default gateway - normally one should be supported for each environment.
+     * The Kong gateway will sync all actions towards the other shards in the same environment.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public GatewaySummaryBean getDefaultGateway() throws StorageException {
+        return query.listGateways().get(0);
+    }
+
+    /**
+     * Creates a gateway link given a gateway id.
+     * TODO duplicated in ActionFacade => set as utility
+     *
+     * @param gatewayId
+     */
+    public IGatewayLink createGatewayLink(String gatewayId) throws PublishingException {
+        try {
+            GatewayBean gateway = storage.getGateway(gatewayId);
+            if (gateway == null) {
+                throw new GatewayNotFoundException();
+            }
+            IGatewayLink link = gatewayLinkFactory.create(gateway);
+            return link;
+        } catch (GatewayNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PublishingException(e.getMessage(), e);
         }
     }
 }
