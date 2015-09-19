@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestBasicAuth;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestOAuth;
 
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 /**
@@ -19,7 +20,7 @@ public interface IKeyAuthorization {
      * @return
      */
     Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
-    Response getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
+    Response getKeyAuthConsumer(String apiKey,String orgId,String appId,String version,String customId);
     Response updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
     Response deleteKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
 }

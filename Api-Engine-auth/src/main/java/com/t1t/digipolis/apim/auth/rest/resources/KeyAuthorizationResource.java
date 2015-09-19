@@ -52,16 +52,26 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
             @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username and generated KeyAuth token.")
     })
     @GET
-    @Path("/key-auth")
+    @Path("/key-auth/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
-    public Response getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getOrgId()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getAppId()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getAppVersion()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getCustomId()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getContractApiKey()));
+    public Response getKeyAuthConsumer(@PathParam("key")String apiKey,
+                                       @PathParam("orgId")String orgId,
+                                       @PathParam("appId")String appId,
+                                       @PathParam("version")String version,
+                                       @PathParam("customUser")String customId) {
+        Preconditions.checkArgument(!StringUtils.isEmpty(apiKey));
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(appId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(customId));
+        AuthConsumerRequestKeyAuthBean criteria = new AuthConsumerRequestKeyAuthBean();
+        criteria.setContractApiKey(apiKey);
+        criteria.setOrgId(orgId);
+        criteria.setAppId(appId);
+        criteria.setAppVersion(version);
+        criteria.setCustomId(customId);
         AuthConsumerBean result = authorizationFacade.getKeyAuthConsumer(criteria);
         return Response.ok().entity(result).build();
     }
