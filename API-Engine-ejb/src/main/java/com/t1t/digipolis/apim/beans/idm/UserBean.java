@@ -154,10 +154,6 @@ public class UserBean implements Serializable {
         this.bio = bio;
     }
 
-    public void setBase64pic(byte[] base64pic) {
-        this.base64pic = base64pic;
-    }
-
     /**
      * @see Object#hashCode()
      */
