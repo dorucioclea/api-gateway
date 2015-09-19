@@ -1078,6 +1078,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
             rval.setManagedEndpoint(serviceVersion.getEndpoint());
+
             return rval;
         } catch (AbstractRestException e) {
             throw e;

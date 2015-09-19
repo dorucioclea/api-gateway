@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.beans.services;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.hibernate.validator.constraints.URL;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -37,6 +38,7 @@ public class ServiceVersionBean implements Serializable {
     @Column(updatable=true, nullable=false)
     @Enumerated(EnumType.STRING)
     private ServiceStatus status;
+    @URL
     private String endpoint;
     @Column(name = "endpoint_type")
     @Enumerated(EnumType.STRING)
