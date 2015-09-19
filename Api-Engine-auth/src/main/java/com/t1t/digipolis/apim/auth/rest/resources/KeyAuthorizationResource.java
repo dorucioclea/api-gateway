@@ -34,8 +34,8 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
-    public AuthConsumerBean createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
-        return authorizationFacade.createKeyAuthConsumer(criteria);
+    public Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
     @ApiOperation(value = "Retrieve Key Authorization credentials for an application consumer.",
@@ -48,8 +48,8 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
-    public AuthConsumerBean getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
-        return null;
+    public Response getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
     @ApiOperation(value = "Update Key Authorization credentials for an application consumer.",
@@ -62,8 +62,8 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
-    public AuthConsumerBean updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
-        return null;
+    public Response updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
     @ApiOperation(value = "Delete authorization for a consumer in the context of an application version.",
@@ -78,34 +78,6 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
     public Response deleteKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
-        return null;
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
-
-/*    @ApiOperation(value = "Create Key Authorization credentials (API Key) for an application consumer.",
-            notes = "Use this endpoint to register an application user, with key authorization credentials.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username (from IDP) and generated API Key token.")
-    })
-    @POST
-    @Path("/key-auth")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Override
-    public AuthConsumerBean createBasicAuthConsumer(AuthConsumerRequestBasicAuth criteria) {
-        return null;
-    }
-
-    @ApiOperation(value = "Create OAuth2 credentials for an application consumer.",
-            notes = "Use this endpoint to register an application user, with OAuth2 authorization credentials.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username (from IDP) and generated API Key token.")
-    })
-    @POST
-    @Path("/oauth2")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Override
-    public AuthConsumerBean createOAuthConsumer(AuthConsumerRequestOAuth criteria) {
-        return null;
-    }*/
 }

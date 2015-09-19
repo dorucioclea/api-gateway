@@ -18,8 +18,8 @@ public interface IKeyAuthorization {
      * @param criteria
      * @return
      */
-    AuthConsumerBean createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
-    AuthConsumerBean getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
-    AuthConsumerBean updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
+    Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
+    Response getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
+    Response updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
     Response deleteKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
 }

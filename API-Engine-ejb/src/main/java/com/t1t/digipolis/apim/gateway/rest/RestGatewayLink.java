@@ -19,6 +19,7 @@ import com.t1t.digipolis.apim.kong.RestServiceBuilder;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -88,6 +89,12 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id) throws ConsumerException {
         return getClient().createConsumerKeyAuth(id);
+    }
+
+    @Override
+    public KongPluginKeyAuthResponse addConsumerKeyAuth(String id, String apiKey) throws ConsumerException {
+        if(StringUtils.isEmpty(apiKey))return addConsumerKeyAuth(id);
+        else return getClient().createConsumerKeyAuth(id, apiKey);
     }
 
     /**

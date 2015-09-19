@@ -9,6 +9,9 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 
 /**
  * Links the design time API with a Gateway.  This allows the design time API
@@ -109,5 +112,14 @@ public interface IGatewayLink {
      * @throws ConsumerException
      */
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id) throws ConsumerException;
+
+    /**
+     * Add key auth to a consumer with given API Key.
+     * @param id
+     * @param apiKey
+     * @return
+     * @throws ConsumerException
+     */
+    public KongPluginKeyAuthResponse addConsumerKeyAuth(String id,String apiKey) throws ConsumerException;
     
 }

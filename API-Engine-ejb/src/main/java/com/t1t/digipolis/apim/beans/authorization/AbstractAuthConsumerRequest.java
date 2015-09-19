@@ -10,7 +10,7 @@ public abstract class AbstractAuthConsumerRequest implements Serializable {
     private String orgId;
     private String appId;
     private String appVersion;
-    private String appApiKey;
+    private String contractApiKey;
     private String customId; //kong -> custom id
     private String userId; //generated:: org.app.version.customid
 
@@ -38,12 +38,12 @@ public abstract class AbstractAuthConsumerRequest implements Serializable {
         this.appVersion = appVersion;
     }
 
-    public String getAppApiKey() {
-        return appApiKey;
+    public String getContractApiKey() {
+        return contractApiKey;
     }
 
-    public void setAppApiKey(String appApiKey) {
-        this.appApiKey = appApiKey;
+    public void setContractApiKey(String contractApiKey) {
+        this.contractApiKey = contractApiKey;
     }
 
     public String getCustomId() {
@@ -68,7 +68,7 @@ public abstract class AbstractAuthConsumerRequest implements Serializable {
                 "orgId='" + orgId + '\'' +
                 ", appId='" + appId + '\'' +
                 ", appVersion='" + appVersion + '\'' +
-                ", appApiKey='" + appApiKey + '\'' +
+                ", contractApiKey='" + contractApiKey + '\'' +
                 ", customId='" + customId + '\'' +
                 ", userId='" + userId + '\'' +
                 '}';
