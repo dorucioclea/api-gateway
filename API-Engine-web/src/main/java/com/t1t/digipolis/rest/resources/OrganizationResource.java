@@ -33,11 +33,13 @@ import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import com.t1t.digipolis.util.ValidationUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.common.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -808,6 +810,8 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         Preconditions.checkNotNull(bean);
+        //it's possible not to provide the endpoint directly
+        if(!StringUtils.isEmpty(bean.getEndpoint())) Preconditions.checkArgument(ValidationUtils.isValidURL(bean.getEndpoint()));
         return orgFacade.updateServiceVersion(organizationId, serviceId, version, bean);
     }
 
