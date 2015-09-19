@@ -65,4 +65,12 @@ public class NewServiceVersionBean implements Serializable {
         this.cloneVersion = cloneVersion;
     }
 
+    @Override
+    public String toString() {
+        return "NewServiceVersionBean{" +
+                "version='" + version + '\'' +
+                ", clone=" + clone +
+                ", cloneVersion='" + cloneVersion + '\'' +
+                '}';
+    }
 }

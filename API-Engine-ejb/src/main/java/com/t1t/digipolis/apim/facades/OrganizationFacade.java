@@ -667,6 +667,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public ServiceVersionBean createServiceVersion(String organizationId, String serviceId, NewServiceVersionBean bean) {
+        log.info("newservice:{}",bean);
         ServiceVersionBean newVersion = null;
         try {
             //adds the default gateway - service can be updated to add another gateway
@@ -701,10 +702,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 // Clone the service definition document
                 try {
                     InputStream definition = getServiceDefinition(organizationId, serviceId, bean.getCloneVersion());
-                    storeServiceDefinition(organizationId, serviceId, newVersion.getVersion(),
-                            cloneSource.getDefinitionType(), definition);
-                } catch (ServiceDefinitionNotFoundException svnfe) {
-                    // This is ok - it just means the service doesn't have one, so do nothing.
+                    if(definition!=null) storeServiceDefinition(organizationId, serviceId, newVersion.getVersion(), cloneSource.getDefinitionType(), definition);
                 } catch (Exception sdnfe) {
                     log.error("Unable to create response", sdnfe); //$NON-NLS-1$
                 }
@@ -735,11 +733,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
             if (serviceVersion.getDefinitionType() == ServiceDefinitionType.None || serviceVersion.getDefinitionType() == null) {
-                throw ExceptionFactory.serviceDefinitionNotFoundException(serviceId, version);
+                return null;
+                //throw ExceptionFactory.serviceDefinitionNotFoundException(serviceId, version);
             }
             InputStream definition = storage.getServiceDefinition(serviceVersion);
             if (definition == null) {
-                throw ExceptionFactory.serviceDefinitionNotFoundException(serviceId, version);
+                return null;
+                //throw ExceptionFactory.serviceDefinitionNotFoundException(serviceId, version);
             }
             return definition;
         } catch (AbstractRestException e) {
