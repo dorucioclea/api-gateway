@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
@@ -68,7 +69,12 @@ public class AuthorizationFacade {
 
     public AuthConsumerBean createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
         //get application version
-        ApplicationVersionBean avb = organizationFacade.getAppVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        ApplicationVersionBean avb = null;
+        try{
+             avb = organizationFacade.getAppVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        }catch (Exception ex){
+            return null;
+        }
         //verify API key and select contract
         List<ContractSummaryBean> appContracts = organizationFacade.getApplicationVersionContracts(criteria.getOrgId(),criteria.getAppId(),criteria.getAppVersion());
         if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
@@ -111,6 +117,13 @@ public class AuthorizationFacade {
     }
 
     public AuthConsumerBean getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+        //get application version
+        ApplicationVersionBean avb = null;
+        try{
+            avb = organizationFacade.getAppVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        }catch (Exception ex){
+            return null;
+        }
         //verify API key and select contract
         List<ContractSummaryBean> appContracts = organizationFacade.getApplicationVersionContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
         if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");

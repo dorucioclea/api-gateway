@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestBasicAuth;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestOAuth;
+import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
 
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
@@ -19,8 +20,8 @@ public interface IKeyAuthorization {
      * @param criteria
      * @return
      */
-    Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
-    Response getKeyAuthConsumer (String apiKey,String orgId,String appId,String version,String customId);
+    Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria)throws ApplicationNotFoundException;
+    Response getKeyAuthConsumer (String apiKey,String orgId,String appId,String version,String customId)throws ApplicationNotFoundException;
     //Response updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
-    Response deleteKeyAuthConsumer(String apiKey,String orgId,String appId,String version,String customId);
+    Response deleteKeyAuthConsumer(String apiKey,String orgId,String appId,String version,String customId)throws ApplicationNotFoundException;
 }

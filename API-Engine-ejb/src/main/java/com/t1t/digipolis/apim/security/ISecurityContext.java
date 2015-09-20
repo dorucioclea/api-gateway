@@ -18,6 +18,12 @@ public interface ISecurityContext {
     public String getCurrentUser();
 
     /**
+     * Sets the current username to be validated, and validates by calling getCurrentUser.
+     * @return
+     */
+    public String setCurrentUser(String userId);
+
+    /**
      * @return the currently authenticated user's full name
      */
     public String getFullName();
@@ -49,12 +55,5 @@ public interface ISecurityContext {
      * @return set of permitted organizations
      */
     public Set<String> getPermittedOrganizations(PermissionType permission);
-
-    /**
-     * Gets a request header from the current in-scope request.
-     * @param headerName the header name
-     * @return the request header
-     */
-    public String getRequestHeader(String headerName);
 
 }

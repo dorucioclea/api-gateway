@@ -8,38 +8,36 @@ import java.io.IOException;
  * An http filter that supports the {@link DefaultSecurityContext} implementation.
  *
  */
-public class DefaultSecurityContextFilter implements Filter {
-    
+public class ApplicationAuthSecurityContextFilter implements Filter {
+
     /**
      * Constructor.
      */
-    public DefaultSecurityContextFilter() {
+    public ApplicationAuthSecurityContextFilter() {
     }
-    
+
     /**
-     * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
+     * @see Filter#init(FilterConfig)
      */
     @Override
     public void init(FilterConfig config) throws ServletException {
     }
-    
+
     /**
-     * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
+     * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
      */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        //DefaultSecurityContext.setServletRequest((HttpServletRequest) request);
-        //ApiEngineSecurityContext.setServletRequest((HttpServletRequest) request);
+        ApiEngineAppSecurityContext.setServletRequest((HttpServletRequest) request);
         try {
             chain.doFilter(request, response);
         } finally {
-            //ApiEngineSecurityContext.clearServletRequest();
-            //ApiEngineSecurityContext.clearPermissions();
+            ApiEngineAppSecurityContext.clearServletRequest();
         }
     }
-    
+
     /**
-     * @see javax.servlet.Filter#destroy()
+     * @see Filter#destroy()
      */
     @Override
     public void destroy() {

@@ -4,14 +4,14 @@
          version="2.5">
 
   <!-- Locale Filter -->
-  <filter>
+<!--  <filter>
     <filter-name>LocaleFilter</filter-name>
     <filter-class>com.t1t.digipolis.apim.servlet.LocaleFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>LocaleFilter</filter-name>
     <url-pattern>/*</url-pattern>
-  </filter-mapping>
+  </filter-mapping>-->
 
   <!-- CORS Filter -->
 <!--  <filter>
@@ -24,34 +24,34 @@
   </filter-mapping>-->
 
   <!-- Disable Caching Filter -->
-  <filter>
+<!--  <filter>
     <filter-name>NoCacheFilter</filter-name>
     <filter-class>com.t1t.digipolis.apim.servlet.DisableCachingFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>NoCacheFilter</filter-name>
     <url-pattern>/*</url-pattern>
-  </filter-mapping>
+  </filter-mapping>-->
 
   <!-- Security Context Filter -->
-  <filter>
+<!--  <filter>
     <filter-name>SecurityContext</filter-name>
     <filter-class>com.t1t.digipolis.apim.security.impl.DefaultSecurityContextFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>SecurityContext</filter-name>
     <url-pattern>/*</url-pattern>
-  </filter-mapping>
+  </filter-mapping>-->
 
   <!-- Root Resource Filter -->
-  <filter>
+<!--  <filter>
     <filter-name>RootResourceFilter</filter-name>
     <filter-class>com.t1t.digipolis.apim.servlet.RootResourceFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>RootResourceFilter</filter-name>
     <url-pattern>/*</url-pattern>
-  </filter-mapping>
+  </filter-mapping>-->
 
 <!--  <security-constraint>
     <web-resource-collection>

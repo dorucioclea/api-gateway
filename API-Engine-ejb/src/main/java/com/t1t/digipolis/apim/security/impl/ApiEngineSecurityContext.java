@@ -5,8 +5,11 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -14,38 +17,30 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Created by michallispashidis on 5/09/15.
  */
-@ApplicationScoped
+@RequestScoped
 @Default
 //@Alternative
 public class ApiEngineSecurityContext extends AbstractSecurityContext {
-    @Inject
-    private UserFacade userFacade;
+    //Logger
+    private static Logger LOG = LoggerFactory.getLogger(ApiEngineSecurityContext.class.getName());
+    @Inject private UserFacade userFacade;
+    private String currentUser;
 
-    public static final ThreadLocal<HttpServletRequest> servletRequest = new ThreadLocal<>();
-    private static final String AUTHENTICATED_USER_KEY = "authenticated_user";
-    private static final String HEADER_APIKEY_USER = "X-Consumer-Username";
-
-    public ApiEngineSecurityContext() {
-    }
+    public ApiEngineSecurityContext() {}
 
     @Override
     public String getCurrentUser() {
-        String user = "";
-        String authHeader = servletRequest.get().getHeader(HEADER_APIKEY_USER);
-        if (!StringUtils.isEmpty(authHeader)) {
-            UserBean userName = userFacade.get(authHeader);
+        if (!StringUtils.isEmpty(currentUser)) {
+            UserBean userName = userFacade.get(currentUser);
             if (userName == null) {
                 clearPermissions();
-                clearServletRequest();
                 throw new UserNotFoundException("Unauthorized access");
-            } else user = authHeader;
+            }
         } else {
             clearPermissions();
-            clearServletRequest();
             throw new UserNotFoundException("Unauthorized access");
         }
-
-        return user;
+        return currentUser;
     }
 
     @Override
@@ -81,20 +76,6 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
         return result;
     }
 
-    @Override
-    public String getRequestHeader(String headerName) {
-        return servletRequest.get().getHeader(headerName);
-    }
-
-    /**
-     * Called to set the current context http servlet request.
-     *
-     * @param request
-     */
-    protected static void setServletRequest(HttpServletRequest request) {
-        servletRequest.set(request);
-    }
-
     /**
      * Called to clear the current thread local permissions bean.
      */
@@ -102,10 +83,9 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
         AbstractSecurityContext.clearPermissions();
     }
 
-    /**
-     * Called to clear the context http servlet request.
-     */
-    protected static void clearServletRequest() {
-        servletRequest.remove();
+    public String setCurrentUser(String currentUser) {
+        this.currentUser = currentUser;
+        //calling get to perform a validation
+        return getCurrentUser();
     }
 }

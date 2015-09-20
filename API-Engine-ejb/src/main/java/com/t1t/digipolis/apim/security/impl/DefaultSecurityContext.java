@@ -22,20 +22,17 @@ public class DefaultSecurityContext extends AbstractSecurityContext {
     }
 
     /**
-     * @see com.t1t.digipolis.apim.security.ISecurityContext#getRequestHeader(String)
-     */
-    @Override
-    public String getRequestHeader(String headerName) {
-        return servletRequest.get().getHeader(headerName);
-    }
-
-    /**
      * @see com.t1t.digipolis.apim.security.ISecurityContext#getCurrentUser()
      */
     @Override
     public String getCurrentUser() {
         //return servletRequest.get().getRemoteUser();
         return "admin";//fictive user id
+    }
+
+    @Override
+    public String setCurrentUser(String userId) {
+        return null;
     }
 
     /**

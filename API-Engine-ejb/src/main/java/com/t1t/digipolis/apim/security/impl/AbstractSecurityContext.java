@@ -23,14 +23,12 @@ public abstract class AbstractSecurityContext implements ISecurityContext {
     
     private static final ThreadLocal<IndexedPermissions> permissions = new ThreadLocal<>();
 
-    @Inject
-    private IIdmStorage idmStorage;
+    @Inject private IIdmStorage idmStorage;
     
     /**
      * Constructor.
      */
-    public AbstractSecurityContext() {
-    }
+    public AbstractSecurityContext() {}
 
     /**
      * @see ISecurityContext#hasPermission(PermissionType, String)

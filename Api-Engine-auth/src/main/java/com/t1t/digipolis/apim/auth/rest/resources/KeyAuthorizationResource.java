@@ -3,6 +3,8 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
+import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
+import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
 import com.t1t.digipolis.apim.facades.AuthorizationFacade;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,27 +31,34 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @ApiOperation(value = "Create Key Authorization credentials for an application consumer.",
             notes = "Use this endpoint to register an application user, with key authorization credentials (received from 1 registered service), in the context of your application version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username and generated KeyAuth token.")
+            @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username and generated KeyAuth token."),
+            @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
     })
     @POST
     @Path("/key-auth")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
-    public Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
+    public Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) throws ApplicationNotFoundException{
         Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getOrgId()));
         Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getAppId()));
         Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getAppVersion()));
         Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getCustomId()));
         Preconditions.checkArgument(!StringUtils.isEmpty(criteria.getContractApiKey()));
-        AuthConsumerBean result = authorizationFacade.createKeyAuthConsumer(criteria);
-        return Response.ok().entity(result).build();
+        AuthConsumerBean resConsumer = authorizationFacade.createKeyAuthConsumer(criteria);
+        if(resConsumer!=null)return Response.ok().entity(resConsumer).build();
+        else{
+            ErrorBean error = new ErrorBean();
+            error.setMessage("Application not found:"+criteria.getAppId());
+            return Response.status(Response.Status.CONFLICT).entity(error).build();
+        }
     }
 
     @ApiOperation(value = "Retrieve Key Authorization credentials for an application consumer.",
             notes = "Use this endpoint to get an application user credentials, in the context of your application version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username and generated KeyAuth token.")
+            @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username and generated KeyAuth token."),
+            @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
     })
     @GET
     @Path("/key-auth/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
@@ -60,7 +69,7 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
                                        @PathParam("orgId")String orgId,
                                        @PathParam("appId")String appId,
                                        @PathParam("version")String version,
-                                       @PathParam("customUser")String customId) {
+                                       @PathParam("customUser")String customId)throws ApplicationNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(apiKey));
         Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
@@ -73,7 +82,12 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
         criteria.setAppVersion(version);
         criteria.setCustomId(customId);
         AuthConsumerBean result = authorizationFacade.getKeyAuthConsumer(criteria);
-        return Response.ok().entity(result).build();
+        if(result!=null) return Response.ok().entity(result).build();
+        else{
+            ErrorBean error = new ErrorBean();
+            error.setMessage("Application not found:"+criteria.getAppId());
+            return Response.status(Response.Status.CONFLICT).entity(error).build();
+        }
     }
 
 /*    @ApiOperation(value = "Update Key Authorization credentials for an application consumer.",
@@ -94,7 +108,7 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
             notes = "Use this endpoint to delete an application user (consumer), in the context of your application version.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "The result unique username and generated KeyAuth token."),
-            @ApiResponse(code = 401, message = "Unauthorized.")
+            @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
     })
     @DELETE
     @Path("/key-auth/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
@@ -105,7 +119,7 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
                                           @PathParam("orgId")String orgId,
                                           @PathParam("appId")String appId,
                                           @PathParam("version")String version,
-                                          @PathParam("customUser")String customId) {
+                                          @PathParam("customUser")String customId)throws ApplicationNotFoundException {
         AuthConsumerRequestKeyAuthBean criteria = new AuthConsumerRequestKeyAuthBean();
         criteria.setContractApiKey(apiKey);
         criteria.setOrgId(orgId);

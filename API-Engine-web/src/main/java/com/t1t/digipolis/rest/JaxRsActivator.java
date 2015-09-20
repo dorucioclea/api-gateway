@@ -1,5 +1,6 @@
 package com.t1t.digipolis.rest;
 import com.t1t.digipolis.apim.rest.impl.mappers.RestExceptionMapper;
+import com.t1t.digipolis.apim.servlet.RequestAPIMFilter;
 import com.t1t.digipolis.rest.resources.*;
 
 import javax.ws.rs.ApplicationPath;
@@ -19,7 +20,7 @@ public class JaxRsActivator extends Application {
          * When the server needs to be tested, you can set the boolean value to false, thus the filter driver
          * will not be loaded and REST communication can be done unsecure.
          */
-        securedMode = false;
+        securedMode = true;
     }
 
     public JaxRsActivator() {
@@ -28,8 +29,8 @@ public class JaxRsActivator extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> resources = new java.util.HashSet<Class<?>>();
-        //set filter for secured mode
-        //if (securedMode) resources.add(RequestAuthorizationFilter.class);
+        //set filter for secured mode - will provide 'admin' user in dev.
+        resources.add(RequestAPIMFilter.class);
         //resources.add(ResponseFilter.class);//we don't do anything with the response headers on client side
         addRestResourceClasses(resources);
         resources.add(io.swagger.jaxrs.listing.ApiListingResource.class);
@@ -49,7 +50,7 @@ public class JaxRsActivator extends Application {
         resources.add(CurrentUserResource.class);
         resources.add(GatewayResource.class);
         resources.add(PermissionsResource.class);
-        /*resources.add(PluginResource.class);*/
+        resources.add(PluginResource.class);
         resources.add(PolicyDefinitionResource.class);
         resources.add(RoleResource.class);
         resources.add(SearchResource.class);
