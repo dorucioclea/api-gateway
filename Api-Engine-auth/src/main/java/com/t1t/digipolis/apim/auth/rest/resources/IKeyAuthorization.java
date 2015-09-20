@@ -20,7 +20,7 @@ public interface IKeyAuthorization {
      * @return
      */
     Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
-    Response getKeyAuthConsumer(String apiKey,String orgId,String appId,String version,String customId);
-    Response updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
-    Response deleteKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
+    Response getKeyAuthConsumer (String apiKey,String orgId,String appId,String version,String customId);
+    //Response updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
+    Response deleteKeyAuthConsumer(String apiKey,String orgId,String appId,String version,String customId);
 }

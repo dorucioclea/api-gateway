@@ -76,7 +76,7 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
         return Response.ok().entity(result).build();
     }
 
-    @ApiOperation(value = "Update Key Authorization credentials for an application consumer.",
+/*    @ApiOperation(value = "Update Key Authorization credentials for an application consumer.",
             notes = "Use this endpoint to update an application user credentials, in the context of your application version.")
     @ApiResponses({
             @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The updated result unique username and generated KeyAuth token.")
@@ -88,7 +88,7 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @Override
     public Response updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
         return Response.status(Response.Status.NOT_IMPLEMENTED).build();
-    }
+    }*/
 
     @ApiOperation(value = "Delete authorization for a consumer in the context of an application version.",
             notes = "Use this endpoint to delete an application user (consumer), in the context of your application version.")
@@ -97,11 +97,22 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
             @ApiResponse(code = 401, message = "Unauthorized.")
     })
     @DELETE
-    @Path("/key-auth")
+    @Path("/key-auth/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
-    public Response deleteKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+    public Response deleteKeyAuthConsumer(@PathParam("key")String apiKey,
+                                          @PathParam("orgId")String orgId,
+                                          @PathParam("appId")String appId,
+                                          @PathParam("version")String version,
+                                          @PathParam("customUser")String customId) {
+        AuthConsumerRequestKeyAuthBean criteria = new AuthConsumerRequestKeyAuthBean();
+        criteria.setContractApiKey(apiKey);
+        criteria.setOrgId(orgId);
+        criteria.setAppId(appId);
+        criteria.setAppVersion(version);
+        criteria.setCustomId(customId);
+        authorizationFacade.deleteKeyAuthConsumer(criteria);
+        return Response.ok().build();
     }
 }

@@ -79,6 +79,11 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
+    public void deleteConsumer(String id) throws ConsumerException {
+        getClient().deleteConsumer(id);
+    }
+
+    @Override
     public KongPluginKeyAuthResponseList getConsumerKeyAuth(String id) throws ConsumerException {
         return getClient().getConsumerKeyAuth(id);
     }

@@ -384,6 +384,9 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         return httpClient.getApi(id);
     }
 
+    public void deleteConsumer(String id){
+        httpClient.deleteConsumer(id);
+    }
 
     /*Service policies*/
 

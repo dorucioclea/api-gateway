@@ -100,6 +100,15 @@ public interface IGatewayLink {
     public KongConsumer getConsumer(String id) throws ConsumerException;
 
     /**
+     * Deletes an end-user consumer (in the context of an application).
+     * The convential name == application context.
+     *
+     * @param id
+     * @throws ConsumerException
+     */
+    public void deleteConsumer(String id)throws ConsumerException;
+
+    /**
      * Retrieve a consumer information with it's API key.
      *
      * @param id

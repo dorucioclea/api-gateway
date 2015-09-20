@@ -129,6 +129,17 @@ public class AuthorizationFacade {
         return resConsumer;
     }
 
+    public void deleteKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+        //verify API key and select contract
+        List<ContractSummaryBean> appContracts = organizationFacade.getApplicationVersionContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
+        //generate unique id
+        String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
+        //we don't care how many credentials are available for a user, all will be removed when removing the user
+        //TODO it's possible that user is removed, but credentials cannot be reused anymore
+        getGateway().deleteConsumer(consumerUniqueId);
+    }
+
     private IGatewayLink getGateway(){
         //create the gateway
         if(gatewayLink == null){
