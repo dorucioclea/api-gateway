@@ -33,6 +33,7 @@ import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
+import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.GatewayPathUtilities;
@@ -40,6 +41,7 @@ import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
@@ -71,6 +73,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     @Inject private IApplicationValidator applicationValidator;
     @Inject private IServiceValidator serviceValidator;
     @Inject private IMetricsAccessor metrics;
+    @Inject private GatewayFacade gatewayFacade;
     @Inject private IGatewayLinkFactory gatewayLinkFactory;
     @Inject private UserFacade userFacade;
     @Inject private RoleFacade roleFacade;
@@ -667,7 +670,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public ServiceVersionBean createServiceVersion(String organizationId, String serviceId, NewServiceVersionBean bean) {
-        log.info("newservice:{}",bean);
+        log.info("newservice:{}", bean);
         ServiceVersionBean newVersion = null;
         try {
             //adds the default gateway - service can be updated to add another gateway
@@ -1076,9 +1079,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (serviceVersion.getStatus() != ServiceStatus.Published) {
                 throw new InvalidServiceStatusException(Messages.i18n.format("ServiceNotPublished")); //$NON-NLS-1$
             }
+            GatewayBean gateway =  gatewayFacade.get(getSingularGateway().getId());
+            if(StringUtils.isEmpty(gateway.getEndpoint())){
+                throw new GatewayNotFoundException("no default gateway configured");
+            }
+            //path starts always with '\'
+            String gatewayEndpoint = ((gateway.getEndpoint().endsWith("\\")?gateway.getEndpoint().substring(0,gateway.getEndpoint().length()-1):gateway.getEndpoint()));
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
-            rval.setManagedEndpoint(serviceVersion.getEndpoint());
-
+            rval.setManagedEndpoint(gatewayEndpoint+GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),version));
             return rval;
         } catch (AbstractRestException e) {
             throw e;

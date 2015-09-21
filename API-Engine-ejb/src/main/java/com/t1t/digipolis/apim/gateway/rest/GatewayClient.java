@@ -47,6 +47,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     private static final ObjectMapper mapper = new ObjectMapper();
     private static Config config;
     private static String metricsURI;
+    private static String AUTH_API_KEY = "apikey";
 
     static {
         metricsURI = null;
@@ -300,7 +301,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      */
     private void registerDefaultKeyAuthPolicy(KongApi api) {
         KongPluginKeyAuth keyAuthPolicy = new KongPluginKeyAuth()
-                .withKeyNames(Arrays.asList("apikey"));
+                .withKeyNames(Arrays.asList(AUTH_API_KEY));
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.KEYAUTHENTICATION.getKongIdentifier())
                 .withValue(keyAuthPolicy);
@@ -312,7 +313,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      * @param api
      */
     private void registerDefaultCORSPolicy(KongApi api) {
-        List<Object> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "apikey");
+        List<Object> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY);
         KongPluginCors corsPolicy = new KongPluginCors(); //default values are ok
         corsPolicy.setHeaders(headers);
         KongPluginConfig config = new KongPluginConfig()
