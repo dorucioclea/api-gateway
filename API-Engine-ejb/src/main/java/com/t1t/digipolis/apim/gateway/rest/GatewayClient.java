@@ -381,6 +381,14 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         return httpClient.createConsumerKeyAuthCredentials(id,new KongPluginKeyAuthRequest().withKey(apiKey));
     }
 
+    public KongPluginBasicAuthResponse createConsumerBasicAuth(String userId, String userLoginName, String userPassword ){
+        return httpClient.createConsumerBasicAuthCredentials(userId, new KongPluginBasicAuthRequest().withUsername(userLoginName).withPassword(userPassword));
+    }
+
+    public KongPluginBasicAuthResponseList getConsumerBasicAuth(String id){
+        return httpClient.getConsumerBasicAuthCredentials(id);
+    }
+
     public KongApi getApi(String id){
         return httpClient.getApi(id);
     }

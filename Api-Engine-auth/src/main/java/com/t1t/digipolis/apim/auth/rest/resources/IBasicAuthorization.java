@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.auth.rest.resources;
 
+import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestBasicAuthBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
 
@@ -13,8 +14,7 @@ public interface IBasicAuthorization {
     * The provisioned credentials for a consumer will be
     * @param criteria
     * @return*/
-/*    Response createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria)throws ApplicationNotFoundException;
-    Response getKeyAuthConsumer (String apiKey,String orgId,String appId,String version,String customId)throws ApplicationNotFoundException;
-    //Response updateKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria);
-    Response deleteKeyAuthConsumer(String apiKey,String orgId,String appId,String version,String customId)throws ApplicationNotFoundException;*/
+    Response createBasicAuthConsumer(AuthConsumerRequestBasicAuthBean criteria)throws ApplicationNotFoundException;
+    Response getBasicAuthConsumer (String apiKey,String orgId,String appId,String version,String customId)throws ApplicationNotFoundException;
+    Response deleteBasicAuthConsumer(String apiKey,String orgId,String appId,String version,String customId)throws ApplicationNotFoundException;
 }

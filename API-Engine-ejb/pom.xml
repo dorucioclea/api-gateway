@@ -401,6 +401,9 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginKeyAuthResponse.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginKeyAuthResponseList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginAnalytics.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthRequest.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponse.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponseList.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>

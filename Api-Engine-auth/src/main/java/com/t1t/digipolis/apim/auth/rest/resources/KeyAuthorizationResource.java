@@ -28,8 +28,8 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
     @Inject
     private AuthorizationFacade authorizationFacade;
 
-    @ApiOperation(value = "Create Key Authorization credentials for an application consumer.",
-            notes = "Use this endpoint to register an application user, with key authorization credentials (received from 1 registered service), in the context of your application version.")
+    @ApiOperation(value = "Create Key authentication token for an application consumer.",
+            notes = "Use this endpoint to register an application user, with key authentication credentials (received from 1 registered service), in the context of your application version.")
     @ApiResponses({
             @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username and generated KeyAuth token."),
             @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
@@ -54,8 +54,8 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
         }
     }
 
-    @ApiOperation(value = "Retrieve Key Authorization credentials for an application consumer.",
-            notes = "Use this endpoint to get an application user credentials, in the context of your application version.")
+    @ApiOperation(value = "Retrieve Key authentication token for an application consumer.",
+            notes = "Use this endpoint to get an application user key authentication token, in the context of your application version.")
     @ApiResponses({
             @ApiResponse(code = 200, response = AuthConsumerBean.class, message = "The result unique username and generated KeyAuth token."),
             @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
@@ -104,8 +104,8 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
         return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }*/
 
-    @ApiOperation(value = "Delete authorization for a consumer in the context of an application version.",
-            notes = "Use this endpoint to delete an application user (consumer), in the context of your application version.")
+    @ApiOperation(value = "Delete Key authentication for a consumer in the context of an application version.",
+            notes = "Use this endpoint to delete an application user with key authentication token (consumer), in the context of your application version.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "The result unique username and generated KeyAuth token."),
             @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")

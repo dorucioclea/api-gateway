@@ -31,7 +31,7 @@ public class JaxRsActivator extends Application {
         Set<Class<?>> resources = new java.util.HashSet<Class<?>>();
         //set filter for secured mode - will provide 'admin' user in dev.
         resources.add(RequestAPIMFilter.class);
-        //resources.add(ResponseFilter.class);//we don't do anything with the response headers on client side
+        //resources.add(ResponseFilter.class);//clear the security context
         addRestResourceClasses(resources);
         resources.add(io.swagger.jaxrs.listing.ApiListingResource.class);
         resources.add(io.swagger.jaxrs.listing.SwaggerSerializers.class);

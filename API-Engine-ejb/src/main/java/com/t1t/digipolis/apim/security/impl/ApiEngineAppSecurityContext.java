@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.RequestScoped;
 import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
@@ -15,7 +16,7 @@ import java.io.Serializable;
 /**
  * Created by michallispashidis on 5/09/15.
  */
-@SessionScoped
+@RequestScoped
 @Default
 public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext implements Serializable {
     //Logger

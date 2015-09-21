@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "id": {
+      "id": "id",
+      "type": "string"
+    },
+    "custom_id": {
+      "id": "custom_id",
+      "type": "string"
+    },
+    "username": {
+      "id": "username",
+      "type": "string"
+    },
+    "password": {
+      "id": "password",
+      "type": "string"
+    },
+    "created_at": {
+      "id": "created_at",
+      "type": "number"
+    }
+  }
+}

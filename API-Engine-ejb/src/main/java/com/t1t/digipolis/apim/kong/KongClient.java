@@ -1,17 +1,6 @@
 package com.t1t.digipolis.apim.kong;
 
-import com.t1t.digipolis.kong.model.KongApi;
-import com.t1t.digipolis.kong.model.KongApiList;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongConsumerList;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
-import com.t1t.digipolis.kong.model.KongInstalledPlugins;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
-import com.t1t.digipolis.kong.model.KongInfo;
-import com.t1t.digipolis.kong.model.KongStatus;
+import com.t1t.digipolis.kong.model.*;
 import retrofit.http.*;
 
 /**
@@ -39,6 +28,8 @@ public interface KongClient {
     @DELETE("/consumers/{id}")Object deleteConsumer(@Path("id")String id);
     @POST("/consumers/{id}/keyauth") KongPluginKeyAuthResponse createConsumerKeyAuthCredentials(@Path("id") String id, @Body KongPluginKeyAuthRequest kongPluginKeyAuthRequest);
     @GET("/consumers/{id}/keyauth") KongPluginKeyAuthResponseList getConsumerKeyAuthCredentials(@Path("id")String id);
+    @POST("/consumers/{id}/basicauth") KongPluginBasicAuthResponse createConsumerBasicAuthCredentials(@Path("id") String id, @Body KongPluginBasicAuthRequest kongPluginBasicAuthRequest);
+    @GET("/consumers/{id}/basicauth") KongPluginBasicAuthResponseList getConsumerBasicAuthCredentials(@Path("id")String id);
 
     /*********************   PLUGINS   *******************/
     @GET("/plugins/")KongInstalledPlugins getInstalledPlugins();

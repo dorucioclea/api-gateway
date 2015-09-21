@@ -64,6 +64,68 @@ public class AuthorizationFacade {
     @Inject private GatewayFacade gatewayFacade;
     private static IGatewayLink gatewayLink;
 
+    /**
+     * BASIC AUTHENTICATION
+     */
+    public AuthConsumerBean createBasicAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+        //get application version
+        List<ContractSummaryBean> appContracts;
+        ApplicationVersionBean avb = null;
+        try{
+            appContracts = query.getApplicationContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+            avb = storage.getApplicationVersion(criteria.getOrgId(),criteria.getAppId(),criteria.getAppVersion());
+        }catch (Exception ex){
+            return null;
+        }
+        if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
+        //create consumer with optional key - and verify the consumer doesn't exist
+        String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
+        KongConsumer appConsumer = getGateway().createConsumer(consumerUniqueId,criteria.getCustomId());
+        //create apikey
+        KongPluginKeyAuthResponse authResponse = getGateway().addConsumerKeyAuth(appConsumer.getId(),criteria.getOptionalKey());//optional key = app generated appConsumer API key
+        //add consumer to Appversion -> API ACLs for all services used in application - at the moment only providing key auth and applying plans
+        //or enforce plan policies for consumer (IPrestriction - RateLimit - RequestSizeLimit)
+        Application gtwApp = new Application();
+        gtwApp.setOrganizationId(criteria.getOrgId());
+        gtwApp.setApplicationId(criteria.getAppId());
+        gtwApp.setApplicationName(avb.getApplication().getName());
+        gtwApp.setVersion(criteria.getAppVersion());
+
+        Set<Contract> contracts = new HashSet<>();
+        for (ContractSummaryBean contractBean : appContracts) {
+            Contract contract = new Contract();
+            contract.setApiKey(contractBean.getApikey());
+            contract.setPlan(contractBean.getPlanId());
+            contract.setServiceId(contractBean.getServiceId());
+            contract.setServiceOrgId(contractBean.getServiceOrganizationId());
+            contract.setServiceVersion(contractBean.getServiceVersion());
+            contract.getPolicies().addAll(aggregateContractPolicies(contractBean));
+            contracts.add(contract);
+        }
+        gtwApp.setContracts(contracts);
+        try {
+            getGateway().registerAppConsumer(gtwApp,appConsumer);
+        } catch (GatewayAuthenticationException e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
+        }
+        //return consumer
+        AuthConsumerBean resConsumer = new AuthConsumerBean();
+        resConsumer.setCustomId(appConsumer.getCustomId());
+        resConsumer.setUserId(appConsumer.getUsername());
+        resConsumer.setToken(authResponse.getKey());
+        return resConsumer;
+    }
+
+    public AuthConsumerBean getBasicAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+        return null;
+    }
+
+    public void deleteBasicAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+
+    }
+    /**
+     * KEY AUTHENTICATION
+     */
     public AuthConsumerBean createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
         //get application version
         List<ContractSummaryBean> appContracts;

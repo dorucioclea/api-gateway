@@ -154,6 +154,24 @@ public interface IGatewayLink {
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id,String apiKey) throws ConsumerException;
 
     /**
+     * Adds basic authentication with a username and password
+     * @param userId
+     * @param userLoginName
+     * @param userLoginPassword
+     * @return
+     * @throws ConsumerException
+     */
+    public KongPluginBasicAuthResponse addConsumerBasicAuth(String userId, String userLoginName, String userLoginPassword) throws ConsumerException;
+
+    /**
+     * Returns a list of basic credentials for a given user
+     * @param id
+     * @return
+     * @throws ConsumerException
+     */
+    public KongPluginBasicAuthResponseList getConsumerBasicAuth(String id) throws ConsumerException;
+
+    /**
      * Returns the kong api based on its conventional/generated id.
      *
      * @param id

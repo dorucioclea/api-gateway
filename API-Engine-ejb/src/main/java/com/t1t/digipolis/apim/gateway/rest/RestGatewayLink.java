@@ -16,10 +16,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.RestServiceBuilder;
-import com.t1t.digipolis.kong.model.KongApi;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -107,6 +104,16 @@ public class RestGatewayLink implements IGatewayLink {
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id, String apiKey) throws ConsumerException {
         if(StringUtils.isEmpty(apiKey))return addConsumerKeyAuth(id);
         else return getClient().createConsumerKeyAuth(id, apiKey);
+    }
+
+    @Override
+    public KongPluginBasicAuthResponse addConsumerBasicAuth(String userId, String userLoginName,String userLoginPassword) throws ConsumerException {
+        return getClient().createConsumerBasicAuth(userId,userLoginName,userLoginPassword);
+    }
+
+    @Override
+    public KongPluginBasicAuthResponseList getConsumerBasicAuth(String id) throws ConsumerException {
+        return getClient().getConsumerBasicAuth(id);
     }
 
     @Override
