@@ -97,7 +97,7 @@ public class UserResource implements IUserResource {
             throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(userId));
         Preconditions.checkNotNull(user);
-        Preconditions.checkArgument(user.getPic().getBytes().length <= 12400L, "Logo should not be greater than 10k");
+        Preconditions.checkArgument(user.getPic().getBytes().length <= 15000, "Logo should not be greater than 10k");
         userFacade.update(userId, user);
     }
 
