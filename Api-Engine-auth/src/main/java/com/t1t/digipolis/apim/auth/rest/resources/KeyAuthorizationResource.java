@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
+import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestBasicAuthBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
@@ -75,13 +76,13 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         Preconditions.checkArgument(!StringUtils.isEmpty(customId));
-        AuthConsumerRequestKeyAuthBean criteria = new AuthConsumerRequestKeyAuthBean();
+        AuthConsumerRequestBasicAuthBean criteria = new AuthConsumerRequestBasicAuthBean();
         criteria.setContractApiKey(apiKey);
         criteria.setOrgId(orgId);
         criteria.setAppId(appId);
         criteria.setAppVersion(version);
         criteria.setCustomId(customId);
-        AuthConsumerBean result = authorizationFacade.getKeyAuthConsumer(criteria);
+        AuthConsumerBean result = authorizationFacade.getBasicAuthConsumer(criteria);
         if(result!=null) return Response.ok().entity(result).build();
         else{
             ErrorBean error = new ErrorBean();

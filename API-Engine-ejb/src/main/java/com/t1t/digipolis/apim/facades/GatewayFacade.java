@@ -112,7 +112,7 @@ public class GatewayFacade {
                 throw ExceptionFactory.gatewayNotFoundException(gatewayId);
             }
             if (!securityContext.isAdmin()) {
-                bean.setConfiguration(null);
+                bean.setConfiguration("");
             }
 /*            else {
                 decryptPasswords(bean);

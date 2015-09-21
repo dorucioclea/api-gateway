@@ -8,9 +8,10 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerAlreadyExistsExcept
 import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
-import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import org.elasticsearch.gateway.GatewayException;

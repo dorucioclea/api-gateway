@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,11 +18,11 @@ import java.util.Set;
  * Base class for security context implementations.
  *
  */
-public abstract class AbstractSecurityContext implements ISecurityContext {
+public abstract class AbstractSecurityContext implements ISecurityContext, Serializable {
 
-    private static Logger logger = LoggerFactory.getLogger(AbstractSecurityContext.class);
+    protected static Logger logger = LoggerFactory.getLogger(AbstractSecurityContext.class);
     
-    private static final ThreadLocal<IndexedPermissions> permissions = new ThreadLocal<>();
+    protected IndexedPermissions permissions;
 
     @Inject private IIdmStorage idmStorage;
     
@@ -53,10 +54,10 @@ public abstract class AbstractSecurityContext implements ISecurityContext {
      * @return the user permissions for the current user
      */
     private IndexedPermissions getPermissions() {
-        IndexedPermissions rval = permissions.get();
+        IndexedPermissions rval = permissions;
         if (rval == null) {
             rval = loadPermissions();
-            permissions.set(rval);
+            permissions=rval;
         }
         return rval;
     }
@@ -77,8 +78,8 @@ public abstract class AbstractSecurityContext implements ISecurityContext {
     /**
      * Called to clear the current thread local permissions bean.
      */
-    protected static void clearPermissions() {
-        permissions.remove();
+    protected void clearPermissions() {
+        permissions = null;
     }
 
     /**

@@ -16,7 +16,7 @@ import java.io.Serializable;
 /**
  * Created by michallispashidis on 5/09/15.
  */
-@RequestScoped
+@SessionScoped
 @Default
 public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext implements Serializable {
     //Logger

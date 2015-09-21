@@ -19,11 +19,9 @@ import java.io.Serializable;
 /**
  * Created by michallispashidis on 5/09/15.
  */
-@RequestScoped
+@SessionScoped
 @Default
-public class ApiEngineSecurityContext extends AbstractSecurityContext implements Serializable {
-    //Logger
-    private static Logger LOG = LoggerFactory.getLogger(ApiEngineSecurityContext.class.getName());
+public class ApiEngineSecurityContext extends AbstractSecurityContext {
     @Inject private UserFacade userFacade;
     private String currentUser;
 
@@ -41,7 +39,7 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext implements
             clearPermissions();
             throw new UserNotFoundException("Unauthorized access");
         }
-        LOG.info("Logged-in user:{}",currentUser);
+        logger.debug("Logged-in user:{}", currentUser);
         return currentUser;
     }
 
@@ -52,7 +50,7 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext implements
             if (!StringUtils.isEmpty(getCurrentUser()))
                 fullName = getIdmStorage().getUser(getCurrentUser()).getFullName();
         } catch (StorageException e) {
-            e.printStackTrace();
+            throw new UserNotFoundException("Unauthorized access");
         }
         return fullName;
     }
@@ -63,7 +61,7 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext implements
         try {
             if (!StringUtils.isEmpty(getCurrentUser())) email = getIdmStorage().getUser(getCurrentUser()).getEmail();
         } catch (StorageException e) {
-            e.printStackTrace();
+            throw new UserNotFoundException("Unauthorized access");
         }
         return email;
     }
@@ -81,8 +79,8 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext implements
     /**
      * Called to clear the current thread local permissions bean.
      */
-    protected static void clearPermissions() {
-        AbstractSecurityContext.clearPermissions();
+    protected void clearPermissions() {
+        permissions=null;
     }
 
     public String setCurrentUser(String currentUser) {

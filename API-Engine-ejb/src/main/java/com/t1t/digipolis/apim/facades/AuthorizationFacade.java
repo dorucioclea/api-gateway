@@ -1,12 +1,13 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.authorization.AbstractAuthConsumerRequest;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
+import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestBasicAuthBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
-import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.*;
@@ -18,19 +19,19 @@ import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
-import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.KongApi;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import com.t1t.digipolis.util.BasicAuthUtils;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.ServiceConventionUtil;
-import org.apache.logging.log4j.core.util.UuidUtil;
 import org.slf4j.Logger;
 
 import javax.ejb.Stateless;
@@ -52,37 +53,49 @@ public class AuthorizationFacade {
     @Inject
     @APIEngineContext
     private Logger log;
-    @Inject @APIEngineContext private EntityManager em;
-    @Inject private ISecurityContext securityContext;
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private IIdmStorage idmStorage;
-    @Inject private IApiKeyGenerator apiKeyGenerator;
-    @Inject private IApplicationValidator applicationValidator;
-    @Inject private IServiceValidator serviceValidator;
-    @Inject private IMetricsAccessor metrics;
-    @Inject private GatewayFacade gatewayFacade;
+    @Inject
+    @APIEngineContext
+    private EntityManager em;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private IIdmStorage idmStorage;
+    @Inject
+    private IApiKeyGenerator apiKeyGenerator;
+    @Inject
+    private IApplicationValidator applicationValidator;
+    @Inject
+    private IServiceValidator serviceValidator;
+    @Inject
+    private IMetricsAccessor metrics;
+    @Inject
+    private GatewayFacade gatewayFacade;
     private static IGatewayLink gatewayLink;
 
     /**
      * BASIC AUTHENTICATION
      */
-    public AuthConsumerBean createBasicAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+    public AuthConsumerBean createBasicAuthConsumer(AuthConsumerRequestBasicAuthBean criteria) {
         //get application version
         List<ContractSummaryBean> appContracts;
         ApplicationVersionBean avb = null;
-        try{
+        try {
             appContracts = query.getApplicationContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
-            avb = storage.getApplicationVersion(criteria.getOrgId(),criteria.getAppId(),criteria.getAppVersion());
-        }catch (Exception ex){
+            avb = storage.getApplicationVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        } catch (Exception ex) {
             return null;
         }
-        if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
+        if (!isApiKeyValid(appContracts, criteria.getContractApiKey()))
+            throw new NotAuthorizedException("wrong API key");
         //create consumer with optional key - and verify the consumer doesn't exist
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
-        KongConsumer appConsumer = getGateway().createConsumer(consumerUniqueId,criteria.getCustomId());
+        KongConsumer appConsumer = getGateway().createConsumer(consumerUniqueId, criteria.getCustomId());
         //create apikey
-        KongPluginKeyAuthResponse authResponse = getGateway().addConsumerKeyAuth(appConsumer.getId(),criteria.getOptionalKey());//optional key = app generated appConsumer API key
+        KongPluginBasicAuthResponse authResponse = getGateway().addConsumerBasicAuth(appConsumer.getId(), criteria.getUserLoginName(), criteria.getUserLoginPassword());
         //add consumer to Appversion -> API ACLs for all services used in application - at the moment only providing key auth and applying plans
         //or enforce plan policies for consumer (IPrestriction - RateLimit - RequestSizeLimit)
         Application gtwApp = new Application();
@@ -104,7 +117,7 @@ public class AuthorizationFacade {
         }
         gtwApp.setContracts(contracts);
         try {
-            getGateway().registerAppConsumer(gtwApp,appConsumer);
+            getGateway().registerAppConsumer(gtwApp, appConsumer);
         } catch (GatewayAuthenticationException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
         }
@@ -112,36 +125,60 @@ public class AuthorizationFacade {
         AuthConsumerBean resConsumer = new AuthConsumerBean();
         resConsumer.setCustomId(appConsumer.getCustomId());
         resConsumer.setUserId(appConsumer.getUsername());
-        resConsumer.setToken(authResponse.getKey());
+        resConsumer.setToken(BasicAuthUtils.getBasicAuthHeaderValueEncoded(authResponse.getUsername(),authResponse.getPassword()));
         return resConsumer;
     }
 
-    public AuthConsumerBean getBasicAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
-        return null;
+    public AuthConsumerBean getBasicAuthConsumer(AuthConsumerRequestBasicAuthBean criteria) {
+        //get application version
+        List<ContractSummaryBean> appContracts;
+        ApplicationVersionBean avb = null;
+        try {
+            appContracts = query.getApplicationContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+            avb = storage.getApplicationVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        } catch (Exception ex) {
+            return null;
+        }
+        if (!isApiKeyValid(appContracts, criteria.getContractApiKey()))
+            throw new NotAuthorizedException("wrong API key");
+        //generate unique id
+        String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
+        KongConsumer appConsumer = getGateway().getConsumer(consumerUniqueId);
+        KongPluginBasicAuthResponseList basicAuthList = getGateway().getConsumerBasicAuth(consumerUniqueId);
+        //consumer is registered for all services with the same API Key - thus get one example service for this consumer and retrieve the key.
+        AuthConsumerBean resConsumer = new AuthConsumerBean();
+        if (basicAuthList != null && basicAuthList.getData().size() > 0) {
+            resConsumer.setCustomId(criteria.getCustomId());
+            resConsumer.setUserId(appConsumer.getUsername());
+            resConsumer.setToken(BasicAuthUtils.getBasicAuthHeaderValueEncoded(basicAuthList.getData().get(0).getUsername(), basicAuthList.getData().get(0).getPassword()));
+        }
+        return resConsumer;
     }
 
-    public void deleteBasicAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
-
+    public void deleteBasicAuthConsumer(AuthConsumerRequestBasicAuthBean criteria) {
+        deleteConsumer(criteria);
     }
+
     /**
      * KEY AUTHENTICATION
      */
-    public AuthConsumerBean createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+    public AuthConsumerBean createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
         //get application version
         List<ContractSummaryBean> appContracts;
         ApplicationVersionBean avb = null;
-        try{
+        try {
             appContracts = query.getApplicationContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
-            avb = storage.getApplicationVersion(criteria.getOrgId(),criteria.getAppId(),criteria.getAppVersion());
-        }catch (Exception ex){
+            avb = storage.getApplicationVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        } catch (Exception ex) {
             return null;
         }
-        if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
+        if (!isApiKeyValid(appContracts, criteria.getContractApiKey()))
+            throw new NotAuthorizedException("wrong API key");
         //create consumer with optional key - and verify the consumer doesn't exist
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
-        KongConsumer appConsumer = getGateway().createConsumer(consumerUniqueId,criteria.getCustomId());
+        KongConsumer appConsumer = getGateway().createConsumer(consumerUniqueId, criteria.getCustomId());
         //create apikey
-        KongPluginKeyAuthResponse authResponse = getGateway().addConsumerKeyAuth(appConsumer.getId(),criteria.getOptionalKey());//optional key = app generated appConsumer API key
+        KongPluginKeyAuthResponse authResponse = getGateway().addConsumerKeyAuth(appConsumer.getId(), criteria.getOptionalKey());//optional key = app generated appConsumer API key
         //add consumer to Appversion -> API ACLs for all services used in application - at the moment only providing key auth and applying plans
         //or enforce plan policies for consumer (IPrestriction - RateLimit - RequestSizeLimit)
         Application gtwApp = new Application();
@@ -163,7 +200,7 @@ public class AuthorizationFacade {
         }
         gtwApp.setContracts(contracts);
         try {
-            getGateway().registerAppConsumer(gtwApp,appConsumer);
+            getGateway().registerAppConsumer(gtwApp, appConsumer);
         } catch (GatewayAuthenticationException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
         }
@@ -175,17 +212,18 @@ public class AuthorizationFacade {
         return resConsumer;
     }
 
-    public AuthConsumerBean getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+    public AuthConsumerBean getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
         //get application version
         List<ContractSummaryBean> appContracts;
         ApplicationVersionBean avb = null;
-        try{
+        try {
             appContracts = query.getApplicationContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
             avb = storage.getApplicationVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
-        }catch (Exception ex){
+        } catch (Exception ex) {
             return null;
         }
-        if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
+        if (!isApiKeyValid(appContracts, criteria.getContractApiKey()))
+            throw new NotAuthorizedException("wrong API key");
         //generate unique id
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
         KongConsumer appConsumer = getGateway().getConsumer(consumerUniqueId);
@@ -193,7 +231,7 @@ public class AuthorizationFacade {
         //consumer is registered for all services with the same API Key - thus get one example service for this consumer and retrieve the key.
         //KongApi api = getGateway().getApi(ServiceConventionUtil.generateServiceUniqueName(criteria.getOrgId(),appContracts.get(0).getServiceId(),appContracts.get(0).getServiceVersion()));
         AuthConsumerBean resConsumer = new AuthConsumerBean();
-        if(keyAuthList!=null&&keyAuthList.getData().size()>0){
+        if (keyAuthList != null && keyAuthList.getData().size() > 0) {
             resConsumer.setCustomId(criteria.getCustomId());
             resConsumer.setUserId(appConsumer.getUsername());
             resConsumer.setToken(keyAuthList.getData().get(0).getKey());
@@ -201,17 +239,27 @@ public class AuthorizationFacade {
         return resConsumer;
     }
 
-    public void deleteKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
+    public void deleteKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria) {
+        deleteConsumer(criteria);
+    }
+
+    /**
+     * Deletes a custom created consumer from the gateway.
+     *
+     * @param criteria
+     */
+    private void deleteConsumer(AbstractAuthConsumerRequest criteria){
         //get application version
         List<ContractSummaryBean> appContracts;
         ApplicationVersionBean avb = null;
-        try{
+        try {
             appContracts = query.getApplicationContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
             avb = storage.getApplicationVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
-        }catch (Exception ex){
+        } catch (Exception ex) {
             throw new ApplicationNotFoundException(ex.getMessage());
         }
-        if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
+        if (!isApiKeyValid(appContracts, criteria.getContractApiKey()))
+            throw new NotAuthorizedException("wrong API key");
         //generate unique id
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
         //we don't care how many credentials are available for a user, all will be removed when removing the user
@@ -219,16 +267,16 @@ public class AuthorizationFacade {
         getGateway().deleteConsumer(consumerUniqueId);
     }
 
-    private IGatewayLink getGateway(){
+    private IGatewayLink getGateway() {
         //create the gateway
-        if(gatewayLink == null){
+        if (gatewayLink == null) {
             try {
                 String gatewayId = gatewayFacade.getDefaultGateway().getId();
                 gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
             } catch (StorageException e) {
                 e.printStackTrace();
             }
-            if(gatewayLink==null)throw new GatewayNotFoundException("Default gateway not found");
+            if (gatewayLink == null) throw new GatewayNotFoundException("Default gateway not found");
         }
         return gatewayLink;
     }
@@ -277,11 +325,11 @@ public class AuthorizationFacade {
         }
     }
 
-    private boolean isApiKeyValid(List<ContractSummaryBean> contracts,String apiKey){
+    private boolean isApiKeyValid(List<ContractSummaryBean> contracts, String apiKey) {
         boolean apiValid = false;
         ContractBean selectedContract = null;
-        for (ContractSummaryBean contract:contracts){
-            if(contract.getApikey().equals(apiKey)){
+        for (ContractSummaryBean contract : contracts) {
+            if (contract.getApikey().equals(apiKey)) {
                 apiValid = true;
             }
         }
