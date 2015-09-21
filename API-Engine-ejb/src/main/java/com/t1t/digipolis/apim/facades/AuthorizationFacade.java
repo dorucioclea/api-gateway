@@ -62,21 +62,18 @@ public class AuthorizationFacade {
     @Inject private IServiceValidator serviceValidator;
     @Inject private IMetricsAccessor metrics;
     @Inject private GatewayFacade gatewayFacade;
-    @Inject private UserFacade userFacade;
-    @Inject private RoleFacade roleFacade;
-    @Inject private OrganizationFacade organizationFacade;
     private static IGatewayLink gatewayLink;
 
     public AuthConsumerBean createKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
         //get application version
+        List<ContractSummaryBean> appContracts;
         ApplicationVersionBean avb = null;
         try{
-             avb = organizationFacade.getAppVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+            appContracts = query.getApplicationContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+            avb = storage.getApplicationVersion(criteria.getOrgId(),criteria.getAppId(),criteria.getAppVersion());
         }catch (Exception ex){
             return null;
         }
-        //verify API key and select contract
-        List<ContractSummaryBean> appContracts = organizationFacade.getApplicationVersionContracts(criteria.getOrgId(),criteria.getAppId(),criteria.getAppVersion());
         if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
         //create consumer with optional key - and verify the consumer doesn't exist
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
@@ -118,14 +115,14 @@ public class AuthorizationFacade {
 
     public AuthConsumerBean getKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
         //get application version
+        List<ContractSummaryBean> appContracts;
         ApplicationVersionBean avb = null;
         try{
-            avb = organizationFacade.getAppVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+            appContracts = query.getApplicationContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+            avb = storage.getApplicationVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
         }catch (Exception ex){
             return null;
         }
-        //verify API key and select contract
-        List<ContractSummaryBean> appContracts = organizationFacade.getApplicationVersionContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
         if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
         //generate unique id
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
@@ -143,8 +140,15 @@ public class AuthorizationFacade {
     }
 
     public void deleteKeyAuthConsumer(AuthConsumerRequestKeyAuthBean criteria){
-        //verify API key and select contract
-        List<ContractSummaryBean> appContracts = organizationFacade.getApplicationVersionContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        //get application version
+        List<ContractSummaryBean> appContracts;
+        ApplicationVersionBean avb = null;
+        try{
+            appContracts = query.getApplicationContracts(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+            avb = storage.getApplicationVersion(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion());
+        }catch (Exception ex){
+            throw new ApplicationNotFoundException(ex.getMessage());
+        }
         if(!isApiKeyValid(appContracts,criteria.getContractApiKey()))throw new NotAuthorizedException("wrong API key");
         //generate unique id
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());

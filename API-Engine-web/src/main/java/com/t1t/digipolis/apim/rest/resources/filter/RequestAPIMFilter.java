@@ -1,9 +1,8 @@
-package com.t1t.digipolis.apim.servlet;
+package com.t1t.digipolis.apim.rest.resources.filter;
 
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.rest.JaxRsActivator;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +21,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
      */
     private static final Logger LOG = LoggerFactory.getLogger(RequestAPIMFilter.class.getName());
     private static final String HEADER_APIKEY_USER = "X-Consumer-Username";
+    //exclusions
     private static final String REDIRECT_PATH = "/users/idp/redirect";
     private static final String IDP_CALLBACK = "/users/idp/callback";
 
@@ -32,13 +32,13 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         //dev mode
-        if(!JaxRsActivator.securedMode){
+        if (!JaxRsActivator.securedMode) {
             securityContext.setCurrentUser("admin");
-        }else if(containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(REDIRECT_PATH)){
+        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(REDIRECT_PATH)) {
             ;//allow access without setting security context.
-        }else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_CALLBACK)){
+        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_CALLBACK)) {
             ;//allow from idp
-        }else{
+        } else {
             //Get the authorization header
             String userId = containerRequestContext.getHeaderString(HEADER_APIKEY_USER);
             String validatedUser = "";

@@ -1,64 +1,45 @@
 package com.t1t.digipolis.apim.security.impl;
 
-import com.t1t.digipolis.apim.beans.idm.UserBean;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 
 /**
  * Created by michallispashidis on 5/09/15.
  */
-@ApplicationScoped
+@SessionScoped
 @Default
-public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext {
+public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext implements Serializable {
+    //Logger
+    private static Logger LOG = LoggerFactory.getLogger(ApiEngineAppSecurityContext.class.getName());
     @Inject
     private UserFacade userFacade;
-
-    public static final ThreadLocal<HttpServletRequest> servletRequest = new ThreadLocal<>();
-    private static final String AUTHENTICATED_USER_KEY = "authenticated_user";
-    private static final String HEADER_APIKEY_USER = "X-Consumer-Username";
+    private String currentApplication;
 
     public ApiEngineAppSecurityContext() {
     }
 
     @Override
-    public String getApplciation() {
-        String application = "";
-        String authHeader = servletRequest.get().getHeader(HEADER_APIKEY_USER);
-        if (!StringUtils.isEmpty(authHeader)) {
+    public String getApplication() {
+        if (!StringUtils.isEmpty(currentApplication)) {
             //TODO optionally we can load the application already-not necessary at the moment
-            application = authHeader;
         } else {
-            clearServletRequest();
-            throw new UserNotFoundException("Unauthorized access");
+            throw new UserNotFoundException("Unauthorized application access");
         }
-        return application;
+        LOG.info("Logged-in application:{}", currentApplication);
+        return currentApplication;
     }
 
-    public String getRequestHeader(String headerName) {
-        return servletRequest.get().getHeader(headerName);
+    public String setCurrentApplication(String currentApplication) {
+        this.currentApplication = currentApplication;
+        return getApplication();
     }
-
-    /**
-     * Called to set the current context http servlet request.
-     *
-     * @param request
-     */
-    protected static void setServletRequest(HttpServletRequest request) {
-        servletRequest.set(request);
-    }
-
-    /**
-     * Called to clear the context http servlet request.
-     */
-    protected static void clearServletRequest() {
-        servletRequest.remove();
-    }
-
 }

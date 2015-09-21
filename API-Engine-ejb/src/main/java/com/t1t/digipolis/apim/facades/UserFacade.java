@@ -73,7 +73,7 @@ import java.util.zip.DeflaterOutputStream;
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
-public class UserFacade {
+public class UserFacade implements Serializable {
     @Inject
     @APIEngineContext
     private Logger log;

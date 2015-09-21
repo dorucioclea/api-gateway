@@ -21,12 +21,6 @@ import java.util.Set;
 public abstract class AbstractSecurityAppContext implements ISecurityAppContext {
 
     private static Logger logger = LoggerFactory.getLogger(AbstractSecurityAppContext.class);
-
-    private static final ThreadLocal<IndexedPermissions> permissions = new ThreadLocal<>();
-
-    @Inject
-    private IIdmStorage idmStorage;
-
     /**
      * Constructor.
      */

@@ -10,17 +10,18 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 
 /**
  * Created by michallispashidis on 5/09/15.
  */
-@RequestScoped
+@SessionScoped
 @Default
-//@Alternative
-public class ApiEngineSecurityContext extends AbstractSecurityContext {
+public class ApiEngineSecurityContext extends AbstractSecurityContext implements Serializable {
     //Logger
     private static Logger LOG = LoggerFactory.getLogger(ApiEngineSecurityContext.class.getName());
     @Inject private UserFacade userFacade;
@@ -40,6 +41,7 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
             clearPermissions();
             throw new UserNotFoundException("Unauthorized access");
         }
+        LOG.info("Logged-in user:{}",currentUser);
         return currentUser;
     }
 

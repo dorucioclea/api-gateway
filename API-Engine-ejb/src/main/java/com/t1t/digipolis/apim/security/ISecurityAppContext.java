@@ -15,6 +15,7 @@ public interface ISecurityAppContext {
     /**
      * @return the authenticated application consumer.
      */
-    public String getApplciation();
+    public String getApplication();
+    public String setCurrentApplication(String application);
 
 }
