@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServlet;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-@WebServlet(name = "SwaggerJaxrsConfig", loadOnStartup = 2)
+@WebServlet(name = "SwaggerJaxrsAuthConfig", loadOnStartup = 2)
 public class SwaggerJaxrsConfig extends HttpServlet {
 
     @Override
@@ -19,7 +19,7 @@ public class SwaggerJaxrsConfig extends HttpServlet {
         try {
             super.init(servletConfig);
             BeanConfig beanConfig = new BeanConfig();
-            beanConfig.setTitle("API Engine");
+            beanConfig.setTitle("API Engine Authorization");
             beanConfig.setVersion("v1");
             beanConfig.setBasePath("API-Engine-auth/v1");
             beanConfig.setResourcePackage("com.t1t.digipolis.apim.auth.rest.resources");
@@ -31,7 +31,7 @@ public class SwaggerJaxrsConfig extends HttpServlet {
                     .description("Description")
                     .termsOfService("TERMS")
                     .contact(new Contact().email("info@digipolis.be"))
-                    .license(new License().name("API-Engine").url("license@url.com"));
+                    .license(new License().name("API-Engine-auth").url("license@url.com"));
             ServletContext context = servletConfig.getServletContext();
 
             //configuration
@@ -39,7 +39,7 @@ public class SwaggerJaxrsConfig extends HttpServlet {
             swagger.externalDocs(new ExternalDocs("Find out more about Swagger", "http://swagger.io"));
             swagger.scheme(Scheme.HTTP);
             swagger.host("localhost:8080");
-            swagger.basePath("api-engine/v1");
+            swagger.basePath("API-Engine-auth/v1");
             context.setAttribute("swagger", swagger);
         } catch (ServletException e) {
             e.printStackTrace();

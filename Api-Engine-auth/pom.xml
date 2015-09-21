@@ -11,7 +11,7 @@
     <artifactId>API-Engine-auth</artifactId>
     <packaging>war</packaging>
 
-    <name>apim-auth</name>
+    <name>API-Engine-auth</name>
 
     <url>http://wildfly.org</url>
     <licenses>

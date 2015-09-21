@@ -111,9 +111,9 @@ public class GatewayFacade {
             if (bean == null) {
                 throw ExceptionFactory.gatewayNotFoundException(gatewayId);
             }
-            if (!securityContext.isAdmin()) {
-                bean.setConfiguration("");
-            }
+/*            if (!securityContext.isAdmin()) {
+                bean.setConfiguration(null);
+            }*/
 /*            else {
                 decryptPasswords(bean);
             }*/
