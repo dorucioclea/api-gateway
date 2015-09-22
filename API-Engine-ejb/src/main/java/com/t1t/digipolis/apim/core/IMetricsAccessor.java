@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.core;
 
 import com.t1t.digipolis.apim.beans.metrics.*;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
@@ -67,6 +68,6 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    AppUsagePerServiceBean getAppUsageForService(String organizationId, String applicationId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId);
+    MetricsConsumerUsageList getAppUsageForService(String organizationId, String applicationId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId);
 
 }

@@ -69,9 +69,8 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     }
 
     @Override
-    public AppUsagePerServiceBean getAppUsageForService(String organizationId, String applicationId, String version,HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
-        MetricsConsumerUsageList consumerUsageList = httpClient.getServiceConsumerUsageFromToInterval(organizationId, applicationId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId);
-        return null;
+    public MetricsConsumerUsageList getAppUsageForService(String organizationId, String applicationId, String version,HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
+        return httpClient.getServiceConsumerUsageFromToInterval(organizationId, applicationId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId);
     }
 
 

@@ -34,11 +34,16 @@ import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
@@ -804,7 +809,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
-        return metrics.getAppUsageForService(organizationId, applicationId,version, HistogramIntervalType.day, from, to,"");
+        AppUsagePerServiceBean appUsage = new AppUsagePerServiceBean();
+        Map<String, MetricsConsumerUsageList> data = new HashMap<>();
+        List<ContractSummaryBean> appContracts = null;
+        //get App contracts
+        try {
+            appContracts = query.getApplicationContracts(organizationId, applicationId, version);
+            //getid from kong
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            KongConsumer consumer = gateway.getConsumer(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version));
+            String consumerId = consumer.getId();
+            for(ContractSummaryBean app:appContracts){
+                data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(),app.getServiceId(),app.getServiceVersion()),
+                        metrics.getAppUsageForService(organizationId, applicationId, version, HistogramIntervalType.day, from, to, consumerId));
+            }
+        } catch (StorageException e) {
+            throw new ApplicationNotFoundException(e.getMessage());
+        }
+        appUsage.setData(data);
+        return appUsage;
     }
 
     public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
@@ -835,20 +858,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         validateMetricRange(from, to);
         return metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
     }
-
-/*    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getResponseStatsPerApp(organizationId, serviceId, version, from, to);
-    }
-
-    public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getResponseStatsPerPlan(organizationId, serviceId, version, from, to);
-    }*/
 
     public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId) {
         // Try to get the application first - will throw a ApplicationNotFoundException if not found.

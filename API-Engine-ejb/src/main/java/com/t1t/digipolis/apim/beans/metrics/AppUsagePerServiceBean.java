@@ -1,5 +1,8 @@
 package com.t1t.digipolis.apim.beans.metrics;
 
+import com.t1t.digipolis.kong.model.MetricsConsumerUsage;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,7 +12,7 @@ import java.util.Map;
  */
 public class AppUsagePerServiceBean {
 
-    private Map<String, Long> data = new HashMap<>();
+    private Map<String, MetricsConsumerUsageList> data = new HashMap<>();
 
     /**
      * Constructor.
@@ -17,18 +20,11 @@ public class AppUsagePerServiceBean {
     public AppUsagePerServiceBean() {
     }
 
-    /**
-     * @return the data
-     */
-    public Map<String, Long> getData() {
+    public Map<String, MetricsConsumerUsageList> getData() {
         return data;
     }
 
-    /**
-     * @param data the data to set
-     */
-    public void setData(Map<String, Long> data) {
+    public void setData(Map<String, MetricsConsumerUsageList> data) {
         this.data = data;
     }
-
 }
