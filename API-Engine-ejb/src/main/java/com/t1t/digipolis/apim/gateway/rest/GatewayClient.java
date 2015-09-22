@@ -160,8 +160,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
     public void registerAppConsumer(Application application, KongConsumer appConsumer){
         //register consumer application
-        //for each API register keyauth apikey for consumer on API
-        KongPluginKeyAuthRequest keyAuthRequest;
+        //for each API register consumer on API
         KongApi api;
         //context of API
         for(Contract contract:application.getContracts()){

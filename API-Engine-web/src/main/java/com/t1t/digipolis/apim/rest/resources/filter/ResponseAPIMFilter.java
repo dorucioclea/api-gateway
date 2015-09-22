@@ -31,34 +31,9 @@ public class ResponseAPIMFilter implements ContainerResponseFilter {
     @Inject
     private ISecurityContext securityContext;
 
-    public void filter(ContainerRequestContext containerRequestContext) throws IOException {
-        //dev mode
-        if (!JaxRsActivator.securedMode) {
-            securityContext.setCurrentUser("admin");
-        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(REDIRECT_PATH)) {
-            ;//allow access without setting security context.
-        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_CALLBACK)) {
-            ;//allow from idp
-        } else {
-            //Get the authorization header
-            String userId = containerRequestContext.getHeaderString(HEADER_APIKEY_USER);
-            String validatedUser = "";
-            try {
-                validatedUser = securityContext.setCurrentUser(userId);
-            } catch (UserNotFoundException ex) {
-                LOG.info("Unauthorized user:{}", userId);
-                containerRequestContext.abortWith(Response
-                        .status(Response.Status.UNAUTHORIZED)
-                        .entity("User cannot access the resource.")
-                        .build());
-                return;
-            }
-        }
-    }
-
     @Override
     public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
-
+        //nothing to do at the moment
     }
 }
 

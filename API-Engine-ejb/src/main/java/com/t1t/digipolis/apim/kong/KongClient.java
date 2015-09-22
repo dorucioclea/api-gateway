@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.kong;
 
-import com.t1t.digipolis.kong.model.*;
+import static com.t1t.digipolis.kong.model.*;
 import retrofit.http.*;
 
 /**

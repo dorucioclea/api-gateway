@@ -27,7 +27,7 @@
    <artifactId>API-Engine-web</artifactId>
    <packaging>war</packaging>
 
-   <name>api-engine</name>
+   <name>api-engine-rest</name>
 
    <url>http://wildfly.org</url>
    <licenses>

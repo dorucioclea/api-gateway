@@ -22,8 +22,8 @@ import javax.ws.rs.core.Response;
 /**
  * Created by michallispashidis on 21/09/15.
  */
-@Api(value = "/auth", description = "The Authorization API.  This API facilitates the creation of authorizations.")
-@Path("/auth")
+@Api(value = "/basicauth", description = "The Authorization API.  This API facilitates the creation of authorizations.")
+@Path("/basicauth")
 @ApplicationScoped
 public class BasicAuthorizationResource implements IBasicAuthorization {
     @Inject
@@ -36,7 +36,6 @@ public class BasicAuthorizationResource implements IBasicAuthorization {
             @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
     })
     @POST
-    @Path("/basic")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
@@ -64,7 +63,7 @@ public class BasicAuthorizationResource implements IBasicAuthorization {
             @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
     })
     @GET
-    @Path("/basic/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
+    @Path("/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
@@ -100,7 +99,7 @@ public class BasicAuthorizationResource implements IBasicAuthorization {
             @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
     })
     @DELETE
-    @Path("/basic/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
+    @Path("/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override

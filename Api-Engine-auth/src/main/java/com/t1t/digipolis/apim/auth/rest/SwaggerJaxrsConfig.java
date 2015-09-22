@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServlet;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-@WebServlet(name = "SwaggerJaxrsAuthConfig", loadOnStartup = 2)
+@WebServlet(name = "SwaggerJaxrsConfig", loadOnStartup = 1)
 public class SwaggerJaxrsConfig extends HttpServlet {
 
     @Override
@@ -31,7 +31,7 @@ public class SwaggerJaxrsConfig extends HttpServlet {
                     .description("Description")
                     .termsOfService("TERMS")
                     .contact(new Contact().email("info@digipolis.be"))
-                    .license(new License().name("API-Engine-auth").url("license@url.com"));
+                    .license(new License().name("API-Engine").url("license@url.com"));
             ServletContext context = servletConfig.getServletContext();
 
             //configuration

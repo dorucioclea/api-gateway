@@ -28,7 +28,7 @@
     <artifactId>API-Engine-ejb</artifactId>
     <packaging>ejb</packaging>
 
-    <name>API-Engine: EJB Module</name>
+    <name>api-engine-ejb</name>
 
     <url>http://wildfly.org</url>
     <licenses>

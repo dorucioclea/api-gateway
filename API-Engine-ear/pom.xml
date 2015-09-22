@@ -28,7 +28,7 @@
     <artifactId>API-Engine-ear</artifactId>
     <packaging>ear</packaging>
 
-    <name>API-Engine: EAR Module</name>
+    <name>api-engine-ear</name>
 
     <url>http://wildfly.org</url>
     <licenses>

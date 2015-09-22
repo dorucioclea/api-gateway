@@ -22,8 +22,8 @@ import javax.ws.rs.core.Response;
 /**
  * Created by michallispashidis on 9/09/15.
  */
-@Api(value = "/auth", description = "The Authorization API.  This API facilitates the creation of authorizations.")
-@Path("/auth")
+@Api(value = "/keyauth", description = "The Authorization API.  This API facilitates the creation of authorizations.")
+@Path("/keyauth")
 @ApplicationScoped
 public class KeyAuthorizationResource implements IKeyAuthorization {
     @Inject
@@ -36,7 +36,6 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
             @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
     })
     @POST
-    @Path("/key")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
@@ -62,7 +61,7 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
             @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
     })
     @GET
-    @Path("/key/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
+    @Path("/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
@@ -112,7 +111,7 @@ public class KeyAuthorizationResource implements IKeyAuthorization {
             @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
     })
     @DELETE
-    @Path("/key/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
+    @Path("/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override

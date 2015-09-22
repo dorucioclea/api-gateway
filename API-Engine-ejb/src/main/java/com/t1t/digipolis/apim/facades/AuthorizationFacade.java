@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.sun.tools.javac.util.Log;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.AbstractAuthConsumerRequest;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
@@ -93,9 +94,11 @@ public class AuthorizationFacade {
             throw new NotAuthorizedException("wrong API key");
         //create consumer with optional key - and verify the consumer doesn't exist
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
+        log.info("Creating consumer:{}",consumerUniqueId);
         KongConsumer appConsumer = getGateway().createConsumer(consumerUniqueId, criteria.getCustomId());
         //create apikey
         KongPluginBasicAuthResponse authResponse = getGateway().addConsumerBasicAuth(appConsumer.getId(), criteria.getUserLoginName(), criteria.getUserLoginPassword());
+        log.info("Consumer basic auth response:{}",authResponse);
         //add consumer to Appversion -> API ACLs for all services used in application - at the moment only providing key auth and applying plans
         //or enforce plan policies for consumer (IPrestriction - RateLimit - RequestSizeLimit)
         Application gtwApp = new Application();

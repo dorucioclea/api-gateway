@@ -17,6 +17,11 @@ import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.RestServiceBuilder;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -117,7 +122,7 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongApi getApi(String id) throws GatewayException {
+    public com.t1t.digipolis.kong.model.KongApi getApi(String id) throws GatewayException {
         return getClient().getApi(id);
     }
 
