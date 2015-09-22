@@ -12,7 +12,7 @@ import javax.enterprise.inject.Default;
  * Created by michallispashidis on 12/09/15.
  */
 @ApplicationScoped
-@Alternative
+@Default
 public class MongoMetricsAccessor implements IMetricsAccessor {
     @Override
     public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
