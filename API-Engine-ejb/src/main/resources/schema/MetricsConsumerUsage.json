@@ -5,7 +5,7 @@
   "properties": {
     "count": {
       "id": "count",
-      "type": "integer"
+      "type": "number"
     },
     "interval": {
       "id": "interval",

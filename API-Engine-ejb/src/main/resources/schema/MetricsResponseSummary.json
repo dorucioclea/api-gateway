@@ -5,15 +5,15 @@
   "properties": {
     "requests_count": {
       "id": "requests_count",
-      "type": "integer"
+      "type": "number"
     },
     "requests_wrong": {
       "id": "requests_wrong",
-      "type": "integer"
+      "type": "number"
     },
     "response_wrong": {
       "id": "response_wrong",
-      "type": "integer"
+      "type": "number"
     },
     "latency_proxy": {
       "id": "latency_proxy",
