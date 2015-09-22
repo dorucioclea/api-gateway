@@ -33,7 +33,6 @@ import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
-import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.GatewayPathUtilities;
@@ -802,7 +801,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
-        return metrics.getAppUsagePerService(organizationId, applicationId, version, from, to);
+        //TODO
+        return metrics.getAppUsageForService(organizationId, applicationId, version, from, to,"");
     }
 
     public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
@@ -816,19 +816,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
     }
 
-    public UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
+/*    public UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getUsagePerApp(organizationId, serviceId, version, from, to);
-    }
+    }*/
 
-    public UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version, String fromDate, String toDate) {
+/*    public UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getUsagePerPlan(organizationId, serviceId, version, from, to);
-    }
+    }*/
 
     public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
@@ -848,7 +848,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
     }
 
-    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
+/*    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
@@ -860,7 +860,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getResponseStatsPerPlan(organizationId, serviceId, version, from, to);
-    }
+    }*/
 
     public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId) {
         // Try to get the application first - will throw a ApplicationNotFoundException if not found.

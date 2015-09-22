@@ -20,16 +20,6 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     }
 
     @Override
-    public UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
-        return null;
-    }
-
-    @Override
-    public UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
-        return null;
-    }
-
-    @Override
     public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
         return null;
     }
@@ -40,17 +30,9 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     }
 
     @Override
-    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
+    public AppUsagePerServiceBean getAppUsageForService(String organizationId, String applicationId, String version, DateTime from, DateTime to, String consumerId) {
         return null;
     }
 
-    @Override
-    public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
-        return null;
-    }
 
-    @Override
-    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version, DateTime from, DateTime to) {
-        return null;
-    }
 }

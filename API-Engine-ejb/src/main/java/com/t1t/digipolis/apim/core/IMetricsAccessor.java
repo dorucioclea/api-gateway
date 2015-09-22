@@ -30,8 +30,7 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    UsageHistogramBean getUsage(String organizationId, String serviceId, String version,
-                                HistogramIntervalType interval, DateTime from, DateTime to);
+    UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for # of requests made to a service broken
@@ -43,8 +42,7 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version,
-                                   DateTime from, DateTime to);
+    //UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for # of requests made to a service broken
@@ -56,8 +54,7 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version,
-                                     DateTime from, DateTime to);
+    //UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for a histogram of response statistics, including total
@@ -69,8 +66,7 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version,
-                                                HistogramIntervalType interval, DateTime from, DateTime to);
+    ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for response type stats (total, errors, failures) for a given
@@ -81,8 +77,7 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId, String version,
-                                                     DateTime from, DateTime to);
+    ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for response type stats (total, errors, failures) for a given
@@ -93,8 +88,7 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId, String version,
-                                                   DateTime from, DateTime to);
+    //ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId, String version, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for response type stats (total, errors, failures) for a given
@@ -105,8 +99,7 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId, String version,
-                                                     DateTime from, DateTime to);
+    //ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId, String version, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for # of requests made to a service broken
@@ -118,7 +111,6 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version,
-                                                 DateTime from, DateTime to);
+    AppUsagePerServiceBean getAppUsageForService(String organizationId, String applicationId, String version, DateTime from, DateTime to, String consumerId);
 
 }
