@@ -17,15 +17,15 @@
     },
     "latency_proxy": {
       "id": "latency_proxy",
-      "type": "integer"
+      "type": "number"
     },
     "latency_kong": {
       "id": "latency_kong",
-      "type": "integer"
+      "type": "number"
     },
     "latency_request": {
       "id": "latency_request",
-      "type": "integer"
+      "type": "number"
     }
   }
 }

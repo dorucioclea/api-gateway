@@ -818,10 +818,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //getid from kong
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
             KongConsumer consumer = gateway.getConsumer(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version));
-            String consumerId = consumer.getId();
-            for(ContractSummaryBean app:appContracts){
-                data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(),app.getServiceId(),app.getServiceVersion()),
-                        metrics.getAppUsageForService(organizationId, applicationId, version, HistogramIntervalType.day, from, to, consumerId));
+            log.info("Getting AppUsageStats for consumer {}",consumer);
+            if(consumer!=null && !StringUtils.isEmpty(consumer.getCustomId())){
+                String consumerId = consumer.getId();
+                for(ContractSummaryBean app:appContracts){
+                    data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(),app.getServiceId(),app.getServiceVersion()),
+                            metrics.getAppUsageForService(organizationId, applicationId, version, HistogramIntervalType.day, from, to, consumerId));
+                }
             }
         } catch (StorageException e) {
             throw new ApplicationNotFoundException(e.getMessage());

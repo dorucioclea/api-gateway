@@ -9,7 +9,7 @@
     },
     "interval": {
       "id": "interval",
-      "type": "integer"
+      "type": "number"
     }
   }
 }
