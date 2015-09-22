@@ -6,12 +6,9 @@ import org.joda.time.DateTime;
 /**
  * An interface used to access metrics information.  Typically metrics are
  * recorded at runtime by the API Gateway into some sort of data store (e.g.
- * a time series database like influxdb).  Implementations of this interface
+ * mongodb).  Implementations of this interface
  * must know how to extract the metrics information in useful and common ways
- * from that data store.  So for example there should be an Elasticsearch
- * implementation of this interface that is able to extract metrics recorded
- * in ES.
- *
+ * from that data store.
  */
 public interface IMetricsAccessor {
 
@@ -33,32 +30,9 @@ public interface IMetricsAccessor {
     UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to);
 
     /**
-     * Query the metrics store for # of requests made to a service broken
-     * down by Application.
-     *
-     * @param organizationId
-     * @param serviceId
-     * @param version
-     * @param from
-     * @param to
-     */
-    //UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version, DateTime from, DateTime to);
-
-    /**
-     * Query the metrics store for # of requests made to a service broken
-     * down by plan.  For exclusively public services this will return no data.
-     *
-     * @param organizationId
-     * @param serviceId
-     * @param version
-     * @param from
-     * @param to
-     */
-    //UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version, DateTime from, DateTime to);
-
-    /**
      * Query the metrics store for a histogram of response statistics, including total
      * number of responses, # of error responses,
+     *
      * @param organizationId
      * @param serviceId
      * @param version
@@ -71,6 +45,7 @@ public interface IMetricsAccessor {
     /**
      * Query the metrics store for response type stats (total, errors, failures) for a given
      * service over a specified time range.  Returns a total summary of stats.
+     *
      * @param organizationId
      * @param serviceId
      * @param version
@@ -78,28 +53,6 @@ public interface IMetricsAccessor {
      * @param to
      */
     ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to);
-
-    /**
-     * Query the metrics store for response type stats (total, errors, failures) for a given
-     * service over a specified time range per application.
-     * @param organizationId
-     * @param serviceId
-     * @param version
-     * @param from
-     * @param to
-     */
-    //ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId, String version, DateTime from, DateTime to);
-
-    /**
-     * Query the metrics store for response type stats (total, errors, failures) for a given
-     * service over a specified time range per plan.
-     * @param organizationId
-     * @param serviceId
-     * @param version
-     * @param from
-     * @param to
-     */
-    //ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId, String version, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for # of requests made to a service broken
@@ -111,6 +64,6 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    AppUsagePerServiceBean getAppUsageForService(String organizationId, String applicationId, String version, DateTime from, DateTime to, String consumerId);
+    AppUsagePerServiceBean getAppUsageForService(String organizationId, String applicationId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId);
 
 }

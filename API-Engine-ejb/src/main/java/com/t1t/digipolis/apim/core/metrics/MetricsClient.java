@@ -9,13 +9,13 @@ import retrofit.http.Path;
  */
 public interface MetricsClient {
     /*********************
-     * GENERAL
-     *******************/
+     * METRICS ***********
+     *********************/
     @GET("/usage/{organizationId}/{serviceId}/{version}/{interval}/{from}/{to}")
     JsonObject getServiceUsageFromToInterval(@Path("organizationId") String orgId,
                                              @Path("serviceId") String serviceId,
                                              @Path("version") String version,
-                                             @Path("interval") TimeInterval interval,
+                                             @Path("interval") String interval,
                                              @Path("from") String from,
                                              @Path("to") String to
     );
@@ -24,7 +24,7 @@ public interface MetricsClient {
     JsonObject getServiceResponseStatisticsFromToInterval(@Path("organizationId") String orgId,
                                                           @Path("serviceId") String serviceId,
                                                           @Path("version") String version,
-                                                          @Path("interval") TimeInterval interval,
+                                                          @Path("interval") String interval,
                                                           @Path("from") String from,
                                                           @Path("to") String to
     );
@@ -41,7 +41,7 @@ public interface MetricsClient {
     JsonObject getServiceConsumerUsageFromToInterval(@Path("organizationId") String orgId,
                                                           @Path("serviceId") String serviceId,
                                                           @Path("version") String version,
-                                                          @Path("interval") TimeInterval interval,
+                                                          @Path("interval") String interval,
                                                           @Path("from") String from,
                                                           @Path("to") String to,
                                                           @Path("consumer") String consumerId
