@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.core;
 
 import com.t1t.digipolis.apim.beans.metrics.*;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import org.joda.time.DateTime;
 
@@ -41,7 +42,7 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to);
+    MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for response type stats (total, errors, failures) for a given

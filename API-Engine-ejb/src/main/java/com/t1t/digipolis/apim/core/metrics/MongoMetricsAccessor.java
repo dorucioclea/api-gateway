@@ -59,9 +59,8 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     }
 
     @Override
-    public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        MetricsResponseStatsList statsList = httpClient.getServiceResponseStatisticsFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
-        return null;
+    public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
+        return httpClient.getServiceResponseStatisticsFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
     }
 
     @Override

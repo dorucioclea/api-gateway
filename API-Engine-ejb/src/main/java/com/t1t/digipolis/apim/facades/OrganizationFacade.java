@@ -34,6 +34,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.GatewayPathUtilities;
@@ -802,7 +803,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
-        //TODO
         return metrics.getAppUsageForService(organizationId, applicationId,version, HistogramIntervalType.day, from, to,"");
     }
 
@@ -817,7 +817,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
     }
 
-    public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
+    public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         if (interval == null) {

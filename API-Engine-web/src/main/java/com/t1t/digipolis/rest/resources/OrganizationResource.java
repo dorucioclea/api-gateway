@@ -32,6 +32,7 @@ import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsUsage;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
@@ -1072,48 +1073,6 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getUsage(organizationId, serviceId, version, interval, fromDate, toDate);
     }
 
-/*    @ApiOperation(value = "Get Service Usage Metrics",
-            notes = "Retrieves metrics/analytics information for a specific service.  This will return request count data.  It basically answers the question - how many are calling my service? -.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = UsagePerAppBean.class, message = "Usage metrics information.")
-    })
-    @GET
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/appUsage")
-    @Produces(MediaType.APPLICATION_JSON)
-    public UsagePerAppBean getUsagePerApp(@PathParam("organizationId") String organizationId,
-                                          @PathParam("serviceId") String serviceId,
-                                          @PathParam("version") String version,
-                                          @QueryParam("from") String fromDate,
-                                          @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.getUsagePerApp(organizationId, serviceId, version, fromDate, toDate);
-    }*/
-
-/*    @ApiOperation(value = "Get Service Usage Metrics (per Plan)",
-            notes = "Retrieves metrics/analytics information for a specific service.  This will return request count data broken down by plan.  It basically answers the question which service plans are most used?.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = UsagePerPlanBean.class, message = "Usage metrics information.")
-    })
-    @GET
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/planUsage")
-    @Produces(MediaType.APPLICATION_JSON)
-    public UsagePerPlanBean getUsagePerPlan(@PathParam("organizationId") String organizationId,
-                                            @PathParam("serviceId") String serviceId,
-                                            @PathParam("version") String version,
-                                            @QueryParam("from") String fromDate,
-                                            @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.getUsagePerPlan(organizationId, serviceId, version, fromDate, toDate);
-    }*/
-
     @ApiOperation(value = "Get System Status",
             notes = "This endpoint simply returns the status of the api-engine system. This is a useful endpoint to use when testing a client's connection to the apiman API Manager REST services.")
     @ApiResponses({
@@ -1122,7 +1081,7 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/responseStats")
     @Produces(MediaType.APPLICATION_JSON)
-    public ResponseStatsHistogramBean getResponseStats(@PathParam("organizationId") String organizationId,
+    public MetricsResponseStatsList getResponseStats(@PathParam("organizationId") String organizationId,
                                                        @PathParam("serviceId") String serviceId,
                                                        @PathParam("version") String version,
                                                        @QueryParam("interval") HistogramIntervalType interval,
