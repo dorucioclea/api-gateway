@@ -1289,7 +1289,7 @@ public interface IOrganizationResource {
      * @return Usage metrics information.
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public UsagePerAppBean getUsagePerApp(String organizationId,  String serviceId, String version,String fromDate, String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
+    //public UsagePerAppBean getUsagePerApp(String organizationId,  String serviceId, String version,String fromDate, String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
 
     /**
@@ -1307,7 +1307,7 @@ public interface IOrganizationResource {
      * @return Usage metrics information.
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public UsagePerPlanBean getUsagePerPlan(String organizationId,  String serviceId, String version, String fromDate, String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
+    //public UsagePerPlanBean getUsagePerPlan(String organizationId,  String serviceId, String version, String fromDate, String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
 
     /**
@@ -1369,7 +1369,7 @@ public interface IOrganizationResource {
      * @return Usage metrics information.
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId,  String serviceId, String version, String fromDate, String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
+    //public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId,  String serviceId, String version, String fromDate, String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
 
     /**
@@ -1386,9 +1386,6 @@ public interface IOrganizationResource {
      * @return Usage metrics information.
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public ResponseStatsPerPlanBean getResponseStatsPerPlan(
-            String organizationId, String serviceId,
-            String version, String fromDate,
-            String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
+    //public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId,String version, String fromDate,String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
 }

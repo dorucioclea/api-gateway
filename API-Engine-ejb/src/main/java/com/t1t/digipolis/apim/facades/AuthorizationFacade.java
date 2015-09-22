@@ -71,8 +71,6 @@ public class AuthorizationFacade {
     @Inject
     private IServiceValidator serviceValidator;
     @Inject
-    private IMetricsAccessor metrics;
-    @Inject
     private GatewayFacade gatewayFacade;
     private static IGatewayLink gatewayLink;
 

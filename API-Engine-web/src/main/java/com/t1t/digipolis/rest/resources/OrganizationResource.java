@@ -1070,8 +1070,8 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getUsage(organizationId, serviceId, version, interval, fromDate, toDate);
     }
 
-    @ApiOperation(value = "Get Service Usage Metrics (per App)",
-            notes = "Retrieves metrics/analytics information for a specific service.  This will return request count data broken down by application.  It basically answers the question \"who is calling my service?\".")
+/*    @ApiOperation(value = "Get Service Usage Metrics",
+            notes = "Retrieves metrics/analytics information for a specific service.  This will return request count data.  It basically answers the question - how many are calling my service? -.")
     @ApiResponses({
             @ApiResponse(code = 200, response = UsagePerAppBean.class, message = "Usage metrics information.")
     })
@@ -1089,9 +1089,9 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         return orgFacade.getUsagePerApp(organizationId, serviceId, version, fromDate, toDate);
-    }
+    }*/
 
-    @ApiOperation(value = "Get Service Usage Metrics (per Plan)",
+/*    @ApiOperation(value = "Get Service Usage Metrics (per Plan)",
             notes = "Retrieves metrics/analytics information for a specific service.  This will return request count data broken down by plan.  It basically answers the question which service plans are most used?.")
     @ApiResponses({
             @ApiResponse(code = 200, response = UsagePerPlanBean.class, message = "Usage metrics information.")
@@ -1110,10 +1110,10 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         return orgFacade.getUsagePerPlan(organizationId, serviceId, version, fromDate, toDate);
-    }
+    }*/
 
     @ApiOperation(value = "Get System Status",
-            notes = "This endpoint simply returns the status of the apiman system. This is a useful endpoint to use when testing a client's connection to the apiman API Manager REST services.")
+            notes = "This endpoint simply returns the status of the api-engine system. This is a useful endpoint to use when testing a client's connection to the apiman API Manager REST services.")
     @ApiResponses({
             @ApiResponse(code = 200, response = SystemStatusBean.class, message = "System status information")
     })
@@ -1155,13 +1155,13 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getResponseStatsSummary(organizationId, serviceId, version, fromDate, toDate);
     }
 
-    @ApiOperation(value = "Get Service Response Statistics (per App)",
-            notes = "Retrieves metrics/analytics information for a specific service.  This will return response type statistics broken down by application.")
+/*    @ApiOperation(value = "Get Service Response Statistics",
+            notes = "Retrieves metrics/analytics information for a specific service.  This will return response type statistics.")
     @ApiResponses({
             @ApiResponse(code = 200, response = ResponseStatsPerAppBean.class, message = "Usage metrics information.")
     })
     @GET
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/appResponseStats")
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/responseStats")
     @Produces(MediaType.APPLICATION_JSON)
     public ResponseStatsPerAppBean getResponseStatsPerApp(@PathParam("organizationId") String organizationId,
                                                           @PathParam("serviceId") String serviceId,
@@ -1175,9 +1175,9 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         return orgFacade.getResponseStatsPerApp(organizationId, serviceId, version, fromDate, toDate);
-    }
+    }*/
 
-    @ApiOperation(value = "Get Service Response Statistics (per Plan)",
+/*    @ApiOperation(value = "Get Service Response Statistics (per Plan)",
             notes = "Retrieves metrics/analytics information for a specific service.  This will return response type statistics broken down by plan.")
     @ApiResponses({
             @ApiResponse(code = 200, response = SystemStatusBean.class, message = "Usage metrics information.")
@@ -1197,7 +1197,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         return orgFacade.getResponseStatsPerPlan(organizationId, serviceId, version, fromDate, toDate);
-    }
+    }*/
 
     @ApiOperation(value = "Create Plan",
             notes = "Use this endpoint to create a new Plan.  Note that it is important to also create an initial version of the Plan (e.g. 1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Plan Version\".  If the former is done, then a first Plan version will be created automatically by this endpoint.")
