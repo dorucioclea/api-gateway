@@ -34,6 +34,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import io.swagger.models.Swagger;
@@ -805,7 +806,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return metrics.getAppUsageForService(organizationId, applicationId,version, HistogramIntervalType.day, from, to,"");
     }
 
-    public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
+    public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         if (interval == null) {
@@ -815,20 +816,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         validateTimeSeriesMetric(from, to, interval);
         return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
     }
-
-/*    public UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getUsagePerApp(organizationId, serviceId, version, from, to);
-    }*/
-
-/*    public UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getUsagePerPlan(organizationId, serviceId, version, from, to);
-    }*/
 
     public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);

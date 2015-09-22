@@ -32,6 +32,8 @@ import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.MetricsUsage;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.ValidationUtils;
 import io.swagger.annotations.Api;
@@ -1055,7 +1057,7 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/usage")
     @Produces(MediaType.APPLICATION_JSON)
-    public UsageHistogramBean getUsage(
+    public MetricsUsageList getUsage(
             @PathParam("organizationId") String organizationId,
             @PathParam("serviceId") String serviceId,
             @PathParam("version") String version,

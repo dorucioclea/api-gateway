@@ -19,6 +19,7 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.Response;
@@ -1269,7 +1270,7 @@ public interface IOrganizationResource {
      * @return Usage metrics information.
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public UsageHistogramBean getUsage(String organizationId,
+    public MetricsUsageList getUsage(String organizationId,
                                        String serviceId,  String version,
                                        HistogramIntervalType interval, String fromDate,
                                         String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;

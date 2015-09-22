@@ -54,12 +54,8 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     }
 
     @Override
-    public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        Gson gson = new Gson();
-        MetricsUsageList usageList = httpClient.getServiceUsageFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
-        UsageHistogramBean histogramBean = new UsageHistogramBean();
-        List<UsageDataPoint> dataPoints;
-        return null;
+    public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
+        return httpClient.getServiceUsageFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
     }
 
     @Override
