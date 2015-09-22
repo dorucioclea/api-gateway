@@ -802,7 +802,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         //TODO
-        return metrics.getAppUsageForService(organizationId, applicationId, version, from, to,"");
+        return metrics.getAppUsageForService(organizationId, applicationId,version, HistogramIntervalType.day, from, to,"");
     }
 
     public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {

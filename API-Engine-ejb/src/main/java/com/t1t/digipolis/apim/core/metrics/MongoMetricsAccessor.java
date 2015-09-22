@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.core.metrics;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.metrics.*;
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
 import javax.enterprise.inject.Default;
+import java.util.List;
 
 /**
  * Created by michallispashidis on 12/09/15.
@@ -48,7 +51,10 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
 
     @Override
     public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        httpClient.getServiceUsageFromToInterval(organizationId,serviceId,version,interval.toString(),""+from.getMillis(),""+to.getMillis());
+        Gson gson = new Gson();
+        JsonObject response = httpClient.getServiceUsageFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        UsageHistogramBean histogramBean = new UsageHistogramBean();
+        List<UsageDataPoint> dataPoints;
         return null;
     }
 
