@@ -1,6 +1,10 @@
 package com.t1t.digipolis.apim.core.metrics;
 
 import com.google.gson.JsonObject;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 import retrofit.http.GET;
 import retrofit.http.Path;
 
@@ -12,7 +16,7 @@ public interface MetricsClient {
      * METRICS ***********
      *********************/
     @GET("/usage/{organizationId}/{serviceId}/{version}/{interval}/{from}/{to}")
-    JsonObject getServiceUsageFromToInterval(@Path("organizationId") String orgId,
+    MetricsUsageList getServiceUsageFromToInterval(@Path("organizationId") String orgId,
                                              @Path("serviceId") String serviceId,
                                              @Path("version") String version,
                                              @Path("interval") String interval,
@@ -21,7 +25,7 @@ public interface MetricsClient {
     );
 
     @GET("/response-stats/{organizationId}/{serviceId}/{version}/{interval}/{from}/{to}")
-    JsonObject getServiceResponseStatisticsFromToInterval(@Path("organizationId") String orgId,
+    MetricsResponseStatsList getServiceResponseStatisticsFromToInterval(@Path("organizationId") String orgId,
                                                           @Path("serviceId") String serviceId,
                                                           @Path("version") String version,
                                                           @Path("interval") String interval,
@@ -30,7 +34,7 @@ public interface MetricsClient {
     );
 
     @GET("/response-summary/{organizationId}/{serviceId}/{version}/{from}/{to}")
-    JsonObject getServiceResponseSummaryFromTo(@Path("organizationId") String orgId,
+    MetricsResponseSummaryList getServiceResponseSummaryFromTo(@Path("organizationId") String orgId,
                                                @Path("serviceId") String serviceId,
                                                @Path("version") String version,
                                                @Path("from") String from,
@@ -38,7 +42,7 @@ public interface MetricsClient {
     );
 
     @GET("/consumer-usage/{organizationId}/{serviceId}/{version}/{interval}/{from}/{to}/{consumer}")
-    JsonObject getServiceConsumerUsageFromToInterval(@Path("organizationId") String orgId,
+    MetricsConsumerUsageList getServiceConsumerUsageFromToInterval(@Path("organizationId") String orgId,
                                                           @Path("serviceId") String serviceId,
                                                           @Path("version") String version,
                                                           @Path("interval") String interval,

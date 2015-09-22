@@ -8,6 +8,10 @@ import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.RestServiceBuilder;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +56,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     @Override
     public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
         Gson gson = new Gson();
-        JsonObject response = httpClient.getServiceUsageFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        MetricsUsageList usageList = httpClient.getServiceUsageFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
         UsageHistogramBean histogramBean = new UsageHistogramBean();
         List<UsageDataPoint> dataPoints;
         return null;
@@ -60,19 +64,19 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
 
     @Override
     public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        httpClient.getServiceResponseStatisticsFromToInterval(organizationId,serviceId,version,interval.toString(),""+from.getMillis(),""+to.getMillis());
+        MetricsResponseStatsList statsList = httpClient.getServiceResponseStatisticsFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
         return null;
     }
 
     @Override
     public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
-        httpClient.getServiceResponseSummaryFromTo(organizationId,serviceId,version,""+from.getMillis(),""+to.getMillis());
+        MetricsResponseSummaryList summaryList = httpClient.getServiceResponseSummaryFromTo(organizationId, serviceId, version, "" + from.getMillis(), "" + to.getMillis());
         return null;
     }
 
     @Override
     public AppUsagePerServiceBean getAppUsageForService(String organizationId, String applicationId, String version,HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
-        httpClient.getServiceConsumerUsageFromToInterval(organizationId,applicationId,version,interval.toString(),""+from.getMillis(),""+to.getMillis(),consumerId);
+        MetricsConsumerUsageList consumerUsageList = httpClient.getServiceConsumerUsageFromToInterval(organizationId, applicationId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId);
         return null;
     }
 
