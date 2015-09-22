@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.sun.tools.javac.util.Log;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.AbstractAuthConsumerRequest;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;

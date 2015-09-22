@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.auth.rest.resources.filter;
 
+import com.t1t.digipolis.apim.auth.rest.JaxRsActivator;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import org.slf4j.Logger;
@@ -32,7 +33,11 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
         String appId = containerRequestContext.getHeaderString(HEADER_APIKEY_USER);
         String validatedApp = "";
         try {
-            validatedApp = securityAppContext.setCurrentApplication(appId);
+            if(!JaxRsActivator.securedMode){
+                securityAppContext.setCurrentApplication("dummyapp");
+            }else {
+                validatedApp = securityAppContext.setCurrentApplication(appId);
+            }
         } catch (ApplicationNotFoundException ex) {
             LOG.info("Unauthorized application:{}", appId);
             containerRequestContext.abortWith(Response
