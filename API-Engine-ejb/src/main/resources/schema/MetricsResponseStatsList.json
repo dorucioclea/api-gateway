@@ -4,10 +4,10 @@
   "type": "object",
   "properties": {
     "data": {
-      "id": "metricsUsage",
+      "id": "metricsResponseStats",
       "type": "array",
       "items": {
-        "$ref":"MetricsUsage.json"
+        "$ref":"MetricsResponseStats.json"
       }
     }
   }

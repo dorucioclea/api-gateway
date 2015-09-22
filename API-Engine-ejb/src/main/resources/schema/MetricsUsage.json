@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "count": {
+      "id": "count",
+      "type": "integer"
+    },
+    "interval": {
+      "id": "interval",
+      "type": "integer"
+    }
+  }
+}

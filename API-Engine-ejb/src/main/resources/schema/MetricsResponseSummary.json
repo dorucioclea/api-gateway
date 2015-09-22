@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "requests_count": {
+      "id": "requests_count",
+      "type": "integer"
+    },
+    "requests_wrong": {
+      "id": "requests_wrong",
+      "type": "integer"
+    },
+    "response_wrong": {
+      "id": "response_wrong",
+      "type": "integer"
+    },
+    "latency_proxy": {
+      "id": "latency_proxy",
+      "type": "integer"
+    },
+    "latency_kong": {
+      "id": "latency_kong",
+      "type": "integer"
+    },
+    "latency_request": {
+      "id": "latency_request",
+      "type": "integer"
+    }
+  }
+}

@@ -404,7 +404,14 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponse.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponseList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/MetricsUsage.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/MetricsUsageList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseStats.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseStatsList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseSummary.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseSummaryList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/MetricsConsumerUsage.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/MetricsConsumerUsageList.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>
