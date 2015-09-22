@@ -35,6 +35,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.GatewayPathUtilities;
@@ -828,7 +829,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
     }
 
-    public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId, String version, String fromDate, String toDate) {
+    public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);

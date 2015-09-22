@@ -20,6 +20,7 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 
 import javax.ws.rs.NotAuthorizedException;
@@ -1318,7 +1319,7 @@ public interface IOrganizationResource {
      * @return Usage metrics information.
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public ResponseStatsSummaryBean getResponseStatsSummary(
+    public MetricsResponseSummaryList getResponseStatsSummary(
             String organizationId, String serviceId,
             String version, String fromDate,
             String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;

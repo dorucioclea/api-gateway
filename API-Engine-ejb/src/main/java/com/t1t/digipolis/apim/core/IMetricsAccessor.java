@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.core;
 
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import org.joda.time.DateTime;
 
@@ -54,7 +55,7 @@ public interface IMetricsAccessor {
      * @param from
      * @param to
      */
-    ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to);
+    MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for # of requests made to a service broken

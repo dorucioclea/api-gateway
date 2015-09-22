@@ -33,6 +33,7 @@ import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsage;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
@@ -1053,7 +1054,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Get Service Usage Metrics",
             notes = "Retrieves metrics/analytics information for a specific service.  This will return a full histogram of request count data based on the provided date range and interval.  Valid intervals are:  month, week, day, hour, minute")
     @ApiResponses({
-            @ApiResponse(code = 200, response = UsageHistogramBean.class, message = "Usage metrics information.")
+            @ApiResponse(code = 200, response = MetricsUsageList.class, message = "Usage metrics information.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/usage")
@@ -1076,7 +1077,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Get System Status",
             notes = "This endpoint simply returns the status of the api-engine system. This is a useful endpoint to use when testing a client's connection to the apiman API Manager REST services.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = SystemStatusBean.class, message = "System status information")
+            @ApiResponse(code = 200, response = MetricsResponseStatsList.class, message = "System status information")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/responseStats")
@@ -1098,12 +1099,12 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Get Service Response Statistics (Summary)",
             notes = "Retrieves metrics/analytics information for a specific service.  This will return total response type statistics over the given date range.  Basically this will return three numbers: total request, # failed responses, # error responses.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = ResponseStatsSummaryBean.class, message = "System status information")
+            @ApiResponse(code = 200, response = MetricsResponseSummaryList.class, message = "System status information")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/summaryResponseStats")
     @Produces(MediaType.APPLICATION_JSON)
-    public ResponseStatsSummaryBean getResponseStatsSummary(@PathParam("organizationId") String organizationId,
+    public MetricsResponseSummaryList getResponseStatsSummary(@PathParam("organizationId") String organizationId,
                                                             @PathParam("serviceId") String serviceId,
                                                             @PathParam("version") String version,
                                                             @QueryParam("from") String fromDate,

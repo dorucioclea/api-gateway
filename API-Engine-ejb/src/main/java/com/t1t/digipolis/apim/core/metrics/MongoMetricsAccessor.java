@@ -64,9 +64,8 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     }
 
     @Override
-    public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
-        MetricsResponseSummaryList summaryList = httpClient.getServiceResponseSummaryFromTo(organizationId, serviceId, version, "" + from.getMillis(), "" + to.getMillis());
-        return null;
+    public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
+        return httpClient.getServiceResponseSummaryFromTo(organizationId, serviceId, version, "" + from.getMillis(), "" + to.getMillis());
     }
 
     @Override
