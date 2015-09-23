@@ -49,32 +49,32 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
 
     @Override
     public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        return httpClient.getServiceUsageFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        return httpClient.getServiceUsageFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
     }
 
     @Override
     public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        return httpClient.getServiceResponseStatisticsFromToInterval(organizationId, serviceId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        return httpClient.getServiceResponseStatisticsFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
     }
 
     @Override
     public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
-        return httpClient.getServiceResponseSummaryFromTo(organizationId, serviceId, version, "" + from.getMillis(), "" + to.getMillis());
+        return httpClient.getServiceResponseSummaryFromTo(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis());
     }
 
     @Override
     public MetricsConsumerUsageList getAppUsageForService(String organizationId, String applicationId, String version,HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
-        return httpClient.getServiceConsumerUsageFromToInterval(organizationId, applicationId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId);
+        return httpClient.getServiceConsumerUsageFromToInterval(organizationId.toLowerCase(), applicationId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId);
     }
 
     @Override
     public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) {
         //distinct active users
-        int distinctUsers = httpClient.getServiceConsumers(organizationId, serviceId, version).getData().size();
+        int distinctUsers = httpClient.getServiceConsumers(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase()).getData().size();
         //uptime - conventionally last month/by week
         DateTime to = new DateTime();
         DateTime from = to.minusMonths(1);
-        MetricsResponseSummaryList summList = httpClient.getServiceResponseSummaryFromTo(organizationId, serviceId, version, "" + from.getMillis(), "" + to.getMillis());
+        MetricsResponseSummaryList summList = httpClient.getServiceResponseSummaryFromTo(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis());
         List<MetricsResponseSummary> res = summList.getData();
         int uptime = 100;
         if(res!=null && res.size()>0){

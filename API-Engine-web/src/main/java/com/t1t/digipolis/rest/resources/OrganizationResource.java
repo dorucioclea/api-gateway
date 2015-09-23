@@ -326,6 +326,7 @@ public class OrganizationResource implements IOrganizationResource {
     public AppUsagePerServiceBean getAppUsagePerService(@PathParam("organizationId") String organizationId,
                                                         @PathParam("applicationId") String applicationId,
                                                         @PathParam("version") String version,
+                                                        @QueryParam("interval") HistogramIntervalType interval,
                                                         @QueryParam("from") String fromDate,
                                                         @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.appView, organizationId))
@@ -333,9 +334,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
-        return orgFacade.getAppUsagePerService(organizationId, applicationId, version, fromDate, toDate);
+        return orgFacade.getAppUsagePerService(organizationId, applicationId, version, interval,fromDate, toDate);
     }
 
     @ApiOperation(value = "List Application Versions",
@@ -1093,10 +1092,6 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
-        Preconditions.checkNotNull(interval);
-        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()));
         return orgFacade.getUsage(organizationId, serviceId, version, interval, fromDate, toDate);
     }
 
@@ -1119,10 +1114,6 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
-        Preconditions.checkNotNull(interval);
-        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()));
         return orgFacade.getResponseStats(organizationId, serviceId, version, interval, fromDate, toDate);
     }
 
@@ -1144,8 +1135,6 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
         return orgFacade.getResponseStatsSummary(organizationId, serviceId, version, fromDate, toDate);
     }
 

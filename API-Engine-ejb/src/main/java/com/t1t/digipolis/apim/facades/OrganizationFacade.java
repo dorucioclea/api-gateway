@@ -805,7 +805,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version, String fromDate, String toDate) {
+    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version,HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
@@ -823,7 +823,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 String consumerId = consumer.getId();
                 for(ContractSummaryBean app:appContracts){
                     data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(),app.getServiceId(),app.getServiceVersion()),
-                            metrics.getAppUsageForService(organizationId, applicationId, version, HistogramIntervalType.day, from, to, consumerId));
+                            metrics.getAppUsageForService(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion(), interval, from, to, consumerId));
                 }
             }
         } catch (StorageException e) {
