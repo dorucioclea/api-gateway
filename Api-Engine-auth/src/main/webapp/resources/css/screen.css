@@ -74,6 +74,11 @@ body {
   color: #666666;
   font-size: 0.85em;
 }
+
+#buttonbox{
+  float: right;
+}
+
 code {
   font-size: 1.1em;
 }
@@ -110,7 +115,6 @@ form {
   padding: 1em;
   font: 80%/1 sans-serif;
   width: 375px;
-  align-content: center;
 }
 label {
   float: left;
