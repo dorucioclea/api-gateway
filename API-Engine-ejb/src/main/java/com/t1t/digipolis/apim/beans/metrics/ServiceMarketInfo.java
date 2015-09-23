@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.beans.metrics;
 
 /**
- * Created by michallispashidis on 22/09/15.
+ * Created by michallispashidis on 23/09/15.
  */
 public class ServiceMarketInfo {
     private int uptime;
