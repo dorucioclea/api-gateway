@@ -25,6 +25,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.common.netty.util.internal.StringUtil;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.io.UnmarshallingException;
 import org.slf4j.Logger;
@@ -212,19 +213,24 @@ public class UserResource implements IUserResource {
         return Response.ok(request).build();
     }
 
-    @ApiOperation(value = "User logout callback",
-            notes = "This endpoint performs actions upon an IDP triggered logout SAML2 request.")
+    @ApiOperation(value = "User logout",
+            notes = "This endpoint performs actions upon an IDP triggered SAML2 logout request.")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "The search results (a page of organizations).")
+            @ApiResponse(code = 200,response = String.class, message = "User specific logout.")
     })
     @POST
     @Path("/idp/logout")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response logout() {
+    @Produces(MediaType.TEXT_PLAIN)
+    public String logout(SAMLLogoutRequest request) {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getUsername()));
+        return userFacade.generateSAML2LogoutRequest(request.getIdpUrl(),request.getSpName(),request.getUsername());
         //don't do anything, logout triggered from client
-        //TODO config
-        String url = "https://idp.t1t.be:9443/dashboard";
+
+/*        String url = "https://idp.t1t.be:9443/dashboard";
         URI redirectURL = null;
         try {
             redirectURL = new URL(url).toURI();
@@ -232,7 +238,7 @@ public class UserResource implements IUserResource {
             e.printStackTrace();
         } catch (MalformedURLException e) {
             e.printStackTrace();
-        }
-        return Response.seeOther(redirectURL).build();
+        }*/
+        //return Response.seeOther(redirectURL).build();
     }
 }

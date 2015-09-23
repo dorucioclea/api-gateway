@@ -333,6 +333,8 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
+        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
         return orgFacade.getAppUsagePerService(organizationId, applicationId, version, fromDate, toDate);
     }
 
@@ -1091,6 +1093,10 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
+        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
+        Preconditions.checkNotNull(interval);
+        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()));
         return orgFacade.getUsage(organizationId, serviceId, version, interval, fromDate, toDate);
     }
 
@@ -1113,6 +1119,10 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
+        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
+        Preconditions.checkNotNull(interval);
+        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()));
         return orgFacade.getResponseStats(organizationId, serviceId, version, interval, fromDate, toDate);
     }
 
@@ -1134,6 +1144,8 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
+        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
         return orgFacade.getResponseStatsSummary(organizationId, serviceId, version, fromDate, toDate);
     }
 

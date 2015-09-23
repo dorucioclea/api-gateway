@@ -44,9 +44,17 @@ import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.core.*;
 import org.opensaml.saml2.core.impl.*;
+import org.opensaml.saml2.encryption.Decrypter;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
+import org.opensaml.xml.encryption.EncryptedKey;
+import org.opensaml.xml.encryption.EncryptedKeyResolver;
 import org.opensaml.xml.io.*;
+import org.opensaml.xml.security.SecurityHelper;
+import org.opensaml.xml.security.credential.BasicCredential;
+import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
+import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
+import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.XMLHelper;
 import org.slf4j.Logger;
@@ -54,6 +62,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.crypto.SecretKey;
 import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -216,6 +225,22 @@ public class UserFacade implements Serializable {
         }
     }
 
+    public String generateSAML2LogoutRequest(String idpUrl, String spName, String user) {
+        // Initialize the library
+        try {
+            //Bootstrap OpenSAML
+            DefaultBootstrap.bootstrap();
+            //Generate the request
+            LogoutRequest authnRequest = buildLogoutRequest(user, idpUrl, spName);
+            //set client application name and callback in the cache
+            String encodedRequestMessage = encodeAuthnRequest(authnRequest);
+            return idpUrl + "?SAMLRequest=" + encodedRequestMessage;
+            //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
+        } catch (MarshallingException | IOException | ConfigurationException ex) {
+            throw new SAMLAuthException("Could not generate the SAML2 Logout Request: " + ex.getMessage());
+        }
+    }
+
     /**
      * Build SAML2 authentication request
      *
@@ -276,6 +301,28 @@ public class UserFacade implements Serializable {
         return authRequest;
     }
 
+    private LogoutRequest buildLogoutRequest(String user, String idpUrl, String spName) {
+        LogoutRequest logoutReq = (new LogoutRequestBuilder()).buildObject();
+        logoutReq.setID(Integer.toHexString(new Double(Math.random()).intValue()));
+        logoutReq.setDestination(idpUrl);
+        DateTime issueInstant = new DateTime();
+        logoutReq.setIssueInstant(issueInstant);
+        logoutReq.setNotOnOrAfter(new DateTime(issueInstant.getMillis() + 300000L));
+        IssuerBuilder issuerBuilder = new IssuerBuilder();
+        Issuer issuer = issuerBuilder.buildObject();
+        issuer.setValue(spName);
+        logoutReq.setIssuer(issuer);
+        NameID nameId = (new NameIDBuilder()).buildObject();
+        nameId.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
+        nameId.setValue(user);
+        logoutReq.setNameID(nameId);
+        SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
+        sessionIndex.setSessionIndex("");
+        logoutReq.getSessionIndexes().add(sessionIndex);
+        logoutReq.setReason("Single Logout");
+        return logoutReq;
+    }
+
     /**
      * Encode the Authentication Request (base64 and URL encoded)
      *
@@ -284,7 +331,7 @@ public class UserFacade implements Serializable {
      * @throws MarshallingException
      * @throws IOException
      */
-    private String encodeAuthnRequest(AuthnRequest authnRequest) throws MarshallingException, IOException {
+    private String encodeAuthnRequest(RequestAbstractType authnRequest) throws MarshallingException, IOException {
         Marshaller marshaller = null;
         org.w3c.dom.Element authDOM = null;
         StringWriter requestWriter = null;
@@ -585,6 +632,25 @@ public class UserFacade implements Serializable {
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
+    }
+
+    /**
+     * Utility method used for decrypting the SAML Assertion response.
+     *
+     * @param encryptedAssertion
+     * @param credential
+     * @return
+     * @throws Exception
+     */
+    public Assertion getDecryptedAssertion(EncryptedAssertion encryptedAssertion, X509Credential credential) throws Exception {
+        StaticKeyInfoCredentialResolver keyResolver = new StaticKeyInfoCredentialResolver(credential);
+        EncryptedKey key = (EncryptedKey)encryptedAssertion.getEncryptedData().getKeyInfo().getEncryptedKeys().get(0);
+        Decrypter decrypter = new Decrypter((KeyInfoCredentialResolver)null, keyResolver, (EncryptedKeyResolver)null);
+        SecretKey dkey = (SecretKey)decrypter.decryptKey(key, encryptedAssertion.getEncryptedData().getEncryptionMethod().getAlgorithm());
+        BasicCredential shared = SecurityHelper.getSimpleCredential(dkey);
+        decrypter = new Decrypter(new StaticKeyInfoCredentialResolver(shared), (KeyInfoCredentialResolver)null, (EncryptedKeyResolver)null);
+        decrypter.setRootInNewDocument(true);
+        return decrypter.decrypt(encryptedAssertion);
     }
 
 }

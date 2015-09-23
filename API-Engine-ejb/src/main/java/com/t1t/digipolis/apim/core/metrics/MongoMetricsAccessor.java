@@ -3,8 +3,6 @@ package com.t1t.digipolis.apim.core.metrics;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
-import com.t1t.digipolis.apim.gateway.dto.Service;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummary;
