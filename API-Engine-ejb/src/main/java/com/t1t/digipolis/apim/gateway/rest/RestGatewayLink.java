@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.gateway.rest;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
+import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.Application;
@@ -46,15 +47,17 @@ public class RestGatewayLink implements IGatewayLink {
     private KongClient httpClient;
     private GatewayClient gatewayClient;
     private RestGatewayConfigBean config;
+    private IStorage storage;
 
     /**
      * Constructor.
      *
      * @param gateway the gateway
      */
-    public RestGatewayLink(final GatewayBean gateway) {
+    public RestGatewayLink(final GatewayBean gateway, final IStorage storage) {
         try {
             this.gateway = gateway;
+            this.storage = storage;
             String cfg = gateway.getConfiguration();
             setConfig((RestGatewayConfigBean) mapper.reader(RestGatewayConfigBean.class).readValue(cfg));
             getConfig().setPassword(AesEncrypter.decrypt(getConfig().getPassword()));
@@ -215,7 +218,7 @@ public class RestGatewayLink implements IGatewayLink {
      */
     private GatewayClient createClient() {
         String gatewayEndpoint = getConfig().getEndpoint();
-        return new GatewayClient(httpClient,gateway);
+        return new GatewayClient(httpClient,gateway,storage);
     }
 
     /**

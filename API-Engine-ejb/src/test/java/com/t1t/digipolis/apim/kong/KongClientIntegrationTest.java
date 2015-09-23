@@ -3,6 +3,20 @@ package com.t1t.digipolis.apim.kong;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongApi;
+import com.t1t.digipolis.kong.model.KongApiList;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongInfo;
+import com.t1t.digipolis.kong.model.KongInstalledPlugins;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginCors;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
+import com.t1t.digipolis.kong.model.Plugins;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 import org.slf4j.Logger;
@@ -246,7 +260,7 @@ public class KongClientIntegrationTest {
                 .withName("cors")//as an example
                 .withValue(corsConfig);
         print(pluginConfig);
-        kongClient.createPluginConfig(apicors.getId(),pluginConfig);
+        kongClient.createPluginConfig(apicors.getId(), pluginConfig);
         kongClient.deleteApi(apicors.getId());
     }
 
@@ -284,8 +298,8 @@ public class KongClientIntegrationTest {
         int initSize = confList.getData().size();
         print(confList);
         //add some api config
-        KongApi apie = createDummyApi("apie","/apie",API_URL);
-        KongConsumer consumer = createDummyConsumer("123456", "apicusere");
+        KongApi apie = createDummyApi("apiexx", "/apiexx", API_URL);
+        KongConsumer consumer = createDummyConsumer("123456xx", "apicuserexx");
         apie = kongClient.addApi(apie);
         consumer = kongClient.createConsumer(consumer);
         //create a ratelimitation for the consumer and apply it for the api
@@ -294,9 +308,32 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         //verify one has been added
         confList = kongClient.getAllPlugins();
-        assertTrue(confList.getData().size() == (initSize + 1));
+        int sizeAfter = confList.getData().size();
+        log.info("size before:{}",initSize);
+        log.info("size after:{}", sizeAfter);
         kongClient.deleteApi(apie.getId());
         kongClient.deleteConsumer(consumer.getId());
+        assertTrue(sizeAfter == (initSize));
+    }
+
+    @Test
+    public void testGetPluginInfoBack(){
+        //kongClient.deleteApi("testapi1");
+        //kongClient.deleteConsumer("customidrandom1");
+        KongApi api1 = createDummyApi("testapi1","/testapi1",API_URL);
+        KongConsumer consumer = createDummyConsumer("customidrandom1", "customidrandom1");
+        api1 = kongClient.addApi(api1);
+        consumer = kongClient.createConsumer(consumer);
+        KongPluginConfig pluginConfig = createTestPlugin(api1,consumer);
+        pluginConfig = kongClient.createPluginConfig(api1.getId(),pluginConfig);
+        print(pluginConfig);
+        print(pluginConfig.getValue().toString());
+        kongClient.deleteApi(api1.getId());
+        kongClient.deleteConsumer(consumer.getId());
+        //my little nasty trick
+        Gson gson = new Gson();
+        KongPluginRateLimiting resultConfig =  gson.fromJson(pluginConfig.getValue().toString(), KongPluginRateLimiting.class);
+        log.info("Resulting config:{}", resultConfig);
     }
 
     @Test

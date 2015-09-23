@@ -5,6 +5,9 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
@@ -24,6 +27,8 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuth;
+import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
@@ -31,12 +36,16 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.elasticsearch.gateway.GatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A REST client for accessing the Gateway API.
@@ -47,6 +56,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     private static Logger log = LoggerFactory.getLogger(GatewayClient.class.getName());
     private KongClient httpClient;
     private GatewayBean gatewayBean;
+    private IStorage storage;
     private static final ObjectMapper mapper = new ObjectMapper();
     private static Config config;
     private static String metricsURI;
@@ -70,9 +80,13 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      *
      * @param httpClient the http client
      */
-    public GatewayClient(KongClient httpClient, GatewayBean gateway) {
+    public GatewayClient(KongClient httpClient, GatewayBean gateway,IStorage storage) {
+        Preconditions.checkNotNull(httpClient);
+        Preconditions.checkNotNull(storage);
+        Preconditions.checkNotNull(gateway);
         this.httpClient = httpClient;
         this.gatewayBean = gateway;
+        this.storage = storage;
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {
@@ -255,7 +269,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                         case TCPLOG: createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(),Policies.TCPLOG.getClazz());break;
                         case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
                         case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
-                        case OAUTH2: createServicePolicy(api, policy, Policies.OAUTH2.getKongIdentifier(),Policies.OAUTH2.getClazz());break;
+                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, policy, Policies.OAUTH2.getKongIdentifier(),Policies.OAUTH2.getClazz());postOAuth2Actions(service, config);break;
                         case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
                         case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
                         case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
@@ -278,6 +292,32 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
         if(!customKeyAuth) registerDefaultKeyAuthPolicy(api);
         if(!customHttp&&!StringUtils.isEmpty(metricsURI)) registerDefaultHttpPolicy(api);
+    }
+
+    /**
+     * After applying the OAuth2 plugin to a service the following action gets executed.
+     * In case of OAuth2 - add provision_key to the service version, and additional scopes.
+     *
+     * @param config
+     */
+    private void postOAuth2Actions(Service service, KongPluginConfig config) {
+        Preconditions.checkNotNull(service);
+        Preconditions.checkNotNull(config);
+        //config contains provisioning and scopes
+        try {
+            Gson gson = new Gson();
+            //...this is really ugly... but how to?
+            KongPluginOAuth oauthPlugin = gson.fromJson(config.getValue().toString(), KongPluginOAuth.class);
+            ServiceVersionBean svb = storage.getServiceVersion(service.getOrganizationId(), service.getServiceId(), service.getVersion());
+            svb.setProvisionKey(oauthPlugin.getProvisionKey());
+            Set<String> scopeSet = new TreeSet<>();
+            List<Object> resScopes = oauthPlugin.getScopes();
+            for(Object scope:resScopes)scopeSet.add((String)scope);
+            svb.setOauthScopes(scopeSet);
+            storage.updateServiceVersion(svb);
+        } catch (StorageException e) {
+            throw new GatewayException("Error update service version bean with OAuth2 info:"+e.getMessage());
+        }
     }
 
     /**
@@ -380,7 +420,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     public KongPluginKeyAuthResponse createConsumerKeyAuth(String id, String apiKey){
-        return httpClient.createConsumerKeyAuthCredentials(id,new KongPluginKeyAuthRequest().withKey(apiKey));
+        return httpClient.createConsumerKeyAuthCredentials(id, new KongPluginKeyAuthRequest().withKey(apiKey));
     }
 
     public KongPluginBasicAuthResponse createConsumerBasicAuth(String userId, String userLoginName, String userPassword ){
@@ -410,7 +450,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      * @param clazz
      * @param <T>
      */
-    private <T extends KongConfigValue> void createServicePolicy(KongApi api, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
+    private <T extends KongConfigValue> KongPluginConfig createServicePolicy(KongApi api, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
 
         Gson gson = new Gson();
         //perform value mapping
@@ -421,6 +461,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute
         config = httpClient.createPluginConfig(api.getId(),config);
+        return config;
     }
 
     /**
