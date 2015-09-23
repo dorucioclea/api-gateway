@@ -16,33 +16,36 @@
     limitations under the License.
 -->
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-   xmlns:ui="http://java.sun.com/jsf/facelets"
-   xmlns:f="http://java.sun.com/jsf/core"
-                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
-   template="/WEB-INF/templates/default.xhtml">
-   <ui:define name="content">
-      <h1>API Engine - OAuth2 Consent page</h1>
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/templates/default.xhtml">
+    <ui:define name="content">
+        <h1>Application XYZ</h1>
+        <img src="resources/gfx/lg.jpeg" alt="Application logo" width="80"/>
 
-      <div>
-         <p>Do you want to grant application blabla, published by blabla.</p>
-         <h3>This application would like to:</h3>
-         <!--<img src="resources/gfx/wildfly_400x130.jpg"/>-->
-      </div>
+        <div>
+            <p>Do you want to grant application blabla, published by blabla.</p>
+        </div>
+        <h2>Application would like to:</h2>
 
-      <h:form id="consentform">
-         <h2>Application XYZ</h2>
-          <p>Action 1</p>
-          <p>Action 2</p>
-          <p>Action 3</p>
+        <div class="scopebox">
+            <p class="scope">Scope1</p>
+            <p class="scope">Scope1rtrzetzertzertzerte</p>
+            <p class="scope">Scope1</p>
+            <p class="scope">Scope1</p>
+        </div>
 
-         <p>
-            <h:panelGrid columns="2">
-               <h:commandButton id="cancel" value="Cancel" styleClass="register"/>
-                <h:commandButton id="accept" value="Accept" styleClass="register"/>
-            </h:panelGrid>
-         </p>
-      </h:form>
+        <h:form id="consentform">
+            <p>
+                <h:panelGrid columns="2">
+                    <p:button value="Cancel">
+                    </p:button>
+                    <p:button value="Accept">
+                    </p:button>
+                </h:panelGrid>
+            </p>
+        </h:form>
 
-   </ui:define>
+    </ui:define>
 </ui:composition>

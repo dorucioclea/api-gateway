@@ -18,24 +18,25 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #F1F1F1;
+  background-color: #f1f4ff;
   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
   font-size: 0.8em;
-  color:#363636;
+  color: #347EA6;
 }
 
 #container {
   margin: 0 auto;
   padding: 0 20px 10px 20px;
-  border-top: 5px solid #000000;
-  border-left: 5px solid #8c8f91;
-  border-right: 5px solid #8c8f91;
-  border-bottom: 25px solid #8c8f91;
-  width: 865px; /* subtract 40px from banner width for padding */
+  border-top: 3px solid #347EA6;
+  border-left: 3px solid #347EA6;
+  border-right: 3px solid #347EA6;
+  border-bottom: 3px solid #347EA6;
+  width: 465px; /* subtract 40px from banner width for padding */
   background: #FFFFFF;
   background-image: url(#{request.contextPath}/resources/gfx/headerbkg.png);
   background-repeat: repeat-x;
   padding-top: 30px;
+  margin-top: 30px;
   box-shadow: 3px 3px 15px #d5d5d5;
 }
 #content {
@@ -43,6 +44,11 @@ body {
   width: 500px;
   margin: 20px;
 }
+
+.scopebox{
+  margin: 20px;
+}
+
 #aside {
   font-size: 0.9em;
   width: 275px;
@@ -104,7 +110,7 @@ form {
   padding: 1em;
   font: 80%/1 sans-serif;
   width: 375px;
-  border: 1px solid #D5D5D5;
+  align-content: center;
 }
 label {
   float: left;
@@ -123,6 +129,15 @@ input {
   float: left;
   margin-left: 85px;
 }
+ .scope{
+   border: solid 1px #CCCCCC;
+   background-color: #f9f9f9;
+   padding: 4px;
+   width: 355px;
+   margin: 4px 4px 0px 4px;
+   display: table;
+
+ }
 
 /*  -----  table style  -------  */
 

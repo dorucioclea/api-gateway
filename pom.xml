@@ -177,6 +177,7 @@
         <opensaml.version>2.6.4</opensaml.version>
         <ehcache.version>2.10.0</ehcache.version>
         <primefaces.version>5.2</primefaces.version>
+        <primefaces.themes.version>1.0.10</primefaces.themes.version>
     </properties>
 
     <dependencyManagement>
@@ -185,6 +186,11 @@
                 <groupId>org.primefaces</groupId>
                 <artifactId>primefaces</artifactId>
                 <version>${primefaces.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.primefaces.themes</groupId>
+                <artifactId>all-themes</artifactId>
+                <version>${primefaces.themes.version}</version>
             </dependency>
             <!--Digi-apim modules-->
             <dependency>
