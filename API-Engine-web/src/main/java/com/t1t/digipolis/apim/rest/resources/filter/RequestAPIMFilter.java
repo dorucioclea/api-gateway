@@ -45,7 +45,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             try {
                 validatedUser = securityContext.setCurrentUser(userId);
             } catch (UserNotFoundException ex) {
-                LOG.info("Unauthorized user:{}", userId);
+                LOG.debug("Unauthorized user:{}", userId);
                 containerRequestContext.abortWith(Response
                         .status(Response.Status.UNAUTHORIZED)
                         .entity("User cannot access the resource.")

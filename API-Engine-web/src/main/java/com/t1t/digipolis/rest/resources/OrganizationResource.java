@@ -1054,7 +1054,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Get Service Market information",
             notes = "Retrieves the service uptime during the last month, and the distinct active consumers of the service.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = MetricsUsageList.class, message = "Service market information.")
+            @ApiResponse(code = 200, response = ServiceMarketInfo.class, message = "Service market information.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/market/info")
@@ -1136,50 +1136,6 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         return orgFacade.getResponseStatsSummary(organizationId, serviceId, version, fromDate, toDate);
     }
-
-/*    @ApiOperation(value = "Get Service Response Statistics",
-            notes = "Retrieves metrics/analytics information for a specific service.  This will return response type statistics.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = ResponseStatsPerAppBean.class, message = "Usage metrics information.")
-    })
-    @GET
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/responseStats")
-    @Produces(MediaType.APPLICATION_JSON)
-    public ResponseStatsPerAppBean getResponseStatsPerApp(@PathParam("organizationId") String organizationId,
-                                                          @PathParam("serviceId") String serviceId,
-                                                          @PathParam("version") String version,
-                                                          @QueryParam("from") String fromDate,
-                                                          @QueryParam("to") String toDate) throws NotAuthorizedException,
-            InvalidMetricCriteriaException {
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.getResponseStatsPerApp(organizationId, serviceId, version, fromDate, toDate);
-    }*/
-
-/*    @ApiOperation(value = "Get Service Response Statistics (per Plan)",
-            notes = "Retrieves metrics/analytics information for a specific service.  This will return response type statistics broken down by plan.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = SystemStatusBean.class, message = "Usage metrics information.")
-    })
-    @GET
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/planResponseStats")
-    @Produces(MediaType.APPLICATION_JSON)
-    public ResponseStatsPerPlanBean getResponseStatsPerPlan(@PathParam("organizationId") String organizationId,
-                                                            @PathParam("serviceId") String serviceId,
-                                                            @PathParam("version") String version,
-                                                            @QueryParam("from") String fromDate,
-                                                            @QueryParam("to") String toDate) throws NotAuthorizedException,
-            InvalidMetricCriteriaException {
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.getResponseStatsPerPlan(organizationId, serviceId, version, fromDate, toDate);
-    }*/
 
     @ApiOperation(value = "Create Plan",
             notes = "Use this endpoint to create a new Plan.  Note that it is important to also create an initial version of the Plan (e.g. 1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Plan Version\".  If the former is done, then a first Plan version will be created automatically by this endpoint.")

@@ -74,15 +74,17 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
         //distinct active users
         int distinctUsers = httpClient.getServiceConsumers(organizationId, serviceId, version).getData().size();
         //uptime - conventionally last month/by week
-        DateTime from = new DateTime();
-        DateTime to = from.minusMonths(1);
+        DateTime to = new DateTime();
+        DateTime from = to.minusMonths(1);
         MetricsResponseSummaryList summList = httpClient.getServiceResponseSummaryFromTo(organizationId, serviceId, version, "" + from.getMillis(), "" + to.getMillis());
         List<MetricsResponseSummary> res = summList.getData();
         int uptime = 100;
         if(res!=null && res.size()>0){
             double req_count = res.get(0).getRequestsCount();
             double res_wrong = res.get(0).getResponseWrong();
-            uptime = ((Double)((res_wrong/req_count)*100)).intValue();
+            //if res_wrong = 0 no mean to calculate
+            if(req_count>res_wrong && res_wrong>0) uptime = ((Double)((res_wrong/req_count)*100)).intValue();
+            else uptime = 100;
         }
 
         ServiceMarketInfo info = new ServiceMarketInfo();
@@ -90,7 +92,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
         info.setUptime(uptime);
         //TODO followers
         info.setFollowers(0);
-        return null;
+        return info;
     }
 
 
