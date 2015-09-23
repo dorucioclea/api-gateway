@@ -426,13 +426,6 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "type": "boolean",
       "default": false,
       "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by Kong before proxying the request."
-    },
-    "provision_key": {
-      "title": "Provisioning key",
-      "unique": true,
-      "func": "function",
-      "type": "string",
-      "description": "Upon registration of the application at the Authorization Server (publisher API), an provisioning key has been provided."
     }
   },
   "required": [
