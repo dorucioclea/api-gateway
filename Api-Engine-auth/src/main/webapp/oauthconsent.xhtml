@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    JBoss, Home of Professional Open Source
+    Copyright 2013, Red Hat, Inc. and/or its affiliates, and individual
+    contributors by the @authors tag. See the copyright.txt in the
+    distribution for a full listing of individual contributors.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+   xmlns:ui="http://java.sun.com/jsf/facelets"
+   xmlns:f="http://java.sun.com/jsf/core"
+   xmlns:h="http://java.sun.com/jsf/html"
+   template="/WEB-INF/templates/default.xhtml">
+   <ui:define name="content">
+      <h1>API Engine OAuth2 Consent page</h1>
+
+      <div>
+         <p>You have successfully deployed a Java EE 7 Enterprise Application.</p>
+         <h3>Your application can run on:</h3>
+         <!--<img src="resources/gfx/wildfly_400x130.jpg"/>-->
+      </div>
+
+      <h:form id="consentform">
+         <h2>Application XYZ</h2>
+         <p>This application would like to:</p>
+
+         <p>
+            <h:panelGrid columns="2">
+               <h:commandButton id="cancel" value="Cancel" styleClass="register"/>
+                <h:commandButton id="accept" value="Accept" styleClass="register"/>
+            </h:panelGrid>
+         </p>
+      </h:form>
+
+   </ui:define>
+</ui:composition>

@@ -255,7 +255,7 @@ public interface IOrganizationResource {
      */
     public AppUsagePerServiceBean getAppUsagePerService(
             String organizationId,  String applicationId,
-            String version, String fromDate,
+            String version,HistogramIntervalType interval, String fromDate,
              String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
 
