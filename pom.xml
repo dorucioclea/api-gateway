@@ -176,10 +176,16 @@
         <wso2.client.version>1.2.0</wso2.client.version>
         <opensaml.version>2.6.4</opensaml.version>
         <ehcache.version>2.10.0</ehcache.version>
+        <primefaces.version>5.2</primefaces.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.primefaces</groupId>
+                <artifactId>primefaces</artifactId>
+                <version>${primefaces.version}</version>
+            </dependency>
             <!--Digi-apim modules-->
             <dependency>
                 <groupId>com.t1t.digipolis</groupId>

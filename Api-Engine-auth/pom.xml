@@ -108,6 +108,10 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.primefaces</groupId>
+            <artifactId>primefaces</artifactId>
+        </dependency>
 
         <!-- JSR-303 (Bean Validation) Implementation -->
         <!-- Provides portable constraints such as @Email -->

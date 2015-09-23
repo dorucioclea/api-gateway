@@ -18,20 +18,23 @@
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
    xmlns:ui="http://java.sun.com/jsf/facelets"
    xmlns:f="http://java.sun.com/jsf/core"
-   xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
    template="/WEB-INF/templates/default.xhtml">
    <ui:define name="content">
-      <h1>API Engine OAuth2 Consent page</h1>
+      <h1>API Engine - OAuth2 Consent page</h1>
 
       <div>
-         <p>You have successfully deployed a Java EE 7 Enterprise Application.</p>
-         <h3>Your application can run on:</h3>
+         <p>Do you want to grant application blabla, published by blabla.</p>
+         <h3>This application would like to:</h3>
          <!--<img src="resources/gfx/wildfly_400x130.jpg"/>-->
       </div>
 
       <h:form id="consentform">
          <h2>Application XYZ</h2>
-         <p>This application would like to:</p>
+          <p>Action 1</p>
+          <p>Action 2</p>
+          <p>Action 3</p>
 
          <p>
             <h:panelGrid columns="2">
