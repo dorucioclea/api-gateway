@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "data": {
+      "id": "metricsResponseStats",
+      "type": "array",
+      "items": {
+        "$ref":"MetricsResponseStats.json"
+      }
+    }
+  }
+}
+

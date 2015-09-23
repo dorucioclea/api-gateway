@@ -33,10 +33,17 @@ import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
-import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
@@ -802,10 +809,31 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
-        return metrics.getAppUsagePerService(organizationId, applicationId, version, from, to);
+        AppUsagePerServiceBean appUsage = new AppUsagePerServiceBean();
+        Map<String, MetricsConsumerUsageList> data = new HashMap<>();
+        List<ContractSummaryBean> appContracts = null;
+        //get App contracts
+        try {
+            appContracts = query.getApplicationContracts(organizationId, applicationId, version);
+            //getid from kong
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            KongConsumer consumer = gateway.getConsumer(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version));
+            log.info("Getting AppUsageStats for consumer {}",consumer);
+            if(consumer!=null && !StringUtils.isEmpty(consumer.getCustomId())){
+                String consumerId = consumer.getId();
+                for(ContractSummaryBean app:appContracts){
+                    data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(),app.getServiceId(),app.getServiceVersion()),
+                            metrics.getAppUsageForService(organizationId, applicationId, version, HistogramIntervalType.day, from, to, consumerId));
+                }
+            }
+        } catch (StorageException e) {
+            throw new ApplicationNotFoundException(e.getMessage());
+        }
+        appUsage.setData(data);
+        return appUsage;
     }
 
-    public UsageHistogramBean getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
+    public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         if (interval == null) {
@@ -816,21 +844,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
     }
 
-    public UsagePerAppBean getUsagePerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getUsagePerApp(organizationId, serviceId, version, from, to);
+    public ServiceMarketInfo getMarketInfo(String organizationId, String serviceId, String version){
+        return metrics.getServiceMarketInfo(organizationId, serviceId, version);
     }
 
-    public UsagePerPlanBean getUsagePerPlan(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getUsagePerPlan(organizationId, serviceId, version, from, to);
-    }
-
-    public ResponseStatsHistogramBean getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
+    public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         if (interval == null) {
@@ -841,25 +859,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
     }
 
-    public ResponseStatsSummaryBean getResponseStatsSummary(String organizationId, String serviceId, String version, String fromDate, String toDate) {
+    public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         return metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
-    }
-
-    public ResponseStatsPerAppBean getResponseStatsPerApp(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getResponseStatsPerApp(organizationId, serviceId, version, from, to);
-    }
-
-    public ResponseStatsPerPlanBean getResponseStatsPerPlan(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        return metrics.getResponseStatsPerPlan(organizationId, serviceId, version, from, to);
     }
 
     public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId) {
