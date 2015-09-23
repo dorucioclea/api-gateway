@@ -1051,6 +1051,26 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getServiceVersionContracts(organizationId, serviceId, version, page, pageSize);
     }
 
+    @ApiOperation(value = "Get Service Market information",
+            notes = "Retrieves the service uptime during the last month, and the distinct active consumers of the service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = MetricsUsageList.class, message = "Service market information.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/market/info")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceMarketInfo getServiceMarketInfo(
+            @PathParam("organizationId") String organizationId,
+            @PathParam("serviceId") String serviceId,
+            @PathParam("version") String version) throws NotAuthorizedException, InvalidMetricCriteriaException {
+        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getMarketInfo(organizationId, serviceId, version);
+    }
+
     @ApiOperation(value = "Get Service Usage Metrics",
             notes = "Retrieves metrics/analytics information for a specific service.  This will return a full histogram of request count data based on the provided date range and interval.  Valid intervals are:  month, week, day, hour, minute")
     @ApiResponses({

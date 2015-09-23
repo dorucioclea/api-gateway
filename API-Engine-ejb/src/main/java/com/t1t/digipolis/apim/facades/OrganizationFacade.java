@@ -844,6 +844,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
     }
 
+    public ServiceMarketInfo getMarketInfo(String organizationId, String serviceId, String version){
+        return metrics.getServiceMarketInfo(organizationId, serviceId, version);
+    }
+
     public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);

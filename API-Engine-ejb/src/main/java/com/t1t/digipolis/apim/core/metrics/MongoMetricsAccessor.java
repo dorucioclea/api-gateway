@@ -1,27 +1,23 @@
 package com.t1t.digipolis.apim.core.metrics;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.t1t.digipolis.apim.IConfig;
-import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
-import com.t1t.digipolis.apim.kong.KongClient;
-import com.t1t.digipolis.apim.kong.RestServiceBuilder;
+import com.t1t.digipolis.apim.gateway.dto.Service;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummary;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Alternative;
 import javax.enterprise.inject.Default;
 import java.util.List;
 
@@ -71,6 +67,30 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     @Override
     public MetricsConsumerUsageList getAppUsageForService(String organizationId, String applicationId, String version,HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
         return httpClient.getServiceConsumerUsageFromToInterval(organizationId, applicationId, version, interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId);
+    }
+
+    @Override
+    public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) {
+        //distinct active users
+        int distinctUsers = httpClient.getServiceConsumers(organizationId, serviceId, version).getData().size();
+        //uptime - conventionally last month/by week
+        DateTime from = new DateTime();
+        DateTime to = from.minusMonths(1);
+        MetricsResponseSummaryList summList = httpClient.getServiceResponseSummaryFromTo(organizationId, serviceId, version, "" + from.getMillis(), "" + to.getMillis());
+        List<MetricsResponseSummary> res = summList.getData();
+        int uptime = 100;
+        if(res!=null && res.size()>0){
+            double req_count = res.get(0).getRequestsCount();
+            double res_wrong = res.get(0).getResponseWrong();
+            uptime = ((Double)((res_wrong/req_count)*100)).intValue();
+        }
+
+        ServiceMarketInfo info = new ServiceMarketInfo();
+        info.setDevelopers(distinctUsers);
+        info.setUptime(uptime);
+        //TODO followers
+        info.setFollowers(0);
+        return null;
     }
 
 

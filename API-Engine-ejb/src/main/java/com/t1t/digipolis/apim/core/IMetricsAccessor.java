@@ -70,4 +70,18 @@ public interface IMetricsAccessor {
      */
     MetricsConsumerUsageList getAppUsageForService(String organizationId, String applicationId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId);
 
+    /**
+     * Provides the service marketplace information.
+     * <ul>
+     *     <li>Uptime percentage</li>
+     *     <li>Amount of developers</li>
+     *     <li>Amount of followers</li>
+     * </ul>
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @return
+     */
+    ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version);
+
 }

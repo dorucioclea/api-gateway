@@ -1,9 +1,11 @@
 package com.t1t.digipolis.apim.core.metrics;
 
 import com.google.gson.JsonObject;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsServiceConsumerList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import retrofit.http.GET;
 import retrofit.http.Path;
@@ -51,4 +53,9 @@ public interface MetricsClient {
                                                           @Path("consumer") String consumerId
     );
 
+    @GET("/consumers/{organizationId}/{serviceId}/{version}")
+    MetricsServiceConsumerList getServiceConsumers(@Path("organizationId") String orgId,
+                                                                   @Path("serviceId") String serviceId,
+                                                                   @Path("version") String version
+    );
 }
