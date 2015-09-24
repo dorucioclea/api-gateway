@@ -3,10 +3,12 @@ package com.t1t.digipolis.apim.core.metrics;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummary;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsUsage;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,6 +33,13 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     private static Config config;
     private static String metricsURI;
     private static RestMetricsBuilder restMetricsBuilder;
+
+    //interval values
+    private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
+    private static final long ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000;
+    private static final long ONE_DAY_MILLIS = 1 * 24 * 60 * 60 * 1000;
+    private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
+    private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
     static {
         metricsURI = null;
@@ -49,7 +59,17 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
 
     @Override
     public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        return httpClient.getServiceUsageFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        MetricsUsageList resultList = httpClient.getServiceUsageFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        MetricsUsageList resultUsageList = new MetricsUsageList();
+        List<com.t1t.digipolis.kong.model.MetricsUsage> enhancedUsageList = new ArrayList<>();
+        long fromMillis = from.getMillis();
+        long toMillis = to.getMillis();
+        for(;fromMillis<=toMillis;fromMillis+)
+        for(MetricsUsage originUsage:resultList.getData()){
+
+            originUsage.getInterval()
+        }
+        return null;
     }
 
     @Override
@@ -59,6 +79,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
 
     @Override
     public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
+        //here we only have on set of results, we don't need to add date records in order to prepare the data for a front end application
         return httpClient.getServiceResponseSummaryFromTo(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis());
     }
 
@@ -93,5 +114,33 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
         return info;
     }
 
-
+    /**
+     * Returns the interval in millis for histogram calculation.
+     *
+     * @param interval
+     * @return
+     */
+    private long getIntervalMillis(HistogramIntervalType interval) {
+        long divBy = ONE_DAY_MILLIS;
+        switch (interval) {
+            case day:
+                divBy = ONE_DAY_MILLIS;
+                break;
+            case hour:
+                divBy = ONE_HOUR_MILLIS;
+                break;
+            case minute:
+                divBy = ONE_MINUTE_MILLIS;
+                break;
+            case month:
+                divBy = ONE_MONTH_MILLIS;
+                break;
+            case week:
+                divBy = ONE_WEEK_MILLIS;
+                break;
+            default:
+                break;
+        }
+        return divBy;
+    }
 }
