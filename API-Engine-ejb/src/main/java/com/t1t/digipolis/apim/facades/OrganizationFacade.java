@@ -338,6 +338,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             for(PolicySummaryBean summaryBean:policySummaryBeans){
                 if(summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())){
                     //create client_id and client_secret for the application - the same client_id/secret must be used for all services
+                    //upon publication the application credentials will be enabled for the current user.
                     OAuthAppBean oAuthAppBean = new OAuthAppBean();
                     oAuthAppBean.setApp(storage.getApplicationVersion(organizationId, applicationId, version));
                     oAuthAppBean.setServiceOrgId(bean.getServiceOrgId());
