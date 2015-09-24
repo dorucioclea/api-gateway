@@ -878,9 +878,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 if (row[5] != null) {
                     bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[5])));
                 }
-                bean.setScopeService(((Boolean)row[6]).booleanValue());
+                bean.setScopeService(((Boolean) row[6]).booleanValue());
                 bean.setScopePlan(((Boolean) row[7]).booleanValue());
-                bean.setScopeAuto(((Boolean)row[8]).booleanValue());
+                bean.setScopeAuto(((Boolean) row[8]).booleanValue());
                 rval.add(bean);
             }
             return rval;
@@ -1525,34 +1525,28 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public List<OAuthAppBean> listApplicationOAuthCredentials(Long appVersionId) throws StorageException {
-/*        EntityManager entityManager = getActiveEntityManager();
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql =
+                "SELECT oa from OAuthAppBean oa "
+                        + " WHERE oa.app = :appVersionId "
+                        + " ORDER BY oa.serviceVersion ASC";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("appVersionId", appVersionId);
 
-        @SuppressWarnings("nls")
-        String sql =
-                "SELECT pd.id, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type" +
-                        "  FROM policydefs pd" +
-                        " WHERE pd.plugin_id = ?" +
-                        " ORDER BY pd.name ASC";
-        Query query = entityManager.createNativeQuery(sql);
-        query.setParameter(1, pluginId);
-
-        List<Object[]> rows = (List<Object[]>) query.getResultList();
-        List<PolicyDefinitionSummaryBean> beans = new ArrayList<>(rows.size());
-        for (Object [] row : rows) {
-            PolicyDefinitionSummaryBean bean = new PolicyDefinitionSummaryBean();
-            bean.setId(String.valueOf(row[0]));
-            bean.setName(String.valueOf(row[1]));
-            bean.setDescription(String.valueOf(row[2]));
-            bean.setIcon(String.valueOf(row[3]));
-            if (row[4] != null) {
-                bean.setPluginId(((Number) row[4]).longValue());
-            }
-            if (row[5] != null) {
-                bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[5])));
-            }
-            beans.add(bean);
-        }*/
-        return null;
+        List<OAuthAppBean> oauthCredentials = (List<OAuthAppBean>) query.getResultList();
+        List<OAuthAppBean> rval = new ArrayList<>(oauthCredentials.size());
+        for (OAuthAppBean cred : oauthCredentials) {
+            OAuthAppBean res = new OAuthAppBean();
+            res.setId(cred.getId());
+            res.setServiceOrgId(cred.getServiceOrgId());
+            res.setServiceId(cred.getServiceId());
+            res.setServiceVersion(cred.getServiceVersion());
+            res.setClientId(cred.getClientId());
+            res.setClientSecret(cred.getClientSecret());
+            res.setClientRedirect(cred.getClientRedirect());
+            res.setApp(cred.getApp());
+            rval.add(res);
+        }
+        return rval;
     }
-
 }
