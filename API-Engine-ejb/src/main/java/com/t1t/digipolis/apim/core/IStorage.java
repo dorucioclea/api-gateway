@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.core;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
@@ -41,6 +42,7 @@ public interface IStorage {
     public void createPlugin(PluginBean plugin) throws StorageException;
     public void createPolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
     public void createAuditEntry(AuditEntryBean entry) throws StorageException;
+    public void createApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -57,6 +59,7 @@ public interface IStorage {
     public void updatePolicy(PolicyBean policy) throws StorageException;
     public void updateGateway(GatewayBean gateway) throws StorageException;
     public void updatePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
+    public void updateApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
@@ -75,6 +78,7 @@ public interface IStorage {
     public void deleteGateway(GatewayBean gateway) throws StorageException;
     public void deletePlugin(PluginBean plugin) throws StorageException;
     public void deletePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
+    public void deleteApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -94,6 +98,7 @@ public interface IStorage {
     public PluginBean getPlugin(long id) throws StorageException;
     public PluginBean getPlugin(String groupId, String artifactId) throws StorageException;
     public PolicyDefinitionBean getPolicyDefinition(String id) throws StorageException;
+    public OAuthAppBean getApplicationOAuthCredentials(String id) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

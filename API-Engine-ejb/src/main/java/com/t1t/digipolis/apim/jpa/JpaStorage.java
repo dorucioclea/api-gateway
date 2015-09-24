@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
@@ -240,6 +241,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(policyDef);
     }
 
+    @Override
+    public void updateApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
+        super.update(oAuthAppBean);
+    }
+
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -396,6 +402,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.delete(policyDef);
     }
 
+    @Override
+    public void deleteApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
+        super.delete(oAuthAppBean);
+    }
+
     /**
      * @see IStorage#getOrganization(String)
      */
@@ -521,6 +532,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public PolicyDefinitionBean getPolicyDefinition(String id) throws StorageException {
         return super.get(id, PolicyDefinitionBean.class);
+    }
+
+    @Override
+    public OAuthAppBean getApplicationOAuthCredentials(String id) throws StorageException {
+        return super.get(id,OAuthAppBean.class);
     }
 
     /**
@@ -699,6 +715,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     
     public void createAuditEntry(AuditEntryBean entry) throws StorageException {
         super.create(entry);
+    }
+
+    @Override
+    public void createApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
+        super.create(oAuthAppBean);
     }
 
     /**
@@ -1500,6 +1521,38 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 beans.add(bean);
             }
             return beans;
+    }
+
+    @Override
+    public List<OAuthAppBean> listApplicationOAuthCredentials(Long appVersionId) throws StorageException {
+/*        EntityManager entityManager = getActiveEntityManager();
+
+        @SuppressWarnings("nls")
+        String sql =
+                "SELECT pd.id, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type" +
+                        "  FROM policydefs pd" +
+                        " WHERE pd.plugin_id = ?" +
+                        " ORDER BY pd.name ASC";
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter(1, pluginId);
+
+        List<Object[]> rows = (List<Object[]>) query.getResultList();
+        List<PolicyDefinitionSummaryBean> beans = new ArrayList<>(rows.size());
+        for (Object [] row : rows) {
+            PolicyDefinitionSummaryBean bean = new PolicyDefinitionSummaryBean();
+            bean.setId(String.valueOf(row[0]));
+            bean.setName(String.valueOf(row[1]));
+            bean.setDescription(String.valueOf(row[2]));
+            bean.setIcon(String.valueOf(row[3]));
+            if (row[4] != null) {
+                bean.setPluginId(((Number) row[4]).longValue());
+            }
+            if (row[5] != null) {
+                bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[5])));
+            }
+            beans.add(bean);
+        }*/
+        return null;
     }
 
 }

@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.core;
 
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -286,5 +287,15 @@ public interface IStorageQuery {
      * @throws StorageException if a storage problem occurs while storing a bean. 
      */
     public List<PolicyDefinitionSummaryBean> listPluginPolicyDefs(Long pluginId) throws StorageException;
+
+    /**
+     * Lists all OAuth credentials associated to an application version.
+     * The record contains information for the service version assigned with the credentials.
+     *
+     * @param appVersionId
+     * @return
+     * @throws StorageException
+     */
+    public List<OAuthAppBean> listApplicationOAuthCredentials(Long appVersionId) throws StorageException;
 
 }
