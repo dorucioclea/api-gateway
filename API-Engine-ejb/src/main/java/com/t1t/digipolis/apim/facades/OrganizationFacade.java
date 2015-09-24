@@ -2042,8 +2042,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @param to
      * @param interval
      */
-    private void validateTimeSeriesMetric(DateTime from, DateTime to, HistogramIntervalType interval)
-            throws InvalidMetricCriteriaException {
+    private void validateTimeSeriesMetric(DateTime from, DateTime to, HistogramIntervalType interval) throws InvalidMetricCriteriaException {
         long millis = to.getMillis() - from.getMillis();
         long divBy = ONE_DAY_MILLIS;
         switch (interval) {
@@ -2066,9 +2065,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 break;
         }
         long totalDataPoints = millis / divBy;
-        if (totalDataPoints > 5000) {
+/*        if (totalDataPoints > 5000) {
             throw ExceptionFactory.invalidMetricCriteriaException(Messages.i18n.format("OrganizationResourceImpl.MetricDataSetTooLarge")); //$NON-NLS-1$
-        }
+        }*/
     }
 
     /**
