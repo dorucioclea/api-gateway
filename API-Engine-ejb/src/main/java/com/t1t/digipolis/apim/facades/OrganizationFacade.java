@@ -328,9 +328,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
+        //TODO OAUTH
         try {
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
+            //verify if the contracting service has OAuth enabled
+            List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+            for(PolicySummaryBean summaryBean:policySummaryBeans){
+                if(summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())){
+                    //create client_id and client_secret for the application - the same client_id/secret must be used for all services
+                }
+            }
             return contract;
         } catch (AbstractRestException e) {
             throw e;
