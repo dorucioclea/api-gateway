@@ -3,8 +3,8 @@ package com.t1t.digipolis.apim.core.metrics;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsResponseStats;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummary;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
@@ -19,8 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by michallispashidis on 12/09/15.
@@ -59,22 +58,56 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
 
     @Override
     public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        MetricsUsageList resultList = httpClient.getServiceUsageFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        MetricsUsageList originList = httpClient.getServiceUsageFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        //will contain the final results
         MetricsUsageList resultUsageList = new MetricsUsageList();
-        List<com.t1t.digipolis.kong.model.MetricsUsage> enhancedUsageList = new ArrayList<>();
-        long fromMillis = from.getMillis();
+        //we create a epoch map in order to add specific values at random and sort the key values
+        Map<Long,MetricsUsage> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
-        for(;fromMillis<=toMillis;fromMillis+)
-        for(MetricsUsage originUsage:resultList.getData()){
-
-            originUsage.getInterval()
+        long intervalMillis = getIntervalMillis(interval);
+        //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
+        long fromMillis = from.getMillis();
+        if(originList.getData().size()>0){
+            fromMillis = new Double(originList.getData().get(0).getInterval()).longValue();
         }
-        return null;
+        for(;fromMillis<=toMillis;fromMillis=fromMillis+intervalMillis){
+            processingMap.put(fromMillis,new MetricsUsage().withCount(0d).withInterval(new Double(fromMillis)));
+        }
+        for(MetricsUsage originUsage:originList.getData()){
+            processingMap.put(new Double(originUsage.getInterval()).longValue(), new MetricsUsage().withCount(originUsage.getCount()).withInterval(originUsage.getInterval()));
+        }
+        //prep result
+        resultUsageList.setData(new ArrayList<MetricsUsage>(processingMap.values()));
+        return resultUsageList;
     }
 
     @Override
     public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        return httpClient.getServiceResponseStatisticsFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        MetricsResponseStatsList originList = httpClient.getServiceResponseStatisticsFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        MetricsResponseStatsList resultUsageList = new MetricsResponseStatsList();
+        //we create a epoch map in order to add specific values at random and sort the key values
+        Map<Long,MetricsResponseStats> processingMap = new TreeMap<>();
+        long toMillis = to.getMillis();
+        long intervalMillis = getIntervalMillis(interval);
+        //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
+        long fromMillis = from.getMillis();
+        if(originList.getData().size()>0){
+            fromMillis = new Double(originList.getData().get(0).getDateInterval()).longValue();
+        }
+        for(;fromMillis<=toMillis;fromMillis=fromMillis+intervalMillis){
+            processingMap.put(fromMillis, new MetricsResponseStats().withDateInterval(new Double(fromMillis))
+                    .withLatencyKong(0d).withLatencyProxy(0d).withLatencyRequest(0d)
+                    .withRequestsCount(0d).withRequestsWrong(0d).withResponseWrong(0d));
+        }
+        for(MetricsResponseStats originUsage:originList.getData()){
+            processingMap.put(new Double(originUsage.getDateInterval()).longValue(), new MetricsResponseStats().withDateInterval(originUsage.getDateInterval())
+            .withLatencyKong(originUsage.getLatencyKong()).withLatencyProxy(originUsage.getLatencyProxy()).withLatencyRequest(originUsage.getLatencyRequest())
+            .withRequestsCount(originUsage.getRequestsCount()).withRequestsWrong(originUsage.getRequestsWrong()).withResponseWrong(originUsage.getResponseWrong()));
+        }
+        //prep result
+        resultUsageList.setData(new ArrayList<MetricsResponseStats>(processingMap.values()));
+        log.info("Enhanced list:{}", resultUsageList);
+        return resultUsageList;
     }
 
     @Override
