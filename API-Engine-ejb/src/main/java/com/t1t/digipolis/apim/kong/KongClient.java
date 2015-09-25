@@ -15,6 +15,8 @@ import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongStatus;
 import retrofit.http.*;
 
@@ -64,4 +66,7 @@ public interface KongClient {
     /*@PATCH("/apis/{apinameorid}/plugins/{id}")KongPluginConfig updatePlugin(@Path("apinameorid")String apiNameOrId,@Path("id")String pluginId,@Body KongPluginConfig pluginConfig);*/
     @PUT("/apis/{apinameorid}/plugins/")KongPluginConfig updateOrCreatePluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
     @DELETE("/apis/{apinameorid}/plugins/{id}")Object deletePlugin(@Path("apinameorid")String apiNameOrId, @Path("id") String pluginId);
+
+    /*********************   OAUTH   *******************/
+    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path("consumerId")String consumerId,@Body KongPluginOAuthConsumerRequest oAuthConsumerRequest);
 }
