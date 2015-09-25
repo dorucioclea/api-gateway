@@ -313,7 +313,7 @@ public class KongClientIntegrationTest {
         log.info("size after:{}", sizeAfter);
         kongClient.deleteApi(apie.getId());
         kongClient.deleteConsumer(consumer.getId());
-        assertTrue(sizeAfter == (initSize));
+        assertTrue(sizeAfter == (initSize + 1));
     }
 
     @Test
@@ -412,6 +412,18 @@ public class KongClientIntegrationTest {
         KongConsumer consumer = new KongConsumer().withUsername("someid");
         consumer = kongClient.createConsumer(consumer);
         KongPluginKeyAuthResponse response = kongClient.createConsumerKeyAuthCredentials(consumer.getId(), new KongPluginKeyAuthRequest());
+        //get key auth and compare
+        KongPluginKeyAuthResponseList responseList = kongClient.getConsumerKeyAuthCredentials(consumer.getId());
+        assertTrue(responseList.getData().get(0).getKey().equals(response.getKey()));
+        kongClient.deleteConsumer(consumer.getId());
+    }
+
+    @Test
+    public void createConsumerMultiKeyAuth()throws Exception{
+        KongConsumer consumer = new KongConsumer().withUsername("someid");
+        consumer = kongClient.createConsumer(consumer);
+        KongPluginKeyAuthResponse response = kongClient.createConsumerKeyAuthCredentials(consumer.getId(), new KongPluginKeyAuthRequest());
+        KongPluginKeyAuthResponse response2 = kongClient.createConsumerKeyAuthCredentials(consumer.getId(), new KongPluginKeyAuthRequest().withKey("ABC"));
         //get key auth and compare
         KongPluginKeyAuthResponseList responseList = kongClient.getConsumerKeyAuthCredentials(consumer.getId());
         assertTrue(responseList.getData().get(0).getKey().equals(response.getKey()));

@@ -3,24 +3,24 @@ package com.t1t.digipolis.apim.facades;
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
+import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
-import com.t1t.digipolis.apim.core.IApplicationValidator;
-import com.t1t.digipolis.apim.core.IServiceValidator;
-import com.t1t.digipolis.apim.core.IStorage;
-import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
+import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
@@ -28,7 +28,6 @@ import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.qualifier.APIEngineContext;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import javax.ejb.Stateless;
@@ -44,28 +43,17 @@ import java.util.*;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class ActionFacade {
-    @Inject
-    @APIEngineContext
-    private Logger log;
-    @Inject
-    @APIEngineContext
-    private EntityManager em;
-    @Inject
-    private ISecurityContext securityContext;
-    @Inject
-    private IStorage storage;
-    @Inject
-    private IStorageQuery query;
-    @Inject
-    private GatewayFacade gatewayFacade;
-    @Inject
-    private OrganizationFacade orgFacade;
-    @Inject
-    private IServiceValidator serviceValidator;
-    @Inject
-    private IApplicationValidator applicationValidator;
+    @Inject @APIEngineContext private Logger log;
+    @Inject @APIEngineContext private EntityManager em;
+    @Inject private ISecurityContext securityContext;
+    @Inject private IStorage storage;
+    @Inject private IStorageQuery query;
+    @Inject private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject private OrganizationFacade orgFacade;
+    @Inject private IServiceValidator serviceValidator;
+    @Inject private IApplicationValidator applicationValidator;
 
-    public void performAction(ActionBean action) {
+    public void performAction(ActionBean action){
         switch (action.getType()) {
             case publishService:
                 publishService(action);
@@ -145,13 +133,15 @@ public class ActionFacade {
         }
         // Publish the service to all relevant gateways
         try {
-            String gatewayId = gatewayFacade.getDefaultGateway().getId();
-            if (gatewayId == null || StringUtils.isEmpty(gatewayId)) {
+            Set<ServiceGatewayBean> gateways = versionBean.getGateways();
+            if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
-            IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-            gatewayLink.publishService(gatewaySvc);
-            gatewayLink.close();
+            for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                gatewayLink.publishService(gatewaySvc);
+                gatewayLink.close();
+            }
 
             versionBean.setStatus(ServiceStatus.Published);
             versionBean.setPublishedOn(new Date());
@@ -166,6 +156,26 @@ public class ActionFacade {
 
         log.debug(String.format("Successfully published Service %s on specified gateways: %s", //$NON-NLS-1$
                 versionBean.getService().getName(), versionBean.getService()));
+    }
+
+    /**
+     * Creates a gateway link given a gateway id.
+     *
+     * @param gatewayId
+     */
+    private IGatewayLink createGatewayLink(String gatewayId) throws PublishingException {
+        try {
+            GatewayBean gateway = storage.getGateway(gatewayId);
+            if (gateway == null) {
+                throw new GatewayNotFoundException();
+            }
+            IGatewayLink link = gatewayLinkFactory.create(gateway);
+            return link;
+        } catch (GatewayNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PublishingException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -196,13 +206,15 @@ public class ActionFacade {
 
         // Retire the service from all relevant gateways
         try {
-            String gatewayId = gatewayFacade.getDefaultGateway().getId();
-            if (gatewayId == null || StringUtils.isEmpty(gatewayId)) {
+            Set<ServiceGatewayBean> gateways = versionBean.getGateways();
+            if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
-            IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-            gatewayLink.retireService(gatewaySvc);
-            gatewayLink.close();
+            for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                gatewayLink.retireService(gatewaySvc);
+                gatewayLink.close();
+            }
 
             versionBean.setStatus(ServiceStatus.Retired);
             versionBean.setRetiredOn(new Date());
@@ -275,13 +287,21 @@ public class ActionFacade {
         // looking up all referenced services and getting the gateway information for them.
         // Each of those gateways must be told about the application.
         try {
+            Map<String, IGatewayLink> links = new HashMap<>();
             for (Contract contract : application.getContracts()) {
-                //get the default gateway
-                String gatewayId = gatewayFacade.getDefaultGateway().getId();
-                if (gatewayId == null || StringUtils.isEmpty(gatewayId)) {
-                    throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
+                ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
+                Set<ServiceGatewayBean> gateways = svb.getGateways();
+                if (gateways == null) {
+                    throw new PublishingException("No gateways specified for service: " + svb.getService().getName()); //$NON-NLS-1$
                 }
-                IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
+                for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                    if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
+                        IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                        links.put(serviceGatewayBean.getGatewayId(), gatewayLink);
+                    }
+                }
+            }
+            for (IGatewayLink gatewayLink : links.values()) {
                 gatewayLink.registerApplication(application);
                 gatewayLink.close();
             }
@@ -397,13 +417,25 @@ public class ActionFacade {
         // looking up all referenced services and getting the gateway information for them.
         // Each of those gateways must be told about the application.
         try {
-            String gatewayId = gatewayFacade.getDefaultGateway().getId();
-            if (gatewayId == null || StringUtils.isEmpty(gatewayId)) {
-                throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
+            Map<String, IGatewayLink> links = new HashMap<>();
+            for (ContractSummaryBean contractBean : contractBeans) {
+                ServiceVersionBean svb = storage.getServiceVersion(contractBean.getServiceOrganizationId(),
+                        contractBean.getServiceId(), contractBean.getServiceVersion());
+                Set<ServiceGatewayBean> gateways = svb.getGateways();
+                if (gateways == null) {
+                    throw new PublishingException("No gateways specified for service: " + svb.getService().getName()); //$NON-NLS-1$
+                }
+                for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                    if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
+                        IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                        links.put(serviceGatewayBean.getGatewayId(), gatewayLink);
+                    }
+                }
             }
-            IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-            gatewayLink.unregisterApplication(application);
-            gatewayLink.close();
+            for (IGatewayLink gatewayLink : links.values()) {
+                gatewayLink.unregisterApplication(application);
+                gatewayLink.close();
+            }
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("UnregisterError"), e); //$NON-NLS-1$
         }
@@ -428,8 +460,7 @@ public class ActionFacade {
      * @param action
      */
     private void lockPlan(ActionBean action) throws ActionException {
-        if (!securityContext.hasPermission(PermissionType.planAdmin, action.getOrganizationId()))
-            throw ExceptionFactory.notAuthorizedException();
+        if (!securityContext.hasPermission(PermissionType.planAdmin, action.getOrganizationId())) throw ExceptionFactory.notAuthorizedException();
 
         PlanVersionBean versionBean = null;
         try {
