@@ -37,6 +37,7 @@ curl -X POST http://apim.t1t.be:8001/consumers/dev.marketplace.v1/keyauth \
 curl -X POST http://apim.t1t.be:8001/consumers/dev.publisher.v1/keyauth \
     --data "key=***REMOVED***"
 
+#Analytics
 curl -X POST http://apim.t1t.be:8001/apis/dev.apiengine.v1/plugins/ \
     --data "name=mashape-analytics" \
     --data "value.service_token=558a95f80f7a734609de5c04"
