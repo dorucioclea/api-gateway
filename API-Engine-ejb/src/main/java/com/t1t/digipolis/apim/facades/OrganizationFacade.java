@@ -1637,6 +1637,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setVersion(bean.getVersion());
         storage.createApplicationVersion(newVersion);
         storage.createAuditEntry(AuditUtils.applicationVersionCreated(newVersion, securityContext));
+        //create consumer on gateway
+        try {
+            //getid from kong
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            if(newVersion!=null){
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId(), newVersion.getVersion());
+                gateway.createConsumer(appConsumerName);
+            }
+        } catch (StorageException e) {
+            throw new ApplicationNotFoundException(e.getMessage());
+        }
         log.debug(String.format("Created new application version %s: %s", newVersion.getApplication().getName(), newVersion)); //$NON-NLS-1$
         return newVersion;
     }

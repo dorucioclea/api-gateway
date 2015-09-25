@@ -144,15 +144,14 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      */
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
         //create consumer
-        KongConsumer consumer = new KongConsumer()
-                .withUsername(ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(),application.getApplicationId(),application.getVersion()));
-        consumer = httpClient.createConsumer(consumer);
-        //register consumer application
+        String consumerId = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
+        KongConsumer consumer = httpClient.getConsumer(consumerId);
         //for each API register keyauth apikey for consumer on API
         KongPluginKeyAuthRequest keyAuthRequest;
         KongApi api;
         //context of API
         for(Contract contract:application.getContracts()){
+            log.info("Register application with contract:{}",contract);
             keyAuthRequest = new KongPluginKeyAuthRequest().withKey(contract.getApiKey());
             httpClient.createConsumerKeyAuthCredentials(consumer.getId(), keyAuthRequest);
             //get the API
@@ -404,7 +403,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     public KongConsumer createConsumer(String userUniqueName){
-        return httpClient.createConsumer(new KongConsumer().withUsername(userUniqueName));
+        return httpClient.createConsumer(new KongConsumer().withUsername(userUniqueName).withCustomId(userUniqueName));
     }
 
     public KongConsumer createConsumer(String userUniqueId, String customId){
