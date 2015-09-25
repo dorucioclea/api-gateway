@@ -28,6 +28,8 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
@@ -144,8 +146,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      */
     public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
         //create consumer
-        KongConsumer consumer = new KongConsumer()
-                .withUsername(ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(),application.getApplicationId(),application.getVersion()));
+        KongConsumer consumer = new KongConsumer().withUsername(ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(),application.getApplicationId(),application.getVersion()));
         consumer = httpClient.createConsumer(consumer);
         //register consumer application
         //for each API register keyauth apikey for consumer on API
@@ -425,6 +426,11 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
     public KongPluginBasicAuthResponse createConsumerBasicAuth(String userId, String userLoginName, String userPassword ){
         return httpClient.createConsumerBasicAuthCredentials(userId, new KongPluginBasicAuthRequest().withUsername(userLoginName).withPassword(userPassword));
+    }
+
+    public KongPluginOAuthConsumerResponse createConsumerOAuth(String consumerId, String appName, String appClientId, String appClientSecret, String appRedirectURI){
+        return httpClient.enableOAuthForConsumer(consumerId,new KongPluginOAuthConsumerRequest().withClientId(appClientId)
+        .withClientSecret(appClientSecret).withName(appName).withRedirectUrl(appRedirectURI));
     }
 
     public KongPluginBasicAuthResponseList getConsumerBasicAuth(String id){
