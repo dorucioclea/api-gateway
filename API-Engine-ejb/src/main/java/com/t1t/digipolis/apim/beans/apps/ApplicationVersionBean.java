@@ -1,10 +1,14 @@
 package com.t1t.digipolis.apim.beans.apps;
 
+import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Models a single version of a application "impl".  Every application in

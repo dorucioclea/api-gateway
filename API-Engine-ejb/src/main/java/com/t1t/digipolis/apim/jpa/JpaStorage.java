@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
@@ -240,6 +241,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(policyDef);
     }
 
+    @Override
+    public void updateApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
+        super.update(oAuthAppBean);
+    }
+
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -396,6 +402,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.delete(policyDef);
     }
 
+    @Override
+    public void deleteApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
+        super.delete(oAuthAppBean);
+    }
+
     /**
      * @see IStorage#getOrganization(String)
      */
@@ -521,6 +532,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public PolicyDefinitionBean getPolicyDefinition(String id) throws StorageException {
         return super.get(id, PolicyDefinitionBean.class);
+    }
+
+    @Override
+    public OAuthAppBean getApplicationOAuthCredentials(String id) throws StorageException {
+        return super.get(id,OAuthAppBean.class);
     }
 
     /**
@@ -701,6 +717,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.create(entry);
     }
 
+    @Override
+    public void createApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
+        super.create(oAuthAppBean);
+    }
+
     /**
      * @see IStorageQuery#auditEntity(String, String, String, Class, PagingBean)
      */
@@ -857,9 +878,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 if (row[5] != null) {
                     bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[5])));
                 }
-                bean.setScopeService(((Boolean)row[6]).booleanValue());
+                bean.setScopeService(((Boolean) row[6]).booleanValue());
                 bean.setScopePlan(((Boolean) row[7]).booleanValue());
-                bean.setScopeAuto(((Boolean)row[8]).booleanValue());
+                bean.setScopeAuto(((Boolean) row[8]).booleanValue());
                 rval.add(bean);
             }
             return rval;
@@ -1502,4 +1523,30 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return beans;
     }
 
+    @Override
+    public List<OAuthAppBean> listApplicationOAuthCredentials(Long appVersionId) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql =
+                "SELECT oa from OAuthAppBean oa "
+                        + " WHERE oa.app = :appVersionId "
+                        + " ORDER BY oa.serviceVersion ASC";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("appVersionId", appVersionId);
+
+        List<OAuthAppBean> oauthCredentials = (List<OAuthAppBean>) query.getResultList();
+        List<OAuthAppBean> rval = new ArrayList<>(oauthCredentials.size());
+        for (OAuthAppBean cred : oauthCredentials) {
+            OAuthAppBean res = new OAuthAppBean();
+            res.setId(cred.getId());
+            res.setServiceOrgId(cred.getServiceOrgId());
+            res.setServiceId(cred.getServiceId());
+            res.setServiceVersion(cred.getServiceVersion());
+            res.setClientId(cred.getClientId());
+            res.setClientSecret(cred.getClientSecret());
+            res.setClientRedirect(cred.getClientRedirect());
+            res.setApp(cred.getApp());
+            rval.add(res);
+        }
+        return rval;
+    }
 }

@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
+import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -328,9 +329,27 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
+        //TODO OAUTH
         try {
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
+            //verify if the contracting service has OAuth enabled
+            List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+            for(PolicySummaryBean summaryBean:policySummaryBeans){
+                if(summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())){
+                    //create client_id and client_secret for the application - the same client_id/secret must be used for all services
+                    //upon publication the application credentials will be enabled for the current user.
+                    OAuthAppBean oAuthAppBean = new OAuthAppBean();
+                    oAuthAppBean.setApp(storage.getApplicationVersion(organizationId, applicationId, version));
+                    oAuthAppBean.setServiceOrgId(bean.getServiceOrgId());
+                    oAuthAppBean.setServiceId(bean.getServiceId());
+                    oAuthAppBean.setServiceVersion(bean.getServiceVersion());
+                    oAuthAppBean.setClientId(apiKeyGenerator.generate());
+                    oAuthAppBean.setClientSecret(apiKeyGenerator.generate());
+                    oAuthAppBean.setClientRedirect("");//user should be able to provide the callboack
+                    storage.createApplicationOAuthCredentials(oAuthAppBean);
+                }
+            }
             return contract;
         } catch (AbstractRestException e) {
             throw e;
@@ -345,6 +364,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new SystemErrorException(e);
             }
         }
+    }
+
+    public List<OAuthAppBean> listApplicationOAuthCredentials(String organizationId, String applicationId, String version)throws StorageException{
+        List<OAuthAppBean> credentials = new ArrayList<>();
+        try {
+            ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
+            credentials = query.listApplicationOAuthCredentials(avb.getId());
+        } catch (StorageException e) {
+            throw new StorageException(e);
+        }
+        return credentials;
     }
 
     public List<ContractSummaryBean> getApplicationVersionContracts(String organizationId, String applicationId, String version) {

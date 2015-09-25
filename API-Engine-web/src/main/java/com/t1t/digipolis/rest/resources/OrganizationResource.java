@@ -3,6 +3,7 @@ package com.t1t.digipolis.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
@@ -23,6 +24,7 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.*;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
@@ -338,7 +340,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
         Preconditions.checkNotNull(interval);
         Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()));
-        return orgFacade.getAppUsagePerService(organizationId, applicationId, version, interval,fromDate, toDate);
+        return orgFacade.getAppUsagePerService(organizationId, applicationId, version, interval, fromDate, toDate);
     }
 
     @ApiOperation(value = "List Application Versions",
@@ -377,6 +379,26 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.createContract(organizationId, applicationId, version, bean);
+    }
+
+    @ApiOperation(value = "List all OAuth2 credentials provided for an application.",
+            notes = "Upon contract assignment for an application and a service published with an OAuth2 policy, client id and secret are issued for the application, for the specific service version. Those values are needed upon establishing a secured connection during authorziation and access token request.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = OAuthAppBean.class, message = "OAuth2 credentials for an application.")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth/credentials")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<OAuthAppBean> listApplicationOAuthCredentials(@PathParam("organizationId") String organizationId,
+                                                              @PathParam("applicationId") String applicationId,
+                                                              @PathParam("version") String version)throws OrganizationNotFoundException,StorageException{
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.appView, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        return orgFacade.listApplicationOAuthCredentials(organizationId, applicationId, version);
     }
 
     @ApiOperation(value = "Get Service Contract",
