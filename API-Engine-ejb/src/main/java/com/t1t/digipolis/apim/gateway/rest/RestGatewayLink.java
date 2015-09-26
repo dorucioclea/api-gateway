@@ -115,6 +115,11 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
+    public void deleteConsumerKeyAuth(String id, String apiKey)throws ConsumerException{
+        getClient().deleteConsumerKeyAuth(id,apiKey);
+    }
+
+    @Override
     public KongPluginBasicAuthResponse addConsumerBasicAuth(String userId, String userLoginName,String userLoginPassword) throws ConsumerException {
         return getClient().createConsumerBasicAuth(userId,userLoginName,userLoginPassword);
     }

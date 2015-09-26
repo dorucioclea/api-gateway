@@ -56,6 +56,8 @@ public interface KongClient {
     KongPluginBasicAuthResponse createConsumerBasicAuthCredentials(@Path("id") String id, @Body KongPluginBasicAuthRequest kongPluginBasicAuthRequest);
     @GET("/consumers/{id}/basicauth")
     KongPluginBasicAuthResponseList getConsumerBasicAuthCredentials(@Path("id")String id);
+    @DELETE("/consumers/{consumerId}/keyauth/{keyAuthId}")
+    Object deleteConsumerKeyAuthCredential(@Path("consumerId")String consumerId,@Path("keyAuthId")String keyAuthId);
 
     /*********************   PLUGINS   *******************/
     @GET("/plugins/")KongInstalledPlugins getInstalledPlugins();

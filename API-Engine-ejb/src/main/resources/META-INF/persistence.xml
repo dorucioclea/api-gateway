@@ -44,6 +44,7 @@
         <class>com.t1t.digipolis.apim.beans.audit.AuditEntryBean</class>
         <class>com.t1t.digipolis.apim.beans.gateways.GatewayBean</class>
         <class>com.t1t.digipolis.apim.beans.plugins.PluginBean</class>
+        <class>com.t1t.digipolis.apim.beans.authorization.OAuthAppBean</class>
         <properties>
             <!-- Properties for Hibernate -->
             <property name="hibernate.hbm2ddl.auto" value="validate"/> <!--validate | update | create | create-drop-->

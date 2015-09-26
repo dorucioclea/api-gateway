@@ -1,13 +1,11 @@
 package com.t1t.digipolis.apim.core.util;
 
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.core.IApplicationValidator;
 import com.t1t.digipolis.apim.core.IServiceValidator;
 import com.t1t.digipolis.apim.core.IStorageQuery;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -39,14 +37,7 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
             hasContracts = false;
             return isReady(application, hasContracts);
         }
-        //for OAuth contracts, you must explicitly provide an callback url
-        List<OAuthAppBean> oAuthAppBeans = storageQuery.listApplicationOAuthCredentials(application.getId());
-        if(oAuthAppBeans!=null&&oAuthAppBeans.size()>0){
-            //verify callback are all provide
-            for(OAuthAppBean bean:oAuthAppBeans){
-                if(StringUtils.isEmpty(bean.getClientRedirect()))return isReady(application, hasContracts);
-            }
-        }
+        //TODO for OAuth contracts (application client_id/client_secret are provided), you must explicitly provide an callback url
         return isReady(application, hasContracts);
     }
 

@@ -155,6 +155,16 @@ public interface IGatewayLink {
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id,String apiKey) throws ConsumerException;
 
     /**
+     * Deletes a key auth credential for a specific consumer.
+     * This should be done when removing a contract from an application.
+     *
+     * @param id
+     * @param apiKey
+     * @throws ConsumerException
+     */
+    public void deleteConsumerKeyAuth(String id, String apiKey)throws ConsumerException;
+
+    /**
      * Adds basic authentication with a username and password
      * @param userId
      * @param userLoginName

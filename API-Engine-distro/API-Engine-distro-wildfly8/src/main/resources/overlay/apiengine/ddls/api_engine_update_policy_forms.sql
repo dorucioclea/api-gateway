@@ -1,6 +1,6 @@
-ALTER TABLE application_versions DROP COLUMN oauth_client_id;
-ALTER TABLE application_versions DROP COLUMN oauth_client_secret;
-ALTER TABLE application_versions DROP COLUMN oauth_client_redirect;
+ALTER TABLE application_versions ADD COLUMN oauth_client_id VARCHAR(255);
+ALTER TABLE application_versions ADD COLUMN oauth_client_secret VARCHAR(255);
+ALTER TABLE application_versions ADD COLUMN oauth_client_redirect VARCHAR(255);
 
 CREATE TABLE oauth_apps (id BIGINT NOT NULL, oauth_svc_orgid VARCHAR(255) NOT NULL, oauth_svc_id VARCHAR(255) NOT NULL,oauth_svc_version VARCHAR(255) NOT NULL,oauth_client_id VARCHAR(255) NOT NULL,oauth_client_secret VARCHAR(255) NOT NULL,oauth_client_redirect VARCHAR(255),app_id BIGINT NOT NULL);
 

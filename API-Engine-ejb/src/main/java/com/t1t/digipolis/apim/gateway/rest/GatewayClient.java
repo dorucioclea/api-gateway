@@ -146,14 +146,10 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //create consumer
         String consumerId = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
         KongConsumer consumer = httpClient.getConsumer(consumerId);
-        //for each API register keyauth apikey for consumer on API
-        KongPluginKeyAuthRequest keyAuthRequest;
         KongApi api;
         //context of API
         for(Contract contract:application.getContracts()){
             log.info("Register application with contract:{}",contract);
-            keyAuthRequest = new KongPluginKeyAuthRequest().withKey(contract.getApiKey());
-            httpClient.createConsumerKeyAuthCredentials(consumer.getId(), keyAuthRequest);
             //get the API
             String apiName = ServiceConventionUtil.generateServiceUniqueName(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
             api = httpClient.getApi(apiName);
@@ -420,6 +416,10 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
     public KongPluginKeyAuthResponse createConsumerKeyAuth(String id, String apiKey){
         return httpClient.createConsumerKeyAuthCredentials(id, new KongPluginKeyAuthRequest().withKey(apiKey));
+    }
+
+    public void deleteConsumerKeyAuth(String id, String apikey){
+        httpClient.deleteConsumerKeyAuthCredential(id,apikey);
     }
 
     public KongPluginBasicAuthResponse createConsumerBasicAuth(String userId, String userLoginName, String userPassword ){
