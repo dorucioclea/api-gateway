@@ -297,6 +297,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return newVersion;
     }
 
+    public ApplicationVersionBean updateAppVersionURI(String organizationId, String applicationId, String version, UpdateApplicationVersionURIBean uri){
+        try {
+            ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
+            if(avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
+            avb.setOauthClientRedirect(uri.getUri());
+            storage.updateApplicationVersion(avb);
+            return avb;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
     public PolicyBean createAppPolicy(String organizationId, String applicationId, String version, NewPolicyBean bean) {
         // Make sure the app version exists and is in the right state.
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);

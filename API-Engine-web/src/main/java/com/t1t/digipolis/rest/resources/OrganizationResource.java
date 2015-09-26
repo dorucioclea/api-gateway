@@ -281,6 +281,19 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.createAppVersion(organizationId, applicationId, bean);
     }
 
+    @ApiOperation(value = "Update Application Version OAuth2 Callback URI",
+            notes = "Use this endpoint to update the application version URI callback for OAuth2.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApplicationVersionBean.class, message = "Updated Application Version.")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/version/{version}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApplicationVersionBean updateAppVersionCallbackURI(@PathParam("organizationId") String orgId, @PathParam("applicationId")String appId, @PathParam("version") String version ,UpdateApplicationVersionURIBean updateAppUri){
+        return orgFacade.updateAppVersionURI(orgId,appId,version,updateAppUri);
+    }
+
     @ApiOperation(value = "Get Application Version",
             notes = "Use this endpoint to get detailed information about a single version of an Application.")
     @ApiResponses({
