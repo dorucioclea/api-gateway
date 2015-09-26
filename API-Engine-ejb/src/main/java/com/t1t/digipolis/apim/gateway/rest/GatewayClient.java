@@ -419,7 +419,13 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     public void deleteConsumerKeyAuth(String id, String apikey){
-        httpClient.deleteConsumerKeyAuthCredential(id,apikey);
+        //get all registered api key values for a consumer
+        KongPluginKeyAuthResponseList keyAuthCredentials = httpClient.getConsumerKeyAuthCredentials(id);
+        if(keyAuthCredentials!=null & keyAuthCredentials.getData()!=null && keyAuthCredentials.getData().size()>0){
+            for(KongPluginKeyAuthResponse cred : keyAuthCredentials.getData()){
+                if(cred.getKey().equals(apikey))httpClient.deleteConsumerKeyAuthCredential(id,cred.getId());
+            }
+        }
     }
 
     public KongPluginBasicAuthResponse createConsumerBasicAuth(String userId, String userLoginName, String userPassword ){

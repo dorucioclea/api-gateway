@@ -8,7 +8,7 @@
       "type": "string"
     },
     "custom_id": {
-      "id": "custom_id",
+      "id": "consumer_id",
       "type": "string"
     },
     "key": {

@@ -965,6 +965,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
             storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
             log.debug(String.format("Deleted contract: %s", contract)); //$NON-NLS-1$
+            //verify if application still needs OAuth credentials?
+            int oauthEnabledServices = 0;
+            List<ContractSummaryBean> contracts = query.getApplicationContracts(organizationId, applicationId, version);
+            if(contracts!=null && contracts.size()>0){
+                //verify if other contracts still need OAuth properties
+                for(ContractSummaryBean ctr:contracts){
+                    List<PolicySummaryBean> policySummaryBeans = listServicePolicies(ctr.getServiceOrganizationId(),ctr.getServiceId(),ctr.getServiceVersion());
+                    for(PolicySummaryBean summaryBean:policySummaryBeans)if(summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier()))oauthEnabledServices++;
+                }
+            }else if(contracts!=null && contracts.size()==0){
+                //be sure no oauth data is present
+                oauthEnabledServices=0;
+            }
+            if(oauthEnabledServices==0){
+                avb.setoAuthClientId("");
+                avb.setOauthClientSecret("");
+                avb.setOauthClientRedirect("");
+                storage.updateApplicationVersion(avb);
+            }
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
