@@ -191,7 +191,14 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     public void unregister(String organizationId, String applicationId, String version) throws RegistrationException, GatewayAuthenticationException {
-        //When an API is remove all attached policies are removed as well
+        //remove the application consumer and it's keyauth credentials
+        String consumerId = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
+        KongPluginKeyAuthResponseList credentials = httpClient.getConsumerKeyAuthCredentials(consumerId);
+        if(credentials!=null && credentials.getData()!=null && credentials.getData().size()>0){
+            for(KongPluginKeyAuthResponse cred:credentials.getData())httpClient.deleteConsumerKeyAuthCredential(consumerId,cred.getId());
+        }
+        //remove application consumer
+        httpClient.deleteConsumer(consumerId);
     }
 
     /**
