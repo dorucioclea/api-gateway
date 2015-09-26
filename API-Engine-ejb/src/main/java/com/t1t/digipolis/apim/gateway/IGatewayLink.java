@@ -8,12 +8,15 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerAlreadyExistsExcept
 import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
-import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import org.elasticsearch.gateway.GatewayException;
 
 /**
@@ -190,5 +193,22 @@ public interface IGatewayLink {
      * @throws GatewayException
      */
     public KongApi getApi(String id) throws GatewayException;
+
+    /**
+     * Enable a consumer for OAuth2.
+     *
+     * @param consumerId
+     * @param request
+     * @return
+     */
+    public com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId,KongPluginOAuthConsumerRequest request);
+
+    /**
+     * Get application specific information for OAuth.
+     *
+     * @param clientId
+     * @return
+     */
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(String clientId);
     
 }

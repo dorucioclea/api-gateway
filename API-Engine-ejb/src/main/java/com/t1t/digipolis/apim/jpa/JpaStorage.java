@@ -1270,6 +1270,24 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return rval;
     }
 
+    @Override
+    public ApplicationVersionBean getApplicationForOAuth(String appOAuthId, String appOAuthSecret) throws StorageException {
+        try {
+            EntityManager entityManager = getActiveEntityManager();
+            String jpql = "SELECT v from ApplicationVersionBean v WHERE v.oAuthClientId = :clientId AND v.oauthClientSecret = :clientSecret";
+            Query query = entityManager.createQuery(jpql);
+            query.setParameter("clientId", appOAuthId); //$NON-NLS-1$
+            query.setParameter("clientSecret", appOAuthSecret); //$NON-NLS-1$
+
+            return (ApplicationVersionBean) query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            throw new StorageException(t);
+        }
+    }
+
     /**
      * @see IStorageQuery#getApiRegistry(String, String, String)
      */

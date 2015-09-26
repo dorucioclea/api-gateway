@@ -28,6 +28,9 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
@@ -449,6 +452,14 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
     public void deleteConsumer(String id){
         httpClient.deleteConsumer(id);
+    }
+
+    public KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId,KongPluginOAuthConsumerRequest request){
+        return httpClient.enableOAuthForConsumer(consumerId, request);
+    }
+
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(String clientId){
+        return httpClient.getApplicationOAuthInformation(clientId);
     }
 
     /*Service policies*/

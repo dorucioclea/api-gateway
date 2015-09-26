@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.core;
 
+import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
@@ -163,6 +164,16 @@ public interface IStorageQuery {
      */
     public List<ContractSummaryBean> getApplicationContracts(String organizationId, String applicationId, String version)
             throws StorageException;
+
+    /**
+     * Returns the application version based on the OAuth2 client_id and client_secret.
+     *
+     * @param appOAuthId
+     * @param appOAuthSecret
+     * @return
+     * @throws StorageException
+     */
+    public ApplicationVersionBean getApplicationForOAuth(String appOAuthId, String appOAuthSecret) throws StorageException;
 
 
     /**
