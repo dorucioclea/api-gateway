@@ -210,5 +210,13 @@ public interface IGatewayLink {
      * @return
      */
     public KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(String clientId);
+
+    /**
+     * Get a list of all oauth credentials associated with a user.
+     *
+     * @param consumerId
+     * @return
+     */
+    public KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(String consumerId);
     
 }

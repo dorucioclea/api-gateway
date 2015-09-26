@@ -15,6 +15,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.netty.util.internal.StringUtil;
+import retrofit.http.Body;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;

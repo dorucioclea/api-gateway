@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.auth.rest;
 import com.t1t.digipolis.apim.auth.rest.impl.mappers.RestExceptionMapper;
 import com.t1t.digipolis.apim.auth.rest.resources.BasicAuthorizationResource;
 import com.t1t.digipolis.apim.auth.rest.resources.KeyAuthorizationResource;
+import com.t1t.digipolis.apim.auth.rest.resources.OAuthResource;
 import com.t1t.digipolis.apim.auth.rest.resources.SystemResource;
 import com.t1t.digipolis.apim.auth.rest.resources.filter.RequestAUTHFilter;
 
@@ -23,7 +24,7 @@ public class JaxRsActivator extends Application {
          * When the server needs to be tested, you can set the boolean value to false, thus the filter driver
          * will not be loaded and REST communication can be done unsecure.
          */
-        securedMode = true;
+        securedMode = false;
     }
     public JaxRsActivator() {
     }
@@ -50,6 +51,7 @@ public class JaxRsActivator extends Application {
         resources.add(KeyAuthorizationResource.class);
         resources.add(BasicAuthorizationResource.class);
         resources.add(SystemResource.class);
+        resources.add(OAuthResource.class);
         resources.add(RestExceptionMapper.class);
     }
 }

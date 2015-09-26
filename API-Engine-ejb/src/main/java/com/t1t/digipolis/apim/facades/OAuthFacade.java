@@ -48,24 +48,38 @@ public class OAuthFacade {
 
     public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request){
         //get the application version based on provided client_id and client_secret - we need the name and
+        //TODO validate if non existing
         KongPluginOAuthConsumerRequest oauthRequest = new KongPluginOAuthConsumerRequest()
                 .withClientId(request.getAppOAuthId())
                 .withClientSecret(request.getAppOAuthSecret());
-        KongPluginOAuthConsumerResponse response = new KongPluginOAuthConsumerResponse();
+        KongPluginOAuthConsumerResponse response = null;
         //retrieve applicatin name and redirect URI.
         try {
             ApplicationVersionBean avb = query.getApplicationForOAuth(request.getAppOAuthId(),request.getAppOAuthSecret());
             if(avb==null)throw new ApplicationNotFoundException("Application not found with given OAuth2 clientId and clientSecret.");
             oauthRequest.setName(avb.getApplication().getName());
             if(StringUtils.isEmpty(avb.getOauthClientRedirect()))throw new OAuthException("The application must provide an OAuth2 redirect URL");
-            oauthRequest.setRedirectUrl(avb.getOauthClientRedirect());
+            oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
             String defaultGateway = query.listGateways().get(0).getId();
             if(!StringUtils.isEmpty(defaultGateway)){
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
-                    gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(),oauthRequest);
+                    response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(),oauthRequest);
                 } catch (Exception e) {
-                    throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e); //$NON-NLS-1$
+                    ;//don't do anything
+                }
+                if (response==null){
+                    //try to recover existing user
+                    try {
+                        IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                        KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(request.getUniqueUserName());
+                        for(KongPluginOAuthConsumerResponse cred:credentials.getData()){
+                            if(cred.getClientId().equals(request.getAppOAuthId()))response = cred;
+                        }
+                    } catch (Exception e) {
+                        //now throw an error if that's not working too.
+                        throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                    }
                 }
             }else throw new GatewayException("No default gateway found!");
         } catch (StorageException e) {
