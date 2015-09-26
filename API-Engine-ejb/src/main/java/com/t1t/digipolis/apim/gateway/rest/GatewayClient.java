@@ -45,10 +45,7 @@ import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * A REST client for accessing the Gateway API.
@@ -274,7 +271,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                         case TCPLOG: createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(),Policies.TCPLOG.getClazz());break;
                         case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
                         case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
-                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, policy, Policies.OAUTH2.getKongIdentifier(),Policies.OAUTH2.getClazz());postOAuth2Actions(service, config);break;
+                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, validateOAuthPolicy(policy), Policies.OAUTH2.getKongIdentifier(),Policies.OAUTH2.getClazz());postOAuth2Actions(service, config);break;
                         case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
                         case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
                         case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
@@ -300,6 +297,20 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     /**
+     * Validate OAuth plugin values
+     * @param policy    OAuth policy
+     * @return
+     */
+    private Policy validateOAuthPolicy(Policy policy) {
+        //we can be sure this is an OAuth Policy
+        Gson gson = new Gson();
+        KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        //perform enhancements
+        policy.setPolicyJsonConfig(gson.toJson(oauthValue));
+        return policy;
+    }
+
+    /**
      * After applying the OAuth2 plugin to a service the following action gets executed.
      * In case of OAuth2 - add provision_key to the service version, and additional scopes.
      *
@@ -315,10 +326,10 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
             KongPluginOAuth oauthPlugin = gson.fromJson(config.getValue().toString(), KongPluginOAuth.class);
             ServiceVersionBean svb = storage.getServiceVersion(service.getOrganizationId(), service.getServiceId(), service.getVersion());
             svb.setProvisionKey(oauthPlugin.getProvisionKey());
-            Set<String> scopeSet = new TreeSet<>();
+            Map<String,String> scopeMap = new HashMap<>();
             List<Object> resScopes = oauthPlugin.getScopes();
-            for(Object scope:resScopes)scopeSet.add((String)scope);
-            svb.setOauthScopes(scopeSet);
+            for(Object scope:resScopes)scopeMap.put((String)scope,(String) scope);//TODO how to retrieve the scope descriptions?
+            svb.setOauthScopes(scopeMap);
             storage.updateServiceVersion(svb);
         } catch (StorageException e) {
             throw new GatewayException("Error update service version bean with OAuth2 info:"+e.getMessage());
@@ -456,7 +467,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
 
     public KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId,KongPluginOAuthConsumerRequest request){
         //be sure that the uri ends with an '/'
-        if(!request.getRedirectUri().endsWith("/"))request.setRedirectUri(request.getRedirectUri()+"/");
+        if(!request.getRedirectUri().endsWith("/"))request.setRedirectUri(request.getRedirectUri() + "/");
         return httpClient.enableOAuthForConsumer(consumerId,request.getName(),request.getClientId(),request.getClientSecret(),request.getRedirectUri());
     }
 
@@ -480,7 +491,6 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      * @param <T>
      */
     private <T extends KongConfigValue> KongPluginConfig createServicePolicy(KongApi api, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
-
         Gson gson = new Gson();
         //perform value mapping
         KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
