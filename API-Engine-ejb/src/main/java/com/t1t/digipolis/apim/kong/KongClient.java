@@ -17,6 +17,7 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.KongStatus;
 import retrofit.http.*;
 
@@ -56,6 +57,8 @@ public interface KongClient {
     KongPluginBasicAuthResponse createConsumerBasicAuthCredentials(@Path("id") String id, @Body KongPluginBasicAuthRequest kongPluginBasicAuthRequest);
     @GET("/consumers/{id}/basicauth")
     KongPluginBasicAuthResponseList getConsumerBasicAuthCredentials(@Path("id")String id);
+    @DELETE("/consumers/{consumerId}/keyauth/{keyAuthId}")
+    Object deleteConsumerKeyAuthCredential(@Path("consumerId")String consumerId,@Path("keyAuthId")String keyAuthId);
 
     /*********************   PLUGINS   *******************/
     @GET("/plugins/")KongInstalledPlugins getInstalledPlugins();
@@ -68,5 +71,7 @@ public interface KongClient {
     @DELETE("/apis/{apinameorid}/plugins/{id}")Object deletePlugin(@Path("apinameorid")String apiNameOrId, @Path("id") String pluginId);
 
     /*********************   OAUTH   *******************/
-    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path("consumerId")String consumerId,@Body KongPluginOAuthConsumerRequest oAuthConsumerRequest);
+    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path("consumerId")String consumerId,@Query("name") String name, @Query("client_id")String clientId, @Query("client_secret")String clientSecret,@Query("redirect_uri")String redirectURL);
+    @GET("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(@Path("consumerId")String consumerId);
+    @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(@Query("client_id")String clientId);
 }

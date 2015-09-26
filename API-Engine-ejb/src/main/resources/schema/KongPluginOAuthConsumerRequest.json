@@ -16,8 +16,8 @@
       "id": "client_secret",
       "type": "string"
     },
-    "redirect_url": {
-      "id": "redirect_url",
+    "redirect_uri": {
+      "id": "redirect_uri",
       "type": "string"
     }
   }

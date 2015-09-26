@@ -15,6 +15,8 @@ import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.Plugins;
 import org.apache.commons.lang3.StringUtils;
@@ -423,10 +425,22 @@ public class KongClientIntegrationTest {
         KongConsumer consumer = new KongConsumer().withUsername("someid");
         consumer = kongClient.createConsumer(consumer);
         KongPluginKeyAuthResponse response = kongClient.createConsumerKeyAuthCredentials(consumer.getId(), new KongPluginKeyAuthRequest());
-        KongPluginKeyAuthResponse response2 = kongClient.createConsumerKeyAuthCredentials(consumer.getId(), new KongPluginKeyAuthRequest().withKey("ABC"));
+        KongPluginKeyAuthResponse response2 = kongClient.createConsumerKeyAuthCredentials(consumer.getId(), new KongPluginKeyAuthRequest().withKey("ABCABCX"));
         //get key auth and compare
         KongPluginKeyAuthResponseList responseList = kongClient.getConsumerKeyAuthCredentials(consumer.getId());
-        assertTrue(responseList.getData().get(0).getKey().equals(response.getKey()));
+        String responseKey = responseList.getData().get(0).getKey();
+        kongClient.deleteConsumerKeyAuthCredential(consumer.getId(), response.getId());
+        kongClient.deleteConsumerKeyAuthCredential(consumer.getId(),response2.getId());
+        kongClient.deleteConsumer(consumer.getId());
+        assertTrue(responseKey.equalsIgnoreCase(response.getKey())||responseKey.equalsIgnoreCase(response2.getKey()));
+    }
+
+    @Test
+    public void enableOAuthForConsumer()throws Exception{
+        KongConsumer consumer = new KongConsumer().withUsername("oauthconsumer1");
+        consumer = kongClient.createConsumer(consumer);
+        KongPluginOAuthConsumerResponse response = kongClient.enableOAuthForConsumer(consumer.getId(),"TestApplication","ABCCLIENTID","ABCCLIENTSECRET","http://localhost:4000/");
+        assertTrue(response!=null);
         kongClient.deleteConsumer(consumer.getId());
     }
 

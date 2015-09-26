@@ -28,6 +28,9 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
@@ -42,10 +45,7 @@ import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * A REST client for accessing the Gateway API.
@@ -146,14 +146,10 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //create consumer
         String consumerId = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
         KongConsumer consumer = httpClient.getConsumer(consumerId);
-        //for each API register keyauth apikey for consumer on API
-        KongPluginKeyAuthRequest keyAuthRequest;
         KongApi api;
         //context of API
         for(Contract contract:application.getContracts()){
             log.info("Register application with contract:{}",contract);
-            keyAuthRequest = new KongPluginKeyAuthRequest().withKey(contract.getApiKey());
-            httpClient.createConsumerKeyAuthCredentials(consumer.getId(), keyAuthRequest);
             //get the API
             String apiName = ServiceConventionUtil.generateServiceUniqueName(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
             api = httpClient.getApi(apiName);
@@ -195,7 +191,14 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     public void unregister(String organizationId, String applicationId, String version) throws RegistrationException, GatewayAuthenticationException {
-        //When an API is remove all attached policies are removed as well
+        //remove the application consumer and it's keyauth credentials
+        String consumerId = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
+        KongPluginKeyAuthResponseList credentials = httpClient.getConsumerKeyAuthCredentials(consumerId);
+        if(credentials!=null && credentials.getData()!=null && credentials.getData().size()>0){
+            for(KongPluginKeyAuthResponse cred:credentials.getData())httpClient.deleteConsumerKeyAuthCredential(consumerId,cred.getId());
+        }
+        //remove application consumer
+        httpClient.deleteConsumer(consumerId);
     }
 
     /**
@@ -268,7 +271,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                         case TCPLOG: createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(),Policies.TCPLOG.getClazz());break;
                         case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
                         case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
-                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, policy, Policies.OAUTH2.getKongIdentifier(),Policies.OAUTH2.getClazz());postOAuth2Actions(service, config);break;
+                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, validateOAuthPolicy(policy), Policies.OAUTH2.getKongIdentifier(),Policies.OAUTH2.getClazz());postOAuth2Actions(service, config);break;
                         case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
                         case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
                         case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
@@ -294,6 +297,20 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     /**
+     * Validate OAuth plugin values
+     * @param policy    OAuth policy
+     * @return
+     */
+    private Policy validateOAuthPolicy(Policy policy) {
+        //we can be sure this is an OAuth Policy
+        Gson gson = new Gson();
+        KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        //perform enhancements
+        policy.setPolicyJsonConfig(gson.toJson(oauthValue));
+        return policy;
+    }
+
+    /**
      * After applying the OAuth2 plugin to a service the following action gets executed.
      * In case of OAuth2 - add provision_key to the service version, and additional scopes.
      *
@@ -309,10 +326,10 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
             KongPluginOAuth oauthPlugin = gson.fromJson(config.getValue().toString(), KongPluginOAuth.class);
             ServiceVersionBean svb = storage.getServiceVersion(service.getOrganizationId(), service.getServiceId(), service.getVersion());
             svb.setProvisionKey(oauthPlugin.getProvisionKey());
-            Set<String> scopeSet = new TreeSet<>();
+            Map<String,String> scopeMap = new HashMap<>();
             List<Object> resScopes = oauthPlugin.getScopes();
-            for(Object scope:resScopes)scopeSet.add((String)scope);
-            svb.setOauthScopes(scopeSet);
+            for(Object scope:resScopes)scopeMap.put((String)scope,(String) scope);//TODO how to retrieve the scope descriptions?
+            svb.setOauthScopes(scopeMap);
             storage.updateServiceVersion(svb);
         } catch (StorageException e) {
             throw new GatewayException("Error update service version bean with OAuth2 info:"+e.getMessage());
@@ -422,6 +439,16 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         return httpClient.createConsumerKeyAuthCredentials(id, new KongPluginKeyAuthRequest().withKey(apiKey));
     }
 
+    public void deleteConsumerKeyAuth(String id, String apikey){
+        //get all registered api key values for a consumer
+        KongPluginKeyAuthResponseList keyAuthCredentials = httpClient.getConsumerKeyAuthCredentials(id);
+        if(keyAuthCredentials!=null & keyAuthCredentials.getData()!=null && keyAuthCredentials.getData().size()>0){
+            for(KongPluginKeyAuthResponse cred : keyAuthCredentials.getData()){
+                if(cred.getKey().equals(apikey))httpClient.deleteConsumerKeyAuthCredential(id,cred.getId());
+            }
+        }
+    }
+
     public KongPluginBasicAuthResponse createConsumerBasicAuth(String userId, String userLoginName, String userPassword ){
         return httpClient.createConsumerBasicAuthCredentials(userId, new KongPluginBasicAuthRequest().withUsername(userLoginName).withPassword(userPassword));
     }
@@ -438,6 +465,20 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         httpClient.deleteConsumer(id);
     }
 
+    public KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId,KongPluginOAuthConsumerRequest request){
+        //be sure that the uri ends with an '/'
+        if(!request.getRedirectUri().endsWith("/"))request.setRedirectUri(request.getRedirectUri() + "/");
+        return httpClient.enableOAuthForConsumer(consumerId,request.getName(),request.getClientId(),request.getClientSecret(),request.getRedirectUri());
+    }
+
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(String clientId){
+        return httpClient.getApplicationOAuthInformation(clientId);
+    }
+
+    public KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(String consumerId){
+        return httpClient.getConsumerOAuthCredentials(consumerId);
+    }
+
     /*Service policies*/
 
     /**
@@ -450,7 +491,6 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      * @param <T>
      */
     private <T extends KongConfigValue> KongPluginConfig createServicePolicy(KongApi api, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
-
         Gson gson = new Gson();
         //perform value mapping
         KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);

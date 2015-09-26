@@ -51,6 +51,14 @@ public class ApplicationVersionBean implements Serializable {
     private Date publishedOn;
     @Column(name = "retired_on")
     private Date retiredOn;
+    @Column(name = "oauth_client_id")
+    private String oAuthClientId;
+    @Column(name = "oauth_client_secret")
+    private String oauthClientSecret;
+    @Column(name = "oauth_client_redirect")
+    private String oauthClientRedirect;
+
+
 
     /**
      * Constructor.
@@ -196,6 +204,30 @@ public class ApplicationVersionBean implements Serializable {
      */
     public void setModifiedOn(Date modifiedOn) {
         this.modifiedOn = modifiedOn;
+    }
+
+    public String getoAuthClientId() {
+        return oAuthClientId;
+    }
+
+    public void setoAuthClientId(String oAuthClientId) {
+        this.oAuthClientId = oAuthClientId;
+    }
+
+    public String getOauthClientSecret() {
+        return oauthClientSecret;
+    }
+
+    public void setOauthClientSecret(String oauthClientSecret) {
+        this.oauthClientSecret = oauthClientSecret;
+    }
+
+    public String getOauthClientRedirect() {
+        return oauthClientRedirect;
+    }
+
+    public void setOauthClientRedirect(String oauthClientRedirect) {
+        this.oauthClientRedirect = oauthClientRedirect;
     }
 
     /**

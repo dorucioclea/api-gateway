@@ -76,8 +76,9 @@ public class ServiceVersionBean implements Serializable {
     private String provisionKey;
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name="oauth_scopes")
-    @Column(name="oauth_scopes")
-    private Set<String> oauthScopes;
+    @MapKeyColumn(name="oauth_scopes")
+    @Column(name="oauth_scopes_desc")
+    private Map<String,String> oauthScopes;
 
     /**
      * Constructor.
@@ -338,11 +339,11 @@ public class ServiceVersionBean implements Serializable {
         this.provisionKey = provisionKey;
     }
 
-    public Set<String> getOauthScopes() {
+    public Map<String, String> getOauthScopes() {
         return oauthScopes;
     }
 
-    public void setOauthScopes(Set<String> oauthScopes) {
+    public void setOauthScopes(Map<String, String> oauthScopes) {
         this.oauthScopes = oauthScopes;
     }
 

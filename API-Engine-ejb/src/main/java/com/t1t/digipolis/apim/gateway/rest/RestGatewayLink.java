@@ -23,6 +23,9 @@ import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -115,6 +118,11 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
+    public void deleteConsumerKeyAuth(String id, String apiKey)throws ConsumerException{
+        getClient().deleteConsumerKeyAuth(id,apiKey);
+    }
+
+    @Override
     public KongPluginBasicAuthResponse addConsumerBasicAuth(String userId, String userLoginName,String userLoginPassword) throws ConsumerException {
         return getClient().createConsumerBasicAuth(userId,userLoginName,userLoginPassword);
     }
@@ -127,6 +135,21 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public com.t1t.digipolis.kong.model.KongApi getApi(String id) throws GatewayException {
         return getClient().getApi(id);
+    }
+
+    @Override
+    public KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId, KongPluginOAuthConsumerRequest request) {
+        return getClient().enableConsumerForOAuth(consumerId, request);
+    }
+
+    @Override
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(String clientId) {
+        return getClient().getApplicationOAuthInformation(clientId);
+    }
+
+    @Override
+    public KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(String consumerId){
+        return getClient().getConsumerOAuthCredentials(consumerId);
     }
 
     /**

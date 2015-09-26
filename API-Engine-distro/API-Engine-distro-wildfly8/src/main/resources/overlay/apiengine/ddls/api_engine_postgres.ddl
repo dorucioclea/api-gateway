@@ -178,7 +178,7 @@ CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organiz
 
 CREATE INDEX FK_huasdtal54l0isoauy6mrtmpx ON categories (ServiceBean_id, ServiceBean_organization_id);
 
-CREATE TABLE oauth_scopes(ServiceVersionBean_id BIGINT NOT NULL, oauth_scopes VARCHAR(255),FOREIGN KEY (ServiceVersionBean_id) REFERENCES service_versions (id));
+CREATE TABLE oauth_scopes(ServiceVersionBean_id BIGINT NOT NULL, oauth_scopes VARCHAR(255), oauth_scopes_desc VARCHAR(255) ,FOREIGN KEY (ServiceVersionBean_id) REFERENCES service_versions (id));
 
 CREATE INDEX FK_uhasdtal55l0isoauy6mrtmpx ON oauth_scopes (ServiceVersionBean_id);
 
@@ -389,9 +389,19 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "scopes": {
       "type": "array",
       "items": {
-          "title": "Scopes",
-          "type": "string",
-          "description": "Describes a scope name that will be available to the end user."
+          "type": "object",
+          "properties":{
+            "scope":{
+                "title": "Scope",
+                "type": "string",
+                "description": "Provide the scope identifier that will be available to the end user."
+            },
+            "scope_desc":{
+                "title": "Scope Description",
+                "type": "string",
+                "description": "Describes the scope that will be available to the end user."
+            }
+          }
       }
     },
     "mandatory_scope": {
