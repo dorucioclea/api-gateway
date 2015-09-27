@@ -8,11 +8,14 @@ import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.ConversationScoped;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.RequestScoped;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,6 +75,24 @@ public class OAuth2Controller implements Serializable {
             txScopes.add(scope+": "+scopes.get(scope));
         }
         setScopes(txScopes);
+    }
+
+    public void onButtonCancel(){
+        HttpServletResponse response = (HttpServletResponse)facesContext.getExternalContext().getResponse();
+        try {
+            response.sendRedirect("http://www.google.com");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void onButtonGrant(){
+        HttpServletResponse response = (HttpServletResponse)facesContext.getExternalContext().getResponse();
+        try {
+            response.sendRedirect("http://www.google.com");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

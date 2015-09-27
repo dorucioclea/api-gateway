@@ -77,8 +77,8 @@
               padding: 20px;">
                 <p id="buttonbox" style="float: right;">
                     <h:panelGrid columns="2">
-                        <p:button value="CANCEL" />
-                        <p:button value="ACCEPT" />
+                        <h:commandButton value="CANCEL" type="submit" action="#{authController.onButtonCancel}" />
+                        <h:commandButton value="GRANT" type="submit" action="#{authController.onButtonGrant}" />
                     </h:panelGrid>
                 </p>
             </h:form>
