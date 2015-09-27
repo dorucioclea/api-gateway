@@ -388,6 +388,7 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginIPRestriction.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginKeyAuth.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginKeyAuthRequest.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthScope.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuth.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthEnhanced.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRateLimiting.json</sourcePath>

@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "scope": {
+      "id": "scope",
+      "type": "string"
+    },
+    "scope_desc": {
+      "id": "scope_desc",
+      "type": "string"
+    }
+  }
+}

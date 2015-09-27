@@ -552,14 +552,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version) {
-        boolean hasPermission = securityContext.hasPermission(PermissionType.svcView, organizationId);
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
-            }
-            if (!hasPermission) {
-                serviceVersion.setGateways(null);
             }
             decryptEndpointProperties(serviceVersion);
             return serviceVersion;

@@ -31,6 +31,8 @@ import com.t1t.digipolis.kong.model.KongPluginOAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
+import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
@@ -271,7 +273,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                         case TCPLOG: createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(),Policies.TCPLOG.getClazz());break;
                         case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
                         case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
-                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, validateOAuthPolicy(policy), Policies.OAUTH2.getKongIdentifier(),Policies.OAUTH2.getClazz());postOAuth2Actions(service, config);break;
+                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, validateOAuthPolicy(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
+                            postOAuth2Actions(service, policy,config);break;//upon transformation we use another enhanced object for json deserialization
                         case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
                         case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
                         case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
@@ -286,7 +289,6 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                 if(api!=null&&!StringUtils.isEmpty(api.getId())){
                     httpClient.deleteApi(api.getId());
                 }
-                throw new PublishingException(e.getMessage());
             }
         }
 
@@ -297,7 +299,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     }
 
     /**
-     * Validate OAuth plugin values
+     * Validate OAuth plugin values and if necessary transform.
+     *
      * @param policy    OAuth policy
      * @return
      */
@@ -305,30 +308,51 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         //we can be sure this is an OAuth Policy
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        KongPluginOAuthEnhanced newOAuthValue = new KongPluginOAuthEnhanced();
+        newOAuthValue.setEnableImplicitGrant(oauthValue.getEnableImplicitGrant());
+        newOAuthValue.setEnableAuthorizationCode(oauthValue.getEnableAuthorizationCode());
+        newOAuthValue.setEnableClientCredentials(oauthValue.getEnableClientCredentials());
+        newOAuthValue.setEnablePasswordGrant(oauthValue.getEnablePasswordGrant());
+        newOAuthValue.setHideCredentials(oauthValue.getHideCredentials());
+        newOAuthValue.setMandatoryScope(oauthValue.getMandatoryScope());
+        newOAuthValue.setProvisionKey(oauthValue.getProvisionKey());
+        newOAuthValue.setTokenExpiration(oauthValue.getTokenExpiration());
+        List<KongPluginOAuthScope> scopeObjects = oauthValue.getScopes();
+        List<Object>scopes = new ArrayList<>();
+        for(KongPluginOAuthScope scope:scopeObjects){
+            scopes.add(scope.getScope());
+        }
+        newOAuthValue.setScopes(scopes);
         //perform enhancements
-        policy.setPolicyJsonConfig(gson.toJson(oauthValue));
-        return policy;
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
+        return responsePolicy;
     }
 
     /**
      * After applying the OAuth2 plugin to a service the following action gets executed.
      * In case of OAuth2 - add provision_key to the service version, and additional scopes.
      *
-     * @param config
+     * @param policy
      */
-    private void postOAuth2Actions(Service service, KongPluginConfig config) {
+    private void postOAuth2Actions(Service service, Policy policy, KongPluginConfig config) {
         Preconditions.checkNotNull(service);
+        Preconditions.checkNotNull(policy);
         Preconditions.checkNotNull(config);
         //config contains provisioning and scopes
         try {
             Gson gson = new Gson();
-            //...this is really ugly... but how to?
-            KongPluginOAuth oauthPlugin = gson.fromJson(config.getValue().toString(), KongPluginOAuth.class);
+            //retrieve scope info from policy json
+            KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);//original request - we need this for the scope descriptions
+            KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(config.getValue().toString(),KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
             ServiceVersionBean svb = storage.getServiceVersion(service.getOrganizationId(), service.getServiceId(), service.getVersion());
-            svb.setProvisionKey(oauthPlugin.getProvisionKey());
+            svb.setProvisionKey(enhancedOAuthValue.getProvisionKey());
             Map<String,String> scopeMap = new HashMap<>();
-            List<Object> resScopes = oauthPlugin.getScopes();
-            for(Object scope:resScopes)scopeMap.put((String)scope,(String) scope);//TODO how to retrieve the scope descriptions?
+            List<KongPluginOAuthScope> scopeObjects = oauthValue.getScopes();
+            for(KongPluginOAuthScope scope:scopeObjects){
+                scopeMap.put(scope.getScope(), scope.getScopeDesc());
+            }
             svb.setOauthScopes(scopeMap);
             storage.updateServiceVersion(svb);
         } catch (StorageException e) {

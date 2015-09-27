@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#register api
+#register api engine
 curl -i -X POST \
   --url http://apim.t1t.be:8001/apis/ \
   --data 'path=/dev/apiengine/v1' \
@@ -39,5 +39,65 @@ curl -X POST http://apim.t1t.be:8001/consumers/dev.publisher.v1/keyauth \
 
 #Analytics
 curl -X POST http://apim.t1t.be:8001/apis/dev.apiengine.v1/plugins/ \
+    --data "name=mashape-analytics" \
+    --data "value.service_token=558a95f80f7a734609de5c04"
+
+
+
+
+#register api engine authorization endpoints
+curl -i -X POST \
+  --url http://apim.t1t.be:8001/apis/ \
+  --data 'path=/dev/apiengineauth/v1' \
+  --data 'name=dev.apiengineauth.v1' \
+  --data 'target_url=http://api.t1t.be/API-Engine-auth/v1/' \
+  --data 'strip_path=true'
+
+#enable CORS
+curl -X POST http://apim.t1t.be:8001/apis/dev.apiengineauth.v1/plugins \
+    --data "name=cors" \
+    --data "value.origin=*" \
+    --data "value.methods=GET,HEAD,PUT,PATCH,POST,DELETE" \
+    --data "value.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey" \
+    --data "value.credentials=true" \
+    --data "value.max_age=3600"
+
+#enable Keyauth
+curl -X POST http://apim.t1t.be:8001/apis/dev.apiengineauth.v1/plugins \
+    --data "name=keyauth" \
+    --data "value.key_names=apikey"
+
+#Analytics
+curl -X POST http://apim.t1t.be:8001/apis/dev.apiengineauth.v1/plugins/ \
+    --data "name=mashape-analytics" \
+    --data "value.service_token=558a95f80f7a734609de5c04"
+
+
+
+
+#register api engine authorization CONSENT PAGE
+curl -i -X POST \
+  --url http://apim.t1t.be:8001/apis/ \
+  --data 'path=/dev/apiengineauth/consent' \
+  --data 'name=dev.apiengineauth.consent' \
+  --data 'target_url=http://api.t1t.be/API-Engine-auth/faces/' \
+  --data 'strip_path=true'
+
+#enable CORS
+curl -X POST http://apim.t1t.be:8001/apis/dev.apiengineauth.consent/plugins \
+    --data "name=cors" \
+    --data "value.origin=*" \
+    --data "value.methods=GET,HEAD,PUT,PATCH,POST,DELETE" \
+    --data "value.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey" \
+    --data "value.credentials=true" \
+    --data "value.max_age=3600"
+
+#enable Keyauth
+curl -X POST http://apim.t1t.be:8001/apis/dev.apiengineauth.consent/plugins \
+    --data "name=keyauth" \
+    --data "value.key_names=apikey"
+
+#Analytics
+curl -X POST http://apim.t1t.be:8001/apis/dev.apiengineauth.consent/plugins/ \
     --data "name=mashape-analytics" \
     --data "value.service_token=558a95f80f7a734609de5c04"

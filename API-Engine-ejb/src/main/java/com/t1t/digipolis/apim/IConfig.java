@@ -9,4 +9,5 @@ public interface IConfig {
     String METRICS_SCHEME = "apiapp.metrics.scheme";
     String METRICS_DNS = "apiapp.metrics.url";
     String METRICS_PORT = "apiapp.metrics.ports.default";
+    String CONSENT_URI = "apiapp.consent.uri";
 }

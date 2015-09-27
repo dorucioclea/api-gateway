@@ -23,7 +23,22 @@
       "type": "boolean",
       "default": false
     },
+    "enable_authorization_code": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
     "enable_implicit_grant": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "enable_client_credentials": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "enable_password_grant": {
       "type": "boolean",
       "required": true,
       "default": false

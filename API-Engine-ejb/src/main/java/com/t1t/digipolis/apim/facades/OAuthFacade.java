@@ -1,10 +1,11 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthApplicationResponse;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuthResponseType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
-import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -16,13 +17,13 @@ import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
-import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
 import org.slf4j.Logger;
@@ -31,9 +32,6 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by michallispashidis on 23/09/15.
@@ -41,12 +39,29 @@ import java.util.Set;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OAuthFacade {
-    @Inject @APIEngineContext private Logger log;
-    @Inject IStorageQuery query;
-    @Inject private IStorage storage;
-    @Inject private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject
+    @APIEngineContext
+    private Logger log;
+    @Inject
+    IStorageQuery query;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IGatewayLinkFactory gatewayLinkFactory;
 
-    public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request){
+    private static Config config;
+    private static String consentURI;
+
+    static {
+        consentURI = null;
+        config = ConfigFactory.load();
+        if (config != null) {
+            consentURI = new StringBuffer("")
+                    .append(config.getString(IConfig.CONSENT_URI)).toString();
+        }
+    }
+
+    public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) {
         //get the application version based on provided client_id and client_secret - we need the name and
         //TODO validate if non existing
         KongPluginOAuthConsumerRequest oauthRequest = new KongPluginOAuthConsumerRequest()
@@ -55,69 +70,98 @@ public class OAuthFacade {
         KongPluginOAuthConsumerResponse response = null;
         //retrieve applicatin name and redirect URI.
         try {
-            ApplicationVersionBean avb = query.getApplicationForOAuth(request.getAppOAuthId(),request.getAppOAuthSecret());
-            if(avb==null)throw new ApplicationNotFoundException("Application not found with given OAuth2 clientId and clientSecret.");
+            ApplicationVersionBean avb = query.getApplicationForOAuth(request.getAppOAuthId(), request.getAppOAuthSecret());
+            if (avb == null)
+                throw new ApplicationNotFoundException("Application not found with given OAuth2 clientId and clientSecret.");
             oauthRequest.setName(avb.getApplication().getName());
-            if(StringUtils.isEmpty(avb.getOauthClientRedirect()))throw new OAuthException("The application must provide an OAuth2 redirect URL");
+            if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
+                throw new OAuthException("The application must provide an OAuth2 redirect URL");
             oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
             String defaultGateway = query.listGateways().get(0).getId();
-            if(!StringUtils.isEmpty(defaultGateway)){
+            if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
-                    response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(),oauthRequest);
+                    response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
                 } catch (Exception e) {
                     ;//don't do anything
                 }
-                if (response==null){
+                if (response == null) {
                     //try to recover existing user
                     try {
                         IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
                         KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(request.getUniqueUserName());
-                        for(KongPluginOAuthConsumerResponse cred:credentials.getData()){
-                            if(cred.getClientId().equals(request.getAppOAuthId()))response = cred;
+                        for (KongPluginOAuthConsumerResponse cred : credentials.getData()) {
+                            if (cred.getClientId().equals(request.getAppOAuthId())) response = cred;
                         }
                     } catch (Exception e) {
                         //now throw an error if that's not working too.
                         throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
                     }
                 }
-            }else throw new GatewayException("No default gateway found!");
+            } else throw new GatewayException("No default gateway found!");
         } catch (StorageException e) {
             e.printStackTrace();
         }
         return response;
     }
 
-    public OAuthApplicationResponse getApplicationOAuthInformation(String clientId){
+    public OAuthApplicationResponse getApplicationOAuthInformation(String clientId, String orgId, String serviceId, String version) {
         OAuthApplicationResponse response = new OAuthApplicationResponse();
         try {
             String defaultGateway = query.listGateways().get(0).getId();
-            if(!StringUtils.isEmpty(defaultGateway)){
+            if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
                     KongPluginOAuthConsumerResponseList appInfoList = gatewayLink.getApplicationOAuthInformation(clientId);
-                    if(appInfoList!=null && appInfoList.getData()!=null)response.setConsumerResponse(appInfoList.getData().get(0));
+                    if (appInfoList != null && appInfoList.getData() != null && appInfoList.getData().size()>0) {
+                        response.setConsumerResponse(appInfoList.getData().get(0));
+                    }
+                    ApplicationVersionBean applicationForOAuth = query.getApplicationForOAuth(response.getConsumerResponse().getClientId(), response.getConsumerResponse().getClientSecret());
+                    response.setBase64AppLogo(applicationForOAuth.getApplication().getBase64logo());
+                    response.setAppVersion(applicationForOAuth.getVersion());
                     //retrieve the Kong consumer
-                    if(appInfoList.getData()!=null && appInfoList.getData().size()>0){
+                    if (appInfoList.getData() != null && appInfoList.getData().size() > 0) {
                         String consumerId = appInfoList.getData().get(0).getConsumerId();
-                        if(!StringUtils.isEmpty(consumerId)){
+                        if (!StringUtils.isEmpty(consumerId)) {
                             response.setConsumer(gatewayLink.getConsumer(consumerId));
                         }
                     }
                 } catch (Exception e) {
                     throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e); //$NON-NLS-1$
                 }
-            }else throw new GatewayException("No default gateway found!");
+                //add scope information to the response
+                if (response.getConsumer() != null && response.getConsumerResponse() != null) {
+                    //retrieve scopes for targeted service
+                    ServiceVersionBean serviceVersion = storage.getServiceVersion(orgId, serviceId, version);
+                    //verify if it's an OAuth enabled service
+                    response.setScopes(serviceVersion.getOauthScopes());
+                    return response;
+                }
+                ;
+            } else throw new GatewayException("No default gateway found!");
         } catch (StorageException e) {
             e.printStackTrace();
         }
-        //add scope information to the response
-        if(response.getConsumer()!=null && response.getConsumerResponse()!=null){
-            //retrieve scopes
-            return response;
-        }else return null;
+        return null;
     }
 
+    public String getAuthorizationRedirect(OAuthResponseType responseType, String clientId, String orgId, String serviceId, String version) {
+        //The consent page is published through the gateway itself, in order to add consent page policies.
+        //The consent URI is where the page has been published as part of the API Engine.
+        StringBuffer redirectURI = new StringBuffer("");
+        redirectURI.append(consentURI)
+                .append("?response_type=")
+                .append(responseType.toString().toLowerCase())
+                .append("&")
+                .append("client_id=").append(clientId)
+                .append("&")
+                .append("org_id=").append(orgId)
+                .append("&")
+                .append("service_id=").append(serviceId)
+                .append("&")
+                .append("version=").append(version);
+        return redirectURI.toString();
+    }
 
 
     /**
