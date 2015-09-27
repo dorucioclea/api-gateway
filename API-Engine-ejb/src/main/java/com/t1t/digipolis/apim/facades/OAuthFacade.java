@@ -88,7 +88,7 @@ public class OAuthFacade {
         return response;
     }
 
-    public OAuthApplicationResponse getApplicationOAuthInformation(String clientId){
+    public OAuthApplicationResponse getApplicationOAuthInformation(String clientId, String orgId, String serviceId, String version){
         OAuthApplicationResponse response = new OAuthApplicationResponse();
         try {
             String defaultGateway = query.listGateways().get(0).getId();
@@ -107,15 +107,19 @@ public class OAuthFacade {
                 } catch (Exception e) {
                     throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e); //$NON-NLS-1$
                 }
+                //add scope information to the response
+                if(response.getConsumer()!=null && response.getConsumerResponse()!=null){
+                    //retrieve scopes for targeted service
+                    ServiceVersionBean serviceVersion = storage.getServiceVersion(orgId, serviceId, version);
+                    //verify if it's an OAuth enabled service
+                    response.setScopes(serviceVersion.getOauthScopes());
+                    return response;
+                };
             }else throw new GatewayException("No default gateway found!");
         } catch (StorageException e) {
             e.printStackTrace();
         }
-        //add scope information to the response
-        if(response.getConsumer()!=null && response.getConsumerResponse()!=null){
-            //retrieve scopes
-            return response;
-        }else return null;
+        return null;
     }
 
 

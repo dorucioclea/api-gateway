@@ -26,6 +26,6 @@ public interface IOAuth2Authorization {
      * @return
      * @throws OAuthException
      */
-    OAuthApplicationResponse getApplicationInfo(String oauthClientId) throws OAuthException;
+    OAuthApplicationResponse getApplicationInfo(String oauthClientId, String orgId, String serviceId, String version) throws OAuthException;
 
 }
