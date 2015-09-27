@@ -5,8 +5,11 @@
   "javaInterfaces" : ["com.t1t.digipolis.kong.model.KongConfigValue"],
   "properties": {
     "scopes": {
+      "id": "kongPluginOAuthScope",
       "type": "array",
-      "required": false
+      "items": {
+        "$ref":"KongPluginOAuthScope.json"
+      }
     },
     "mandatory_scope": {
       "type": "boolean",
@@ -23,7 +26,22 @@
       "type": "boolean",
       "default": false
     },
+    "enable_authorization_code": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
     "enable_implicit_grant": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "enable_client_credentials": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "enable_password_grant": {
       "type": "boolean",
       "required": true,
       "default": false
