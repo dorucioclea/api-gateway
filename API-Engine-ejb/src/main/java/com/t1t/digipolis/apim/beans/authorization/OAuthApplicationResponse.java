@@ -3,7 +3,6 @@ package com.t1t.digipolis.apim.beans.authorization;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,6 +12,8 @@ public class OAuthApplicationResponse {
     KongPluginOAuthConsumerResponse consumerResponse;
     KongConsumer consumer;
     Map<String,String> scopes;
+    String base64AppLogo;
+    String appVersion;
 
     public OAuthApplicationResponse() {
     }
@@ -41,12 +42,30 @@ public class OAuthApplicationResponse {
         this.scopes = scopes;
     }
 
+    public String getBase64AppLogo() {
+        return base64AppLogo;
+    }
+
+    public void setBase64AppLogo(String base64AppLogo) {
+        this.base64AppLogo = base64AppLogo;
+    }
+
+    public String getAppVersion() {
+        return appVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
+    }
+
     @Override
     public String toString() {
         return "OAuthApplicationResponse{" +
                 "consumerResponse=" + consumerResponse +
                 ", consumer=" + consumer +
                 ", scopes=" + scopes +
+                ", base64AppLogo='" + base64AppLogo + '\'' +
+                ", appVersion='" + appVersion + '\'' +
                 '}';
     }
 }

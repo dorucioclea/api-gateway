@@ -113,8 +113,12 @@ public class OAuthFacade {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
                     KongPluginOAuthConsumerResponseList appInfoList = gatewayLink.getApplicationOAuthInformation(clientId);
-                    if (appInfoList != null && appInfoList.getData() != null)
+                    if (appInfoList != null && appInfoList.getData() != null && appInfoList.getData().size()>0) {
                         response.setConsumerResponse(appInfoList.getData().get(0));
+                    }
+                    ApplicationVersionBean applicationForOAuth = query.getApplicationForOAuth(response.getConsumerResponse().getClientId(), response.getConsumerResponse().getClientSecret());
+                    response.setBase64AppLogo(applicationForOAuth.getApplication().getBase64logo());
+                    response.setAppVersion(applicationForOAuth.getVersion());
                     //retrieve the Kong consumer
                     if (appInfoList.getData() != null && appInfoList.getData().size() > 0) {
                         String consumerId = appInfoList.getData().get(0).getConsumerId();
@@ -149,11 +153,12 @@ public class OAuthFacade {
                 .append("?response_type=")
                 .append(responseType.toString().toLowerCase())
                 .append("&")
-                .append("client_id=")
-                .append(clientId)
+                .append("client_id=").append(clientId)
                 .append("&")
                 .append("org_id=").append(orgId)
+                .append("&")
                 .append("service_id=").append(serviceId)
+                .append("&")
                 .append("version=").append(version);
         return redirectURI.toString();
     }
