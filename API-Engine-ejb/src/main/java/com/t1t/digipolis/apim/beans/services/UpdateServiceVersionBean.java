@@ -22,6 +22,7 @@ public class UpdateServiceVersionBean implements Serializable {
     private Map<String, String> endpointProperties;
     private Set<ServiceGatewayBean> gateways;
     private Boolean publicService;
+    private String onlinedoc;
     private Set<ServicePlanBean> plans;
 
     /**
@@ -107,6 +108,14 @@ public class UpdateServiceVersionBean implements Serializable {
         return endpointProperties;
     }
 
+    public String getOnlinedoc() {
+        return onlinedoc;
+    }
+
+    public void setOnlinedoc(String onlinedoc) {
+        this.onlinedoc = onlinedoc;
+    }
+
     /**
      * @param endpointProperties the endpointProperties to set
      */
@@ -114,17 +123,17 @@ public class UpdateServiceVersionBean implements Serializable {
         this.endpointProperties = endpointProperties;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        final int maxLen = 10;
-        return "UpdateServiceVersionBean [endpoint=" + endpoint + ", endpointType=" + endpointType
-                + ", endpointProperties=" + toString(this.endpointProperties.entrySet(), maxLen)
-                + ", gateways=" + (gateways != null ? toString(gateways, maxLen) : null) + ", publicService="
-                + publicService + ", plans=" + (plans != null ? toString(plans, maxLen) : null) + "]";
+        return "UpdateServiceVersionBean{" +
+                "endpoint='" + endpoint + '\'' +
+                ", endpointType=" + endpointType +
+                ", endpointProperties=" + endpointProperties +
+                ", gateways=" + gateways +
+                ", publicService=" + publicService +
+                ", onlinedoc='" + onlinedoc + '\'' +
+                ", plans=" + plans +
+                '}';
     }
 
     @SuppressWarnings("nls")

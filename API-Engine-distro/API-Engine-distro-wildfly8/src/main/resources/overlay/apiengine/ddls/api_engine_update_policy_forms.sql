@@ -72,3 +72,5 @@ UPDATE policydefs SET form='{
     "enable_implicit_grant"
   ]
 }' WHERE id='OAuth2';
+
+ALTER TABLE service_versions ADD COLUMN onlinedoc VARCHAR(255);

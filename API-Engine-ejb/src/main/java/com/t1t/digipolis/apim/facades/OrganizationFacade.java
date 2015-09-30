@@ -606,6 +606,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
             svb.setEndpoint(bean.getEndpoint());
         }
+        if (AuditUtils.valueChanged(svb.getOnlinedoc(),bean.getOnlinedoc())){
+            data.addChange("online doc",svb.getOnlinedoc(),bean.getOnlinedoc());
+            svb.setOnlinedoc(bean.getOnlinedoc());
+        }
         if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
             data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
             svb.setEndpointType(bean.getEndpointType());
@@ -739,6 +743,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updatedService.setEndpointType(cloneSource.getEndpointType());
                 updatedService.setEndpointProperties(cloneSource.getEndpointProperties());
                 updatedService.setGateways(cloneSource.getGateways());
+                updatedService.setOnlinedoc(cloneSource.getOnlinedoc());
                 updatedService.setPlans(cloneSource.getPlans());
                 updatedService.setPublicService(cloneSource.isPublicService());
                 newVersion = updateServiceVersion(organizationId, serviceId, bean.getVersion(), updatedService);
@@ -2020,7 +2025,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
             String svPath = GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),serviceVersion.getVersion());
-            data = transformSwaggerDef(data,svPath);
+            data = transformSwaggerDef(data,serviceVersion,svPath);
             storage.updateServiceDefinition(serviceVersion, data);
             log.debug(String.format("Stored service definition %s: %s", serviceId, serviceVersion)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
@@ -2038,11 +2043,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @return
      * @throws IOException
      */
-    private InputStream transformSwaggerDef(InputStream data, String serviceVersionPath)throws IOException{
+    private InputStream transformSwaggerDef(InputStream data, ServiceVersionBean serviceVersionBean,String serviceVersionPath)throws StorageException, IOException{
         //set all base paths to "/" because the path is decided by the APi engine
         Swagger swaggerJson = new SwaggerParser().parse(IOUtils.toString(data));//IOUtils.closequietly?
         swaggerJson.setBasePath(serviceVersionPath);
-        //TODO update documentation + location
+        //read documenation and persist if present
+        String onlineDoc = swaggerJson.getExternalDocs().getUrl();
+        if(!StringUtils.isEmpty(onlineDoc)){
+            serviceVersionBean.setOnlinedoc(onlineDoc);
+            storage.updateServiceVersion(serviceVersionBean);
+        }
         return new ByteArrayInputStream((Json.pretty(swaggerJson)).getBytes());
     }
 
