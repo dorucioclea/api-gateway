@@ -606,6 +606,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
             svb.setEndpoint(bean.getEndpoint());
         }
+        if (AuditUtils.valueChanged(svb.getOnlinedoc(),bean.getOnlinedoc())){
+            data.addChange("online doc",svb.getOnlinedoc(),bean.getOnlinedoc());
+            svb.setOnlinedoc(bean.getOnlinedoc());
+        }
         if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
             data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
             svb.setEndpointType(bean.getEndpointType());
@@ -739,6 +743,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updatedService.setEndpointType(cloneSource.getEndpointType());
                 updatedService.setEndpointProperties(cloneSource.getEndpointProperties());
                 updatedService.setGateways(cloneSource.getGateways());
+                updatedService.setOnlinedoc(cloneSource.getOnlinedoc());
                 updatedService.setPlans(cloneSource.getPlans());
                 updatedService.setPublicService(cloneSource.isPublicService());
                 newVersion = updateServiceVersion(organizationId, serviceId, bean.getVersion(), updatedService);

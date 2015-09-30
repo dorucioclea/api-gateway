@@ -74,6 +74,8 @@ public class ServiceVersionBean implements Serializable {
     private ServiceDefinitionType definitionType;
     @Column(name = "provision_key")
     private String provisionKey;
+    @Column(name = "onlinedoc")
+    private String onlinedoc;
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name="oauth_scopes")
     @MapKeyColumn(name="oauth_scopes")
@@ -347,6 +349,14 @@ public class ServiceVersionBean implements Serializable {
         this.oauthScopes = oauthScopes;
     }
 
+    public String getOnlinedoc() {
+        return onlinedoc;
+    }
+
+    public void setOnlinedoc(String onlinedoc) {
+        this.onlinedoc = onlinedoc;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -387,6 +397,7 @@ public class ServiceVersionBean implements Serializable {
         return "ServiceVersionBean [id=" + id + ", service=" + service + ", status=" + status + ", endpoint="
                 + endpoint + ", endpointType=" + endpointType + ", gateways=" + gateways + ", publicService="
                 + publicService + ", plans=" + plans + ", version=" + version + ", createdBy=" + createdBy
+                + ", onlinedoc=" + onlinedoc
                 + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy + ", modifiedOn=" + modifiedOn
                 + ", publishedOn=" + publishedOn + ", retiredOn=" + retiredOn + ", definitionType="
                 + definitionType + "]";

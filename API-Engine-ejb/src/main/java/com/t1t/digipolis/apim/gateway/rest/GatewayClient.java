@@ -333,7 +333,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     private Policy validateRequestTransformerPolity(Policy policy){
         Gson gson = new Gson();
         KongPluginRequestTransformer reqTransValue = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRequestTransformer.class);
-
+        return policy;
     }
 
     /**
