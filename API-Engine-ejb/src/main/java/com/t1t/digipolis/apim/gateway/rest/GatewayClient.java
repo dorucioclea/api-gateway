@@ -34,6 +34,7 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
+import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
@@ -333,7 +334,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     private Policy validateRequestTransformerPolity(Policy policy){
         Gson gson = new Gson();
         KongPluginRequestTransformer reqTransValue = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRequestTransformer.class);
-
+        return policy;
     }
 
     /**

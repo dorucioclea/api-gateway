@@ -441,6 +441,7 @@ public class KongClientIntegrationTest {
         consumer = kongClient.createConsumer(consumer);
         KongPluginOAuthConsumerResponse response = kongClient.enableOAuthForConsumer(consumer.getId(),"TestApplication","ABCCLIENTID","ABCCLIENTSECRET","http://localhost:4000/");
         assertTrue(response!=null);
+        //TODO delete oauth cred for consumers
         kongClient.deleteConsumer(consumer.getId());
     }
 
