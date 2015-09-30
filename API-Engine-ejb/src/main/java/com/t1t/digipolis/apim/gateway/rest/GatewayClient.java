@@ -330,6 +330,12 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         return responsePolicy;
     }
 
+    private Policy validateRequestTransformerPolity(Policy policy){
+        Gson gson = new Gson();
+        KongPluginRequestTransformer reqTransValue = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRequestTransformer.class);
+
+    }
+
     /**
      * After applying the OAuth2 plugin to a service the following action gets executed.
      * In case of OAuth2 - add provision_key to the service version, and additional scopes.
