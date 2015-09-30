@@ -287,7 +287,7 @@ public class OrganizationResource implements IOrganizationResource {
             @ApiResponse(code = 200, response = ApplicationVersionBean.class, message = "Updated Application Version.")
     })
     @POST
-    @Path("/{organizationId}/applications/{applicationId}/version/{version}")
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationVersionBean updateAppVersionCallbackURI(@PathParam("organizationId") String orgId, @PathParam("applicationId")String appId, @PathParam("version") String version ,UpdateApplicationVersionURIBean updateAppUri){
