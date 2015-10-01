@@ -94,11 +94,11 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginRequestTransformer req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRequestTransformer.class);
         KongPluginRequestTransformer res = new KongPluginRequestTransformer();
-        Add addStatement = new Add();
+        KongPluginRequestTransformerAdd addStatement = new KongPluginRequestTransformerAdd();
         addStatement.setForm(new ArrayList<>());
         addStatement.setHeaders(new ArrayList<>());
         addStatement.setQuerystring(new ArrayList<>());
-        Remove remStatement = new Remove();
+        KongPluginRequestTransformerRemove remStatement = new KongPluginRequestTransformerRemove();
         remStatement.setForm(new ArrayList<>());
         remStatement.setHeaders(new ArrayList<>());
         remStatement.setQuerystring(new ArrayList<>());
@@ -106,11 +106,11 @@ public class GatewayValidation {
         res.setRemove(remStatement);
         //remove null values
         req.getAdd().getForm().stream().forEach((val) -> {if (val != null) res.getAdd().getForm().add(val);});
-        req.getAdd().getHeaders().stream().forEach((val) -> {if(val!=null)res.getAdd().getForm().add(val);});
-        req.getAdd().getQuerystring().stream().forEach((val) -> {if(val!=null)res.getAdd().getForm().add(val);});
+        req.getAdd().getHeaders().stream().forEach((val) -> {if(val!=null)res.getAdd().getHeaders().add(val);});
+        req.getAdd().getQuerystring().stream().forEach((val) -> {if(val!=null)res.getAdd().getQuerystring().add(val);});
         req.getRemove().getForm().stream().forEach((val) -> {if(val!=null)res.getRemove().getForm().add(val);});
-        req.getRemove().getHeaders().stream().forEach((val) -> {if(val!=null)res.getRemove().getForm().add(val);});
-        req.getRemove().getQuerystring().stream().forEach((val) -> {if(val!=null)res.getRemove().getForm().add(val);});
+        req.getRemove().getHeaders().stream().forEach((val) -> {if(val!=null)res.getRemove().getHeaders().add(val);});
+        req.getRemove().getQuerystring().stream().forEach((val) -> {if(val!=null)res.getRemove().getQuerystring().add(val);});
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
@@ -118,11 +118,33 @@ public class GatewayValidation {
     }
 
     public static synchronized Policy validateResponseTransformer(Policy policy){
-        return policy;
+        Gson gson = new Gson();
+        KongPluginResponseTransformer req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginResponseTransformer.class);
+        KongPluginResponseTransformer res = new KongPluginResponseTransformer();
+        KongPluginResponseTransformerAdd addStatement = new KongPluginResponseTransformerAdd();
+        addStatement.setHeader(new ArrayList<>());
+        addStatement.setJson(new ArrayList<>());
+        KongPluginResponseTransformerRemove remStatement = new KongPluginResponseTransformerRemove();
+        remStatement.setHeader(new ArrayList<>());
+        remStatement.setJson(new ArrayList<>());
+        res.setAdd(addStatement);
+        res.setRemove(remStatement);
+        //remove null values
+        req.getAdd().getHeader().stream().forEach((val) -> {if (val != null) res.getAdd().getHeader().add(val);});
+        req.getAdd().getJson().stream().forEach((val) -> {if(val!=null)res.getAdd().getJson().add(val);});
+        req.getRemove().getHeader().stream().forEach((val) -> {if(val!=null)res.getRemove().getHeader().add(val);});
+        req.getRemove().getJson().stream().forEach((val) -> {if(val!=null)res.getRemove().getJson().add(val);});
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(res));
+        return responsePolicy;
     }
+
     public static synchronized Policy validateBasicAuth(Policy policy){
         return policy;
     }
+
+
     public static synchronized Policy validateCORS(Policy policy){
         Gson gson = new Gson();
         KongPluginCors req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginCors.class);
@@ -139,6 +161,7 @@ public class GatewayValidation {
         return responsePolicy;
     }
     public static synchronized Policy validateFileLog(Policy policy){
+
         return policy;
     }
     public static synchronized Policy validateHTTPLog(Policy policy){

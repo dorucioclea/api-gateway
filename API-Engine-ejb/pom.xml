@@ -393,7 +393,11 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthEnhanced.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRateLimiting.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestSizeLimiting.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerAdd.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerRemove.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformer.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformerRemove.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformerAdd.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformer.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginSchema.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginSSL.json</sourcePath>
@@ -418,11 +422,6 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponse.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseList.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerQuery.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerForm.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerHeaders.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerAdd.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerRemove.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>
