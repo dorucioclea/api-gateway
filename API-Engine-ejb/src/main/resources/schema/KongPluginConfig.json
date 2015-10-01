@@ -19,8 +19,8 @@
       "id": "name",
       "type": "string"
     },
-    "value": {
-      "id": "value",
+    "config": {
+      "id": "config",
       "javaInterfaces" : ["com.t1t.digipolis.kong.model.KongConfigValue"]
     },
     "enabled": {

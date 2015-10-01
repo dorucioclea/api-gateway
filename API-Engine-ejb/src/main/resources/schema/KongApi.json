@@ -11,24 +11,24 @@
       "id": "name",
       "type": "string"
     },
-    "public_dns": {
-      "id": "public_dns",
+    "request_host": {
+      "id": "request_host",
       "type": "string"
     },
-    "path": {
-      "id": "path",
+    "request_path": {
+      "id": "request_path",
       "type": "string"
     },
-    "strip_path": {
-      "id": "strip_path",
+    "strip_request_path": {
+      "id": "strip_request_path",
       "type": "boolean"
     },
-    "strip_path": {
+    "preserve_host": {
       "id": "preserve_host",
       "type": "boolean"
     },
-    "target_url": {
-      "id": "target_url",
+    "upstream_url": {
+      "id": "upstream_url",
       "type": "string"
     },
     "created_at": {
