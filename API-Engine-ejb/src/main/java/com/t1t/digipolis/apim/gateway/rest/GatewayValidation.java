@@ -64,6 +64,9 @@ public class GatewayValidation {
         reqTransValue.getRemove().getForm().stream().forEach((val) -> {if(val!=null)newTransValue.getRemove().getForm().add(val);});
         reqTransValue.getRemove().getHeaders().stream().forEach((val) -> {if(val!=null)newTransValue.getRemove().getForm().add(val);});
         reqTransValue.getRemove().getQuerystring().stream().forEach((val) -> {if(val!=null)newTransValue.getRemove().getForm().add(val);});
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(newTransValue));
         return policy;
     }
 
