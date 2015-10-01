@@ -4,14 +4,19 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
-import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongPluginCors;
+import com.t1t.digipolis.kong.model.KongPluginOAuth;
+import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
+import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
+import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
+import com.t1t.digipolis.kong.model.KongPluginRequestTransformerAdd;
+import com.t1t.digipolis.kong.model.KongPluginRequestTransformerRemove;
+import com.t1t.digipolis.kong.model.KongPluginResponseTransformer;
+import com.t1t.digipolis.kong.model.KongPluginResponseTransformerAdd;
+import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.enterprise.context.ApplicationScoped;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -98,7 +103,7 @@ public class GatewayValidation {
         addStatement.setForm(new ArrayList<>());
         addStatement.setHeaders(new ArrayList<>());
         addStatement.setQuerystring(new ArrayList<>());
-        KongPluginRequestTransformerRemove remStatement = new KongPluginRequestTransformerRemove();
+        com.t1t.digipolis.kong.model.KongPluginRequestTransformerRemove remStatement = new KongPluginRequestTransformerRemove();
         remStatement.setForm(new ArrayList<>());
         remStatement.setHeaders(new ArrayList<>());
         remStatement.setQuerystring(new ArrayList<>());
