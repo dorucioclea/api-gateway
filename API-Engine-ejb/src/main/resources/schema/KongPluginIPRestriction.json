@@ -6,17 +6,11 @@
   "properties": {
     "blacklist": {
       "type": "array",
-      "func": "function"
+      "items": {"type": "string"}
     },
     "whitelist": {
       "type": "array",
-      "func": "function"
-    },
-    "_blacklist_cache": {
-      "type": "array"
-    },
-    "_whitelist_cache": {
-      "type": "array"
+      "items": {"type": "string"}
     }
   }
 }

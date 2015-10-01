@@ -6,8 +6,8 @@
   "properties": {
     "key_names": {
       "type": "array",
-      "required": true,
-      "default": "function"
+      "items": {"type": "string"},
+      "required": true
     },
     "hide_credentials": {
       "type": "boolean",

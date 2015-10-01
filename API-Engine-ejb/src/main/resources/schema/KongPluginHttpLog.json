@@ -21,7 +21,7 @@
       "default": 10000
     },
     "http_endpoint": {
-      "type": "url",
+      "type": "string",
       "required": true
     }
   }

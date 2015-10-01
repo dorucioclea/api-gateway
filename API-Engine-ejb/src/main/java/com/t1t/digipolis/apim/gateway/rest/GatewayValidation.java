@@ -4,7 +4,13 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
+import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginCors;
+import com.t1t.digipolis.kong.model.KongPluginFileLog;
+import com.t1t.digipolis.kong.model.KongPluginHttpLog;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
@@ -14,6 +20,8 @@ import com.t1t.digipolis.kong.model.KongPluginRequestTransformerRemove;
 import com.t1t.digipolis.kong.model.KongPluginResponseTransformer;
 import com.t1t.digipolis.kong.model.KongPluginResponseTransformerAdd;
 import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
+import com.t1t.digipolis.kong.model.KongPluginTcpLog;
+import com.t1t.digipolis.kong.model.KongPluginUdpLog;
 import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +31,7 @@ import java.util.List;
  */
 public class GatewayValidation {
 
-    public static Policy validate(Policy policy){
+    public static Policy validate(Policy policy) throws PolicyViolationException{
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
         switch(policies){
@@ -149,7 +157,6 @@ public class GatewayValidation {
         return policy;
     }
 
-
     public static synchronized Policy validateCORS(Policy policy){
         Gson gson = new Gson();
         KongPluginCors req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginCors.class);
@@ -165,35 +172,73 @@ public class GatewayValidation {
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
         return responsePolicy;
     }
-    public static synchronized Policy validateFileLog(Policy policy){
 
+    public static synchronized Policy validateFileLog(Policy policy){
+        Gson gson = new Gson();
+        KongPluginFileLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginFileLog.class);
+        if(StringUtils.isEmpty(req.getPath())) throw new PolicyViolationException("Form was not correctly filled in.");
         return policy;
     }
+
     public static synchronized Policy validateHTTPLog(Policy policy){
+        Gson gson = new Gson();
+        KongPluginHttpLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginHttpLog.class);
+        if(StringUtils.isEmpty(req.getHttpEndpoint())) throw new PolicyViolationException("Form was not correctly filled in.");
         return policy;
     }
+
     public static synchronized Policy validateUDPLog(Policy policy){
+        Gson gson = new Gson();
+        KongPluginUdpLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginUdpLog.class);
+        if(StringUtils.isEmpty(req.getHost())) throw new PolicyViolationException("Form was not correctly filled in.");
         return policy;
     }
+
     public static synchronized Policy validateTCPLog(Policy policy){
+        Gson gson = new Gson();
+        KongPluginTcpLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginTcpLog.class);
+        if(StringUtils.isEmpty(req.getHost())) throw new PolicyViolationException("Form was not correctly filled in.");
         return policy;
     }
+
     public static synchronized Policy validateIPRestriction(Policy policy){
-        return policy;
+        Gson gson = new Gson();
+        KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginIPRestriction.class);
+        KongPluginIPRestriction res = new KongPluginIPRestriction();
+        res.setBlacklist(new ArrayList<>());
+        res.setWhitelist(new ArrayList<>());
+        req.getBlacklist().stream().forEach(val->{if(!StringUtils.isEmpty(val))res.getBlacklist().add(val);});
+        req.getWhitelist().stream().forEach(val->{if(val!=null)res.getWhitelist().add(val);});
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(res));
+        return responsePolicy;
     }
+
     public static synchronized Policy validateKeyAuth(Policy policy){
-        return policy;
+        KongPluginKeyAuth req = new Gson().fromJson(policy.getPolicyJsonConfig(),KongPluginKeyAuth.class);
+        if(req.getKeyNames()!=null&&req.getKeyNames().size()>0)return policy;
+        else throw new PolicyViolationException("Default applies already or you should provide at least one key name.");
     }
+
     public static synchronized Policy validateRateLimiting(Policy policy){
+        //nothing to do - works fine
         return policy;
     }
+
     public static synchronized Policy validateRequestSizeLimiting(Policy policy){
+        //nothing to do - works fine
         return policy;
     }
+
     public static synchronized Policy validateSSL(Policy policy){
-        return policy;
+        throw new PolicyViolationException("At the moment no DNS services have been registered, you need DNS based routing for SSL to apply.");
     }
+
     public static synchronized Policy validateAnalytics(Policy policy){
+        Gson gson = new Gson();
+        KongPluginAnalytics req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginAnalytics.class);
+        if(StringUtils.isEmpty(req.getServiceToken())) throw new PolicyViolationException("Form was not correctly filled in.");
         return policy;
     }
 }
