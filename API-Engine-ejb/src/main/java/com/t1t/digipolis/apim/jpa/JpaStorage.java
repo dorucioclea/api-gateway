@@ -1255,6 +1255,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 csb.setContractId(contractBean.getId());
                 csb.setCreatedOn(contractBean.getCreatedOn());
                 csb.setPlanId(plan.getId());
+                csb.setProvisionKey(contractBean.getService().getProvisionKey());
                 csb.setPlanName(plan.getName());
                 csb.setPlanVersion(contractBean.getPlan().getVersion());
                 csb.setServiceDescription(service.getDescription());
@@ -1263,7 +1264,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 csb.setServiceOrganizationId(svcOrg.getId());
                 csb.setServiceOrganizationName(svcOrg.getName());
                 csb.setServiceVersion(contractBean.getService().getVersion());
-
                 rval.add(csb);
             }
 

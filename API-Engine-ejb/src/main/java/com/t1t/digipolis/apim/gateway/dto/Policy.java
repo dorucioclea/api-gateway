@@ -19,6 +19,11 @@ public class Policy implements Serializable {
     public Policy() {
     }
 
+    public Policy(String policyImpl, String policyJsonConfig) {
+        this.policyJsonConfig = policyJsonConfig;
+        this.policyImpl = policyImpl;
+    }
+
     /**
      * @return the policyClass
      */

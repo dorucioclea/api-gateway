@@ -28,6 +28,7 @@ public class ContractSummaryBean implements Serializable {
     private String planName;
     private String planId;
     private String planVersion;
+    private String provisionKey;
     private Date createdOn;
 
     /**
@@ -272,6 +273,14 @@ public class ContractSummaryBean implements Serializable {
      */
     public void setApikey(String apikey) {
         this.apikey = apikey;
+    }
+
+    public String getProvisionKey() {
+        return provisionKey;
+    }
+
+    public void setProvisionKey(String provisionKey) {
+        this.provisionKey = provisionKey;
     }
 
     /**

@@ -255,7 +255,7 @@ public class KongClientIntegrationTest {
         KongConsumer consumer = createDummyConsumer("cors123", "apicosruser");
         apicors = kongClient.addApi(apicors);
         //create a ratelimitation for the consumer and apply it for the api
-        List<Object> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "apikey");
+        List<String> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "apikey");
         KongPluginCors corsConfig = new KongPluginCors()
                 .withHeaders(headers);
         KongPluginConfig pluginConfig = new KongPluginConfig()

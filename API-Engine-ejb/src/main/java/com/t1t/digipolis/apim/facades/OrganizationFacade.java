@@ -32,7 +32,9 @@ import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
+import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -52,6 +54,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
+import org.owasp.esapi.reference.accesscontrol.policyloader.PolicyDTO;
 import org.slf4j.Logger;
 
 import javax.ejb.Stateless;
@@ -287,7 +290,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getAppPolicy(organizationId, applicationId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(policy.getConfiguration());
+                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),policy.getConfiguration())).getPolicyJsonConfig());
                     createAppPolicy(organizationId, applicationId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -760,7 +763,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getServicePolicy(organizationId, serviceId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(policy.getConfiguration());
+                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),policy.getConfiguration())).getPolicyJsonConfig());
                     createServicePolicy(organizationId, serviceId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -1021,8 +1024,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(bean.getConfiguration());
-                // TODO figure out what changed an include that in the audit entry
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),policy.getConfiguration())).getPolicyJsonConfig());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(this.securityContext.getCurrentUser());
@@ -1217,7 +1219,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             // TODO capture specific change values when auditing policy updates
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(bean.getConfiguration());
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),policy.getConfiguration())).getPolicyJsonConfig());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
@@ -1462,7 +1464,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getPlanPolicy(organizationId, planId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(policy.getConfiguration());
+                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration())).getPolicyJsonConfig());
                     createPlanPolicy(organizationId, planId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -1521,7 +1523,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(bean.getConfiguration());
+
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),bean.getConfiguration())).getPolicyJsonConfig());
                 // Note: we do not audit the policy configuration since it may have sensitive data
             }
             policy.setModifiedOn(new Date());
@@ -1891,7 +1894,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setId(null);
             policy.setDefinition(def);
             policy.setName(def.getName());
-            policy.setConfiguration(bean.getConfiguration());
+            //validate (remove null values) and apply custom implementation for the policy
+            policy.setConfiguration(GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration())).getPolicyJsonConfig());
             policy.setCreatedBy(securityContext.getCurrentUser());
             policy.setCreatedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
