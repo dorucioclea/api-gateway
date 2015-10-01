@@ -2,63 +2,19 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "id": "/",
   "type": "object",
-  "javaInterfaces" : ["com.t1t.digipolis.kong.model.KongConfigValue"],
+  "javaInterfaces": [
+    "com.t1t.digipolis.kong.model.KongConfigValue"
+  ],
   "properties": {
     "remove": {
-      "type": "table",
-      "schema": {
-        "fields": {
-          "querystring": {
-            "type": "array",
-            "items":{
-              "type": "string",
-              "default":""
-            }
-          },
-          "form": {
-            "type": "array",
-            "items":{
-              "type": "string",
-              "default":""
-            }
-          },
-          "headers": {
-            "type": "array",
-            "items":{
-              "type": "string",
-              "default":""
-            }
-          }
-        }
-      }
+      "id": "KongPluginRequestTransformerRemove",
+      "type": "object",
+      "$ref":"KongPluginRequestTransformerRemove.json"
     },
     "add": {
-      "type": "table",
-      "schema": {
-        "fields": {
-          "querystring": {
-            "type": "array",
-            "items":{
-              "type": "string",
-              "default":""
-            }
-          },
-          "form": {
-            "type": "array",
-            "items":{
-              "type": "string",
-              "default":""
-            }
-          },
-          "headers": {
-            "type": "array",
-            "items":{
-              "type": "string",
-              "default":""
-            }
-          }
-        }
-      }
+      "id": "KongPluginRequestTransformerAdd",
+      "type": "object",
+      "$ref":"KongPluginRequestTransformerAdd.json"
     }
   }
 }

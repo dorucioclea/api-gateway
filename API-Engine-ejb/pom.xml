@@ -418,6 +418,11 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponse.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerQuery.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerForm.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerHeaders.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerAdd.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerRemove.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>
