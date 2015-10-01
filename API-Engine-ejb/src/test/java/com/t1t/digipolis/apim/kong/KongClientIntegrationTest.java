@@ -444,7 +444,12 @@ public class KongClientIntegrationTest {
         KongPluginOAuthConsumerResponse response = kongClient.enableOAuthForConsumer(consumer.getId(),"TestApplication","ABCCLIENTID","ABCCLIENTSECRET","http://localhost:4000/");
         assertTrue(response!=null);
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         kongClient.deleteConsumer(consumer.getId());
+=======
+
+        kongClient.deleteConsumer(consumer.getId());*/
+>>>>>>> Stashed changes
 =======
 
         kongClient.deleteConsumer(consumer.getId());*/
