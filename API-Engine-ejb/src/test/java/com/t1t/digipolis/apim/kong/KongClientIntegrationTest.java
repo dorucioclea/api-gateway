@@ -228,10 +228,8 @@ public class KongClientIntegrationTest {
     @Test
     public void testGetInstalledPlugins() throws Exception {
         KongInfo info = kongClient.getInfo();
-
-        KongInstalledPlugins installedPlugins =
-        assertNotNull(installedPlugins);
-        assertTrue(installedPlugins.getEnabledPlugins().size() > 0);
+        assertNotNull(info);
+        assertTrue(info.getPlugins().getAvailableOnServer().size() > 0);
     }
 
     @Test
@@ -443,17 +441,7 @@ public class KongClientIntegrationTest {
         consumer = kongClient.createConsumer(consumer);
         KongPluginOAuthConsumerResponse response = kongClient.enableOAuthForConsumer(consumer.getId(),"TestApplication","ABCCLIENTID","ABCCLIENTSECRET","http://localhost:4000/");
         assertTrue(response!=null);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        kongClient.deleteConsumer(consumer.getId());
-=======
-
         kongClient.deleteConsumer(consumer.getId());*/
->>>>>>> Stashed changes
-=======
-
-        kongClient.deleteConsumer(consumer.getId());*/
->>>>>>> Stashed changes
     }
 
     @Test(expected = RetrofitError.class)
