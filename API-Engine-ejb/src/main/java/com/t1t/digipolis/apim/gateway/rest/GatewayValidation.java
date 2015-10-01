@@ -56,12 +56,18 @@ public class GatewayValidation {
     public static synchronized Policy validateRequestTransformer(Policy policy){
         Gson gson = new Gson();
         KongPluginRequestTransformer reqTransValue = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRequestTransformer.class);
+        KongPluginRequestTransformer newTransValue = new KongPluginRequestTransformer();
+        //remove null values
+        reqTransValue.getAdd().getForm().stream().forEach((val) -> {if(val!=null)newTransValue.getAdd().getForm().add(val);});
+        reqTransValue.getAdd().getHeaders().stream().forEach((val) -> {if(val!=null)newTransValue.getAdd().getForm().add(val);});
+        reqTransValue.getAdd().getQuerystring().stream().forEach((val) -> {if(val!=null)newTransValue.getAdd().getForm().add(val);});
+        reqTransValue.getRemove().getForm().stream().forEach((val) -> {if(val!=null)newTransValue.getRemove().getForm().add(val);});
+        reqTransValue.getRemove().getHeaders().stream().forEach((val) -> {if(val!=null)newTransValue.getRemove().getForm().add(val);});
+        reqTransValue.getRemove().getQuerystring().stream().forEach((val) -> {if(val!=null)newTransValue.getRemove().getForm().add(val);});
         return policy;
     }
 
     public static synchronized Policy validateResponseTransformer(Policy policy){
-/*        Gson gson = new Gson();
-        KongPluginRequestTransformer reqTransValue = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRequestTransformer.class);*/
         return policy;
     }
 

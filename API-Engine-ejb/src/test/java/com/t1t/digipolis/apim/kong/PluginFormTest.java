@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.kong;
 
 import com.google.gson.Gson;
-import com.t1t.digipolis.kong.model.Add;
 import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,6 +25,5 @@ public class PluginFormTest {
             if(header==null)_LOG.info("found null header");
         }
         _LOG.info(kongPluginRequestTransformer.getRemove().toString());
-        /*_LOG.info(kongPluginRequestTransformer.getRemove().toString());*/
     }
 }
