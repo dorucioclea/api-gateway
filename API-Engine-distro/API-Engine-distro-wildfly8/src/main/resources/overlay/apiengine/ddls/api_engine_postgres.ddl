@@ -511,7 +511,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "properties": {
     "remove": {
       "title": "Remove from request",
-      "type": "object",
+      "type": "table",
       "properties": {
           "querystring": {
               "type": "array",
@@ -541,7 +541,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     },
     "add": {
       "title": "Add to request",
-      "type": "object",
+      "type": "table",
       "properties": {
           "querystring": {
               "type": "array",

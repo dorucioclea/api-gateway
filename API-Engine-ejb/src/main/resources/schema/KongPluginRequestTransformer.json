@@ -9,13 +9,25 @@
       "schema": {
         "fields": {
           "querystring": {
-            "type": "array"
+            "type": "array",
+            "items":{
+              "type": "string",
+              "default":""
+            }
           },
           "form": {
-            "type": "array"
+            "type": "array",
+            "items":{
+              "type": "string",
+              "default":""
+            }
           },
           "headers": {
-            "type": "array"
+            "type": "array",
+            "items":{
+              "type": "string",
+              "default":""
+            }
           }
         }
       }
@@ -25,13 +37,25 @@
       "schema": {
         "fields": {
           "querystring": {
-            "type": "array"
+            "type": "array",
+            "items":{
+              "type": "string",
+              "default":""
+            }
           },
           "form": {
-            "type": "array"
+            "type": "array",
+            "items":{
+              "type": "string",
+              "default":""
+            }
           },
           "headers": {
-            "type": "array"
+            "type": "array",
+            "items":{
+              "type": "string",
+              "default":""
+            }
           }
         }
       }
