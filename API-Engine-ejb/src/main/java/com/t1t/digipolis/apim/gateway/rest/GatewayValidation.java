@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
@@ -22,6 +23,8 @@ import com.t1t.digipolis.kong.model.KongPluginResponseTransformerAdd;
 import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
 import com.t1t.digipolis.kong.model.KongPluginTcpLog;
 import com.t1t.digipolis.kong.model.KongPluginUdpLog;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +33,15 @@ import java.util.List;
  * Created by michallispashidis on 30/09/15.
  */
 public class GatewayValidation {
+    private static String environment;
+    private static Config config;
+    static {
+        environment = "";
+        config = ConfigFactory.load();
+        if(config!=null){
+            environment = new StringBuffer("").append(config.getString(IConfig.ENVIRONMENT)).toString();
+        }
+    }
 
     public static Policy validate(Policy policy) throws PolicyViolationException{
         //verify policy def that applies
@@ -62,6 +74,9 @@ public class GatewayValidation {
      * @return
      */
     public static synchronized Policy validateOAuth(Policy policy){
+        Gson gson = new Gson();
+        KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        if(oauthValue.getScopes().size()==0)throw new PolicyViolationException("Scopes/scopes description must be provided in order to apply OAuth2");
         return policy;
     }
 
@@ -106,6 +121,10 @@ public class GatewayValidation {
     public static synchronized Policy validateRequestTransformer(Policy policy){
         Gson gson = new Gson();
         KongPluginRequestTransformer req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRequestTransformer.class);
+        //if all lists are empty -> error
+        if(isEmptyList(req.getAdd().getForm())&&isEmptyList(req.getAdd().getHeaders())&&isEmptyList(req.getAdd().getQuerystring())
+                &&isEmptyList(req.getRemove().getForm())&&isEmptyList(req.getRemove().getHeaders())&&isEmptyList(req.getRemove().getQuerystring()))
+            throw new PolicyViolationException("At least one value should be provided.");
         KongPluginRequestTransformer res = new KongPluginRequestTransformer();
         KongPluginRequestTransformerAdd addStatement = new KongPluginRequestTransformerAdd();
         addStatement.setForm(new ArrayList<>());
@@ -124,6 +143,13 @@ public class GatewayValidation {
         req.getRemove().getForm().stream().forEach((val) -> {if(val!=null)res.getRemove().getForm().add(val);});
         req.getRemove().getHeaders().stream().forEach((val) -> {if(val!=null)res.getRemove().getHeaders().add(val);});
         req.getRemove().getQuerystring().stream().forEach((val) -> {if(val!=null)res.getRemove().getQuerystring().add(val);});
+        //remove empty lists
+        if(res.getAdd().getForm().size()==0)res.getAdd().setForm(null);
+        if(res.getAdd().getHeaders().size()==0)res.getAdd().setHeaders(null);
+        if(res.getAdd().getQuerystring().size()==0)res.getAdd().setQuerystring(null);
+        if(res.getRemove().getForm().size()==0)res.getRemove().setForm(null);
+        if(res.getRemove().getHeaders().size()==0)res.getRemove().setHeaders(null);
+        if(res.getRemove().getQuerystring().size()==0)res.getRemove().setQuerystring(null);
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
@@ -133,6 +159,10 @@ public class GatewayValidation {
     public static synchronized Policy validateResponseTransformer(Policy policy){
         Gson gson = new Gson();
         KongPluginResponseTransformer req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginResponseTransformer.class);
+        //if all lists are empty -> error
+        if(isEmptyList(req.getAdd().getHeader())&&isEmptyList(req.getAdd().getJson())
+                &&isEmptyList(req.getRemove().getHeader())&&isEmptyList(req.getRemove().getJson()))
+            throw new PolicyViolationException("At least one value should be provided.");
         KongPluginResponseTransformer res = new KongPluginResponseTransformer();
         KongPluginResponseTransformerAdd addStatement = new KongPluginResponseTransformerAdd();
         addStatement.setHeader(new ArrayList<>());
@@ -204,6 +234,8 @@ public class GatewayValidation {
     public static synchronized Policy validateIPRestriction(Policy policy){
         Gson gson = new Gson();
         KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginIPRestriction.class);
+        //if lists empty -> error
+        if(isEmptyList(req.getBlacklist())&&isEmptyList(req.getWhitelist()))throw new PolicyViolationException("At least one value should be provided.");
         KongPluginIPRestriction res = new KongPluginIPRestriction();
         res.setBlacklist(new ArrayList<>());
         res.setWhitelist(new ArrayList<>());
@@ -239,6 +271,12 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginAnalytics req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginAnalytics.class);
         if(StringUtils.isEmpty(req.getServiceToken())) throw new PolicyViolationException("Form was not correctly filled in.");
+        //implicit environment set
+        if(!StringUtils.isEmpty(environment))req.setEnvironment(environment);
         return policy;
+    }
+
+    private static boolean isEmptyList(List list){
+        return (list==null||list.size()==0);
     }
 }
