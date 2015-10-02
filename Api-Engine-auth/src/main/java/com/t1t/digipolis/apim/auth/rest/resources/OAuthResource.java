@@ -1,27 +1,22 @@
 package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuthApplicationResponse;
-import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuthResponseType;
+import com.t1t.digipolis.apim.beans.authorization.*;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.apim.facades.AuthorizationFacade;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.netty.util.internal.StringUtil;
-import retrofit.http.Body;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 /**
  * Created by michallispashidis on 26/09/15.
@@ -77,17 +72,39 @@ public class OAuthResource implements IOAuth2Authorization {
             @ApiResponse(code = 200, response = String.class, message = "The authorization redirect URI."),
             @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
     })
-    @GET
-    @Path("/redirect/{responseType}/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}")
+    @POST
+    @Path("/redirect/{responseType}/user/{userId}/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     @Override
-    public String getAuthorizationRedirect(@PathParam("responseType")OAuthResponseType responseType,@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version) throws OAuthException{
+    public String getAuthorizationRedirect(@PathParam("responseType")OAuthResponseType responseType,@PathParam("userId")String authenticatedUserId ,@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version, OAuthServiceScopeRequest requestScopes) throws OAuthException{
         Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId));
         Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         Preconditions.checkNotNull(responseType);
-        return oAuthFacade.getAuthorizationRedirect(responseType, oauthClientId, orgId, serviceId, version);
+        Preconditions.checkNotNull(requestScopes);
+        Preconditions.checkNotNull(requestScopes.getScopes());
+        Preconditions.checkArgument(requestScopes.getScopes().size()>0);
+        return oAuthFacade.getAuthorizationRedirect(responseType, authenticatedUserId ,oauthClientId, orgId, serviceId, version, requestScopes.getScopes());
+    }
+
+    @ApiOperation(value = "Information endpoint to retrieve service version scopes.",
+            notes = "Returns a list of string values representing available service versions copes")
+    @ApiResponses({
+            @ApiResponse(code = 200,response = OAuthServiceScopeResponse.class, message = "list of service version scopes."),
+            @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
+    })
+    @GET
+    @Path("/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}/scopes")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public OAuthServiceScopeResponse getServiceVersionScopes(@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version){
+        Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return oAuthFacade.getServiceVersionScopes(oauthClientId, orgId, serviceId, version);
     }
 }

@@ -343,7 +343,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
-        //TODO OAUTH
         try {
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
@@ -369,6 +368,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     avb.setoAuthClientId(apiKeyGenerator.generate());
                     avb.setOauthClientSecret(apiKeyGenerator.generate());
                     avb.setOauthClientRedirect("");
+                    //storage.updateApplicationVersion(avb);
                 }
             }
             return contract;

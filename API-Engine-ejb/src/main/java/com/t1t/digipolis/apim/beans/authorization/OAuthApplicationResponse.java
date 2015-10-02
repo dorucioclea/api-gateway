@@ -14,6 +14,7 @@ public class OAuthApplicationResponse {
     Map<String,String> scopes;
     String base64AppLogo;
     String appVersion;
+    String serviceProvisionKey;
 
     public OAuthApplicationResponse() {
     }
@@ -58,6 +59,14 @@ public class OAuthApplicationResponse {
         this.appVersion = appVersion;
     }
 
+    public String getServiceProvisionKey() {
+        return serviceProvisionKey;
+    }
+
+    public void setServiceProvisionKey(String serviceProvisionKey) {
+        this.serviceProvisionKey = serviceProvisionKey;
+    }
+
     @Override
     public String toString() {
         return "OAuthApplicationResponse{" +
@@ -66,6 +75,7 @@ public class OAuthApplicationResponse {
                 ", scopes=" + scopes +
                 ", base64AppLogo='" + base64AppLogo + '\'' +
                 ", appVersion='" + appVersion + '\'' +
+                ", serviceProvisionKey='" + serviceProvisionKey + '\'' +
                 '}';
     }
 }
