@@ -394,7 +394,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
             "scope":{
                 "title": "Scope",
                 "type": "string",
-                "description": "Provide the scope identifier that will be available to the end user."
+                "pattern": "^[a-z,A-Z,-]+$",
+                "description": "Provide the scope identifier that will be available to the end user (use only lowercase characters and no special characters)."
             },
             "scope_desc":{
                 "title": "Scope Description",

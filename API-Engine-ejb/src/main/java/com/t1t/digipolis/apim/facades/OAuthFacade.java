@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthApplicationResponse;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthResponseType;
+import com.t1t.digipolis.apim.beans.authorization.OAuthServiceScopeResponse;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IStorage;
@@ -32,6 +33,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
+import java.util.List;
 
 /**
  * Created by michallispashidis on 23/09/15.
@@ -135,6 +137,8 @@ public class OAuthFacade {
                     ServiceVersionBean serviceVersion = storage.getServiceVersion(orgId, serviceId, version);
                     //verify if it's an OAuth enabled service
                     response.setScopes(serviceVersion.getOauthScopes());
+                    response.setServiceProvisionKey(serviceVersion.getProvisionKey());
+                    /*serviceVersion.getService().getBasepath()*/
                     return response;
                 }
                 ;
@@ -145,7 +149,7 @@ public class OAuthFacade {
         return null;
     }
 
-    public String getAuthorizationRedirect(OAuthResponseType responseType, String clientId, String orgId, String serviceId, String version) {
+    public String getAuthorizationRedirect(OAuthResponseType responseType, String userId, String clientId, String orgId, String serviceId, String version, List<String> scopes) {
         //The consent page is published through the gateway itself, in order to add consent page policies.
         //The consent URI is where the page has been published as part of the API Engine.
         StringBuffer redirectURI = new StringBuffer("");
@@ -159,8 +163,34 @@ public class OAuthFacade {
                 .append("&")
                 .append("service_id=").append(serviceId)
                 .append("&")
-                .append("version=").append(version);
+                .append("version=").append(version)
+                .append("&")
+                .append("authenticatedUserId=").append(userId)
+                .append("&")
+                .append("scopes=").append(StringUtils.join(scopes, ','));
         return redirectURI.toString();
+    }
+
+    /**
+     * Returns a list of scopes available for a service.
+     * @param appId
+     * @param orgId
+     * @param serviceId
+     * @param version
+     * @return
+     */
+    public OAuthServiceScopeResponse getServiceVersionScopes(String appId, String orgId, String serviceId, String version){
+        //retrieve scopes for targeted service
+        ServiceVersionBean serviceVersion = null;
+        OAuthServiceScopeResponse serviceScopes = new OAuthServiceScopeResponse();
+        try {
+            //verify if it's an OAuth enabled service
+            serviceVersion = storage.getServiceVersion(orgId, serviceId, version);//throw an error if non existant
+            serviceScopes.setScopes(serviceVersion.getOauthScopes());
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+        return serviceScopes;
     }
 
 

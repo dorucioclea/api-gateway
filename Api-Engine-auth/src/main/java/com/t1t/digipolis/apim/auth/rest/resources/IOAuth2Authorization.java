@@ -1,14 +1,10 @@
 package com.t1t.digipolis.apim.auth.rest.resources;
 
-import com.t1t.digipolis.apim.beans.authorization.OAuthApplicationResponse;
-import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuthResponseType;
+import com.t1t.digipolis.apim.beans.authorization.*;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 
-import javax.ws.rs.PathParam;
+import java.util.List;
 
 /**
  * Created by michallispashidis on 16/09/15.
@@ -39,9 +35,23 @@ public interface IOAuth2Authorization {
      * @param serviceId
      * @param version
      * @param responseType
+     * @param authenticatedUserId
+     * @param requestScopes
      * @return
      * @throws OAuthException
      */
-    public String getAuthorizationRedirect(OAuthResponseType responseType, String oauthClientId,String orgId,String serviceId,String version) throws OAuthException;
+    public String getAuthorizationRedirect(OAuthResponseType responseType,String authenticatedUserId, String oauthClientId,String orgId,String serviceId,String version,OAuthServiceScopeRequest requestScopes) throws OAuthException;
+
+    /**
+     * Returns a list of scopes for a given service version.
+     *
+     * @param oauthClientId
+     * @param orgId
+     * @param serviceId
+     * @param version
+     * @return
+     * @throws OAuthException
+     */
+    public OAuthServiceScopeResponse getServiceVersionScopes(String oauthClientId,String orgId,String serviceId,String version) throws OAuthException;
 
 }
