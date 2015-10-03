@@ -291,7 +291,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationVersionBean updateAppVersionCallbackURI(@PathParam("organizationId") String orgId, @PathParam("applicationId")String appId, @PathParam("version") String version ,UpdateApplicationVersionURIBean updateAppUri){
-        return orgFacade.updateAppVersionURI(orgId,appId,version,updateAppUri);
+        return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
     }
 
     @ApiOperation(value = "Get Application Version",
@@ -636,6 +636,22 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 15000, "Logo should not be greater than 10k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createService(organizationId, bean);
+    }
+
+    @ApiOperation(value = "Update Service Terms",
+            notes = "Use this endpoint to provide service terms. The service terms applies to all service versions.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceBean.class, message = "Full details about the updated Service.")
+    })
+    @PUT
+    @Path("/{organizationId}/services/{serviceId}/terms")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceBean updateServiceTerms(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, UpdateServiceTearmsBean serviceTerms) throws ServiceNotFoundException, NotAuthorizedException{
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkNotNull(serviceTerms);
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceTerms.getTerms()));
+        return orgFacade.updateServiceTerms(organizationId, serviceId, serviceTerms);
     }
 
     @ApiOperation(value = "Get Service By ID",

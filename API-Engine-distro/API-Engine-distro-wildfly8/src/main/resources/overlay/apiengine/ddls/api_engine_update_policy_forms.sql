@@ -74,3 +74,5 @@ UPDATE policydefs SET form='{
 }' WHERE id='OAuth2';
 
 ALTER TABLE service_versions ADD COLUMN onlinedoc VARCHAR(255);
+
+ALTER TABLE services ADD COLUMN terms TEXT;

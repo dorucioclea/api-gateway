@@ -1173,6 +1173,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public ServiceBean updateServiceTerms(String organizationId, String serviceId, UpdateServiceTearmsBean serviceTerms){
+        try {
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            bean.setTerms(serviceTerms.getTerms());
+            storage.updateService(bean);
+            return bean;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
     public ServiceBean getService(String organizationId, String serviceId) {
         try {
             ServiceBean bean = storage.getService(organizationId, serviceId);

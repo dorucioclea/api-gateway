@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -46,6 +47,10 @@ public class ServiceBean implements Serializable {
     private String createdBy;
     @Column(name = "created_on", updatable=false, nullable=false)
     private Date createdOn;
+    @Lob
+    @Column(name="terms")
+    @Type(type = "org.hibernate.type.TextType")
+    private String terms;
     @Column(name = "logo")
     @Lob
     @Basic(fetch=FetchType.EAGER)
@@ -132,6 +137,14 @@ public class ServiceBean implements Serializable {
      */
     public OrganizationBean getOrganization() {
         return organization;
+    }
+
+    public String getTerms() {
+        return terms;
+    }
+
+    public void setTerms(String terms) {
+        this.terms = terms;
     }
 
     /**
