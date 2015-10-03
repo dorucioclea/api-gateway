@@ -1,6 +1,8 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.BeanUtils;
+import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
+import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
@@ -38,7 +40,6 @@ import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
@@ -60,7 +61,6 @@ import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
-import org.owasp.esapi.reference.accesscontrol.policyloader.PolicyDTO;
 import org.slf4j.Logger;
 
 import javax.ejb.Stateless;
@@ -2416,6 +2416,81 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    /**
+     * ANNOUNCEMENTS
+     */
+
+    public AnnouncementBean createServiceAnnouncement(String organizationId, String serviceId, NewAnnouncementBean newAnnouncementBean){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            AnnouncementBean ann = new AnnouncementBean();
+            ann.setTitle(newAnnouncementBean.getTitle());
+            ann.setDescription(newAnnouncementBean.getDescription());
+            ann.setCreatedBy(securityContext.getCurrentUser());
+            ann.setCreatedOn(new Date());
+            ann.setOrganizationId(bean.getOrganization().getId());
+            ann.setServiceId(bean.getId());
+            storage.createServiceAnnouncement(ann);
+            return ann;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteServiceAnnouncement(String organizationId, String serviceId, Long id){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            AnnouncementBean ann = storage.getServiceAnnouncement(id);
+            if(ann != null){
+                if(ann.getOrganizationId().equals(organizationId)&&ann.getServiceId().equals(serviceId))
+                storage.deleteServiceAnnouncement(ann);
+            }
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public AnnouncementBean getServiceAnnouncement(String organizationId, String serviceId, Long id){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            AnnouncementBean ann = storage.getServiceAnnouncement(id);
+            //verify the announcement is for given service
+            if(ann.getOrganizationId().equals(organizationId)&&ann.getServiceId().equals(serviceId))return ann;
+            else return null;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<AnnouncementBean> getServiceAnnouncements(String organizationId, String serviceId){
+        List<AnnouncementBean> announcementBeans = null;
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            announcementBeans = query.listServiceAnnouncements(organizationId, serviceId);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+        return announcementBeans;
     }
 
 

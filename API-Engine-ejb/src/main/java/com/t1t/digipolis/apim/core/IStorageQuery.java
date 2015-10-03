@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.core;
 
+import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
@@ -308,5 +309,15 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<OAuthAppBean> listApplicationOAuthCredentials(Long appVersionId) throws StorageException;
+
+    /**
+     * Lists all announcement related to a service in a given organization.
+     *
+     * @param organizationId
+     * @param serviceId
+     * @return
+     * @throws StorageException
+     */
+    public List<AnnouncementBean> listServiceAnnouncements(String organizationId, String serviceId) throws StorageException;
 
 }

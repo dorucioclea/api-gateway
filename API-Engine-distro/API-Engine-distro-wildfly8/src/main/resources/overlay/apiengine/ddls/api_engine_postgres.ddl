@@ -12,6 +12,8 @@ CREATE TABLE applications (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT
 
 CREATE TABLE auditlog (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, data TEXT NULL, entity_id VARCHAR(255) NULL, entity_type VARCHAR(255) NOT NULL, entity_version VARCHAR(255) NULL, organization_id VARCHAR(255) NOT NULL, what VARCHAR(255) NOT NULL, who VARCHAR(255) NOT NULL);
 
+CREATE TABLE announcements (id BIGINT NOT NULL,organization_id VARCHAR(255) NOT NULL, service_id VARCHAR(255) NOT NULL, title VARCHAR(255) NOT NULL, description TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL);
+
 CREATE TABLE contracts (id BIGINT NOT NULL, apikey VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, appv_id BIGINT NULL, planv_id BIGINT NULL, svcv_id BIGINT NULL);
 
 CREATE TABLE endpoint_properties (service_version_id BIGINT NOT NULL, value VARCHAR(255) NULL, name VARCHAR(255) NOT NULL);
@@ -65,6 +67,8 @@ ALTER TABLE application_versions ADD PRIMARY KEY (id);
 ALTER TABLE applications ADD PRIMARY KEY (id, organization_id);
 
 ALTER TABLE auditlog ADD PRIMARY KEY (id);
+
+ALTER TABLE announcements ADD PRIMARY KEY (id);
 
 ALTER TABLE contracts ADD PRIMARY KEY (id);
 
@@ -148,6 +152,10 @@ CREATE INDEX IDX_auditlog_1 ON auditlog(who);
 
 CREATE INDEX IDX_auditlog_2 ON auditlog(organization_id, entity_id, entity_version, entity_type);
 
+CREATE INDEX IDX_announcements_1 ON announcements(created_by);
+
+CREATE INDEX IDX_announcements_2 ON announcements(organization_id,service_id);
+
 CREATE INDEX IDX_users_1 ON users(username);
 
 CREATE INDEX IDX_users_2 ON users(full_name);
@@ -179,6 +187,8 @@ CREATE INDEX IDX_FK_contracts_p ON contracts(planv_id);
 CREATE INDEX IDX_FK_contracts_s ON contracts(svcv_id);
 
 CREATE INDEX IDX_FK_contracts_a ON contracts(appv_id);
+
+CREATE INDEX IDX_FK_followers_a ON followers(ServiceBean_id,ServiceBean_organization_id);
 
 CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organization_id VARCHAR(255) NOT NULL,category VARCHAR(255),FOREIGN KEY (ServiceBean_id, ServiceBean_organization_id) REFERENCES services (id, organization_id));
 

@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.jpa;
 
+import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
@@ -25,17 +26,12 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigBeanFactory;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.io.IOUtils;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.CriteriaQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.*;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Alternative;
 import javax.enterprise.inject.Default;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -246,6 +242,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(oAuthAppBean);
     }
 
+    @Override
+    public void updateServiceAnnouncement(AnnouncementBean announcement) throws StorageException {
+        super.update(announcement);
+    }
+
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -407,6 +408,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.delete(oAuthAppBean);
     }
 
+    @Override
+    public void deleteServiceAnnouncement(AnnouncementBean announcement) throws StorageException {
+        super.delete(announcement);
+    }
+
     /**
      * @see IStorage#getOrganization(String)
      */
@@ -537,6 +543,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public OAuthAppBean getApplicationOAuthCredentials(String id) throws StorageException {
         return super.get(id,OAuthAppBean.class);
+    }
+
+    @Override
+    public AnnouncementBean getServiceAnnouncement(Long id) throws StorageException {
+        return super.get(id,AnnouncementBean.class);
     }
 
     /**
@@ -720,6 +731,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
         super.create(oAuthAppBean);
+    }
+
+    @Override
+    public void createServiceAnnouncement(AnnouncementBean announcement) throws StorageException {
+        super.create(announcement);
     }
 
     /**
@@ -1563,6 +1579,34 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             res.setClientSecret(cred.getClientSecret());
             res.setClientRedirect(cred.getClientRedirect());
             res.setApp(cred.getApp());
+            rval.add(res);
+        }
+        return rval;
+    }
+
+    @Override
+    public List<AnnouncementBean> listServiceAnnouncements(String organizationId, String serviceId) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql =
+                "SELECT a from AnnouncementBean a "
+                        + " WHERE a.organizationId = :orgId "
+                        + "   AND a.serviceId = :serviceId "
+                        + " ORDER BY a.createdOn DESC ";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("orgId", organizationId);
+        query.setParameter("serviceId", serviceId);
+
+        List<AnnouncementBean> announcementList = (List<AnnouncementBean>) query.getResultList();
+        List<AnnouncementBean> rval = new ArrayList<>(announcementList.size());
+        for (AnnouncementBean ann : announcementList) {
+            AnnouncementBean res = new AnnouncementBean();
+            res.setId(ann.getId());
+            res.setOrganizationId(ann.getOrganizationId());
+            res.setServiceId(ann.getServiceId());
+            res.setTitle(ann.getTitle());
+            res.setDescription(ann.getDescription());
+            res.setCreatedBy(ann.getCreatedBy());
+            res.setCreatedOn(ann.getCreatedOn());
             rval.add(res);
         }
         return rval;

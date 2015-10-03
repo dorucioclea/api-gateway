@@ -1,6 +1,8 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
+import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -636,6 +638,76 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 15000, "Logo should not be greater than 10k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createService(organizationId, bean);
+    }
+
+    @ApiOperation(value = "Create new service announcement",
+            notes = "Use this endpoint to create a new service announcement.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = AnnouncementBean.class, message = "Announcement created.")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/announcement")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public AnnouncementBean createServiceAnnouncement(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, NewAnnouncementBean announcementBean) throws ServiceNotFoundException, NotAuthorizedException{
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkNotNull(announcementBean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(announcementBean.getDescription()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(announcementBean.getTitle()));
+        return orgFacade.createServiceAnnouncement(organizationId, serviceId, announcementBean);
+    }
+
+    @ApiOperation(value = "Retrieve a specific announcement for given service.",
+            notes = "Use this endpoint to retrieve a specific announcement.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = AnnouncementBean.class, message = "Announcement for given id.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/announcement/{announcementId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public AnnouncementBean getServiceAnnouncement(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("announcementId")String announcementId) throws ServiceNotFoundException, NotAuthorizedException{
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(announcementId));
+        Long id = Long.parseLong(announcementId.trim(),10);
+    return orgFacade.getServiceAnnouncement(organizationId, serviceId, id);
+    }
+
+    @ApiOperation(value = "Retrieve all announcement for given service.",
+            notes = "Use this endpoint to retrieve all announcement.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = AnnouncementBean.class, message = "List of announcements.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/announcement/all")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<AnnouncementBean> getServiceAnnouncements(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException{
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        return orgFacade.getServiceAnnouncements(organizationId, serviceId);
+    }
+
+    @ApiOperation(value = "Remove Service Policy",
+            notes = "Use this endpoint to remove a Policy from the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/announcement/{announcementId}")
+    public void deleteServiceAnnouncement(@PathParam("organizationId") String organizationId,
+                                    @PathParam("serviceId") String serviceId,
+                                    @PathParam("announcementId") String announcementId) throws OrganizationNotFoundException, NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(announcementId));
+        orgFacade.deleteServiceAnnouncement(organizationId, serviceId,Long.parseLong(announcementId.trim(),10));
     }
 
     @ApiOperation(value = "Update Service Terms",
