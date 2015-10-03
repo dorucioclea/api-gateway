@@ -470,6 +470,10 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         return httpClient.getConsumerOAuthCredentials(consumerId);
     }
 
+    public void deleteOAuthConsumerCredential(String consumerId, String oauthPluginId){
+        httpClient.deleteOAuth2Credential(consumerId, oauthPluginId);
+    }
+
     /*Service policies*/
 
     /**

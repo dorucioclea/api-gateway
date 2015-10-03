@@ -107,4 +107,5 @@ public class OAuthResource implements IOAuth2Authorization {
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         return oAuthFacade.getServiceVersionScopes(oauthClientId, orgId, serviceId, version);
     }
+
 }

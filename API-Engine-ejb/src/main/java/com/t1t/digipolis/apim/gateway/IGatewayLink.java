@@ -218,5 +218,13 @@ public interface IGatewayLink {
      * @return
      */
     public KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(String consumerId);
+
+    /**
+     * Delete a created OAuth credential for a given consumer.
+     *
+     * @param consumerId
+     * @param pluginId
+     */
+    public void deleteOAuthConsumerPlugin(String consumerId, String pluginId);
     
 }

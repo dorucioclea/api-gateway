@@ -152,6 +152,11 @@ public class RestGatewayLink implements IGatewayLink {
         return getClient().getConsumerOAuthCredentials(consumerId);
     }
 
+    @Override
+    public void deleteOAuthConsumerPlugin(String consumerId, String pluginId) {
+        getClient().deleteOAuthConsumerCredential(consumerId, pluginId);
+    }
+
     /**
      * Checks that the gateway is up.
      */
