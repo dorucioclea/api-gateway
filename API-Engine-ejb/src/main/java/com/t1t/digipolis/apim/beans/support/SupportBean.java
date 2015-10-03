@@ -5,7 +5,6 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Set;
 
 /**
  * Created by michallispashidis on 3/10/15.
@@ -22,7 +21,7 @@ public class SupportBean implements Serializable {
     private String serviceId;
     @Column(nullable=false)
     private String title;
-    private SupportStatus status;
+    private String status;
     @Lob
     @Type(type = "org.hibernate.type.TextType")
     private String description;
@@ -73,11 +72,11 @@ public class SupportBean implements Serializable {
         this.title = title;
     }
 
-    public SupportStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(SupportStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

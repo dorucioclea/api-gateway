@@ -97,4 +97,15 @@ CREATE INDEX IDX_announcements_1 ON announcements(created_by);
 CREATE INDEX IDX_announcements_2 ON announcements(organization_id,service_id);
 
 
+CREATE TABLE support (id BIGINT NOT NULL,organization_id VARCHAR(255) NOT NULL, service_id VARCHAR(255) NOT NULL, title VARCHAR(255) NOT NULL,status VARCHAR(255) NOT NULL, description TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL, total_comments INT);
+
+CREATE TABLE support_comments (id BIGINT NOT NULL, support_id BIGINT NOT NULL, comment TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL);
+
+ALTER TABLE support ADD PRIMARY KEY (id);
+
+ALTER TABLE support_comments ADD PRIMARY KEY (id);
+
+CREATE INDEX IDX_support_1 ON support(organization_id,service_id);
+
+CREATE INDEX IDX_support_comments_1 ON support(id);
 

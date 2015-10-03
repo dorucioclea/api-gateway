@@ -15,7 +15,7 @@ public class SupportComment implements Serializable {
     @Id
     @GeneratedValue
     private Long id;
-    @Column("support_id")
+    @Column(name = "support_id")
     private Long supportId;
     @Lob
     @Column(name = "comment")
