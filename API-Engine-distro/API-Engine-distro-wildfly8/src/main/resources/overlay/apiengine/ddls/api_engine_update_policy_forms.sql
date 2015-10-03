@@ -75,4 +75,12 @@ UPDATE policydefs SET form='{
 
 ALTER TABLE service_versions ADD COLUMN onlinedoc VARCHAR(255);
 
+
+
 ALTER TABLE services ADD COLUMN terms TEXT;
+
+CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organization_id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL);
+
+ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_id,user_id);
+
+ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id);

@@ -1342,4 +1342,8 @@ public interface IOrganizationResource {
      */
     public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) throws com.t1t.digipolis.apim.exceptions.NotAuthorizedException, InvalidMetricCriteriaException;
 
+    public ServiceBean addServiceFollower(String organizationId, String serviceId, String userId) throws ServiceNotFoundException, NotAuthorizedException;
+    public ServiceBean removeServiceFollower(String organizationId, String serviceId, String userId) throws ServiceNotFoundException, NotAuthorizedException;
+    public ServiceFollowers getServiceFollowers(String organizationId, String serviceId)throws ServiceNotFoundException, NotAuthorizedException;
+
 }

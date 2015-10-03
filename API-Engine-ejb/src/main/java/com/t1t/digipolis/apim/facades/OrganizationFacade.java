@@ -2361,4 +2361,62 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void setEm(EntityManager em) {
         this.em = em;
     }
+
+
+    /**
+     * FOLLOWERS
+     */
+    public ServiceBean addServiceFollower(String organizationId, String serviceId, String userId){
+        try {
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            if(!bean.getFollowers().contains(userId)) bean.getFollowers().add(userId);
+            storage.updateService(bean);
+            return bean;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public ServiceBean removeServiceFollower(String organizationId, String serviceId, String userId){
+        try {
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            if(bean.getFollowers().contains(userId)) bean.getFollowers().remove(userId);
+            storage.updateService(bean);
+            return bean;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public ServiceFollowers getServiceFollowers(String organizationId, String serviceId){
+        try {
+            ServiceFollowers followers = new ServiceFollowers();
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            if(bean.getFollowers()!=null){
+                followers.setFollowers(bean.getFollowers());
+                followers.setTotal(bean.getFollowers().size());
+            }
+            storage.updateService(bean);
+            return followers;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+
 }

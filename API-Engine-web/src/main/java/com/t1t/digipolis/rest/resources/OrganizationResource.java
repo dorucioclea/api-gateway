@@ -1106,6 +1106,53 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getMarketInfo(organizationId, serviceId, version);
     }
 
+    @ApiOperation(value = "Add a service follower",
+            notes = "A user can follow all notifications for a service, use this endpoint to add a user for a service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceBean.class, message = "A Service.")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/followers/add/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public ServiceBean addServiceFollower(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("userId") String userId) throws ServiceNotFoundException, javax.ws.rs.NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        return orgFacade.addServiceFollower(organizationId, serviceId, userId);
+    }
+
+    @ApiOperation(value = "Remove a service follower",
+            notes = "Use this endpoint to remove a user from a service, the user will not be following the service anymore.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceBean.class, message = "A Service.")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/followers/remove/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public ServiceBean removeServiceFollower(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("userId") String userId) throws ServiceNotFoundException, javax.ws.rs.NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        return orgFacade.removeServiceFollower(organizationId, serviceId, userId);
+    }
+
+    @ApiOperation(value = "Get service followers.",
+            notes = "Use this endpoint retrieve all service followers, and a total amount of followers.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceFollowers.class, message = "A Service.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/followers")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public ServiceFollowers getServiceFollowers(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, javax.ws.rs.NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        return orgFacade.getServiceFollowers(organizationId, serviceId);
+    }
+
     @ApiOperation(value = "Get Service Usage Metrics",
             notes = "Retrieves metrics/analytics information for a specific service.  This will return a full histogram of request count data based on the provided date range and interval.  Valid intervals are:  month, week, day, hour, minute")
     @ApiResponses({

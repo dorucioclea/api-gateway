@@ -55,6 +55,10 @@ public class ServiceBean implements Serializable {
     @Lob
     @Basic(fetch=FetchType.EAGER)
     private byte[] base64logo;
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name="followers")
+    @Column(name="user_id")
+    private Set<String> followers;
 
     /**
      * Constructor.
@@ -130,6 +134,14 @@ public class ServiceBean implements Serializable {
      */
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public Set<String> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(Set<String> followers) {
+        this.followers = followers;
     }
 
     /**
