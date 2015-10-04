@@ -26,6 +26,7 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
+import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -2493,5 +2494,47 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return announcementBeans;
     }
 
+    /**
+     * SUPPORT FUNCTIONALLITY
+     */
+    public SupportBean createServiceSupportTicket(String organizationId, String serviceId, NewSupportBean supportBean){
+        return null;
+    }
+
+    public SupportBean updateServiceSupportTicket(String organizationId, String serviceId, UpdateSupportBean updateSupportBean){
+        return null;
+    }
+
+    public SupportBean getServiceSupportTicket(String organizationId, String serviceId, Long supportBeanId){
+        return null;
+    }
+
+    public void deleteSupportTicket(String organizationId, String serviceId,Long supportBeanId){
+
+    }
+
+    public List<SupportBean> listServiceSupportTickets(String organizationId, String serviceId){
+        return null;
+    }
+
+    public SupportComment addServiceSupportComment(Long supportBeanId, NewSupportComment comment){
+        return null;
+    }
+
+    public SupportComment updateServiceSupportComment(Long supportBeanId, Long supportCommentId, UpdateSupportComment updateSupportComment){
+        return null;
+    }
+
+    public void deleteServiceSupportComment(Long supportBeanId, Long supportCommentId){
+
+    }
+
+    public SupportComment getServiceSupportComment(Long supportCommentId){
+        return null;
+    }
+
+    public List<SupportComment> listServiceSupportTicketComments(Long supportId){
+        return null;
+    }
 
 }

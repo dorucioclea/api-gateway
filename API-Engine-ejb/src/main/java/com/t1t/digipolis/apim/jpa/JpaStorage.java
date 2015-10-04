@@ -22,6 +22,8 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
+import com.t1t.digipolis.apim.beans.support.SupportBean;
+import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -247,6 +249,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(announcement);
     }
 
+    @Override
+    public void updateServiceSupport(SupportBean supportBean) throws StorageException {
+        super.update(supportBean);
+    }
+
+    @Override
+    public void updateServiceSupportComment(SupportComment commentBean) throws StorageException {
+        super.update(commentBean);
+    }
+
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -413,6 +425,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.delete(announcement);
     }
 
+    @Override
+    public void deleteServiceSupport(SupportBean supportBean) throws StorageException {
+        super.delete(supportBean);
+    }
+
+    @Override
+    public void deleteServiceSupportComment(SupportComment commentBean) throws StorageException {
+        super.delete(commentBean);
+    }
+
     /**
      * @see IStorage#getOrganization(String)
      */
@@ -548,6 +570,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public AnnouncementBean getServiceAnnouncement(Long id) throws StorageException {
         return super.get(id,AnnouncementBean.class);
+    }
+
+    @Override
+    public SupportBean getServiceSupport(Long id) throws StorageException {
+        return super.get(id,SupportBean.class);
+    }
+
+    @Override
+    public SupportComment getServiceSupportComment(Long id) throws StorageException {
+        return super.get(id,SupportComment.class);
     }
 
     /**
@@ -736,6 +768,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createServiceAnnouncement(AnnouncementBean announcement) throws StorageException {
         super.create(announcement);
+    }
+
+    @Override
+    public void createServiceSupport(SupportBean supportBean) throws StorageException {
+        super.create(supportBean);
+    }
+
+    @Override
+    public void createServiceSupportComment(SupportComment commentBean) throws StorageException {
+        super.create(commentBean);
     }
 
     /**
@@ -1607,6 +1649,59 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             res.setDescription(ann.getDescription());
             res.setCreatedBy(ann.getCreatedBy());
             res.setCreatedOn(ann.getCreatedOn());
+            rval.add(res);
+        }
+        return rval;
+    }
+
+    @Override
+    public List<SupportBean> listServiceSupportTickets(String organizationId, String serviceId) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql =
+                "SELECT sb from SupportBean sb "
+                        + " WHERE sb.organizationId = :orgId "
+                        + "   AND sb.serviceId = :serviceId "
+                        + " ORDER BY a.createdOn DESC ";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("orgId", organizationId);
+        query.setParameter("serviceId", serviceId);
+
+        List<SupportBean> supportList = (List<SupportBean>) query.getResultList();
+        List<SupportBean> rval = new ArrayList<>(supportList.size());
+        for (SupportBean sup : supportList) {
+            SupportBean res = new SupportBean();
+            res.setId(sup.getId());
+            res.setOrganizationId(sup.getOrganizationId());
+            res.setServiceId(sup.getServiceId());
+            res.setStatus(sup.getStatus());
+            res.setTitle(sup.getTitle());
+            res.setDescription(sup.getDescription());
+            res.setCreatedBy(sup.getCreatedBy());
+            res.setCreatedOn(sup.getCreatedOn());
+            res.setTotalComments(sup.getTotalComments());
+            rval.add(res);
+        }
+        return rval;
+    }
+
+    @Override
+    public List<SupportComment> listServiceSupportComment(Long supportBeanId) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT sc from SupportComment sc "
+                        + " WHERE sc.supportId = :supportId "
+                        + " ORDER BY a.createdOn DESC ";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("supportId", supportBeanId);
+
+        List<SupportComment> supportList = (List<SupportComment>) query.getResultList();
+        List<SupportComment> rval = new ArrayList<>(supportList.size());
+        for (SupportComment sup : supportList) {
+            SupportComment res = new SupportComment();
+            res.setId(sup.getId());
+            res.setComment(sup.getComment());
+            res.setSupportId(res.getSupportId());
+            res.setCreatedBy(sup.getCreatedBy());
+            res.setCreatedOn(sup.getCreatedOn());
             rval.add(res);
         }
         return rval;
