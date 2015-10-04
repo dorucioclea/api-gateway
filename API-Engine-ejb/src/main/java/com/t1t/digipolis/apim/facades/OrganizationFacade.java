@@ -672,7 +672,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         svb.setModifiedOn(new Date());
         EntityUpdatedData data = new EntityUpdatedData();
         if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
-            data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
             if (svb.getPlans() == null) {
                 svb.setPlans(new HashSet<ServicePlanBean>());
             }
