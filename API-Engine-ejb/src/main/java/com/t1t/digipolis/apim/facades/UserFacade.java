@@ -317,7 +317,9 @@ public class UserFacade implements Serializable {
         nameId.setValue(user);
         logoutReq.setNameID(nameId);
         SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
-        sessionIndex.setSessionIndex("");
+        //add sessionindex from user
+        String sIndex = (String)ehcache.get(user).getObjectValue();
+        sessionIndex.setSessionIndex(sIndex);
         logoutReq.getSessionIndexes().add(sessionIndex);
         logoutReq.setReason("Single Logout");
         return logoutReq;
@@ -387,6 +389,11 @@ public class UserFacade implements Serializable {
         clientUrl.append((String) ehcache.get(clientAppName).getObjectValue());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
+        //for logout, we should keep the SessionIndex in cache with the username
+        if(assertion!=null&&assertion.getAuthnStatements().size()>0){
+            //update or create
+            ehcache.put(new net.sf.ehcache.Element(userName, assertion.getAuthnStatements().get(0).getSessionIndex()));
+        }
         return responseRedirect; //be aware that this is enflated.
 
         //Bootstrap OpenSAML - only Assertion?!

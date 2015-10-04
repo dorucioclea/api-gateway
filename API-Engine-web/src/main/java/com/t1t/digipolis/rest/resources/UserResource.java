@@ -168,7 +168,7 @@ public class UserResource implements IUserResource {
     }
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
-            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, you can chose between 'opaque' or 'saml2bearer'.")
+            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, only 'opaque' supported at the moment.")
     @ApiResponses({
             @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
             @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
@@ -240,5 +240,29 @@ public class UserResource implements IUserResource {
             e.printStackTrace();
         }*/
         //return Response.seeOther(redirectURL).build();
+    }
+
+    @ApiOperation(value = "IDP single logout",
+            notes = "This endpoint can be used by an IDP to logout a user.")
+    @ApiResponses({
+            @ApiResponse(code = 200,response = String.class, message = "IDP single logout.")
+    })
+    @POST
+    @Path("/idp/slo")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response singleIDPLogout() {
+        //don't do anything, logout triggered from client
+        //TODO change to the mkt page to login
+        String url = "https://google.com/";
+        URI redirectURL = null;
+        try {
+            redirectURL = new URL(url).toURI();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        if(redirectURL!=null)return Response.seeOther(redirectURL).build();
+        return Response.ok(redirectURL).build();
     }
 }
