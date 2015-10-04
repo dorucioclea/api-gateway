@@ -64,9 +64,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
+import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.io.ByteArrayInputStream;
@@ -399,11 +397,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             // if it failed because it was a duplicate.  If so, throw something sensible.  We
             // only do this on failure (we would get a FK contraint failure, for example) to
             // reduce overhead on the typical happy path.
-            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
+            //we asume it already exists
+            throw ExceptionFactory.contractAlreadyExistsException();
+/*            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
                 throw ExceptionFactory.contractAlreadyExistsException();
             } else {
                 throw new SystemErrorException(e);
-            }
+            }*/
         }
     }
 
@@ -1916,6 +1916,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @param version
      * @param bean
      */
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
     private boolean contractAlreadyExists(String organizationId, String applicationId, String version, NewContractBean bean) {
         try {
             List<ContractSummaryBean> contracts = query.getApplicationContracts(organizationId, applicationId, version);
