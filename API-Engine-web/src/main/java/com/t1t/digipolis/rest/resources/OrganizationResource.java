@@ -23,6 +23,7 @@ import com.t1t.digipolis.apim.beans.policies.UpdatePolicyBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
+import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -673,7 +674,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(announcementId));
-        Long id = Long.parseLong(announcementId.trim(),10);
+        Long id = Long.parseLong(announcementId.trim(), 10);
     return orgFacade.getServiceAnnouncement(organizationId, serviceId, id);
     }
 
@@ -707,7 +708,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(announcementId));
-        orgFacade.deleteServiceAnnouncement(organizationId, serviceId,Long.parseLong(announcementId.trim(),10));
+        orgFacade.deleteServiceAnnouncement(organizationId, serviceId,Long.parseLong(announcementId.trim(), 10));
     }
 
     @ApiOperation(value = "Update Service Terms",
@@ -1223,6 +1224,176 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         return orgFacade.getServiceFollowers(organizationId, serviceId);
+    }
+
+    @ApiOperation(value = "Add a new support ticket for a service",
+            notes = "Use this endpoint to add a new ticket for a service within an organization.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SupportBean.class, message = "Support ticket")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/support/")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public SupportBean createServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, NewSupportBean bean) throws ServiceNotFoundException, NotAuthorizedException {
+        //Permissions: everybody can create a ticket
+        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getTitle()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getDescription()));
+        return orgFacade.createServiceSupportTicket(organizationId, serviceId, bean);
+    }
+
+    @ApiOperation(value = "Update a support ticket for a service",
+            notes = "Use this endpoint to update a ticket for a service within an organization.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SupportBean.class, message = "Updated support ticket")
+    })
+    @PUT
+    @Path("/{organizationId}/services/{serviceId}/support/{supportId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public SupportBean updateServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("supportId") String supportId, UpdateSupportBean bean) throws ServiceNotFoundException, NotAuthorizedException {
+        //Permissions: everybody can create a ticket
+        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getTitle()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getDescription()));
+        return orgFacade.updateServiceSupportTicket(organizationId,serviceId,Long.parseLong(supportId.trim(),10),bean);
+    }
+
+    @ApiOperation(value = "Get a support ticket for a service",
+            notes = "Use this endpoint to retrieve a ticket for a service within an organization, based on the ticket id.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SupportBean.class, message = "Updated support ticket")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/support/{supportId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public SupportBean getServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("supportId") String supportId) throws ServiceNotFoundException, NotAuthorizedException {
+        //Permissions: everybody can create a ticket
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        return orgFacade.getServiceSupportTicket(organizationId,serviceId,Long.parseLong(supportId.trim(),10));
+    }
+
+    @ApiOperation(value = "Delete a support ticket for a service",
+            notes = "Use this endpoint to delete a ticket for a service within an organization, based on the ticket id.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/support/{supportId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void deleteServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("supportId") String supportId) throws ServiceNotFoundException, NotAuthorizedException {
+        //Permissions: only admin can remove tickets
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        orgFacade.deleteSupportTicket(organizationId,serviceId,Long.parseLong(supportId.trim(),10));
+    }
+
+    @ApiOperation(value = "Retrieve a list of all support tickets for a service.",
+            notes = "Use this endpoint to retrieve a list of all support tickets for a service.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = SupportBean.class, message = "Service support tickets")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/support")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public List<SupportBean> listServiceSupportTickets(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException {
+        //Permissions: everybody can create a ticket
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        return orgFacade.listServiceSupportTickets(organizationId, serviceId);
+    }
+
+    @ApiOperation(value = "Add a new comment to a support ticket for a service",
+            notes = "Use this endpoint to add a new comment to a support Ticket for a service within an organization.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SupportComment.class, message = "Support ticket comment")
+    })
+    @POST
+    @Path("/services/support/{supportId}/comments")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public SupportComment addServiceSupportComment(@PathParam("supportId") String supportId, NewSupportComment bean) throws NotAuthorizedException {
+        //Permissions: everybody can create a ticket
+        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getComment()));
+        return orgFacade.addServiceSupportComment(Long.parseLong(supportId.trim(),10),bean);
+    }
+
+    @ApiOperation(value = "Update a comment to a support ticket for a service",
+            notes = "Use this endpoint to update a comment to a support Ticket for a service within an organization.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SupportComment.class, message = "Updated support ticket comment")
+    })
+    @PUT
+    @Path("/services/support/{supportId}/comments/{commentId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public SupportComment updateServiceSupportComment(@PathParam("supportId") String supportId, @PathParam("commentId") String commentId, UpdateSupportComment bean) throws NotAuthorizedException {
+        //Permissions: everybody can create a ticket
+        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(commentId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getComment()));
+        return orgFacade.updateServiceSupportComment(Long.parseLong(supportId.trim(),10),Long.parseLong(commentId.trim(),10),bean);
+    }
+
+    @ApiOperation(value = "Delete a support ticket comment for a service",
+            notes = "Use this endpoint to delete a ticket comment for a service within an organization, based on the ticket id.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/services/support/{supportId}/comments/{commentId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void deleteServiceSupportComment(@PathParam("supportId") String supportId, @PathParam("commentId") String commentId) throws NotAuthorizedException {
+        //TODO Permissions: only the user created the ticket can remove his own comment
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(commentId));
+        orgFacade.deleteServiceSupportComment(Long.parseLong(supportId.trim(),10),Long.parseLong(commentId.trim(),10));
+    }
+
+    @ApiOperation(value = "Get a support ticket comment.",
+            notes = "Use this endpoint to retrieve a support ticket comment.")
+    @ApiResponses({
+            @ApiResponse(code = 200,response = SupportComment.class, message = "Support tickets comment")
+    })
+    @GET
+    @Path("/services/support/{supportId}/comments/{commentId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public SupportComment getServiceSupportComment(@PathParam("supportId")String supportId ,@PathParam("commentId")String commentId) throws NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(commentId));
+        return orgFacade.getServiceSupportComment(Long.parseLong(supportId.trim(),10),Long.parseLong(commentId.trim(),10));
+    }
+
+    @ApiOperation(value = "Retrieve a list of all comments for a support ticket.",
+            notes = "Use this endpoint to retrieve a list of all comments for a support ticket.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = SupportComment.class, message = "List of support comments for a specific ticket")
+    })
+    @GET
+    @Path("/services/support/{supportId}/comments")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public List<SupportComment> listServiceSupportComments(@PathParam("supportId")String supportId) throws NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        return orgFacade.listServiceSupportTicketComments(Long.parseLong(supportId.trim(),10));
     }
 
     @ApiOperation(value = "Get Service Usage Metrics",

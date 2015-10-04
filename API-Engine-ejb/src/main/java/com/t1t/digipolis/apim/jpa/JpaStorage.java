@@ -1661,7 +1661,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 "SELECT sb from SupportBean sb "
                         + " WHERE sb.organizationId = :orgId "
                         + "   AND sb.serviceId = :serviceId "
-                        + " ORDER BY a.createdOn DESC ";
+                        + " ORDER BY sb.createdOn DESC ";
         Query query = entityManager.createQuery(jpql);
         query.setParameter("orgId", organizationId);
         query.setParameter("serviceId", serviceId);
@@ -1689,7 +1689,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager entityManager = getActiveEntityManager();
         String jpql = "SELECT sc from SupportComment sc "
                         + " WHERE sc.supportId = :supportId "
-                        + " ORDER BY a.createdOn DESC ";
+                        + " ORDER BY sc.createdOn DESC ";
         Query query = entityManager.createQuery(jpql);
         query.setParameter("supportId", supportBeanId);
 

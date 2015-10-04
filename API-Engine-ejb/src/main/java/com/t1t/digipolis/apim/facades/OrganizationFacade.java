@@ -2488,53 +2488,181 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
             }
             announcementBeans = query.listServiceAnnouncements(organizationId, serviceId);
-        } catch (StorageException e) {
-            e.printStackTrace();
+        }catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
         }
         return announcementBeans;
     }
 
     /**
-     * SUPPORT FUNCTIONALLITY
+     * SUPPORT FUNCTIONALITY
      */
     public SupportBean createServiceSupportTicket(String organizationId, String serviceId, NewSupportBean supportBean){
-        return null;
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            SupportBean sb = new SupportBean();
+            sb.setCreatedBy(securityContext.getCurrentUser());
+            sb.setCreatedOn(new Date());
+            sb.setOrganizationId(organizationId);
+            sb.setServiceId(serviceId);
+            sb.setTitle(supportBean.getTitle());
+            sb.setDescription(supportBean.getDescription());
+            sb.setStatus(SupportStatus.OPEN.toString());
+            sb.setTotalComments(0);//start with no comments
+            storage.createServiceSupport(sb);
+            return sb;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
-    public SupportBean updateServiceSupportTicket(String organizationId, String serviceId, UpdateSupportBean updateSupportBean){
-        return null;
+    public SupportBean updateServiceSupportTicket(String organizationId, String serviceId, Long supportId, UpdateSupportBean updateSupportBean){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            SupportBean sb = storage.getServiceSupport(supportId);
+            //verify that org and service are correct
+            if(sb.getOrganizationId().equals(organizationId)&& sb.getServiceId().equals(serviceId)){
+                //perform update
+                sb.setTitle(updateSupportBean.getTitle());
+                sb.setDescription(updateSupportBean.getDescription());
+                sb.setStatus(updateSupportBean.getStatus().toString());
+                storage.updateServiceSupport(sb);
+                return sb;
+            }else return null;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
-    public SupportBean getServiceSupportTicket(String organizationId, String serviceId, Long supportBeanId){
-        return null;
+    public SupportBean getServiceSupportTicket(String organizationId, String serviceId, Long supportId){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            SupportBean sb = storage.getServiceSupport(supportId);
+            //verify that org and service are correct
+            if(sb.getOrganizationId().equals(organizationId)&& sb.getServiceId().equals(serviceId)){
+                return sb;
+            }else return null;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
-    public void deleteSupportTicket(String organizationId, String serviceId,Long supportBeanId){
-
+    public void deleteSupportTicket(String organizationId, String serviceId,Long supportId){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            SupportBean sb = storage.getServiceSupport(supportId);
+            //verify that org and service are correct
+            if(sb.getOrganizationId().equals(organizationId)&& sb.getServiceId().equals(serviceId)){
+                storage.deleteServiceSupport(sb);
+            }
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
     public List<SupportBean> listServiceSupportTickets(String organizationId, String serviceId){
-        return null;
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            return query.listServiceSupportTickets(organizationId, serviceId);
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
     public SupportComment addServiceSupportComment(Long supportBeanId, NewSupportComment comment){
-        return null;
+        try {
+            SupportBean sb = storage.getServiceSupport(supportBeanId);
+            SupportComment sc = new SupportComment();
+            sc.setCreatedBy(securityContext.getCurrentUser());
+            sc.setCreatedOn(new Date());
+            sc.setComment(comment.getComment());
+            sc.setSupportId(supportBeanId);
+            storage.createServiceSupportComment(sc);
+            sb.setTotalComments((sb.getTotalComments() + 1));
+            storage.updateServiceSupport(sb);
+            return sc;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
-    public SupportComment updateServiceSupportComment(Long supportBeanId, Long supportCommentId, UpdateSupportComment updateSupportComment){
-        return null;
+    public SupportComment updateServiceSupportComment(Long supportId, Long supportCommentId, UpdateSupportComment updateSupportComment){
+        try {
+            SupportComment sc = storage.getServiceSupportComment(supportCommentId);
+            sc.setComment(updateSupportComment.getComment());
+            storage.updateServiceSupportComment(sc);
+            return sc;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
     public void deleteServiceSupportComment(Long supportBeanId, Long supportCommentId){
-
+        try {
+            SupportBean sb = storage.getServiceSupport(supportBeanId);
+            SupportComment sc = storage.getServiceSupportComment(supportCommentId);
+            storage.deleteServiceSupportComment(sc);
+            sb.setTotalComments((sb.getTotalComments()-1));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
-    public SupportComment getServiceSupportComment(Long supportCommentId){
-        return null;
+    public SupportComment getServiceSupportComment(Long supportId, Long supportCommentId){
+        try {
+            return storage.getServiceSupportComment(supportCommentId);
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
     public List<SupportComment> listServiceSupportTicketComments(Long supportId){
-        return null;
+        try {
+            return query.listServiceSupportComment(supportId);
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
-
 }

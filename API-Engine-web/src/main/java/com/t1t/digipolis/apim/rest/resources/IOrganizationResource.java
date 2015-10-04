@@ -18,13 +18,12 @@ import com.t1t.digipolis.apim.beans.policies.UpdatePolicyBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
+import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -1342,8 +1341,23 @@ public interface IOrganizationResource {
      */
     public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) throws com.t1t.digipolis.apim.exceptions.NotAuthorizedException, InvalidMetricCriteriaException;
 
+    /** ANNOUNCEMENTS **/
     public ServiceBean addServiceFollower(String organizationId, String serviceId, String userId) throws ServiceNotFoundException, NotAuthorizedException;
     public ServiceBean removeServiceFollower(String organizationId, String serviceId, String userId) throws ServiceNotFoundException, NotAuthorizedException;
     public ServiceFollowers getServiceFollowers(String organizationId, String serviceId)throws ServiceNotFoundException, NotAuthorizedException;
+
+    /** SUPPORT **/
+    public SupportBean createServiceSupportTicket(String organizationId, String serviceId, NewSupportBean bean)throws ServiceNotFoundException, NotAuthorizedException;
+    public SupportBean updateServiceSupportTicket(String organizationId, String serviceId, String supportId, UpdateSupportBean bean)throws ServiceNotFoundException, NotAuthorizedException;
+    public SupportBean getServiceSupportTicket(String organizationId, String serviceId, String supportId)throws ServiceNotFoundException, NotAuthorizedException;
+    public void deleteServiceSupportTicket(String organizationId, String serviceId, String supportId) throws ServiceNotFoundException,NotAuthorizedException;
+    public List<SupportBean> listServiceSupportTickets(String organizationId, String serviceId)throws ServiceNotFoundException, NotAuthorizedException;
+
+    /** SUPPORT COMMENTS **/
+    public SupportComment addServiceSupportComment(String supportId, NewSupportComment bean)throws NotAuthorizedException;
+    public SupportComment updateServiceSupportComment(String supportId,String commentId, UpdateSupportComment bean)throws NotAuthorizedException;
+    public void deleteServiceSupportComment(String supportId, String commentId)throws NotAuthorizedException;
+    public SupportComment getServiceSupportComment(String supportId, String commentId)throws NotAuthorizedException;
+    public List<SupportComment> listServiceSupportComments(String supportId)throws NotAuthorizedException;
 
 }
