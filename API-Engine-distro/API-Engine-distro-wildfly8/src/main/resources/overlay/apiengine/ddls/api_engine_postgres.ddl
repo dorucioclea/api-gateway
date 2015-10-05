@@ -58,7 +58,7 @@ CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, ful
 
 CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organization_id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL);
 
-ALTER TABLE followers ADD PRIMARY KEY (service_id,service_org_id,user_id);
+ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_id,user_id);
 
 ALTER TABLE endpoint_properties ADD PRIMARY KEY (service_version_id, name);
 
@@ -154,7 +154,7 @@ ALTER TABLE service_defs ADD CONSTRAINT UK_service_defs_1 UNIQUE (service_versio
 
 ALTER TABLE contracts ADD CONSTRAINT UK_contracts_1 UNIQUE (appv_id, svcv_id, planv_id);
 
-ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (service_id,service_org_id) REFERENCES services (id,organization_id);
+ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id);
 
 CREATE INDEX IDX_auditlog_1 ON auditlog(who);
 
