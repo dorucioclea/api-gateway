@@ -20,7 +20,7 @@ public class JaxRsActivator extends Application {
          * When the server needs to be tested, you can set the boolean value to false, thus the filter driver
          * will not be loaded and REST communication can be done unsecure.
          */
-        securedMode = true;
+        securedMode = false;
     }
 
     public JaxRsActivator() {
