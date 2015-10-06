@@ -80,7 +80,7 @@ curl -i -X POST \
   --url http://devasu018.dev.digant.antwerpen.local:8001/apis/ \
   --data 'path=/dev/apiengineauth/consent' \
   --data 'name=dev.apiengineauth.consent' \
-  --data 'target_url=http://api.t1t.be/API-Engine-auth/faces/' \
+  --data 'target_url=http://api.t1t.be/API-Engine-auth/' \
   --data 'strip_path=true'
 
 #enable CORS
