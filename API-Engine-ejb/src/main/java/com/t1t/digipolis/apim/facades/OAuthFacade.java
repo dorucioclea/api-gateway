@@ -24,6 +24,9 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.qualifier.APIEngineContext;
+import com.t1t.digipolis.util.GatewayPathUtilities;
+import com.t1t.digipolis.util.ServiceConventionUtil;
+import com.t1t.digipolis.util.URIUtils;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +57,7 @@ public class OAuthFacade {
 
     private static Config config;
     private static String consentURI;
+    private final static String KONG_OAUTH_ENDPOINT = "oauth2";
 
     static {
         consentURI = null;
@@ -121,8 +125,15 @@ public class OAuthFacade {
             Preconditions.checkNotNull(query.listGateways().size()>0);
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
+            ServiceVersionBean svb = storage.getServiceVersion(orgId,serviceId,version);
+            Preconditions.checkNotNull(svb);
             //construct the target url
-            StringBuilder targetURI = new StringBuilder("").append(gateway.getEndpoint());
+            StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
+                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId,svb.getService().getBasepath(),version)))
+                    .append(KONG_OAUTH_ENDPOINT+"/");
+            //add available url's
+            response.setAuthorizationUrl(targetURI.toString()+"authorize");
+            response.setTokenUrl(targetURI.toString()+"token");
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
