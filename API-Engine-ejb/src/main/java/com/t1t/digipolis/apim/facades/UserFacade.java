@@ -58,6 +58,7 @@ import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.XMLHelper;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -83,9 +84,7 @@ import java.util.zip.DeflaterOutputStream;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class UserFacade implements Serializable {
-    @Inject
-    @APIEngineContext
-    private Logger log;
+    private static final Logger log = LoggerFactory.getLogger(UserFacade.class.getName());
     @Inject
     @APIEngineContext
     private EntityManager em;
@@ -209,6 +208,7 @@ public class UserFacade implements Serializable {
 
     public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token) {
         // Initialize the library
+        log.info("Initate SAML2 request for {}",clientUrl);
         try {
             //Bootstrap OpenSAML
             DefaultBootstrap.bootstrap();
@@ -217,7 +217,10 @@ public class UserFacade implements Serializable {
             //set client application name and callback in the cache
             ehcache.put(new net.sf.ehcache.Element(spName, clientUrl));
             ehcache.put(new net.sf.ehcache.Element(spName + "token", token));
-            log.info("Cache contains:{}",ehcache.toString());
+            log.info("Cache contains:{}", ehcache.toString());
+            //TODO remove in prod
+            utilPrintCache();
+
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
             return idpUrl + "?SAMLRequest=" + encodedRequestMessage;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
@@ -319,8 +322,11 @@ public class UserFacade implements Serializable {
         logoutReq.setNameID(nameId);
         SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
         //add sessionindex from user
-        String sIndex = (String)ehcache.get(user).getObjectValue();
-        sessionIndex.setSessionIndex(sIndex);
+        //TODO nullpointer when read! verify
+        if(ehcache.get(user)!=null){
+            String sIndex = (String)ehcache.get(user).getObjectValue();
+            sessionIndex.setSessionIndex(sIndex);
+        }
         logoutReq.getSessionIndexes().add(sessionIndex);
         logoutReq.setReason("Single Logout");
         return logoutReq;
@@ -384,6 +390,8 @@ public class UserFacade implements Serializable {
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
         //return the SAML2 Bearer token
         //responseRedirect.setToken(base64EncodedResponse);
+        //TODO remove in prod
+        utilPrintCache();
         if (assertion != null && ehcache.get(clientAppName.trim() + "token").getObjectValue().equals(ClientTokeType.saml2bearer))
             responseRedirect.setToken(encodeSAML2BearerToken(assertion));
         else
@@ -659,6 +667,12 @@ public class UserFacade implements Serializable {
         decrypter = new Decrypter(new StaticKeyInfoCredentialResolver(shared), (KeyInfoCredentialResolver)null, (EncryptedKeyResolver)null);
         decrypter.setRootInNewDocument(true);
         return decrypter.decrypt(encryptedAssertion);
+    }
+
+    private void utilPrintCache(){
+        log.info("Cache:{}", ehcache.getName());
+        List keys = ehcache.getKeys();
+        keys.forEach(key -> log.info("Key found:{} with value {}",key,ehcache.get(key)));
     }
 
 }

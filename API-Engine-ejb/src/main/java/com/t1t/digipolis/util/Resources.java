@@ -41,8 +41,6 @@ public class Resources {
      */
     @Inject
     private RestServiceBuilder serviceBuilder;
-    @Inject
-    private CacheUtil cacheUtil;
 
     @Produces @APIEngineContext
     @PersistenceContext
@@ -57,7 +55,7 @@ public class Resources {
     @Produces
     @APIEngineContext
     public Ehcache produceClientAppCache(){
-        return cacheUtil.getClientAppCache();
+        return CacheUtil.getClientAppCache();
     }
 
 }

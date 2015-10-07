@@ -9,13 +9,12 @@ import javax.enterprise.context.ApplicationScoped;
 /**
  * Created by michallispashidis on 07/09/15.
  */
-@ApplicationScoped
 public class CacheUtil {
     //Clien application cache
-    private final String CLIENT_CACHE = "clientcache";
-    private CacheManager manager;
+    private final static String CLIENT_CACHE = "clientcache";
+    private static CacheManager manager;
 
-    {
+    static {
         Configuration cacheManagerConfiguration = new Configuration();
         CacheConfiguration cacheConfiguration = new CacheConfiguration(CLIENT_CACHE, 200)
                 .eternal(true)
@@ -24,7 +23,7 @@ public class CacheUtil {
         manager = new CacheManager(cacheManagerConfiguration);
     }
 
-    public Ehcache getClientAppCache(){
+    public static Ehcache getClientAppCache(){
         return manager.getEhcache(CLIENT_CACHE);
     }
 }

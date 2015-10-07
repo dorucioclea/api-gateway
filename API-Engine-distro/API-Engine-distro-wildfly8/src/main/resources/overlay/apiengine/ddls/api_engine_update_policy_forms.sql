@@ -111,4 +111,4 @@ CREATE INDEX IDX_support_comments_1 ON support(id);
 
 
 
-INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://devasu018.dev.digant.antwerpen.local:8001","username":"","password":""}','http://devasu018.dev.digant.antwerpen.local:8000', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');
+INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://devasu018.dev.digant.antwerpen.local:8001","username":"","password":""}','http://devasu018.dev.digant.antwerpen.local:80', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');

@@ -24,6 +24,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     //exclusions
     private static final String REDIRECT_PATH = "/users/idp/redirect";
     private static final String IDP_CALLBACK = "/users/idp/callback";
+    private static final String IDP_SLO = "/users/idp/slo";
 
     //Security context
     @Inject
@@ -32,12 +33,15 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         //dev mode
+        LOG.info("Security context - request:{}",containerRequestContext.getUriInfo().getRequestUri().getPath());
         if (!JaxRsActivator.securedMode) {
             securityContext.setCurrentUser("admin");
-        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(REDIRECT_PATH)) {
+        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(REDIRECT_PATH)) {
             ;//allow access without setting security context.
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_CALLBACK)) {
             ;//allow from idp
+        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_SLO)) {
+
         } else {
             //Get the authorization header
             String userId = containerRequestContext.getHeaderString(HEADER_APIKEY_USER);
