@@ -15,6 +15,7 @@ public class OAuthApplicationResponse {
     String base64AppLogo;
     String appVersion;
     String serviceProvisionKey;
+    String targetUrl;
 
     public OAuthApplicationResponse() {
     }
@@ -67,6 +68,14 @@ public class OAuthApplicationResponse {
         this.serviceProvisionKey = serviceProvisionKey;
     }
 
+    public String getTargetUrl() {
+        return targetUrl;
+    }
+
+    public void setTargetUrl(String targetUrl) {
+        this.targetUrl = targetUrl;
+    }
+
     @Override
     public String toString() {
         return "OAuthApplicationResponse{" +
@@ -76,6 +85,7 @@ public class OAuthApplicationResponse {
                 ", base64AppLogo='" + base64AppLogo + '\'' +
                 ", appVersion='" + appVersion + '\'' +
                 ", serviceProvisionKey='" + serviceProvisionKey + '\'' +
+                ", targetUrl='" + targetUrl + '\'' +
                 '}';
     }
 }

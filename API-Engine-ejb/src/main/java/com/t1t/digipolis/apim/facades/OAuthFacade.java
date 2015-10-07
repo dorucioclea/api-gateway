@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthApplicationResponse;
@@ -63,6 +64,12 @@ public class OAuthFacade {
         }
     }
 
+    /**
+     * This method should be called only for the consumer registring the OAuth service, and thus not for each consumer using the OAuth
+     *
+     * @param request
+     * @return
+     */
     public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) {
         //get the application version based on provided client_id and client_secret - we need the name and
         //TODO validate if non existing
@@ -110,7 +117,12 @@ public class OAuthFacade {
     public OAuthApplicationResponse getApplicationOAuthInformation(String clientId, String orgId, String serviceId, String version) {
         OAuthApplicationResponse response = new OAuthApplicationResponse();
         try {
+            //there must be a gateway
+            Preconditions.checkNotNull(query.listGateways().size()>0);
             String defaultGateway = query.listGateways().get(0).getId();
+            GatewayBean gateway = storage.getGateway(defaultGateway);
+            //construct the target url
+            StringBuilder targetURI = new StringBuilder("").append(gateway.getEndpoint());
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
