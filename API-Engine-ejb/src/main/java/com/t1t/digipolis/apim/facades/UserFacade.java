@@ -217,6 +217,7 @@ public class UserFacade implements Serializable {
             //set client application name and callback in the cache
             ehcache.put(new net.sf.ehcache.Element(spName, clientUrl));
             ehcache.put(new net.sf.ehcache.Element(spName + "token", token));
+            log.info("Cache contains:{}",ehcache.toString());
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
             return idpUrl + "?SAMLRequest=" + encodedRequestMessage;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
@@ -392,11 +393,10 @@ public class UserFacade implements Serializable {
         responseRedirect.setClientUrl(clientUrl.toString());
         //for logout, we should keep the SessionIndex in cache with the username
         if(assertion!=null&&assertion.getAuthnStatements().size()>0){
-            //update or create
+            //update or create user sessionindex in cache
             ehcache.put(new net.sf.ehcache.Element(userName, assertion.getAuthnStatements().get(0).getSessionIndex()));
         }
         return responseRedirect; //be aware that this is enflated.
-
         //Bootstrap OpenSAML - only Assertion?!
 /*      try {
             DefaultBootstrap.bootstrap();
