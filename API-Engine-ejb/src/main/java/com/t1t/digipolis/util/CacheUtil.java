@@ -4,6 +4,7 @@ import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.Configuration;
 
+import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 
 /**
@@ -25,5 +26,11 @@ public class CacheUtil {
 
     public static Ehcache getClientAppCache(){
         return manager.getEhcache(CLIENT_CACHE);
+    }
+
+    @PreDestroy
+    public void shutdown(){
+        manager.clearAll();
+        manager.shutdown();
     }
 }
