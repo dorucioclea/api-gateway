@@ -56,6 +56,7 @@ import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import com.t1t.digipolis.util.URIUtils;
+import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
@@ -1288,7 +1289,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),version)))
                         .append(KongConstants.KONG_OAUTH_ENDPOINT+"/");
                 rval.setOauth2AuthorizeEndpoint(targetURI.toString()+KongConstants.KONG_OAUTH2_ENDPOINT_AUTH);
-                rval.setOauth2AuthorizeEndpoint(targetURI.toString()+KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN);
+                rval.setOauth2TokenEndpoint(targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN);
             }else{
                 rval.setOauth2AuthorizeEndpoint("");
                 rval.setOauth2TokenEndpoint("");
@@ -2183,7 +2184,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //set all base paths to "/" because the path is decided by the APi engine
         Swagger swaggerJson = new SwaggerParser().parse(IOUtils.toString(data));//IOUtils.closequietly?
         swaggerJson.setBasePath(serviceVersionPath);
-        //read documenation and persist if present
+        //available schemes override
+        List<Scheme> schemeList = new ArrayList<>();
+        schemeList.add(Scheme.HTTPS);
+        swaggerJson.setSchemes(schemeList);
+        swaggerJson.setHost(null);
+        //read documentation and persist if present
         String onlineDoc = swaggerJson.getExternalDocs().getUrl();
         if(!StringUtils.isEmpty(onlineDoc)){
             serviceVersionBean.setOnlinedoc(onlineDoc);
