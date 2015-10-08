@@ -282,6 +282,11 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.unboundid.product.scim</groupId>
+            <artifactId>scim-sdk</artifactId>
+        </dependency>
+
         <!--Jetty-->
 <!--        <dependency>
             <groupId>com.github.tomakehurst</groupId>

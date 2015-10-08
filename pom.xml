@@ -164,6 +164,7 @@
         <version.xmlunit>1.6</version.xmlunit>
         <version.io.vertx>2.1.1</version.io.vertx>
         <version.io.vertx.testtools>2.0.3-final</version.io.vertx.testtools>
+        <version.unboundid.scim>1.8.2</version.unboundid.scim>
 
         <!--Dependency Versions -->
         <commons-lang.version>2.4</commons-lang.version>
@@ -979,6 +980,13 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-all</artifactId>
                 <version>${version.org.mockito}</version>
+            </dependency>
+
+            <!--SCIM client-->
+            <dependency>
+                <groupId>com.unboundid.product.scim</groupId>
+                <artifactId>scim-sdk</artifactId>
+                <version>${version.unboundid.scim}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
