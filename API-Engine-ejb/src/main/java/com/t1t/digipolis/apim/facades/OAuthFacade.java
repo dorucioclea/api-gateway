@@ -8,7 +8,10 @@ import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthResponseType;
 import com.t1t.digipolis.apim.beans.authorization.OAuthServiceScopeResponse;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -20,6 +23,7 @@ import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
@@ -57,7 +61,6 @@ public class OAuthFacade {
 
     private static Config config;
     private static String consentURI;
-    private final static String KONG_OAUTH_ENDPOINT = "oauth2";
 
     static {
         consentURI = null;
@@ -124,16 +127,8 @@ public class OAuthFacade {
             //there must be a gateway
             Preconditions.checkNotNull(query.listGateways().size()>0);
             String defaultGateway = query.listGateways().get(0).getId();
-            GatewayBean gateway = storage.getGateway(defaultGateway);
-            ServiceVersionBean svb = storage.getServiceVersion(orgId,serviceId,version);
-            Preconditions.checkNotNull(svb);
-            //construct the target url
-            StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
-                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId,svb.getService().getBasepath(),version)))
-                    .append(KONG_OAUTH_ENDPOINT+"/");
-            //add available url's
-            response.setAuthorizationUrl(targetURI.toString()+"authorize");
-            response.setTokenUrl(targetURI.toString()+"token");
+            response.setAuthorizationUrl(getOAuth2AuthorizeEndpoint(orgId, serviceId, version));
+            response.setTokenUrl(getOAuth2TokenEndpoint(orgId, serviceId, version));
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
@@ -216,6 +211,44 @@ public class OAuthFacade {
         return serviceScopes;
     }
 
+    public String getOAuth2AuthorizeEndpoint(String orgId, String serviceId, String version){
+        //there must be a gateway
+        try{
+            Preconditions.checkNotNull(query.listGateways().size()>0);
+            String defaultGateway = query.listGateways().get(0).getId();
+            GatewayBean gateway = storage.getGateway(defaultGateway);
+            ServiceVersionBean svb = storage.getServiceVersion(orgId,serviceId,version);
+            Preconditions.checkNotNull(svb);
+            //construct the target url
+            StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
+                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId,svb.getService().getBasepath(),version)))
+                    .append(KongConstants.KONG_OAUTH_ENDPOINT+"/");
+            return targetURI.toString()+KongConstants.KONG_OAUTH2_ENDPOINT_AUTH;
+            //response.setTokenUrl(targetURI.toString()+"token");
+        } catch (StorageException e) {
+            e.printStackTrace();
+            return "error";
+        }
+    }
+
+    public String getOAuth2TokenEndpoint(String orgId, String serviceId, String version){
+        //there must be a gateway
+        try{
+            Preconditions.checkNotNull(query.listGateways().size()>0);
+            String defaultGateway = query.listGateways().get(0).getId();
+            GatewayBean gateway = storage.getGateway(defaultGateway);
+            ServiceVersionBean svb = storage.getServiceVersion(orgId,serviceId,version);
+            Preconditions.checkNotNull(svb);
+            //construct the target url
+            StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
+                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId,svb.getService().getBasepath(),version)))
+                    .append(KongConstants.KONG_OAUTH_ENDPOINT+"/");
+            return targetURI.toString()+KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN;
+        } catch (StorageException e) {
+            e.printStackTrace();
+            return "error";
+        }
+    }
 
     /**
      * Creates a gateway link given a gateway id.
