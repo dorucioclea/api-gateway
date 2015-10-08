@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
@@ -40,6 +41,7 @@ import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
+import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
@@ -53,6 +55,8 @@ import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
+import com.t1t.digipolis.util.URIUtils;
+import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
@@ -360,7 +364,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
         try {
-            //TODO add OAuth2 consumer default to the application
+            //add OAuth2 consumer default to the application
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             //for contract add keyauth to applciation consumer
@@ -414,7 +418,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 .withClientId(request.getAppOAuthId())
                 .withClientSecret(request.getAppOAuthSecret());
         KongPluginOAuthConsumerResponse response = null;
-        //retrieve applicatin name and redirect URI.
+        //retrieve application name and redirect URI.
         try {
             ApplicationVersionBean avb = query.getApplicationForOAuth(request.getAppOAuthId(), request.getAppOAuthSecret());
             if (avb == null)
@@ -1277,7 +1281,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //path starts always with '\'
             String gatewayEndpoint = ((gateway.getEndpoint().endsWith("\\")?gateway.getEndpoint().substring(0,gateway.getEndpoint().length()-1):gateway.getEndpoint()));
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
-            rval.setManagedEndpoint(gatewayEndpoint+GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),version));
+            rval.setManagedEndpoint(gatewayEndpoint + GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), version));
+            //get oauth endpoints if needed
+            if(!StringUtils.isEmpty(serviceVersion.getProvisionKey())){
+                //construct the target url
+                StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
+                        .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),version)))
+                        .append(KongConstants.KONG_OAUTH_ENDPOINT+"/");
+                rval.setOauth2AuthorizeEndpoint(targetURI.toString()+KongConstants.KONG_OAUTH2_ENDPOINT_AUTH);
+                rval.setOauth2TokenEndpoint(targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN);
+            }else{
+                rval.setOauth2AuthorizeEndpoint("");
+                rval.setOauth2TokenEndpoint("");
+            }
             return rval;
         } catch (AbstractRestException e) {
             throw e;
@@ -2168,7 +2184,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //set all base paths to "/" because the path is decided by the APi engine
         Swagger swaggerJson = new SwaggerParser().parse(IOUtils.toString(data));//IOUtils.closequietly?
         swaggerJson.setBasePath(serviceVersionPath);
-        //read documenation and persist if present
+        //available schemes override
+        List<Scheme> schemeList = new ArrayList<>();
+        schemeList.add(Scheme.HTTPS);
+        swaggerJson.setSchemes(schemeList);
+        swaggerJson.setHost(null);
+        //read documentation and persist if present
         String onlineDoc = swaggerJson.getExternalDocs().getUrl();
         if(!StringUtils.isEmpty(onlineDoc)){
             serviceVersionBean.setOnlinedoc(onlineDoc);
