@@ -1,0 +1,383 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "schemas": {
+      "id": "schemas",
+      "type": "array",
+      "items": {
+        "id": "0",
+        "type": "string"
+      }
+    },
+    "id": {
+      "id": "id",
+      "type": "string"
+    },
+    "externalId": {
+      "id": "externalId",
+      "type": "string"
+    },
+    "userName": {
+      "id": "userName",
+      "type": "string"
+    },
+    "name": {
+      "id": "name",
+      "type": "object",
+      "properties": {
+        "formatted": {
+          "id": "formatted",
+          "type": "string"
+        },
+        "familyName": {
+          "id": "familyName",
+          "type": "string"
+        },
+        "givenName": {
+          "id": "givenName",
+          "type": "string"
+        },
+        "middleName": {
+          "id": "middleName",
+          "type": "string"
+        },
+        "honorificPrefix": {
+          "id": "honorificPrefix",
+          "type": "string"
+        },
+        "honorificSuffix": {
+          "id": "honorificSuffix",
+          "type": "string"
+        }
+      }
+    },
+    "displayName": {
+      "id": "displayName",
+      "type": "string"
+    },
+    "nickName": {
+      "id": "nickName",
+      "type": "string"
+    },
+    "profileUrl": {
+      "id": "profileUrl",
+      "type": "string"
+    },
+    "emails": {
+      "id": "emails",
+      "type": "array",
+      "items": [
+        {
+          "id": "0",
+          "type": "object",
+          "properties": {
+            "value": {
+              "id": "value",
+              "type": "string"
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "primary": {
+              "id": "primary",
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "id": "1",
+          "type": "object",
+          "properties": {
+            "value": {
+              "id": "value",
+              "type": "string"
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "addresses": {
+      "id": "addresses",
+      "type": "array",
+      "items": [
+        {
+          "id": "0",
+          "type": "object",
+          "properties": {
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "streetAddress": {
+              "id": "streetAddress",
+              "type": "string"
+            },
+            "locality": {
+              "id": "locality",
+              "type": "string"
+            },
+            "region": {
+              "id": "region",
+              "type": "string"
+            },
+            "postalCode": {
+              "id": "postalCode",
+              "type": "string"
+            },
+            "country": {
+              "id": "country",
+              "type": "string"
+            },
+            "formatted": {
+              "id": "formatted",
+              "type": "string"
+            },
+            "primary": {
+              "id": "primary",
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "id": "1",
+          "type": "object",
+          "properties": {
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "streetAddress": {
+              "id": "streetAddress",
+              "type": "string"
+            },
+            "locality": {
+              "id": "locality",
+              "type": "string"
+            },
+            "region": {
+              "id": "region",
+              "type": "string"
+            },
+            "postalCode": {
+              "id": "postalCode",
+              "type": "string"
+            },
+            "country": {
+              "id": "country",
+              "type": "string"
+            },
+            "formatted": {
+              "id": "formatted",
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "phoneNumbers": {
+      "id": "phoneNumbers",
+      "type": "array",
+      "items": [
+        {
+          "id": "0",
+          "type": "object",
+          "properties": {
+            "value": {
+              "id": "value",
+              "type": "string"
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "id": "1",
+          "type": "object",
+          "properties": {
+            "value": {
+              "id": "value",
+              "type": "string"
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "ims": {
+      "id": "ims",
+      "type": "array",
+      "items": {
+        "id": "0",
+        "type": "object",
+        "properties": {
+          "value": {
+            "id": "value",
+            "type": "string"
+          },
+          "type": {
+            "id": "type",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "photos": {
+      "id": "photos",
+      "type": "array",
+      "items": [
+        {
+          "id": "0",
+          "type": "object",
+          "properties": {
+            "value": {
+              "id": "value",
+              "type": "string"
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "id": "1",
+          "type": "object",
+          "properties": {
+            "value": {
+              "id": "value",
+              "type": "string"
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "userType": {
+      "id": "userType",
+      "type": "string"
+    },
+    "title": {
+      "id": "title",
+      "type": "string"
+    },
+    "preferredLanguage": {
+      "id": "preferredLanguage",
+      "type": "string"
+    },
+    "locale": {
+      "id": "locale",
+      "type": "string"
+    },
+    "timezone": {
+      "id": "timezone",
+      "type": "string"
+    },
+    "active": {
+      "id": "active",
+      "type": "boolean"
+    },
+    "password": {
+      "id": "password",
+      "type": "string"
+    },
+    "groups": {
+      "id": "groups",
+      "type": "array",
+      "items": [
+        {
+          "id": "0",
+          "type": "object",
+          "properties": {
+            "display": {
+              "id": "display",
+              "type": "string"
+            },
+            "value": {
+              "id": "value",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "id": "1",
+          "type": "object",
+          "properties": {
+            "display": {
+              "id": "display",
+              "type": "string"
+            },
+            "value": {
+              "id": "value",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "id": "2",
+          "type": "object",
+          "properties": {
+            "display": {
+              "id": "display",
+              "type": "string"
+            },
+            "value": {
+              "id": "value",
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "x509Certificates": {
+      "id": "x509Certificates",
+      "type": "array",
+      "items": {
+        "id": "0",
+        "type": "object",
+        "properties": {
+          "value": {
+            "id": "value",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "meta": {
+      "id": "meta",
+      "type": "object",
+      "properties": {
+        "created": {
+          "id": "created",
+          "type": "string"
+        },
+        "lastModified": {
+          "id": "lastModified",
+          "type": "string"
+        },
+        "version": {
+          "id": "version",
+          "type": "string"
+        },
+        "location": {
+          "id": "location",
+          "type": "string"
+        }
+      }
+    }
+  }
+}
