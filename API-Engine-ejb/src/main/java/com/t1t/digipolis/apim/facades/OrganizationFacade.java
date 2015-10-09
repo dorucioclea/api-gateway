@@ -1271,9 +1271,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
-            if (serviceVersion.getStatus() != ServiceStatus.Published) {
-                throw new InvalidServiceStatusException(Messages.i18n.format("ServiceNotPublished")); //$NON-NLS-1$
-            }
             GatewayBean gateway =  gatewayFacade.get(getSingularGateway().getId());
             if(StringUtils.isEmpty(gateway.getEndpoint())){
                 throw new GatewayNotFoundException("no default gateway configured");
