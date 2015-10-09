@@ -179,6 +179,8 @@
         <ehcache.version>2.10.0</ehcache.version>
         <primefaces.version>5.2</primefaces.version>
         <primefaces.themes.version>1.0.10</primefaces.themes.version>
+        <wink-common.version>1.4</wink-common.version>
+        <scimsdk.version>1.8.2</scimsdk.version>
     </properties>
 
     <dependencyManagement>
@@ -968,6 +970,23 @@
                 <groupId>net.sf.ehcache</groupId>
                 <artifactId>ehcache</artifactId>
                 <version>${ehcache.version}</version>
+            </dependency>
+
+            <!--SCIM Client-->
+            <dependency>
+                <groupId>com.unboundid.product.scim</groupId>
+                <artifactId>scim-sdk</artifactId>
+                <version>${scimsdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wink</groupId>
+                <artifactId>wink-common</artifactId>
+                <version>${wink-common.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wink</groupId>
+                <artifactId>wink-client</artifactId>
+                <version>${wink-common.version}</version>
             </dependency>
 
             <!-- Test -->
