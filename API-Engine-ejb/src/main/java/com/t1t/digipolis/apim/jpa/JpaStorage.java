@@ -1698,6 +1698,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         for (SupportComment sup : supportList) {
             SupportComment res = new SupportComment();
             res.setId(sup.getId());
+            res.setSupportId(sup.getSupportId());
             res.setComment(sup.getComment());
             res.setSupportId(res.getSupportId());
             res.setCreatedBy(sup.getCreatedBy());
