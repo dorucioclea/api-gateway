@@ -25,6 +25,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     private static final String REDIRECT_PATH = "/users/idp/redirect";
     private static final String IDP_CALLBACK = "/users/idp/callback";
     private static final String IDP_SLO = "/users/idp/slo";
+    private static final String SYSTEM_INFO = "/system/status";
 
     //Security context
     @Inject
@@ -41,7 +42,9 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_CALLBACK)) {
             ;//allow from idp
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_SLO)) {
-
+            ;//allow from idp
+        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(SYSTEM_INFO)) {
+            ;//allow from idp
         } else {
             //Get the authorization header
             String userId = containerRequestContext.getHeaderString(HEADER_APIKEY_USER);
