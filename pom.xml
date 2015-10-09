@@ -981,13 +981,6 @@
                 <artifactId>mockito-all</artifactId>
                 <version>${version.org.mockito}</version>
             </dependency>
-
-            <!--SCIM client-->
-            <dependency>
-                <groupId>com.unboundid.product.scim</groupId>
-                <artifactId>scim-sdk</artifactId>
-                <version>${version.unboundid.scim}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
