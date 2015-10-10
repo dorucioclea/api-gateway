@@ -6,23 +6,16 @@ import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongConsumerList;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.RetrofitError;
-
-import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by michallispashidis on 09/09/15.
  */
+@Ignore
 public class KongCleanup {
     private static Logger log = LoggerFactory.getLogger(KongCleanup.class.getName());
     private static KongClient kongClient;
@@ -38,7 +31,7 @@ public class KongCleanup {
     public static void setUp() throws Exception {
         RestGatewayConfigBean restConfig = new RestGatewayConfigBean();
         restConfig.setEndpoint(KONG_UNDER_TEST_URL);
-        kongClient = new RestServiceBuilder().getService(restConfig,KongClient.class);
+        kongClient = new RestServiceBuilder().getService(restConfig, KongClient.class);
         assertNotNull(kongClient);
         gson = new Gson();
     }
@@ -49,7 +42,7 @@ public class KongCleanup {
     }
 
     @After
-    public void cleanupApi()throws Exception{
+    public void cleanupApi() throws Exception {
         //nothing at the moment
     }
 
@@ -57,13 +50,13 @@ public class KongCleanup {
     public void cleanAll() throws Exception {
         //remove all consumers
         KongConsumerList consumers = kongClient.getConsumers();
-        for (KongConsumer cons:consumers.getData()){
+        for (KongConsumer cons : consumers.getData()) {
             kongClient.deleteConsumer(cons.getId());
         }
 
         //remove all apis
         KongApiList apilist = kongClient.listApis();
-        for(KongApi api:apilist.getData()){
+        for (KongApi api : apilist.getData()) {
             kongClient.deleteApi(api.getId());
         }
     }

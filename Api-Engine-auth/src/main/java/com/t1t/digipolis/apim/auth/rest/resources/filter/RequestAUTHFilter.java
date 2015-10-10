@@ -22,6 +22,8 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
      */
     private static final Logger LOG = LoggerFactory.getLogger(RequestAUTHFilter.class.getName());
     private static final String HEADER_APIKEY_USER = "X-Consumer-Username";//here the consumer should be an application consumer
+    private static final String SWAGGER_DOC_URI = "API-Engine-auth";
+    private static final String SWAGGER_DOC_JSON = "/API-Engine-auth/v1/swagger.json";
 
     //Security context
     @Inject
@@ -34,6 +36,11 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
         String validatedApp = "";
         try {
             if(!JaxRsActivator.securedMode){
+                securityAppContext.setCurrentApplication("dummyapp");
+            }else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(SWAGGER_DOC_URI)
+                    || containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(SWAGGER_DOC_URI+"/")) {
+                securityAppContext.setCurrentApplication("dummyapp");
+            }else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(SWAGGER_DOC_JSON)) {
                 securityAppContext.setCurrentApplication("dummyapp");
             }else {
                 validatedApp = securityAppContext.setCurrentApplication(appId);

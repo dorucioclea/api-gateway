@@ -26,6 +26,8 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     private static final String IDP_CALLBACK = "/users/idp/callback";
     private static final String IDP_SLO = "/users/idp/slo";
     private static final String SYSTEM_INFO = "/system/status";
+    private static final String SWAGGER_DOC_URI = "API-Engine-web";
+    private static final String SWAGGER_DOC_JSON = "/API-Engine-web/v1/swagger.json";
 
     //Security context
     @Inject
@@ -45,6 +47,11 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             ;//allow from idp
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(SYSTEM_INFO)) {
             ;//allow from idp
+        }else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(SWAGGER_DOC_URI)
+                || containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(SWAGGER_DOC_URI+"/")) {
+            securityContext.setCurrentUser("admin");//allow access without setting security context.
+        }else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(SWAGGER_DOC_JSON)) {
+            securityContext.setCurrentUser("admin");//allow access without setting security context.
         } else {
             //Get the authorization header
             String userId = containerRequestContext.getHeaderString(HEADER_APIKEY_USER);

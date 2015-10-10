@@ -22,7 +22,7 @@
     <parent>
         <artifactId>API-Engine</artifactId>
         <groupId>com.t1t.digipolis</groupId>
-        <version>${project.version}</version>
+        <version>0.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>API-Engine-ear</artifactId>
@@ -44,16 +44,19 @@
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
             <artifactId>API-Engine-auth</artifactId>
+            <version>${project.version}</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
             <artifactId>API-Engine-web</artifactId>
+            <version>${project.version}</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
             <artifactId>API-Engine-ejb</artifactId>
+            <version>${project.version}</version>
             <type>ejb</type>
         </dependency>
     </dependencies>

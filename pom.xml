@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.t1t.digipolis</groupId>
     <artifactId>API-Engine</artifactId>
-    <version>${project.version}</version>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>
@@ -181,6 +181,10 @@
         <primefaces.themes.version>1.0.10</primefaces.themes.version>
         <wink-common.version>1.4</wink-common.version>
         <scimsdk.version>1.8.2</scimsdk.version>
+
+        <!--Build number and date-->
+        <buildNumber>${maven.build.timestamp}</buildNumber>
+        <property.file>default</property.file>
     </properties>
 
     <dependencyManagement>

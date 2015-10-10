@@ -49,6 +49,7 @@ public class SystemResource implements ISystemResource {
         rval.setMoreInfo("http://www.trust1team.com"); //$NON-NLS-1$
         rval.setEnvironment(config.getEnvironment());
         rval.setVersion(config.getVersion());
+        rval.setBuiltOn(config.getBuildDate());
         rval.setUp(storage != null);
         return rval;
     }

@@ -6,7 +6,6 @@ package com.t1t.digipolis.apim;
  * Typesafe configuration concept.
  */
 public interface IConfig {
-    String APP_VERSION = "apiapp.version";
     String APP_ENVIRONMENT = "apiapp.environment";
     String KONG_URL = "apiapp.kong.endpoint_url";
     String KONG_URL_MANAGEMENT = "apiapp.kong.management_url";
@@ -16,7 +15,11 @@ public interface IConfig {
     String METRICS_DNS = "apiapp.metrics.url";
     String METRICS_PORT = "apiapp.metrics.ports.default";
     String CONSENT_URI = "apiapp.oauth.consent_uri";
-    String ENVIRONMENT = "apiapp.environment";
     String DEFAULT_USER_ORGANIZATION = "apiapp.defaults.orgId";
     String DEFAULT_USER_ROLES_FOR_DEFAULT_ORG = "apiapp.defaults.roles";
+    String SECURITY_REST_RESORUCES = "rest_resources";
+    String SECURITY_REST_AUTH_RESOURCES = "rest_auth_resources";
+    String PROP_FILE_DATE = "date";
+    String PROP_FILE_VERSION = "version";
+    String PROP_FILE_CONFIG_FILE = "configuration.file";
 }

@@ -4,11 +4,12 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ejb.PostActivate;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.util.Properties;
 
 /**
  * Created by michallispashidis on 10/10/15.
@@ -18,8 +19,8 @@ import java.io.Serializable;
 @Singleton
 @Startup
 public class AppConfig implements Serializable {
-    private static String environment = "application"; //will load application.conf
     private static Config config;
+    private static Properties properties;
     private static Logger _LOG = LoggerFactory.getLogger(AppConfig.class.getName());
 
     public AppConfig() {
@@ -27,8 +28,21 @@ public class AppConfig implements Serializable {
     }
 
     public void init(){
-        config = ConfigFactory.load(environment); if(config==null) throw new RuntimeException("API Engine log not found");else{
+        //read properties file
+        InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties");
+        properties = new Properties();
+        if(is!=null) {
+            try {
+                properties.load(is);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else throw new RuntimeException("API Engine basic property file not found.");
+        //read specific application config, depends on the maven profile that has been set
+        config = ConfigFactory.load(getConfigurationFile()); if(config==null) throw new RuntimeException("API Engine log not found");else{
             _LOG.info("===== API Engine configruation ==============================");
+            _LOG.info("Using configuration file: {}",getConfigurationFile());
+            _LOG.info("Build: {}",getBuildDate());
             _LOG.info("version: {}",getVersion());
             _LOG.info("environment: {}",getEnvironment());
             _LOG.info("Kong endpoint: {}",getKongEndpoint());
@@ -45,9 +59,11 @@ public class AppConfig implements Serializable {
         };
     }
 
-    public String getVersion(){return config.getString(IConfig.APP_VERSION);}
     public String getEnvironment(){return config.getString(IConfig.APP_ENVIRONMENT);}
     public String getKongEndpoint(){return config.getString(IConfig.KONG_URL);}
+    public String getVersion(){return properties.getProperty(IConfig.PROP_FILE_VERSION);}
+    public String getBuildDate(){return properties.getProperty(IConfig.PROP_FILE_DATE);}
+    public String getConfigurationFile(){return properties.getProperty(IConfig.PROP_FILE_CONFIG_FILE);}
     public String getKongManagementEndpoint(){return config.getString(IConfig.KONG_URL_MANAGEMENT);}
     public String getIDPSAMLEndpoint(){return config.getString(IConfig.IDP_SAML_ENDPOINT);}
     public String getIDPSCIMEndpoint(){return config.getString(IConfig.IDP_SCIM_ENDPOINT);}
@@ -57,5 +73,6 @@ public class AppConfig implements Serializable {
     public String getDefaultOrganization(){return config.getString(IConfig.DEFAULT_USER_ORGANIZATION);}
     public String getDefaultUserRoles(){return config.getString(IConfig.DEFAULT_USER_ROLES_FOR_DEFAULT_ORG);}
     public String getOAuthConsentURI(){return config.getString(IConfig.CONSENT_URI);}
-
+    public boolean getSecurityRestResource(){return config.getBoolean(IConfig.SECURITY_REST_RESORUCES);}
+    public boolean getSecurityRestAuthResource(){return config.getBoolean(IConfig.SECURITY_REST_AUTH_RESOURCES);}
 }
