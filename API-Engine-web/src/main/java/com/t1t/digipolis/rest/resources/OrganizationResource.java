@@ -24,9 +24,7 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
-import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.*;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
@@ -38,17 +36,13 @@ import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsUsage;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.ValidationUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.netty.util.internal.StringUtil;
-import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -110,10 +104,6 @@ public class OrganizationResource implements IOrganizationResource {
 
     @Context
     HttpServletRequest request;
-
-    @Inject
-    @APIEngineContext
-    Logger log;
 
     /**
      * Constructor.

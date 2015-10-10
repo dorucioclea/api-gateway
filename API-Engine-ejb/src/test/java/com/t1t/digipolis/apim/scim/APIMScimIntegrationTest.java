@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.scim;
 
-import com.unboundid.scim.data.Entry;
+/*import com.unboundid.scim.data.Entry;
 import com.unboundid.scim.data.Name;
 import com.unboundid.scim.data.UserResource;
 import com.unboundid.scim.schema.CoreSchema;
@@ -11,21 +11,21 @@ import com.unboundid.scim.sdk.SCIMService;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
+import java.util.Iterator;*/
 
 /**
  * Created by michallispashidis on 9/10/15.
  */
 public class APIMScimIntegrationTest {
-    private SCIMService client;
+/*    private SCIMService client;
 
 
-    /**
+    *//**
      * Runs the client test program.
      *
      * @param args  The arguments used to initialize the test program.
      * @throws Exception  If the test program fails.
-     */
+     *//*
     public static void main(final String[] args)
             throws Exception
     {
@@ -46,23 +46,17 @@ public class APIMScimIntegrationTest {
             testuser.setProfileUrl("http://visireg.com");
             client.getUserEndpoint().update(testuser);
         }
-
-/*        clientTest.testGetUser();
-        clientTest.testCreateUser();
-        clientTest.testEditUser();
-        clientTest.testDeleteUser();*/
-
         System.out.println("All tests completed successfully");
         System.exit(0);
     }
 
 
 
-    /**
+    *//**
      * Create a new instance of this test client.
      *
      * @param client  The SCIM wink client to be used by this test client.
-     */
+     *//*
     public APIMScimIntegrationTest(final SCIMService client)
     {
         this.client = client;
@@ -70,11 +64,11 @@ public class APIMScimIntegrationTest {
 
 
 
-    /**
+    *//**
      * Tests creation of a new user via XML.
      *
      * @throws Exception if error creating a new user.
-     */
+     *//*
     public void testCreateUser() throws Exception
     {
         createUser();
@@ -82,11 +76,11 @@ public class APIMScimIntegrationTest {
 
 
 
-    /**
+    *//**
      * Tests updating a new user via XML.
      *
      * @throws Exception if error editing a new user.
-     */
+     *//*
     public void testEditUser() throws Exception
     {
         String changedAttributeValue = "ASSERT_DISPLAY_NAME_CHANGED";
@@ -98,11 +92,11 @@ public class APIMScimIntegrationTest {
 
 
 
-    /**
+    *//**
      * Tests updating a new user via XML.
      *
      * @throws Exception if error editing a new user.
-     */
+     *//*
     public void testDeleteUser() throws Exception
     {
         final UserResource user = createUser();
@@ -110,11 +104,11 @@ public class APIMScimIntegrationTest {
     }
 
 
-    /**
+    *//**
      * Tests user retrieval via XML.
      *
      * @throws Exception if error fetching the User.
-     */
+     *//*
     public void testGetUser() throws Exception
     {
         final UserResource user = createUser();
@@ -124,12 +118,12 @@ public class APIMScimIntegrationTest {
 
 
 
-    /**
+    *//**
      * Creates a new SCIM User.
      *
      * @return The newly created SCIM User.
      * @throws SCIMException If error creating the user.
-     */
+     *//*
     private UserResource createUser()
             throws SCIMException
     {
@@ -138,10 +132,10 @@ public class APIMScimIntegrationTest {
 
 
 
-    /**
+    *//**
      * Throw a runtime exception if the provided condition is not true.
      * @param condition  The condition which is expected to be true.
-     */
+     *//*
     private static void assertTrue(final boolean condition)
     {
         if (!condition)
@@ -152,11 +146,11 @@ public class APIMScimIntegrationTest {
 
 
 
-    /**
+    *//**
      * Throw a runtime exception if the actual and expected objects are not equal.
      * @param o1  The actual value.
      * @param o2  The expected value.
-     */
+     *//*
     private static void assertEquals(final Object o1, final Object o2)
     {
         if (!o1.equals(o2))
@@ -167,10 +161,10 @@ public class APIMScimIntegrationTest {
 
 
 
-    /**
+    *//**
      * Throw a runtime exception if the provided value is {@code null}.
      * @param o  The object which is not expected to be null.
-     */
+     *//*
     private static void assertNotNull(final Object o)
     {
         if (o == null)
@@ -181,30 +175,25 @@ public class APIMScimIntegrationTest {
 
 
 
-    /**
+    *//**
      * Creates a POJO representing the canonical SCIM User 'Babs'.
      *
      * @return The templated User.
-     */
+     *//*
     private static UserResource getTemplateUser()
     {
         // create new user
         final UserResource user = new UserResource(CoreSchema.USER_DESCRIPTOR);
-
         // make the user unique enough
         user.setUserName("michallisx");
         user.setExternalId(user.getUserName());
         user.setDisplayName("Michallis Pashidis");
-        final Name name = new Name("Michallis Pashidis", "Pashidis", null,
-                "Michallis", null, null);
+        final Name name = new Name("Michallis Pashidis", "Pashidis", null, "Michallis", null, null);
         user.setName(name);
-
         final Collection<Entry<String>> emails = new ArrayList<Entry<String>>(1);
-        final Entry<String> email =
-                new Entry<String>("michallis@trust1team.com", null, false);
+        final Entry<String> email = new Entry<String>("michallis@trust1team.com", null, false);
         emails.add(email);
         user.setEmails(emails);
-
         return user;
-    }
+    }*/
 }

@@ -29,16 +29,17 @@ import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.BasicAuthUtils;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -50,11 +51,8 @@ import java.util.Set;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class AuthorizationFacade {
-    @Inject
-    @APIEngineContext
-    private Logger log;
-    @Inject
-    @APIEngineContext
+    private static Logger log = LoggerFactory.getLogger(AuthorizationFacade.class.getName());
+    @PersistenceContext
     private EntityManager em;
     @Inject
     private ISecurityContext securityContext;

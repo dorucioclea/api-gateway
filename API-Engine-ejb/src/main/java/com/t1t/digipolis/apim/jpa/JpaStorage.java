@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.jpa;
 
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -52,6 +54,7 @@ import java.util.*;
 public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorageQuery {
 
     private static Logger logger = LoggerFactory.getLogger(JpaStorage.class);
+    @Inject AppConfig config;
 
     /**
      * Constructor.
@@ -601,8 +604,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public OrganizationBean getDefaultOrganizationForConsumers() throws StorageException {
-        Config config = ConfigFactory.load();
-        String defaultOrgId = config.getString("apiapp.defaults.orgId");
+        String defaultOrgId = config.getDefaultOrganization();
         return super.get(defaultOrgId,OrganizationBean.class);
     }
 

@@ -1,14 +1,13 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
-import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
@@ -18,7 +17,6 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
@@ -28,8 +26,7 @@ import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
-import com.t1t.digipolis.qualifier.APIEngineContext;
-import net.sf.ehcache.Ehcache;
+import com.t1t.digipolis.util.CacheUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -67,6 +64,7 @@ import javax.crypto.SecretKey;
 import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -85,8 +83,7 @@ import java.util.zip.DeflaterOutputStream;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class UserFacade implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(UserFacade.class.getName());
-    @Inject
-    @APIEngineContext
+    @PersistenceContext
     private EntityManager em;
     @Inject
     private ISecurityContext securityContext;
@@ -99,13 +96,21 @@ public class UserFacade implements Serializable {
     @Inject
     private IIdmStorage idmStorage;
     @Inject
-    @APIEngineContext
-    private Ehcache ehcache;
+    private CacheUtil ehcache;
     @Inject
     private OrganizationFacade organizationFacade;
 
     //Default organization
-    private static final String DEFAULT_ORG = "Digipolis";
+    private String defaultOrg;
+    @Inject
+    private AppConfig config;
+
+    @PostActivate
+    public void init(){
+        if(config!=null){
+            defaultOrg = config.getDefaultOrganization();
+        }
+    }
 
     public UserBean get(String userId) {
         try {
@@ -215,8 +220,8 @@ public class UserFacade implements Serializable {
             //Generate the request
             AuthnRequest authnRequest = buildAuthnRequestObject(spUrl, spName);
             //set client application name and callback in the cache
-            ehcache.put(new net.sf.ehcache.Element(spName, clientUrl));
-            ehcache.put(new net.sf.ehcache.Element(spName + "token", token));
+            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(spName, clientUrl));
+            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(spName + "token", token));
             log.info("Cache contains:{}", ehcache.toString());
             //TODO remove in prod
             utilPrintCache();
@@ -323,8 +328,8 @@ public class UserFacade implements Serializable {
         SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
         //add sessionindex from user
         //TODO nullpointer when read! verify
-        if(ehcache.get(user)!=null){
-            String sIndex = (String)ehcache.get(user).getObjectValue();
+        if(ehcache.getClientAppCache().get(user)!=null){
+            String sIndex = (String)ehcache.getClientAppCache().get(user).getObjectValue();
             sessionIndex.setSessionIndex(sIndex);
         }
         logoutReq.getSessionIndexes().add(sessionIndex);
@@ -392,17 +397,17 @@ public class UserFacade implements Serializable {
         //responseRedirect.setToken(base64EncodedResponse);
         //TODO remove in prod
         utilPrintCache();
-        if (assertion != null && ehcache.get(clientAppName.trim() + "token").getObjectValue().equals(ClientTokeType.saml2bearer))
+        if (assertion != null && ehcache.getClientAppCache().get(clientAppName.trim() + "token").getObjectValue().equals(ClientTokeType.saml2bearer))
             responseRedirect.setToken(encodeSAML2BearerToken(assertion));
         else
         responseRedirect.setToken(updateOrCreateConsumerOnGateway(userName));
-        clientUrl.append((String) ehcache.get(clientAppName).getObjectValue());
+        clientUrl.append((String) ehcache.getClientAppCache().get(clientAppName).getObjectValue());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
         //for logout, we should keep the SessionIndex in cache with the username
         if(assertion!=null&&assertion.getAuthnStatements().size()>0){
             //update or create user sessionindex in cache
-            ehcache.put(new net.sf.ehcache.Element(userName, assertion.getAuthnStatements().get(0).getSessionIndex()));
+            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(userName, assertion.getAuthnStatements().get(0).getSessionIndex()));
         }
         return responseRedirect; //be aware that this is enflated.
         //Bootstrap OpenSAML - only Assertion?!
@@ -644,7 +649,7 @@ public class UserFacade implements Serializable {
             GrantRolesBean usergrants = new GrantRolesBean();
             usergrants.setRoleIds(roles);
             usergrants.setUserId(username);
-            organizationFacade.grant(DEFAULT_ORG, usergrants);
+            organizationFacade.grant(defaultOrg, usergrants);
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
@@ -670,9 +675,9 @@ public class UserFacade implements Serializable {
     }
 
     private void utilPrintCache(){
-        log.info("Cache:{}", ehcache.getName());
-        List keys = ehcache.getKeys();
-        keys.forEach(key -> log.info("Key found:{} with value {}",key,ehcache.get(key)));
+        log.info("Cache:{}", ehcache.getClientAppCache().getName());
+        List keys = ehcache.getClientAppCache().getKeys();
+        keys.forEach(key -> log.info("Key found:{} with value {}",key,ehcache.getClientAppCache().get(key)));
     }
 
 }

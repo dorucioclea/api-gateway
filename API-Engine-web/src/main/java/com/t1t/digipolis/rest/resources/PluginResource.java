@@ -13,12 +13,10 @@ import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.PluginFacade;
 import com.t1t.digipolis.apim.rest.resources.IPluginResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -39,10 +37,6 @@ public class PluginResource implements IPluginResource {
     ISecurityContext securityContext;
     @Inject
     IPluginRegistry pluginRegistry;
-
-    @Inject
-    @APIEngineContext
-    Logger log;
     @Inject
     private PluginFacade pluginFacade;
 

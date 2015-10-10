@@ -1,34 +1,23 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.gateways.*;
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.GatewayTestResultBean;
-import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.GatewayFacade;
-import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
-import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
-import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
-import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.rest.resources.IGatewayResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -50,9 +39,6 @@ public class GatewayResource implements IGatewayResource {
     ISecurityContext securityContext;
     @Inject
     IGatewayLinkFactory gatewayLinkFactory;
-    @Inject
-    @APIEngineContext
-    Logger log;
     @Inject private GatewayFacade gatewayFacade;
 
     /**

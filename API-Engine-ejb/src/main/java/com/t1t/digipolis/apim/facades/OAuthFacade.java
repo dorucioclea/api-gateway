@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthApplicationResponse;
@@ -27,7 +28,6 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import com.t1t.digipolis.util.URIUtils;
@@ -36,6 +36,7 @@ import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
@@ -49,25 +50,21 @@ import java.util.List;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OAuthFacade {
-    @Inject
-    @APIEngineContext
-    private Logger log;
+    private static Logger log = LoggerFactory.getLogger(OAuthFacade.class.getName());
     @Inject
     IStorageQuery query;
     @Inject
     private IStorage storage;
     @Inject
     private IGatewayLinkFactory gatewayLinkFactory;
-
-    private static Config config;
+    @Inject
+    private AppConfig config;
     private static String consentURI;
 
-    static {
+    {
         consentURI = null;
-        config = ConfigFactory.load();
         if (config != null) {
-            consentURI = new StringBuffer("")
-                    .append(config.getString(IConfig.CONSENT_URI)).toString();
+            consentURI = new StringBuffer("").append(config.getOAuthConsentURI()).toString();
         }
     }
 

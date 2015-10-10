@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.core.metrics;
 
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
+import javax.inject.Inject;
 import java.util.*;
 
 /**
@@ -31,7 +33,8 @@ import java.util.*;
 public class MongoMetricsAccessor implements IMetricsAccessor {
     private static Logger log = LoggerFactory.getLogger(MongoMetricsAccessor.class.getName());
     private static MetricsClient httpClient;
-    private static Config config;
+    @Inject
+    private AppConfig config;
     private static String metricsURI;
     private static RestMetricsBuilder restMetricsBuilder;
 
@@ -42,15 +45,14 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
     private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
-    static {
+    {
         metricsURI = null;
-        config = ConfigFactory.load();
         if(config!=null){
             metricsURI = new StringBuffer("")
-                    .append(config.getString(IConfig.METRICS_SCHEME))
+                    .append(config.getMetricsScheme())
                     .append("://")
-                    .append(config.getString(IConfig.METRICS_DNS))
-                    .append((!StringUtils.isEmpty(config.getString(IConfig.METRICS_PORT)))?":"+config.getString(IConfig.METRICS_PORT):"")
+                    .append(config.getMetricsURI())
+                    .append((!StringUtils.isEmpty(config.getMetricsPort()))?":"+config.getMetricsPort():"")
                     .append("/").toString();
         }
         //create metrics client instance

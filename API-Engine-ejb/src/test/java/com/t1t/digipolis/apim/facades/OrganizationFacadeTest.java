@@ -1,8 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
-import com.t1t.digipolis.qualifier.APIEngineContext;
-import org.jglue.cdiunit.AdditionalClasses;
 import org.jglue.cdiunit.CdiRunner;
 import org.jglue.cdiunit.ejb.SupportEjb;
 import org.junit.*;
@@ -20,14 +18,13 @@ import static org.junit.Assert.assertNotNull;
  * Created by michallispashidis on 9/09/15.
  */
 @RunWith(CdiRunner.class) // Runs the test with CDI-Unit
-@AdditionalClasses({APIEngineContext.class})
 @SupportEjb
 public class OrganizationFacadeTest {
     @Inject
     private OrganizationFacade organizationFacade;
     protected static EntityManagerFactory emf;
 
-    @Produces
+    @Inject
     protected EntityManager em;
 
     @BeforeClass

@@ -7,20 +7,19 @@ import com.t1t.digipolis.apim.beans.idm.UpdateRoleBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
-import com.t1t.digipolis.apim.core.IStorage;
-import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
 
@@ -30,8 +29,9 @@ import java.util.List;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class RoleFacade {
-    @Inject @APIEngineContext private Logger log;
-    @Inject @APIEngineContext private EntityManager em;
+    private static Logger log = LoggerFactory.getLogger(RoleFacade.class.getName());
+    @PersistenceContext
+    private EntityManager em;
     @Inject private ISecurityContext securityContext;
     @Inject private IIdmStorage idmStorage;
 

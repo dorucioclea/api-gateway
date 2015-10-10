@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
@@ -25,6 +26,8 @@ import com.t1t.digipolis.kong.model.KongPluginUdpLog;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
+
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,12 +36,12 @@ import java.util.List;
  */
 public class GatewayValidation {
     private static String environment;
-    private static Config config;
-    static {
+    @Inject
+    private AppConfig config;
+    {
         environment = "";
-        config = ConfigFactory.load();
         if(config!=null){
-            environment = new StringBuffer("").append(config.getString(IConfig.ENVIRONMENT)).toString();
+            environment = new StringBuffer("").append(config.getEnvironment()).toString();
         }
     }
 
@@ -270,7 +273,7 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginAnalytics req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginAnalytics.class);
         if(StringUtils.isEmpty(req.getServiceToken())) throw new PolicyViolationException("Form was not correctly filled in.");
-        //implicit environment set
+        //implicit environment set -> separate environment support in Mashape analytics - Galileo
         if(!StringUtils.isEmpty(environment))req.setEnvironment(environment);
         return policy;
     }

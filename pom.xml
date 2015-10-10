@@ -973,7 +973,7 @@
             </dependency>
 
             <!--SCIM Client-->
-            <dependency>
+<!--            <dependency>
                 <groupId>com.unboundid.product.scim</groupId>
                 <artifactId>scim-sdk</artifactId>
                 <version>${scimsdk.version}</version>
@@ -987,7 +987,7 @@
                 <groupId>org.apache.wink</groupId>
                 <artifactId>wink-client</artifactId>
                 <version>${wink-common.version}</version>
-            </dependency>
+            </dependency>-->
 
             <!-- Test -->
             <dependency>

@@ -3,21 +3,17 @@ package com.t1t.digipolis.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.idm.UserPermissionsBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.facades.PermissionsFacade;
 import com.t1t.digipolis.apim.rest.resources.IPermissionsResource;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -36,8 +32,6 @@ public class PermissionsResource implements IPermissionsResource {
     IIdmStorage idmStorage;
     @Inject
     ISecurityContext securityContext;
-    @Inject @APIEngineContext
-    Logger log;
     @Inject private PermissionsFacade permissionsFacade;
     /**
      * Constructor.

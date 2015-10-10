@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
@@ -45,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
+import javax.inject.Inject;
 import java.util.*;
 
 /**
@@ -58,19 +60,19 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     private GatewayBean gatewayBean;
     private IStorage storage;
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static Config config;
+    @Inject
+    private AppConfig config;
     private static String metricsURI;
     private static String AUTH_API_KEY = "apikey";
 
-    static {
+    {
         metricsURI = null;
-        config = ConfigFactory.load();
         if(config!=null){
             metricsURI = new StringBuffer("")
-                    .append(config.getString(IConfig.METRICS_SCHEME))
+                    .append(config.getMetricsScheme())
                     .append("://")
-                    .append(config.getString(IConfig.METRICS_DNS))
-                    .append((!StringUtils.isEmpty(config.getString(IConfig.METRICS_PORT)))?":"+config.getString(IConfig.METRICS_PORT):"")
+                    .append(config.getMetricsURI())
+                    .append((!StringUtils.isEmpty(config.getMetricsPort()))?":"+config.getMetricsPort():"")
                     .append("/").toString();
         }
     }

@@ -1,16 +1,21 @@
 package com.t1t.digipolis.util;
+
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.Configuration;
 
 import javax.annotation.PreDestroy;
-import javax.enterprise.context.ApplicationScoped;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+import java.io.Serializable;
 
 /**
  * Created by michallispashidis on 07/09/15.
  */
-public class CacheUtil {
+@Singleton
+@Startup
+public class CacheUtil implements Serializable {
     //Clien application cache
     private final static String CLIENT_CACHE = "clientcache";
     private static CacheManager manager;
@@ -24,12 +29,12 @@ public class CacheUtil {
         manager = new CacheManager(cacheManagerConfiguration);
     }
 
-    public static Ehcache getClientAppCache(){
+    public Ehcache getClientAppCache() {
         return manager.getEhcache(CLIENT_CACHE);
     }
 
     @PreDestroy
-    public void shutdown(){
+    public void shutdown() {
         manager.clearAll();
         manager.shutdown();
     }

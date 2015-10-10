@@ -51,7 +51,6 @@ import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
@@ -67,10 +66,12 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,8 +83,9 @@ import java.util.*;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
-    @Inject @APIEngineContext private Logger log;
-    @Inject @APIEngineContext private EntityManager em;
+    private static Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
+    @PersistenceContext
+    private EntityManager em;
     @Inject private ISecurityContext securityContext;
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;

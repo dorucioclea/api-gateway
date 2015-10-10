@@ -19,15 +19,16 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
 
@@ -37,8 +38,9 @@ import java.util.List;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class GatewayFacade {
-    @Inject @APIEngineContext private Logger log;
-    @Inject @APIEngineContext private EntityManager em;
+    private static Logger log = LoggerFactory.getLogger(GatewayFacade.class.getName());
+    @PersistenceContext
+    private EntityManager em;
     @Inject private ISecurityContext securityContext;
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
