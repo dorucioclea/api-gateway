@@ -37,11 +37,6 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
         try {
             if(!JaxRsActivator.securedMode){
                 securityAppContext.setCurrentApplication("dummyapp");
-            }else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(SWAGGER_DOC_URI)
-                    || containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(SWAGGER_DOC_URI+"/")) {
-                securityAppContext.setCurrentApplication("dummyapp");
-            }else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(SWAGGER_DOC_JSON)) {
-                securityAppContext.setCurrentApplication("dummyapp");
             }else {
                 validatedApp = securityAppContext.setCurrentApplication(appId);
             }

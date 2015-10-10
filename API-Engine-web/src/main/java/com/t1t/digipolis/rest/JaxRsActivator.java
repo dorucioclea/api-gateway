@@ -1,10 +1,9 @@
 package com.t1t.digipolis.rest;
-import com.t1t.digipolis.apim.AppConfig;
+
 import com.t1t.digipolis.apim.rest.impl.mappers.RestExceptionMapper;
 import com.t1t.digipolis.apim.rest.resources.filter.RequestAPIMFilter;
 import com.t1t.digipolis.rest.resources.*;
 
-import javax.inject.Inject;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 import java.util.Set;

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -17,6 +18,7 @@ import java.util.Properties;
  * More information about the config Typesafe approach can be found: https://github.com/typesafehub/config#essential-information
  */
 @Singleton
+@ApplicationScoped
 @Startup
 public class AppConfig implements Serializable {
     private static Config config;

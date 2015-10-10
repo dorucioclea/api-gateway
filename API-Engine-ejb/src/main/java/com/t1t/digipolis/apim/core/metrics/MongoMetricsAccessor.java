@@ -20,6 +20,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.Singleton;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
@@ -29,12 +30,12 @@ import java.util.*;
  * Created by michallispashidis on 12/09/15.
  */
 @ApplicationScoped
+@Singleton
 @Default
 public class MongoMetricsAccessor implements IMetricsAccessor {
     private static Logger log = LoggerFactory.getLogger(MongoMetricsAccessor.class.getName());
     private static MetricsClient httpClient;
-    @Inject
-    private AppConfig config;
+    @Inject private AppConfig config;
     private static String metricsURI;
     private static RestMetricsBuilder restMetricsBuilder;
 
@@ -45,7 +46,11 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
     private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
-    {
+    public MongoMetricsAccessor() {
+        init();
+    }
+
+    public void init(){
         metricsURI = null;
         if(config!=null){
             metricsURI = new StringBuffer("")
@@ -55,6 +60,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
                     .append((!StringUtils.isEmpty(config.getMetricsPort()))?":"+config.getMetricsPort():"")
                     .append("/").toString();
         }
+        log.info("Metrics processor instantiated for URI: {}",metricsURI);
         //create metrics client instance
         restMetricsBuilder = new RestMetricsBuilder();
         httpClient = restMetricsBuilder.getService(metricsURI, MetricsClient.class);
