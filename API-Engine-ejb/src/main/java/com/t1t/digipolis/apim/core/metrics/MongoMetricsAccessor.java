@@ -2,7 +2,8 @@ package com.t1t.digipolis.apim.core.metrics;
 
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.IConfig;
-import com.t1t.digipolis.apim.beans.metrics.*;
+import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
+import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsage;
@@ -20,24 +21,31 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
+import javax.ejb.Stateless;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * Created by michallispashidis on 12/09/15.
  */
-@ApplicationScoped
 @Singleton
+@ApplicationScoped
 @Default
-public class MongoMetricsAccessor implements IMetricsAccessor {
+public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
     private static Logger log = LoggerFactory.getLogger(MongoMetricsAccessor.class.getName());
     private static MetricsClient httpClient;
-    @Inject private AppConfig config;
     private static String metricsURI;
     private static RestMetricsBuilder restMetricsBuilder;
+    private static Config config;
+    private static Properties properties;
 
     //interval values
     private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
@@ -46,24 +54,32 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
     private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
-    public MongoMetricsAccessor() {
-        init();
-    }
-
-    public void init(){
-        metricsURI = null;
-        if(config!=null){
+    {
+        //read properties file
+        InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties");
+        properties = new Properties();
+        if(is!=null) {
+            try {
+                properties.load(is);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else throw new RuntimeException("API Engine basic property file not found.");
+        //read specific application config, depends on the maven profile that has been set
+        config = ConfigFactory.load(properties.getProperty(IConfig.PROP_FILE_CONFIG_FILE)); if(config==null) throw new RuntimeException("API Engine log not found");
+        metricsURI = "";
+        if (config != null && StringUtils.isEmpty(metricsURI)) {
             metricsURI = new StringBuffer("")
-                    .append(config.getMetricsScheme())
+                    .append(config.getString(IConfig.METRICS_SCHEME))
                     .append("://")
-                    .append(config.getMetricsURI())
-                    .append((!StringUtils.isEmpty(config.getMetricsPort()))?":"+config.getMetricsPort():"")
+                    .append(config.getString(IConfig.METRICS_DNS))
+                    .append((!StringUtils.isEmpty(config.getString(IConfig.METRICS_PORT))) ? ":" + config.getString(IConfig.METRICS_PORT) : "")
                     .append("/").toString();
-        }
-        log.info("Metrics processor instantiated for URI: {}",metricsURI);
-        //create metrics client instance
-        restMetricsBuilder = new RestMetricsBuilder();
-        httpClient = restMetricsBuilder.getService(metricsURI, MetricsClient.class);
+            log.info("Metrics processor instantiated for URI: {}", metricsURI);
+            //create metrics client instance
+            restMetricsBuilder = new RestMetricsBuilder();
+            httpClient = restMetricsBuilder.getService(metricsURI, MetricsClient.class);
+        }else throw new RuntimeException("MongoMetricsAccessor - Metrics are not initialized");
     }
 
     @Override
@@ -72,18 +88,18 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
         //will contain the final results
         MetricsUsageList resultUsageList = new MetricsUsageList();
         //we create a epoch map in order to add specific values at random and sort the key values
-        Map<Long,MetricsUsage> processingMap = new TreeMap<>();
+        Map<Long, MetricsUsage> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
         long intervalMillis = getIntervalMillis(interval);
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
         long fromMillis = from.getMillis();
-        if(originList.getData().size()>0){
+        if (originList.getData().size() > 0) {
             fromMillis = new Double(originList.getData().get(0).getInterval()).longValue();
         }
-        for(;fromMillis<=toMillis;fromMillis=fromMillis+intervalMillis){
-            processingMap.put(fromMillis,new MetricsUsage().withCount(0d).withInterval(new Double(fromMillis)));
+        for (; fromMillis <= toMillis; fromMillis = fromMillis + intervalMillis) {
+            processingMap.put(fromMillis, new MetricsUsage().withCount(0d).withInterval(new Double(fromMillis)));
         }
-        for(MetricsUsage originUsage:originList.getData()){
+        for (MetricsUsage originUsage : originList.getData()) {
             processingMap.put(new Double(originUsage.getInterval()).longValue(), new MetricsUsage().withCount(originUsage.getCount()).withInterval(originUsage.getInterval()));
         }
         //prep result
@@ -96,23 +112,23 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
         MetricsResponseStatsList originList = httpClient.getServiceResponseStatisticsFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
         MetricsResponseStatsList resultUsageList = new MetricsResponseStatsList();
         //we create a epoch map in order to add specific values at random and sort the key values
-        Map<Long,MetricsResponseStats> processingMap = new TreeMap<>();
+        Map<Long, MetricsResponseStats> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
         long intervalMillis = getIntervalMillis(interval);
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
         long fromMillis = from.getMillis();
-        if(originList.getData().size()>0){
+        if (originList.getData().size() > 0) {
             fromMillis = new Double(originList.getData().get(0).getDateInterval()).longValue();
         }
-        for(;fromMillis<=toMillis;fromMillis=fromMillis+intervalMillis){
+        for (; fromMillis <= toMillis; fromMillis = fromMillis + intervalMillis) {
             processingMap.put(fromMillis, new MetricsResponseStats().withDateInterval(new Double(fromMillis))
                     .withLatencyKong(0d).withLatencyProxy(0d).withLatencyRequest(0d)
                     .withRequestsCount(0d).withRequestsWrong(0d).withResponseWrong(0d));
         }
-        for(MetricsResponseStats originUsage:originList.getData()){
+        for (MetricsResponseStats originUsage : originList.getData()) {
             processingMap.put(new Double(originUsage.getDateInterval()).longValue(), new MetricsResponseStats().withDateInterval(originUsage.getDateInterval())
-            .withLatencyKong(originUsage.getLatencyKong()).withLatencyProxy(originUsage.getLatencyProxy()).withLatencyRequest(originUsage.getLatencyRequest())
-            .withRequestsCount(originUsage.getRequestsCount()).withRequestsWrong(originUsage.getRequestsWrong()).withResponseWrong(originUsage.getResponseWrong()));
+                    .withLatencyKong(originUsage.getLatencyKong()).withLatencyProxy(originUsage.getLatencyProxy()).withLatencyRequest(originUsage.getLatencyRequest())
+                    .withRequestsCount(originUsage.getRequestsCount()).withRequestsWrong(originUsage.getRequestsWrong()).withResponseWrong(originUsage.getResponseWrong()));
         }
         //prep result
         resultUsageList.setData(new ArrayList<MetricsResponseStats>(processingMap.values()));
@@ -126,7 +142,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
     }
 
     @Override
-    public MetricsConsumerUsageList getAppUsageForService(String organizationId, String serviceId, String version,HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
+    public MetricsConsumerUsageList getAppUsageForService(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
         MetricsConsumerUsageList originList = httpClient.getServiceConsumerUsageFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId);
         MetricsConsumerUsageList resultUsageList = new MetricsConsumerUsageList();
         //we create a epoch map in order to add specific values at random and sort the key values
@@ -135,14 +151,14 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
         long intervalMillis = getIntervalMillis(interval);
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
         long fromMillis = from.getMillis();
-        if(originList.getData().size()>0){
+        if (originList.getData().size() > 0) {
             fromMillis = new Double(originList.getData().get(0).getInterval()).longValue();
         }
-        for(;fromMillis<=toMillis;fromMillis=fromMillis+intervalMillis){
+        for (; fromMillis <= toMillis; fromMillis = fromMillis + intervalMillis) {
             processingMap.put(fromMillis, new MetricsConsumerUsage().withInterval(new Double(fromMillis))
                     .withCount(0d));
         }
-        for(MetricsConsumerUsage originUsage:originList.getData()){
+        for (MetricsConsumerUsage originUsage : originList.getData()) {
             processingMap.put(new Double(originUsage.getInterval()).longValue(), new MetricsConsumerUsage().withInterval(originUsage.getInterval()).withCount(originUsage.getCount()));
         }
         //prep result
@@ -160,11 +176,11 @@ public class MongoMetricsAccessor implements IMetricsAccessor {
         MetricsResponseSummaryList summList = httpClient.getServiceResponseSummaryFromTo(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis());
         List<MetricsResponseSummary> res = summList.getData();
         int uptime = 100;
-        if(res!=null && res.size()>0){
+        if (res != null && res.size() > 0) {
             double req_count = res.get(0).getRequestsCount();
             double res_wrong = res.get(0).getResponseWrong();
             //if res_wrong = 0 no mean to calculate
-            if(req_count>res_wrong && res_wrong>0) uptime = ((Double)((res_wrong/req_count)*100)).intValue();
+            if (req_count > res_wrong && res_wrong > 0) uptime = ((Double) ((res_wrong / req_count) * 100)).intValue();
             else uptime = 100;
         }
 

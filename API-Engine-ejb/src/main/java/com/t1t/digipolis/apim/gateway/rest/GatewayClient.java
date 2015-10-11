@@ -60,35 +60,22 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     private GatewayBean gatewayBean;
     private IStorage storage;
     private static final ObjectMapper mapper = new ObjectMapper();
-    @Inject
-    private AppConfig config;
     private static String metricsURI;
     private static String AUTH_API_KEY = "apikey";
-
-    {
-        metricsURI = null;
-        if(config!=null){
-            metricsURI = new StringBuffer("")
-                    .append(config.getMetricsScheme())
-                    .append("://")
-                    .append(config.getMetricsURI())
-                    .append((!StringUtils.isEmpty(config.getMetricsPort()))?":"+config.getMetricsPort():"")
-                    .append("/").toString();
-        }
-    }
 
     /**
      * Constructor.
      *
      * @param httpClient the http client
      */
-    public GatewayClient(KongClient httpClient, GatewayBean gateway,IStorage storage) {
+    public GatewayClient(KongClient httpClient, GatewayBean gateway,IStorage storage,String metricsURI) {
         Preconditions.checkNotNull(httpClient);
         Preconditions.checkNotNull(storage);
         Preconditions.checkNotNull(gateway);
         this.httpClient = httpClient;
         this.gatewayBean = gateway;
         this.storage = storage;
+        this.metricsURI = metricsURI;
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {

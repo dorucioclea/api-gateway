@@ -36,7 +36,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         //dev mode
-        LOG.info("Security context - request:{}",containerRequestContext.getUriInfo().getRequestUri().getPath());
+        LOG.debug("Security context - request:{}",containerRequestContext.getUriInfo().getRequestUri().getPath());
         if (!JaxRsActivator.securedMode) {
             securityContext.setCurrentUser("admin");
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(REDIRECT_PATH)) {

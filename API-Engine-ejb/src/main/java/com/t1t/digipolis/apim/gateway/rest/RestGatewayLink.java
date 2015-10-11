@@ -48,6 +48,7 @@ public class RestGatewayLink implements IGatewayLink {
     @SuppressWarnings("unused")
     private GatewayBean gateway;
     private KongClient httpClient;
+    private String metricsURI;
     private GatewayClient gatewayClient;
     private RestGatewayConfigBean config;
     private IStorage storage;
@@ -57,10 +58,11 @@ public class RestGatewayLink implements IGatewayLink {
      *
      * @param gateway the gateway
      */
-    public RestGatewayLink(final GatewayBean gateway, final IStorage storage) {
+    public RestGatewayLink(final GatewayBean gateway, final IStorage storage,final String metricsURI) {
         try {
             this.gateway = gateway;
             this.storage = storage;
+            this.metricsURI=metricsURI;
             String cfg = gateway.getConfiguration();
             setConfig((RestGatewayConfigBean) mapper.reader(RestGatewayConfigBean.class).readValue(cfg));
             getConfig().setPassword(AesEncrypter.decrypt(getConfig().getPassword()));
@@ -246,7 +248,7 @@ public class RestGatewayLink implements IGatewayLink {
      */
     private GatewayClient createClient() {
         String gatewayEndpoint = getConfig().getEndpoint();
-        return new GatewayClient(httpClient,gateway,storage);
+        return new GatewayClient(httpClient,gateway,storage,metricsURI);
     }
 
     /**
