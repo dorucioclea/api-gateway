@@ -7,9 +7,8 @@ Summary: API Engine Services
 Target Project: Digipolis API Manager
 Source: <https://bitbucket.org/Trust1T/api-engine-javaee>
 
-Releases
---------
-Release Notes - Digipolis-APIM - Version APIM-v0.0.1
+Releases - Digipolis-APIM - Version APIM-v0.0.1
+------------------------------------------------
 
 ## Bug
 
