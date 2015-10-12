@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.t1t.digipolis</groupId>
     <artifactId>API-Engine</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <packaging>pom</packaging>
 
     <description>
@@ -68,11 +68,11 @@
     </modules>
 
     <properties>
+        <project.version>0.0.1</project.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
-        <project.version>0.0.1-SNAPSHOT</project.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.wildfly.maven.plugin>1.0.2.Final</version.wildfly.maven.plugin>
         <version.jboss.bom>8.2.1.Final</version.jboss.bom>
@@ -189,16 +189,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.primefaces</groupId>
-                <artifactId>primefaces</artifactId>
-                <version>${primefaces.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.primefaces.themes</groupId>
-                <artifactId>all-themes</artifactId>
-                <version>${primefaces.themes.version}</version>
-            </dependency>
             <!--Digi-apim modules-->
             <dependency>
                 <groupId>com.t1t.digipolis</groupId>
@@ -1035,5 +1025,17 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <!-- repository to deploy to -->
+    <distributionManagement>
+        <repository>
+            <id>Releases</id>
+            <url>http://oasis.t1t.be/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>Snapshots</id>
+            <url>http://oasis.t1t.be/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
