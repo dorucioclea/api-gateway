@@ -26,6 +26,9 @@ import com.t1t.digipolis.kong.model.KongPluginUdpLog;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.gateway.Gateway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -35,6 +38,7 @@ import java.util.List;
  * Created by michallispashidis on 30/09/15.
  */
 public class GatewayValidation {
+    private static Logger _LOG = LoggerFactory.getLogger(GatewayValidation.class.getName());
     private static String environment;
     @Inject
     private AppConfig config;
@@ -46,6 +50,7 @@ public class GatewayValidation {
     }
 
     public static Policy validate(Policy policy) throws PolicyViolationException{
+        _LOG.debug("Valdiate policy:{}",policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
         switch(policies){
@@ -79,6 +84,7 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
         if(oauthValue.getScopes().size()==0)throw new PolicyViolationException("Scopes/scopes description must be provided in order to apply OAuth2");
+        _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
 
@@ -111,6 +117,7 @@ public class GatewayValidation {
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
+        _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }
 
@@ -152,36 +159,43 @@ public class GatewayValidation {
         if(res.getRemove().getForm().size()==0)res.getRemove().setForm(null);
         if(res.getRemove().getHeaders().size()==0)res.getRemove().setHeaders(null);
         if(res.getRemove().getQuerystring().size()==0)res.getRemove().setQuerystring(null);
-        Policy responsePolicy = new Policy();
-        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
-        responsePolicy.setPolicyJsonConfig(gson.toJson(res));
-        return responsePolicy;
+        Policy requestPolicy = new Policy();
+        requestPolicy.setPolicyImpl(policy.getPolicyImpl());
+        requestPolicy.setPolicyJsonConfig(gson.toJson(res));
+        _LOG.debug("Modified policy:{}",policy);
+        return requestPolicy;
     }
 
     public static synchronized Policy validateResponseTransformer(Policy policy){
         Gson gson = new Gson();
         KongPluginResponseTransformer req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginResponseTransformer.class);
         //if all lists are empty -> error
-        if(isEmptyList(req.getAdd().getHeader())&&isEmptyList(req.getAdd().getJson())
-                &&isEmptyList(req.getRemove().getHeader())&&isEmptyList(req.getRemove().getJson()))
+        if(isEmptyList(req.getAdd().getHeaders())&&isEmptyList(req.getAdd().getJson())
+                &&isEmptyList(req.getRemove().getHeaders())&&isEmptyList(req.getRemove().getJson()))
             throw new PolicyViolationException("At least one value should be provided.");
         KongPluginResponseTransformer res = new KongPluginResponseTransformer();
         KongPluginResponseTransformerAdd addStatement = new KongPluginResponseTransformerAdd();
-        addStatement.setHeader(new ArrayList<>());
+        addStatement.setHeaders(new ArrayList<>());
         addStatement.setJson(new ArrayList<>());
         KongPluginResponseTransformerRemove remStatement = new KongPluginResponseTransformerRemove();
-        remStatement.setHeader(new ArrayList<>());
+        remStatement.setHeaders(new ArrayList<>());
         remStatement.setJson(new ArrayList<>());
         res.setAdd(addStatement);
         res.setRemove(remStatement);
         //remove null values
-        req.getAdd().getHeader().stream().forEach((val) -> {if (val != null) res.getAdd().getHeader().add(val);});
+        req.getAdd().getHeaders().stream().forEach((val) -> {if (val != null) res.getAdd().getHeaders().add(val);});
         req.getAdd().getJson().stream().forEach((val) -> {if(val!=null)res.getAdd().getJson().add(val);});
-        req.getRemove().getHeader().stream().forEach((val) -> {if(val!=null)res.getRemove().getHeader().add(val);});
+        req.getRemove().getHeaders().stream().forEach((val) -> {if(val!=null)res.getRemove().getHeaders().add(val);});
         req.getRemove().getJson().stream().forEach((val) -> {if(val!=null)res.getRemove().getJson().add(val);});
+        //remove empty lists
+        if(res.getAdd().getHeaders().size()==0)res.getAdd().setHeaders(null);
+        if(res.getAdd().getJson().size()==0)res.getAdd().setJson(null);
+        if(res.getRemove().getHeaders().size()==0)res.getRemove().setHeaders(null);
+        if(res.getRemove().getJson().size()==0)res.getRemove().setJson(null);
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
+        _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }
 
@@ -202,6 +216,7 @@ public class GatewayValidation {
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
+        _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }
 
@@ -209,6 +224,7 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginFileLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginFileLog.class);
         if(StringUtils.isEmpty(req.getPath())) throw new PolicyViolationException("Form was not correctly filled in.");
+        _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
 
@@ -216,6 +232,7 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginHttpLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginHttpLog.class);
         if(StringUtils.isEmpty(req.getHttpEndpoint())) throw new PolicyViolationException("Form was not correctly filled in.");
+        _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
 
@@ -223,6 +240,7 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginUdpLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginUdpLog.class);
         if(StringUtils.isEmpty(req.getHost())) throw new PolicyViolationException("Form was not correctly filled in.");
+        _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
 
@@ -230,6 +248,7 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginTcpLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginTcpLog.class);
         if(StringUtils.isEmpty(req.getHost())) throw new PolicyViolationException("Form was not correctly filled in.");
+        _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
 
@@ -246,22 +265,28 @@ public class GatewayValidation {
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
+        _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }
 
     public static synchronized Policy validateKeyAuth(Policy policy){
         KongPluginKeyAuth req = new Gson().fromJson(policy.getPolicyJsonConfig(),KongPluginKeyAuth.class);
-        if(req.getKeyNames()!=null&&req.getKeyNames().size()>0)return policy;
+        if(req.getKeyNames()!=null&&req.getKeyNames().size()>0){
+            _LOG.debug("Modified policy:{}",policy);
+            return policy;
+        }
         else throw new PolicyViolationException("Default applies already or you should provide at least one key name.");
     }
 
     public static synchronized Policy validateRateLimiting(Policy policy){
         //nothing to do - works fine
+        _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
 
     public static synchronized Policy validateRequestSizeLimiting(Policy policy){
         //nothing to do - works fine
+        _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
 
@@ -275,6 +300,7 @@ public class GatewayValidation {
         if(StringUtils.isEmpty(req.getServiceToken())) throw new PolicyViolationException("Form was not correctly filled in.");
         //implicit environment set -> separate environment support in Mashape analytics - Galileo
         if(!StringUtils.isEmpty(environment))req.setEnvironment(environment);
+        _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
 
