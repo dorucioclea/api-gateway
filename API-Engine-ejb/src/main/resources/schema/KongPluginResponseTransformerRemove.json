@@ -3,8 +3,8 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "header": {
-      "id":"header",
+    "headers": {
+      "id":"headers",
       "type": "array",
       "items": {"type": "string"}
     },
