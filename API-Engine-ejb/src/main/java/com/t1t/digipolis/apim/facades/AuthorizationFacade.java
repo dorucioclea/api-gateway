@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.AbstractAuthConsumerRequest;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
@@ -32,9 +31,6 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.util.BasicAuthUtils;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +38,8 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
-import javax.net.ssl.HttpsURLConnection;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -80,8 +70,6 @@ public class AuthorizationFacade {
     private IServiceValidator serviceValidator;
     @Inject
     private GatewayFacade gatewayFacade;
-    @Inject
-    private AppConfig config;
     private static IGatewayLink gatewayLink;
 
     /**
@@ -101,11 +89,11 @@ public class AuthorizationFacade {
             throw new NotAuthorizedException("wrong API key");
         //create consumer with optional key - and verify the consumer doesn't exist
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
-        log.info("Creating consumer:{}",consumerUniqueId);
+        log.info("Creating consumer:{}", consumerUniqueId);
         KongConsumer appConsumer = getGateway().createConsumer(consumerUniqueId, criteria.getCustomId());
         //create apikey
         KongPluginBasicAuthResponse authResponse = getGateway().addConsumerBasicAuth(appConsumer.getId(), criteria.getUserLoginName(), criteria.getUserLoginPassword());
-        log.info("Consumer basic auth response:{}",authResponse);
+        log.info("Consumer basic auth response:{}", authResponse);
         //add consumer to Appversion -> API ACLs for all services used in application - at the moment only providing key auth and applying plans
         //or enforce plan policies for consumer (IPrestriction - RateLimit - RequestSizeLimit)
         Application gtwApp = new Application();
@@ -135,7 +123,7 @@ public class AuthorizationFacade {
         AuthConsumerBean resConsumer = new AuthConsumerBean();
         resConsumer.setCustomId(appConsumer.getCustomId());
         resConsumer.setUserId(appConsumer.getUsername());
-        resConsumer.setToken(BasicAuthUtils.getBasicAuthHeaderValueEncoded(authResponse.getUsername(),authResponse.getPassword()));
+        resConsumer.setToken(BasicAuthUtils.getBasicAuthHeaderValueEncoded(authResponse.getUsername(), authResponse.getPassword()));
         return resConsumer;
     }
 
@@ -258,7 +246,7 @@ public class AuthorizationFacade {
      *
      * @param criteria
      */
-    private void deleteConsumer(AbstractAuthConsumerRequest criteria){
+    private void deleteConsumer(AbstractAuthConsumerRequest criteria) {
         //get application version
         List<ContractSummaryBean> appContracts;
         ApplicationVersionBean avb = null;

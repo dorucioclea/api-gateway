@@ -31,14 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import com.squareup.okhttp.OkHttpClient;
-
-import javax.annotation.PostConstruct;
 import javax.ejb.*;
 import javax.inject.Inject;
-import javax.net.ssl.TrustManager;
 import java.io.Serializable;
-import java.security.KeyStore;
 import java.util.List;
 
 /**
