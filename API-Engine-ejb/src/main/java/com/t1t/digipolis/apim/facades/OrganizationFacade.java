@@ -313,6 +313,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public ApplicationVersionBean updateAppVersionURI(String organizationId, String applicationId, String version, UpdateApplicationVersionURIBean uri){
         try {
+            log.debug("Enter updateAppversionURI:{}",uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if(avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
             avb.setOauthClientRedirect(uri.getUri());
@@ -415,7 +416,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) {
         //get the application version based on provided client_id and client_secret - we need the name and
-        //TODO validate if non existing
+        log.debug("Start enabling consumer for oauth2");
         KongPluginOAuthConsumerRequest oauthRequest = new KongPluginOAuthConsumerRequest()
                 .withClientId(request.getAppOAuthId())
                 .withClientSecret(request.getAppOAuthSecret());
@@ -433,11 +434,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                    log.debug("Enable consumer for oauth:{} with values: {}",request.getUniqueUserName(),oauthRequest);
                     response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
                 } catch (Exception e) {
+                    log.debug("Error enabling user for oauth:{}",e.getMessage());
                     ;//don't do anything
                 }
                 if (response == null) {
+                    log.debug("Enable consumer for oauth - response empty");
                     //try to recover existing user
                     try {
                         IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
