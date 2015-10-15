@@ -437,7 +437,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     log.debug("Enable consumer for oauth:{} with values: {}",request.getUniqueUserName(),oauthRequest);
                     response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
                 } catch (Exception e) {
-                    log.debug("Error enabling user for oauth:{}",e.getMessage());
+                    log.debug("Error enabling user for oauth:{}",e.getStackTrace());
                     ;//don't do anything
                 }
                 if (response == null) {

@@ -18,8 +18,10 @@ import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.idp.IDPClient;
+import com.t1t.digipolis.apim.idp.IDPRestServiceBuilder;
+import com.t1t.digipolis.apim.idp.RestIDPConfigBean;
 import com.t1t.digipolis.apim.kong.KongConstants;
-import com.t1t.digipolis.apim.kong.RestServiceBuilder;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
@@ -41,7 +43,7 @@ import java.util.List;
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
-public class OAuthFacade implements Serializable {
+public class OAuthFacade {
     private static Logger log = LoggerFactory.getLogger(OAuthFacade.class.getName());
     @Inject
     IStorageQuery query;
@@ -51,9 +53,6 @@ public class OAuthFacade implements Serializable {
     private IGatewayLinkFactory gatewayLinkFactory;
     @Inject
     private AppConfig config;
-    private String consentURI;
-    private RestGatewayConfigBean restConfig;
-    private RestServiceBuilder restServiceBuilder;
 
     /**
      * This method should be called only for the consumer registring the OAuth service, and thus not for each consumer using the OAuth
@@ -269,13 +268,15 @@ public class OAuthFacade implements Serializable {
      * @return
      */
     public boolean authenticateResourceOwnerCredential(ProxyAuthRequest request) {
+        RestIDPConfigBean restConfig=null;
+        IDPRestServiceBuilder restServiceBuilder=null;
         try {
             //rest config
-            restConfig = new RestGatewayConfigBean();
+            restConfig = new RestIDPConfigBean();
             restConfig.setEndpoint(config.getIDPOAuthTokenEndpoint());
             restConfig.setUsername(config.getIDPOAuthClientId());
             restConfig.setPassword(config.getIDPOAuthClientSecret());
-            restServiceBuilder = new RestServiceBuilder();
+            restServiceBuilder = new IDPRestServiceBuilder();
             IDPClient idpClient = restServiceBuilder.getSecureService(restConfig, IDPClient.class);
             Response response = idpClient.authenticateUser("password", request.getUsername(), request.getPassword(), "authenticate");
             log.debug("Resource owner OAuth2 authentication towards IDP, response:{}", response.getStatus());

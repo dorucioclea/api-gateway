@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.beans.authorization;
+package com.t1t.digipolis.apim.idp;
 
 import retrofit.client.Response;
 import retrofit.http.Field;
