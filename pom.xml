@@ -967,11 +967,11 @@
                 <version>${ehcache.version}</version>
             </dependency>
 
-            <dependency>
+<!--            <dependency>
                 <groupId>com.squareup.okhttp</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>${okhttp.version}</version>
-            </dependency>
+            </dependency>-->
 
             <!--SCIM Client-->
 <!--            <dependency>

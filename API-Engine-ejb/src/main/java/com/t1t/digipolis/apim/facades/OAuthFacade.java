@@ -276,6 +276,7 @@ public class OAuthFacade {
             restConfig.setEndpoint(config.getIDPOAuthTokenEndpoint());
             restConfig.setUsername(config.getIDPOAuthClientId());
             restConfig.setPassword(config.getIDPOAuthClientSecret());
+            log.debug("auth config:{}",restConfig);
             restServiceBuilder = new IDPRestServiceBuilder();
             IDPClient idpClient = restServiceBuilder.getSecureService(restConfig, IDPClient.class);
             Response response = idpClient.authenticateUser("password", request.getUsername(), request.getPassword(), "authenticate");
@@ -284,6 +285,7 @@ public class OAuthFacade {
             else return false;
         } catch (RetrofitError error){
             log.debug("Authentication result:{}",error.getResponse());
+            log.debug("error stack:{}",error.getStackTrace());
           return false;
         } finally {
             restConfig = null;

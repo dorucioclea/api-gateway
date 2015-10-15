@@ -3,19 +3,11 @@ package com.t1t.digipolis.apim.idp;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.squareup.okhttp.OkHttpClient;
-import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
-import retrofit.client.OkClient;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -68,13 +60,13 @@ public class IDPRestServiceBuilder {
                         requestFacade.addHeader("Authorization", getBasicAuthValue(config));
                     }
                 })
-                .setClient(getSafeClient())
+                //.setClient(getSafeClient())
                 .build();
         _LOG.info("IDP connection string:{}", url.toString());
         return restAdapter.create(iFace);
     }
 
-    private OkClient getSafeClient() {
+/*    private OkClient getSafeClient() {
         try {
             // Create a trust manager that does not validate certificate chains
             final TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
@@ -104,7 +96,7 @@ public class IDPRestServiceBuilder {
 
             OkHttpClient okHttpClient = new OkHttpClient();
             okHttpClient.setSslSocketFactory(sslSocketFactory);
-/*            okHttpClient.setHostnameVerifier(new HostnameVerifier() {
+*//*            okHttpClient.setHostnameVerifier(new HostnameVerifier() {
                 @Override
                 public boolean verify(String hostname, SSLSession session) {
                     // TODO Auto-generated method stub
@@ -113,13 +105,13 @@ public class IDPRestServiceBuilder {
                     else
                         return false;
                 }
-            });*/
+            });*//*
 
             return new OkClient(okHttpClient);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-    }
+    }*/
 
 }
