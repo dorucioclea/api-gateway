@@ -33,11 +33,11 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 import com.squareup.okhttp.OkHttpClient;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
+import javax.annotation.PostConstruct;
+import javax.ejb.*;
 import javax.inject.Inject;
 import javax.net.ssl.TrustManager;
+import java.io.Serializable;
 import java.security.KeyStore;
 import java.util.List;
 
@@ -46,7 +46,7 @@ import java.util.List;
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
-public class OAuthFacade {
+public class OAuthFacade implements Serializable {
     private static Logger log = LoggerFactory.getLogger(OAuthFacade.class.getName());
     @Inject
     IStorageQuery query;
@@ -59,13 +59,6 @@ public class OAuthFacade {
     private String consentURI;
     private RestGatewayConfigBean restConfig;
     private RestServiceBuilder restServiceBuilder;
-
-    {
-        consentURI = null;
-        if (config != null) {
-            consentURI = new StringBuffer("").append(config.getOAuthConsentURI()).toString();
-        }
-    }
 
     /**
      * This method should be called only for the consumer registring the OAuth service, and thus not for each consumer using the OAuth
@@ -167,7 +160,7 @@ public class OAuthFacade {
         //The consent page is published through the gateway itself, in order to add consent page policies.
         //The consent URI is where the page has been published as part of the API Engine.
         StringBuffer redirectURI = new StringBuffer("");
-        redirectURI.append(consentURI)
+        redirectURI.append(config.getOAuthConsentURI())
                 .append("?response_type=")
                 .append(responseType.toString().toLowerCase())
                 .append("&")
