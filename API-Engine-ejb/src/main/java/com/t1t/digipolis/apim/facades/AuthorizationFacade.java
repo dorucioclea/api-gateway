@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.AbstractAuthConsumerRequest;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
@@ -31,6 +32,9 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.util.BasicAuthUtils;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +42,14 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
+import javax.net.ssl.HttpsURLConnection;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +80,8 @@ public class AuthorizationFacade {
     private IServiceValidator serviceValidator;
     @Inject
     private GatewayFacade gatewayFacade;
+    @Inject
+    private AppConfig config;
     private static IGatewayLink gatewayLink;
 
     /**

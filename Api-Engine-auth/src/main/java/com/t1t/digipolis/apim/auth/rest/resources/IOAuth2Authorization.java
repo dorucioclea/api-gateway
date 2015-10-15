@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.beans.authorization.*;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 /**
@@ -53,5 +54,15 @@ public interface IOAuth2Authorization {
      * @throws OAuthException
      */
     public OAuthServiceScopeResponse getServiceVersionScopes(String oauthClientId,String orgId,String serviceId,String version) throws OAuthException;
+
+    /**
+     * Authenticates a user, through the application service provider proxy.
+     * (using oauth client credential for the application and basic auth for the end user.
+     *
+     * @param request
+     * @return
+     * @throws OAuthException
+     */
+    public String ipdClientCredGrantForUserAuthentication(ProxyAuthRequest request)throws OAuthException;
 
 }

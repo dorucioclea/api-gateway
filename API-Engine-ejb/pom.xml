@@ -119,6 +119,12 @@
             <version>${retrofit.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
+        </dependency>
+
         <!--Typesafe configuration-->
         <dependency>
             <groupId>com.typesafe</groupId>
