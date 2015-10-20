@@ -2690,4 +2690,29 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
     }
+
+    /* Test utilities */
+    public boolean deleteOrganization(String orgId){
+        try {
+            OrganizationBean organization = storage.getOrganization(orgId);
+            deleteOrganization(orgId);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+        //get all services
+        //get all service versions
+        //get all applications
+        //get all application versions
+        //get all contracts
+        //remove all contracts
+        //get all oauth apps
+        //get all plans
+        //get all plan versions
+        //get all plan policies
+        //remove all plan policies
+        //remove all plans versions
+        //remove all plans
+
+        return true;
+    }
 }

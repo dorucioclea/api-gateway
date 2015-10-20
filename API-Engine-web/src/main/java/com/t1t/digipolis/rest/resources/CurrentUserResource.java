@@ -125,6 +125,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     })
     @GET
     @Path("/services")
+    @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceSummaryBean> getServices() {
         return currentUserFacade.getServices();
     }

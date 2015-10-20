@@ -117,3 +117,7 @@ INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, descri
 INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://apim.t1t.be:8001","username":"","password":""}','https://apim.t1t.be:8443', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');
 
 INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://devasu018.dev.digant.antwerpen.local:8001","username":"","password":""}','https://devasu018.dev.digant.antwerpen.local:443', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');
+
+
+#Add RUNSCOPE admin
+INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('runscope', 'michallis@trust1team.com', 'runscope', '2015-10-18 17:56:54.794',TRUE ,NULL );

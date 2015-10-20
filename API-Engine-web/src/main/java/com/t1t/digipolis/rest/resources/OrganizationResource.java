@@ -1803,4 +1803,17 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         return orgFacade.listMembers(organizationId);
     }
+
+    @ApiOperation(value = "Test endpoint: Clean organization",
+            notes = "Remove a complete organization. This endpoint is meant for testing purpose.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = MemberBean.class, message = "List of members.")
+    })
+    @DELETE
+    @Path("/{organizationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteOrganization(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        orgFacade.deleteOrganization(organizationId);
+    }
 }
