@@ -16,6 +16,7 @@ import java.util.Map;
  */
 public class SwaggerUtils {
     private static final Logger log = LoggerFactory.getLogger(SwaggerUtils.class.getName());
+
     public static Swagger getSwaggerObject(InputStream stream) throws IOException {
         return new SwaggerParser().parse(IOUtils.toString(stream));
     }
@@ -41,7 +42,6 @@ public class SwaggerUtils {
         for(String key:swaggerObject.getSecurityDefinitions().keySet()){
             SecuritySchemeDefinition securitySchemeDefinition = swaggerObject.getSecurityDefinitions().get(key);
             log.info("Type:{}", securitySchemeDefinition.getType());
-
         }
     }
 

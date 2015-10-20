@@ -22,7 +22,8 @@ public class JaxRsActivator extends Application {
         /**
          * Start server in secured mode -> requiring API key and secret.
          * When the server needs to be tested, you can set the boolean value to false, thus the filter driver
-         * will not be loaded and REST communication can be done unsecure.
+         * will not be loaded and REST communication can be
+         * done unsecure.
          */
         securedMode = false;
     }
