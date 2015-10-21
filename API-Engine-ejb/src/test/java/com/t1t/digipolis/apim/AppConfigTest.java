@@ -3,24 +3,36 @@ package com.t1t.digipolis.apim;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 import org.junit.runners.MethodSorters;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by michallispashidis on 21/10/15.
+ * Tests the configuration file compliancy depending the chosen profile.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AppConfigTest {
     private static AppConfig config;
-    @BeforeClass public static void init()throws Exception{
+
+    @Rule
+    public Timeout globalTimeout =  new Timeout(1000);
+
+    @BeforeClass
+    public static void init() throws Exception {
         config = new AppConfig();
         config.init();
     }
 
     @Test
     public void testGetEnvironment() throws Exception {
+        assertThat(config.getEnvironment().trim(), is(not("")));
         assertTrue(!StringUtils.isEmpty(config.getEnvironment()));
     }
 
