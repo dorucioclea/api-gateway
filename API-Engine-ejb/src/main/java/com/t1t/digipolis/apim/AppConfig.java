@@ -50,7 +50,11 @@ public class AppConfig implements Serializable {
             _LOG.info("Kong endpoint: {}",getKongEndpoint());
             _LOG.info("Kong management endpoint: {}",getKongManagementEndpoint());
             _LOG.info("IDP SAML2 endpoint: {}",getIDPSAMLEndpoint());
+            _LOG.info("IDP NameID format: {}",getIDPSAMLNameIdFormat());
             _LOG.info("IDP SCIM endpoint: {}",getIDPSCIMEndpoint());
+            _LOG.info("IDP OAUTH token endpoint: {}",getIDPOAuthTokenEndpoint());
+            _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
+            _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
             _LOG.info("Metrics schema: {}",getMetricsScheme());
             _LOG.info("Metrics URI: {}",getMetricsURI());
             _LOG.info("Metrics port: {}",getMetricsPort());
@@ -68,13 +72,15 @@ public class AppConfig implements Serializable {
     public String getConfigurationFile(){return properties.getProperty(IConfig.PROP_FILE_CONFIG_FILE);}
     public String getKongManagementEndpoint(){return config.getString(IConfig.KONG_URL_MANAGEMENT);}
     public String getIDPSAMLEndpoint(){return config.getString(IConfig.IDP_SAML_ENDPOINT);}
+    public String getIDPSAMLNameIdFormat(){return config.getString(IConfig.IDP_NAMEID_FORMAT);}
     public String getIDPSCIMEndpoint(){return config.getString(IConfig.IDP_SCIM_ENDPOINT);}
+    public String getIDPOAuthTokenEndpoint(){return config.getString(IConfig.IDP_OAUTH_TOKEN_ENDPOINT);}
+    public String getIDPOAuthClientId(){return config.getString(IConfig.IDP_OAUTH_CLIENT_ID);}
+    public String getIDPOAuthClientSecret(){return config.getString(IConfig.IDP_OAUTH_CLIENT_SECRET);}
     public String getMetricsScheme(){return config.getString(IConfig.METRICS_SCHEME);}
     public String getMetricsURI(){return config.getString(IConfig.METRICS_DNS);}
     public String getMetricsPort(){return config.getString(IConfig.METRICS_PORT);}
     public String getDefaultOrganization(){return config.getString(IConfig.DEFAULT_USER_ORGANIZATION);}
     public String getDefaultUserRoles(){return config.getString(IConfig.DEFAULT_USER_ROLES_FOR_DEFAULT_ORG);}
     public String getOAuthConsentURI(){return config.getString(IConfig.CONSENT_URI);}
-    public boolean getSecurityRestResource(){return config.getBoolean(IConfig.SECURITY_REST_RESORUCES);}
-    public boolean getSecurityRestAuthResource(){return config.getBoolean(IConfig.SECURITY_REST_AUTH_RESOURCES);}
 }

@@ -180,7 +180,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
             double req_count = res.get(0).getRequestsCount();
             double res_wrong = res.get(0).getResponseWrong();
             //if res_wrong = 0 no mean to calculate
-            if (req_count > res_wrong && res_wrong > 0) uptime = ((Double) ((res_wrong / req_count) * 100)).intValue();
+            if (req_count > res_wrong && res_wrong > 0) uptime = ((Double) (100 - ((res_wrong / req_count) * 100))).intValue();
             else uptime = 100;
         }
 

@@ -65,10 +65,14 @@ import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
+import javax.enterprise.inject.spi.DefinitionException;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -313,6 +317,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public ApplicationVersionBean updateAppVersionURI(String organizationId, String applicationId, String version, UpdateApplicationVersionURIBean uri){
         try {
+            log.debug("Enter updateAppversionURI:{}",uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if(avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
             avb.setOauthClientRedirect(uri.getUri());
@@ -415,7 +420,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) {
         //get the application version based on provided client_id and client_secret - we need the name and
-        //TODO validate if non existing
+        log.debug("Start enabling consumer for oauth2");
         KongPluginOAuthConsumerRequest oauthRequest = new KongPluginOAuthConsumerRequest()
                 .withClientId(request.getAppOAuthId())
                 .withClientSecret(request.getAppOAuthSecret());
@@ -433,11 +438,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                    log.debug("Enable consumer for oauth:{} with values: {}",request.getUniqueUserName(),oauthRequest);
                     response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
                 } catch (Exception e) {
+                    log.debug("Error enabling user for oauth:{}",e.getStackTrace());
                     ;//don't do anything
                 }
                 if (response == null) {
+                    log.debug("Enable consumer for oauth - response empty");
                     //try to recover existing user
                     try {
                         IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
@@ -2161,7 +2169,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
             String svPath = GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),serviceVersion.getVersion());
-            data = transformSwaggerDef(data,serviceVersion,svPath);
+            data = transformJSONObjectDef(data, serviceVersion, svPath);
+            //safety check
+            if(data==null)throw new DefinitionException("The Swagger data returned is invalid");
             storage.updateServiceDefinition(serviceVersion, data);
             log.debug(String.format("Stored service definition %s: %s", serviceId, serviceVersion)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
@@ -2180,7 +2190,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @throws IOException
      */
     private InputStream transformSwaggerDef(InputStream data, ServiceVersionBean serviceVersionBean,String serviceVersionPath)throws StorageException, IOException{
-        //set all base paths to "/" because the path is decided by the APi engine
+        //set all base paths to "/servicebasepath" because the path is decided by the APi engine
         Swagger swaggerJson = new SwaggerParser().parse(IOUtils.toString(data));//IOUtils.closequietly?
         swaggerJson.setBasePath(serviceVersionPath);
         //available schemes override
@@ -2189,12 +2199,59 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         swaggerJson.setSchemes(schemeList);
         swaggerJson.setHost(null);
         //read documentation and persist if present
-        String onlineDoc = swaggerJson.getExternalDocs().getUrl();
-        if(!StringUtils.isEmpty(onlineDoc)){
-            serviceVersionBean.setOnlinedoc(onlineDoc);
-            storage.updateServiceVersion(serviceVersionBean);
+        if(swaggerJson!=null&&swaggerJson.getExternalDocs()!=null){
+            String onlineDoc = swaggerJson.getExternalDocs().getUrl();
+            if(!StringUtils.isEmpty(onlineDoc)){
+                serviceVersionBean.setOnlinedoc(onlineDoc);
+            }
         }
+        storage.updateServiceVersion(serviceVersionBean);
         return new ByteArrayInputStream((Json.pretty(swaggerJson)).getBytes());
+
+        //InputStream stream = new ByteArrayInputStream(exampleString.getBytes());//StandardCharsets.UTF_8
+    }
+
+    /**
+     * Because Swagger validation is too strict - see method transformSwaggerDef() - a custom json updater has been implemented.
+     * @param data
+     * @param serviceVersionBean
+     * @param serviceVersionPath
+     * @return
+     * @throws StorageException
+     * @throws IOException
+     */
+    private InputStream transformJSONObjectDef(InputStream data, ServiceVersionBean serviceVersionBean,String serviceVersionPath)throws StorageException, IOException{
+        if(data!=null){
+            String jsonTxt = IOUtils.toString(data);
+            JSONObject json = new JSONObject(jsonTxt);
+
+            //set base path
+            json.remove("basePath");
+            json.put("basePath",serviceVersionPath);
+
+            //empty host
+            json.remove("host");
+            json.put("host","");
+
+            //add only https schema
+            json.remove("schemes");
+            JSONArray schemesArray = new JSONArray();
+            schemesArray.put("https");
+            json.put("schemes",schemesArray);
+
+            //set online doc if present
+            try {
+                //get doc link
+                JSONObject externalDocs = json.getJSONObject("externalDocs");
+                String docUrl = externalDocs.getString("url");
+                //update service
+                serviceVersionBean.setOnlinedoc(docUrl);
+            }catch(JSONException jsonex){
+                ;//continue::don't do anything -> no external doc present
+            }
+            //serialize to calling method
+            return new ByteArrayInputStream(json.toString().getBytes());
+        }else return null;
     }
 
     /**
@@ -2685,5 +2742,30 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    /* Test utilities */
+    public boolean deleteOrganization(String orgId){
+        try {
+            OrganizationBean organization = storage.getOrganization(orgId);
+            deleteOrganization(orgId);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+        //get all services
+        //get all service versions
+        //get all applications
+        //get all application versions
+        //get all contracts
+        //remove all contracts
+        //get all oauth apps
+        //get all plans
+        //get all plan versions
+        //get all plan policies
+        //remove all plan policies
+        //remove all plans versions
+        //remove all plans
+
+        return true;
     }
 }

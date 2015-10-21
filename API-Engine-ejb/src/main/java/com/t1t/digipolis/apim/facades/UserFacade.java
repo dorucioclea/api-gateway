@@ -100,17 +100,8 @@ public class UserFacade implements Serializable {
     @Inject
     private OrganizationFacade organizationFacade;
 
-    //Default organization
-    private String defaultOrg;
     @Inject
     private AppConfig config;
-
-    @PostActivate
-    public void init(){
-        if(config!=null){
-            defaultOrg = config.getDefaultOrganization();
-        }
-    }
 
     public UserBean get(String userId) {
         try {
@@ -649,7 +640,7 @@ public class UserFacade implements Serializable {
             GrantRolesBean usergrants = new GrantRolesBean();
             usergrants.setRoleIds(roles);
             usergrants.setUserId(username);
-            organizationFacade.grant(defaultOrg, usergrants);
+            organizationFacade.grant(config.getDefaultOrganization(), usergrants);
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }

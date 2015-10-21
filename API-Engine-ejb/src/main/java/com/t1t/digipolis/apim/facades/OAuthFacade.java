@@ -2,17 +2,11 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuthApplicationResponse;
-import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuthResponseType;
-import com.t1t.digipolis.apim.beans.authorization.OAuthServiceScopeResponse;
+import com.t1t.digipolis.apim.beans.authorization.*;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
-import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
-import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -24,24 +18,24 @@ import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.idp.IDPClient;
+import com.t1t.digipolis.apim.idp.IDPRestServiceBuilder;
+import com.t1t.digipolis.apim.idp.RestIDPConfigBean;
 import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.util.GatewayPathUtilities;
-import com.t1t.digipolis.util.ServiceConventionUtil;
 import com.t1t.digipolis.util.URIUtils;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+import javax.ejb.*;
 import javax.inject.Inject;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -59,14 +53,6 @@ public class OAuthFacade {
     private IGatewayLinkFactory gatewayLinkFactory;
     @Inject
     private AppConfig config;
-    private static String consentURI;
-
-    {
-        consentURI = null;
-        if (config != null) {
-            consentURI = new StringBuffer("").append(config.getOAuthConsentURI()).toString();
-        }
-    }
 
     /**
      * This method should be called only for the consumer registring the OAuth service, and thus not for each consumer using the OAuth
@@ -122,7 +108,7 @@ public class OAuthFacade {
         OAuthApplicationResponse response = new OAuthApplicationResponse();
         try {
             //there must be a gateway
-            Preconditions.checkNotNull(query.listGateways().size()>0);
+            Preconditions.checkNotNull(query.listGateways().size() > 0);
             String defaultGateway = query.listGateways().get(0).getId();
             response.setAuthorizationUrl(getOAuth2AuthorizeEndpoint(orgId, serviceId, version));
             response.setTokenUrl(getOAuth2TokenEndpoint(orgId, serviceId, version));
@@ -130,7 +116,7 @@ public class OAuthFacade {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
                     KongPluginOAuthConsumerResponseList appInfoList = gatewayLink.getApplicationOAuthInformation(clientId);
-                    if (appInfoList != null && appInfoList.getData() != null && appInfoList.getData().size()>0) {
+                    if (appInfoList != null && appInfoList.getData() != null && appInfoList.getData().size() > 0) {
                         response.setConsumerResponse(appInfoList.getData().get(0));
                     }
                     ApplicationVersionBean applicationForOAuth = query.getApplicationForOAuth(response.getConsumerResponse().getClientId(), response.getConsumerResponse().getClientSecret());
@@ -168,7 +154,7 @@ public class OAuthFacade {
         //The consent page is published through the gateway itself, in order to add consent page policies.
         //The consent URI is where the page has been published as part of the API Engine.
         StringBuffer redirectURI = new StringBuffer("");
-        redirectURI.append(consentURI)
+        redirectURI.append(config.getOAuthConsentURI())
                 .append("?response_type=")
                 .append(responseType.toString().toLowerCase())
                 .append("&")
@@ -188,13 +174,14 @@ public class OAuthFacade {
 
     /**
      * Returns a list of scopes available for a service.
+     *
      * @param appId
      * @param orgId
      * @param serviceId
      * @param version
      * @return
      */
-    public OAuthServiceScopeResponse getServiceVersionScopes(String appId, String orgId, String serviceId, String version){
+    public OAuthServiceScopeResponse getServiceVersionScopes(String appId, String orgId, String serviceId, String version) {
         //retrieve scopes for targeted service
         ServiceVersionBean serviceVersion = null;
         OAuthServiceScopeResponse serviceScopes = new OAuthServiceScopeResponse();
@@ -208,19 +195,19 @@ public class OAuthFacade {
         return serviceScopes;
     }
 
-    public String getOAuth2AuthorizeEndpoint(String orgId, String serviceId, String version){
+    public String getOAuth2AuthorizeEndpoint(String orgId, String serviceId, String version) {
         //there must be a gateway
-        try{
-            Preconditions.checkNotNull(query.listGateways().size()>0);
+        try {
+            Preconditions.checkNotNull(query.listGateways().size() > 0);
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
-            ServiceVersionBean svb = storage.getServiceVersion(orgId,serviceId,version);
+            ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);
             Preconditions.checkNotNull(svb);
             //construct the target url
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
-                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId,svb.getService().getBasepath(),version)))
-                    .append(KongConstants.KONG_OAUTH_ENDPOINT+"/");
-            return targetURI.toString()+KongConstants.KONG_OAUTH2_ENDPOINT_AUTH;
+                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))
+                    .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
+            return targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_AUTH;
             //response.setTokenUrl(targetURI.toString()+"token");
         } catch (StorageException e) {
             e.printStackTrace();
@@ -228,19 +215,19 @@ public class OAuthFacade {
         }
     }
 
-    public String getOAuth2TokenEndpoint(String orgId, String serviceId, String version){
+    public String getOAuth2TokenEndpoint(String orgId, String serviceId, String version) {
         //there must be a gateway
-        try{
-            Preconditions.checkNotNull(query.listGateways().size()>0);
+        try {
+            Preconditions.checkNotNull(query.listGateways().size() > 0);
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
-            ServiceVersionBean svb = storage.getServiceVersion(orgId,serviceId,version);
+            ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);
             Preconditions.checkNotNull(svb);
             //construct the target url
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
-                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId,svb.getService().getBasepath(),version)))
-                    .append(KongConstants.KONG_OAUTH_ENDPOINT+"/");
-            return targetURI.toString()+KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN;
+                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))
+                    .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
+            return targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN;
         } catch (StorageException e) {
             e.printStackTrace();
             return "error";
@@ -264,6 +251,45 @@ public class OAuthFacade {
             throw e;
         } catch (Exception e) {
             throw new PublishingException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Helper method, uses the username and password to perform a Resource owner password grant.
+     * This method is used in order to authenticate as well the end user through the registered API engine Service Provider.
+     * The following curl does the same:
+     * curl -v -k -X POST --user W6FcDk905p5jT5_C_DDec4hAwBMa:nyu7u2If6XBBcQXxi7M6wfHkoK4a
+     * -H "Content-Type: application/x-www-form-urlencoded;charset=UTF-8"
+     * -d 'grant_type=password&username=michallis&password=Mp12345&scope=read,write'
+     * https://idp.t1t.be:9443/oauth2/token
+     * <p>
+     * The scope parameter is optional!
+     *
+     * @return
+     */
+    public boolean authenticateResourceOwnerCredential(ProxyAuthRequest request) {
+        RestIDPConfigBean restConfig=null;
+        IDPRestServiceBuilder restServiceBuilder=null;
+        try {
+            //rest config
+            restConfig = new RestIDPConfigBean();
+            restConfig.setEndpoint(config.getIDPOAuthTokenEndpoint());
+            restConfig.setUsername(config.getIDPOAuthClientId());
+            restConfig.setPassword(config.getIDPOAuthClientSecret());
+            log.debug("auth config:{}",restConfig);
+            restServiceBuilder = new IDPRestServiceBuilder();
+            IDPClient idpClient = restServiceBuilder.getSecureService(restConfig, IDPClient.class);
+            Response response = idpClient.authenticateUser("password", request.getUsername(), request.getPassword(), "authenticate");
+            log.debug("Resource owner OAuth2 authentication towards IDP, response:{}", response.getStatus());
+            if (response.getStatus() == 200) return true;
+            else return false;
+        } catch (RetrofitError error){
+            log.debug("Authentication result:{}",error.getResponse());
+            log.debug("error stack:{}",error.getStackTrace());
+          return false;
+        } finally {
+            restConfig = null;
+            restServiceBuilder = null;
         }
     }
 }

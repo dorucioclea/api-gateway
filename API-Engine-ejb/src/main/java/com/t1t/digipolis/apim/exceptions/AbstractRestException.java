@@ -2,7 +2,7 @@ package com.t1t.digipolis.apim.exceptions;
 
 
 /**
- * Base class for all APIMan errors coming out of the REST layer.
+ * Base class for all API ENGINE errors coming out of the REST layer.
  *
  */
 public abstract class AbstractRestException extends RuntimeException {

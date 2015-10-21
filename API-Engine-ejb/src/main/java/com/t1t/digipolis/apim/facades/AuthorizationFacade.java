@@ -89,11 +89,11 @@ public class AuthorizationFacade {
             throw new NotAuthorizedException("wrong API key");
         //create consumer with optional key - and verify the consumer doesn't exist
         String consumerUniqueId = ConsumerConventionUtil.createAppConsumerUnqiueId(criteria.getOrgId(), criteria.getAppId(), criteria.getAppVersion(), criteria.getCustomId());
-        log.info("Creating consumer:{}",consumerUniqueId);
+        log.info("Creating consumer:{}", consumerUniqueId);
         KongConsumer appConsumer = getGateway().createConsumer(consumerUniqueId, criteria.getCustomId());
         //create apikey
         KongPluginBasicAuthResponse authResponse = getGateway().addConsumerBasicAuth(appConsumer.getId(), criteria.getUserLoginName(), criteria.getUserLoginPassword());
-        log.info("Consumer basic auth response:{}",authResponse);
+        log.info("Consumer basic auth response:{}", authResponse);
         //add consumer to Appversion -> API ACLs for all services used in application - at the moment only providing key auth and applying plans
         //or enforce plan policies for consumer (IPrestriction - RateLimit - RequestSizeLimit)
         Application gtwApp = new Application();
@@ -123,7 +123,7 @@ public class AuthorizationFacade {
         AuthConsumerBean resConsumer = new AuthConsumerBean();
         resConsumer.setCustomId(appConsumer.getCustomId());
         resConsumer.setUserId(appConsumer.getUsername());
-        resConsumer.setToken(BasicAuthUtils.getBasicAuthHeaderValueEncoded(authResponse.getUsername(),authResponse.getPassword()));
+        resConsumer.setToken(BasicAuthUtils.getBasicAuthHeaderValueEncoded(authResponse.getUsername(), authResponse.getPassword()));
         return resConsumer;
     }
 
@@ -246,7 +246,7 @@ public class AuthorizationFacade {
      *
      * @param criteria
      */
-    private void deleteConsumer(AbstractAuthConsumerRequest criteria){
+    private void deleteConsumer(AbstractAuthConsumerRequest criteria) {
         //get application version
         List<ContractSummaryBean> appContracts;
         ApplicationVersionBean avb = null;
