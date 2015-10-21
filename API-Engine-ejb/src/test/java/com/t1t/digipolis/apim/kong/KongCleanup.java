@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Created by michallispashidis on 09/09/15.
  */
-@Ignore
+@Ignore("Clean up script for Kong apis and consumers - the script does not delete already generated keys. Use with care.")
 public class KongCleanup {
     private static Logger log = LoggerFactory.getLogger(KongCleanup.class.getName());
     private static KongClient kongClient;

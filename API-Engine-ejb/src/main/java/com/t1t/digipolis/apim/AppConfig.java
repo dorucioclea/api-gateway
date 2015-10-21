@@ -83,6 +83,4 @@ public class AppConfig implements Serializable {
     public String getDefaultOrganization(){return config.getString(IConfig.DEFAULT_USER_ORGANIZATION);}
     public String getDefaultUserRoles(){return config.getString(IConfig.DEFAULT_USER_ROLES_FOR_DEFAULT_ORG);}
     public String getOAuthConsentURI(){return config.getString(IConfig.CONSENT_URI);}
-    public boolean getSecurityRestResource(){return config.getBoolean(IConfig.SECURITY_REST_RESORUCES);}
-    public boolean getSecurityRestAuthResource(){return config.getBoolean(IConfig.SECURITY_REST_AUTH_RESOURCES);}
 }

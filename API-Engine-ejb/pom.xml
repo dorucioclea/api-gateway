@@ -427,7 +427,7 @@
             <properties>
                 <appconfig.file>application</appconfig.file>
             </properties>
-            <build>
+<!--            <build>
                 <plugins>
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
@@ -437,7 +437,7 @@
                         </configuration>
                     </plugin>
                 </plugins>
-            </build>
+            </build>-->
         </profile>
         <profile>
             <id>t1t-dev</id>

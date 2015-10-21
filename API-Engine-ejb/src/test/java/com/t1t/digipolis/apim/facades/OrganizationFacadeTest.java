@@ -17,10 +17,10 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Created by michallispashidis on 9/09/15.
  */
-@RunWith(CdiRunner.class) // Runs the test with CDI-Unit
-@SupportEjb
+/*@RunWith(CdiRunner.class) // Runs the test with CDI-Unit
+@SupportEjb*/
 public class OrganizationFacadeTest {
-    @Inject
+/*    @Inject
     private OrganizationFacade organizationFacade;
     protected static EntityManagerFactory emf;
 
@@ -34,8 +34,8 @@ public class OrganizationFacadeTest {
 
     @AfterClass
     public static void closeEntityManagerFactory() {
-        emf.close();
-    }
+    emf.close();
+}
 
     @Before
     public void beginTransaction() {
@@ -64,5 +64,5 @@ public class OrganizationFacadeTest {
         NewOrganizationBean newOrg = new NewOrganizationBean();
         newOrg.setName("TestOrg");
         newOrg.setDescription("This is a junit test org");
-    }
+    }*/
 }

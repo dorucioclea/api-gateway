@@ -8,6 +8,7 @@ import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.junit.Assert.*;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -20,9 +21,14 @@ public class PluginFormTest {
         String json = "{\"remove\":{\"querystring\":[null],\"form\":[null],\"headers\":[\"someheader\"]},\"add\":{\"querystring\":[null],\"form\":[null],\"headers\":[\"another:test\",null]}}";
         Gson gson = new Gson();
         KongPluginRequestTransformer kongPluginRequestTransformer = gson.fromJson(json, KongPluginRequestTransformer.class);
+        assertNotNull(kongPluginRequestTransformer);
         _LOG.info(kongPluginRequestTransformer.toString());
+        assertNotNull(kongPluginRequestTransformer.getAdd());
+        assertNotNull(kongPluginRequestTransformer.getRemove());
         _LOG.info(kongPluginRequestTransformer.getAdd().toString());
         _LOG.info("" + kongPluginRequestTransformer.getAdd().getHeaders().size());
+        assertNotNull(kongPluginRequestTransformer.getAdd().getHeaders());
+        assertTrue(kongPluginRequestTransformer.getAdd().getHeaders().size()>0);
         for(String header:kongPluginRequestTransformer.getAdd().getHeaders()){
             _LOG.info("Header:{}",header);
             if(header==null)_LOG.info("found null header");
@@ -34,6 +40,6 @@ public class PluginFormTest {
         initPol.setPolicyJsonConfig(json);
         Policy resultPol = GatewayValidation.validateRequestTransformer(initPol);
         _LOG.info(resultPol.toString());
-
+        assertNotNull(resultPol);
     }
 }
