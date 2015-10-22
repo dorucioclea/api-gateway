@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.exceptions.RoleAlreadyExistsException;
+import com.t1t.digipolis.apim.exceptions.RoleNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.junit.Rule;
 import org.junit.Test;
@@ -93,7 +94,9 @@ public class RoleFacadeTest {
 
     @Test
     public void testGet() throws Exception {
-
+        when(idmStorage.getRole(anyString())).thenReturn(null);
+        thrown.expect(RoleNotFoundException.class);
+        roleFacade.get("someid");
     }
 
     @Test
