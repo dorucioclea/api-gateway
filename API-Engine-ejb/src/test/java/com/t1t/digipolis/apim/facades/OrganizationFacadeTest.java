@@ -17,8 +17,6 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Created by michallispashidis on 9/09/15.
  */
-/*@RunWith(CdiRunner.class) // Runs the test with CDI-Unit
-@SupportEjb*/
 public class OrganizationFacadeTest {
 /*    @Inject
     private OrganizationFacade organizationFacade;

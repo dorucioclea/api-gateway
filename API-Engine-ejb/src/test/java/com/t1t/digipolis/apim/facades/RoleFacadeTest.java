@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.facades;
 import com.t1t.digipolis.apim.beans.idm.NewRoleBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
+import com.t1t.digipolis.apim.beans.idm.UpdateRoleBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.exceptions.RoleAlreadyExistsException;
 import com.t1t.digipolis.apim.exceptions.RoleNotFoundException;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -78,11 +80,7 @@ public class RoleFacadeTest {
 
     @Test
     public void testDuplicateCreate() throws Exception {
-        Set<PermissionType> permissions = new HashSet<>();
-        permissions.add(PermissionType.appAdmin);
-        permissions.add(PermissionType.appEdit);
-        permissions.add(PermissionType.appView);
-        NewRoleBean newRoleBean = getDummyNewRoleBean(permissions);
+        NewRoleBean newRoleBean = getDummyNewRoleBean(getDefaultPermissionSet());
         RoleBean existingRole = new RoleBean();
         existingRole.setId(newRoleBean.getName());//to simulate same id
         when(securityContext.getCurrentUser()).thenReturn("admin");
@@ -93,20 +91,40 @@ public class RoleFacadeTest {
     }
 
     @Test
-    public void testGet() throws Exception {
+    public void testGetRoleNotFound() throws Exception {
         when(idmStorage.getRole(anyString())).thenReturn(null);
         thrown.expect(RoleNotFoundException.class);
         roleFacade.get("someid");
     }
 
     @Test
-    public void testUpdate() throws Exception {
+    public void testUpdateRoleNotFound() throws Exception {
+        when(idmStorage.getRole(anyString())).thenReturn(null);
+        thrown.expect(RoleNotFoundException.class);
+        roleFacade.update("someid", null);
+    }
 
+    @Test
+    public void testUpdate() throws Exception {
+        String updatedDesc = "updated description";
+        String updatedName = "updatedName";
+        when(idmStorage.getRole(anyString())).thenReturn(getDummyRoleBean(getDefaultPermissionSet()));
+        UpdateRoleBean updateRoleBean = new UpdateRoleBean();
+        updateRoleBean.setAutoGrant(false);
+        updateRoleBean.setDescription(updatedDesc);
+        updateRoleBean.setName(updatedName);
+        Set<PermissionType> permType = new HashSet<>();
+        permType.add(PermissionType.planAdmin);
+        updateRoleBean.setPermissions(permType);
+        roleFacade.update("someid", updateRoleBean);
+        verify(idmStorage).updateRole(anyObject());
     }
 
     @Test
     public void testDelete() throws Exception {
-
+        when(idmStorage.getRole(anyString())).thenReturn(getDummyRoleBean(getDefaultPermissionSet()));
+        roleFacade.delete(getDummyRoleBean(getDefaultPermissionSet()).getId());
+        verify(idmStorage).deleteRole(anyObject());
     }
 
     @Test
@@ -126,5 +144,24 @@ public class RoleFacadeTest {
         newRoleBean.setName("RoleName");
         newRoleBean.setPermissions(permissions);
         return newRoleBean;
+    }
+
+    private RoleBean getDummyRoleBean(Set<PermissionType>permissions){
+        RoleBean roleBean = new RoleBean();
+        roleBean.setAutoGrant(true);
+        roleBean.setDescription("SomeRole");
+        roleBean.setName("RoleName");
+        roleBean.setPermissions(permissions);
+        roleBean.setCreatedBy("admin");
+        roleBean.setCreatedOn(new Date());
+        return roleBean;
+    }
+
+    private Set<PermissionType> getDefaultPermissionSet(){
+        Set<PermissionType> permissions = new HashSet<>();
+        permissions.add(PermissionType.appAdmin);
+        permissions.add(PermissionType.appEdit);
+        permissions.add(PermissionType.appView);
+        return permissions;
     }
 }
