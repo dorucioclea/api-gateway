@@ -622,11 +622,6 @@
                 <version>${version.org.apache.commons.commons-pool2}</version>
             </dependency>
             <dependency>
-                <groupId>commons-codec</groupId>
-                <artifactId>commons-codec</artifactId>
-                <version>${version.org.apache.commons.codec}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.directory.server</groupId>
                 <artifactId>apacheds-all</artifactId>
                 <version>${version.org.apache.directory.server}</version>
