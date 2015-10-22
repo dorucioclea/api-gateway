@@ -228,7 +228,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             rval = query.auditEntity(organizationId, null, null, null, paging);
             return rval;
         } catch (AbstractRestException e) {
-
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);

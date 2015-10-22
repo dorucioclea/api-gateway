@@ -1,9 +1,11 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.t1t.digipolis.apim.beans.apps.NewApplicationBean;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
+import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
@@ -136,12 +138,34 @@ public class OrganizationFacadeTest {
 
     @Test
     public void testActivity() throws Exception {
+        orgFacade.activity("someorg",2,2);
+        PagingBean paging = new PagingBean();
+        paging.setPage(2);
+        paging.setPageSize(2);
+        verify(query).auditEntity("someorg",null,null,null,paging);
+    }
 
+    @Test
+    public void testActivityLowerLimit() throws Exception {
+        orgFacade.activity("someorg",0,0);
+        PagingBean paging = new PagingBean();
+        paging.setPage(1);
+        paging.setPageSize(20);
+        verify(query).auditEntity("someorg",null,null,null,paging);
+    }
+
+    @Test
+    public void testCreateAppNotAuthorized() throws Exception {
+        when(securityContext.hasPermission(anyObject(),anyString())).thenReturn(false);
+        thrown.expect(NotAuthorizedException.class);
+        orgFacade.createApp("someorg", new NewApplicationBean());
     }
 
     @Test
     public void testCreateApp() throws Exception {
-
+        when(securityContext.hasPermission(anyObject(),anyString())).thenReturn(false);
+        thrown.expect(NotAuthorizedException.class);
+        orgFacade.createApp("someorg", new NewApplicationBean());
     }
 
     @Test
