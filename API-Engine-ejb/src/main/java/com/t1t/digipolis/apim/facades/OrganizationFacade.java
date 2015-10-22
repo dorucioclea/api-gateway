@@ -129,16 +129,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         SearchCriteriaBean criteria = new SearchCriteriaBean();
         criteria.setPage(1);
         criteria.setPageSize(100);
-        criteria.addFilter("autoGrant", "true", SearchCriteriaFilterOperator.bool_eq); //$NON-NLS-1$ //$NON-NLS-2$
+        criteria.addFilter("autoGrant", "true", SearchCriteriaFilterOperator.bool_eq);
         try {
             autoGrantedRoles = idmStorage.findRoles(criteria).getBeans();
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
 
-        if ("true".equals(System.getProperty("apiman.manager.require-auto-granted-org", "true"))) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        if ("true".equals(System.getProperty("apim.manager.require-auto-granted-org", "true"))) {
             if (autoGrantedRoles.isEmpty()) {
-                throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable")); //$NON-NLS-1$
+                throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable"));
             }
         }
         OrganizationBean orgBean = new OrganizationBean();
@@ -180,7 +180,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (organizationBean == null) {
                 throw ExceptionFactory.organizationNotFoundException(organizationId);
             }
-            log.debug(String.format("Got organization %s: %s", organizationBean.getName(), organizationBean)); //$NON-NLS-1$
+            log.debug(String.format("Got organization %s: %s", organizationBean.getName(), organizationBean));
             return organizationBean;
         } catch (AbstractRestException e) {
             throw e;
@@ -199,18 +199,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             EntityUpdatedData auditData = new EntityUpdatedData();
             if (AuditUtils.valueChanged(orgForUpdate.getDescription(), bean.getDescription())) {
-                auditData.addChange("description", orgForUpdate.getDescription(), bean.getDescription()); //$NON-NLS-1$
+                auditData.addChange("description", orgForUpdate.getDescription(), bean.getDescription());
                 orgForUpdate.setDescription(bean.getDescription());
             }
             storage.updateOrganization(orgForUpdate);
             storage.createAuditEntry(AuditUtils.organizationUpdated(orgForUpdate, auditData, securityContext));
 
-            log.debug(String.format("Updated organization %s: %s", orgForUpdate.getName(), orgForUpdate)); //$NON-NLS-1$
+            log.debug(String.format("Updated organization %s: %s", orgForUpdate.getName(), orgForUpdate));
         } catch (AbstractRestException e) {
-
             throw e;
         } catch (Exception e) {
-
             throw new SystemErrorException(e);
         }
     }

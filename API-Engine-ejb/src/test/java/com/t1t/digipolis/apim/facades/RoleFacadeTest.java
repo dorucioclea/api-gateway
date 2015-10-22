@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.beans.idm.NewRoleBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateRoleBean;
+import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.exceptions.RoleAlreadyExistsException;
 import com.t1t.digipolis.apim.exceptions.RoleNotFoundException;
@@ -129,7 +130,9 @@ public class RoleFacadeTest {
 
     @Test
     public void testList() throws Exception {
-
+        when(idmStorage.findRoles(anyObject())).thenReturn(new SearchResultsBean<RoleBean>());
+        roleFacade.list();
+        verify(idmStorage).findRoles(anyObject());
     }
 
     @Test
