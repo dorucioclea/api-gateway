@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.core;
 
+import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
@@ -10,6 +11,8 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.*;
+import com.t1t.digipolis.apim.beans.support.SupportBean;
+import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 
 import java.util.List;
@@ -308,5 +311,34 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<OAuthAppBean> listApplicationOAuthCredentials(Long appVersionId) throws StorageException;
+
+    /**
+     * Lists all announcement related to a service in a given organization.
+     *
+     * @param organizationId
+     * @param serviceId
+     * @return
+     * @throws StorageException
+     */
+    public List<AnnouncementBean> listServiceAnnouncements(String organizationId, String serviceId) throws StorageException;
+
+    /**
+     * Lists all support tickets available for a given service.
+     *
+     * @param organizationId
+     * @param serviceId
+     * @return
+     * @throws StorageException
+     */
+    public List<SupportBean> listServiceSupportTickets(String organizationId, String serviceId) throws StorageException;
+
+    /**
+     * Lists all support ticket comments for a given service ticket.
+     *
+     * @param supportBeanId
+     * @return
+     * @throws StorageException
+     */
+    public List<SupportComment> listServiceSupportComment(Long supportBeanId)throws StorageException;
 
 }

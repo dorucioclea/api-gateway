@@ -15,6 +15,7 @@ public class SystemStatusBean implements Serializable {
     private String description;
     private String moreInfo;
     private String version;
+    private String environment;
     private String builtOn;
     private boolean up;
 
@@ -50,15 +51,6 @@ public class SystemStatusBean implements Serializable {
      */
     public void setUp(boolean up) {
         this.up = up;
-    }
-
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    @SuppressWarnings("nls")
-    public String toString() {
-        return "SystemStatusBean [up=" + up + ", version=" + version + "]";
     }
 
     /**
@@ -124,6 +116,10 @@ public class SystemStatusBean implements Serializable {
         return moreInfo;
     }
 
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
     /**
      * @param moreInfo the moreInfo to set
      */
@@ -131,4 +127,25 @@ public class SystemStatusBean implements Serializable {
         this.moreInfo = moreInfo;
     }
 
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
+
+    @Override
+    public String toString() {
+        return "SystemStatusBean{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", moreInfo='" + moreInfo + '\'' +
+                ", version='" + version + '\'' +
+                ", environment='" + environment + '\'' +
+                ", builtOn='" + builtOn + '\'' +
+                ", up=" + up +
+                '}';
+    }
 }

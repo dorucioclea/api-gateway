@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
@@ -45,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
+import javax.inject.Inject;
 import java.util.*;
 
 /**
@@ -58,35 +60,22 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     private GatewayBean gatewayBean;
     private IStorage storage;
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static Config config;
     private static String metricsURI;
     private static String AUTH_API_KEY = "apikey";
-
-    static {
-        metricsURI = null;
-        config = ConfigFactory.load();
-        if(config!=null){
-            metricsURI = new StringBuffer("")
-                    .append(config.getString(IConfig.METRICS_SCHEME))
-                    .append("://")
-                    .append(config.getString(IConfig.METRICS_DNS))
-                    .append((!StringUtils.isEmpty(config.getString(IConfig.METRICS_PORT)))?":"+config.getString(IConfig.METRICS_PORT):"")
-                    .append("/").toString();
-        }
-    }
 
     /**
      * Constructor.
      *
      * @param httpClient the http client
      */
-    public GatewayClient(KongClient httpClient, GatewayBean gateway,IStorage storage) {
+    public GatewayClient(KongClient httpClient, GatewayBean gateway,IStorage storage,String metricsURI) {
         Preconditions.checkNotNull(httpClient);
         Preconditions.checkNotNull(storage);
         Preconditions.checkNotNull(gateway);
         this.httpClient = httpClient;
         this.gatewayBean = gateway;
         this.storage = storage;
+        this.metricsURI = metricsURI;
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {
@@ -221,17 +210,17 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         Preconditions.checkNotNull(service);
         //create the service using path, and target_url
         KongApi api = new KongApi();
-        api.setStripRequestPath(true);
+        api.setStripPath(true);
         //api.setPublicDns();
         String nameAndDNS = ServiceConventionUtil.generateServiceUniqueName(service);
         //name wil be: organization.application.version
         api.setName(nameAndDNS);
         //version wil be: organization.application.version
-        api.setRequestHost(nameAndDNS);
+        api.setPublicDns(nameAndDNS);
         //real URL to target
-        api.setUpstreamUrl(service.getEndpoint());
+        api.setTargetUrl(service.getEndpoint());
         //context path that will be stripped away
-        api.setRequestPath(validateServicePath(service));
+        api.setPath(validateServicePath(service));
         log.info("Send to Kong:{}", api.toString());
         //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
         try{
@@ -263,22 +252,23 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                     Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
                     switch(policies){
                         //all policies can be available here
-                        case BASICAUTHENTICATION: createServicePolicy(api, GatewayValidation.validateBasicAuth(policy), Policies.BASICAUTHENTICATION.getKongIdentifier(),Policies.BASICAUTHENTICATION.getClazz());break;
-                        case CORS: createServicePolicy(api, GatewayValidation.validateCORS(policy), Policies.CORS.getKongIdentifier(),Policies.CORS.getClazz());customCorsFlag=true;break;
-                        case FILELOG: createServicePolicy(api, GatewayValidation.validateFileLog(policy), Policies.FILELOG.getKongIdentifier(),Policies.FILELOG.getClazz());break;
-                        case HTTPLOG: createServicePolicy(api, GatewayValidation.validateHTTPLog(policy), Policies.HTTPLOG.getKongIdentifier(),Policies.HTTPLOG.getClazz());customHttp=true;break;
-                        case UDPLOG: createServicePolicy(api, GatewayValidation.validateUDPLog(policy), Policies.UDPLOG.getKongIdentifier(),Policies.UDPLOG.getClazz());break;
-                        case TCPLOG: createServicePolicy(api, GatewayValidation.validateTCPLog(policy), Policies.TCPLOG.getKongIdentifier(),Policies.TCPLOG.getClazz());break;
-                        case IPRESTRICTION: createServicePolicy(api, GatewayValidation.validateIPRestriction(policy), Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
-                        case KEYAUTHENTICATION: createServicePolicy(api, GatewayValidation.validateKeyAuth(policy), Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
-                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, GatewayValidation.validateOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
+                        case BASICAUTHENTICATION: createServicePolicy(api, policy, Policies.BASICAUTHENTICATION.getKongIdentifier(),Policies.BASICAUTHENTICATION.getClazz());break;
+                        case CORS: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.CORS.getClazz());customCorsFlag=true;break;
+                        case FILELOG: createServicePolicy(api, policy, Policies.FILELOG.getKongIdentifier(),Policies.FILELOG.getClazz());break;
+                        case HTTPLOG: createServicePolicy(api,policy, Policies.HTTPLOG.getKongIdentifier(),Policies.HTTPLOG.getClazz());customHttp=true;break;
+                        case UDPLOG: createServicePolicy(api, policy, Policies.UDPLOG.getKongIdentifier(),Policies.UDPLOG.getClazz());break;
+                        case TCPLOG: createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(),Policies.TCPLOG.getClazz());break;
+                        case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
+                        case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
+                        //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
+                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, GatewayValidation.validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
                             postOAuth2Actions(service, policy,config);break;//upon transformation we use another enhanced object for json deserialization
-                        case RATELIMITING: createServicePolicy(api, GatewayValidation.validateRateLimiting(policy), Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
-                        case REQUESTSIZELIMITING: createServicePolicy(api, GatewayValidation.validateRequestSizeLimiting(policy), Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
-                        case REQUESTTRANSFORMER: createServicePolicy(api, GatewayValidation.validateRequestTransformer(policy), Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
-                        case RESPONSETRANSFORMER: createServicePolicy(api, GatewayValidation.validateResponseTransformer(policy), Policies.RESPONSETRANSFORMER.getKongIdentifier(),Policies.RESPONSETRANSFORMER.getClazz());break;
-                        case SSL: createServicePolicy(api, GatewayValidation.validateSSL(policy), Policies.CORS.getKongIdentifier(),Policies.SSL.getClazz());break;
-                        case ANALYTICS: createServicePolicy(api,GatewayValidation.validateAnalytics(policy),Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());break;
+                        case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
+                        case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
+                        case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
+                        case RESPONSETRANSFORMER: createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(),Policies.RESPONSETRANSFORMER.getClazz());break;
+                        case SSL: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.SSL.getClazz());break;
+                        case ANALYTICS: createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());break;
                         default:break;
                     }
                 }
@@ -311,7 +301,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
             Gson gson = new Gson();
             //retrieve scope info from policy json
             KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);//original request - we need this for the scope descriptions
-            KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(config.getConfig().toString(),KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
+            KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(config.getValue().toString(),KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
             ServiceVersionBean svb = storage.getServiceVersion(service.getOrganizationId(), service.getServiceId(), service.getVersion());
             svb.setProvisionKey(enhancedOAuthValue.getProvisionKey());
             Map<String,String> scopeMap = new HashMap<>();
@@ -337,7 +327,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                 .withMethod(KongPluginHttpLog.Method.POST);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.HTTPLOG.getKongIdentifier())
-                .withConfig(httpPolicy);
+                .withValue(httpPolicy);
         httpClient.createPluginConfig(api.getId(),config);
     }
 
@@ -352,7 +342,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                 .withKeyNames(Arrays.asList(AUTH_API_KEY));
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.KEYAUTHENTICATION.getKongIdentifier())
-                .withConfig(keyAuthPolicy);
+                .withValue(keyAuthPolicy);
         httpClient.createPluginConfig(api.getId(),config);
     }
 
@@ -361,12 +351,12 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      * @param api
      */
     private void registerDefaultCORSPolicy(KongApi api) {
-        List<Object> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY);
+        List<String> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY, "Authorization");
         KongPluginCors corsPolicy = new KongPluginCors(); //default values are ok
         corsPolicy.setHeaders(headers);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.CORS.getKongIdentifier())
-                .withConfig(corsPolicy);
+                .withValue(corsPolicy);
         httpClient.createPluginConfig(api.getId(),config);
     }
 
@@ -469,6 +459,10 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         return httpClient.getConsumerOAuthCredentials(consumerId);
     }
 
+    public void deleteOAuthConsumerCredential(String consumerId, String oauthPluginId){
+        httpClient.deleteOAuth2Credential(consumerId, oauthPluginId);
+    }
+
     /*Service policies*/
 
     /**
@@ -486,7 +480,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(kongIdentifier)//set required kong identifier
-                .withConfig(plugin);
+                .withValue(plugin);
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute
         config = httpClient.createPluginConfig(api.getId(),config);
@@ -510,7 +504,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         KongPluginConfig config = new KongPluginConfig()
                 .withName(kongIdentifier)//set required kong identifier
                 .withConsumerId(consumer.getId())
-                .withConfig(plugin);
+                .withValue(plugin);
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute
         config = httpClient.createPluginConfig(api.getId(),config);

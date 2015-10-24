@@ -10,14 +10,15 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -29,8 +30,9 @@ import java.util.Set;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class CurrentUserFacade {
-    @Inject @APIEngineContext private Logger log;
-    @Inject @APIEngineContext private EntityManager em;
+    private static Logger log = LoggerFactory.getLogger(CurrentUserFacade.class.getName());
+    @PersistenceContext
+    private EntityManager em;
     @Inject private ISecurityContext securityContext;
     @Inject private IStorageQuery query;
     @Inject private IIdmStorage idmStorage;

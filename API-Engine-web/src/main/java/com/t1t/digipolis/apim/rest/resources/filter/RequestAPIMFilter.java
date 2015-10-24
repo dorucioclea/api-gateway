@@ -24,6 +24,10 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     //exclusions
     private static final String REDIRECT_PATH = "/users/idp/redirect";
     private static final String IDP_CALLBACK = "/users/idp/callback";
+    private static final String IDP_SLO = "/users/idp/slo";
+    private static final String SYSTEM_INFO = "/system/status";
+    private static final String SWAGGER_DOC_URI = "API-Engine-web";
+    private static final String SWAGGER_DOC_JSON = "/API-Engine-web/v1/swagger.json";
 
     //Security context
     @Inject
@@ -32,11 +36,16 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         //dev mode
+        LOG.debug("Security context - request:{}",containerRequestContext.getUriInfo().getRequestUri().getPath());
         if (!JaxRsActivator.securedMode) {
             securityContext.setCurrentUser("admin");
-        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().endsWith(REDIRECT_PATH)) {
+        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(REDIRECT_PATH)) {
             ;//allow access without setting security context.
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_CALLBACK)) {
+            ;//allow from idp
+        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_SLO)) {
+            ;//allow from idp
+        } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(SYSTEM_INFO)) {
             ;//allow from idp
         } else {
             //Get the authorization header

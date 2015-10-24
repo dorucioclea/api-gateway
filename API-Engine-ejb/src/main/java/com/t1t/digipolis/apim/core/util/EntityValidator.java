@@ -8,6 +8,8 @@ import com.t1t.digipolis.apim.core.IServiceValidator;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import java.util.List;
 
@@ -15,6 +17,8 @@ import java.util.List;
  * Validates the state of various entities, including services and applications.
  *
  */
+@ApplicationScoped
+@Default
 public class EntityValidator implements IServiceValidator, IApplicationValidator {
 
     @Inject

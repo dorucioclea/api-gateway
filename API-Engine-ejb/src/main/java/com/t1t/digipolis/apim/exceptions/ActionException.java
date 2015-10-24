@@ -41,7 +41,6 @@ public class ActionException extends AbstractUserException {
     }
     
     /**
-     * @see io.apiman.manager.api.rest.contract.exceptions.AbstractRestException#getMoreInfoUrl()
      */
     @Override
     public String getMoreInfoUrl() {
@@ -49,7 +48,6 @@ public class ActionException extends AbstractUserException {
     }
 
     /**
-     * @see io.apiman.manager.api.rest.contract.exceptions.AbstractRestException#getHttpCode()
      */
     @Override
     public int getHttpCode() {

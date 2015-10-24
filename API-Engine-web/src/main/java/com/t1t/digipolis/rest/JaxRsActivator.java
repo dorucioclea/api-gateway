@@ -1,4 +1,5 @@
 package com.t1t.digipolis.rest;
+
 import com.t1t.digipolis.apim.rest.impl.mappers.RestExceptionMapper;
 import com.t1t.digipolis.apim.rest.resources.filter.RequestAPIMFilter;
 import com.t1t.digipolis.rest.resources.*;

@@ -16,13 +16,10 @@ import com.t1t.digipolis.apim.exceptions.OrganizationNotFoundException;
 import com.t1t.digipolis.apim.facades.SearchFacade;
 import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
 import com.t1t.digipolis.apim.rest.resources.ISearchResource;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.jboss.resteasy.annotations.Body;
-import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -40,9 +37,6 @@ public class SearchResource implements ISearchResource {
     IStorage storage;
     @Inject
     IStorageQuery query;
-    @Inject
-    @APIEngineContext
-    Logger log;
     @Inject
     private SearchFacade searchFacade;
 

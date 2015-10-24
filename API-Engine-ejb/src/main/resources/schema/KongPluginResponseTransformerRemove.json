@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "headers": {
+      "id":"headers",
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "json": {
+      "id":"json",
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}

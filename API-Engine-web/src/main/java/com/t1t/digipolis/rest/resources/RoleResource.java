@@ -1,14 +1,12 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.idm.NewRoleBean;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateRoleBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
@@ -16,19 +14,16 @@ import com.t1t.digipolis.apim.facades.RoleFacade;
 import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.Date;
 import java.util.List;
 
 @Api(value = "/roles", description = "The Role API. Used to manage roles. Note: not used to manage users or user membership in roles. This API simply provides a way to create and manage role definitions. Typically this API is only available to system admins.")
@@ -40,8 +35,6 @@ public class RoleResource implements IRoleResource {
     IIdmStorage idmStorage;
     @Inject
     ISecurityContext securityContext;
-    @Inject @APIEngineContext
-    Logger log;
     @Inject private RoleFacade roleFacade;
     /**
      * Constructor.

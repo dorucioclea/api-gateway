@@ -7,13 +7,14 @@ import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
@@ -26,13 +27,9 @@ import java.util.Set;
  * A base class that JPA storage impls can extend.
  */
 public abstract class AbstractJpaStorage {
+    private static Logger log = LoggerFactory.getLogger(AbstractJpaStorage.class.getName());
 
-    @Inject
-    @APIEngineContext
-    private Logger log;
-
-    @Inject
-    @APIEngineContext
+    @PersistenceContext
     protected EntityManager em;
 
     /**

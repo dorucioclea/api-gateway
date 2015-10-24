@@ -12,7 +12,7 @@ curl -X POST http://apim.t1t.be:8001/apis/dev.apiengine.v1/plugins \
     --data "name=cors" \
     --data "value.origin=*" \
     --data "value.methods=GET,HEAD,PUT,PATCH,POST,DELETE" \
-    --data "value.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey" \
+    --data "value.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey, Authorization" \
     --data "value.credentials=true" \
     --data "value.max_age=3600"
 
@@ -58,7 +58,7 @@ curl -X POST http://apim.t1t.be:8001/apis/dev.apiengineauth.v1/plugins \
     --data "name=cors" \
     --data "value.origin=*" \
     --data "value.methods=GET,HEAD,PUT,PATCH,POST,DELETE" \
-    --data "value.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey" \
+    --data "value.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey, Authorization" \
     --data "value.credentials=true" \
     --data "value.max_age=3600"
 
@@ -88,7 +88,7 @@ curl -X POST http://apim.t1t.be:8001/apis/dev.apiengineauth.consent/plugins \
     --data "name=cors" \
     --data "value.origin=*" \
     --data "value.methods=GET,HEAD,PUT,PATCH,POST,DELETE" \
-    --data "value.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey" \
+    --data "value.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey, Authorization" \
     --data "value.credentials=true" \
     --data "value.max_age=3600"
 

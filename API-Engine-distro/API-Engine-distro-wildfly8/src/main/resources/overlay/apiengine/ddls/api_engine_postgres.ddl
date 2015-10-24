@@ -12,6 +12,12 @@ CREATE TABLE applications (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT
 
 CREATE TABLE auditlog (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, data TEXT NULL, entity_id VARCHAR(255) NULL, entity_type VARCHAR(255) NOT NULL, entity_version VARCHAR(255) NULL, organization_id VARCHAR(255) NOT NULL, what VARCHAR(255) NOT NULL, who VARCHAR(255) NOT NULL);
 
+CREATE TABLE announcements (id BIGINT NOT NULL,organization_id VARCHAR(255) NOT NULL, service_id VARCHAR(255) NOT NULL, title VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, description TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL);
+
+CREATE TABLE support (id BIGINT NOT NULL,organization_id VARCHAR(255) NOT NULL, service_id VARCHAR(255) NOT NULL, title VARCHAR(255) NOT NULL,status VARCHAR(255) NOT NULL, description TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL, total_comments INT);
+
+CREATE TABLE support_comments (id BIGINT NOT NULL, support_id BIGINT NOT NULL, comment TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL);
+
 CREATE TABLE contracts (id BIGINT NOT NULL, apikey VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, appv_id BIGINT NULL, planv_id BIGINT NULL, svcv_id BIGINT NULL);
 
 CREATE TABLE endpoint_properties (service_version_id BIGINT NOT NULL, value VARCHAR(255) NULL, name VARCHAR(255) NOT NULL);
@@ -42,13 +48,17 @@ CREATE TABLE service_defs (id BIGINT NOT NULL, data OID, service_version_id BIGI
 
 CREATE TABLE service_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, definition_type VARCHAR(255) NULL, endpoint VARCHAR(255) NULL, endpoint_type VARCHAR(255) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, public_service BOOLEAN NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NULL, service_id VARCHAR(255) NULL, service_org_id VARCHAR(255) NULL, provision_key VARCHAR(255), onlinedoc VARCHAR(255));
 
-CREATE TABLE services (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, name VARCHAR(255) NOT NULL, basepath VARCHAR(255) NOT NULL, organization_id VARCHAR(255) NOT NULL, logo OID);
+CREATE TABLE services (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, name VARCHAR(255) NOT NULL, basepath VARCHAR(255) NOT NULL, organization_id VARCHAR(255) NOT NULL,terms TEXT , logo OID);
 
 CREATE TABLE svc_gateways (service_version_id BIGINT NOT NULL, gateway_id VARCHAR(255) NOT NULL);
 
 CREATE TABLE svc_plans (service_version_id BIGINT NOT NULL, plan_id VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL);
 
 CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on TIMESTAMP WITHOUT TIME ZONE NULL, admin BOOL DEFAULT FALSE,company VARCHAR(255),location VARCHAR(255),website VARCHAR(255),bio TEXT, pic OID );
+
+CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organization_id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL);
+
+ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_id,user_id);
 
 ALTER TABLE endpoint_properties ADD PRIMARY KEY (service_version_id, name);
 
@@ -61,6 +71,8 @@ ALTER TABLE application_versions ADD PRIMARY KEY (id);
 ALTER TABLE applications ADD PRIMARY KEY (id, organization_id);
 
 ALTER TABLE auditlog ADD PRIMARY KEY (id);
+
+ALTER TABLE announcements ADD PRIMARY KEY (id);
 
 ALTER TABLE contracts ADD PRIMARY KEY (id);
 
@@ -91,6 +103,10 @@ ALTER TABLE service_versions ADD PRIMARY KEY (id);
 ALTER TABLE services ADD PRIMARY KEY (id, organization_id);
 
 ALTER TABLE users ADD PRIMARY KEY (username);
+
+ALTER TABLE support ADD PRIMARY KEY (id);
+
+ALTER TABLE support_comments ADD PRIMARY KEY (id);
 
 ALTER TABLE services ADD CONSTRAINT FK_31hj3xmhp1wedxjh5bklnlg15 FOREIGN KEY (organization_id) REFERENCES organizations (id);
 
@@ -138,9 +154,15 @@ ALTER TABLE service_defs ADD CONSTRAINT UK_service_defs_1 UNIQUE (service_versio
 
 ALTER TABLE contracts ADD CONSTRAINT UK_contracts_1 UNIQUE (appv_id, svcv_id, planv_id);
 
+ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id);
+
 CREATE INDEX IDX_auditlog_1 ON auditlog(who);
 
 CREATE INDEX IDX_auditlog_2 ON auditlog(organization_id, entity_id, entity_version, entity_type);
+
+CREATE INDEX IDX_announcements_1 ON announcements(created_by);
+
+CREATE INDEX IDX_announcements_2 ON announcements(organization_id,service_id);
 
 CREATE INDEX IDX_users_1 ON users(username);
 
@@ -173,6 +195,12 @@ CREATE INDEX IDX_FK_contracts_p ON contracts(planv_id);
 CREATE INDEX IDX_FK_contracts_s ON contracts(svcv_id);
 
 CREATE INDEX IDX_FK_contracts_a ON contracts(appv_id);
+
+CREATE INDEX IDX_FK_followers_a ON followers(ServiceBean_id,ServiceBean_organization_id);
+
+CREATE INDEX IDX_support_1 ON support(organization_id,service_id);
+
+CREATE INDEX IDX_support_comments_1 ON support(id);
 
 CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organization_id VARCHAR(255) NOT NULL,category VARCHAR(255),FOREIGN KEY (ServiceBean_id, ServiceBean_organization_id) REFERENCES services (id, organization_id));
 
@@ -394,7 +422,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
             "scope":{
                 "title": "Scope",
                 "type": "string",
-                "description": "Provide the scope identifier that will be available to the end user."
+                "pattern": "^[a-z,A-Z,-]+$",
+                "description": "Provide the scope identifier that will be available to the end user (use only lowercase characters and no special characters)."
             },
             "scope_desc":{
                 "title": "Scope Description",

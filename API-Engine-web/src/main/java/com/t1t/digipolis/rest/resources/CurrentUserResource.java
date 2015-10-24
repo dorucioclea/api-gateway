@@ -8,26 +8,19 @@ import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.facades.CurrentUserFacade;
 import com.t1t.digipolis.apim.rest.resources.ICurrentUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Implementation of the Current User API.
@@ -43,9 +36,6 @@ public class CurrentUserResource implements ICurrentUserResource {
     private IStorageQuery query;
     @Inject
     private ISecurityContext securityContext;
-    @Inject
-    @APIEngineContext
-    private Logger log;
     @Inject private CurrentUserFacade currentUserFacade;
 
     /**
@@ -135,6 +125,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     })
     @GET
     @Path("/services")
+    @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceSummaryBean> getServices() {
         return currentUserFacade.getServices();
     }

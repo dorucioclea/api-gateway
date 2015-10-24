@@ -6,21 +6,24 @@
   "properties": {
     "methods": {
       "type": "array",
-      "enum": [
-        "HEAD",
-        "GET",
-        "POST",
-        "PUT",
-        "PATCH",
-        "DELETE"
-      ]
+      "items": {
+        "enum": [
+          "HEAD",
+          "GET",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE"
+        ]
+      }
     },
     "credentials": {
       "type": "boolean",
       "default": false
     },
     "exposed_headers": {
-      "type": "array"
+      "type": "array",
+      "items": {"type": "string"}
     },
     "origin": {
       "type": "string"
@@ -33,7 +36,8 @@
       "default": false
     },
     "headers": {
-      "type": "array"
+      "type": "array",
+      "items": {"type": "string"}
     }
   }
 }

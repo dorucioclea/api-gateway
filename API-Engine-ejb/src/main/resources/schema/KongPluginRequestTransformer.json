@@ -2,39 +2,17 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "id": "/",
   "type": "object",
-  "javaInterfaces" : ["com.t1t.digipolis.kong.model.KongConfigValue"],
+  "javaInterfaces": ["com.t1t.digipolis.kong.model.KongConfigValue"],
   "properties": {
     "remove": {
-      "type": "table",
-      "schema": {
-        "fields": {
-          "querystring": {
-            "type": "array"
-          },
-          "form": {
-            "type": "array"
-          },
-          "headers": {
-            "type": "array"
-          }
-        }
-      }
+      "id": "KongPluginRequestTransformerRemove",
+      "type": "object",
+      "$ref":"KongPluginRequestTransformerRemove.json"
     },
     "add": {
-      "type": "table",
-      "schema": {
-        "fields": {
-          "querystring": {
-            "type": "array"
-          },
-          "form": {
-            "type": "array"
-          },
-          "headers": {
-            "type": "array"
-          }
-        }
-      }
+      "id": "KongPluginRequestTransformerAdd",
+      "type": "object",
+      "$ref":"KongPluginRequestTransformerAdd.json"
     }
   }
 }

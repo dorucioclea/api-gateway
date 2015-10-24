@@ -12,14 +12,15 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Set;
 
@@ -29,11 +30,9 @@ import java.util.Set;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class SearchFacade {
-    @Inject
-    @APIEngineContext
-    private Logger log;
-    @Inject
-    @APIEngineContext
+    private static Logger log = LoggerFactory.getLogger(SearchFacade.class.getName());
+
+    @PersistenceContext
     private EntityManager em;
     @Inject
     private ISecurityContext securityContext;

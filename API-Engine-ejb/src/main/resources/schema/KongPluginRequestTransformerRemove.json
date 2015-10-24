@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "querystring": {
+      "id":"querystring",
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "form": {
+      "id":"form",
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "headers": {
+      "id":"headers",
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}

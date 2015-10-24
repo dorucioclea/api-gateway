@@ -36,7 +36,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
         } else {
             throw new UserNotFoundException("Unauthorized application access");
         }
-        LOG.info("Logged-in application:{}", currentApplication);
+        LOG.debug("Logged-in application:{}", currentApplication);
         return currentApplication;
     }
 

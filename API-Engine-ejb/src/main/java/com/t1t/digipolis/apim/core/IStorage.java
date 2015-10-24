@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.core;
 
+import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
@@ -15,6 +16,8 @@ import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.support.SupportBean;
+import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 
 import java.io.InputStream;
@@ -43,6 +46,9 @@ public interface IStorage {
     public void createPolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
     public void createAuditEntry(AuditEntryBean entry) throws StorageException;
     public void createApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException;
+    public void createServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
+    public void createServiceSupport(SupportBean supportBean) throws StorageException;
+    public void createServiceSupportComment(SupportComment commentBean) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -60,6 +66,9 @@ public interface IStorage {
     public void updateGateway(GatewayBean gateway) throws StorageException;
     public void updatePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
     public void updateApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException;
+    public void updateServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
+    public void updateServiceSupport(SupportBean supportBean) throws StorageException;
+    public void updateServiceSupportComment(SupportComment commentBean) throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
@@ -79,6 +88,9 @@ public interface IStorage {
     public void deletePlugin(PluginBean plugin) throws StorageException;
     public void deletePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
     public void deleteApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException;
+    public void deleteServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
+    public void deleteServiceSupport(SupportBean supportBean) throws StorageException;
+    public void deleteServiceSupportComment(SupportComment commentBean) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -99,6 +111,9 @@ public interface IStorage {
     public PluginBean getPlugin(String groupId, String artifactId) throws StorageException;
     public PolicyDefinitionBean getPolicyDefinition(String id) throws StorageException;
     public OAuthAppBean getApplicationOAuthCredentials(String id) throws StorageException;
+    public AnnouncementBean getServiceAnnouncement(Long id) throws StorageException;
+    public SupportBean getServiceSupport(Long id) throws StorageException;
+    public SupportComment getServiceSupportComment(Long id) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

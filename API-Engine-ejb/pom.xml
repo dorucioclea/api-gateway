@@ -22,7 +22,7 @@
     <parent>
         <artifactId>API-Engine</artifactId>
         <groupId>com.t1t.digipolis</groupId>
-        <version>${project.version}</version>
+        <version>0.0.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>API-Engine-ejb</artifactId>
@@ -81,6 +81,27 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Optional, but highly recommended -->
         <!-- Arquillian allows you to test enterprise code such as EJBs and 
             Transactional(JTA) JPA from JUnit/TestNG -->
@@ -118,6 +139,12 @@
             <artifactId>retrofit</artifactId>
             <version>${retrofit.version}</version>
         </dependency>
+<!--
+        <dependency>
+            <groupId>com.squareup.okhttp</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
+        </dependency>-->
 
         <!--Typesafe configuration-->
         <dependency>
@@ -243,11 +270,6 @@
         </dependency>
 
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-parser</artifactId>
         </dependency>
@@ -282,58 +304,10 @@
             <scope>test</scope>
         </dependency>
 
-        <!--Jetty-->
-<!--        <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
-            <version>1.57</version>
-
-            &lt;!&ndash; Include everything below here if you have dependency conflicts &ndash;&gt;
-            <classifier>standalone</classifier>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.mortbay.jetty</groupId>
-                    <artifactId>jetty</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpclient</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.skyscreamer</groupId>
-                    <artifactId>jsonassert</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>xmlunit</groupId>
-                    <artifactId>xmlunit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.jayway.jsonpath</groupId>
-                    <artifactId>json-path</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.jopt-simple</groupId>
-                    <artifactId>jopt-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>-->
-
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
 
     </dependencies>
     <build>
@@ -393,7 +367,11 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthEnhanced.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRateLimiting.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestSizeLimiting.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerAdd.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerRemove.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformer.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformerRemove.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformerAdd.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformer.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginSchema.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginSSL.json</sourcePath>
@@ -451,24 +429,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.5.4</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Import-Package>
-                            org.hibernate.proxy,
-                            javassist.util.proxy,
-                            !org.jboss.errai.common.client.api.annotations,
-                            !javax.enterprise.context,
-                            !javax.enterprise.inject,
-                            !javax.inject,*
-                        </Import-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
@@ -476,13 +436,14 @@
         <profile>
             <!-- The default profile skips all tests, though you can tune it 
                 to run just unit tests based on a custom pattern -->
-            <!-- Seperate profiles are provided for running all tests, including 
-                Arquillian tests that execute in the specified container -->
             <id>default</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <build>
+            <properties>
+                <appconfig.file>application</appconfig.file>
+            </properties>
+<!--            <build>
                 <plugins>
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
@@ -492,7 +453,25 @@
                         </configuration>
                     </plugin>
                 </plugins>
-            </build>
+            </build>-->
+        </profile>
+        <profile>
+            <id>t1t-dev</id>
+            <properties>
+                <appconfig.file>application-t1t-dev</appconfig.file>
+            </properties>
+        </profile>
+        <profile>
+            <id>digi-dev</id>
+            <properties>
+                <appconfig.file>application-digi-dev</appconfig.file>
+            </properties>
+        </profile>
+        <profile>
+            <id>digi-rte</id>
+            <properties>
+                <appconfig.file>application-digi-rte</appconfig.file>
+            </properties>
         </profile>
     </profiles>
 

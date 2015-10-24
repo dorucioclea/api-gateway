@@ -1,10 +1,14 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.BeanUtils;
+import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
+import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
+import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -23,6 +27,7 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
+import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -32,33 +37,45 @@ import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
+import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
+import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
+import com.t1t.digipolis.util.URIUtils;
+import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
+import javax.ejb.*;
+import javax.enterprise.inject.spi.DefinitionException;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,8 +87,9 @@ import java.util.*;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
-    @Inject @APIEngineContext private Logger log;
-    @Inject @APIEngineContext private EntityManager em;
+    private static Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
+    @PersistenceContext
+    private EntityManager em;
     @Inject private ISecurityContext securityContext;
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
@@ -111,16 +129,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         SearchCriteriaBean criteria = new SearchCriteriaBean();
         criteria.setPage(1);
         criteria.setPageSize(100);
-        criteria.addFilter("autoGrant", "true", SearchCriteriaFilterOperator.bool_eq); //$NON-NLS-1$ //$NON-NLS-2$
+        criteria.addFilter("autoGrant", "true", SearchCriteriaFilterOperator.bool_eq);
         try {
             autoGrantedRoles = idmStorage.findRoles(criteria).getBeans();
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
 
-        if ("true".equals(System.getProperty("apiman.manager.require-auto-granted-org", "true"))) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        if ("true".equals(System.getProperty("apim.manager.require-auto-granted-org", "true"))) {
             if (autoGrantedRoles.isEmpty()) {
-                throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable")); //$NON-NLS-1$
+                throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable"));
             }
         }
         OrganizationBean orgBean = new OrganizationBean();
@@ -162,7 +180,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (organizationBean == null) {
                 throw ExceptionFactory.organizationNotFoundException(organizationId);
             }
-            log.debug(String.format("Got organization %s: %s", organizationBean.getName(), organizationBean)); //$NON-NLS-1$
+            log.debug(String.format("Got organization %s: %s", organizationBean.getName(), organizationBean));
             return organizationBean;
         } catch (AbstractRestException e) {
             throw e;
@@ -181,18 +199,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             EntityUpdatedData auditData = new EntityUpdatedData();
             if (AuditUtils.valueChanged(orgForUpdate.getDescription(), bean.getDescription())) {
-                auditData.addChange("description", orgForUpdate.getDescription(), bean.getDescription()); //$NON-NLS-1$
+                auditData.addChange("description", orgForUpdate.getDescription(), bean.getDescription());
                 orgForUpdate.setDescription(bean.getDescription());
             }
             storage.updateOrganization(orgForUpdate);
             storage.createAuditEntry(AuditUtils.organizationUpdated(orgForUpdate, auditData, securityContext));
 
-            log.debug(String.format("Updated organization %s: %s", orgForUpdate.getName(), orgForUpdate)); //$NON-NLS-1$
+            log.debug(String.format("Updated organization %s: %s", orgForUpdate.getName(), orgForUpdate));
         } catch (AbstractRestException e) {
-
             throw e;
         } catch (Exception e) {
-
             throw new SystemErrorException(e);
         }
     }
@@ -212,7 +228,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             rval = query.auditEntity(organizationId, null, null, null, paging);
             return rval;
         } catch (AbstractRestException e) {
-
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
@@ -287,7 +302,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getAppPolicy(organizationId, applicationId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(policy.getConfiguration());
+                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),policy.getConfiguration())).getPolicyJsonConfig());
                     createAppPolicy(organizationId, applicationId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -299,10 +314,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public ApplicationVersionBean updateAppVersionURI(String organizationId, String applicationId, String version, UpdateApplicationVersionURIBean uri){
         try {
+            log.debug("Enter updateAppversionURI:{}",uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if(avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
             avb.setOauthClientRedirect(uri.getUri());
             storage.updateApplicationVersion(avb);
+            //register application credentials for OAuth2
+            //create OAuth2 application credentials on the application consumer - should only been done once for this application
+            if(avb!=null && !StringUtils.isEmpty(avb.getoAuthClientId())){
+                //String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
+                String uniqueUserId = securityContext.getCurrentUser();
+                OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
+                requestBean.setUniqueUserName(uniqueUserId);
+                requestBean.setAppOAuthId(avb.getoAuthClientId());
+                requestBean.setAppOAuthSecret(avb.getOauthClientSecret());
+                enableOAuthForConsumer(requestBean);
+            }
             return avb;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -340,8 +367,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
-        //TODO OAUTH
         try {
+            //add OAuth2 consumer default to the application
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             //for contract add keyauth to applciation consumer
@@ -361,11 +388,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 if(summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())){
                     ApplicationVersionBean avb;
                     avb = storage.getApplicationVersion(organizationId, applicationId, version);
-                    //create client_id and client_secret for the application - the same client_id/secret must be used for all services
-                    //upon publication the application credentials will be enabled for the current user.
-                    avb.setoAuthClientId(apiKeyGenerator.generate());
-                    avb.setOauthClientSecret(apiKeyGenerator.generate());
-                    avb.setOauthClientRedirect("");
+                    if(StringUtils.isEmpty(avb.getoAuthClientId())){
+                        //create client_id and client_secret for the application - the same client_id/secret must be used for all services
+                        //upon publication the application credentials will be enabled for the current user.
+                        avb.setoAuthClientId(apiKeyGenerator.generate());
+                        avb.setOauthClientSecret(apiKeyGenerator.generate());
+                        avb.setOauthClientRedirect("");
+                    }
                 }
             }
             return contract;
@@ -376,11 +405,80 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             // if it failed because it was a duplicate.  If so, throw something sensible.  We
             // only do this on failure (we would get a FK contraint failure, for example) to
             // reduce overhead on the typical happy path.
-            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
+            //we asume it already exists
+            throw ExceptionFactory.contractAlreadyExistsException();
+/*            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
                 throw ExceptionFactory.contractAlreadyExistsException();
             } else {
                 throw new SystemErrorException(e);
+            }*/
+        }
+    }
+
+    public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) {
+        //get the application version based on provided client_id and client_secret - we need the name and
+        log.debug("Start enabling consumer for oauth2");
+        KongPluginOAuthConsumerRequest oauthRequest = new KongPluginOAuthConsumerRequest()
+                .withClientId(request.getAppOAuthId())
+                .withClientSecret(request.getAppOAuthSecret());
+        KongPluginOAuthConsumerResponse response = null;
+        //retrieve application name and redirect URI.
+        try {
+            ApplicationVersionBean avb = query.getApplicationForOAuth(request.getAppOAuthId(), request.getAppOAuthSecret());
+            if (avb == null)
+                throw new ApplicationNotFoundException("Application not found with given OAuth2 clientId and clientSecret.");
+            oauthRequest.setName(avb.getApplication().getName());
+            if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
+                throw new OAuthException("The application must provide an OAuth2 redirect URL");
+            oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
+            String defaultGateway = query.listGateways().get(0).getId();
+            if (!StringUtils.isEmpty(defaultGateway)) {
+                try {
+                    IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                    log.debug("Enable consumer for oauth:{} with values: {}",request.getUniqueUserName(),oauthRequest);
+                    response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
+                } catch (Exception e) {
+                    log.debug("Error enabling user for oauth:{}",e.getStackTrace());
+                    ;//don't do anything
+                }
+                if (response == null) {
+                    log.debug("Enable consumer for oauth - response empty");
+                    //try to recover existing user
+                    try {
+                        IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                        KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(request.getUniqueUserName());
+                        for (KongPluginOAuthConsumerResponse cred : credentials.getData()) {
+                            if (cred.getClientId().equals(request.getAppOAuthId())) response = cred;
+                        }
+                    } catch (Exception e) {
+                        //now throw an error if that's not working too.
+                        throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                    }
+                }
+            } else throw new GatewayException("No default gateway found!");
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
+    /**
+     * Creates a gateway link given a gateway id.
+     *
+     * @param gatewayId
+     */
+    private IGatewayLink createGatewayLink(String gatewayId) throws PublishingException {
+        try {
+            GatewayBean gateway = storage.getGateway(gatewayId);
+            if (gateway == null) {
+                throw new GatewayNotFoundException();
             }
+            IGatewayLink link = gatewayLinkFactory.create(gateway);
+            return link;
+        } catch (GatewayNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PublishingException(e.getMessage(), e);
         }
     }
 
@@ -760,7 +858,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getServicePolicy(organizationId, serviceId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(policy.getConfiguration());
+                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),policy.getConfiguration())).getPolicyJsonConfig());
                     createServicePolicy(organizationId, serviceId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -992,6 +1090,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 oauthEnabledServices=0;
             }
             if(oauthEnabledServices==0){
+                //remove OAuth credential for consumer
+                try {
+                    //We create the new application version consumer
+                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                    //upon filling redirect URI the OAuth credential has been made, check if callback is there, otherwise 405 gateway exception.
+                    if(contract!=null && !StringUtils.isEmpty(avb.getOauthClientRedirect())){
+                        String uniqueUserId = securityContext.getCurrentUser();
+                        KongPluginOAuthConsumerResponseList info = gateway.getApplicationOAuthInformation(avb.getoAuthClientId());
+                        if(info.getData().size()>0){
+                            gateway.deleteOAuthConsumerPlugin(uniqueUserId, ((KongPluginOAuthConsumerResponse)info.getData().get(0)).getId());
+                        }
+                    }
+                } catch (StorageException e) {
+                    throw new ApplicationNotFoundException(e.getMessage());
+                }
+                //clear application version OAuth information
                 avb.setoAuthClientId("");
                 avb.setOauthClientSecret("");
                 avb.setOauthClientRedirect("");
@@ -1021,8 +1135,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(bean.getConfiguration());
-                // TODO figure out what changed an include that in the audit entry
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),policy.getConfiguration())).getPolicyJsonConfig());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(this.securityContext.getCurrentUser());
@@ -1065,6 +1178,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             storage.reorderPolicies(PolicyType.Application, organizationId, applicationId, version, newOrder);
             storage.createAuditEntry(AuditUtils.policiesReordered(avb, PolicyType.Application, securityContext));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public ServiceBean updateServiceTerms(String organizationId, String serviceId, UpdateServiceTearmsBean serviceTerms){
+        try {
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            bean.setTerms(serviceTerms.getTerms());
+            storage.updateService(bean);
+            return bean;
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -1149,9 +1278,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
-            if (serviceVersion.getStatus() != ServiceStatus.Published) {
-                throw new InvalidServiceStatusException(Messages.i18n.format("ServiceNotPublished")); //$NON-NLS-1$
-            }
             GatewayBean gateway =  gatewayFacade.get(getSingularGateway().getId());
             if(StringUtils.isEmpty(gateway.getEndpoint())){
                 throw new GatewayNotFoundException("no default gateway configured");
@@ -1159,7 +1285,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //path starts always with '\'
             String gatewayEndpoint = ((gateway.getEndpoint().endsWith("\\")?gateway.getEndpoint().substring(0,gateway.getEndpoint().length()-1):gateway.getEndpoint()));
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
-            rval.setManagedEndpoint(gatewayEndpoint+GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),version));
+            rval.setManagedEndpoint(gatewayEndpoint + GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), version));
+            //get oauth endpoints if needed
+            if(!StringUtils.isEmpty(serviceVersion.getProvisionKey())){
+                //construct the target url
+                StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
+                        .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),version)))
+                        .append(KongConstants.KONG_OAUTH_ENDPOINT+"/");
+                rval.setOauth2AuthorizeEndpoint(targetURI.toString()+KongConstants.KONG_OAUTH2_ENDPOINT_AUTH);
+                rval.setOauth2TokenEndpoint(targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN);
+            }else{
+                rval.setOauth2AuthorizeEndpoint("");
+                rval.setOauth2TokenEndpoint("");
+            }
             return rval;
         } catch (AbstractRestException e) {
             throw e;
@@ -1217,7 +1355,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             // TODO capture specific change values when auditing policy updates
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(bean.getConfiguration());
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),policy.getConfiguration())).getPolicyJsonConfig());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
@@ -1462,7 +1600,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getPlanPolicy(organizationId, planId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(policy.getConfiguration());
+                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration())).getPolicyJsonConfig());
                     createPlanPolicy(organizationId, planId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -1521,7 +1659,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(bean.getConfiguration());
+
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(),bean.getConfiguration())).getPolicyJsonConfig());
                 // Note: we do not audit the policy configuration since it may have sensitive data
             }
             policy.setModifiedOn(new Date());
@@ -1798,6 +1937,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @param version
      * @param bean
      */
+    @TransactionAttribute(TransactionAttributeType.MANDATORY)
     private boolean contractAlreadyExists(String organizationId, String applicationId, String version, NewContractBean bean) {
         try {
             List<ContractSummaryBean> contracts = query.getApplicationContracts(organizationId, applicationId, version);
@@ -1891,7 +2031,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setId(null);
             policy.setDefinition(def);
             policy.setName(def.getName());
-            policy.setConfiguration(bean.getConfiguration());
+            //validate (remove null values) and apply custom implementation for the policy
+            policy.setConfiguration(GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration())).getPolicyJsonConfig());
             policy.setCreatedBy(securityContext.getCurrentUser());
             policy.setCreatedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
@@ -2025,7 +2166,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
             String svPath = GatewayPathUtilities.generateGatewayContextPath(organizationId,serviceVersion.getService().getBasepath(),serviceVersion.getVersion());
-            data = transformSwaggerDef(data,serviceVersion,svPath);
+            data = transformJSONObjectDef(data, serviceVersion, svPath);
+            //safety check
+            if(data==null)throw new DefinitionException("The Swagger data returned is invalid");
             storage.updateServiceDefinition(serviceVersion, data);
             log.debug(String.format("Stored service definition %s: %s", serviceId, serviceVersion)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
@@ -2044,16 +2187,68 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @throws IOException
      */
     private InputStream transformSwaggerDef(InputStream data, ServiceVersionBean serviceVersionBean,String serviceVersionPath)throws StorageException, IOException{
-        //set all base paths to "/" because the path is decided by the APi engine
+        //set all base paths to "/servicebasepath" because the path is decided by the APi engine
         Swagger swaggerJson = new SwaggerParser().parse(IOUtils.toString(data));//IOUtils.closequietly?
         swaggerJson.setBasePath(serviceVersionPath);
-        //read documenation and persist if present
-        String onlineDoc = swaggerJson.getExternalDocs().getUrl();
-        if(!StringUtils.isEmpty(onlineDoc)){
-            serviceVersionBean.setOnlinedoc(onlineDoc);
-            storage.updateServiceVersion(serviceVersionBean);
+        //available schemes override
+        List<Scheme> schemeList = new ArrayList<>();
+        schemeList.add(Scheme.HTTPS);
+        swaggerJson.setSchemes(schemeList);
+        swaggerJson.setHost(null);
+        //read documentation and persist if present
+        if(swaggerJson!=null&&swaggerJson.getExternalDocs()!=null){
+            String onlineDoc = swaggerJson.getExternalDocs().getUrl();
+            if(!StringUtils.isEmpty(onlineDoc)){
+                serviceVersionBean.setOnlinedoc(onlineDoc);
+            }
         }
+        storage.updateServiceVersion(serviceVersionBean);
         return new ByteArrayInputStream((Json.pretty(swaggerJson)).getBytes());
+
+        //InputStream stream = new ByteArrayInputStream(exampleString.getBytes());//StandardCharsets.UTF_8
+    }
+
+    /**
+     * Because Swagger validation is too strict - see method transformSwaggerDef() - a custom json updater has been implemented.
+     * @param data
+     * @param serviceVersionBean
+     * @param serviceVersionPath
+     * @return
+     * @throws StorageException
+     * @throws IOException
+     */
+    private InputStream transformJSONObjectDef(InputStream data, ServiceVersionBean serviceVersionBean,String serviceVersionPath)throws StorageException, IOException{
+        if(data!=null){
+            String jsonTxt = IOUtils.toString(data);
+            JSONObject json = new JSONObject(jsonTxt);
+
+            //set base path
+            json.remove("basePath");
+            json.put("basePath",serviceVersionPath);
+
+            //empty host
+            json.remove("host");
+            json.put("host","");
+
+            //add only https schema
+            json.remove("schemes");
+            JSONArray schemesArray = new JSONArray();
+            schemesArray.put("https");
+            json.put("schemes",schemesArray);
+
+            //set online doc if present
+            try {
+                //get doc link
+                JSONObject externalDocs = json.getJSONObject("externalDocs");
+                String docUrl = externalDocs.getString("url");
+                //update service
+                serviceVersionBean.setOnlinedoc(docUrl);
+            }catch(JSONException jsonex){
+                ;//continue::don't do anything -> no external doc present
+            }
+            //serialize to calling method
+            return new ByteArrayInputStream(json.toString().getBytes());
+        }else return null;
     }
 
     /**
@@ -2241,5 +2436,333 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void setEm(EntityManager em) {
         this.em = em;
+    }
+
+
+    /**
+     * FOLLOWERS
+     */
+    public ServiceBean addServiceFollower(String organizationId, String serviceId, String userId){
+        try {
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            if(!bean.getFollowers().contains(userId)) bean.getFollowers().add(userId);
+            storage.updateService(bean);
+            return bean;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public ServiceBean removeServiceFollower(String organizationId, String serviceId, String userId){
+        try {
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            if(bean.getFollowers().contains(userId)) bean.getFollowers().remove(userId);
+            storage.updateService(bean);
+            return bean;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public ServiceFollowers getServiceFollowers(String organizationId, String serviceId){
+        try {
+            ServiceFollowers followers = new ServiceFollowers();
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            if(bean.getFollowers()!=null){
+                followers.setFollowers(bean.getFollowers());
+                followers.setTotal(bean.getFollowers().size());
+            }
+            storage.updateService(bean);
+            return followers;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    /**
+     * ANNOUNCEMENTS
+     */
+
+    public AnnouncementBean createServiceAnnouncement(String organizationId, String serviceId, NewAnnouncementBean newAnnouncementBean){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            AnnouncementBean ann = new AnnouncementBean();
+            ann.setTitle(newAnnouncementBean.getTitle());
+            ann.setDescription(newAnnouncementBean.getDescription());
+            ann.setCreatedBy(securityContext.getCurrentUser());
+            ann.setCreatedOn(new Date());
+            ann.setOrganizationId(bean.getOrganization().getId());
+            ann.setServiceId(bean.getId());
+            storage.createServiceAnnouncement(ann);
+            return ann;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteServiceAnnouncement(String organizationId, String serviceId, Long id){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            AnnouncementBean ann = storage.getServiceAnnouncement(id);
+            if(ann != null){
+                if(ann.getOrganizationId().equals(organizationId)&&ann.getServiceId().equals(serviceId))
+                storage.deleteServiceAnnouncement(ann);
+            }
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public AnnouncementBean getServiceAnnouncement(String organizationId, String serviceId, Long id){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            AnnouncementBean ann = storage.getServiceAnnouncement(id);
+            //verify the announcement is for given service
+            if(ann.getOrganizationId().equals(organizationId)&&ann.getServiceId().equals(serviceId))return ann;
+            else return null;
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<AnnouncementBean> getServiceAnnouncements(String organizationId, String serviceId){
+        List<AnnouncementBean> announcementBeans = null;
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            announcementBeans = query.listServiceAnnouncements(organizationId, serviceId);
+        }catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+        return announcementBeans;
+    }
+
+    /**
+     * SUPPORT FUNCTIONALITY
+     */
+    public SupportBean createServiceSupportTicket(String organizationId, String serviceId, NewSupportBean supportBean){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            SupportBean sb = new SupportBean();
+            sb.setCreatedBy(securityContext.getCurrentUser());
+            sb.setCreatedOn(new Date());
+            sb.setOrganizationId(organizationId);
+            sb.setServiceId(serviceId);
+            sb.setTitle(supportBean.getTitle());
+            sb.setDescription(supportBean.getDescription());
+            sb.setStatus(SupportStatus.OPEN.toString());
+            sb.setTotalComments(0);//start with no comments
+            storage.createServiceSupport(sb);
+            return sb;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public SupportBean updateServiceSupportTicket(String organizationId, String serviceId, Long supportId, UpdateSupportBean updateSupportBean){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            SupportBean sb = storage.getServiceSupport(supportId);
+            //verify that org and service are correct
+            if(sb.getOrganizationId().equals(organizationId)&& sb.getServiceId().equals(serviceId)){
+                //perform update
+                sb.setTitle(updateSupportBean.getTitle());
+                sb.setDescription(updateSupportBean.getDescription());
+                sb.setStatus(updateSupportBean.getStatus().toString());
+                storage.updateServiceSupport(sb);
+                return sb;
+            }else return null;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public SupportBean getServiceSupportTicket(String organizationId, String serviceId, Long supportId){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            SupportBean sb = storage.getServiceSupport(supportId);
+            //verify that org and service are correct
+            if(sb.getOrganizationId().equals(organizationId)&& sb.getServiceId().equals(serviceId)){
+                return sb;
+            }else return null;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteSupportTicket(String organizationId, String serviceId,Long supportId){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            SupportBean sb = storage.getServiceSupport(supportId);
+            //verify that org and service are correct
+            if(sb.getOrganizationId().equals(organizationId)&& sb.getServiceId().equals(serviceId)){
+                storage.deleteServiceSupport(sb);
+            }
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<SupportBean> listServiceSupportTickets(String organizationId, String serviceId){
+        try {
+            //verify that service exists - else will throw an exception
+            ServiceBean bean = storage.getService(organizationId, serviceId);
+            if (bean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            return query.listServiceSupportTickets(organizationId, serviceId);
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public SupportComment addServiceSupportComment(Long supportBeanId, NewSupportComment comment){
+        try {
+            SupportBean sb = storage.getServiceSupport(supportBeanId);
+            SupportComment sc = new SupportComment();
+            sc.setCreatedBy(securityContext.getCurrentUser());
+            sc.setCreatedOn(new Date());
+            sc.setComment(comment.getComment());
+            sc.setSupportId(supportBeanId);
+            storage.createServiceSupportComment(sc);
+            sb.setTotalComments((sb.getTotalComments() + 1));
+            storage.updateServiceSupport(sb);
+            return sc;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public SupportComment updateServiceSupportComment(Long supportId, Long supportCommentId, UpdateSupportComment updateSupportComment){
+        try {
+            SupportComment sc = storage.getServiceSupportComment(supportCommentId);
+            sc.setComment(updateSupportComment.getComment());
+            storage.updateServiceSupportComment(sc);
+            return sc;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteServiceSupportComment(Long supportBeanId, Long supportCommentId){
+        try {
+            SupportBean sb = storage.getServiceSupport(supportBeanId);
+            SupportComment sc = storage.getServiceSupportComment(supportCommentId);
+            storage.deleteServiceSupportComment(sc);
+            sb.setTotalComments((sb.getTotalComments()-1));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public SupportComment getServiceSupportComment(Long supportId, Long supportCommentId){
+        try {
+            return storage.getServiceSupportComment(supportCommentId);
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public List<SupportComment> listServiceSupportTicketComments(Long supportId){
+        try {
+            return query.listServiceSupportComment(supportId);
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    /* Test utilities */
+    public boolean deleteOrganization(String orgId){
+        try {
+            OrganizationBean organization = storage.getOrganization(orgId);
+            deleteOrganization(orgId);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+        //get all services
+        //get all service versions
+        //get all applications
+        //get all application versions
+        //get all contracts
+        //remove all contracts
+        //get all oauth apps
+        //get all plans
+        //get all plan versions
+        //get all plan policies
+        //remove all plan policies
+        //remove all plans versions
+        //remove all plans
+
+        return true;
     }
 }

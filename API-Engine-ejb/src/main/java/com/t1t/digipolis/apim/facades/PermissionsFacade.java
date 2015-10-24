@@ -5,14 +5,15 @@ import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -20,11 +21,8 @@ import javax.persistence.EntityManager;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class PermissionsFacade {
-    @Inject
-    @APIEngineContext
-    private Logger log;
-    @Inject
-    @APIEngineContext
+    private static Logger log = LoggerFactory.getLogger(PermissionsFacade.class.getName());
+    @PersistenceContext
     private EntityManager em;
     @Inject
     private ISecurityContext securityContext;

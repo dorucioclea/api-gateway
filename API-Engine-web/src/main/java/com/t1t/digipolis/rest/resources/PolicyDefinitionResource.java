@@ -13,13 +13,11 @@ import com.t1t.digipolis.apim.exceptions.PolicyDefinitionNotFoundException;
 import com.t1t.digipolis.apim.facades.PolicyDefinitionFacade;
 import com.t1t.digipolis.apim.rest.resources.IPolicyDefinitionResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.qualifier.APIEngineContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -38,9 +36,6 @@ public class PolicyDefinitionResource implements IPolicyDefinitionResource {
     IStorageQuery query;
     @Inject
     ISecurityContext securityContext;
-    @Inject
-    @APIEngineContext
-    Logger log;
     @Inject
     private PolicyDefinitionFacade policyDefinitionFacade;
 
