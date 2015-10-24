@@ -99,9 +99,9 @@ public class KongClientIntegrationTest {
         print(regApi);
         assertFalse(StringUtils.isEmpty(regApi.getId()));
         assertFalse(StringUtils.isEmpty(regApi.getName()));
-        assertFalse(StringUtils.isEmpty(regApi.getPath()));
-        assertFalse(StringUtils.isEmpty(regApi.getTargetUrl()));
-        assertTrue(regApi.getStripPath());
+        assertFalse(StringUtils.isEmpty(regApi.getRequestPath()));
+        assertFalse(StringUtils.isEmpty(regApi.getUpstreamUrl()));
+        assertTrue(regApi.getStripRequestPath());
     }
 
     @Test
@@ -142,15 +142,15 @@ public class KongClientIntegrationTest {
         KongApi updatedApi = kongClient.addApi(api);
         print(updatedApi);
         updatedApi.setName(randomName);
-        updatedApi.setPath(randomPath);
-        updatedApi.setTargetUrl(randomUrl);
+        updatedApi.setRequestPath(randomPath);
+        updatedApi.setUpstreamUrl(randomUrl);
         updatedApi = kongClient.updateOrCreateApi(updatedApi);
         assertNotEquals(api.getName(), updatedApi.getName());
-        assertNotEquals(api.getPath(), updatedApi.getPath());
-        assertNotEquals(api.getTargetUrl(), updatedApi.getTargetUrl());
+        assertNotEquals(api.getRequestPath(), updatedApi.getRequestPath());
+        assertNotEquals(api.getUpstreamUrl(), updatedApi.getUpstreamUrl());
         assertEquals(updatedApi.getName(), randomName);
-        assertEquals(updatedApi.getPath(), randomPath);
-        assertEquals(updatedApi.getTargetUrl(), randomUrl);
+        assertEquals(updatedApi.getRequestPath(), randomPath);
+        assertEquals(updatedApi.getUpstreamUrl(), randomUrl);
         //clean up
         kongClient.deleteApi(updatedApi.getName());
     }
@@ -229,6 +229,7 @@ public class KongClientIntegrationTest {
     @Test
     public void testGetInstalledPlugins() throws Exception {
         KongInstalledPlugins installedPlugins = kongClient.getInstalledPlugins();
+        log.info("Installed plugins:{}",installedPlugins);
         assertNotNull(installedPlugins);
         assertTrue(installedPlugins.getEnabledPlugins().size() > 0);
     }
@@ -261,7 +262,7 @@ public class KongClientIntegrationTest {
                 .withHeaders(headers);
         KongPluginConfig pluginConfig = new KongPluginConfig()
                 .withName("cors")//as an example
-                .withValue(corsConfig);
+                .withConfig(corsConfig);
         print(pluginConfig);
         kongClient.createPluginConfig(apicors.getId(), pluginConfig);
         kongClient.deleteApi(apicors.getId());
@@ -330,12 +331,12 @@ public class KongClientIntegrationTest {
         KongPluginConfig pluginConfig = createTestPlugin(api1,consumer);
         pluginConfig = kongClient.createPluginConfig(api1.getId(),pluginConfig);
         print(pluginConfig);
-        print(pluginConfig.getValue().toString());
+        print(pluginConfig.getConfig().toString());
         kongClient.deleteApi(api1.getId());
         kongClient.deleteConsumer(consumer.getId());
         //my little nasty trick
         Gson gson = new Gson();
-        KongPluginRateLimiting resultConfig =  gson.fromJson(pluginConfig.getValue().toString(), KongPluginRateLimiting.class);
+        KongPluginRateLimiting resultConfig =  gson.fromJson(pluginConfig.getConfig().toString(), KongPluginRateLimiting.class);
         log.info("Resulting config:{}", resultConfig);
     }
 
@@ -352,7 +353,7 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         //update
         KongPluginRateLimiting rateConfig = new KongPluginRateLimiting().withMinute(5);
-        pluginConfig.setValue(rateConfig);
+        pluginConfig.setConfig(rateConfig);
         print(pluginConfig);
         kongClient.updateOrCreatePluginConfig(apif.getId(), pluginConfig);
         KongPluginConfigList configList = kongClient.getKongPluginConfigList(apif.getId());
@@ -458,9 +459,9 @@ public class KongClientIntegrationTest {
         //create new api
         KongApi api = new KongApi();
         api.setName(API_NAME);
-        api.setPath(API_PATH);
-        api.setStripPath(true);
-        api.setTargetUrl(API_URL);
+        api.setRequestPath(API_PATH);
+        api.setStripRequestPath(true);
+        api.setUpstreamUrl(API_URL);
         print(api);
         return api;
     }
@@ -469,9 +470,9 @@ public class KongClientIntegrationTest {
         //create new api
         KongApi api = new KongApi();
         api.setName(name);
-        api.setPath(path);
-        api.setStripPath(true);
-        api.setTargetUrl(url);
+        api.setRequestPath(path);
+        api.setStripRequestPath(true);
+        api.setUpstreamUrl(url);
         print(api);
         return api;
     }
@@ -498,8 +499,8 @@ public class KongClientIntegrationTest {
                 .withMinute(1);
         KongPluginConfig pluginConfig = new KongPluginConfig()
                 .withConsumerId(consumer.getId())
-                .withName("ratelimiting")//as an example
-                .withValue(rateLimitingConfig);
+                .withName("rate-limiting")//as an example
+                .withConfig(rateLimitingConfig);
         print(pluginConfig);
         return pluginConfig;
     }

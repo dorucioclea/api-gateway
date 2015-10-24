@@ -61,7 +61,7 @@ public interface KongClient {
     Object deleteConsumerKeyAuthCredential(@Path("consumerId")String consumerId,@Path("keyAuthId")String keyAuthId);
 
     /*********************   PLUGINS   *******************/
-    @GET("/plugins/")KongInstalledPlugins getInstalledPlugins();
+    @GET("/plugins/enabled")KongInstalledPlugins getInstalledPlugins();
     /*@GET("/plugins/{pluginname}/schema")KongPluginSchema getPluginSchema(@Path("pluginname") String pluginName);*/
     @POST("/apis/{apinameorid}/plugins/")KongPluginConfig createPluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
     @GET("/apis/{apinameorid}/plugins/")KongPluginConfigList getKongPluginConfigList(@Path("apinameorid")String apiNameOrId);
