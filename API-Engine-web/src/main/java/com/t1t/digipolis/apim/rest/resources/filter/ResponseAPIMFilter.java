@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.rest.resources.filter;
 
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.rest.JaxRsActivator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
