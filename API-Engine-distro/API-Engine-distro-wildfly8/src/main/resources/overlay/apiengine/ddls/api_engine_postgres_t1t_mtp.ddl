@@ -219,7 +219,7 @@ INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VA
 
 INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('ServiceDeveloper', NULL, 'admin', CURRENT_DATE, 'Users responsible for creating and managing services should be granted this role within an Organization.', 'Service Developer');
 
-INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://apim.t1t.be:8001","username":"","password":""}','https://apim.t1t.be:443', '', CURRENT_DATE, 'This is the gateway.', '', CURRENT_DATE, 'Default Kong Gateway', 'REST');
+INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://dev.apim.t1t.be:8001","username":"","password":""}','https://dev.apim.t1t.be:443', '', CURRENT_DATE, 'This is the gateway.', '', CURRENT_DATE, 'Default Kong Gateway', 'REST');
 
 INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 1);
 
