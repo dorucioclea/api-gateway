@@ -392,6 +392,7 @@ public class UserFacade implements Serializable {
             responseRedirect.setToken(encodeSAML2BearerToken(assertion));
         else
         responseRedirect.setToken(updateOrCreateConsumerOnGateway(userName));
+        responseRedirect.setTtl(assertion.getConditions().getNotOnOrAfter().toString());
         clientUrl.append((String) ehcache.getClientAppCache().get(clientAppName).getObjectValue());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
