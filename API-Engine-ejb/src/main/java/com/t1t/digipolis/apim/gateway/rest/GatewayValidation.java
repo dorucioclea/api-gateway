@@ -15,6 +15,7 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
+import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
 import com.t1t.digipolis.kong.model.KongPluginRequestTransformerAdd;
 import com.t1t.digipolis.kong.model.KongPluginRequestTransformerRemove;
@@ -146,9 +147,15 @@ public class GatewayValidation {
         res.setAdd(addStatement);
         res.setRemove(remStatement);
         //remove null values
-        req.getAdd().getForm().stream().forEach((val) -> {if (val != null) res.getAdd().getForm().add(val);});
-        req.getAdd().getHeaders().stream().forEach((val) -> {if(val!=null)res.getAdd().getHeaders().add(val);});
-        req.getAdd().getQuerystring().stream().forEach((val) -> {if(val!=null)res.getAdd().getQuerystring().add(val);});
+        req.getAdd().getForm().stream().forEach((val) -> {
+            if (val != null) res.getAdd().getForm().add(val);
+        });
+        req.getAdd().getHeaders().stream().forEach((val) -> {
+            if (val != null) res.getAdd().getHeaders().add(val);
+        });
+        req.getAdd().getQuerystring().stream().forEach((val) -> {
+            if (val != null) res.getAdd().getQuerystring().add(val);
+        });
         req.getRemove().getForm().stream().forEach((val) -> {if(val!=null)res.getRemove().getForm().add(val);});
         req.getRemove().getHeaders().stream().forEach((val) -> {if(val!=null)res.getRemove().getHeaders().add(val);});
         req.getRemove().getQuerystring().stream().forEach((val) -> {if(val!=null)res.getRemove().getQuerystring().add(val);});
@@ -279,7 +286,17 @@ public class GatewayValidation {
     }
 
     public static synchronized Policy validateRateLimiting(Policy policy){
-        //nothing to do - works fine
+        KongPluginRateLimiting req = new Gson().fromJson(policy.getPolicyJsonConfig(),KongPluginRateLimiting.class);
+        int[] ratesArray = {
+                req.getYear(), req.getMonth(), req.getDay(), req.getHour(), req.getMinute(), req.getSecond()
+        };
+        for (int i = 0; i < ratesArray.length; i++) {
+            for (int j = i + 1; j < ratesArray.length; j++) {
+                if (ratesArray[i] > 0 && ratesArray[j] > ratesArray[i]) {
+                    throw new PolicyViolationException("Rates for higher order granularities  must be higher than those for lower orders");
+                }
+            }
+        }
         _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
