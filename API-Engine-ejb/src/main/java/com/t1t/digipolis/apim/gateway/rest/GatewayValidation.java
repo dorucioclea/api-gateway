@@ -297,7 +297,7 @@ public class GatewayValidation {
         for (int i = 0; i < ratesArray.size(); i++) {
             for (int j = i + 1; j < ratesArray.size(); j++) {
                 if (ratesArray.get(i) > 0 && ratesArray.get(j) > ratesArray.get(i)) {
-                    throw new PolicyViolationException("Rates for higher order granularities must be higher than those for lower orders");
+                    throw new PolicyViolationException("Rates for higher order granularities must be higher than or equal to those of lower orders");
                 }
             }
         }
