@@ -287,13 +287,17 @@ public class GatewayValidation {
 
     public static synchronized Policy validateRateLimiting(Policy policy){
         KongPluginRateLimiting req = new Gson().fromJson(policy.getPolicyJsonConfig(),KongPluginRateLimiting.class);
-        int[] ratesArray = {
-                req.getYear(), req.getMonth(), req.getDay(), req.getHour(), req.getMinute(), req.getSecond()
-        };
-        for (int i = 0; i < ratesArray.length; i++) {
-            for (int j = i + 1; j < ratesArray.length; j++) {
-                if (ratesArray[i] > 0 && ratesArray[j] > ratesArray[i]) {
-                    throw new PolicyViolationException("Rates for higher order granularities  must be higher than those for lower orders");
+        List<Integer> ratesArray = new ArrayList<>();
+        if (req.getYear() != null) ratesArray.add(req.getYear());
+        if (req.getMonth() != null) ratesArray.add(req.getMonth());
+        if (req.getDay() != null) ratesArray.add(req.getDay());
+        if (req.getHour() != null) ratesArray.add(req.getHour());
+        if (req.getMinute() != null) ratesArray.add(req.getMinute());
+        if (req.getSecond() != null) ratesArray.add(req.getSecond());
+        for (int i = 0; i < ratesArray.size(); i++) {
+            for (int j = i + 1; j < ratesArray.size(); j++) {
+                if (ratesArray.get(i) > 0 && ratesArray.get(j) > ratesArray.get(i)) {
+                    throw new PolicyViolationException("Rates for higher order granularities must be higher than those for lower orders");
                 }
             }
         }
