@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "key": {
+      "id": "key",
+      "type": "string"
+    },
+    "secret": {
+      "id": "secret",
+      "type": "string"
+    }
+  }
+}

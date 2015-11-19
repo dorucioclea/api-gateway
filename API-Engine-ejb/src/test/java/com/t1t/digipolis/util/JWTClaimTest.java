@@ -1,5 +1,6 @@
 package com.t1t.digipolis.util;
 
+import junit.framework.Assert;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jwt.JwtClaims;
@@ -9,6 +10,7 @@ import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.junit.Assert.*;
 
 import java.security.interfaces.RSAPublicKey;
 
@@ -17,8 +19,13 @@ import java.security.interfaces.RSAPublicKey;
  */
 public class JWTClaimTest {
     private static final Logger _LOG = LoggerFactory.getLogger(JWTClaimTest.class.getName());
-    //we expect this token to be send through the gateway form the client application
+    // JWT - RSA256 - we expect this token to be send through the gateway form the client application
     private static final String JWT_TOKEN = "eyJhbGciOiJSUzI1NiJ9.eyJqdGkiOiJjYTVmN2UwMC01NDhkLTQ2NTctYWZhNC01YzJlOTY4NDZiYWUiLCJleHAiOjE0NDcyNDE0ODQsIm5iZiI6MCwiaWF0IjoxNDQ3MjQxMTg0LCJpc3MiOiJodHRwczovL2lkcC50MXQuYmUvYXV0aC9yZWFsbXMvU2lnbkJveCIsImF1ZCI6InNpZ25ib3gtY2xpZW50Iiwic3ViIjoiNDYxYTdiOTYtYzI3NC00ZWQzLTk1MDQtNWZlZTQzYjQxZjQ2IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoic2lnbmJveC1jbGllbnQiLCJzZXNzaW9uX3N0YXRlIjoiNjhjMjY4M2QtY2E3Zi00ZThmLTk1MGUtY2M2MmEyZWFiNTI1IiwiY2xpZW50X3Nlc3Npb24iOiJjNWViYTNjMC0zMTQyLTRlNzctOTI3OC05ZDM5MGM4MDk0ZGMiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDo5MDA5Il0sInJlc291cmNlX2FjY2VzcyI6eyJzaWduYm94LWNsaWVudCI6eyJyb2xlcyI6WyJhZG1pbmlzdHJhdG9yIiwidXNlciJdfSwiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsInZpZXctcHJvZmlsZSJdfX0sIm5hbWUiOiJUZXN0dXNlciBUZXN0dXNlciIsInByZWZlcnJlZF91c2VybmFtZSI6Im1pY2hhbGxpc0B0ZWxlbmV0LmJlIiwiZ2l2ZW5fbmFtZSI6IlRlc3R1c2VyIiwiZmFtaWx5X25hbWUiOiJUZXN0dXNlciIsImVtYWlsIjoibWljaGFsbGlzQHRlbGVuZXQuYmUifQ.fA8XZsNS496Zb_JzKUEX-LCHMyP3CUuH7IMzucY9OR0bix-Og5-divO_jVYuFyPkg9iZjuGEef2uge9xkreOhEiyz-rihenVklfod1nmVqHMws6wh3BBp38yyPQxiIqeFHdAADJiVFnA39RoSpcE5aMeRkhnXX2mrtzWP0UxVhwsZK9NYbRYa7YkeOJTMVowKMt-ap1TNoXOpuckkiXHeOSDg7Gcz6xAYSoyzSmsU9Xl0vT9c-tL4RoBmaDcqZsssUqUxbaQpjUyNHrfyrnO2UxB-NZy8EDNn1rYMVwQcqHWivkeRIF3eHNj-KcK0tQF6Tr6cdflf9dpNEbmMuN06Q";
+
+    /**
+     * Test a JWT RSA-256 signed
+     * @throws Exception
+     */
     @Test
     public void validateJWT()throws Exception{
         // Sometimes X509 certificate(s) are provided out-of-band somehow by the signer/issuer
@@ -60,25 +67,9 @@ public class JWTClaimTest {
                 .setVerificationKeyResolver(jwksResolver)
                 .build(); // create the JwtConsumer instance
         JwtClaims claims = jwtConsumer.processToClaims(JWT_TOKEN);
+        assertNotNull(claims);//this means, it validates
         _LOG.info("Extracted claims:{}",claims);
         _LOG.info("Claim names:{}",claims.getClaimNames());
         _LOG.info("Name:{}",claims.getClaimValue("name"));
-        //TODO not finished - extract roles
-/*        JSONObject json = (JSONObject)new JSONParser().parse("{\"name\":\"MyNode\", \"width\":200, \"height\":100}");
-        System.out.println("name=" + json.get("name"));
-        System.out.println("width=" + json.get("width"));
-        JSONObject resource_access = (JSONObject) claims.getClaimValue("resource_access");
-        JSONObject app_access = resource_access.getJSONObject("signbox-client");
-        JSONArray roles = app_access.getJSONArray("roles");
-        List<String> roleList = new ArrayList<String>();
-        JSONArray jsonArray = roles;
-        if (jsonArray != null) {
-            int len = jsonArray.length();
-            for (int i=0;i<len;i++){
-                roleList.add(jsonArray.get(i).toString());
-            }
-        }
-        _LOG.info("Extracted roles:{}",roleList);*/
-
     }
 }

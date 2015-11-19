@@ -13,11 +13,15 @@ import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import org.elasticsearch.gateway.GatewayException;
+
+import java.util.function.Consumer;
 
 /**
  * Links the design time API with a Gateway.  This allows the design time API
@@ -156,6 +160,23 @@ public interface IGatewayLink {
      * @throws ConsumerException
      */
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id,String apiKey) throws ConsumerException;
+
+    /**
+     * Adds JWT to a consumer, generating a new key/secret on the API Engine.
+     * @param id
+     * @return
+     * @throws ConsumerException
+     */
+    public KongPluginJWTResponse addConsumerJWT(String id) throws ConsumerException;
+
+    /**
+     * Retrieve a consumer information with it's JWT key.
+     *
+     * @param id
+     * @return
+     * @throws ConsumerException
+     */
+    public KongPluginJWTResponseList getConsumerJWT(String id) throws ConsumerException;
 
     /**
      * Deletes a key auth credential for a specific consumer.

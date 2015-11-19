@@ -405,6 +405,9 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponse.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTResponse.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTRequest.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTResponseList.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>

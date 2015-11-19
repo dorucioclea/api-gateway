@@ -23,10 +23,14 @@ import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.CacheUtil;
+import com.t1t.digipolis.util.JWTUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -202,6 +206,16 @@ public class UserFacade implements Serializable {
         }
     }
 
+    /**
+     * Generates a SAML2 login/authentication request.
+     *
+     * @param idpUrl
+     * @param spUrl
+     * @param spName
+     * @param clientUrl
+     * @param token
+     * @return
+     */
     public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token) {
         // Initialize the library
         log.info("Initate SAML2 request for {}",clientUrl);
@@ -225,6 +239,14 @@ public class UserFacade implements Serializable {
         }
     }
 
+    /**
+     * Generates a SAML2 logout request.
+     *
+     * @param idpUrl
+     * @param spName
+     * @param user
+     * @return
+     */
     public String generateSAML2LogoutRequest(String idpUrl, String spName, String user) {
         // Initialize the library
         try {
@@ -392,7 +414,7 @@ public class UserFacade implements Serializable {
          * responseRedirect.setToken(encodeSAML2BearerToken(assertion));
          */
         if (assertion != null && ehcache.getClientAppCache().get(clientAppName.trim() + "token").getObjectValue().equals(ClientTokeType.jwt)) {
-            responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(userName));//updateOrCreateConsumerJWTOnGateway
+            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(userName));
         }
         else{
             responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(userName));
@@ -519,72 +541,6 @@ public class UserFacade implements Serializable {
     }
 
     /**
-     * TODO we don't use this method, retest SAML exchange for OAuth when certificates are present.
-     *
-     * @param responseMessage
-     * @return
-     * @throws ConfigurationException
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
-     * @throws UnmarshallingException
-     */
-    public String exchangeSAMLTokenToOauth(String responseMessage) throws ConfigurationException, ParserConfigurationException, IOException, SAXException, UnmarshallingException {
-        DefaultBootstrap.bootstrap();
-        String samlResp = responseMessage.split("&")[0];
-        String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
-        String base64URLDecodedResponse = URLDecoder.decode(base64EncodedResponse, "UTF-8");
-        byte[] base64DecodedResponse = Base64.decode(base64URLDecodedResponse);
-        ByteArrayInputStream is = new ByteArrayInputStream(base64DecodedResponse);
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(true);
-        DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
-        Document document = docBuilder.parse(is);
-        Element element = document.getDocumentElement();
-        UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
-        Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
-        XMLObject responseXmlObj = unmarshaller.unmarshall(element);
-        Response responseObj = (Response) responseXmlObj;
-        // Get the SAML2 Assertion part from the response
-        StringWriter rspWrt = new StringWriter();
-        XMLHelper.writeNode(responseObj.getAssertions().get(0).getDOM(), rspWrt);
-        String requestMessage = rspWrt.toString();
-        // Get the Base64 encoded string of the message
-        // Then Get it prepared to send it over HTTP protocol
-        String encodedRequestMessage = Base64.encodeBytes(requestMessage.getBytes(), Base64.DONT_BREAK_LINES);
-        String enc_rslt = URLEncoder.encode(encodedRequestMessage, "UTF-8").trim();
-        //Create connection to the Token endpoint of API manger
-        URL url = new URL("https://idp.t1t.be:9443/oauth2/token/");
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(url.toString());
-        //add header
-        post.setHeader("Content-Type", "application/x-www-form-urlencoded");
-        String userCredentials = "W6FcDk905p5jT5_C_DDec4hAwBMa:nyu7u2If6XBBcQXxi7M6wfHkoK4a";
-        String basicAuth = "Basic " + new String(Base64.encodeBytes(userCredentials.getBytes()));
-        basicAuth = basicAuth.replaceAll("\\r|\\n", "");
-        post.setHeader("Authorization", basicAuth);
-        //add content
-        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-        urlParameters.add(new BasicNameValuePair("grant_type", "urn:ietf:params:oauth:grant-type:saml2-bearer"));
-        urlParameters.add(new BasicNameValuePair("assertion", enc_rslt));
-        post.setEntity(new UrlEncodedFormEntity(urlParameters));
-        //Execute
-        HttpResponse response = client.execute(post);
-        System.out.println("Response Code : "
-                + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(
-                new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-        return result.toString();
-    }
-
-    /**
      * Updates or creates a consumer on the gateway and in the data model.
      * No ACL activation.
      * Users are created implicitly, first we check if the user exists already on the gateway.
@@ -637,8 +593,9 @@ public class UserFacade implements Serializable {
      * @param userName
      * @return
      */
-/*    private String updateOrCreateConsumerJWTOnGateway(String userName) {
-        String jwt = "";
+    private String updateOrCreateConsumerJWTOnGateway(String userName) {
+        String jwtKey = "";
+        String jwtSecret = "";
         // Publish the service to all relevant gateways
         try {
             String gatewayId = gatewayFacade.getDefaultGateway().getId();
@@ -648,17 +605,26 @@ public class UserFacade implements Serializable {
             if (consumer == null) {
                 //user doesn't exists, implicit creation
                 consumer = gatewayLink.createConsumer(userName);
-                KongPluginKeyAuthResponse keyAuthResponse = gatewayLink.addConsumerKeyAuth(consumer.getId());
-                keytoken = keyAuthResponse.getKey();
+                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
+                jwtKey = jwtResponse.getKey();//JWT "iss"
+                jwtSecret = jwtResponse.getSecret();
                 //we are sure that this consumer must be a physical user
                 UserBean tempUser = idmStorage.getUser(userName);
                 if (tempUser == null) {
                     initNewUser(userName);
                 }
             } else {
-                //TEMP list, but should be ACL - a consumer can have more keys
-                KongPluginKeyAuthResponseList response = gatewayLink.getConsumerKeyAuth(consumer.getId());
-                if (response.getData().size() > 0) keytoken = response.getData().get(0).getKey();
+                KongPluginJWTResponseList response = gatewayLink.getConsumerJWT(consumer.getId());
+                if (response.getData().size() > 0) {
+                    jwtKey = response.getData().get(0).getKey();
+                    jwtSecret = response.getData().get(0).getSecret();
+                }
+                else {
+                    //create jwt credentials
+                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
+                    jwtKey = jwtResponse.getKey();//JWT "iss"
+                    jwtSecret = jwtResponse.getSecret();
+                }
                 //it is possible that the user exists in the gateway but not in the API Engine
                 UserBean userToBeVerified = idmStorage.getUser(userName);
                 if(userToBeVerified==null||StringUtils.isEmpty(userToBeVerified.getUsername())){
@@ -666,14 +632,20 @@ public class UserFacade implements Serializable {
                 }
             }
             gatewayLink.close();
+            //start composing JWT token
+            //TODO
         } catch (PublishingException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
-        return keytoken;
-    }*/
+        return "";
+    }
 
+    /**
+     * TODO Specific role implementation should be covered here - depending on using XACML or JWT roles.
+     * @param username
+     */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private void initNewUser(String username) {
         try {
@@ -717,6 +689,10 @@ public class UserFacade implements Serializable {
         return decrypter.decrypt(encryptedAssertion);
     }
 
+    /**
+     * Print cache debug util.
+     * Prints the full cache in the log file in order to verify application request parameters.
+     */
     private void utilPrintCache() {
         log.debug("Cache:{}", ehcache.getClientAppCache().getName());
         List keys = ehcache.getClientAppCache().getKeys();

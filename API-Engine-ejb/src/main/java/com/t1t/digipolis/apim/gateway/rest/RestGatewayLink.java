@@ -21,6 +21,8 @@ import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
@@ -117,6 +119,16 @@ public class RestGatewayLink implements IGatewayLink {
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id, String apiKey) throws ConsumerException {
         if(StringUtils.isEmpty(apiKey))return addConsumerKeyAuth(id);
         else return getClient().createConsumerKeyAuth(id, apiKey);
+    }
+
+    @Override
+    public KongPluginJWTResponse addConsumerJWT(String id) throws ConsumerException {
+        return getClient().createConsumerJWT(id);
+    }
+
+    @Override
+    public KongPluginJWTResponseList getConsumerJWT(String id) throws ConsumerException {
+        return getClient().getConsumerJWT(id);
     }
 
     @Override

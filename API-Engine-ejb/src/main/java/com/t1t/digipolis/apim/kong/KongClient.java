@@ -12,6 +12,9 @@ import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
@@ -49,16 +52,20 @@ public interface KongClient {
     /*@PATCH("/consumers/{id}") KongConsumer updateConsumer(@Path("id")String id,@Body KongConsumer consumer);*/
     @PUT("/consumers/")KongConsumer updateOrCreateConsumer(@Body KongConsumer consumer);
     @DELETE("/consumers/{id}")Object deleteConsumer(@Path("id")String id);
-    @POST("/consumers/{id}/keyauth")
+    @POST("/consumers/{id}/key-auth")
     KongPluginKeyAuthResponse createConsumerKeyAuthCredentials(@Path("id") String id, @Body KongPluginKeyAuthRequest kongPluginKeyAuthRequest);
-    @GET("/consumers/{id}/keyauth")
+    @GET("/consumers/{id}/key-auth")
     KongPluginKeyAuthResponseList getConsumerKeyAuthCredentials(@Path("id")String id);
-    @POST("/consumers/{id}/basicauth")
+    @POST("/consumers/{id}/basic-auth")
     KongPluginBasicAuthResponse createConsumerBasicAuthCredentials(@Path("id") String id, @Body KongPluginBasicAuthRequest kongPluginBasicAuthRequest);
-    @GET("/consumers/{id}/basicauth")
+    @GET("/consumers/{id}/basic-auth")
     KongPluginBasicAuthResponseList getConsumerBasicAuthCredentials(@Path("id")String id);
-    @DELETE("/consumers/{consumerId}/keyauth/{keyAuthId}")
+    @DELETE("/consumers/{consumerId}/key-auth/{keyAuthId}")
     Object deleteConsumerKeyAuthCredential(@Path("consumerId")String consumerId,@Path("keyAuthId")String keyAuthId);
+    @POST("/consumers/{id}/jwt")
+    KongPluginJWTResponse createConsumerJWTCredentials(@Path("id") String id, @Body KongPluginJWTRequest kongPluginJWTRequest);
+    @GET("/consumers/{id}/jwt")
+    KongPluginJWTResponseList getConsumerJWTCredentials(@Path("id")String id);
 
     /*********************   PLUGINS   *******************/
     @GET("/plugins/enabled")KongInstalledPlugins getInstalledPlugins();
