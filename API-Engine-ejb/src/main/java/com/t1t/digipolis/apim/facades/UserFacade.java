@@ -386,12 +386,17 @@ public class UserFacade implements Serializable {
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
         //return the SAML2 Bearer token
         //responseRedirect.setToken(base64EncodedResponse);
-        //TODO remove in prod
         utilPrintCache();
-        if (assertion != null && ehcache.getClientAppCache().get(clientAppName.trim() + "token").getObjectValue().equals(ClientTokeType.saml2bearer))
-            responseRedirect.setToken(encodeSAML2BearerToken(assertion));
-        else
-        responseRedirect.setToken(updateOrCreateConsumerOnGateway(userName));
+        /**
+         * In the case of SAML2 as a response token you can use:
+         * responseRedirect.setToken(encodeSAML2BearerToken(assertion));
+         */
+        if (assertion != null && ehcache.getClientAppCache().get(clientAppName.trim() + "token").getObjectValue().equals(ClientTokeType.jwt)) {
+            responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(userName));//updateOrCreateConsumerJWTOnGateway
+        }
+        else{
+            responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(userName));
+        }
         responseRedirect.setTtl(assertion.getConditions().getNotOnOrAfter().toString());
         clientUrl.append((String) ehcache.getClientAppCache().get(clientAppName).getObjectValue());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
@@ -581,12 +586,13 @@ public class UserFacade implements Serializable {
 
     /**
      * Updates or creates a consumer on the gateway and in the data model.
-     * TODO: should updated with ACL
+     * No ACL activation.
+     * Users are created implicitly, first we check if the user exists already on the gateway.
      *
      * @param userName
      * @return
      */
-    private String updateOrCreateConsumerOnGateway(String userName) {
+    private String updateOrCreateConsumerKeyAuthOnGateway(String userName) {
         String keytoken = "";
         // Publish the service to all relevant gateways
         try {
@@ -622,6 +628,51 @@ public class UserFacade implements Serializable {
         }
         return keytoken;
     }
+
+    /**
+     * Updates or creates a consumer on the gateway and in the data model.
+     * No ACL activation.
+     * Users are created implicitly, first we check if the user exists already on the gateway.
+     *
+     * @param userName
+     * @return
+     */
+/*    private String updateOrCreateConsumerJWTOnGateway(String userName) {
+        String jwt = "";
+        // Publish the service to all relevant gateways
+        try {
+            String gatewayId = gatewayFacade.getDefaultGateway().getId();
+            Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
+            IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
+            KongConsumer consumer = gatewayLink.getConsumer(userName);
+            if (consumer == null) {
+                //user doesn't exists, implicit creation
+                consumer = gatewayLink.createConsumer(userName);
+                KongPluginKeyAuthResponse keyAuthResponse = gatewayLink.addConsumerKeyAuth(consumer.getId());
+                keytoken = keyAuthResponse.getKey();
+                //we are sure that this consumer must be a physical user
+                UserBean tempUser = idmStorage.getUser(userName);
+                if (tempUser == null) {
+                    initNewUser(userName);
+                }
+            } else {
+                //TEMP list, but should be ACL - a consumer can have more keys
+                KongPluginKeyAuthResponseList response = gatewayLink.getConsumerKeyAuth(consumer.getId());
+                if (response.getData().size() > 0) keytoken = response.getData().get(0).getKey();
+                //it is possible that the user exists in the gateway but not in the API Engine
+                UserBean userToBeVerified = idmStorage.getUser(userName);
+                if(userToBeVerified==null||StringUtils.isEmpty(userToBeVerified.getUsername())){
+                    initNewUser(userName);
+                }
+            }
+            gatewayLink.close();
+        } catch (PublishingException e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
+        } catch (Exception e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
+        }
+        return keytoken;
+    }*/
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private void initNewUser(String username) {
@@ -666,8 +717,8 @@ public class UserFacade implements Serializable {
         return decrypter.decrypt(encryptedAssertion);
     }
 
-    private void utilPrintCache(){
-        log.info("Cache:{}", ehcache.getClientAppCache().getName());
+    private void utilPrintCache() {
+        log.debug("Cache:{}", ehcache.getClientAppCache().getName());
         List keys = ehcache.getClientAppCache().getKeys();
         keys.forEach(key -> log.info("Key found:{} with value {}",key,ehcache.getClientAppCache().get(key)));
     }
