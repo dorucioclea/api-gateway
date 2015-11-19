@@ -21,26 +21,28 @@ public class KongCleanup {
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
-    private static final String KONG_UNDER_TEST_URL = "http://apim.t1t.be:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_URL = "http://acc.apim.t1t.be:8001";//should point to the admin url:port
     //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
     private static final String API_URL = "http://domain.com/app/rest/v1";
 
-    public static void setUp() throws Exception {
+    public static void main(String []args){
+        KongCleanup instance = new KongCleanup();
+        try {
+            instance.setUp();
+            instance.cleanAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setUp() throws Exception {
         RestGatewayConfigBean restConfig = new RestGatewayConfigBean();
         restConfig.setEndpoint(KONG_UNDER_TEST_URL);
         kongClient = new RestServiceBuilder().getService(restConfig, KongClient.class);
         assertNotNull(kongClient);
         gson = new Gson();
-    }
-
-    public static void tearDown() throws Exception {
-        //nothing to do at the moment :-)
-    }
-
-    public void cleanupApi() throws Exception {
-        //nothing at the moment
     }
 
     public void cleanAll() throws Exception {

@@ -462,6 +462,12 @@
             </properties>
         </profile>
         <profile>
+            <id>t1t-mtp</id>
+            <properties>
+                <appconfig.file>application-t1t-mtp</appconfig.file>
+            </properties>
+        </profile>
+        <profile>
             <id>digi-dev</id>
             <properties>
                 <appconfig.file>application-digi-dev</appconfig.file>

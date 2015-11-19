@@ -62,4 +62,3 @@ public class JaxRsActivator extends Application {
         //resources.add(CORSResponseFilter.class);//CORS Response filter
     }
 }
-

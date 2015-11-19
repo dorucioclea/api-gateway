@@ -210,17 +210,17 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         Preconditions.checkNotNull(service);
         //create the service using path, and target_url
         KongApi api = new KongApi();
-        api.setStripPath(true);
+        api.setStripRequestPath(true);
         //api.setPublicDns();
         String nameAndDNS = ServiceConventionUtil.generateServiceUniqueName(service);
         //name wil be: organization.application.version
         api.setName(nameAndDNS);
         //version wil be: organization.application.version
-        api.setPublicDns(nameAndDNS);
+        api.setRequestHost(nameAndDNS);
         //real URL to target
-        api.setTargetUrl(service.getEndpoint());
+        api.setUpstreamUrl(service.getEndpoint());
         //context path that will be stripped away
-        api.setPath(validateServicePath(service));
+        api.setRequestPath(validateServicePath(service));
         log.info("Send to Kong:{}", api.toString());
         //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
         try{
@@ -301,7 +301,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
             Gson gson = new Gson();
             //retrieve scope info from policy json
             KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);//original request - we need this for the scope descriptions
-            KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(config.getValue().toString(),KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
+            KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(config.getConfig().toString(),KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
             ServiceVersionBean svb = storage.getServiceVersion(service.getOrganizationId(), service.getServiceId(), service.getVersion());
             svb.setProvisionKey(enhancedOAuthValue.getProvisionKey());
             Map<String,String> scopeMap = new HashMap<>();
@@ -327,7 +327,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                 .withMethod(KongPluginHttpLog.Method.POST);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.HTTPLOG.getKongIdentifier())
-                .withValue(httpPolicy);
+                .withConfig(httpPolicy);
         httpClient.createPluginConfig(api.getId(),config);
     }
 
@@ -342,7 +342,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                 .withKeyNames(Arrays.asList(AUTH_API_KEY));
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.KEYAUTHENTICATION.getKongIdentifier())
-                .withValue(keyAuthPolicy);
+                .withConfig(keyAuthPolicy);
         httpClient.createPluginConfig(api.getId(),config);
     }
 
@@ -356,7 +356,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         corsPolicy.setHeaders(headers);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.CORS.getKongIdentifier())
-                .withValue(corsPolicy);
+                .withConfig(corsPolicy);
         httpClient.createPluginConfig(api.getId(),config);
     }
 
@@ -480,7 +480,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(kongIdentifier)//set required kong identifier
-                .withValue(plugin);
+                .withConfig(plugin);
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute
         config = httpClient.createPluginConfig(api.getId(),config);
@@ -504,7 +504,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         KongPluginConfig config = new KongPluginConfig()
                 .withName(kongIdentifier)//set required kong identifier
                 .withConsumerId(consumer.getId())
-                .withValue(plugin);
+                .withConfig(plugin);
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute
         config = httpClient.createPluginConfig(api.getId(),config);
