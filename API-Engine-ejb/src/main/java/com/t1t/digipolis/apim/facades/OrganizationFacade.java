@@ -252,7 +252,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             newApp.setOrganization(org);
             if (storage.getApplication(org.getId(), newApp.getId()) != null) {
-                throw ExceptionFactory.organizationAlreadyExistsException(bean.getName());
+                throw ExceptionFactory.applicationAlreadyExistsException(bean.getName());
             }
             storage.createApplication(newApp);
             storage.createAuditEntry(AuditUtils.applicationCreated(newApp, securityContext));
