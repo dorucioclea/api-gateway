@@ -5,10 +5,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryType;
-import com.t1t.digipolis.apim.beans.audit.data.ContractData;
-import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
-import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
-import com.t1t.digipolis.apim.beans.audit.data.PolicyData;
+import com.t1t.digipolis.apim.beans.audit.data.*;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
@@ -233,6 +230,23 @@ public class AuditUtils {
         entry.setEntityId(null);
         entry.setEntityVersion(null);
         entry.setWhat(AuditEntryType.Revoke);
+        entry.setData(toJSON(data));
+        return entry;
+    }
+
+    /**
+     * Creates an audit entry for the 'ownership transferred' event.
+     * @param organizationId the organization id
+     * @param data the ownership transfer data
+     * @param securityContext the security context
+     * @return the audit entry
+     */
+    public static AuditEntryBean ownershipTransferred(String organizationId, OwnershipTransferData data,
+                                                   ISecurityContext securityContext) {
+        AuditEntryBean entry = newEntry(organizationId, AuditEntityType.Organization, securityContext);
+        entry.setEntityId(null);
+        entry.setEntityVersion(null);
+        entry.setWhat(AuditEntryType.Transfer);
         entry.setData(toJSON(data));
         return entry;
     }

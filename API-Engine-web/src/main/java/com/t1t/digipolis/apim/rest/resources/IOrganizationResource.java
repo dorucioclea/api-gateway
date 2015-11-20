@@ -1243,6 +1243,18 @@ public interface IOrganizationResource {
             UserNotFoundException, NotAuthorizedException;
 
     /**
+     * Transfer ownership of an organization to another member.
+     * @summary Grant Membership(s)
+     * @param organizationId The Organization ID.
+     * @param bean UserIds of the current owner and new owner.
+     * @statuscode 204 If the ownership was successfully transferred.
+     * @throws OrganizationNotFoundException when trying to get, update, or remove an organization that does not exist
+     * @throws MemberNotFoundException when attempting to transfer ownership to or from a member that does not exist
+     * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
+     */
+    public void transferOrgOwnership(String organizationId, String currentOwnerId, String newOwnerId) throws OrganizationNotFoundException, MemberNotFoundException, NotAuthorizedException;
+
+    /**
      * Lists all members of the organization.
      * @summary List Organization Members
      * @param organizationId The organization ID.

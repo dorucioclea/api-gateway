@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
+import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
@@ -314,7 +315,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public ApplicationVersionBean updateAppVersionURI(String organizationId, String applicationId, String version, UpdateApplicationVersionURIBean uri){
         try {
-            log.debug("Enter updateAppversionURI:{}",uri);
+            log.debug("Enter updateAppversionURI:{}", uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if(avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
             avb.setOauthClientRedirect(uri.getUri());
@@ -1736,7 +1737,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
         try {
-            storage.createAuditEntry(AuditUtils.membershipGrantedImplicit(organizationId, auditData, securityContext,true));
+            storage.createAuditEntry(AuditUtils.membershipGrantedImplicit(organizationId, auditData, securityContext, true));
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -1785,6 +1786,35 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             storage.createAuditEntry(AuditUtils.membershipRevoked(organizationId, auditData, securityContext));
         } catch (AbstractRestException e) {
             throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void transferOrgOwnership(String organizationId, String currentOwnerId, String newOwnerId ) {
+        get(organizationId);
+        try {
+            // Remove current owner as OrganizationOwner and add as Developer
+            RoleMembershipBean currentOwnerBean = idmStorage.getMembership(currentOwnerId, "OrganizationOwner", organizationId);
+            if (currentOwnerBean == null) throw new MemberNotFoundException(currentOwnerId);
+            idmStorage.deleteMembership(currentOwnerId, "OrganizationOwner", organizationId);
+            currentOwnerBean.setRoleId("ServiceDeveloper");
+            idmStorage.createMembership(currentOwnerBean);
+            currentOwnerBean.setRoleId("ApplicationDeveloper");
+            idmStorage.createMembership(currentOwnerBean);
+
+            // Add new owner as OrganizationOwner and remove other memberships
+            Set<RoleMembershipBean> newOwnerMemberships = idmStorage.getUserMemberships(newOwnerId, organizationId);
+            if (newOwnerMemberships.size() == 0) throw new MemberNotFoundException(newOwnerId);
+            idmStorage.deleteMemberships(newOwnerId, organizationId);
+            RoleMembershipBean newOwnerBean = RoleMembershipBean.create(newOwnerId, "OrganizationOwner", organizationId);
+            idmStorage.createMembership(newOwnerBean);
+
+            // Add audit entry
+            OwnershipTransferData auditData = new OwnershipTransferData();
+            auditData.setPreviousOwnerId(currentOwnerId);
+            auditData.setNewOwnerId(newOwnerId);
+            storage.createAuditEntry(AuditUtils.ownershipTransferred(organizationId, auditData, securityContext));
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
