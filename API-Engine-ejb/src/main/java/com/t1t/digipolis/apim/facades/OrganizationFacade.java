@@ -1791,8 +1791,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void transferOrgOwnership(String organizationId, String currentOwnerId, String newOwnerId ) {
+    public void transferOrgOwnership(String organizationId, TransferOwnershipBean bean) {
         get(organizationId);
+        String currentOwnerId = bean.getCurrentOwnerId();
+        String newOwnerId = bean.getNewOwnerId();
         try {
             // Remove current owner as OrganizationOwner and add as Developer
             RoleMembershipBean currentOwnerBean = idmStorage.getMembership(currentOwnerId, "OrganizationOwner", organizationId);

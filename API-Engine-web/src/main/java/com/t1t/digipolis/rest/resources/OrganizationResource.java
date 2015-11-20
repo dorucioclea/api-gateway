@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.idm.GrantRolesBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.idm.TransferOwnershipBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
@@ -1800,15 +1801,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/transfer")
     @Consumes(MediaType.APPLICATION_JSON)
     public void transferOrgOwnership(@PathParam("organizationId") String organizationId,
-                                     @QueryParam("current") String currentOwnerId,
-                                     @QueryParam("new") String newOwnerId) throws OrganizationNotFoundException,
+                                     TransferOwnershipBean bean) throws OrganizationNotFoundException,
             MemberNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(currentOwnerId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(newOwnerId));
-        orgFacade.transferOrgOwnership(organizationId, currentOwnerId, newOwnerId);
+        orgFacade.transferOrgOwnership(organizationId, bean);
     }
 
     @ApiOperation(value = "List Organization Members",
