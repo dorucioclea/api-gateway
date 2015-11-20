@@ -1,21 +1,18 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.t1t.digipolis.apim.beans.apps.NewApplicationBean;
-import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
-import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
-import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
-import com.t1t.digipolis.apim.beans.apps.UpdateApplicationVersionURIBean;
-import com.t1t.digipolis.apim.beans.apps.NewApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
+import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.exceptions.*;
@@ -416,32 +413,110 @@ public class OrganizationFacadeTest {
 
     @Test
     public void testGetAppActivity() throws Exception {
+        orgFacade.getAppActivity("someorg", "someapp", 1, 10);
+        PagingBean paging = new PagingBean();
+        paging.setPage(1);
+        paging.setPageSize(10);
+        verify(query).auditEntity("someorg", "someapp", null, ApplicationBean.class, paging);
+    }
 
+    @Test
+    public void testListAppsOrgNotFound() throws Exception {
+        thrown.expect(OrganizationNotFoundException.class);
+        orgFacade.listApps("someorg");
     }
 
     @Test
     public void testListApps() throws Exception {
+        OrganizationBean ob = new OrganizationBean();
+        ob.setName("someorg");
+        when(storage.getOrganization(anyString())).thenReturn(ob);
+        when(query.getApplicationsInOrg(anyString())).thenReturn(new ArrayList<>());
+        orgFacade.listApps("someorg");
+        verify(query).getApplicationsInOrg("someorg");
+    }
 
+    @Test
+    public void testUpdateAppNotFound() throws Exception {
+        when(storage.getApplication(anyString(), anyString())).thenReturn(null);
+        thrown.expect(ApplicationNotFoundException.class);
+        orgFacade.updateApp("someorg", "someapp", new UpdateApplicationBean());
     }
 
     @Test
     public void testUpdateApp() throws Exception {
+        ApplicationBean ab = new ApplicationBean();
+        ab.setName("someapp");
+        when(storage.getApplication(anyString(), anyString())).thenReturn(ab);
+        orgFacade.updateApp("someorg", "someapp", new UpdateApplicationBean());
+        verify(storage).updateApplication(ab);
+        verify(storage).createAuditEntry(anyObject());
+    }
 
+    @Test
+    public void testGetAppVersionNotFound() throws Exception {
+        when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(null);
+        thrown.expect(ApplicationVersionNotFoundException.class);
+        orgFacade.getAppVersion("someorg", "someapp", "someversion");
     }
 
     @Test
     public void testGetAppVersion() throws Exception {
-
+        ApplicationBean ab = new ApplicationBean();
+        ab.setName("someapp");
+        ApplicationVersionBean avb = new ApplicationVersionBean();
+        avb.setApplication(ab);
+        avb.setVersion("someversion");
+        when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(avb);
+        orgFacade.getAppVersion("someorg", "someapp", "someversion");
+        verify(storage).getApplicationVersion("someorg", "someapp", "someversion");
     }
 
     @Test
     public void testGetPlanPolicy() throws Exception {
+        when(securityContext.hasPermission(anyObject(), anyString())).thenReturn(true);
+        when(storage.getPlanVersion(anyString(), anyString(), anyString())).thenReturn(new PlanVersionBean());
+        PolicyBean pb = new PolicyBean();
+        pb.setType(PolicyType.Plan);
+        pb.setOrganizationId("someorg");
+        pb.setEntityId("someplan");
+        pb.setEntityVersion("someversion");
+        pb.setConfiguration("someconfiguration");
+        when(storage.getPolicy(anyObject(), anyString(), anyString(), anyString(), anyLong())).thenReturn(pb);
+        orgFacade.getPlanPolicy("someorg", "someplan", "someversion", 1000);
+        verify(storage).getPolicy(PolicyType.Plan, "someorg", "someplan", "someversion", 1000l);
+        assertNotNull(pb.getConfiguration());
+    }
 
+    @Test
+    public void testGetPlanPolicyNoPermission() throws Exception {
+        when(securityContext.hasPermission(anyObject(), anyString())).thenReturn(false);
+        when(storage.getPlanVersion(anyString(), anyString(), anyString())).thenReturn(new PlanVersionBean());
+        PolicyBean pb = new PolicyBean();
+        pb.setType(PolicyType.Plan);
+        pb.setOrganizationId("someorg");
+        pb.setEntityId("someplan");
+        pb.setEntityVersion("someversion");
+        pb.setConfiguration("someconfiguration");
+        when(storage.getPolicy(anyObject(), anyString(), anyString(), anyString(), anyLong())).thenReturn(pb);
+        orgFacade.getPlanPolicy("someorg", "someplan", "someversion", 1000);
+        verify(storage).getPolicy(PolicyType.Plan, "someorg", "someplan", "someversion", 1000l);
+        assertNull(pb.getConfiguration());
+    }
+
+    @Test
+    public void testGetPlanVersionNotFound() throws Exception {
+        when(storage.getPlanVersion(anyString(), anyString(), anyString())).thenReturn(null);
+        thrown.expect(PlanVersionNotFoundException.class);
+        orgFacade.getPlanVersion("someorg", "someplan", "someversion");
+        verify(storage).getPlanVersion("someorg", "someplan", "someversion");
     }
 
     @Test
     public void testGetPlanVersion() throws Exception {
-
+        when(storage.getPlanVersion(anyString(), anyString(), anyString())).thenReturn(new PlanVersionBean());
+        orgFacade.getPlanVersion("someorg", "someplan", "someversion");
+        verify(storage).getPlanVersion("someorg", "someplan", "someversion");
     }
 
     @Test
