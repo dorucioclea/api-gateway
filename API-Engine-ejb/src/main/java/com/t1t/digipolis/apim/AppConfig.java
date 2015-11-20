@@ -51,7 +51,8 @@ public class AppConfig implements Serializable {
             _LOG.info("Kong management endpoint: {}",getKongManagementEndpoint());
             _LOG.info("IDP SAML2 endpoint: {}",getIDPSAMLEndpoint());
             _LOG.info("IDP NameID format: {}",getIDPSAMLNameIdFormat());
-            _LOG.info("IDP SCIM endpoint: {}",getIDPSCIMEndpoint());
+            _LOG.info("IDP SCIM endpoint for users: {}",getIDPSCIMEndpointUsers());
+            _LOG.info("IDP SCIM endpoint for groups: {}",getIDPSCIMEndpointGroups());
             _LOG.info("IDP OAUTH token endpoint: {}",getIDPOAuthTokenEndpoint());
             _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
             _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
@@ -73,7 +74,8 @@ public class AppConfig implements Serializable {
     public String getKongManagementEndpoint(){return config.getString(IConfig.KONG_URL_MANAGEMENT);}
     public String getIDPSAMLEndpoint(){return config.getString(IConfig.IDP_SAML_ENDPOINT);}
     public String getIDPSAMLNameIdFormat(){return config.getString(IConfig.IDP_NAMEID_FORMAT);}
-    public String getIDPSCIMEndpoint(){return config.getString(IConfig.IDP_SCIM_ENDPOINT);}
+    public String getIDPSCIMEndpointUsers(){return config.getString(IConfig.IDP_SCIM_ENDPOINT_USERS);}
+    public String getIDPSCIMEndpointGroups(){return config.getString(IConfig.IDP_SCIM_ENDPOINT_GROUPS);}
     public String getIDPOAuthTokenEndpoint(){return config.getString(IConfig.IDP_OAUTH_TOKEN_ENDPOINT);}
     public String getIDPOAuthClientId(){return config.getString(IConfig.IDP_OAUTH_CLIENT_ID);}
     public String getIDPOAuthClientSecret(){return config.getString(IConfig.IDP_OAUTH_CLIENT_SECRET);}
