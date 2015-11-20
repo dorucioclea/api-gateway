@@ -6,7 +6,5 @@ package com.t1t.digipolis.apim.beans.search;
  *
  */
 public enum SearchCriteriaFilterOperator {
-    
     bool_eq, eq, neq, gt, gte, lt, lte, like;
-
 }

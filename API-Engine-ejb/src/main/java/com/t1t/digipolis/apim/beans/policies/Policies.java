@@ -13,6 +13,7 @@ import com.t1t.digipolis.kong.model.KongPluginRequestSizeLimiting;
 import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
 import com.t1t.digipolis.kong.model.KongPluginResponseTransformer;
 import com.t1t.digipolis.kong.model.KongPluginSSL;
+import com.t1t.digipolis.kong.model.KongPluginJWT;
 import com.t1t.digipolis.kong.model.KongPluginTcpLog;
 import com.t1t.digipolis.kong.model.KongPluginUdpLog;
 
@@ -36,7 +37,8 @@ public enum Policies {
     , REQUESTTRANSFORMER(KongPluginRequestTransformer.class,"request-transformer")
     , RESPONSETRANSFORMER(KongPluginResponseTransformer.class,"response-transformer")
     , SSL(KongPluginSSL.class,"ssl")
-    , ANALYTICS(KongPluginAnalytics.class,"mashape-analytics");
+    , ANALYTICS(KongPluginAnalytics.class,"mashape-analytics")
+    , JWT(KongPluginJWT.class,"jwt");
 
     private Class clazz;
     private String kongIdentifier;

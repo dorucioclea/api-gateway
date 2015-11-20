@@ -287,6 +287,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
         if(!customKeyAuth) registerDefaultKeyAuthPolicy(api);
         if(!customHttp&&!StringUtils.isEmpty(metricsURI)) registerDefaultHttpPolicy(api);
+        //default enable jwt validation for a service - authorization bearer or jwt fieldname accepted by default
+        registerDefaultJWTPolicy(api);
     }
 
     /**
@@ -346,6 +348,16 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.KEYAUTHENTICATION.getKongIdentifier())
                 .withConfig(keyAuthPolicy);
+        httpClient.createPluginConfig(api.getId(),config);
+    }
+
+    /**
+     * Register the default JWT plugin with self-generated key and security.
+     * @param api
+     */
+    private void registerDefaultJWTPolicy(KongApi api) {
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(Policies.JWT.getKongIdentifier());
         httpClient.createPluginConfig(api.getId(),config);
     }
 
