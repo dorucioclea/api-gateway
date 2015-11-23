@@ -1,5 +1,6 @@
 package com.t1t.digipolis.util;
 
+import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import org.jose4j.jwk.JsonWebKeySet;

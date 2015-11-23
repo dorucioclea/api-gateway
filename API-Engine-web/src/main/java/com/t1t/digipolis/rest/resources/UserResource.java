@@ -168,7 +168,7 @@ public class UserResource implements IUserResource {
     }
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
-            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' and 'opaque' token supported.")
+            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' and 'opaque' token supported. The clientAppName propertie is optional and will serve as the JWT audience claim.")
     @ApiResponses({
             @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
             @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")

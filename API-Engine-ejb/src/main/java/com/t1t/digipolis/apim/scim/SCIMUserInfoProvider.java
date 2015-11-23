@@ -35,7 +35,7 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
         scimServiceBuilder = new SCIMServiceBuilder();
         scimClient = scimServiceBuilder.getService(scimConfigBean,SCIMClient.class);
     }
-    
+
     @Override
     public ExternalUserBean getUserInfo(String key, String value) throws ExternalUserNotFoundException {
         ExternalUserBean userBean = new ExternalUserBean();

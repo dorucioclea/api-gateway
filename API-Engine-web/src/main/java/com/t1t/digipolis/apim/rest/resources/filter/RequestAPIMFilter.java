@@ -49,6 +49,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             ;//allow from idp
         } else {
             //Get the authorization header
+            //TODO verify to revalidate the JWT token upon consumption.
             String userId = containerRequestContext.getHeaderString(HEADER_APIKEY_USER);
             String validatedUser = "";
             try {

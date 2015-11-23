@@ -72,13 +72,18 @@ public class AppConfigTest {
     }
 
     @Test
-    public void testGetIDPSCIMEndpointUser() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMEndpointUsers()));
+    public void testGetIDPSCIMEndpoint() throws Exception {
+        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMEndpoint()));
     }
 
     @Test
-    public void testGetIDPSCIMEndpointGroup() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMEndpointGroups()));
+    public void testGetSCIMUserLogin() throws Exception {
+        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMUserLogin()));
+    }
+
+    @Test
+    public void testGetSCIMUserPassword()throws Exception{
+        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMUserPassword()));
     }
 
     @Test

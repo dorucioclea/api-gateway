@@ -19,5 +19,5 @@ import javax.inject.Inject;
  * Created by michallispashidis on 10/10/15.
  */
 public interface SCIMClient {
-    @GET("/Users")SCIMUserList getUserInformation(@Query("filter")String userFilter);
+    @GET("/Users/")SCIMUserList getUserInformation(@Query("filter")String userFilter);
 }

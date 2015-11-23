@@ -9,7 +9,7 @@ public class SAMLRequest implements Serializable{
     private String idpUrl;
     private String spUrl;
     private String spName;
-    private String clientAppRedirect;
+    private String clientAppRedirect;//only used as audience claim for JWT - optional for other tokentypes
     private ClientTokeType token;
 
     public SAMLRequest() {
