@@ -97,6 +97,7 @@ public class JWTUtils {
         jws.setPayload(claims.toJson());
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
         jws.setKey(key);
+        jws.setHeader(IJWT.HEADER_TYPE,IJWT.HEADER_TYPE_VALUE);
         jws.setDoKeyValidation(false); // relaxes the key length requirement
 
         String issuedJwt = null;

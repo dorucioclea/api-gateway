@@ -99,6 +99,7 @@ public class JWTClaimTest {
         }
         assertNotNull(jwt);
         assertTrue(!StringUtils.isEmpty(jwt));
+        _LOG.info("Generated JWT:{}",jwt);
         
     }
 }
