@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
+import com.t1t.digipolis.apim.beans.idm.GrantRoleBean;
 import com.t1t.digipolis.apim.beans.idm.GrantRolesBean;
 import com.t1t.digipolis.apim.beans.idm.TransferOwnershipBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -1203,14 +1204,14 @@ public interface IOrganizationResource {
      * Grant membership in a role to a user.
      * @summary Grant Membership(s)
      * @param organizationId The Organization ID.
-     * @param bean Roles to grant, and the ID of the user.
-     * @statuscode 204 If the membership(s) were successfully granted.
+     * @param bean Role to grant, and the ID of the user.
+     * @statuscode 204 If the membership was successfully granted.
      * @throws OrganizationNotFoundException when trying to get, update, or remove an organization that does not exist
      * @throws RoleNotFoundException when a request is sent for a role that does not exist
      * @throws UserNotFoundException when a request is sent for a user who does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public void grant(String organizationId, GrantRolesBean bean) throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException, NotAuthorizedException;
+    public void grant(String organizationId, GrantRoleBean bean) throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException, NotAuthorizedException;
 
     /**
      * Revoke membership in a role.

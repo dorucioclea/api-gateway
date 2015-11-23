@@ -235,6 +235,23 @@ public class AuditUtils {
     }
 
     /**
+     * Creates an audit entry for the 'membership updated' event.
+     * @param organizationId the organization id
+     * @param data the membership data
+     * @param securityContext the security context
+     * @return the audit entry
+     */
+    public static AuditEntryBean membershipUpdated(String organizationId, MembershipData data,
+                                                   ISecurityContext securityContext) {
+        AuditEntryBean entry = newEntry(organizationId, AuditEntityType.Organization, securityContext);
+        entry.setEntityId(null);
+        entry.setEntityVersion(null);
+        entry.setWhat(AuditEntryType.Update);
+        entry.setData(toJSON(data));
+        return entry;
+    }
+
+    /**
      * Creates an audit entry for the 'ownership transferred' event.
      * @param organizationId the organization id
      * @param data the ownership transfer data
