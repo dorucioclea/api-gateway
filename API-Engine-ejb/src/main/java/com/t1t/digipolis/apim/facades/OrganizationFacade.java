@@ -1846,18 +1846,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         String currentOwnerId = bean.getCurrentOwnerId();
         String newOwnerId = bean.getNewOwnerId();
         try {
-            // Remove current owner as OrganizationOwner and add as Developer
-            RoleMembershipBean currentOwnerBean = idmStorage.getMembership(currentOwnerId, "OrganizationOwner", organizationId);
+            // Remove current as Owner and add as Developer
+            RoleMembershipBean currentOwnerBean = idmStorage.getMembership(currentOwnerId, "Owner", organizationId);
             if (currentOwnerBean == null) throw new MemberNotFoundException(currentOwnerId);
-            idmStorage.deleteMembership(currentOwnerId, "OrganizationOwner", organizationId);
+            idmStorage.deleteMembership(currentOwnerId, "Owner", organizationId);
             currentOwnerBean.setRoleId("Developer");
             idmStorage.createMembership(currentOwnerBean);
 
-            // Add new owner as OrganizationOwner and remove other memberships
+            // Add new as Owner and remove other memberships
             Set<RoleMembershipBean> newOwnerMemberships = idmStorage.getUserMemberships(newOwnerId, organizationId);
             if (newOwnerMemberships.size() == 0) throw new MemberNotFoundException(newOwnerId);
             idmStorage.deleteMemberships(newOwnerId, organizationId);
-            RoleMembershipBean newOwnerBean = RoleMembershipBean.create(newOwnerId, "OrganizationOwner", organizationId);
+            RoleMembershipBean newOwnerBean = RoleMembershipBean.create(newOwnerId, "Owner", organizationId);
             idmStorage.createMembership(newOwnerBean);
 
             // Add audit entry
