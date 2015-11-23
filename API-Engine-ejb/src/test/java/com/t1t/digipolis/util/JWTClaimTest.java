@@ -1,13 +1,14 @@
 package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
-import junit.framework.Assert;
 import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
 import org.jose4j.lang.JoseException;
 import org.junit.Test;
@@ -81,9 +82,10 @@ public class JWTClaimTest {
     public void issueJWT() throws IOException{
         final String JWT_KEY = "7da8cb6408bb42a4c27785c2c5b467b2";
         final String JWT_SECRET = "ddfd1beb178d449fc4603bec701abb96";
+        final String JWT_AUDIENCE = "http://consumerapp";
         JWTRequestBean jwtRequestBean = new JWTRequestBean();
         jwtRequestBean.setIssuer(JWT_KEY);
-        jwtRequestBean.setAudience("http://consumerapp");
+        jwtRequestBean.setAudience(JWT_AUDIENCE);
         jwtRequestBean.setExpirationTimeMinutes(10);
         jwtRequestBean.setPlan("free");
         jwtRequestBean.setEmail("michallis@trust1team.com");
@@ -100,6 +102,14 @@ public class JWTClaimTest {
         assertNotNull(jwt);
         assertTrue(!StringUtils.isEmpty(jwt));
         _LOG.info("Generated JWT:{}",jwt);
-        
+
+        //validate
+        try {
+            JwtContext jwtContext = JWTUtils.validateHMACToken(jwt, JWT_SECRET, JWT_KEY, JWT_AUDIENCE, new Boolean(false));
+            _LOG.info("JWT validation succeeded.");
+            _LOG.info("Claim names:{}",jwtContext.getJwtClaims().getClaimsMap());
+        } catch (InvalidJwtException e) {
+            fail();
+        }
     }
 }

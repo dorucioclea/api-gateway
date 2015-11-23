@@ -40,7 +40,7 @@ public class JWTUtils {
      * @return
      * @throws InvalidJwtException
      */
-    public static JwtContext validateToken(String jwtToken, String publicKey, String expectedIssuer, String expectedAudience) throws InvalidJwtException {
+    public static JwtContext validateRSAToken(String jwtToken, String publicKey, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException {
         //This key is the public Realm key defined at our IDP Proxy
         RsaJsonWebKey rsaJsonWebKey = new RsaJsonWebKey((RSAPublicKey) KeyUtils.getKey(publicKey));
         // There's also a key resolver that selects from among a given list of JWKs using the Key ID
@@ -54,16 +54,55 @@ public class JWTUtils {
         // and audience that identifies your system as the intended recipient.
         // If the JWT is encrypted too, you need only provide a decryption key or
         // decryption key resolver to the builder.
-        JwtConsumer jwtConsumer = new JwtConsumerBuilder()
-                .setSkipAllDefaultValidators()//only for test purposes!!! otherwise we have invalidation due to exp
-                .setRequireExpirationTime() // the JWT must have an expiration time
-                .setAllowedClockSkewInSeconds(30) // allow some leeway in validating time based claims to account for clock skew
-                .setRequireSubject() // the JWT must have a subject claim
-                .setExpectedIssuer(expectedIssuer) // whom the JWT needs to have been issued by
-                .setExpectedAudience(expectedAudience) // to whom the JWT is intended for
-                        //.setVerificationKeyResolver(x509VerificationKeyResolver)
-                .setVerificationKeyResolver(jwksResolver)
-                .build(); // create the JwtConsumer instance
+        JwtConsumer jwtConsumer = null;
+        if(skipDefaultValidators){
+            jwtConsumer = new JwtConsumerBuilder()
+                    .setSkipAllDefaultValidators()//only for test purposes!!! otherwise we have invalidation due to exp
+                    .setRequireExpirationTime() // the JWT must have an expiration time
+                    .setAllowedClockSkewInSeconds(30) // allow some leeway in validating time based claims to account for clock skew
+                    .setRequireSubject() // the JWT must have a subject claim
+                    .setExpectedIssuer(expectedIssuer) // whom the JWT needs to have been issued by
+                    .setExpectedAudience(expectedAudience) // to whom the JWT is intended for
+                            //.setVerificationKeyResolver(x509VerificationKeyResolver)
+                    .setVerificationKeyResolver(jwksResolver)
+                    .build(); // create the JwtConsumer instance
+        }else{
+            jwtConsumer = new JwtConsumerBuilder()
+                    .setRequireExpirationTime() // the JWT must have an expiration time
+                    .setAllowedClockSkewInSeconds(30) // allow some leeway in validating time based claims to account for clock skew
+                    .setRequireSubject() // the JWT must have a subject claim
+                    .setExpectedIssuer(expectedIssuer) // whom the JWT needs to have been issued by
+                    .setExpectedAudience(expectedAudience) // to whom the JWT is intended for
+                            //.setVerificationKeyResolver(x509VerificationKeyResolver)
+                    .setVerificationKeyResolver(jwksResolver)
+                    .build(); // create the JwtConsumer instance
+        }
+
+        JwtContext jwtContext = jwtConsumer.process(jwtToken);
+        _LOG.info("JWT-token:{}", jwtContext.getJwt());
+        _LOG.info("JWT-claims:{}", jwtContext.getJwtClaims());
+        return jwtContext;
+    }
+
+    public static JwtContext validateHMACToken(String jwtToken, String secret, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException, UnsupportedEncodingException {
+        JwtConsumer jwtConsumer = null;
+        if(skipDefaultValidators){
+            jwtConsumer =  new JwtConsumerBuilder()
+                    .setSkipAllDefaultValidators()
+                    .setVerificationKey(new HmacKey(secret.getBytes()))
+                    .setRelaxVerificationKeyValidation() // allow shorter HMAC keys when used w/ HSxxx algs
+                    .build();
+        }else{
+            jwtConsumer = new JwtConsumerBuilder()
+                    .setRequireExpirationTime() // the JWT must have an expiration time
+                    .setAllowedClockSkewInSeconds(30) // allow some leeway in validating time based claims to account for clock skew
+                    .setRequireSubject() // the JWT must have a subject claim
+                    .setExpectedIssuer(expectedIssuer) // whom the JWT needs to have been issued by
+                    .setExpectedAudience(expectedAudience) // to whom the JWT is intended for
+                    .setVerificationKey(new HmacKey(secret.getBytes()))
+                    .build(); // create the JwtConsumer instance
+        }
+
         JwtContext jwtContext = jwtConsumer.process(jwtToken);
         _LOG.info("JWT-token:{}", jwtContext.getJwt());
         _LOG.info("JWT-claims:{}", jwtContext.getJwtClaims());
