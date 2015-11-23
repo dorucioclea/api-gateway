@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.kong;
+package com.t1t.digipolis.apim.scim;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -9,16 +9,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
+
 import java.io.UnsupportedEncodingException;
 
 /**
  * Created by michallispashidis on 07/08/2015.
  * Application scoped bean, adding the header information to a VisiREG server instantce call.
  */
-public class RestServiceBuilder {
-    private static Logger _LOG = LoggerFactory.getLogger(RestServiceBuilder.class.getName());
+public class SCIMServiceBuilder {
+    private static Logger _LOG = LoggerFactory.getLogger(SCIMServiceBuilder.class.getName());
 
-    public RestServiceBuilder() {
+    public SCIMServiceBuilder() {
     }
 
     /**

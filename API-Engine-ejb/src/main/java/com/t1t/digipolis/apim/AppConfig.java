@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.ejb.Singleton;
@@ -51,8 +52,9 @@ public class AppConfig implements Serializable {
             _LOG.info("Kong management endpoint: {}",getKongManagementEndpoint());
             _LOG.info("IDP SAML2 endpoint: {}",getIDPSAMLEndpoint());
             _LOG.info("IDP NameID format: {}",getIDPSAMLNameIdFormat());
-            _LOG.info("IDP SCIM endpoint for users: {}",getIDPSCIMEndpointUsers());
-            _LOG.info("IDP SCIM endpoint for groups: {}",getIDPSCIMEndpointGroups());
+            _LOG.info("IDP SCIM endpoint: {}",getIDPSCIMEndpoint());
+            _LOG.info("IDP SCIM user login has been configured?: {}",!StringUtils.isEmpty(getIDPSCIMUserLogin()));
+            _LOG.info("IDP SCIM user password has been configured?: {}",!StringUtils.isEmpty(getIDPSCIMUserPassword()));
             _LOG.info("IDP OAUTH token endpoint: {}",getIDPOAuthTokenEndpoint());
             _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
             _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
@@ -74,8 +76,7 @@ public class AppConfig implements Serializable {
     public String getKongManagementEndpoint(){return config.getString(IConfig.KONG_URL_MANAGEMENT);}
     public String getIDPSAMLEndpoint(){return config.getString(IConfig.IDP_SAML_ENDPOINT);}
     public String getIDPSAMLNameIdFormat(){return config.getString(IConfig.IDP_NAMEID_FORMAT);}
-    public String getIDPSCIMEndpointUsers(){return config.getString(IConfig.IDP_SCIM_ENDPOINT_USERS);}
-    public String getIDPSCIMEndpointGroups(){return config.getString(IConfig.IDP_SCIM_ENDPOINT_GROUPS);}
+    public String getIDPSCIMEndpoint(){return config.getString(IConfig.IDP_SCIM_ENDPOINT);}
     public String getIDPOAuthTokenEndpoint(){return config.getString(IConfig.IDP_OAUTH_TOKEN_ENDPOINT);}
     public String getIDPOAuthClientId(){return config.getString(IConfig.IDP_OAUTH_CLIENT_ID);}
     public String getIDPOAuthClientSecret(){return config.getString(IConfig.IDP_OAUTH_CLIENT_SECRET);}
@@ -85,4 +86,6 @@ public class AppConfig implements Serializable {
     public String getDefaultOrganization(){return config.getString(IConfig.DEFAULT_USER_ORGANIZATION);}
     public String getDefaultUserRoles(){return config.getString(IConfig.DEFAULT_USER_ROLES_FOR_DEFAULT_ORG);}
     public String getOAuthConsentURI(){return config.getString(IConfig.CONSENT_URI);}
+    public String getIDPSCIMUserLogin(){return config.getString(IConfig.IDP_SCIM_USER_LOGIN);}
+    public String getIDPSCIMUserPassword(){return config.getString(IConfig.IDP_SCIM_USER_PWD);}
 }

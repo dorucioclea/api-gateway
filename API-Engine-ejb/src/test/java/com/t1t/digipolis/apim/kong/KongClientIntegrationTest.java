@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.kong;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -15,8 +14,6 @@ import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.Plugins;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +53,7 @@ public class KongClientIntegrationTest {
     public static void setUp() throws Exception {
         RestGatewayConfigBean restConfig = new RestGatewayConfigBean();
         restConfig.setEndpoint(KONG_UNDER_TEST_URL);
-        kongClient = new RestServiceBuilder().getService(restConfig,KongClient.class);
+        kongClient = new KongServiceBuilder().getService(restConfig,KongClient.class);
         assertNotNull(kongClient);
         gson = new Gson();
     }

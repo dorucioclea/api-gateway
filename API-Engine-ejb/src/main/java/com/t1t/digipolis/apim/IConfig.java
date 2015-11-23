@@ -11,8 +11,9 @@ public interface IConfig {
     String KONG_URL_MANAGEMENT = "apiapp.kong.management_url";
     String IDP_SAML_ENDPOINT = "apiapp.idp.saml_endpoint_url";
     String IDP_NAMEID_FORMAT = "apiapp.idp.nameid_format";
-    String IDP_SCIM_ENDPOINT_USERS = "apiapp.idp.scim_endpoint_url_users";
-    String IDP_SCIM_ENDPOINT_GROUPS = "apiapp.idp.scim_endpoint_url_groups";
+    String IDP_SCIM_ENDPOINT= "apiapp.idp.scim_endpoint_url";
+    String IDP_SCIM_USER_LOGIN = "apiapp.idp.scim_user_login";
+    String IDP_SCIM_USER_PWD = "apiapp.idp.scim_user_password";
     String IDP_OAUTH_TOKEN_ENDPOINT = "apiapp.idp.oauth_endpoint_url";
     String IDP_OAUTH_CLIENT_ID = "apiapp.idp.client_id";
     String IDP_OAUTH_CLIENT_SECRET = "apiapp.idp.client_secret";

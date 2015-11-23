@@ -409,6 +409,8 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTResponseList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWT.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUser.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUserList.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>

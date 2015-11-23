@@ -40,7 +40,7 @@ public class KongCleanup {
     public void setUp() throws Exception {
         RestGatewayConfigBean restConfig = new RestGatewayConfigBean();
         restConfig.setEndpoint(KONG_UNDER_TEST_URL);
-        kongClient = new RestServiceBuilder().getService(restConfig, KongClient.class);
+        kongClient = new KongServiceBuilder().getService(restConfig, KongClient.class);
         assertNotNull(kongClient);
         gson = new Gson();
     }

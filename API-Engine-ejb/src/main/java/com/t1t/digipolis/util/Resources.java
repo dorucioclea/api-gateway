@@ -1,6 +1,6 @@
 package com.t1t.digipolis.util;
 
-import com.t1t.digipolis.apim.kong.RestServiceBuilder;
+import com.t1t.digipolis.apim.kong.KongServiceBuilder;
 import javax.inject.Inject;
 
 /**
@@ -15,5 +15,5 @@ public class Resources {
      * REST Service Builder (Retrofit)
      */
     @Inject
-    private RestServiceBuilder serviceBuilder;
+    private KongServiceBuilder serviceBuilder;
 }

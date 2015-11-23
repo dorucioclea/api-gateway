@@ -16,8 +16,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
-import com.t1t.digipolis.apim.kong.RestServiceBuilder;
-import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.apim.kong.KongServiceBuilder;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
@@ -40,10 +39,10 @@ import java.io.IOException;
  * API to publish Services.
  */
 public class RestGatewayLink implements IGatewayLink {
-    private static RestServiceBuilder restServiceBuilder;
+    private static KongServiceBuilder kongServiceBuilder;
 
     static {
-        restServiceBuilder = new RestServiceBuilder();
+        kongServiceBuilder = new KongServiceBuilder();
     }
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -69,7 +68,7 @@ public class RestGatewayLink implements IGatewayLink {
             setConfig((RestGatewayConfigBean) mapper.reader(RestGatewayConfigBean.class).readValue(cfg));
             getConfig().setPassword(AesEncrypter.decrypt(getConfig().getPassword()));
             //setup http client with applicable interfaces
-            httpClient = restServiceBuilder.getService(config, KongClient.class);
+            httpClient = kongServiceBuilder.getService(config, KongClient.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
