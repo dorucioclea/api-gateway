@@ -70,14 +70,9 @@ public class JWTUtils {
         return jwtContext;
     }
 
-    public String composeJWT(JWTRequestBean jwtRequestBean, String secret){
+    public String composeJWT(JWTRequestBean jwtRequestBean, String secret) throws JoseException, UnsupportedEncodingException {
         // The JWT is signed using the private key
-        Key key = null;
-        try {
-            key = new HmacKey(secret.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        Key key = new HmacKey(secret.getBytes("UTF-8"));
 
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
@@ -105,11 +100,7 @@ public class JWTUtils {
         jws.setDoKeyValidation(false); // relaxes the key length requirement
 
         String issuedJwt = null;
-        try {
-            issuedJwt = jws.getCompactSerialization();
-        } catch (JoseException e) {
-            e.printStackTrace();
-        }
+        issuedJwt = jws.getCompactSerialization();
         return issuedJwt;
     }
 

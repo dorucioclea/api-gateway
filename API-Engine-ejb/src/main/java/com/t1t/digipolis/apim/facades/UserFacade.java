@@ -122,14 +122,14 @@ public class UserFacade implements Serializable {
     public void update(String userId, UpdateUserBean user) {
         try {
             UserBean updatedUser = idmStorage.getUser(userId);
-            if (updatedUser == null)throw ExceptionFactory.userNotFoundException(userId);
-            if (user.getEmail() != null)updatedUser.setEmail(user.getEmail());
-            if (user.getFullName() != null)updatedUser.setFullName(user.getFullName());
-            if (user.getPic() != null)updatedUser.setBase64pic(user.getPic());
-            if (user.getCompany()!=null)updatedUser.setCompany(user.getCompany());
-            if (user.getLocation()!=null)updatedUser.setLocation(user.getLocation());
-            if (user.getWebsite()!=null) updatedUser.setWebsite(user.getWebsite());
-            if (user.getBio()!=null)updatedUser.setBio(user.getBio());
+            if (updatedUser == null) throw ExceptionFactory.userNotFoundException(userId);
+            if (user.getEmail() != null) updatedUser.setEmail(user.getEmail());
+            if (user.getFullName() != null) updatedUser.setFullName(user.getFullName());
+            if (user.getPic() != null) updatedUser.setBase64pic(user.getPic());
+            if (user.getCompany() != null) updatedUser.setCompany(user.getCompany());
+            if (user.getLocation() != null) updatedUser.setLocation(user.getLocation());
+            if (user.getWebsite() != null) updatedUser.setWebsite(user.getWebsite());
+            if (user.getBio() != null) updatedUser.setBio(user.getBio());
             idmStorage.updateUser(updatedUser);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -218,7 +218,7 @@ public class UserFacade implements Serializable {
      */
     public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token) {
         // Initialize the library
-        log.info("Initate SAML2 request for {}",clientUrl);
+        log.info("Initate SAML2 request for {}", clientUrl);
         try {
             //Bootstrap OpenSAML
             DefaultBootstrap.bootstrap();
@@ -341,8 +341,8 @@ public class UserFacade implements Serializable {
         SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
         //add sessionindex from user
         //TODO nullpointer when read! verify
-        if(ehcache.getClientAppCache().get(user)!=null){
-            String sIndex = (String)ehcache.getClientAppCache().get(user).getObjectValue();
+        if (ehcache.getClientAppCache().get(user) != null) {
+            String sIndex = (String) ehcache.getClientAppCache().get(user).getObjectValue();
             sessionIndex.setSessionIndex(sIndex);
         }
         logoutReq.getSessionIndexes().add(sessionIndex);
@@ -415,8 +415,7 @@ public class UserFacade implements Serializable {
          */
         if (assertion != null && ehcache.getClientAppCache().get(clientAppName.trim() + "token").getObjectValue().equals(ClientTokeType.jwt)) {
             responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(userName));
-        }
-        else{
+        } else {
             responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(userName));
         }
         responseRedirect.setTtl(assertion.getConditions().getNotOnOrAfter().toString());
@@ -424,7 +423,7 @@ public class UserFacade implements Serializable {
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
         //for logout, we should keep the SessionIndex in cache with the username
-        if(assertion!=null&&assertion.getAuthnStatements().size()>0){
+        if (assertion != null && assertion.getAuthnStatements().size() > 0) {
             //update or create user sessionindex in cache
             ehcache.getClientAppCache().put(new net.sf.ehcache.Element(userName, assertion.getAuthnStatements().get(0).getSessionIndex()));
         }
@@ -572,7 +571,7 @@ public class UserFacade implements Serializable {
                 if (response.getData().size() > 0) keytoken = response.getData().get(0).getKey();
                 //it is possible that the user exists in the gateway but not in the API Engine
                 UserBean userToBeVerified = idmStorage.getUser(userName);
-                if(userToBeVerified==null||StringUtils.isEmpty(userToBeVerified.getUsername())){
+                if (userToBeVerified == null || StringUtils.isEmpty(userToBeVerified.getUsername())) {
                     initNewUser(userName);
                 }
             }
@@ -618,8 +617,7 @@ public class UserFacade implements Serializable {
                 if (response.getData().size() > 0) {
                     jwtKey = response.getData().get(0).getKey();
                     jwtSecret = response.getData().get(0).getSecret();
-                }
-                else {
+                } else {
                     //create jwt credentials
                     KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
                     jwtKey = jwtResponse.getKey();//JWT "iss"
@@ -627,13 +625,15 @@ public class UserFacade implements Serializable {
                 }
                 //it is possible that the user exists in the gateway but not in the API Engine
                 UserBean userToBeVerified = idmStorage.getUser(userName);
-                if(userToBeVerified==null||StringUtils.isEmpty(userToBeVerified.getUsername())){
+                if (userToBeVerified == null || StringUtils.isEmpty(userToBeVerified.getUsername())) {
                     initNewUser(userName);
                 }
             }
             gatewayLink.close();
             //start composing JWT token
-            //TODO
+            //TODO retrieve SCIM user info
+            //TODO compose JWT
+
         } catch (PublishingException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         } catch (Exception e) {
@@ -644,6 +644,7 @@ public class UserFacade implements Serializable {
 
     /**
      * TODO Specific role implementation should be covered here - depending on using XACML or JWT roles.
+     *
      * @param username
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -680,11 +681,11 @@ public class UserFacade implements Serializable {
      */
     public Assertion getDecryptedAssertion(EncryptedAssertion encryptedAssertion, X509Credential credential) throws Exception {
         StaticKeyInfoCredentialResolver keyResolver = new StaticKeyInfoCredentialResolver(credential);
-        EncryptedKey key = (EncryptedKey)encryptedAssertion.getEncryptedData().getKeyInfo().getEncryptedKeys().get(0);
-        Decrypter decrypter = new Decrypter((KeyInfoCredentialResolver)null, keyResolver, (EncryptedKeyResolver)null);
-        SecretKey dkey = (SecretKey)decrypter.decryptKey(key, encryptedAssertion.getEncryptedData().getEncryptionMethod().getAlgorithm());
+        EncryptedKey key = (EncryptedKey) encryptedAssertion.getEncryptedData().getKeyInfo().getEncryptedKeys().get(0);
+        Decrypter decrypter = new Decrypter((KeyInfoCredentialResolver) null, keyResolver, (EncryptedKeyResolver) null);
+        SecretKey dkey = (SecretKey) decrypter.decryptKey(key, encryptedAssertion.getEncryptedData().getEncryptionMethod().getAlgorithm());
         BasicCredential shared = SecurityHelper.getSimpleCredential(dkey);
-        decrypter = new Decrypter(new StaticKeyInfoCredentialResolver(shared), (KeyInfoCredentialResolver)null, (EncryptedKeyResolver)null);
+        decrypter = new Decrypter(new StaticKeyInfoCredentialResolver(shared), (KeyInfoCredentialResolver) null, (EncryptedKeyResolver) null);
         decrypter.setRootInNewDocument(true);
         return decrypter.decrypt(encryptedAssertion);
     }
@@ -696,7 +697,7 @@ public class UserFacade implements Serializable {
     private void utilPrintCache() {
         log.debug("Cache:{}", ehcache.getClientAppCache().getName());
         List keys = ehcache.getClientAppCache().getKeys();
-        keys.forEach(key -> log.info("Key found:{} with value {}",key,ehcache.getClientAppCache().get(key)));
+        keys.forEach(key -> log.info("Key found:{} with value {}", key, ehcache.getClientAppCache().get(key)));
     }
 
 }
