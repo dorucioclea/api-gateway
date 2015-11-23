@@ -1,17 +1,21 @@
 package com.t1t.digipolis.util;
 
+import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import junit.framework.Assert;
+import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
+import org.jose4j.lang.JoseException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.junit.Assert.*;
 
+import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
 
 /**
@@ -73,5 +77,28 @@ public class JWTClaimTest {
         _LOG.info("Name:{}",claims.getClaimValue("name"));
     }
 
-    
+    @Test
+    public void issueJWT() throws IOException{
+        final String JWT_KEY = "7da8cb6408bb42a4c27785c2c5b467b2";
+        final String JWT_SECRET = "ddfd1beb178d449fc4603bec701abb96";
+        JWTRequestBean jwtRequestBean = new JWTRequestBean();
+        jwtRequestBean.setIssuer(JWT_KEY);
+        jwtRequestBean.setAudience("http://consumerapp");
+        jwtRequestBean.setExpirationTimeMinutes(10);
+        jwtRequestBean.setPlan("free");
+        jwtRequestBean.setEmail("michallis@trust1team.com");
+        jwtRequestBean.setName("Michallis Pashidis");
+        jwtRequestBean.setGivenName("Michallis");
+        jwtRequestBean.setSurname("Pashidis");
+        jwtRequestBean.setSubject("ex02393");
+        String jwt = null;
+        try {
+            jwt = JWTUtils.composeJWT(jwtRequestBean,JWT_SECRET);
+        } catch (JoseException e) {
+            fail();
+        }
+        assertNotNull(jwt);
+        assertTrue(!StringUtils.isEmpty(jwt));
+        
+    }
 }

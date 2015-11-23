@@ -40,7 +40,7 @@ public class JWTUtils {
      * @return
      * @throws InvalidJwtException
      */
-    public JwtContext validateToken(String jwtToken, String publicKey, String expectedIssuer, String expectedAudience) throws InvalidJwtException {
+    public static JwtContext validateToken(String jwtToken, String publicKey, String expectedIssuer, String expectedAudience) throws InvalidJwtException {
         //This key is the public Realm key defined at our IDP Proxy
         RsaJsonWebKey rsaJsonWebKey = new RsaJsonWebKey((RSAPublicKey) KeyUtils.getKey(publicKey));
         // There's also a key resolver that selects from among a given list of JWKs using the Key ID
@@ -70,7 +70,7 @@ public class JWTUtils {
         return jwtContext;
     }
 
-    public String composeJWT(JWTRequestBean jwtRequestBean, String secret) throws JoseException, UnsupportedEncodingException {
+    public static String composeJWT(JWTRequestBean jwtRequestBean, String secret) throws JoseException, UnsupportedEncodingException {
         // The JWT is signed using the private key
         Key key = new HmacKey(secret.getBytes("UTF-8"));
 
