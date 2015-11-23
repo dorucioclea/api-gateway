@@ -638,7 +638,9 @@ public class UserFacade implements Serializable {
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
             jwtRequestBean.setIssuer(jwtKey);
             jwtRequestBean.setExpirationTimeMinutes(10);
-            //jwtRequestBean.setEmail();
+            List<String> emails = scimUser.getEmails();
+            if(emails!=null && emails.size()>0) jwtRequestBean.setEmail(emails.get(0));
+            
             //close gateway
             gatewayLink.close();
         } catch (PublishingException e) {
