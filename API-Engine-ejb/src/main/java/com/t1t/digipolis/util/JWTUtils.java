@@ -1,17 +1,27 @@
 package com.t1t.digipolis.util;
 
+import com.t1t.digipolis.apim.beans.jwt.IJWT;
+import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
+import org.jose4j.jwk.RsaJwkGenerator;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.JwtContext;
+import org.jose4j.keys.HmacKey;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
+import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.security.Key;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -58,6 +68,49 @@ public class JWTUtils {
         _LOG.info("JWT-token:{}", jwtContext.getJwt());
         _LOG.info("JWT-claims:{}", jwtContext.getJwtClaims());
         return jwtContext;
+    }
+
+    public String composeJWT(JWTRequestBean jwtRequestBean, String secret){
+        // The JWT is signed using the private key
+        Key key = null;
+        try {
+            key = new HmacKey(secret.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        // Create the Claims, which will be the content of the JWT
+        JwtClaims claims = new JwtClaims();
+        claims.setIssuer(jwtRequestBean.getIssuer());  // who creates the token and signs it
+        claims.setAudience(jwtRequestBean.getAudience()); // to whom the token is intended to be sent
+        claims.setExpirationTimeMinutesInTheFuture(10); // time when the token will expire (10 minutes from now)
+        claims.setGeneratedJwtId(); // a unique identifier for the token
+        claims.setIssuedAtToNow();  // when the token was issued/created (now)
+        claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
+        //Custom fields
+        claims.setSubject(jwtRequestBean.getSubject()); // the subject/principal is whom the token is about
+        claims.setClaim(IJWT.NAME, jwtRequestBean.getName());
+        claims.setClaim(IJWT.EMAIL, jwtRequestBean.getEmail()); // additional claims/attributes about the subject can be added
+        claims.setClaim(IJWT.SURNAME, jwtRequestBean.getSurname());
+        claims.setClaim(IJWT.GIVEN_NAME, jwtRequestBean.getGivenName());
+        //List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
+        //claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
+
+        // A JWT is a JWS and/or a JWE with JSON claims as the payload.
+        JsonWebSignature jws = new JsonWebSignature();
+        // The payload of the JWS is JSON content of the JWT Claims
+        jws.setPayload(claims.toJson());
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
+        jws.setKey(key);
+        jws.setDoKeyValidation(false); // relaxes the key length requirement
+
+        String issuedJwt = null;
+        try {
+            issuedJwt = jws.getCompactSerialization();
+        } catch (JoseException e) {
+            e.printStackTrace();
+        }
+        return issuedJwt;
     }
 
     //TODO don't do this hard coded and unfinished :-)
