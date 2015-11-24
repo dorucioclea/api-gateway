@@ -443,7 +443,7 @@ public class UserFacade implements Serializable {
         } else {
             responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(userName));
         }
-        responseRedirect.setTtl(assertion.getConditions().getNotOnOrAfter().toString());
+        //responseRedirect.setTtl(assertion.getConditions().getNotOnOrAfter().toString());
         clientUrl.append(webClientCacheBean.getClientAppRedirect());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
@@ -654,9 +654,7 @@ public class UserFacade implements Serializable {
             }
 
             //start composing JWT token
-            //TODO retrieve SCIM user info
             ExternalUserBean scimUser = userExternalInfoService.getUserInfo("userName", userName);
-            //TODO provide JWT expiration cache
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
             jwtRequestBean.setIssuer(jwtKey);
             //set expiration time
@@ -665,6 +663,8 @@ public class UserFacade implements Serializable {
             List<String> emails = scimUser.getEmails();
             if(emails!=null && emails.size()>0) jwtRequestBean.setEmail(emails.get(0));
             jwtRequestBean.setName(scimUser.getName());
+            //TODO fill in account when retrieved from the WSO2 IS
+            jwtRequestBean.setSubject(scimUser.getName());
             jwtRequestBean.setGivenName(scimUser.getGivenname());
             jwtRequestBean.setSurname(scimUser.getSurname());
             jwtRequestBean.setSubject(scimUser.getAccountId());
