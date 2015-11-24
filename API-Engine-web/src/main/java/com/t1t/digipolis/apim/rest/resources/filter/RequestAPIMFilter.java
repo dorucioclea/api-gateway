@@ -20,7 +20,8 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
      * Logger: is not possible to inject logger in filters
      */
     private static final Logger LOG = LoggerFactory.getLogger(RequestAPIMFilter.class.getName());
-    private static final String HEADER_APIKEY_USER = "X-Consumer-Username";
+    private static final String HEADER_APIKEY_USER = "X-Consumer-Username";//considerred to be an application consumer - we use this to setup an apllication context
+    private static final String HEADER_AUTHORIZATION = "Authorization"; // will contain the JWT user token
     //exclusions
     private static final String REDIRECT_PATH = "/users/idp/redirect";
     private static final String IDP_CALLBACK = "/users/idp/callback";
@@ -51,6 +52,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             //Get the authorization header
             //TODO verify to revalidate the JWT token upon consumption.
             String userId = containerRequestContext.getHeaderString(HEADER_APIKEY_USER);
+            String jwtHeader = containerRequestContext.getHeaderString("Authorization");
             String validatedUser = "";
             try {
                 validatedUser = securityContext.setCurrentUser(userId);
