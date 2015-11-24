@@ -669,7 +669,7 @@ public class UserFacade implements Serializable {
             jwtRequestBean.setSurname(scimUser.getSurname());
             jwtRequestBean.setSubject(scimUser.getAccountId());
             jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
-
+            jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
             issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);
             //close gateway
             gatewayLink.close();

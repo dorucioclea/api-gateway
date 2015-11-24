@@ -24,6 +24,8 @@ import java.security.Key;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by michallispashidis on 19/11/15.
@@ -130,6 +132,8 @@ public class JWTUtils {
         claims.setClaim(IJWT.GIVEN_NAME, jwtRequestBean.getGivenName());
         //List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
         //claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
+        //add optional claims
+        addOptionalClaims(claims,jwtRequestBean.getOptionalClaims());
 
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
         JsonWebSignature jws = new JsonWebSignature();
@@ -143,6 +147,19 @@ public class JWTUtils {
         String issuedJwt = null;
         issuedJwt = jws.getCompactSerialization();
         return issuedJwt;
+    }
+
+    /**
+     * Utility to add optional claims retreived from the JWTRequestBean.
+     *
+     * @param claims
+     * @param optionalClaims
+     */
+    private static void addOptionalClaims(JwtClaims claims, Map<String, String> optionalClaims) {
+        if(optionalClaims!=null && optionalClaims.size()>0){
+            Set<String> claimKeySet = optionalClaims.keySet();
+            claimKeySet.stream().forEach(key -> {claims.setClaim(key,optionalClaims.get(key));});
+        }
     }
 
     //TODO don't do this hard coded and unfinished :-)

@@ -17,6 +17,9 @@ public class JWTRequestBean {
     private String surname;
     private String email;
 
+    //optional claims
+    private Map<String,String>optionalClaims;
+
     public Integer getExpirationTimeMinutes() {
         return expirationTimeMinutes;
     }
@@ -89,6 +92,14 @@ public class JWTRequestBean {
         this.email = email;
     }
 
+    public Map<String, String> getOptionalClaims() {
+        return optionalClaims;
+    }
+
+    public void setOptionalClaims(Map<String, String> optionalClaims) {
+        this.optionalClaims = optionalClaims;
+    }
+
     @Override
     public String toString() {
         return "JWTRequestBean{" +
@@ -101,6 +112,7 @@ public class JWTRequestBean {
                 ", givenName='" + givenName + '\'' +
                 ", surname='" + surname + '\'' +
                 ", email='" + email + '\'' +
+                ", optionalClaims=" + optionalClaims +
                 '}';
     }
 }
