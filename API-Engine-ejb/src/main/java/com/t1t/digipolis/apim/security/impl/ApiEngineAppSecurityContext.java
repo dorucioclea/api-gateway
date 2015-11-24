@@ -32,9 +32,9 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     @Override
     public String getApplication() {
         if (!StringUtils.isEmpty(currentApplication)) {
-            //TODO optionally we can load the application already-not necessary at the moment
+            //TODO optionally we can load the application registered services - but no need at the moment.
         } else {
-            throw new UserNotFoundException("Unauthorized application access");
+            return "";
         }
         LOG.debug("Logged-in application:{}", currentApplication);
         return currentApplication;

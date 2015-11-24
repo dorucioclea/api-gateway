@@ -2,9 +2,9 @@ package com.t1t.digipolis.apim.security.impl;
 
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import org.apache.commons.lang3.StringUtils;
+
 import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
@@ -15,22 +15,24 @@ import javax.inject.Inject;
 @SessionScoped
 @Default
 public class ApiEngineSecurityContext extends AbstractSecurityContext {
-    @Inject private UserFacade userFacade;
+    @Inject
+    private UserFacade userFacade;
     private String currentUser;
 
-    public ApiEngineSecurityContext() {}
+    public ApiEngineSecurityContext() {
+    }
 
     @Override
     public String getCurrentUser() {
         if (!StringUtils.isEmpty(currentUser)) {
-            UserBean userName = userFacade.get(currentUser);
+            UserBean userName = userFacade.get(currentUser);//should be unique username
             if (userName == null) {
                 clearPermissions();
-                throw new UserNotFoundException("Unauthorized access");
+                currentUser = "";
             }
         } else {
             clearPermissions();
-            throw new UserNotFoundException("Unauthorized access");
+            currentUser = "";
         }
         logger.debug("Logged-in user:{}", currentUser);
         return currentUser;
@@ -43,7 +45,8 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
             if (!StringUtils.isEmpty(getCurrentUser()))
                 fullName = getIdmStorage().getUser(getCurrentUser()).getFullName();
         } catch (StorageException e) {
-            throw new UserNotFoundException("Unauthorized access");
+            logger.warn("User::getFullName: no user set");
+            fullName = "";
         }
         return fullName;
     }
@@ -54,7 +57,8 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
         try {
             if (!StringUtils.isEmpty(getCurrentUser())) email = getIdmStorage().getUser(getCurrentUser()).getEmail();
         } catch (StorageException e) {
-            throw new UserNotFoundException("Unauthorized access");
+            logger.warn("User::getEmail: no user set");
+            email = "";
         }
         return email;
     }
@@ -73,7 +77,7 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
      * Called to clear the current thread local permissions bean.
      */
     protected void clearPermissions() {
-        permissions=null;
+        permissions = null;
     }
 
     public String setCurrentUser(String currentUser) {

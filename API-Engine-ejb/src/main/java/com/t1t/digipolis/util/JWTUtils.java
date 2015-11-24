@@ -1,5 +1,6 @@
 package com.t1t.digipolis.util;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
@@ -87,14 +88,26 @@ public class JWTUtils {
         return jwtContext;
     }
 
+    /**
+     * Kong validates the JWT token, thus for receiving tokens, we don't need to revalidate, just parse and return the JwtContext.
+     *
+     * @param jwtToken
+     * @return
+     * @throws InvalidJwtException
+     * @throws UnsupportedEncodingException
+     */
+    public static JwtContext validateHMACToken(String jwtToken)throws InvalidJwtException,UnsupportedEncodingException{
+        return validateHMACToken(jwtToken,null,null,null,true);
+    }
+
     public static JwtContext validateHMACToken(String jwtToken, String secret, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException, UnsupportedEncodingException {
         JwtConsumer jwtConsumer = null;
         if(skipDefaultValidators){
             jwtConsumer =  new JwtConsumerBuilder()
                     .setSkipAllDefaultValidators()
-                    .setVerificationKey(new HmacKey(secret.getBytes()))
-                    .setRelaxVerificationKeyValidation() // allow shorter HMAC keys when used w/ HSxxx algs
                     .build();
+            //.setVerificationKey(new HmacKey(secret.getBytes()))
+            //.setRelaxVerificationKeyValidation() // allow shorter HMAC keys when used w/ HSxxx algs
         }else{
             jwtConsumer = new JwtConsumerBuilder()
                     .setRequireExpirationTime() // the JWT must have an expiration time
@@ -126,7 +139,7 @@ public class JWTUtils {
         claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
         //Custom fields
         claims.setSubject(jwtRequestBean.getSubject()); // the subject/principal is whom the token is about
-        claims.setClaim(IJWT.NAME, jwtRequestBean.getName());
+        claims.setClaim(IJWT.NAME, jwtRequestBean.getName());//unique username
         claims.setClaim(IJWT.EMAIL, jwtRequestBean.getEmail()); // additional claims/attributes about the subject can be added
         claims.setClaim(IJWT.SURNAME, jwtRequestBean.getSurname());
         claims.setClaim(IJWT.GIVEN_NAME, jwtRequestBean.getGivenName());
