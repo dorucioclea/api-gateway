@@ -202,7 +202,7 @@ public class UserResource implements IUserResource {
             SAMLResponseRedirect response = userFacade.processSAML2Response(request);
             String bearerToken = response.getToken();
             String ttl = response.getTtl();
-            uri = new URL(response.getClientUrl()+"?apikey="+bearerToken+"&ttl="+ttl).toURI();//TODO should be url from config file or other way!
+            uri = new URL(response.getClientUrl()+"?apikey="+bearerToken+"&ttl="+ttl).toURI();
             //Get the audience using the assertion => create new table for registered audiences == client applications.
             //String audience = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
         } catch (URISyntaxException e) {
