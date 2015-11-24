@@ -74,10 +74,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -221,7 +218,7 @@ public class UserFacade implements Serializable {
      * @param token
      * @return
      */
-    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token) {
+    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token, Integer overrideExpTime, Map<String,String> optClaimMap) {
         // Initialize the library
         log.info("Initate SAML2 request for {}", clientUrl);
         try {
@@ -233,6 +230,8 @@ public class UserFacade implements Serializable {
             webCache.setToken(token);
             webCache.setClientAppRedirect(clientUrl);
             webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+            webCache.setOverrideExpTimeInMinuts(overrideExpTime);
+            webCache.setOptionalClaimset(optClaimMap);
             //we need to send the clienUrl as a relaystate - should be URL encoded
             String urlEncodedClientUrl = URLEncoder.encode(clientUrl,"UTF-8");
             //set client application name and callback in the cache
@@ -440,7 +439,7 @@ public class UserFacade implements Serializable {
          */
         WebClientCacheBean webClientCacheBean = (WebClientCacheBean) ehcache.getClientAppCache().get(relayState.trim()).getObjectValue();
         if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
-            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(userName,webClientCacheBean.getClientAppRedirect()));
+            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(userName,webClientCacheBean));
         } else {
             responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(userName));
         }
@@ -615,7 +614,7 @@ public class UserFacade implements Serializable {
      * @param userName
      * @return
      */
-    private String updateOrCreateConsumerJWTOnGateway(String userName, String audience) {
+    private String updateOrCreateConsumerJWTOnGateway(String userName, WebClientCacheBean cacheBean) {
         String jwtKey = "";
         String jwtSecret = "";
         String issuedJWT = "";
@@ -660,14 +659,17 @@ public class UserFacade implements Serializable {
             //TODO provide JWT expiration cache
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
             jwtRequestBean.setIssuer(jwtKey);
-            jwtRequestBean.setExpirationTimeMinutes(10);
+            //set expiration time
+            if(cacheBean.getTokenExpirationTimeMinutes()!=null)jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
+            else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
             List<String> emails = scimUser.getEmails();
             if(emails!=null && emails.size()>0) jwtRequestBean.setEmail(emails.get(0));
             jwtRequestBean.setName(scimUser.getName());
             jwtRequestBean.setGivenName(scimUser.getGivenname());
             jwtRequestBean.setSurname(scimUser.getSurname());
             jwtRequestBean.setSubject(scimUser.getAccountId());
-            jwtRequestBean.setAudience(audience);
+            jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
+
             issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);
             //close gateway
             gatewayLink.close();

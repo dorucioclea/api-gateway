@@ -41,7 +41,7 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
         ExternalUserBean userBean = new ExternalUserBean();
         StringBuilder filter = new StringBuilder(key).append(ISCIM.SCIM_FILTER_EQ).append(value);
         SCIMUserList userInformation = scimClient.getUserInformation(filter.toString());
-        List<SCIMUser> userList = new ArrayList<>();
+        List<SCIMUser> userList = userInformation.getResources();
         if(userList!=null && userList.size()>0){
             //we choose te first, normally you should look for a unique property
             SCIMUser refUser = userList.get(0);
@@ -49,7 +49,6 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
             userBean.setEmails(refUser.getEmails());
             userBean.setGivenname(refUser.getName().getGivenName());
             userBean.setSurname(refUser.getName().getFamilyName());
-            userBean.setUsername(refUser.getDisplayName());
             userBean.setCreatedon(refUser.getMeta().getCreated());
             userBean.setLastModified(refUser.getMeta().getLastModified());
         }

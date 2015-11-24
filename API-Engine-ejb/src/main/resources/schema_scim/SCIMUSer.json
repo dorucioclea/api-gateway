@@ -3,34 +3,22 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "schemas": {
-      "id": "schemas",
-      "type": "array",
-      "items": {
-        "id": "0",
-        "type": "string"
-      }
-    },
     "id": {
       "id": "id",
       "type": "string"
     },
-    "externalId": {
-      "id": "externalId",
+    "title": {
+      "id": "title",
       "type": "string"
     },
-    "userName": {
-      "id": "userName",
+    "profileUrl": {
+      "id": "profileUrl",
       "type": "string"
     },
     "name": {
       "id": "name",
       "type": "object",
       "properties": {
-        "formatted": {
-          "id": "formatted",
-          "type": "string"
-        },
         "familyName": {
           "id": "familyName",
           "type": "string"
@@ -38,78 +26,49 @@
         "givenName": {
           "id": "givenName",
           "type": "string"
-        },
-        "middleName": {
-          "id": "middleName",
-          "type": "string"
-        },
-        "honorificPrefix": {
-          "id": "honorificPrefix",
-          "type": "string"
-        },
-        "honorificSuffix": {
-          "id": "honorificSuffix",
-          "type": "string"
         }
       }
     },
-    "displayName": {
-      "id": "displayName",
-      "type": "string"
-    },
-    "nickName": {
-      "id": "nickName",
-      "type": "string"
-    },
-    "profileUrl": {
-      "id": "profileUrl",
+    "userName": {
+      "id": "userName",
       "type": "string"
     },
     "emails": {
       "id": "emails",
       "type": "array",
       "items": {
+        "id": "0",
         "type": "string"
       }
     },
-    "userType": {
-      "id": "userType",
-      "type": "string"
-    },
-    "title": {
-      "id": "title",
-      "type": "string"
-    },
-    "preferredLanguage": {
-      "id": "preferredLanguage",
-      "type": "string"
-    },
-    "locale": {
-      "id": "locale",
-      "type": "string"
-    },
-    "timezone": {
-      "id": "timezone",
-      "type": "string"
+    "phoneNumbers": {
+      "id": "phoneNumbers",
+      "type": "array",
+      "items": {
+        "id": "0",
+        "type": "object",
+        "properties": {
+          "value": {
+            "id": "value",
+            "type": "string"
+          },
+          "type": {
+            "id": "type",
+            "type": "string"
+          }
+        }
+      }
     },
     "meta": {
       "id": "meta",
       "type": "object",
       "properties": {
-        "created": {
-          "id": "created",
-          "type": "string"
-        },
         "lastModified": {
           "id": "lastModified",
           "type": "string"
         },
-        "version": {
-          "id": "version",
-          "type": "string"
-        },
-        "location": {
-          "id": "location",
+        "created": {
+          "id": "created",
           "type": "string"
         }
       }
