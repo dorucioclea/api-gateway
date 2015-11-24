@@ -63,7 +63,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             String jwt = containerRequestContext.getHeaderString(HEADER_USER_AUTHORIZATION);
             if(jwt!=null){
                 //remove Bearer prefix
-                jwt.replaceFirst("Bearer","").trim();
+                jwt = jwt.replaceFirst("Bearer","").trim();
                 String validatedUser = "";
                 try {
                     JwtContext jwtContext = JWTUtils.validateHMACToken(jwt);
