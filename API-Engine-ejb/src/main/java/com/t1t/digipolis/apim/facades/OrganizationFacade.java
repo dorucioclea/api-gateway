@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
+import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
@@ -314,7 +315,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public ApplicationVersionBean updateAppVersionURI(String organizationId, String applicationId, String version, UpdateApplicationVersionURIBean uri){
         try {
-            log.debug("Enter updateAppversionURI:{}",uri);
+            log.debug("Enter updateAppversionURI:{}", uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if(avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
             avb.setOauthClientRedirect(uri.getUri());
@@ -1713,6 +1714,33 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public void grant(String organizationId, GrantRoleBean bean){
+        // Verify that the references are valid.
+        get(organizationId);
+        userFacade.get(bean.getUserId());
+        roleFacade.get(bean.getRoleId());
+        MembershipData auditData = new MembershipData();
+        auditData.setUserId(bean.getUserId());
+        try {
+            RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), bean.getRoleId(), organizationId);
+            membership.setCreatedOn(new Date());
+            // If the membership already exists, that's fine!
+            if (idmStorage.getMembership(bean.getUserId(), bean.getRoleId(), organizationId) == null) {
+                idmStorage.createMembership(membership);
+            }
+            auditData.addRole(bean.getRoleId());
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+        try {
+            storage.createAuditEntry(AuditUtils.membershipGrantedImplicit(organizationId, auditData, securityContext, true));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
     public void grant(String organizationId, GrantRolesBean bean){
         // Verify that the references are valid.
         get(organizationId);
@@ -1736,7 +1764,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
         try {
-            storage.createAuditEntry(AuditUtils.membershipGrantedImplicit(organizationId, auditData, securityContext,true));
+            storage.createAuditEntry(AuditUtils.membershipGrantedImplicit(organizationId, auditData, securityContext, true));
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -1770,6 +1798,29 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public void updateMembership(String organizationId, String userId, GrantRoleBean bean) {
+        get(organizationId);
+        userFacade.get(userId);
+        MembershipData auditData = new MembershipData();
+        auditData.setUserId(userId);
+        try {
+            idmStorage.getRole(bean.getRoleId());
+            idmStorage.deleteMemberships(userId, organizationId);
+            RoleMembershipBean rmb = RoleMembershipBean.create(userId, bean.getRoleId(), organizationId);
+            idmStorage.createMembership(rmb);
+            auditData.addRole(bean.getRoleId());
+        } catch (StorageException e) {
+            throw new SystemErrorException(e);
+        }
+        try {
+            storage.createAuditEntry(AuditUtils.membershipUpdated(organizationId, auditData, securityContext));
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
     public void revokeAll(String organizationId,String userId){
         get(organizationId);
         userFacade.get(userId);
@@ -1785,6 +1836,35 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             storage.createAuditEntry(AuditUtils.membershipRevoked(organizationId, auditData, securityContext));
         } catch (AbstractRestException e) {
             throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void transferOrgOwnership(String organizationId, TransferOwnershipBean bean) {
+        get(organizationId);
+        String currentOwnerId = bean.getCurrentOwnerId();
+        String newOwnerId = bean.getNewOwnerId();
+        try {
+            // Remove current as Owner and add as Developer
+            RoleMembershipBean currentOwnerBean = idmStorage.getMembership(currentOwnerId, "Owner", organizationId);
+            if (currentOwnerBean == null) throw new MemberNotFoundException(currentOwnerId);
+            idmStorage.deleteMembership(currentOwnerId, "Owner", organizationId);
+            currentOwnerBean.setRoleId("Developer");
+            idmStorage.createMembership(currentOwnerBean);
+
+            // Add new as Owner and remove other memberships
+            Set<RoleMembershipBean> newOwnerMemberships = idmStorage.getUserMemberships(newOwnerId, organizationId);
+            if (newOwnerMemberships.size() == 0) throw new MemberNotFoundException(newOwnerId);
+            idmStorage.deleteMemberships(newOwnerId, organizationId);
+            RoleMembershipBean newOwnerBean = RoleMembershipBean.create(newOwnerId, "Owner", organizationId);
+            idmStorage.createMembership(newOwnerBean);
+
+            // Add audit entry
+            OwnershipTransferData auditData = new OwnershipTransferData();
+            auditData.setPreviousOwnerId(currentOwnerId);
+            auditData.setNewOwnerId(newOwnerId);
+            storage.createAuditEntry(AuditUtils.ownershipTransferred(organizationId, auditData, securityContext));
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
@@ -2531,7 +2611,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             AnnouncementBean ann = storage.getServiceAnnouncement(id);
             if(ann != null){
                 if(ann.getOrganizationId().equals(organizationId)&&ann.getServiceId().equals(serviceId))
-                storage.deleteServiceAnnouncement(ann);
+                    storage.deleteServiceAnnouncement(ann);
             }
         } catch (StorageException e) {
             throw new SystemErrorException(e);

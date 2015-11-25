@@ -213,55 +213,61 @@ CREATE INDEX FK_uhasdtal55l0isoauy6mrtmpx ON oauth_scopes (ServiceVersionBean_id
 
 -- DATA POPULAT... *** SQLINES FOR EVALUATION USE ONLY *** 
 
-INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('OrganizationOwner', TRUE, 'admin', '2015-06-18 17:56:57.496', 'Automatically granted to the user who creates an Organization.  Grants all privileges.', 'Organization Owner');
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Owner', TRUE, 'admin', '2015-06-18 17:56:57.496', 'Automatically granted to the user who creates an Organization.  Grants all privileges.', 'Owner');
 
-INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('ApplicationDeveloper', NULL, 'admin', '2015-06-18 17:56:57.632', 'Users responsible for creating and managing applications should be granted this role within an Organization.', 'Application Developer');
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Developer', NULL, 'admin', '2015-06-18 17:56:57.632', 'Users responsible for creating and managing applications and services should be granted this role within an Organization.', 'Developer');
 
-INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('ServiceDeveloper', NULL, 'admin', '2015-06-18 17:56:57.641', 'Users responsible for creating and managing services should be granted this role within an Organization.', 'Service Developer');
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Watcher', NULL, 'admin', '2015-06-18 17:56:57.641', 'Users who only need read access can be granted this role. They can view all information within an Organization, but cannot make changes.', 'Watcher');
 
 INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://apim.t1t.be:8001","username":"","password":""}','https://apim.t1t.be:8443', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 1);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 0);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 2);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 1);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 3);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 2);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 6);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 3);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 8);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 4);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 5);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 5);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 9);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 6);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 11);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 7);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 7);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 8);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 4);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 9);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 10);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 10);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('OrganizationOwner', 0);
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 11);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('ApplicationDeveloper', 6);
+INSERT INTO permissions (role_id, permissions) VALUES ('Watcher', 0);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('ApplicationDeveloper', 8);
+INSERT INTO permissions (role_id, permissions) VALUES ('Watcher', 3);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('ApplicationDeveloper', 7);
+INSERT INTO permissions (role_id, permissions) VALUES ('Watcher', 6);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 3);
+INSERT INTO permissions (role_id, permissions) VALUES ('Watcher', 9);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 5);
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 0);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 9);
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 1);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 11);
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 3);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 4);
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 4);
 
-INSERT INTO permissions (role_id, permissions) VALUES ('ServiceDeveloper', 10);
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 6);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 7);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 9);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 10);
 
 -- In order to ... *** SQLINES FOR EVALUATION USE ONLY *** 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('BasicAuthentication', 'Add Basic Authentication to your APIs', '{
@@ -778,6 +784,6 @@ INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('adm
 
 INSERT INTO organizations (id,description,name,created_by,created_on,modified_by,modified_on) VALUES ('Digipolis','Digipolis','Digipolis','admin',CURRENT_DATE,'admin',CURRENT_DATE);
 
-INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CURRENT_DATE,'Digipolis','OrganizationOwner','admin');
+INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CURRENT_DATE,'Digipolis','Owner','admin');
 
 INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('runscope', 'michallis@trust1team.com', 'runscope', '2015-10-18 17:56:54.794',TRUE ,NULL );
