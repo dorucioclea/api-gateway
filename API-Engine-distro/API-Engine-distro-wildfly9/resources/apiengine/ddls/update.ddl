@@ -1,0 +1,1 @@
+INSERT INTO memberships (id, created_on, org_id, role_id, user_id) VALUES (998,CURRENT_DATE,'Digipolis','Watcher','maartens');

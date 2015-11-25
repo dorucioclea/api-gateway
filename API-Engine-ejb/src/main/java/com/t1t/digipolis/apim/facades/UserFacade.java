@@ -739,4 +739,6 @@ public class UserFacade implements Serializable {
         keys.forEach(key -> log.info("Key found:{} with value {}", key, ehcache.getClientAppCache().get(key)));
     }
 
+
+
 }
