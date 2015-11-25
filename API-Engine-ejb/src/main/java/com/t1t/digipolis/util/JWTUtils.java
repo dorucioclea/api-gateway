@@ -23,10 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.security.Key;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by michallispashidis on 19/11/15.
@@ -146,9 +143,9 @@ public class JWTUtils {
         claims.setClaim(IJWT.EMAIL, jwtRequestBean.getEmail()); // additional claims/attributes about the subject can be added
         claims.setClaim(IJWT.SURNAME, jwtRequestBean.getSurname());
         claims.setClaim(IJWT.GIVEN_NAME, jwtRequestBean.getGivenName());
+        //add optional claims
         //List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
         //claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
-        //add optional claims
         addOptionalClaims(claims,jwtRequestBean.getOptionalClaims());
 
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
@@ -174,7 +171,7 @@ public class JWTUtils {
     private static void addOptionalClaims(JwtClaims claims, Map<String, String> optionalClaims) {
         if(optionalClaims!=null && optionalClaims.size()>0){
             Set<String> claimKeySet = optionalClaims.keySet();
-            claimKeySet.stream().forEach(key -> {claims.setClaim(key,optionalClaims.get(key));});
+            claimKeySet.stream().forEach(key -> {claims.setStringClaim(key, optionalClaims.get(key));});
         }
     }
 

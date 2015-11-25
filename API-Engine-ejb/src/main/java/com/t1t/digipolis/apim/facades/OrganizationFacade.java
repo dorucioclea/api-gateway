@@ -625,7 +625,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (pvb.getStatus() == PlanStatus.Locked) {
             throw ExceptionFactory.invalidPlanStatusException();
         }
-        //validate no other policy of the same type has been added for this plan verions - only one policy of the same type is allowed
+        //validate no other policy of the same type has been added for this plan versions - only one policy of the same type is allowed
         List<PolicySummaryBean> policies = listPlanPolicies(organizationId, planId, version);
         for(PolicySummaryBean polsum:policies){
             if(polsum.getPolicyDefinitionId().equals(bean.getDefinitionId()))throw new PolicyDefinitionAlreadyExistsException("The policy already exists for the service: "+bean.getDefinitionId());
