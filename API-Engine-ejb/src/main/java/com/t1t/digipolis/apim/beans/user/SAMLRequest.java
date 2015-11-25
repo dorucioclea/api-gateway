@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.beans.user;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Created by michallispashidis on 4/09/15.
@@ -9,8 +10,10 @@ public class SAMLRequest implements Serializable{
     private String idpUrl;
     private String spUrl;
     private String spName;
-    private String clientAppRedirect;
+    private String clientAppRedirect;//only used as audience claim for JWT - optional for other tokentypes
     private ClientTokeType token;
+    private Integer overrideExpTimeInMinutes;
+    private Map<String,String> optionalClaimMap;
 
     public SAMLRequest() {
     }
@@ -63,6 +66,22 @@ public class SAMLRequest implements Serializable{
         this.token = token;
     }
 
+    public Integer getOverrideExpTimeInMinutes() {
+        return overrideExpTimeInMinutes;
+    }
+
+    public void setOverrideExpTimeInMinutes(Integer overrideExpTimeInMinutes) {
+        this.overrideExpTimeInMinutes = overrideExpTimeInMinutes;
+    }
+
+    public Map<String, String> getOptionalClaimMap() {
+        return optionalClaimMap;
+    }
+
+    public void setOptionalClaimMap(Map<String, String> optionalClaimMap) {
+        this.optionalClaimMap = optionalClaimMap;
+    }
+
     @Override
     public String toString() {
         return "SAMLRequest{" +
@@ -71,6 +90,8 @@ public class SAMLRequest implements Serializable{
                 ", spName='" + spName + '\'' +
                 ", clientAppRedirect='" + clientAppRedirect + '\'' +
                 ", token=" + token +
+                ", overrideExpTimeInMinutes=" + overrideExpTimeInMinutes +
+                ", optionalClaimMap=" + optionalClaimMap +
                 '}';
     }
 }

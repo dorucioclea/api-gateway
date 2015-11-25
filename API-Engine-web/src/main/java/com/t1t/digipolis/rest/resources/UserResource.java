@@ -168,7 +168,8 @@ public class UserResource implements IUserResource {
     }
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
-            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' and 'opaque' token supported.")
+            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim." +
+                    "When the token expiration time is set to 0, the token will be valid for all times. The optional claims map can be provided by the consuming application. The claim set can be changed upon refreshing the JWT.")
     @ApiResponses({
             @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
             @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
@@ -184,7 +185,7 @@ public class UserResource implements IUserResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
         Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
-        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken());
+        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken(), request.getOverrideExpTimeInMinutes(),request.getOptionalClaimMap());
     }
 
     @ApiOperation(value = "The service provider for the SAML2 Authentication request",
@@ -200,9 +201,8 @@ public class UserResource implements IUserResource {
         URI uri = null;
         try {
             SAMLResponseRedirect response = userFacade.processSAML2Response(request);
-            String bearerToken = response.getToken();
-            String ttl = response.getTtl();
-            uri = new URL(response.getClientUrl()+"?apikey="+bearerToken+"&ttl="+ttl).toURI();//TODO should be url from config file or other way!
+            String jwtToken = response.getToken();
+            uri = new URL(response.getClientUrl()+"?jwt="+jwtToken).toURI();
             //Get the audience using the assertion => create new table for registered audiences == client applications.
             //String audience = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
         } catch (URISyntaxException e) {

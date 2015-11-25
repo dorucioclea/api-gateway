@@ -1,5 +1,7 @@
 package com.t1t.digipolis.util;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import org.jose4j.jwk.JsonWebKeySet;
@@ -21,8 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.security.Key;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by michallispashidis on 19/11/15.
@@ -84,14 +85,29 @@ public class JWTUtils {
         return jwtContext;
     }
 
+    /**
+     * Kong validates the JWT token, thus for receiving tokens, we don't need to revalidate, just parse and return the JwtContext.
+     *
+     * @param jwtToken
+     * @return
+     * @throws InvalidJwtException
+     * @throws UnsupportedEncodingException
+     */
+    public static JwtContext validateHMACToken(String jwtToken)throws InvalidJwtException,UnsupportedEncodingException{
+        return validateHMACToken(jwtToken,null,null,null,true);
+    }
+
     public static JwtContext validateHMACToken(String jwtToken, String secret, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException, UnsupportedEncodingException {
         JwtConsumer jwtConsumer = null;
+        // Build a JwtConsumer that doesn't check signatures or do any validation.
         if(skipDefaultValidators){
             jwtConsumer =  new JwtConsumerBuilder()
                     .setSkipAllDefaultValidators()
-                    .setVerificationKey(new HmacKey(secret.getBytes()))
-                    .setRelaxVerificationKeyValidation() // allow shorter HMAC keys when used w/ HSxxx algs
+                    .setDisableRequireSignature()
+                    .setSkipSignatureVerification()
                     .build();
+            //.setVerificationKey(new HmacKey(secret.getBytes()))
+            //.setRelaxVerificationKeyValidation() // allow shorter HMAC keys when used w/ HSxxx algs
         }else{
             jwtConsumer = new JwtConsumerBuilder()
                     .setRequireExpirationTime() // the JWT must have an expiration time
@@ -123,12 +139,14 @@ public class JWTUtils {
         claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
         //Custom fields
         claims.setSubject(jwtRequestBean.getSubject()); // the subject/principal is whom the token is about
-        claims.setClaim(IJWT.NAME, jwtRequestBean.getName());
+        claims.setClaim(IJWT.NAME, jwtRequestBean.getName());//unique username
         claims.setClaim(IJWT.EMAIL, jwtRequestBean.getEmail()); // additional claims/attributes about the subject can be added
         claims.setClaim(IJWT.SURNAME, jwtRequestBean.getSurname());
         claims.setClaim(IJWT.GIVEN_NAME, jwtRequestBean.getGivenName());
+        //add optional claims
         //List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
         //claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
+        addOptionalClaims(claims,jwtRequestBean.getOptionalClaims());
 
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
         JsonWebSignature jws = new JsonWebSignature();
@@ -142,6 +160,19 @@ public class JWTUtils {
         String issuedJwt = null;
         issuedJwt = jws.getCompactSerialization();
         return issuedJwt;
+    }
+
+    /**
+     * Utility to add optional claims retreived from the JWTRequestBean.
+     *
+     * @param claims
+     * @param optionalClaims
+     */
+    private static void addOptionalClaims(JwtClaims claims, Map<String, String> optionalClaims) {
+        if(optionalClaims!=null && optionalClaims.size()>0){
+            Set<String> claimKeySet = optionalClaims.keySet();
+            claimKeySet.stream().forEach(key -> {claims.setStringClaim(key, optionalClaims.get(key));});
+        }
     }
 
     //TODO don't do this hard coded and unfinished :-)

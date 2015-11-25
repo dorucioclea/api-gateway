@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.http.GET;
+import retrofit.http.Headers;
 import retrofit.http.Query;
 
 import javax.inject.Inject;
@@ -19,5 +20,6 @@ import javax.inject.Inject;
  * Created by michallispashidis on 10/10/15.
  */
 public interface SCIMClient {
+    @Headers("Accept: application/json")
     @GET("/Users")SCIMUserList getUserInformation(@Query("filter")String userFilter);
 }

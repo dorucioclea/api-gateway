@@ -3,7 +3,9 @@ package com.t1t.digipolis.apim.facades;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
@@ -15,6 +17,7 @@ import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.IUserExternalInfoService;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
@@ -32,25 +35,21 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.CacheUtil;
 import com.t1t.digipolis.util.JWTUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
+import org.opensaml.saml2.common.Extensions;
+import org.opensaml.saml2.common.impl.ExtensionsBuilder;
 import org.opensaml.saml2.core.*;
 import org.opensaml.saml2.core.impl.*;
 import org.opensaml.saml2.encryption.Decrypter;
 import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.encryption.EncryptedKey;
 import org.opensaml.xml.encryption.EncryptedKeyResolver;
 import org.opensaml.xml.io.*;
+import org.opensaml.xml.schema.XSAny;
+import org.opensaml.xml.schema.impl.XSAnyBuilder;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.BasicCredential;
 import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
@@ -73,7 +72,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.*;
@@ -87,6 +85,9 @@ import java.util.zip.DeflaterOutputStream;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class UserFacade implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(UserFacade.class.getName());
+    private static final String SAML2_KEY_RELAY_STATE = "RelayState=";
+    private static final String SAML2_KEY_RESPONSE = "SAMLResponse=";
+    private static final String SAML2_KEY_REQUEST = "SAMLRequest=";
     @PersistenceContext
     private EntityManager em;
     @Inject
@@ -103,7 +104,8 @@ public class UserFacade implements Serializable {
     private CacheUtil ehcache;
     @Inject
     private OrganizationFacade organizationFacade;
-
+    @Inject
+    private IUserExternalInfoService userExternalInfoService;
     @Inject
     private AppConfig config;
 
@@ -216,23 +218,29 @@ public class UserFacade implements Serializable {
      * @param token
      * @return
      */
-    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token) {
+    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token, Integer overrideExpTime, Map<String,String> optClaimMap) {
         // Initialize the library
         log.info("Initate SAML2 request for {}", clientUrl);
         try {
             //Bootstrap OpenSAML
             DefaultBootstrap.bootstrap();
             //Generate the request
-            AuthnRequest authnRequest = buildAuthnRequestObject(spUrl, spName);
+            AuthnRequest authnRequest = buildAuthnRequestObject(spUrl, spName, clientUrl);
+            WebClientCacheBean webCache = new WebClientCacheBean();
+            webCache.setToken(token);
+            webCache.setClientAppRedirect(clientUrl);
+            webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+            webCache.setOverrideExpTimeInMinuts(overrideExpTime);
+            webCache.setOptionalClaimset(optClaimMap);
+            //we need to send the clienUrl as a relaystate - should be URL encoded
+            String urlEncodedClientUrl = URLEncoder.encode(clientUrl,"UTF-8");
             //set client application name and callback in the cache
-            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(spName, clientUrl));
-            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(spName + "token", token));
+            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(urlEncodedClientUrl, webCache));//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
             log.info("Cache contains:{}", ehcache.toString());
-            //TODO remove in prod
             utilPrintCache();
 
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
-            return idpUrl + "?SAMLRequest=" + encodedRequestMessage;
+            return idpUrl + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
         } catch (MarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
@@ -256,7 +264,7 @@ public class UserFacade implements Serializable {
             LogoutRequest authnRequest = buildLogoutRequest(user, idpUrl, spName);
             //set client application name and callback in the cache
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
-            return idpUrl + "?SAMLRequest=" + encodedRequestMessage;
+            return idpUrl + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
         } catch (MarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Logout Request: " + ex.getMessage());
@@ -270,7 +278,7 @@ public class UserFacade implements Serializable {
      * @param spName
      * @return
      */
-    private AuthnRequest buildAuthnRequestObject(String spUrl, String spName) {
+    private AuthnRequest buildAuthnRequestObject(String spUrl, String spName, String clientUrl) {
         IssuerBuilder issuerBuilder = null;
         Issuer issuer = null;
         NameIDPolicyBuilder nameIdPolicyBuilder = null;
@@ -291,7 +299,7 @@ public class UserFacade implements Serializable {
         // NameIDPolicy
         nameIdPolicyBuilder = new NameIDPolicyBuilder();
         nameIdPolicy = nameIdPolicyBuilder.buildObject();
-        nameIdPolicy.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");//TODO can be set aswel as param?
+        nameIdPolicy.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
         nameIdPolicy.setSPNameQualifier("Isser");
         nameIdPolicy.setAllowCreate(new Boolean(true));
 
@@ -320,7 +328,22 @@ public class UserFacade implements Serializable {
         authRequest.setRequestedAuthnContext(requestedAuthnContext);
         authRequest.setID(Integer.toHexString(new Double(Math.random()).intValue())); //random id
         authRequest.setVersion(SAMLVersion.VERSION_20);
+        //set extension in order to avoid creating service providers for all web applications
+        //authRequest.setExtensions(buildExtensions(clientUrl));//doesn't return the value - leaving it out at the moment.
         return authRequest;
+    }
+
+    /**
+     * Builds a SAML2 authRequest extension claim.
+     * @param clientUrl
+     * @return
+     */
+    protected Extensions buildExtensions(String clientUrl) {
+        XSAny extraElement = new XSAnyBuilder().buildObject("urn:myexample:extraAttribute", "ExtraElement", "myexample");
+        extraElement.setTextContent("extraValue");
+        Extensions extensions = new ExtensionsBuilder().buildObject();
+        extensions.getUnknownXMLObjects().add(extraElement);
+        return extensions;
     }
 
     private LogoutRequest buildLogoutRequest(String user, String idpUrl, String spName) {
@@ -392,16 +415,17 @@ public class UserFacade implements Serializable {
         // Initialize the library
         //get only the samlResponse
         String samlResp = response.split("&")[0];//remove other form params
-        String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
+        String relayState = response.split("&")[1].replaceFirst(SAML2_KEY_RELAY_STATE,"").trim();//the relaystate contains the correlation id for the calling web client == callbackurl
+        String base64EncodedResponse = samlResp.replaceFirst(SAML2_KEY_RESPONSE, "").trim();
         String clientAppName = "";
         String userName = "";
         StringBuffer clientUrl = new StringBuffer("");
         Assertion assertion = null;
         try {
             assertion = processSSOResponse(response);
-            clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
+            //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
             userName = assertion.getSubject().getNameID().getValue();
-            log.info("Audience URI found: {}", clientAppName);
+            log.info("Audience URI found: {}", relayState);
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
@@ -413,13 +437,14 @@ public class UserFacade implements Serializable {
          * In the case of SAML2 as a response token you can use:
          * responseRedirect.setToken(encodeSAML2BearerToken(assertion));
          */
-        if (assertion != null && ehcache.getClientAppCache().get(clientAppName.trim() + "token").getObjectValue().equals(ClientTokeType.jwt)) {
-            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(userName));
+        WebClientCacheBean webClientCacheBean = (WebClientCacheBean) ehcache.getClientAppCache().get(relayState.trim()).getObjectValue();
+        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
+            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(userName,webClientCacheBean));
         } else {
             responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(userName));
         }
-        responseRedirect.setTtl(assertion.getConditions().getNotOnOrAfter().toString());
-        clientUrl.append((String) ehcache.getClientAppCache().get(clientAppName).getObjectValue());
+        //responseRedirect.setTtl(assertion.getConditions().getNotOnOrAfter().toString());
+        clientUrl.append(webClientCacheBean.getClientAppRedirect());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
         //for logout, we should keep the SessionIndex in cache with the username
@@ -438,12 +463,9 @@ public class UserFacade implements Serializable {
         }*/
     }
 
-    //TODO check travelocity example for decryption when using X509 certificates
-    //we have to take out only the saml assertion in order to construct the saml bearer token.
-
     /**
      * Method processes the SAML2 Response in order to capture the SAML Assertion.
-     * See {@link http://sureshatt.blogspot.be/2012/11/how-to-read-saml-20-response-with.html}
+     * See: http://sureshatt.blogspot.be/2012/11/how-to-read-saml-20-response-with.html
      *
      * @param responseString
      * @return
@@ -592,9 +614,10 @@ public class UserFacade implements Serializable {
      * @param userName
      * @return
      */
-    private String updateOrCreateConsumerJWTOnGateway(String userName) {
+    private String updateOrCreateConsumerJWTOnGateway(String userName, WebClientCacheBean cacheBean) {
         String jwtKey = "";
         String jwtSecret = "";
+        String issuedJWT = "";
         // Publish the service to all relevant gateways
         try {
             String gatewayId = gatewayFacade.getDefaultGateway().getId();
@@ -629,17 +652,33 @@ public class UserFacade implements Serializable {
                     initNewUser(userName);
                 }
             }
-            gatewayLink.close();
-            //start composing JWT token
-            //TODO retrieve SCIM user info
-            //TODO compose JWT
 
+            //start composing JWT token
+            ExternalUserBean scimUser = userExternalInfoService.getUserInfo("userName", userName);
+            JWTRequestBean jwtRequestBean = new JWTRequestBean();
+            jwtRequestBean.setIssuer(jwtKey);
+            //set expiration time
+            if(cacheBean.getTokenExpirationTimeMinutes()!=null)jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
+            else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+            List<String> emails = scimUser.getEmails();
+            if(emails!=null && emails.size()>0) jwtRequestBean.setEmail(emails.get(0));
+            jwtRequestBean.setName(scimUser.getName());
+            //TODO fill in account when retrieved from the WSO2 IS
+            jwtRequestBean.setSubject(scimUser.getName());
+            jwtRequestBean.setGivenName(scimUser.getGivenname());
+            jwtRequestBean.setSurname(scimUser.getSurname());
+            jwtRequestBean.setSubject(scimUser.getAccountId());
+            jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
+            jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
+            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);
+            //close gateway
+            gatewayLink.close();
         } catch (PublishingException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
-        return "";
+        return issuedJWT;
     }
 
     /**

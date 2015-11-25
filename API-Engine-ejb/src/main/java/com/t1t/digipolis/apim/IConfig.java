@@ -28,4 +28,5 @@ public interface IConfig {
     String PROP_FILE_DATE = "date";
     String PROP_FILE_VERSION = "version";
     String PROP_FILE_CONFIG_FILE = "configuration.file";
+    String JWT_DEFAULT_TOKEN_EXP = "apiapp.jwt.token_default_exp_minutes";
 }

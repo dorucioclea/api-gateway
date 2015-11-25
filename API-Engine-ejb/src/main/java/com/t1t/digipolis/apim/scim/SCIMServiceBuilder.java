@@ -4,6 +4,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.apim.beans.scim.SCIMConfigBean;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,7 @@ import retrofit.RestAdapter;
 import java.io.UnsupportedEncodingException;
 
 /**
- * Created by michallispashidis on 07/08/2015.
+ * Created by michallispashidis on 07/11/2015.
  * Application scoped bean, adding the header information to a VisiREG server instantce call.
  */
 public class SCIMServiceBuilder {
@@ -28,7 +29,7 @@ public class SCIMServiceBuilder {
      * @param config
      * @return
      */
-    private static synchronized String getBasicAuthValue(RestGatewayConfigBean config) {
+    private static synchronized String getBasicAuthValue(SCIMConfigBean config) {
         String authHeader = "";
         try {
             String username = config.getUsername();
@@ -50,11 +51,17 @@ public class SCIMServiceBuilder {
      * @param <T>
      * @return
      */
-    public <T> T getService(RestGatewayConfigBean config, Class<T> iFace) {
+    public <T> T getService(SCIMConfigBean config, Class<T> iFace) {
         //optional GSON converter
         Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
-        StringBuilder kongURL = new StringBuilder(config.getEndpoint());
-        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(kongURL.toString())
+        StringBuilder scimURL = new StringBuilder(config.getEndpoint());
+        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(scimURL.toString())
+                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLog(new RestAdapter.Log() {
+                    public void log(String msg) {
+                        _LOG.info("retrofit:{}",msg);
+                    }
+                })
                 .setRequestInterceptor(new RequestInterceptor() {
                     @Override
                     public void intercept(RequestFacade requestFacade) {
@@ -62,21 +69,8 @@ public class SCIMServiceBuilder {
                         requestFacade.addHeader("Authorization", getBasicAuthValue(config));
                     }
                 })
-/*                .setErrorHandler(new ErrorHandler() {
-                    @Override
-                    public Throwable handleError(RetrofitError retrofitError) {
-                        switch (retrofitError.getResponse().getStatus()) {
-                            case ErrorCodes.HTTP_STATUS_CODE_INVALID_INPUT:
-                                throw new GatewayNotFoundException(retrofitError.getMessage());
-                            case ErrorCodes.HTTP_STATUS_CODE_INVALID_STATE:
-                                throw new AlreadyExistsException(retrofitError.getResponse().getReason());
-                            default:
-                                throw new RuntimeException("");
-                        }
-                    }
-                })*/
                 .build();
-        _LOG.info("Kong connection string:{}", kongURL.toString());
+        _LOG.info("SCIM connection string:{}", scimURL.toString());
         return restAdapter.create(iFace);
     }
 }

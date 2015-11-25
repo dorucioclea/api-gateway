@@ -64,6 +64,7 @@ public class AppConfig implements Serializable {
             _LOG.info("Default user organization: {}",getDefaultOrganization());
             _LOG.info("Default user roles: {}",getDefaultUserRoles());
             _LOG.info("Consent page: {}",getOAuthConsentURI());
+            _LOG.info("JWT default token expiration (in minutes):{}",getJWTDefaultTokenExpInMinutes());
             _LOG.info("=============================================================");
         };
     }
@@ -88,4 +89,5 @@ public class AppConfig implements Serializable {
     public String getOAuthConsentURI(){return config.getString(IConfig.CONSENT_URI);}
     public String getIDPSCIMUserLogin(){return config.getString(IConfig.IDP_SCIM_USER_LOGIN);}
     public String getIDPSCIMUserPassword(){return config.getString(IConfig.IDP_SCIM_USER_PWD);}
+    public Integer getJWTDefaultTokenExpInMinutes(){return config.getInt(IConfig.JWT_DEFAULT_TOKEN_EXP);}
 }
