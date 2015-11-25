@@ -188,6 +188,20 @@ public class UserResource implements IUserResource {
         return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken(), request.getOverrideExpTimeInMinutes(),request.getOptionalClaimMap());
     }
 
+    @ApiOperation(value = "Refresh an existing valid JWT.",
+            notes = "Use this endpoint to refresh and prolong your JWT expiration time. If 0 is provided as expiration configruation, the JWT will be infinitly valid. The consuming application can provide at this moment optionally a custom claim map.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
+            @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
+    })
+    @POST
+    @Path("/idp/token/refresh")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String refreshToken() {
+        return null;
+    }
+
     @ApiOperation(value = "The service provider for the SAML2 Authentication request",
             notes = "This endpoint should be used by an IDP who's responding with a SAML2 Authentication response. The endpoint will provide an authorization token in return, towards the configured client URL (provided with the /idp/redirect request).")
     @ApiResponses({
