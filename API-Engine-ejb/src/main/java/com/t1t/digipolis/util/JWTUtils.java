@@ -102,9 +102,12 @@ public class JWTUtils {
 
     public static JwtContext validateHMACToken(String jwtToken, String secret, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException, UnsupportedEncodingException {
         JwtConsumer jwtConsumer = null;
+        // Build a JwtConsumer that doesn't check signatures or do any validation.
         if(skipDefaultValidators){
             jwtConsumer =  new JwtConsumerBuilder()
                     .setSkipAllDefaultValidators()
+                    .setDisableRequireSignature()
+                    .setSkipSignatureVerification()
                     .build();
             //.setVerificationKey(new HmacKey(secret.getBytes()))
             //.setRelaxVerificationKeyValidation() // allow shorter HMAC keys when used w/ HSxxx algs
