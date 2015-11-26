@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
+import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
@@ -186,6 +187,23 @@ public class UserResource implements IUserResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
         Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
         return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken(), request.getOverrideExpTimeInMinutes(),request.getOptionalClaimMap());
+    }
+
+    @ApiOperation(value = "Refresh an existing valid JWT. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter.",
+            notes = "Use this endpoint to refresh and prolong your JWT expiration time. If 0 is provided as expiration configruation, the JWT will be infinitly valid. The consuming application can provide at this moment optionally a custom claim map.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = String.class, message = "Refreshed JWT."),
+            @ApiResponse(code = 500, response = String.class, message = "Server error while refreshing token")
+    })
+    @POST
+    @Path("/idp/token/refresh")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
+        Preconditions.checkNotNull(jwtRefreshRequestBean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(jwtRefreshRequestBean.getOriginalJWT()));
+        //optional map is not verified
+        return null;
     }
 
     @ApiOperation(value = "The service provider for the SAML2 Authentication request",
