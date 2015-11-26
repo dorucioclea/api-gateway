@@ -167,4 +167,28 @@ public class RoleFacadeTest {
         permissions.add(PermissionType.appView);
         return permissions;
     }
+
+    public void testCreate1() throws Exception {
+
+    }
+
+    public void testGet() throws Exception {
+
+    }
+
+    public void testUpdate1() throws Exception {
+
+    }
+
+    public void testDelete1() throws Exception {
+
+    }
+
+    public void testList1() throws Exception {
+
+    }
+
+    public void testSearch1() throws Exception {
+
+    }
 }

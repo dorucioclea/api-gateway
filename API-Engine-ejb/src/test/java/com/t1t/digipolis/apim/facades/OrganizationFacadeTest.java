@@ -5,19 +5,21 @@ import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
+import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
-import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyType;
+import com.t1t.digipolis.apim.beans.policies.*;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.Policy;
+import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -519,9 +521,32 @@ public class OrganizationFacadeTest {
         verify(storage).getPlanVersion("someorg", "someplan", "someversion");
     }
 
+    @Ignore
     @Test
     public void testCreatePlanPolicy() throws Exception {
-        
+        List<PolicySummaryBean> summaryBeans = new ArrayList<>();
+        PolicySummaryBean policySummaryBean = new PolicySummaryBean();
+        policySummaryBean.setDescription("some pol summ");
+        policySummaryBean.setName("some pol name");
+        policySummaryBean.setPolicyDefinitionId("somedefaultid");
+        summaryBeans.add(policySummaryBean);
+        PlanVersionBean planVersionBean = new PlanVersionBean();
+        planVersionBean.setStatus(PlanStatus.Created);
+        when(Policies.valueOf(anyString())).thenReturn(Policies.BASICAUTHENTICATION);
+        when(GatewayValidation.validateBasicAuth(anyObject())).thenReturn(new Policy());
+        when(GatewayValidation.validate(anyObject())).thenReturn(new Policy());
+        when(GatewayValidation.validate(anyObject())).thenReturn(new Policy());
+        when(query.getMaxPolicyOrderIndex(anyString(), anyString(), anyString(), anyObject())).thenReturn(0);
+        when(storage.getPlanVersion(anyString(), anyString(), anyString())).thenReturn(new PlanVersionBean());
+        when(storage.getPolicyDefinition(anyString())).thenReturn(new PolicyDefinitionBean());
+        when(orgFacade.listPlanPolicies("someorg", "someplan", "someverions")).thenReturn(summaryBeans);
+        when(orgFacade.doCreatePolicy("someorg", "someplanx", "someversionx", new NewPolicyBean(), PolicyType.Plan)).thenReturn(new PolicyBean());
+        when(orgFacade.getPlanVersion(anyString(), anyString(), anyString())).thenReturn(planVersionBean);
+        NewPolicyBean newPolicyBean = new NewPolicyBean();
+        newPolicyBean.setConfiguration("defaultconfig");
+        newPolicyBean.setDefinitionId("defaultdefid");
+        PolicyBean planPolicy = orgFacade.createPlanPolicy("someorg", "someplanx", "someverionsx", newPolicyBean);
+        verify(orgFacade).doCreatePolicy("someorg","someplanx","someversionx",anyObject(),PolicyType.Plan);
     }
 
     @Test
