@@ -25,4 +25,8 @@ public class ActionFacadeTest {
     public void testPerformAction() throws Exception {
 
     }
+
+    public void testPerformAction1() throws Exception {
+
+    }
 }

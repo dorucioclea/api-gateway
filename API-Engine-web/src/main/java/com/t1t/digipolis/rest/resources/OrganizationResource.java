@@ -8,8 +8,7 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
-import com.t1t.digipolis.apim.beans.idm.GrantRolesBean;
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
@@ -698,7 +697,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(announcementId));
-        orgFacade.deleteServiceAnnouncement(organizationId, serviceId,Long.parseLong(announcementId.trim(), 10));
+        orgFacade.deleteServiceAnnouncement(organizationId, serviceId, Long.parseLong(announcementId.trim(), 10));
     }
 
     @ApiOperation(value = "Update Service Terms",
@@ -1252,7 +1251,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
         Preconditions.checkArgument(!StringUtils.isEmpty(bean.getTitle()));
         Preconditions.checkArgument(!StringUtils.isEmpty(bean.getDescription()));
-        return orgFacade.updateServiceSupportTicket(organizationId,serviceId,Long.parseLong(supportId.trim(),10),bean);
+        return orgFacade.updateServiceSupportTicket(organizationId, serviceId, Long.parseLong(supportId.trim(), 10), bean);
     }
 
     @ApiOperation(value = "Get a support ticket for a service",
@@ -1269,7 +1268,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
-        return orgFacade.getServiceSupportTicket(organizationId,serviceId,Long.parseLong(supportId.trim(),10));
+        return orgFacade.getServiceSupportTicket(organizationId, serviceId, Long.parseLong(supportId.trim(), 10));
     }
 
     @ApiOperation(value = "Delete a support ticket for a service",
@@ -1287,7 +1286,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
-        orgFacade.deleteSupportTicket(organizationId,serviceId,Long.parseLong(supportId.trim(),10));
+        orgFacade.deleteSupportTicket(organizationId, serviceId, Long.parseLong(supportId.trim(), 10));
     }
 
     @ApiOperation(value = "Retrieve a list of all support tickets for a service.",
@@ -1320,7 +1319,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkNotNull(bean);
         Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
         Preconditions.checkArgument(!StringUtils.isEmpty(bean.getComment()));
-        return orgFacade.addServiceSupportComment(Long.parseLong(supportId.trim(),10),bean);
+        return orgFacade.addServiceSupportComment(Long.parseLong(supportId.trim(), 10), bean);
     }
 
     @ApiOperation(value = "Update a comment to a support ticket for a service",
@@ -1338,7 +1337,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
         Preconditions.checkArgument(!StringUtils.isEmpty(commentId));
         Preconditions.checkArgument(!StringUtils.isEmpty(bean.getComment()));
-        return orgFacade.updateServiceSupportComment(Long.parseLong(supportId.trim(),10),Long.parseLong(commentId.trim(),10),bean);
+        return orgFacade.updateServiceSupportComment(Long.parseLong(supportId.trim(), 10), Long.parseLong(commentId.trim(), 10), bean);
     }
 
     @ApiOperation(value = "Delete a support ticket comment for a service",
@@ -1354,7 +1353,7 @@ public class OrganizationResource implements IOrganizationResource {
         //TODO Permissions: only the user created the ticket can remove his own comment
         Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
         Preconditions.checkArgument(!StringUtils.isEmpty(commentId));
-        orgFacade.deleteServiceSupportComment(Long.parseLong(supportId.trim(),10),Long.parseLong(commentId.trim(),10));
+        orgFacade.deleteServiceSupportComment(Long.parseLong(supportId.trim(), 10), Long.parseLong(commentId.trim(), 10));
     }
 
     @ApiOperation(value = "Get a support ticket comment.",
@@ -1383,7 +1382,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public List<SupportComment> listServiceSupportComments(@PathParam("supportId")String supportId) throws NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
-        return orgFacade.listServiceSupportTicketComments(Long.parseLong(supportId.trim(),10));
+        return orgFacade.listServiceSupportTicketComments(Long.parseLong(supportId.trim(), 10));
     }
 
     @ApiOperation(value = "Get Service Usage Metrics",
@@ -1740,15 +1739,15 @@ public class OrganizationResource implements IOrganizationResource {
     }
 
 
-    @ApiOperation(value = "Grant Membership(s)",
+    @ApiOperation(value = "Grant Membership",
             notes = "Grant membership in a role to a user.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
     })
     @POST
-    @Path("/{organizationId}/roles")
+    @Path("/{organizationId}/members")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void grant(@PathParam("organizationId") String organizationId, GrantRolesBean bean) throws OrganizationNotFoundException,
+    public void grant(@PathParam("organizationId") String organizationId, GrantRoleBean bean) throws OrganizationNotFoundException,
             RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1762,10 +1761,10 @@ public class OrganizationResource implements IOrganizationResource {
             @ApiResponse(code = 204, message = "successful, no content")
     })
     @DELETE
-    @Path("/{organizationId}/roles/{roleId}/{userId}")
+    @Path("/{organizationId}/members/{userId}/{roleId}")
     public void revoke(@PathParam("organizationId") String organizationId,
-                       @PathParam("roleId") String roleId,
-                       @PathParam("userId") String userId)
+                       @PathParam("userId") String userId,
+                       @PathParam("roleId") String roleId)
             throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -1773,6 +1772,24 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(roleId));
         Preconditions.checkArgument(!StringUtils.isEmpty(userId));
         orgFacade.revoke(organizationId, roleId, userId);
+    }
+
+    @ApiOperation(value = "Update Membership Role",
+            notes = "Update a user's role within the org.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/members/{userId}")
+    public void updateMembership(@PathParam("organizationId") String organizationId,
+                                 @PathParam("userId") String userId,
+                                 GrantRoleBean bean)
+            throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        orgFacade.updateMembership(organizationId, userId, bean);
     }
 
     @ApiOperation(value = "Revoke All Memberships",
@@ -1789,6 +1806,23 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(userId));
         orgFacade.revokeAll(organizationId, userId);
+    }
+
+    @ApiOperation(value = "Transfer Organization Ownership",
+            notes = "Transfer organization ownership to another member of the organization.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/transfer")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void transferOrgOwnership(@PathParam("organizationId") String organizationId,
+                                     TransferOwnershipBean bean) throws OrganizationNotFoundException,
+            MemberNotFoundException, NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        orgFacade.transferOrgOwnership(organizationId, bean);
     }
 
     @ApiOperation(value = "List Organization Members",
