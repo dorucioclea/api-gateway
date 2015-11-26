@@ -1847,13 +1847,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         String currentOwnerId = bean.getCurrentOwnerId();
         String newOwnerId = bean.getNewOwnerId();
         try {
-            // Remove current as Owner and add as Developer
+            // Remove current as Owner
             RoleMembershipBean currentOwnerBean = idmStorage.getMembership(currentOwnerId, "Owner", organizationId);
             if (currentOwnerBean == null) throw new MemberNotFoundException(currentOwnerId);
             idmStorage.deleteMembership(currentOwnerId, "Owner", organizationId);
-            currentOwnerBean.setRoleId("Developer");
-            currentOwnerBean.setCreatedOn(new Date());
-            idmStorage.createMembership(currentOwnerBean);
+
+            // And re-add as Developer
+            RoleMembershipBean developerBean = RoleMembershipBean.create(currentOwnerId, "Developer", organizationId);
+            developerBean.setCreatedOn(new Date());
+            idmStorage.createMembership(developerBean);
 
             // Add new as Owner and remove other memberships
             Set<RoleMembershipBean> newOwnerMemberships = idmStorage.getUserMemberships(newOwnerId, organizationId);
