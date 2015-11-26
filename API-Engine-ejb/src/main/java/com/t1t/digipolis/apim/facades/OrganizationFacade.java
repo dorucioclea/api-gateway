@@ -1807,6 +1807,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             idmStorage.getRole(bean.getRoleId());
             idmStorage.deleteMemberships(userId, organizationId);
             RoleMembershipBean rmb = RoleMembershipBean.create(userId, bean.getRoleId(), organizationId);
+            rmb.setCreatedOn(new Date());
             idmStorage.createMembership(rmb);
             auditData.addRole(bean.getRoleId());
         } catch (StorageException e) {
@@ -1851,6 +1852,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (currentOwnerBean == null) throw new MemberNotFoundException(currentOwnerId);
             idmStorage.deleteMembership(currentOwnerId, "Owner", organizationId);
             currentOwnerBean.setRoleId("Developer");
+            currentOwnerBean.setCreatedOn(new Date());
             idmStorage.createMembership(currentOwnerBean);
 
             // Add new as Owner and remove other memberships
@@ -1858,6 +1860,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (newOwnerMemberships.size() == 0) throw new MemberNotFoundException(newOwnerId);
             idmStorage.deleteMemberships(newOwnerId, organizationId);
             RoleMembershipBean newOwnerBean = RoleMembershipBean.create(newOwnerId, "Owner", organizationId);
+            newOwnerBean.setCreatedOn(new Date());
             idmStorage.createMembership(newOwnerBean);
 
             // Add audit entry
