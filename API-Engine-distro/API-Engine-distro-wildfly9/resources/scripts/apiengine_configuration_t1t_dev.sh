@@ -21,6 +21,10 @@ curl -X POST http://dev.apim.t1t.be:8001/apis/dev.apiengine.v1/plugins \
     --data "name=key-auth" \
     --data "config.key_names=apikey"
 
+#enable JWT
+curl -X POST http://dev.apim.t1t.be:8001/apis/dev.apiengine.v1/plugins \
+    --data "name=jwt"
+
 #create marketplace consumer, username should be unique
 curl -X POST http://dev.apim.t1t.be:8001/consumers \
     --data "username=dev.marketplace.v1"
