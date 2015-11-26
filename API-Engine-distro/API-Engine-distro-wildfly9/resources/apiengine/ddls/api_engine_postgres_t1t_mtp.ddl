@@ -779,6 +779,22 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   ]
 }', 'JsonSchema', 'fa-line-chart', 'Mashape Analytics Policy', NULL ,TRUE ,FALSE ,FALSE );
 
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT', 'Enable the service to accept Json Web Tokens', '{
+  "type": "object",
+  "title": "JWT Token",
+  "properties": {
+    "claims_to_verify": {
+      "title": "Validate expiration time",
+      "description":"When set to false, the expiration validation will be skipped, not the validation of the token itself.",
+      "type": "boolean",
+      "required": true
+    }
+  },
+  "required": [
+    "claims_to_verify"
+  ]
+}', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
+
 
 INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('admin', 'admin.be@trust1team.com', 'Admin', CURRENT_DATE,TRUE ,NULL );
 
