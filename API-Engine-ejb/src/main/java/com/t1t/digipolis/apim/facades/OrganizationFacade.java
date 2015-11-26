@@ -1807,6 +1807,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             idmStorage.getRole(bean.getRoleId());
             idmStorage.deleteMemberships(userId, organizationId);
             RoleMembershipBean rmb = RoleMembershipBean.create(userId, bean.getRoleId(), organizationId);
+            rmb.setCreatedOn(new Date());
             idmStorage.createMembership(rmb);
             auditData.addRole(bean.getRoleId());
         } catch (StorageException e) {
@@ -1846,18 +1847,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         String currentOwnerId = bean.getCurrentOwnerId();
         String newOwnerId = bean.getNewOwnerId();
         try {
-            // Remove current as Owner and add as Developer
+            // Remove current as Owner
             RoleMembershipBean currentOwnerBean = idmStorage.getMembership(currentOwnerId, "Owner", organizationId);
             if (currentOwnerBean == null) throw new MemberNotFoundException(currentOwnerId);
             idmStorage.deleteMembership(currentOwnerId, "Owner", organizationId);
-            currentOwnerBean.setRoleId("Developer");
-            idmStorage.createMembership(currentOwnerBean);
+
+            // And re-add as Developer
+            RoleMembershipBean developerBean = RoleMembershipBean.create(currentOwnerId, "Developer", organizationId);
+            developerBean.setCreatedOn(new Date());
+            idmStorage.createMembership(developerBean);
 
             // Add new as Owner and remove other memberships
             Set<RoleMembershipBean> newOwnerMemberships = idmStorage.getUserMemberships(newOwnerId, organizationId);
             if (newOwnerMemberships.size() == 0) throw new MemberNotFoundException(newOwnerId);
             idmStorage.deleteMemberships(newOwnerId, organizationId);
             RoleMembershipBean newOwnerBean = RoleMembershipBean.create(newOwnerId, "Owner", organizationId);
+            newOwnerBean.setCreatedOn(new Date());
             idmStorage.createMembership(newOwnerBean);
 
             // Add audit entry
