@@ -3,6 +3,7 @@ package com.t1t.digipolis.util;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.IJWT;
+import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
@@ -125,7 +126,15 @@ public class JWTUtils {
         return jwtContext;
     }
 
-    public static String composeJWT(JWTRequestBean jwtRequestBean, String secret,JwtClaims jwtClaims)throws JoseException, UnsupportedEncodingException{
+    public static String refreshJWT(JWTRefreshRequestBean jwtRefreshRequestBean, JwtClaims jwtClaims ,String secret)throws JoseException, UnsupportedEncodingException{
+        //add optoinal claims
+        addOptionalClaims(jwtClaims,jwtRefreshRequestBean.getOptionalClaims());
+        //overwrite expiration time if needed
+        if(jwtRefreshRequestBean.getExpirationTimeMinutes()!=null) jwtClaims.setExpirationTimeMinutesInTheFuture(jwtRefreshRequestBean.getExpirationTimeMinutes());
+        return composeJWT(secret, jwtClaims);
+    }
+
+    public static String composeJWT(String secret,JwtClaims jwtClaims)throws JoseException, UnsupportedEncodingException{
         // The JWT is signed using the private key
         Key key = new HmacKey(secret.getBytes("UTF-8"));
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
@@ -161,7 +170,7 @@ public class JWTUtils {
         //List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
         //claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
         addOptionalClaims(claims,jwtRequestBean.getOptionalClaims());
-        return composeJWT(jwtRequestBean, secret, claims);
+        return composeJWT(secret, claims);
     }
 
     /**
@@ -177,7 +186,7 @@ public class JWTUtils {
         }
     }
 
-    //TODO don't do this hard coded and unfinished :-)
+    //TODO don't do this hard coded and unfinished - roles with XACML :-)
     public List<String> getRoles(JwtContext jwtContext) {
         JwtClaims jwtClaims = jwtContext.getJwtClaims();
         org.json.JSONObject resourceObject = (org.json.JSONObject) jwtClaims.getClaimValue("resource_access");

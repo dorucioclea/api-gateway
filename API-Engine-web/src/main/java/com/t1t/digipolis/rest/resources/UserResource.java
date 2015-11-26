@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
+import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
@@ -14,10 +15,8 @@ import com.t1t.digipolis.apim.beans.user.*;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
-import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
+import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
-import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -27,6 +26,9 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.netty.util.internal.StringUtil;
+import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.jose4j.lang.JoseException;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.io.UnmarshallingException;
 import org.slf4j.Logger;
@@ -40,6 +42,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -192,18 +195,23 @@ public class UserResource implements IUserResource {
     @ApiOperation(value = "Refresh an existing valid JWT. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter.",
             notes = "Use this endpoint to refresh and prolong your JWT expiration time. If 0 is provided as expiration configruation, the JWT will be infinitly valid. The consuming application can provide at this moment optionally a custom claim map.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = String.class, message = "Refreshed JWT."),
+            @ApiResponse(code = 200, response = JWTRefreshResponseBean.class, message = "Refreshed JWT."),
             @ApiResponse(code = 500, response = String.class, message = "Server error while refreshing token")
     })
     @POST
     @Path("/idp/token/refresh")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
-    public String refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
+    @Produces(MediaType.APPLICATION_JSON)
+    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
         Preconditions.checkNotNull(jwtRefreshRequestBean);
         Preconditions.checkArgument(!StringUtils.isEmpty(jwtRefreshRequestBean.getOriginalJWT()));
-        //optional map is not verified
-        return null;
+        JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
+        try {
+            jwtRefreshResponseBean = userFacade.refreshToken(jwtRefreshRequestBean);
+        } catch (UnsupportedEncodingException|InvalidJwtException|MalformedClaimException|JoseException e) {
+            new SystemErrorException(e);
+        }
+        return jwtRefreshResponseBean;
     }
 
     @ApiOperation(value = "The service provider for the SAML2 Authentication request",

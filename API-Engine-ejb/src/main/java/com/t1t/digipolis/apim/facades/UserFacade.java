@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
+import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -36,10 +37,13 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.CacheUtil;
 import com.t1t.digipolis.util.JWTUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
 import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtContext;
+import org.jose4j.lang.JoseException;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
@@ -656,7 +660,8 @@ public class UserFacade implements Serializable {
                     initNewUser(userName);
                 }
             }
-
+            //set the cache for performance and resilience
+            setTokenCache(jwtKey,jwtSecret);
             //start composing JWT token
             ExternalUserBean scimUser = userExternalInfoService.getUserInfo("userName", userName);
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
@@ -685,17 +690,50 @@ public class UserFacade implements Serializable {
         return issuedJWT;
     }
 
-    private String refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws UnsupportedEncodingException, InvalidJwtException {
+    /**
+     * Stores the secret in a cache, such that we don't have to call each time the Kong client.
+     *
+     * @param jwtKey
+     * @param jwtSecret
+     */
+    private void setTokenCache(String jwtKey, String jwtSecret) {
+        ehcache.getUserTokenCache().put(new net.sf.ehcache.Element(jwtKey,jwtSecret));
+    }
+
+    /**
+     * Retrieves the secret for a given subject, if the key is not found in the cache, a Kong request will be sent to retrieve the value;.
+     *
+     * @param key
+     * @return
+     */
+    private String getSecretFromTokenCache(String key, String userName){
+        String secret = (String) ehcache.getUserTokenCache().get(key).getObjectValue();
+        if(StringUtils.isEmpty(secret)){
+            //retrieve from Kong
+            String gatewayId = null;
+            try {
+                gatewayId = gatewayFacade.getDefaultGateway().getId();
+                IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
+                List<KongPluginJWTResponse> data = gatewayLink.getConsumerJWT(userName).getData();
+                if(data!=null && data.size()>0){
+                    secret = data.get(0).getSecret();
+                }else throw new StorageException("Refresh JWT - somehow the user is not known");
+            } catch (StorageException e) {
+                new GatewayException("Error connection to gateway:{}"+e.getMessage());
+            }
+        }
+        return secret;
+    }
+
+    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JoseException {
         //get body
         JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
         JwtClaims jwtClaims = jwtContext.getJwtClaims();
-
-        //overwrite optional map
-
         //get secret based on iss/username - cached
-
-        //componse new JWT
-        return null;
+        String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(),jwtClaims.getSubject());
+        JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
+        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean,jwtClaims,secret));
+        return jwtRefreshResponseBean;
     }
 
     /**

@@ -26,7 +26,11 @@ public class CacheUtil implements Serializable {
         CacheConfiguration cacheConfiguration = new CacheConfiguration(CLIENT_CACHE, 200)
                 .eternal(true)
                 .maxEntriesLocalHeap(200);
+        CacheConfiguration tokenConfiguration = new CacheConfiguration(TOKEN_CACHE, 500)
+                .eternal(true)
+                .maxEntriesLocalHeap(500);
         cacheManagerConfiguration.addCache(cacheConfiguration);
+        cacheManagerConfiguration.addCache(tokenConfiguration);
         manager = new CacheManager(cacheManagerConfiguration);
     }
 
