@@ -51,7 +51,7 @@ public class ActionFacadeTest {
         actionBean.setEntityVersion("version");
         actionBean.setOrganizationId("orgid");
         actionBean.setType(ActionType.lockPlan);
-
+        assertTrue(true);
     }
 
 }

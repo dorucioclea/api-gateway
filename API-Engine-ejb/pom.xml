@@ -280,11 +280,7 @@
             <artifactId>ehcache</artifactId>
         </dependency>
 
-<!--        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.identity.sso.agent</artifactId>
-        </dependency>-->
-
+        <!--OpenSAML-->
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml</artifactId>
@@ -316,6 +312,36 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>${version.commons-codec}</version>
+        </dependency>
+
+        <!-- Arquillian allows you to test enterprise code such as EJBs and Transactional(JTA) JPA from JUnit/TestNG -->
+        <dependency>
+            <groupId>org.jboss.arquillian.junit</groupId>
+            <artifactId>arquillian-junit-container</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.protocol</groupId>
+            <artifactId>arquillian-protocol-servlet</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.container</groupId>
+            <artifactId>arquillian-weld-ee-embedded-1.1</artifactId>
+            <version>1.0.0.CR3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.weld</groupId>
+            <artifactId>weld-core</artifactId>
+            <version>1.1.5.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.6.4</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
@@ -494,6 +520,35 @@
                 <appconfig.file>application-digi-rte</appconfig.file>
             </properties>
         </profile>
+<!--        <profile>
+            &lt;!&ndash; An optional Arquillian testing profile that executes tests
+                in your WildFly instance &ndash;&gt;
+            &lt;!&ndash; This profile will start a new WildFly instance, and execute
+                the test, shutting it down when done &ndash;&gt;
+            &lt;!&ndash; Run with: mvn clean test -Parq-wildfly-managed &ndash;&gt;
+            <id>arq-wildfly-managed</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.wildfly</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            &lt;!&ndash; An optional Arquillian testing profile that executes tests
+                in a remote WildFly instance &ndash;&gt;
+            &lt;!&ndash; Run with: mvn clean test -Parq-wildfly-remote &ndash;&gt;
+            <id>arq-wildfly-remote</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.wildfly</groupId>
+                    <artifactId>wildfly-arquillian-container-remote</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>-->
     </profiles>
 
 </project>
