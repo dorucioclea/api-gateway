@@ -125,10 +125,24 @@ public class JWTUtils {
         return jwtContext;
     }
 
-    public static String composeJWT(JWTRequestBean jwtRequestBean, String secret) throws JoseException, UnsupportedEncodingException {
+    public static String composeJWT(JWTRequestBean jwtRequestBean, String secret,JwtClaims jwtClaims)throws JoseException, UnsupportedEncodingException{
         // The JWT is signed using the private key
         Key key = new HmacKey(secret.getBytes("UTF-8"));
+        // A JWT is a JWS and/or a JWE with JSON claims as the payload.
+        JsonWebSignature jws = new JsonWebSignature();
+        // The payload of the JWS is JSON content of the JWT Claims
+        jws.setPayload(jwtClaims.toJson());
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
+        jws.setKey(key);
+        jws.setHeader(IJWT.HEADER_TYPE,IJWT.HEADER_TYPE_VALUE);
+        jws.setDoKeyValidation(false); // relaxes the key length requirement
 
+        String issuedJwt = null;
+        issuedJwt = jws.getCompactSerialization();
+        return issuedJwt;
+    }
+
+    public static String composeJWT(JWTRequestBean jwtRequestBean, String secret) throws JoseException, UnsupportedEncodingException {
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
         claims.setIssuer(jwtRequestBean.getIssuer());  // who creates the token and signs it
@@ -147,19 +161,7 @@ public class JWTUtils {
         //List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
         //claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
         addOptionalClaims(claims,jwtRequestBean.getOptionalClaims());
-
-        // A JWT is a JWS and/or a JWE with JSON claims as the payload.
-        JsonWebSignature jws = new JsonWebSignature();
-        // The payload of the JWS is JSON content of the JWT Claims
-        jws.setPayload(claims.toJson());
-        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
-        jws.setKey(key);
-        jws.setHeader(IJWT.HEADER_TYPE,IJWT.HEADER_TYPE_VALUE);
-        jws.setDoKeyValidation(false); // relaxes the key length requirement
-
-        String issuedJwt = null;
-        issuedJwt = jws.getCompactSerialization();
-        return issuedJwt;
+        return composeJWT(jwtRequestBean, secret, claims);
     }
 
     /**

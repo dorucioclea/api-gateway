@@ -18,6 +18,7 @@ import java.io.Serializable;
 public class CacheUtil implements Serializable {
     //Clien application cache
     private final static String CLIENT_CACHE = "clientcache";
+    private final static String TOKEN_CACHE = "tokencache";
     private static CacheManager manager;
 
     static {
@@ -32,6 +33,8 @@ public class CacheUtil implements Serializable {
     public Ehcache getClientAppCache() {
         return manager.getEhcache(CLIENT_CACHE);
     }
+
+    public Ehcache getUserTokenCache(){return manager.getEhcache(TOKEN_CACHE);}
 
     @PreDestroy
     public void shutdown() {
