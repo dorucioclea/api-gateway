@@ -786,7 +786,7 @@ public class UserFacade implements Serializable {
      * Print cache debug util.
      * Prints the full cache in the log file in order to verify application request parameters.
      */
-    private void utilPrintCache() {
+    public void utilPrintCache() {
         log.debug("Cache:{}", ehcache.getClientAppCache().getName());
         List keys = ehcache.getClientAppCache().getKeys();
         keys.forEach(key -> log.info("Key found:{} with value {}", key, ehcache.getClientAppCache().get(key)));
