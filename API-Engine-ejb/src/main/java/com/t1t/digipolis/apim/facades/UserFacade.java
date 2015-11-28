@@ -129,7 +129,7 @@ public class UserFacade implements Serializable {
         }
     }
 
-    public void update(String userId, UpdateUserBean user) {
+    public UserBean update(String userId, UpdateUserBean user) {
         try {
             UserBean updatedUser = idmStorage.getUser(userId);
             if (updatedUser == null) throw ExceptionFactory.userNotFoundException(userId);
@@ -144,6 +144,7 @@ public class UserFacade implements Serializable {
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
+        return null;
     }
 
     public SearchResultsBean<UserBean> search(SearchCriteriaBean criteria) {
