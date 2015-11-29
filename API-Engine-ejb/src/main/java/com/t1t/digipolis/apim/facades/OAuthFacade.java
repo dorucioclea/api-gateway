@@ -55,7 +55,7 @@ public class OAuthFacade {
     private AppConfig config;
 
     /**
-     * This method should be called only for the consumer registring the OAuth service, and thus not for each consumer using the OAuth
+     * This method should be called only for the consumer registering the OAuth service, and thus not for each consumer using the OAuth
      *
      * @param request
      * @return

@@ -29,7 +29,7 @@ public class OAuthResource implements IOAuth2Authorization {
     @Inject private AuthorizationFacade authorizationFacade;
     @Inject private OAuthFacade oAuthFacade;
 
-    @ApiOperation(value = "Enable a user for OAuth2 in the context of the application.",
+    @ApiOperation(value = "Enable an application consumer for OAuth2 in the context of the application.",
             notes = "The client application is identified with a client_id and client_password. Both are needed to provide the application name and redirect URL in order to register a consumer for OAuth2.")
     @ApiResponses({
             @ApiResponse(code = 200, response = KongPluginOAuthConsumerResponse.class, message = "The result unique username and generated KeyAuth token."),
