@@ -664,7 +664,7 @@ public class UserFacade implements Serializable {
             //set the cache for performance and resilience
             setTokenCache(jwtKey,jwtSecret);
             //start composing JWT token
-            ExternalUserBean scimUser = userExternalInfoService.getUserInfo("userName", userName);
+            ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(userName);
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
             jwtRequestBean.setIssuer(jwtKey);
             //set expiration time

@@ -12,7 +12,6 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,7 +36,7 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
     }
 
     @Override
-    public ExternalUserBean getUserInfo(String key, String value) throws ExternalUserNotFoundException {
+    public ExternalUserBean getUserInfoByQuery(String key, String value) throws ExternalUserNotFoundException {
         ExternalUserBean userBean = new ExternalUserBean();
         StringBuilder filter = new StringBuilder(key).append(ISCIM.SCIM_FILTER_EQ).append(value);
         SCIMUserList userInformation = scimClient.getUserInformation(filter.toString());
@@ -53,5 +52,15 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
             userBean.setLastModified(refUser.getMeta().getLastModified());
         }
         return userBean;
+    }
+
+    @Override
+    public ExternalUserBean getUserInfoByUsername(String username) throws ExternalUserNotFoundException {
+        return getUserInfoByQuery(ISCIM.SCIM_FILTER_KEY_USERNAME, username);
+    }
+
+    @Override
+    public ExternalUserBean getUserInfoByMail(String email) throws ExternalUserNotFoundException {
+        return getUserInfoByQuery(ISCIM.SCIM_FILTER_KEY_EMAIL, email);
     }
 }
