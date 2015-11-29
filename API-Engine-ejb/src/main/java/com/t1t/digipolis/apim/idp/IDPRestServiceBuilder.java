@@ -12,7 +12,7 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * Created by michallispashidis on 07/08/2015.
- * Application scoped bean, adding the header information to a VisiREG server instantce call.
+ * Application scoped bean, adding the header information to server instance call.
  */
 public class IDPRestServiceBuilder {
     private static Logger _LOG = LoggerFactory.getLogger(IDPRestServiceBuilder.class.getName());

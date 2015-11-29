@@ -45,6 +45,7 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
             //we choose te first, normally you should look for a unique property
             SCIMUser refUser = userList.get(0);
             userBean.setName(refUser.getUserName());
+            userBean.setUsername(refUser.getUserName());
             userBean.setEmails(refUser.getEmails());
             userBean.setGivenname(refUser.getName().getGivenName());
             userBean.setSurname(refUser.getName().getFamilyName());

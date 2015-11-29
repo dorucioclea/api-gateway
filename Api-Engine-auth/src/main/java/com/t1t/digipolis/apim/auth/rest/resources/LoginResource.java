@@ -1,8 +1,10 @@
 package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
+import com.t1t.digipolis.apim.beans.scim.ExternalUserRequest;
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
 import com.t1t.digipolis.apim.beans.user.SAMLLogoutRequest;
 import com.t1t.digipolis.apim.beans.user.SAMLRequest;
@@ -172,6 +174,38 @@ public class LoginResource implements ILoginResource {
         }
         if(redirectURL!=null)return Response.seeOther(redirectURL).build();
         return Response.ok(redirectURL).build();
+    }
+
+    @ApiOperation(value = "Performs a search on user email towards the coupled Identity Provider.",
+            notes = "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.")
+    @ApiResponses({
+            @ApiResponse(code = 200,response = ExternalUserBean.class, message = "External and initialized user.")
+    })
+    @POST
+    @Path("/idp/user/mail")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserByMail(ExternalUserRequest externalUserRequest) {
+        Preconditions.checkNotNull(externalUserRequest);
+        Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserMail()));
+        ExternalUserBean userByEmail = userFacade.getUserByEmail(externalUserRequest.getUserMail());
+        return Response.ok().entity(userByEmail).build();
+    }
+
+    @ApiOperation(value = "Performs a search on user unique name towards the coupled Identity Provider.",
+            notes = "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.")
+    @ApiResponses({
+            @ApiResponse(code = 200,response = ExternalUserBean.class, message = "External and initialized user.")
+    })
+    @POST
+    @Path("/idp/user/name")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUserByUsername(ExternalUserRequest externalUserRequest) {
+        Preconditions.checkNotNull(externalUserRequest);
+        Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserName()));
+        ExternalUserBean userByEmail = userFacade.getUserByUsername(externalUserRequest.getUserName());
+        return Response.ok().entity(userByEmail).build();
     }
 
 }

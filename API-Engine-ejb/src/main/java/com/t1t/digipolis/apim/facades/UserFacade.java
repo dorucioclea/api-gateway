@@ -692,6 +692,62 @@ public class UserFacade implements Serializable {
     }
 
     /**
+     * Returns a user by given mail.
+     * As we have an external user provisioning system, the user should be initialized in the system when found.
+     * For new users, the JWT credentials will be generated on the API Gateway.
+     *
+     * @param email
+     * @return
+     */
+    public ExternalUserBean getUserByEmail(String email){
+        ExternalUserBean scimUser = userExternalInfoService.getUserInfoByMail(email);
+        return getExteralUserAndInit(scimUser);
+    }
+
+    public ExternalUserBean getUserByUsername(String username){
+        ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(username);
+        return getExteralUserAndInit(scimUser);
+    }
+
+    public ExternalUserBean getExteralUserAndInit(ExternalUserBean scimUser){
+        Preconditions.checkNotNull(scimUser);
+        if(scimUser!=null && !StringUtils.isEmpty(scimUser.getUsername())){
+            //create the user in early stage - because it's a know external user - and we have the unique identifier coming from a trusted source
+            try {
+                String gatewayId = gatewayFacade.getDefaultGateway().getId();
+                Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
+                IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
+                String userName = scimUser.getUsername();//should be unique
+                KongConsumer consumer = gatewayLink.getConsumer(userName);
+                if (consumer == null) {
+                    //user doesn't exists, implicit creation
+                    consumer = gatewayLink.createConsumer(userName);
+                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
+                    //we are sure that this consumer must be a physical user
+                    UserBean tempUser = idmStorage.getUser(userName);
+                    if (tempUser == null) {
+                        initNewUser(userName);
+                    }
+                } else {
+                    KongPluginJWTResponseList response = gatewayLink.getConsumerJWT(consumer.getId());
+                    //it is possible that the user exists in the gateway but not in the API Engine
+                    UserBean userToBeVerified = idmStorage.getUser(userName);
+                    if (userToBeVerified == null || StringUtils.isEmpty(userToBeVerified.getUsername())) {
+                        initNewUser(userName);
+                    }
+                }
+                //close gateway
+                gatewayLink.close();
+            } catch (PublishingException e) {
+                throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
+            } catch (Exception e) {
+                throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
+            }
+        }
+        return scimUser;
+    }
+
+    /**
      * Stores the secret in a cache, such that we don't have to call each time the Kong client.
      *
      * @param jwtKey

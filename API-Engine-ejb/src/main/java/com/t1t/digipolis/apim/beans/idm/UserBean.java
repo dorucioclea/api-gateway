@@ -46,10 +46,6 @@ public class UserBean implements Serializable {
     private byte[] base64pic;
 
 
-    // Used only when returning information about the current user
-/*    @Transient
-    private boolean admin;*/
-
     /**
      * Constructor.
      */
