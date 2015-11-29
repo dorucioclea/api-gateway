@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.security;
 
+import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 
 import java.util.Set;
@@ -17,5 +18,6 @@ public interface ISecurityAppContext {
      */
     public String getApplication();
     public String setCurrentApplication(String application);
+    public AppIdentifier getApplicationIdentifier();
 
 }

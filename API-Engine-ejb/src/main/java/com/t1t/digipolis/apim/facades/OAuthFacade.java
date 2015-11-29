@@ -22,6 +22,7 @@ import com.t1t.digipolis.apim.idp.IDPClient;
 import com.t1t.digipolis.apim.idp.IDPRestServiceBuilder;
 import com.t1t.digipolis.apim.idp.RestIDPConfigBean;
 import com.t1t.digipolis.apim.kong.KongConstants;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
@@ -45,14 +46,11 @@ import java.util.List;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OAuthFacade {
     private static Logger log = LoggerFactory.getLogger(OAuthFacade.class.getName());
-    @Inject
-    IStorageQuery query;
-    @Inject
-    private IStorage storage;
-    @Inject
-    private IGatewayLinkFactory gatewayLinkFactory;
-    @Inject
-    private AppConfig config;
+    @Inject IStorageQuery query;
+    @Inject private IStorage storage;
+    @Inject private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject private AppConfig config;
+    @Inject private ISecurityAppContext appContext;
 
     /**
      * This method should be called only for the consumer registering the OAuth service, and thus not for each consumer using the OAuth
