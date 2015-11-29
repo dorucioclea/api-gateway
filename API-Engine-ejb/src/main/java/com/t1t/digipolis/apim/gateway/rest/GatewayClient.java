@@ -288,7 +288,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         if(!customKeyAuth) registerDefaultKeyAuthPolicy(api);
         if(!customHttp&&!StringUtils.isEmpty(metricsURI)) registerDefaultHttpPolicy(api);
         //default enable jwt validation for a service - authorization bearer or jwt fieldname accepted by default
-        registerDefaultJWTPolicy(api);
+        //registerDefaultJWTPolicy(api);
     }
 
     /**
