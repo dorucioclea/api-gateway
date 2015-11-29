@@ -8,6 +8,7 @@ package com.t1t.digipolis.apim;
 public interface IConfig {
     String APP_ENVIRONMENT = "apiapp.environment";
     String KONG_URL = "apiapp.kong.endpoint_url";
+    String KONG_HOST = "apiapp.kong.host";
     String KONG_URL_MANAGEMENT = "apiapp.kong.management_url";
     String IDP_SAML_ENDPOINT = "apiapp.idp.saml_endpoint_url";
     String IDP_NAMEID_FORMAT = "apiapp.idp.nameid_format";

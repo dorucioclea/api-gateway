@@ -48,6 +48,7 @@ public class AppConfig implements Serializable {
             _LOG.info("Build: {}",getBuildDate());
             _LOG.info("version: {}",getVersion());
             _LOG.info("environment: {}",getEnvironment());
+            _LOG.info("Kong host: {}",getKongHost());
             _LOG.info("Kong endpoint: {}",getKongEndpoint());
             _LOG.info("Kong management endpoint: {}",getKongManagementEndpoint());
             _LOG.info("IDP SAML2 endpoint: {}",getIDPSAMLEndpoint());
@@ -70,6 +71,7 @@ public class AppConfig implements Serializable {
     }
 
     public String getEnvironment(){return config.getString(IConfig.APP_ENVIRONMENT);}
+    public String getKongHost(){return config.getString(IConfig.KONG_HOST);}
     public String getKongEndpoint(){return config.getString(IConfig.KONG_URL);}
     public String getVersion(){return properties.getProperty(IConfig.PROP_FILE_VERSION);}
     public String getBuildDate(){return properties.getProperty(IConfig.PROP_FILE_DATE);}
