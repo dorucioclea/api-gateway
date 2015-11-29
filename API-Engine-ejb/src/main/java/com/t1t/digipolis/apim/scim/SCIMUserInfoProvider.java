@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.core.IUserExternalInfoService;
 import com.t1t.digipolis.apim.exceptions.ExternalUserNotFoundException;
 import com.t1t.digipolis.kong.model.SCIMUser;
 import com.t1t.digipolis.kong.model.SCIMUserList;
+import retrofit.RetrofitError;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
@@ -39,7 +40,12 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
     public ExternalUserBean getUserInfoByQuery(String key, String value) throws ExternalUserNotFoundException {
         ExternalUserBean userBean = new ExternalUserBean();
         StringBuilder filter = new StringBuilder(key).append(ISCIM.SCIM_FILTER_EQ).append(value);
-        SCIMUserList userInformation = scimClient.getUserInformation(filter.toString());
+        SCIMUserList userInformation = null;
+        try{
+            userInformation = scimClient.getUserInformation(filter.toString());
+        }catch (RetrofitError commerr){
+            throw new ExternalUserNotFoundException("User not found with filter:"+filter);
+        }
         List<SCIMUser> userList = userInformation.getResources();
         if(userList!=null && userList.size()>0){
             //we choose te first, normally you should look for a unique property
