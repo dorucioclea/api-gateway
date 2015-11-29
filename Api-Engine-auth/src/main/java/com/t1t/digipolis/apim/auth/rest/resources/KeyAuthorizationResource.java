@@ -22,9 +22,9 @@ import javax.ws.rs.core.Response;
 /**
  * Created by michallispashidis on 9/09/15.
  */
-@Api(value = "/keyauth", description = "The Authorization API.  This API facilitates the creation of authorizations.")
+/*@Api(value = "/keyauth", description = "The Authorization API.  This API facilitates the creation of authorizations.")
 @Path("/keyauth")
-@ApplicationScoped
+@ApplicationScoped*/
 public class KeyAuthorizationResource implements IKeyAuthorization {
     @Inject
     private AuthorizationFacade authorizationFacade;
