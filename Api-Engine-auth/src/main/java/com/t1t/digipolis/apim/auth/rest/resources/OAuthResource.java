@@ -48,24 +48,6 @@ public class OAuthResource implements IOAuth2Authorization {
         return oAuthFacade.enableOAuthForConsumer(request);
     }
 
-    @ApiOperation(value = "Authentication proxy endpoint, authenticates the user through trusted application.",
-            notes = "Utility method. The client application serves as a OAuth service provider, and is know to the IDP. The client application uses OAuth client credentials to authenticate the user's provided credentials.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = ProxyAuthRequest.class, message = "True if user is authenticated succesfull."),
-            @ApiResponse(code = 400, response = String.class, message = "Error.")
-    })
-    @POST
-    @Path("/proxy-auth/user")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
-    @Override
-    public String ipdClientCredGrantForUserAuthentication(ProxyAuthRequest request)throws OAuthException{
-        Preconditions.checkNotNull(request);
-        boolean valid = oAuthFacade.authenticateResourceOwnerCredential(request);
-        if(valid)return "true";
-        else return "false";
-    }
-
     @ApiOperation(value = "Retrieve Application OAuth2 information for targeted service.",
             notes = "Retrive the Application OAuth2 information in order to inform the user through a consent page for a specific service.")
     @ApiResponses({

@@ -53,6 +53,12 @@ public class IDPRestServiceBuilder {
         Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         StringBuilder url = new StringBuilder(config.getEndpoint());
         RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(url.toString())
+                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLog(new RestAdapter.Log() {
+                    public void log(String msg) {
+                        _LOG.info("retrofit - IDP direct request:{}",msg);
+                    }
+                })
                 .setRequestInterceptor(new RequestInterceptor() {
                     @Override
                     public void intercept(RequestFacade requestFacade) {

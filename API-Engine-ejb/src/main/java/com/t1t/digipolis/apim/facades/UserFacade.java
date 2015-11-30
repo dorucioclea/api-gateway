@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.facades;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
@@ -24,9 +25,13 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.idp.IDPClient;
+import com.t1t.digipolis.apim.idp.IDPRestServiceBuilder;
+import com.t1t.digipolis.apim.idp.RestIDPConfigBean;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -37,6 +42,7 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.CacheUtil;
 import com.t1t.digipolis.util.JWTUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
 import org.jose4j.jwt.JwtClaims;
@@ -50,6 +56,7 @@ import org.opensaml.common.SAMLVersion;
 import org.opensaml.saml2.common.Extensions;
 import org.opensaml.saml2.common.impl.ExtensionsBuilder;
 import org.opensaml.saml2.core.*;
+import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.impl.*;
 import org.opensaml.saml2.encryption.Decrypter;
 import org.opensaml.xml.ConfigurationException;
@@ -70,6 +77,8 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import retrofit.RetrofitError;
+import retrofit.client.*;
 
 import javax.crypto.SecretKey;
 import javax.ejb.*;
@@ -849,6 +858,47 @@ public class UserFacade implements Serializable {
         keys.forEach(key -> log.info("Key found:{} with value {}", key, ehcache.getClientAppCache().get(key)));
     }
 
-
+    /**
+     * Helper method, uses the username and password to perform a Resource owner password grant.
+     * This method is used in order to authenticate as well the end user through the registered API engine Service Provider.
+     * The following curl does the same:
+     * curl -v -k -X POST --user W6FcDk905p5jT5_C_DDec4hAwBMa:nyu7u2If6XBBcQXxi7M6wfHkoK4a
+     * -H "Content-Type: application/x-www-form-urlencoded;charset=UTF-8"
+     * -d 'grant_type=password&username=michallis&password=Mp12345&scope=read,write'
+     * https://idp.t1t.be:9443/oauth2/token
+     * <p>
+     * The scope parameter is optional!
+     *
+     * @return
+     */
+    public ExternalUserBean authenticateResourceOwnerCredential(ProxyAuthRequest request) {
+        //TODO we should perform the same actions as in the user facade for login
+        RestIDPConfigBean restConfig=null;
+        IDPRestServiceBuilder restServiceBuilder=null;
+        try {
+            //rest config
+            restConfig = new RestIDPConfigBean();
+            restConfig.setEndpoint(config.getIDPOAuthTokenEndpoint());
+            restConfig.setUsername(config.getIDPOAuthClientId());
+            restConfig.setPassword(config.getIDPOAuthClientSecret());
+            log.debug("auth config:{}",restConfig);
+            restServiceBuilder = new IDPRestServiceBuilder();
+            IDPClient idpClient = restServiceBuilder.getSecureService(restConfig, IDPClient.class);
+            retrofit.client.Response response = idpClient.authenticateUser("password", request.getUsername(), request.getPassword(), "authenticate");
+            log.debug("Resource owner OAuth2 authentication towards IDP, response:{}", response.getStatus());
+            if (response.getStatus() == HttpStatus.SC_OK){
+                //Get user and init
+                return getUserByUsername(request.getUsername());
+            }
+            throw new UserNotFoundException("No user found with username:"+request.getUsername());
+        } catch (RetrofitError error){
+            log.debug("Authentication result:{}",error.getResponse());
+            log.debug("error stack:{}",error.getStackTrace());
+            throw new UserNotFoundException("No user found with username:"+request.getUsername());
+        } finally {
+            restConfig = null;
+            restServiceBuilder = null;
+        }
+    }
 
 }

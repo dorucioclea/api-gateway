@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
@@ -12,7 +13,9 @@ import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
@@ -47,11 +50,18 @@ import java.net.URL;
 @Path("/login")
 @ApplicationScoped
 public class LoginResource implements ILoginResource {
-    @Inject private IStorage storage;
-    @Inject IIdmStorage idmStorage;
-    @Inject ISecurityContext securityContext;
-    @Inject IStorageQuery query;
-    @Inject private UserFacade userFacade;
+    @Inject
+    private IStorage storage;
+    @Inject
+    IIdmStorage idmStorage;
+    @Inject
+    ISecurityContext securityContext;
+    @Inject
+    IStorageQuery query;
+    @Inject
+    private UserFacade userFacade;
+    @Inject
+    private OAuthFacade oAuthFacade;
     private static final Logger log = LoggerFactory.getLogger(LoginResource.class.getName());
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
@@ -72,7 +82,7 @@ public class LoginResource implements ILoginResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
         Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
-        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken(), request.getOverrideExpTimeInMinutes(),request.getOptionalClaimMap());
+        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken(), request.getOverrideExpTimeInMinutes(), request.getOptionalClaimMap());
     }
 
     @ApiOperation(value = "Refresh an existing valid JWT. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter.",
@@ -91,7 +101,7 @@ public class LoginResource implements ILoginResource {
         JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
         try {
             jwtRefreshResponseBean = userFacade.refreshToken(jwtRefreshRequestBean);
-        } catch (UnsupportedEncodingException |InvalidJwtException |MalformedClaimException |JoseException e) {
+        } catch (UnsupportedEncodingException | InvalidJwtException | MalformedClaimException | JoseException e) {
             new SystemErrorException(e);
         }
         return jwtRefreshResponseBean;
@@ -111,7 +121,7 @@ public class LoginResource implements ILoginResource {
         try {
             SAMLResponseRedirect response = userFacade.processSAML2Response(request);
             String jwtToken = response.getToken();
-            uri = new URL(response.getClientUrl()+"?jwt="+jwtToken).toURI();
+            uri = new URL(response.getClientUrl() + "?jwt=" + jwtToken).toURI();
             //Get the audience using the assertion => create new table for registered audiences == client applications.
             //String audience = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
         } catch (URISyntaxException e) {
@@ -119,14 +129,14 @@ public class LoginResource implements ILoginResource {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-        if(uri!=null)return Response.seeOther(uri).build();
+        if (uri != null) return Response.seeOther(uri).build();
         return Response.ok(request).build();
     }
 
     @ApiOperation(value = "User logout",
             notes = "This endpoint performs actions upon an IDP triggered SAML2 logout request.")
     @ApiResponses({
-            @ApiResponse(code = 200,response = String.class, message = "User specific logout.")
+            @ApiResponse(code = 200, response = String.class, message = "User specific logout.")
     })
     @POST
     @Path("/idp/logout")
@@ -137,7 +147,7 @@ public class LoginResource implements ILoginResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getUsername()));
-        return userFacade.generateSAML2LogoutRequest(request.getIdpUrl(),request.getSpName(),request.getUsername());
+        return userFacade.generateSAML2LogoutRequest(request.getIdpUrl(), request.getSpName(), request.getUsername());
         //don't do anything, logout triggered from client
 
 /*        String url = "https://idp.t1t.be:9443/dashboard";
@@ -155,7 +165,7 @@ public class LoginResource implements ILoginResource {
     @ApiOperation(value = "IDP single logout",
             notes = "This endpoint can be used by an IDP to logout a user.")
     @ApiResponses({
-            @ApiResponse(code = 200,response = String.class, message = "IDP single logout.")
+            @ApiResponse(code = 200, response = String.class, message = "IDP single logout.")
     })
     @POST
     @Path("/idp/slo")
@@ -172,14 +182,14 @@ public class LoginResource implements ILoginResource {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-        if(redirectURL!=null)return Response.seeOther(redirectURL).build();
+        if (redirectURL != null) return Response.seeOther(redirectURL).build();
         return Response.ok(redirectURL).build();
     }
 
     @ApiOperation(value = "Performs a search on user email towards the coupled Identity Provider.",
             notes = "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.")
     @ApiResponses({
-            @ApiResponse(code = 200,response = ExternalUserBean.class, message = "External and initialized user.")
+            @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user.")
     })
     @POST
     @Path("/idp/user/mail")
@@ -195,7 +205,7 @@ public class LoginResource implements ILoginResource {
     @ApiOperation(value = "Performs a search on user unique name towards the coupled Identity Provider.",
             notes = "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.")
     @ApiResponses({
-            @ApiResponse(code = 200,response = ExternalUserBean.class, message = "External and initialized user.")
+            @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user.")
     })
     @POST
     @Path("/idp/user/name")
@@ -206,6 +216,22 @@ public class LoginResource implements ILoginResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserName()));
         ExternalUserBean userByEmail = userFacade.getUserByUsername(externalUserRequest.getUserName());
         return Response.ok().entity(userByEmail).build();
+    }
+
+
+    @ApiOperation(value = "Authentication proxy endpoint, authenticates the user through trusted application.",
+            notes = "Utility method. The client application serves as a OAuth service provider, and is know to the IDP. The client application uses OAuth client credentials to authenticate the user's provided credentials.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ExternalUserBean.class, message = "When authenticated succesfull, the user will be returned, else null response.")
+    })
+    @POST
+    @Path("/proxy-auth/user")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response ipdClientCredGrantForUserAuthentication(ProxyAuthRequest request) throws OAuthException {
+        Preconditions.checkNotNull(request);
+        ExternalUserBean extUser = userFacade.authenticateResourceOwnerCredential(request);
+        return Response.ok().entity(extUser).build();
     }
 
 }
