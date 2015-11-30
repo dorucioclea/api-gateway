@@ -683,10 +683,9 @@ public class UserFacade implements Serializable {
             if(emails!=null && emails.size()>0) jwtRequestBean.setEmail(emails.get(0));
             jwtRequestBean.setName(scimUser.getName());
             //TODO fill in account when retrieved from the WSO2 IS
-            jwtRequestBean.setSubject(scimUser.getName());
             jwtRequestBean.setGivenName(scimUser.getGivenname());
             jwtRequestBean.setSurname(scimUser.getSurname());
-            jwtRequestBean.setSubject(scimUser.getAccountId());
+            jwtRequestBean.setSubject(scimUser.getUsername());
             jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
             jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
             issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);
@@ -871,8 +870,13 @@ public class UserFacade implements Serializable {
      *
      * @return
      */
-    public ExternalUserBean authenticateResourceOwnerCredential(ProxyAuthRequest request) {
-        //TODO we should perform the same actions as in the user facade for login
+    public String authenticateResourceOwnerCredential(ProxyAuthRequest request) {
+        //create webcache object for JWT
+        WebClientCacheBean webClientCacheBean = new WebClientCacheBean();
+        //check params and add to web cache in order to build JWT
+        if(request.getOptionalClaimset()!=null&&request.getOptionalClaimset().size()>0)webClientCacheBean.setOptionalClaimset(request.getOptionalClaimset());
+        if(request.getOverrideExpTimeInMinuts()!=null)webClientCacheBean.setOverrideExpTimeInMinuts(request.getOverrideExpTimeInMinuts());
+        if(!StringUtils.isEmpty(request.getExpectedAudience()))webClientCacheBean.setClientAppRedirect(request.getExpectedAudience());
         RestIDPConfigBean restConfig=null;
         IDPRestServiceBuilder restServiceBuilder=null;
         try {
@@ -888,7 +892,7 @@ public class UserFacade implements Serializable {
             log.debug("Resource owner OAuth2 authentication towards IDP, response:{}", response.getStatus());
             if (response.getStatus() == HttpStatus.SC_OK){
                 //Get user and init
-                return getUserByUsername(request.getUsername());
+                return updateOrCreateConsumerJWTOnGateway(request.getUsername(), webClientCacheBean);
             }
             throw new UserNotFoundException("No user found with username:"+request.getUsername());
         } catch (RetrofitError error){

@@ -222,7 +222,7 @@ public class LoginResource implements ILoginResource {
     @ApiOperation(value = "Authentication proxy endpoint, authenticates the user through trusted application.",
             notes = "Utility method. The client application serves as a OAuth service provider, and is know to the IDP. The client application uses OAuth client credentials to authenticate the user's provided credentials.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = ExternalUserBean.class, message = "When authenticated succesfull, the user will be returned, else null response.")
+            @ApiResponse(code = 200, response = JWTRefreshResponseBean.class, message = "When authenticated succesfull, the user will be returned, else null response.")
     })
     @POST
     @Path("/proxy-auth/user")
@@ -230,8 +230,10 @@ public class LoginResource implements ILoginResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response ipdClientCredGrantForUserAuthentication(ProxyAuthRequest request) throws OAuthException {
         Preconditions.checkNotNull(request);
-        ExternalUserBean extUser = userFacade.authenticateResourceOwnerCredential(request);
-        return Response.ok().entity(extUser).build();
+        String jwt = userFacade.authenticateResourceOwnerCredential(request);
+        JWTRefreshResponseBean jwtResponse = new JWTRefreshResponseBean();
+        jwtResponse.setJwt(jwt);
+        return Response.ok().entity(jwtResponse).build();
     }
 
 }
