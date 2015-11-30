@@ -219,7 +219,7 @@ INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VA
 
 INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Watcher', NULL, 'admin', CURRENT_DATE, 'Users who only need read access can be granted this role. They can view all information within an Organization, but cannot make changes.', 'Watcher');
 
-INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://api-gw-o.antwerpen.be:8001","username":"","password":""}','https://api-gw-o.antwerpen.be', '', CURRENT_DATE, 'This is the gateway.', '', CURRENT_DATE, 'Default Kong Gateway', 'REST');
+INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://devasu018.dev.digant.antwerpen.local:8001","username":"","password":""}','https://api-gw-o.antwerpen.be', '', CURRENT_DATE, 'This is the gateway.', '', CURRENT_DATE, 'Default Kong Gateway', 'REST');
 
 INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 0);
 
