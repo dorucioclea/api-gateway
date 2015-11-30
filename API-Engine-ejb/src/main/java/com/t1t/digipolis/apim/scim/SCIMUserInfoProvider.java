@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.core.IUserExternalInfoService;
 import com.t1t.digipolis.apim.exceptions.ExternalUserNotFoundException;
 import com.t1t.digipolis.kong.model.SCIMUser;
 import com.t1t.digipolis.kong.model.SCIMUserList;
+import org.apache.commons.lang3.StringUtils;
 import retrofit.RetrofitError;
 
 import javax.annotation.PostConstruct;
@@ -50,13 +51,15 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
         if(userList!=null && userList.size()>0){
             //we choose te first, normally you should look for a unique property
             SCIMUser refUser = userList.get(0);
-            userBean.setName(refUser.getUserName());
-            userBean.setUsername(refUser.getUserName());
-            userBean.setEmails(refUser.getEmails());
-            userBean.setGivenname(refUser.getName().getGivenName());
-            userBean.setSurname(refUser.getName().getFamilyName());
-            userBean.setCreatedon(refUser.getMeta().getCreated());
-            userBean.setLastModified(refUser.getMeta().getLastModified());
+            if(!StringUtils.isEmpty(refUser.getDisplayName()))userBean.setName(refUser.getDisplayName());
+            if(!StringUtils.isEmpty(refUser.getId())){
+                userBean.setUsername(refUser.getId());//case of correct id set as claim
+            }else{
+                userBean.setUsername(refUser.getUserName());//default case
+            }
+            if(refUser.getEmails()!=null)userBean.setEmails(refUser.getEmails());
+            if(!StringUtils.isEmpty(refUser.getName().getGivenName()))userBean.setGivenname(refUser.getName().getGivenName());
+            if(!StringUtils.isEmpty(refUser.getName().getFamilyName()))userBean.setSurname(refUser.getName().getFamilyName());
         }
         return userBean;
     }

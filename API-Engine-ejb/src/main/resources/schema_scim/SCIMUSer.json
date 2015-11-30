@@ -7,6 +7,10 @@
       "id": "id",
       "type": "string"
     },
+    "displayName": {
+      "id": "displayName",
+      "type": "string"
+    },
     "title": {
       "id": "title",
       "type": "string"
