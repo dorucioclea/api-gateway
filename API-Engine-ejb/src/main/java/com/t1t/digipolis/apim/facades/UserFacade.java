@@ -809,15 +809,24 @@ public class UserFacade implements Serializable {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private void initNewUser(String username) {
         try {
-            //TODO add apike/user to ACL -> version 0.5.0 of Kong
+            //TODO add check if SCIM suppor tis available
+            ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUsername(username);
             //create user
             UserBean newUser = new UserBean();
             newUser.setUsername(username);
             newUser.setAdmin(false);
+            if(userInfoByUsername!=null){
+                if(userInfoByUsername.getEmails()!=null&&userInfoByUsername.getEmails().size()>0)newUser.setEmail(userInfoByUsername.getEmails().get(0));
+                if(!StringUtils.isEmpty(userInfoByUsername.getName()))newUser.setFullName(userInfoByUsername.getName());
+                else{
+                    if(!StringUtils.isEmpty(userInfoByUsername.getGivenname())&&!StringUtils.isEmpty(userInfoByUsername.getSurname()))newUser.setFullName(userInfoByUsername.getGivenname()+" "+userInfoByUsername.getSurname());
+                }
+            }
             idmStorage.createUser(newUser);
             //assign default roles in company
             Set<String> roles = new TreeSet<>();
-            roles.add("Watcher");
+            roles.add(Role.WATCHER.toString());
+            roles.add(Role.DEVELOPER.toString());
             //assign to default company
             GrantRolesBean usergrants = new GrantRolesBean();
             usergrants.setRoleIds(roles);
