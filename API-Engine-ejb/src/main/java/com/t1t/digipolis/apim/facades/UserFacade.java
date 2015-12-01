@@ -825,8 +825,10 @@ public class UserFacade implements Serializable {
             idmStorage.createUser(newUser);
             //assign default roles in company
             Set<String> roles = new TreeSet<>();
-            roles.add(Role.WATCHER.toString());
-            roles.add(Role.DEVELOPER.toString());
+            //TODO do it decently
+/*            roles.add(Role.WATCHER.toString());
+            roles.add(Role.DEVELOPER.toString());*/
+            roles.add(Role.OWNER.toString());
             //assign to default company
             GrantRolesBean usergrants = new GrantRolesBean();
             usergrants.setRoleIds(roles);
