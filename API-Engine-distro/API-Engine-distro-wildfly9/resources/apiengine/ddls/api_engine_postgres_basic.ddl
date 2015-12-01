@@ -213,13 +213,11 @@ CREATE INDEX FK_uhasdtal55l0isoauy6mrtmpx ON oauth_scopes (ServiceVersionBean_id
 
 -- DATA POPULAT... *** SQLINES FOR EVALUATION USE ONLY *** 
 
-INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Owner', TRUE, 'admin', '2015-06-18 17:56:57.496', 'Automatically granted to the user who creates an Organization.  Grants all privileges.', 'Owner');
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Owner', TRUE, 'admin', CURRENT_DATE, 'Automatically granted to the user who creates an Organization.  Grants all privileges.', 'Owner');
 
-INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Developer', NULL, 'admin', '2015-06-18 17:56:57.632', 'Users responsible for creating and managing applications and services should be granted this role within an Organization.', 'Developer');
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Developer', NULL, 'admin', CURRENT_DATE, 'Users responsible for creating and managing applications and services should be granted this role within an Organization.', 'Developer');
 
-INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Watcher', NULL, 'admin', '2015-06-18 17:56:57.641', 'Users who only need read access can be granted this role. They can view all information within an Organization, but cannot make changes.', 'Watcher');
-
-INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://apim.t1t.be:8001","username":"","password":""}','http://apim.t1t.be:8000', '', '2015-08-18 17:56:58.083', 'This is the gateway.', '', '2015-08-18 17:56:58.083', 'Default Kong Gateway', 'REST');
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Watcher', NULL, 'admin', CURRENT_DATE, 'Users who only need read access can be granted this role. They can view all information within an Organization, but cannot make changes.', 'Watcher');
 
 INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 0);
 
@@ -794,12 +792,3 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "claims_to_verify"
   ]
 }', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
-
-
-INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('admin', 'admin@example.org', 'Admin', '2015-06-18 17:56:54.794',TRUE ,NULL );
-
-INSERT INTO organizations (id,description,name,created_by,created_on,modified_by,modified_on) VALUES ('Digipolis','Digipolis','Digipolis','admin',CURRENT_DATE,'admin',CURRENT_DATE);
-
-INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CURRENT_DATE,'Digipolis','Owner','admin');
-
-INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('runscope', 'michallis@trust1team.com', 'runscope', '2015-10-18 17:56:54.794',TRUE ,NULL );
