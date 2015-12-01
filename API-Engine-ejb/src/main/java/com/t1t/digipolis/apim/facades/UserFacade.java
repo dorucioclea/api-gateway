@@ -681,11 +681,11 @@ public class UserFacade implements Serializable {
             else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
             List<String> emails = scimUser.getEmails();
             if(emails!=null && emails.size()>0) jwtRequestBean.setEmail(emails.get(0));
-            jwtRequestBean.setName(scimUser.getName());
+            jwtRequestBean.setName(scimUser.getUsername());
             //TODO fill in account when retrieved from the WSO2 IS
             jwtRequestBean.setGivenName(scimUser.getGivenname());
             jwtRequestBean.setSurname(scimUser.getSurname());
-            jwtRequestBean.setSubject(scimUser.getUsername());
+            jwtRequestBean.setSubject(scimUser.getAccountId());
             jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
             jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
             issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);

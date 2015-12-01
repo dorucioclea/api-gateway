@@ -50,19 +50,12 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
         List<SCIMUser> userList = userInformation.getResources();
         if(userList!=null && userList.size()>0){
             //we choose te first, normally you should look for a unique property
-            SCIMUser refUser = userList.get(0);
-            if(!StringUtils.isEmpty(refUser.getDisplayName()))userBean.setName(refUser.getDisplayName());
-            if(!StringUtils.isEmpty(refUser.getId())){
-                userBean.setUsername(refUser.getId());//case of correct id set as claim
-            }else{
-                userBean.setUsername(refUser.getUserName());//default case
-            }
-            if(refUser.getEmails()!=null)userBean.setEmails(refUser.getEmails());
-            if(!StringUtils.isEmpty(refUser.getName().getGivenName()))userBean.setGivenname(refUser.getName().getGivenName());
-            if(!StringUtils.isEmpty(refUser.getName().getFamilyName()))userBean.setSurname(refUser.getName().getFamilyName());
+            userBean = mapToExternalUserBean(userList.get(0));
         }
         return userBean;
     }
+
+
 
     @Override
     public ExternalUserBean getUserInfoByUsername(String username) throws ExternalUserNotFoundException {
@@ -72,5 +65,27 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
     @Override
     public ExternalUserBean getUserInfoByMail(String email) throws ExternalUserNotFoundException {
         return getUserInfoByQuery(ISCIM.SCIM_FILTER_KEY_EMAIL, email);
+    }
+
+    @Override
+    public ExternalUserBean getUserInfoByUserId(String userId) throws ExternalUserNotFoundException {
+        return mapToExternalUserBean(scimClient.getUserInforamation(userId));
+    }
+
+    /**
+     * Maps the external user on an internal Userbean (DTO)
+     * @param refUser
+     * @return
+     */
+    private ExternalUserBean mapToExternalUserBean(SCIMUser refUser){
+        ExternalUserBean userBean = new ExternalUserBean();
+        //we choose te first, normally you should look for a unique property
+        if(!StringUtils.isEmpty(refUser.getId()))userBean.setAccountId(refUser.getId());//user id for example user@domain.com
+        if(!StringUtils.isEmpty(refUser.getDisplayName()))userBean.setName(refUser.getDisplayName());//full name
+        if(!StringUtils.isEmpty(refUser.getUserName()))userBean.setUsername(refUser.getUserName());//user id without domain for example user
+        if(refUser.getEmails()!=null)userBean.setEmails(refUser.getEmails());//email addresses
+        if(!StringUtils.isEmpty(refUser.getName().getGivenName()))userBean.setGivenname(refUser.getName().getGivenName());//givenname
+        if(!StringUtils.isEmpty(refUser.getName().getFamilyName()))userBean.setSurname(refUser.getName().getFamilyName());//surname
+        return userBean;
     }
 }
