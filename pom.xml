@@ -190,6 +190,7 @@
         <!--Build number and date-->
         <buildNumber>${maven.build.timestamp}</buildNumber>
         <property.file>default</property.file>
+        <hystrix-core.version>1.4.21</hystrix-core.version>
     </properties>
 
     <dependencyManagement>
@@ -1022,7 +1023,15 @@
                 <artifactId>jose4j</artifactId>
                 <version>${jose4j.version}</version>
             </dependency>
+
+            <!--Hystrix-->
+            <dependency>
+                <groupId>com.netflix.hystrix</groupId>
+                <artifactId>hystrix-core</artifactId>
+                <version>${hystrix-core.version}</version>
+            </dependency>
         </dependencies>
+
     </dependencyManagement>
 
     <build>
