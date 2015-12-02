@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.saml2;
+package com.t1t.digipolis.apim.security;
 
 /**
  * Created by michallispashidis on 2/12/15.

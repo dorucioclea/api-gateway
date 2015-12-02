@@ -224,7 +224,7 @@ public class LoginResource implements ILoginResource {
     @Path("/proxy-auth/user")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response ipdClientCredGrantForUserAuthentication(ProxyAuthRequest request) throws OAuthException {
+    public Response ipdClientCredGrantForUserAuthentication(ProxyAuthRequest request) {
         if(!config.getIDPSCIMActivation()){
             throw new OAuthException("SCIM must be enabled for this functionality. Contanct your administrator.");
         }
