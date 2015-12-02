@@ -59,6 +59,7 @@ public class AppConfig implements Serializable {
             _LOG.info("IDP OAUTH token endpoint: {}",getIDPOAuthTokenEndpoint());
             _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
             _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
+            _LOG.info("IDP SCIM activation: {}",getIDPSCIMActivation());
             _LOG.info("Metrics schema: {}",getMetricsScheme());
             _LOG.info("Metrics URI: {}",getMetricsURI());
             _LOG.info("Metrics port: {}",getMetricsPort());
@@ -83,6 +84,7 @@ public class AppConfig implements Serializable {
     public String getIDPOAuthTokenEndpoint(){return config.getString(IConfig.IDP_OAUTH_TOKEN_ENDPOINT);}
     public String getIDPOAuthClientId(){return config.getString(IConfig.IDP_OAUTH_CLIENT_ID);}
     public String getIDPOAuthClientSecret(){return config.getString(IConfig.IDP_OAUTH_CLIENT_SECRET);}
+    public Boolean getIDPSCIMActivation(){return config.getBoolean(IConfig.IDP_SCIM_ACTIVATE);}
     public String getMetricsScheme(){return config.getString(IConfig.METRICS_SCHEME);}
     public String getMetricsURI(){return config.getString(IConfig.METRICS_DNS);}
     public String getMetricsPort(){return config.getString(IConfig.METRICS_PORT);}

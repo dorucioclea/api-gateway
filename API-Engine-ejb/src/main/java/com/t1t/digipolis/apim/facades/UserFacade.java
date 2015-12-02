@@ -33,6 +33,7 @@ import com.t1t.digipolis.apim.idp.IDPClient;
 import com.t1t.digipolis.apim.idp.IDPRestServiceBuilder;
 import com.t1t.digipolis.apim.idp.RestIDPConfigBean;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.apim.security.SecurityFlow;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
@@ -457,7 +458,8 @@ public class UserFacade implements Serializable {
          */
         WebClientCacheBean webClientCacheBean = (WebClientCacheBean) ehcache.getClientAppCache().get(relayState.trim()).getObjectValue();
         if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
-            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(userName,webClientCacheBean));
+            List<AttributeStatement> attributeStatements = assertion.getAttributeStatements();
+            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(userName,webClientCacheBean,SecurityFlow.SAML2));
         } else {
             responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(userName));
         }
@@ -632,7 +634,7 @@ public class UserFacade implements Serializable {
      * @param userName
      * @return
      */
-    private String updateOrCreateConsumerJWTOnGateway(String userName, WebClientCacheBean cacheBean) {
+    private String updateOrCreateConsumerJWTOnGateway(String userName, WebClientCacheBean cacheBean, SecurityFlow securityFlow) {
         String jwtKey = "";
         String jwtSecret = "";
         String issuedJWT = "";
@@ -673,19 +675,26 @@ public class UserFacade implements Serializable {
             //set the cache for performance and resilience
             setTokenCache(jwtKey,jwtSecret);
             //start composing JWT token
-            ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(userName);
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
             jwtRequestBean.setIssuer(jwtKey);
             //set expiration time
             if(cacheBean.getTokenExpirationTimeMinutes()!=null)jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
             else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
-            List<String> emails = scimUser.getEmails();
-            if(emails!=null && emails.size()>0) jwtRequestBean.setEmail(emails.get(0));
-            jwtRequestBean.setName(scimUser.getUsername());
-            //TODO fill in account when retrieved from the WSO2 IS
-            jwtRequestBean.setGivenName(scimUser.getGivenname());
-            jwtRequestBean.setSurname(scimUser.getSurname());
-            jwtRequestBean.setSubject(scimUser.getAccountId());
+            //TODO temporary workaround for saml2 request flow
+            ExternalUserBean scimUser = null;
+            try{
+                scimUser = userExternalInfoService.getUserInfoByUsername(userName);
+            }catch (Exception err){
+                //skip and set usersubject to something usefull
+            }
+            if(scimUser!=null){
+                List<String> emails = scimUser.getEmails();
+                if(emails!=null && emails.size()>0) jwtRequestBean.setEmail(emails.get(0));
+                jwtRequestBean.setName(scimUser.getUsername());
+                jwtRequestBean.setGivenName(scimUser.getGivenname());
+                jwtRequestBean.setSurname(scimUser.getSurname());
+                jwtRequestBean.setSubject(scimUser.getAccountId());
+            }
             jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
             jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
             issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);
@@ -903,7 +912,7 @@ public class UserFacade implements Serializable {
             log.debug("Resource owner OAuth2 authentication towards IDP, response:{}", response.getStatus());
             if (response.getStatus() == HttpStatus.SC_OK){
                 //Get user and init
-                return updateOrCreateConsumerJWTOnGateway(request.getUsername(), webClientCacheBean);
+                return updateOrCreateConsumerJWTOnGateway(request.getUsername(), webClientCacheBean, SecurityFlow.IDP_PROXY);
             }
             throw new UserNotFoundException("No user found with username:"+request.getUsername());
         } catch (RetrofitError error){

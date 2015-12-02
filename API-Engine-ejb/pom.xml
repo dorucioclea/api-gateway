@@ -504,7 +504,7 @@
         <profile>
             <id>t1t-mtp</id>
             <properties>
-                <appconfig.file>application-t1t-mtp</appconfig.file>
+                <appconfig.file>application-t1t-prd</appconfig.file>
             </properties>
         </profile>
         <profile>
@@ -516,7 +516,7 @@
         <profile>
             <id>digi-rte</id>
             <properties>
-                <appconfig.file>application-digi-rte</appconfig.file>
+                <appconfig.file>application-digi-acc</appconfig.file>
             </properties>
         </profile>
 <!--        <profile>
