@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
@@ -50,18 +51,13 @@ import java.net.URL;
 @Path("/login")
 @ApplicationScoped
 public class LoginResource implements ILoginResource {
-    @Inject
-    private IStorage storage;
-    @Inject
-    IIdmStorage idmStorage;
-    @Inject
-    ISecurityContext securityContext;
-    @Inject
-    IStorageQuery query;
-    @Inject
-    private UserFacade userFacade;
-    @Inject
-    private OAuthFacade oAuthFacade;
+    @Inject private IStorage storage;
+    @Inject IIdmStorage idmStorage;
+    @Inject ISecurityContext securityContext;
+    @Inject IStorageQuery query;
+    @Inject private UserFacade userFacade;
+    @Inject private OAuthFacade oAuthFacade;
+    @Inject private AppConfig config;
     private static final Logger log = LoggerFactory.getLogger(LoginResource.class.getName());
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
@@ -229,6 +225,9 @@ public class LoginResource implements ILoginResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response ipdClientCredGrantForUserAuthentication(ProxyAuthRequest request) throws OAuthException {
+        if(!config.getIDPSCIMActivation()){
+            throw new OAuthException("SCIM must be enabled for this functionality. Contanct your administrator.");
+        }
         Preconditions.checkNotNull(request);
         String jwt = userFacade.authenticateResourceOwnerCredential(request);
         JWTRefreshResponseBean jwtResponse = new JWTRefreshResponseBean();

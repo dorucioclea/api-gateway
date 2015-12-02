@@ -919,9 +919,9 @@ public class UserFacade implements Serializable {
             retrofit.client.Response response = idpClient.authenticateUser("password", request.getUsername(), request.getPassword(), "authenticate");
             log.debug("Resource owner OAuth2 authentication towards IDP, response:{}", response.getStatus());
             if (response.getStatus() == HttpStatus.SC_OK){
-                //Get user and init
-                //return updateOrCreateConsumerJWTOnGateway(request.getUsername(), webClientCacheBean);
-                return updateOrCreateConsumerJWTOnGateway(new IdentityAttributes(), webClientCacheBean);
+                //use SCIM to get user info
+                ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUsername(request.getUsername());
+                return updateOrCreateConsumerJWTOnGateway(resolveScimAttributeStatements(userInfoByUsername), webClientCacheBean);
             }
             throw new UserNotFoundException("No user found with username:"+request.getUsername());
         } catch (RetrofitError error){
@@ -932,6 +932,25 @@ public class UserFacade implements Serializable {
             restConfig = null;
             restServiceBuilder = null;
         }
+    }
+
+    /**
+     * Parses SCIM attributes to custom IdenityAttributes object.
+     * This common IdentityAttr object is commonly used with SAML2.
+     *
+     * @param externalUserBean
+     * @return
+     */
+    private IdentityAttributes resolveScimAttributeStatements(ExternalUserBean externalUserBean){
+        IdentityAttributes identityAttributes = new IdentityAttributes();
+        //map values
+        identityAttributes.setId(externalUserBean.getAccountId());
+        identityAttributes.setUserName(externalUserBean.getUsername());
+        identityAttributes.setFamilyName(externalUserBean.getSurname());
+        identityAttributes.setGivenName(externalUserBean.getGivenname());
+        if(externalUserBean.getEmails()!=null&&externalUserBean.getEmails().size()>0)
+        identityAttributes.setEmails(externalUserBean.getEmails().get(0));
+        return identityAttributes;
     }
 
 }
