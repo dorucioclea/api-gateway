@@ -43,9 +43,10 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
             return isReady(application, hasContracts);
         }
         //verify if OAuth2 callback url has not been provided
-        if(!StringUtils.isEmpty(application.getoAuthClientId())){
+        //TODO removed at the moment this is the responsability of the front end which is not a good but rather temporary solution
+/*        if(!StringUtils.isEmpty(application.getoAuthClientId())){
             if(StringUtils.isEmpty(application.getOauthClientRedirect())) return isReady(application,false);
-        }
+        }*/
         return isReady(application, hasContracts);
     }
 
