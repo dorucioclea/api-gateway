@@ -78,7 +78,7 @@ public class LoginResource implements ILoginResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
         Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
-        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken(), request.getOverrideExpTimeInMinutes(), request.getOptionalClaimMap());
+        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken(), request.getOptionalClaimMap());
     }
 
     @ApiOperation(value = "Refresh an existing valid JWT. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter.",

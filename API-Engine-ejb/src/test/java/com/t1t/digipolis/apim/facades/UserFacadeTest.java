@@ -230,7 +230,7 @@ public class UserFacadeTest extends TestCase {
         Map<String, String> optClaimMap = new HashMap<>();
         when(config.getJWTDefaultTokenExpInMinutes()).thenReturn(10);
         thrown.expect(IllegalArgumentException.class);//some issue bootstrapping context
-        String retVal = userFacade.generateSAML2AuthRequest(idpUrl, spUrl, spName, clientUrl, tokeType, overrideExp, optClaimMap);
+        String retVal = userFacade.generateSAML2AuthRequest(idpUrl, spUrl, spName, clientUrl, tokeType, optClaimMap);
     }
 
     public void testGenerateSAML2LogoutRequest() throws Exception {

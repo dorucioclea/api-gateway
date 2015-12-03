@@ -236,7 +236,7 @@ public class UserFacade implements Serializable {
      * @param token
      * @return
      */
-    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token, Integer overrideExpTime, Map<String,String> optClaimMap) {
+    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token, Map<String,String> optClaimMap) {
         // Initialize the library
         log.info("Initate SAML2 request for {}", clientUrl);
         try {
