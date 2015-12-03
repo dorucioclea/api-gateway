@@ -88,7 +88,6 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
         if (!StringUtils.isEmpty(refUser.getDisplayName())) userBean.setName(refUser.getDisplayName());//full name
         if (!StringUtils.isEmpty(refUser.getUserName()))
             userBean.setUsername(refUser.getUserName());//user id without domain for example user
-        if (refUser.getEmails() != null) userBean.setEmails(refUser.getEmails());//email addresses
         if (refUser.getName()!=null){
             if (!StringUtils.isEmpty(refUser.getName().getGivenName()))
                 userBean.setGivenname(refUser.getName().getGivenName());//givenname

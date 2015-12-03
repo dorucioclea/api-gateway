@@ -11,8 +11,7 @@ public class WebClientCacheBean {
     private Integer tokenExpirationTimeMinutes;
     private String clientAppRedirect;//only used as audience claim for JWT - optional for other tokentypes
     private ClientTokeType token;
-    private Map<String,String> optionalClaimset;
-    private Integer overrideExpTimeInMinuts;
+    private Map<String, String> optionalClaimset;
 
     public Integer getTokenExpirationTimeMinutes() {
         return tokenExpirationTimeMinutes;
@@ -46,14 +45,6 @@ public class WebClientCacheBean {
         this.optionalClaimset = optionalClaimset;
     }
 
-    public Integer getOverrideExpTimeInMinuts() {
-        return overrideExpTimeInMinuts;
-    }
-
-    public void setOverrideExpTimeInMinuts(Integer overrideExpTimeInMinuts) {
-        this.overrideExpTimeInMinuts = overrideExpTimeInMinuts;
-    }
-
     @Override
     public String toString() {
         return "WebClientCacheBean{" +
@@ -61,7 +52,6 @@ public class WebClientCacheBean {
                 ", clientAppRedirect='" + clientAppRedirect + '\'' +
                 ", token=" + token +
                 ", optionalClaimset=" + optionalClaimset +
-                ", overrideExpTimeInMinuts=" + overrideExpTimeInMinuts +
                 '}';
     }
 }

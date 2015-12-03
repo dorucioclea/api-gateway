@@ -129,8 +129,6 @@ public class JWTUtils {
     public static String refreshJWT(JWTRefreshRequestBean jwtRefreshRequestBean, JwtClaims jwtClaims ,String secret)throws JoseException, UnsupportedEncodingException{
         //add optoinal claims
         addOptionalClaims(jwtClaims,jwtRefreshRequestBean.getOptionalClaims());
-        //overwrite expiration time if needed
-        if(jwtRefreshRequestBean.getExpirationTimeMinutes()!=null) jwtClaims.setExpirationTimeMinutesInTheFuture(jwtRefreshRequestBean.getExpirationTimeMinutes());
         return composeJWT(secret, jwtClaims);
     }
 
@@ -154,22 +152,22 @@ public class JWTUtils {
     public static String composeJWT(JWTRequestBean jwtRequestBean, String secret) throws JoseException, UnsupportedEncodingException {
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
+        //add optional claims
+        //List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
+        //claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
+        addOptionalClaims(claims,jwtRequestBean.getOptionalClaims());
+        //It's important to set the optional claims before, otherwise fix claims can be overriden
         claims.setIssuer(jwtRequestBean.getIssuer());  // who creates the token and signs it
         claims.setAudience(jwtRequestBean.getAudience()); // to whom the token is intended to be sent
-        claims.setExpirationTimeMinutesInTheFuture(10); // time when the token will expire (10 minutes from now)
+        claims.setExpirationTimeMinutesInTheFuture(60); // time when the token will expire (10 minutes from now)
         claims.setGeneratedJwtId(); // a unique identifier for the token
         claims.setIssuedAtToNow();  // when the token was issued/created (now)
         claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
         //Custom fields
         claims.setSubject(jwtRequestBean.getSubject()); // the subject/principal is whom the token is about
         claims.setClaim(IJWT.NAME, jwtRequestBean.getName());//unique username
-        claims.setClaim(IJWT.EMAIL, jwtRequestBean.getEmail()); // additional claims/attributes about the subject can be added
         claims.setClaim(IJWT.SURNAME, jwtRequestBean.getSurname());
         claims.setClaim(IJWT.GIVEN_NAME, jwtRequestBean.getGivenName());
-        //add optional claims
-        //List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
-        //claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
-        addOptionalClaims(claims,jwtRequestBean.getOptionalClaims());
         return composeJWT(secret, claims);
     }
 

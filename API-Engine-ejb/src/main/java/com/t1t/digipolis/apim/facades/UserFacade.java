@@ -248,7 +248,6 @@ public class UserFacade implements Serializable {
             webCache.setToken(token);
             webCache.setClientAppRedirect(clientUrl);
             webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
-            webCache.setOverrideExpTimeInMinuts(overrideExpTime);
             webCache.setOptionalClaimset(optClaimMap);
             //we need to send the clienUrl as a relaystate - should be URL encoded
             String urlEncodedClientUrl = URLEncoder.encode(clientUrl,"UTF-8");
@@ -492,7 +491,6 @@ public class UserFacade implements Serializable {
             identityAttributes.setUserName(extractedAttributes.get(ISAML2.ATTR_USER_NAME));
             identityAttributes.setFamilyName(extractedAttributes.get(ISAML2.ATTR_FAMILY_NAME));
             identityAttributes.setGivenName(extractedAttributes.get(ISAML2.ATTR_GIVEN_NAME));
-            identityAttributes.setEmails(extractedAttributes.get(ISAML2.ATTR_EMAILS));
         }
         return identityAttributes;
     }
@@ -694,7 +692,6 @@ public class UserFacade implements Serializable {
             jwtRequestBean.setIssuer(jwtKey);
             if(cacheBean.getTokenExpirationTimeMinutes()!=null)jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
             else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
-            jwtRequestBean.setEmail(identityAttributes.getEmails());
             jwtRequestBean.setName(identityAttributes.getUserName());
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
             jwtRequestBean.setSurname(identityAttributes.getFamilyName());
@@ -899,7 +896,6 @@ public class UserFacade implements Serializable {
         WebClientCacheBean webClientCacheBean = new WebClientCacheBean();
         //check params and add to web cache in order to build JWT
         if(request.getOptionalClaimset()!=null&&request.getOptionalClaimset().size()>0)webClientCacheBean.setOptionalClaimset(request.getOptionalClaimset());
-        if(request.getOverrideExpTimeInMinuts()!=null)webClientCacheBean.setOverrideExpTimeInMinuts(request.getOverrideExpTimeInMinuts());
         if(!StringUtils.isEmpty(request.getExpectedAudience()))webClientCacheBean.setClientAppRedirect(request.getExpectedAudience());
         RestIDPConfigBean restConfig=null;
         IDPRestServiceBuilder restServiceBuilder=null;
@@ -945,8 +941,6 @@ public class UserFacade implements Serializable {
         identityAttributes.setUserName(externalUserBean.getUsername());
         identityAttributes.setFamilyName(externalUserBean.getSurname());
         identityAttributes.setGivenName(externalUserBean.getGivenname());
-        if(externalUserBean.getEmails()!=null&&externalUserBean.getEmails().size()>0)
-        identityAttributes.setEmails(externalUserBean.getEmails().get(0));
         return identityAttributes;
     }
 

@@ -10,7 +10,6 @@ public class ProxyAuthRequest implements Serializable{
     private String username;
     private String password;
     private Map<String,String> optionalClaimset;
-    private Integer overrideExpTimeInMinuts;
     private String expectedAudience;
 
     public ProxyAuthRequest() {
@@ -40,14 +39,6 @@ public class ProxyAuthRequest implements Serializable{
         this.optionalClaimset = optionalClaimset;
     }
 
-    public Integer getOverrideExpTimeInMinuts() {
-        return overrideExpTimeInMinuts;
-    }
-
-    public void setOverrideExpTimeInMinuts(Integer overrideExpTimeInMinuts) {
-        this.overrideExpTimeInMinuts = overrideExpTimeInMinuts;
-    }
-
     public String getExpectedAudience() {
         return expectedAudience;
     }
@@ -62,7 +53,6 @@ public class ProxyAuthRequest implements Serializable{
                 "username='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", optionalClaimset=" + optionalClaimset +
-                ", overrideExpTimeInMinuts=" + overrideExpTimeInMinuts +
                 ", expectedAudience='" + expectedAudience + '\'' +
                 '}';
     }
