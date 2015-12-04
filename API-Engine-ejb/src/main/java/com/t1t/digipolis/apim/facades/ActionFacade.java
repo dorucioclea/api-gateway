@@ -1,6 +1,8 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.google.common.io.Resources;
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
+import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -14,7 +16,10 @@ import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
-import com.t1t.digipolis.apim.core.*;
+import com.t1t.digipolis.apim.core.IApplicationValidator;
+import com.t1t.digipolis.apim.core.IServiceValidator;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
@@ -27,6 +32,7 @@ import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +42,7 @@ import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.net.URL;
 import java.util.*;
 
 /**
@@ -74,6 +81,23 @@ public class ActionFacade {
             default:
                 throw ExceptionFactory.actionException("Action type not supported: " + action.getType().toString()); //$NON-NLS-1$
         }
+    }
+
+    /**
+     * Fetches a remote Swagger Documentation file.
+     *
+     * @param swaggerDocBean Bean containing the URI to fetch
+     */
+    public SwaggerDocBean fetchSwaggerDoc(SwaggerDocBean swaggerDocBean) throws ActionException {
+        String data;
+        try {
+            URL url = new URL(swaggerDocBean.getSwaggerURI());
+            data = Resources.toString(url, Charsets.UTF_8);
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+        swaggerDocBean.setSwaggerDoc(data);
+        return swaggerDocBean;
     }
 
     /**
