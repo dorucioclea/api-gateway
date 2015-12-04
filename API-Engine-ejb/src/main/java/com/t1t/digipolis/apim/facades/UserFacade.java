@@ -250,7 +250,8 @@ public class UserFacade implements Serializable {
             webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
             webCache.setOptionalClaimset(optClaimMap);
             //we need to send the clienUrl as a relaystate - should be URL encoded
-            String urlEncodedClientUrl = URLEncoder.encode(clientUrl,"UTF-8");
+            String condensedUri = clientUrl.replaceAll("https://","");
+            String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
             //set client application name and callback in the cache
             ehcache.getClientAppCache().put(new net.sf.ehcache.Element(urlEncodedClientUrl, webCache));//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
             log.info("Cache contains:{}", ehcache.toString());
