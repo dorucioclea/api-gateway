@@ -14,7 +14,7 @@ public class APIMScimIntegrationTest {
     @Test
     public void testSCIMRequest(){
         SCIMConfigBean scimConfigBean = new SCIMConfigBean();
-        scimConfigBean.setEndpoint("https://dev.idp.t1t.be:9443/wso2/scim");
+        scimConfigBean.setEndpoint("https://devidp.t1t.be:9443/wso2/scim");
         scimConfigBean.setUsername("admin");
         scimConfigBean.setPassword("admin");
         SCIMServiceBuilder scimServiceBuilder = new SCIMServiceBuilder();
