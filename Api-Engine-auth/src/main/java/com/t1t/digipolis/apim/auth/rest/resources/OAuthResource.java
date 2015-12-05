@@ -29,7 +29,7 @@ public class OAuthResource implements IOAuth2Authorization {
     @Inject private AuthorizationFacade authorizationFacade;
     @Inject private OAuthFacade oAuthFacade;
 
-    @ApiOperation(value = "Enable a user for OAuth2 in the context of the application.",
+    @ApiOperation(value = "Enable an application consumer for OAuth2 in the context of the application.",
             notes = "The client application is identified with a client_id and client_password. Both are needed to provide the application name and redirect URL in order to register a consumer for OAuth2.")
     @ApiResponses({
             @ApiResponse(code = 200, response = KongPluginOAuthConsumerResponse.class, message = "The result unique username and generated KeyAuth token."),
@@ -46,24 +46,6 @@ public class OAuthResource implements IOAuth2Authorization {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getAppOAuthSecret()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getUniqueUserName()));
         return oAuthFacade.enableOAuthForConsumer(request);
-    }
-
-    @ApiOperation(value = "Authentication proxy endpoint, authenticates the user through trusted application.",
-            notes = "Utility method. The client application serves as a OAuth service provider, and is know to the IDP. The client application uses OAuth client credentials to authenticate the user's provided credentials.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = ProxyAuthRequest.class, message = "True if user is authenticated succesfull."),
-            @ApiResponse(code = 400, response = String.class, message = "Error.")
-    })
-    @POST
-    @Path("/proxy-auth/user")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
-    @Override
-    public String ipdClientCredGrantForUserAuthentication(ProxyAuthRequest request)throws OAuthException{
-        Preconditions.checkNotNull(request);
-        boolean valid = oAuthFacade.authenticateResourceOwnerCredential(request);
-        if(valid)return "true";
-        else return "false";
     }
 
     @ApiOperation(value = "Retrieve Application OAuth2 information for targeted service.",

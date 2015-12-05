@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
@@ -103,6 +104,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     @Inject private IGatewayLinkFactory gatewayLinkFactory;
     @Inject private UserFacade userFacade;
     @Inject private RoleFacade roleFacade;
+    @Inject private AppConfig config;
 
 
     @SuppressWarnings("nls")
@@ -2313,7 +2315,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
             //empty host
             json.remove("host");
-            json.put("host","");
+            json.put("host",config.getKongHost());
 
             //add only https schema
             json.remove("schemes");

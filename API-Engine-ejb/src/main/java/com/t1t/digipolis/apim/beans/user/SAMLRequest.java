@@ -6,24 +6,23 @@ import java.util.Map;
 /**
  * Created by michallispashidis on 4/09/15.
  */
-public class SAMLRequest implements Serializable{
+public class SAMLRequest implements Serializable {
     private String idpUrl;
     private String spUrl;
     private String spName;
     private String clientAppRedirect;//only used as audience claim for JWT - optional for other tokentypes
     private ClientTokeType token;
-    private Integer overrideExpTimeInMinutes;
-    private Map<String,String> optionalClaimMap;
+    private Map<String, String> optionalClaimMap;
 
     public SAMLRequest() {
     }
 
-    public SAMLRequest(String idpUrl, String spUrl, String spName, String clientAppRedirect,ClientTokeType token) {
+    public SAMLRequest(String idpUrl, String spUrl, String spName, String clientAppRedirect, ClientTokeType token) {
         this.idpUrl = idpUrl;
         this.spUrl = spUrl;
         this.spName = spName;
         this.clientAppRedirect = clientAppRedirect;
-        this.token=token;
+        this.token = token;
     }
 
     public String getSpName() {
@@ -66,14 +65,6 @@ public class SAMLRequest implements Serializable{
         this.token = token;
     }
 
-    public Integer getOverrideExpTimeInMinutes() {
-        return overrideExpTimeInMinutes;
-    }
-
-    public void setOverrideExpTimeInMinutes(Integer overrideExpTimeInMinutes) {
-        this.overrideExpTimeInMinutes = overrideExpTimeInMinutes;
-    }
-
     public Map<String, String> getOptionalClaimMap() {
         return optionalClaimMap;
     }
@@ -90,7 +81,6 @@ public class SAMLRequest implements Serializable{
                 ", spName='" + spName + '\'' +
                 ", clientAppRedirect='" + clientAppRedirect + '\'' +
                 ", token=" + token +
-                ", overrideExpTimeInMinutes=" + overrideExpTimeInMinutes +
                 ", optionalClaimMap=" + optionalClaimMap +
                 '}';
     }

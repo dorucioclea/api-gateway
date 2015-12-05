@@ -8,6 +8,7 @@ package com.t1t.digipolis.apim;
 public interface IConfig {
     String APP_ENVIRONMENT = "apiapp.environment";
     String KONG_URL = "apiapp.kong.endpoint_url";
+    String KONG_HOST = "apiapp.kong.host";
     String KONG_URL_MANAGEMENT = "apiapp.kong.management_url";
     String IDP_SAML_ENDPOINT = "apiapp.idp.saml_endpoint_url";
     String IDP_NAMEID_FORMAT = "apiapp.idp.nameid_format";
@@ -17,6 +18,7 @@ public interface IConfig {
     String IDP_OAUTH_TOKEN_ENDPOINT = "apiapp.idp.oauth_endpoint_url";
     String IDP_OAUTH_CLIENT_ID = "apiapp.idp.client_id";
     String IDP_OAUTH_CLIENT_SECRET = "apiapp.idp.client_secret";
+    String IDP_SCIM_ACTIVATE = "apiapp.idp.enable_scim";
     String METRICS_SCHEME = "apiapp.metrics.scheme";
     String METRICS_DNS = "apiapp.metrics.url";
     String METRICS_PORT = "apiapp.metrics.ports.default";

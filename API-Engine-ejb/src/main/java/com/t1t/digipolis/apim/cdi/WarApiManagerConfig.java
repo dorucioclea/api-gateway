@@ -29,9 +29,9 @@ public class WarApiManagerConfig extends ApiManagerConfig implements IJpaPropert
         Iterator<String> keys = getConfig().getKeys();
         while (keys.hasNext()) {
             String key = keys.next();
-            if (key.startsWith("apiman.hibernate.")) { //$NON-NLS-1$
+            if (key.startsWith("apiengine.hibernate.")) { //$NON-NLS-1$
                 String value = getConfig().getString(key);
-                key = key.substring("apiman.".length()); //$NON-NLS-1$
+                key = key.substring("apiengine.".length()); //$NON-NLS-1$
                 rval.put(key, value);
             }
         }

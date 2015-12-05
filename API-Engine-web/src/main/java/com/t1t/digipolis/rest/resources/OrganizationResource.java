@@ -849,7 +849,6 @@ public class OrganizationResource implements IOrganizationResource {
 
             return builder.build();
         } catch (AbstractRestException e) {
-
             throw e;
         } catch (Exception e) {
 

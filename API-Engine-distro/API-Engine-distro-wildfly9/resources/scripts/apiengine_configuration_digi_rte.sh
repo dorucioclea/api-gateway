@@ -21,6 +21,10 @@ curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengine.v1/plugi
     --data "name=key-auth" \
     --data "config.key_names=apikey"
 
+#enable JWT
+curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengine.v1/plugins \
+    --data "name=jwt"
+
 #create marketplace consumer, username should be unique
 curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers \
     --data "username=rte.marketplace.v1"

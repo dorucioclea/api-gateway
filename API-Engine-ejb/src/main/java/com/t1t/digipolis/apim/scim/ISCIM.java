@@ -5,4 +5,6 @@ package com.t1t.digipolis.apim.scim;
  */
 public interface ISCIM {
     String SCIM_FILTER_EQ = "Eq";
+    String SCIM_FILTER_KEY_USERNAME = "userName";
+    String SCIM_FILTER_KEY_EMAIL = "emails";
 }

@@ -22,12 +22,14 @@ import com.t1t.digipolis.apim.idp.IDPClient;
 import com.t1t.digipolis.apim.idp.IDPRestServiceBuilder;
 import com.t1t.digipolis.apim.idp.RestIDPConfigBean;
 import com.t1t.digipolis.apim.kong.KongConstants;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.URIUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.elasticsearch.gateway.GatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,17 +47,14 @@ import java.util.List;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OAuthFacade {
     private static Logger log = LoggerFactory.getLogger(OAuthFacade.class.getName());
-    @Inject
-    IStorageQuery query;
-    @Inject
-    private IStorage storage;
-    @Inject
-    private IGatewayLinkFactory gatewayLinkFactory;
-    @Inject
-    private AppConfig config;
+    @Inject IStorageQuery query;
+    @Inject private IStorage storage;
+    @Inject private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject private AppConfig config;
+    @Inject private ISecurityAppContext appContext;
 
     /**
-     * This method should be called only for the consumer registring the OAuth service, and thus not for each consumer using the OAuth
+     * This method should be called only for the consumer registering the OAuth service, and thus not for each consumer using the OAuth
      *
      * @param request
      * @return
@@ -251,45 +250,6 @@ public class OAuthFacade {
             throw e;
         } catch (Exception e) {
             throw new PublishingException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Helper method, uses the username and password to perform a Resource owner password grant.
-     * This method is used in order to authenticate as well the end user through the registered API engine Service Provider.
-     * The following curl does the same:
-     * curl -v -k -X POST --user W6FcDk905p5jT5_C_DDec4hAwBMa:nyu7u2If6XBBcQXxi7M6wfHkoK4a
-     * -H "Content-Type: application/x-www-form-urlencoded;charset=UTF-8"
-     * -d 'grant_type=password&username=michallis&password=Mp12345&scope=read,write'
-     * https://idp.t1t.be:9443/oauth2/token
-     * <p>
-     * The scope parameter is optional!
-     *
-     * @return
-     */
-    public boolean authenticateResourceOwnerCredential(ProxyAuthRequest request) {
-        RestIDPConfigBean restConfig=null;
-        IDPRestServiceBuilder restServiceBuilder=null;
-        try {
-            //rest config
-            restConfig = new RestIDPConfigBean();
-            restConfig.setEndpoint(config.getIDPOAuthTokenEndpoint());
-            restConfig.setUsername(config.getIDPOAuthClientId());
-            restConfig.setPassword(config.getIDPOAuthClientSecret());
-            log.debug("auth config:{}",restConfig);
-            restServiceBuilder = new IDPRestServiceBuilder();
-            IDPClient idpClient = restServiceBuilder.getSecureService(restConfig, IDPClient.class);
-            Response response = idpClient.authenticateUser("password", request.getUsername(), request.getPassword(), "authenticate");
-            log.debug("Resource owner OAuth2 authentication towards IDP, response:{}", response.getStatus());
-            if (response.getStatus() == 200) return true;
-            else return false;
-        } catch (RetrofitError error){
-            log.debug("Authentication result:{}",error.getResponse());
-            log.debug("error stack:{}",error.getStackTrace());
-          return false;
-        } finally {
-            restConfig = null;
-            restServiceBuilder = null;
         }
     }
 }

@@ -22,9 +22,9 @@ import javax.ws.rs.core.Response;
 /**
  * Created by michallispashidis on 21/09/15.
  */
-@Api(value = "/basicauth", description = "The Authorization API.  This API facilitates the creation of authorizations.")
+/*@Api(value = "/basicauth", description = "The Authorization API.  This API facilitates the creation of authorizations.")
 @Path("/basicauth")
-@ApplicationScoped
+@ApplicationScoped*/
 public class BasicAuthorizationResource implements IBasicAuthorization {
     @Inject
     private AuthorizationFacade authorizationFacade;

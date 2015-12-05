@@ -17,6 +17,7 @@ public final class ErrorCodes {
     public static final int HTTP_STATUS_CODE_ALREADY_EXISTS = 409;
     public static final int HTTP_STATUS_CODE_INVALID_STATE  = 409;
     public static final int HTTP_STATUS_CODE_SYSTEM_ERROR   = 500;
+    public static final int HTTP_STATUS_CODE_UNAVAILABLE    = 503;
 
 
     //

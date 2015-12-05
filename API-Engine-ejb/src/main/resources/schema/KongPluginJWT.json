@@ -4,5 +4,10 @@
   "type": "object",
   "javaInterfaces" : ["com.t1t.digipolis.kong.model.KongConfigValue"],
   "properties": {
+    "claims_to_verify": {
+      "type": "array",
+      "items": {"type": "string"},
+      "required": false
+    }
   }
 }

@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.t1t.digipolis</groupId>
     <artifactId>API-Engine</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.5.0-RC</version>
     <packaging>pom</packaging>
 
     <description>
@@ -68,7 +68,7 @@
     </modules>
 
     <properties>
-        <project.version>0.0.2-SNAPSHOT</project.version>
+        <project.version>0.5.0-RC</project.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -190,6 +190,7 @@
         <!--Build number and date-->
         <buildNumber>${maven.build.timestamp}</buildNumber>
         <property.file>default</property.file>
+        <hystrix-core.version>1.4.21</hystrix-core.version>
     </properties>
 
     <dependencyManagement>
@@ -966,29 +967,6 @@
                 <version>${ehcache.version}</version>
             </dependency>
 
-<!--            <dependency>
-                <groupId>com.squareup.okhttp</groupId>
-                <artifactId>okhttp</artifactId>
-                <version>${okhttp.version}</version>
-            </dependency>-->
-
-            <!--SCIM Client-->
-<!--            <dependency>
-                <groupId>com.unboundid.product.scim</groupId>
-                <artifactId>scim-sdk</artifactId>
-                <version>${scimsdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.wink</groupId>
-                <artifactId>wink-common</artifactId>
-                <version>${wink-common.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.wink</groupId>
-                <artifactId>wink-client</artifactId>
-                <version>${wink-common.version}</version>
-            </dependency>-->
-
             <!-- Test -->
             <dependency>
                 <groupId>junit</groupId>
@@ -1023,6 +1001,15 @@
                 <scope>test</scope>
             </dependency>
 
+            <!--Arquillian-->
+            <dependency>
+                <groupId>org.jboss.arquillian</groupId>
+                <artifactId>arquillian-bom</artifactId>
+                <version>1.1.10.Final</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
             <!--JSON-->
             <dependency>
                 <groupId>org.json</groupId>
@@ -1036,7 +1023,15 @@
                 <artifactId>jose4j</artifactId>
                 <version>${jose4j.version}</version>
             </dependency>
+
+            <!--Hystrix-->
+            <dependency>
+                <groupId>com.netflix.hystrix</groupId>
+                <artifactId>hystrix-core</artifactId>
+                <version>${hystrix-core.version}</version>
+            </dependency>
         </dependencies>
+
     </dependencyManagement>
 
     <build>
@@ -1063,6 +1058,10 @@
                         <source>1.8</source>
                         <target>1.8</target>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.17</version>
                 </plugin>
             </plugins>
         </pluginManagement>

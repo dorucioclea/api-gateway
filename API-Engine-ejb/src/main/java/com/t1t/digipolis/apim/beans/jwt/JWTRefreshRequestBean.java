@@ -10,8 +10,6 @@ public class JWTRefreshRequestBean implements Serializable{
     //optional claims
     private Map<String,String> optionalClaims;
     private String originalJWT;
-    private Integer expirationTimeMinutes;
-    private String refreshJWTCallback;
 
     public Map<String, String> getOptionalClaims() {
         return optionalClaims;
@@ -29,29 +27,11 @@ public class JWTRefreshRequestBean implements Serializable{
         this.originalJWT = originalJWT;
     }
 
-    public Integer getExpirationTimeMinutes() {
-        return expirationTimeMinutes;
-    }
-
-    public void setExpirationTimeMinutes(Integer expirationTimeMinutes) {
-        this.expirationTimeMinutes = expirationTimeMinutes;
-    }
-
-    public String getRefreshJWTCallback() {
-        return refreshJWTCallback;
-    }
-
-    public void setRefreshJWTCallback(String refreshJWTCallback) {
-        this.refreshJWTCallback = refreshJWTCallback;
-    }
-
     @Override
     public String toString() {
         return "JWTRefreshRequestBean{" +
                 "optionalClaims=" + optionalClaims +
                 ", originalJWT='" + originalJWT + '\'' +
-                ", expirationTimeMinutes=" + expirationTimeMinutes +
-                ", refreshJWTCallback='" + refreshJWTCallback + '\'' +
                 '}';
     }
 }

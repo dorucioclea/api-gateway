@@ -3,11 +3,14 @@ package com.t1t.digipolis.apim.gateway.rest;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.IConfig;
+import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginCors;
+import com.t1t.digipolis.kong.model.KongPluginJWT;
 import com.t1t.digipolis.kong.model.KongPluginFileLog;
 import com.t1t.digipolis.kong.model.KongPluginHttpLog;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
@@ -71,8 +74,24 @@ public class GatewayValidation {
             case RESPONSETRANSFORMER: return validateResponseTransformer(policy);
             case SSL: return validateSSL(policy);
             case ANALYTICS: return validateAnalytics(policy);
+            case JWT: return validateJWT(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
+    }
+
+    private static Policy validateJWT(Policy policy) {
+        Gson gson = new Gson();
+        JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
+        KongPluginJWT kongPluginJWT = new KongPluginJWT();
+        List<String> claimsToVerify = new ArrayList<>();
+        if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment
+        kongPluginJWT.setClaimsToVerify(claimsToVerify);
+        //perform enhancements
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWT,KongPluginJWT.class));
+        _LOG.debug("Modified policy:{}",policy);
+        return responsePolicy;
     }
 
     /**

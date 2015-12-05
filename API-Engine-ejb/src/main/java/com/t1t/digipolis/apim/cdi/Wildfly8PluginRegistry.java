@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * A wildfly 8 version of the plugin registry.  This subclass exists in order
  * to properly configure the data directory that should be used.  In this case
- * the data directory is $WILDFLY/standalone/data/apiman/plugins
+ * the data directory is $WILDFLY/standalone/data/apiengines/plugins
  *
  * @author eric.wittmann@redhat.com
  */
@@ -34,7 +34,7 @@ public class Wildfly8PluginRegistry extends AbstractPluginRegistry {
         if (!dataDir.isDirectory()) {
             throw new RuntimeException("Failed to find WildFly data directory at: " + dataDirPath); //$NON-NLS-1$
         }
-        File pluginsDir = new File(dataDir, "apiman/plugins"); //$NON-NLS-1$
+        File pluginsDir = new File(dataDir, "apiengine/plugins"); //$NON-NLS-1$
         return pluginsDir;
     }
 

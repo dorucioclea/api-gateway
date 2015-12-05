@@ -59,7 +59,7 @@ public class SCIMServiceBuilder {
                 .setLogLevel(RestAdapter.LogLevel.BASIC)
                 .setLog(new RestAdapter.Log() {
                     public void log(String msg) {
-                        _LOG.info("retrofit:{}",msg);
+                        _LOG.info("retrofit - SCIM:{}",msg);
                     }
                 })
                 .setRequestInterceptor(new RequestInterceptor() {
