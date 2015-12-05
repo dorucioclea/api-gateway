@@ -7,6 +7,28 @@ Summary: API Engine Services
 Target Project: Digipolis API Manager
 Source: <https://bitbucket.org/Trust1T/api-engine-javaee>
 
+Release Notes - Digipolis-APIM - Version APIM-v0.0.2
+----------------------------------------------------
+
+## Bug
+
+*   [[DPAPIM-218](https://trust1t.atlassian.net/browse/DPAPIM-218)] - Market Documentation needs to be testable for OAuth2 enabled Services even if application is not yet published
+*   [[DPAPIM-220](https://trust1t.atlassian.net/browse/DPAPIM-220)] - BE returns Error 500 when trying to retrieve a Service's definition if none exists
+*   [[DPAPIM-221](https://trust1t.atlassian.net/browse/DPAPIM-221)] - Code cleanup
+*   [[DPAPIM-234](https://trust1t.atlassian.net/browse/DPAPIM-234)] - Metrics page when resizing you seem to loose information
+
+## Story
+
+*   [[DPAPIM-228](https://trust1t.atlassian.net/browse/DPAPIM-228)] - As a user from a 3rd Party application using OAuth2 I only want to see applicable scopes - withing my role - and not all available scopes
+*   [[DPAPIM-242](https://trust1t.atlassian.net/browse/DPAPIM-242)] - As a developer I want to see a page that i'm succesfully loggedout without being redirected to the login page.
+*   [[DPAPIM-248](https://trust1t.atlassian.net/browse/DPAPIM-248)] - As a developer I want to have a crud support functionality in both front-end applications
+
+## Task
+
+*   [[DPAPIM-253](https://trust1t.atlassian.net/browse/DPAPIM-253)] - As a tester I want to test functionalities from the API publisher/marketplace
+*   [[DPAPIM-254](https://trust1t.atlassian.net/browse/DPAPIM-254)] - As an developer I want to integrate the ME service using an existing client application
+*   [[DPAPIM-255](https://trust1t.atlassian.net/browse/DPAPIM-255)] - As a developer I want to support the integration of an authentication/authorization application
+
 Releases - Digipolis-APIM - Version APIM-v0.0.1
 ------------------------------------------------
 
