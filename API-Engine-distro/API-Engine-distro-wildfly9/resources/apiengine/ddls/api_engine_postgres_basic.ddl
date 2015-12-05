@@ -426,7 +426,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
             "scope":{
                 "title": "Scope",
                 "type": "string",
-                "pattern": "^[a-z,A-Z,-]+$",
+                "pattern": "^[a-z,A-Z]+$",
                 "description": "Provide the scope identifier that will be available to the end user (use only lowercase characters and no special characters)."
             },
             "scope_desc":{
@@ -467,12 +467,6 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "type": "boolean",
       "default": false,
       "description": "An optional boolean value to enable the Client Credentials Grant flow (RFC 6742 Section 4.4)."
-    },
-    "enable_password_grant": {
-      "title": "Enable Resource Owner Password Grant",
-      "type": "boolean",
-      "default": false,
-      "description": "An optional boolean value to enable the Resource Owner Password Credentials Grant flow (RFC 6742 Section 4.3)."
     },
     "hide_credentials": {
       "title": "Hide credentials",
