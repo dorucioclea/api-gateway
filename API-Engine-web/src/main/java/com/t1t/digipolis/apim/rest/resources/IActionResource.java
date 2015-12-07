@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
+import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.exceptions.ActionException;
 
 /**
@@ -20,4 +21,13 @@ public interface IActionResource {
      */
     public void performAction(ActionBean action) throws ActionException;
 
+
+    /**
+     * Call this endpoint in order to fetch a remote Swagger Documentation JSON file.
+     * @summary Fetch remote Swagger Documentation
+     * @param swaggerDocBean Bean containing the uri of the swagger documentation to fetch.
+     * @statuscode 200 If the action completes successfully.
+     * @throws ActionException action is performed but an error occurs during processing
+     */
+    public SwaggerDocBean fetchSwaggerDoc(SwaggerDocBean swaggerDocBean) throws ActionException;
 }
