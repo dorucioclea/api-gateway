@@ -65,3 +65,11 @@ UPDATE policydefs set form='{
     "enable_implicit_grant"
   ]
 }' WHERE id = 'OAuth2';
+
+update policydefs set scope_service=FALSE where id='BasicAuthentication';
+
+update policydefs set scope_service=FALSE where id='SSL';
+
+update policydefs set scope_service=FALSE where id='FileLog';
+
+update policydefs set scope_service=FALSE where id='KeyAuthentication';
