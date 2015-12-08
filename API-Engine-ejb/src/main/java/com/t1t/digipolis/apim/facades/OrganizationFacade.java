@@ -520,6 +520,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public void deleteApp(String organizationId, String applicationId) {
+        if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        try {
+            ApplicationBean applicationBean = storage.getApplication(organizationId, applicationId);
+            if (applicationBean == null) {
+                throw ExceptionFactory.applicationNotFoundException(applicationId);
+            }
+            storage.deleteApplication(applicationBean);
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
     public SearchResultsBean<AuditEntryBean> getAppActivity(String organizationId, String applicationId, int page, int pageSize) {
         if (page <= 1) {
             page = 1;
@@ -1211,6 +1227,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
             }
             return bean;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteService(String organizationId, String serviceId) {
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        try {
+            ServiceBean serviceBean = storage.getService(organizationId, serviceId);
+            if (serviceBean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            storage.deleteService(serviceBean);
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
