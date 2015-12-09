@@ -438,6 +438,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                    KongPluginOAuthConsumerResponseList kongPluginOAuthConsumerList = gatewayLink.getApplicationOAuthInformation(request.getAppOAuthId());
+                    if (kongPluginOAuthConsumerList != null) {
+                        // Check if Oauth plugin was already enabled, if so, delete the entry so we can create a new one
+                        kongPluginOAuthConsumerList.getData().stream().forEach(consumerResponse -> {
+                            if (consumerResponse.getClientId().equals(oauthRequest.getClientId()) &&
+                                    consumerResponse.getClientSecret().equals(oauthRequest.getClientSecret())) {
+                                log.debug("Removing ConsumerPlugin: {}", consumerResponse.toString());
+                                gatewayLink.deleteOAuthConsumerPlugin(request.getUniqueUserName(), consumerResponse.getId());
+                            }
+                        });
+                    }
                     log.debug("Enable consumer for oauth:{} with values: {}",request.getUniqueUserName(),oauthRequest);
                     response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
                 } catch (Exception e) {
