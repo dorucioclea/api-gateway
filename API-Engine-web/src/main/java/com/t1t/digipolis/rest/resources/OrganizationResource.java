@@ -282,7 +282,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationVersionBean updateAppVersionCallbackURI(@PathParam("organizationId") String orgId, @PathParam("applicationId")String appId, @PathParam("version") String version ,UpdateApplicationVersionURIBean updateAppUri){
+    public ApplicationVersionBean updateAppVersionCallbackURI(@PathParam("organizationId") String orgId, @PathParam("applicationId")String appId, @PathParam("version") String version, UpdateApplicationVersionURIBean updateAppUri) {
+        if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(appId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkNotNull(updateAppUri);
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
     }
 
