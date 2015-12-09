@@ -73,3 +73,7 @@ update policydefs set scope_service=FALSE where id='SSL';
 update policydefs set scope_service=FALSE where id='FileLog';
 
 update policydefs set scope_service=FALSE where id='KeyAuthentication';
+
+
+
+INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (1011,CURRENT_DATE,'Rombit','Owner','ex02394');
