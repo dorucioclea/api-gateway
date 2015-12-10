@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
@@ -17,7 +16,9 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
-import com.t1t.digipolis.apim.beans.metrics.*;
+import com.t1t.digipolis.apim.beans.metrics.AppUsagePerServiceBean;
+import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
+import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
@@ -39,20 +40,14 @@ import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
@@ -524,10 +519,42 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
+            // Get Application
             ApplicationBean applicationBean = storage.getApplication(organizationId, applicationId);
             if (applicationBean == null) {
                 throw ExceptionFactory.applicationNotFoundException(applicationId);
             }
+            // Get Application versions
+            List<ApplicationVersionSummaryBean> versions = query.getApplicationVersions(applicationBean.getOrganization().getId(), applicationBean.getId());
+            // For each version, verify the status: if Created, Ready or Registered we need to remove the consumer from Kong
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            versions.stream().forEach(version -> {
+                ApplicationStatus status = version.getStatus();
+                if (status.equals(ApplicationStatus.Created) || status.equals(ApplicationStatus.Ready) || status.equals(ApplicationStatus.Registered)) {
+                    Application application = new Application();
+                    application.setOrganizationId(version.getOrganizationId());
+                    application.setApplicationId(version.getId());
+                    application.setVersion(version.getVersion());
+                    try {
+                        gateway.unregisterApplication(application);
+                    } catch (Exception e) {
+                        throw ExceptionFactory.actionException(Messages.i18n.format("UnregisterError"), e); //$NON-NLS-1$
+                    }
+                }
+            });
+            gateway.close();
+            // Remove all application versions from API Engine
+            versions.stream().forEach(version -> {
+                try {
+                    ApplicationVersionBean appVersion = storage.getApplicationVersion(version.getOrganizationId(), version.getId(), version.getVersion());
+                    storage.deleteApplicationVersion(appVersion);
+                } catch (AbstractRestException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new SystemErrorException(e);
+                }
+            });
+            // Finally, delete the application from API Engine
             storage.deleteApplication(applicationBean);
         } catch (AbstractRestException e) {
             throw e;
