@@ -42,6 +42,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
+import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
@@ -1265,10 +1266,43 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
+            // Get Service
             ServiceBean serviceBean = storage.getService(organizationId, serviceId);
             if (serviceBean == null) {
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
             }
+
+            // Get Service versions
+            List<ServiceVersionSummaryBean> versions = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
+            // For each version, verify the status: if Published we need to remove the API from Kong
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            versions.stream().forEach(version -> {
+                ServiceStatus status = version.getStatus();
+                if (status.equals(ServiceStatus.Published)) {
+                    Service service = new Service();
+                    service.setOrganizationId(version.getOrganizationId());
+                    service.setServiceId(version.getId());
+                    service.setVersion(version.getVersion());
+                    try {
+                        gateway.retireService(service);
+                    } catch (Exception e) {
+                        throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
+                    }
+                }
+            });
+            gateway.close();
+            // Remove all service versions from API Engine
+            versions.stream().forEach(version -> {
+                try {
+                    ServiceVersionBean svcVersion = storage.getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
+                    storage.deleteApplicationVersion(svcVersion);
+                } catch (AbstractRestException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new SystemErrorException(e);
+                }
+            });
+            // Finally, delete the Service from API Engine
             storage.deleteService(serviceBean);
         } catch (AbstractRestException e) {
             throw e;
