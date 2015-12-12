@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
@@ -17,7 +16,9 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
-import com.t1t.digipolis.apim.beans.metrics.*;
+import com.t1t.digipolis.apim.beans.metrics.AppUsagePerServiceBean;
+import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
+import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
@@ -39,12 +40,19 @@ import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
+import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.GatewayPathUtilities;
+import com.t1t.digipolis.util.ServiceConventionUtil;
+import com.t1t.digipolis.util.URIUtils;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
@@ -53,7 +61,6 @@ import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
-import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
@@ -435,17 +442,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
-                    KongPluginOAuthConsumerResponseList kongPluginOAuthConsumerList = gatewayLink.getApplicationOAuthInformation(request.getAppOAuthId());
-                    if (kongPluginOAuthConsumerList != null) {
-                        // Check if Oauth plugin was already enabled, if so, delete the entry so we can create a new one
-                        kongPluginOAuthConsumerList.getData().stream().forEach(consumerResponse -> {
-                            if (consumerResponse.getClientId().equals(oauthRequest.getClientId()) &&
-                                    consumerResponse.getClientSecret().equals(oauthRequest.getClientSecret())) {
-                                log.debug("Removing ConsumerPlugin: {}", consumerResponse.toString());
-                                gatewayLink.deleteOAuthConsumerPlugin(request.getUniqueUserName(), consumerResponse.getId());
-                            }
-                        });
-                    }
                     log.debug("Enable consumer for oauth:{} with values: {}",request.getUniqueUserName(),oauthRequest);
                     response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
                 } catch (Exception e) {
@@ -521,6 +517,54 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             log.debug(String.format("Got application %s: %s", applicationBean.getName(), applicationBean)); //$NON-NLS-1$
             return applicationBean;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteApp(String organizationId, String applicationId) {
+        if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        try {
+            // Get Application
+            ApplicationBean applicationBean = storage.getApplication(organizationId, applicationId);
+            if (applicationBean == null) {
+                throw ExceptionFactory.applicationNotFoundException(applicationId);
+            }
+            // Get Application versions
+            List<ApplicationVersionSummaryBean> versions = query.getApplicationVersions(applicationBean.getOrganization().getId(), applicationBean.getId());
+            // For each version, verify the status: if Created, Ready or Registered we need to remove the consumer from Kong
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            versions.stream().forEach(version -> {
+                ApplicationStatus status = version.getStatus();
+                if (status.equals(ApplicationStatus.Created) || status.equals(ApplicationStatus.Ready) || status.equals(ApplicationStatus.Registered)) {
+                    Application application = new Application();
+                    application.setOrganizationId(version.getOrganizationId());
+                    application.setApplicationId(version.getId());
+                    application.setVersion(version.getVersion());
+                    try {
+                        gateway.unregisterApplication(application);
+                    } catch (Exception e) {
+                        throw ExceptionFactory.actionException(Messages.i18n.format("UnregisterError"), e); //$NON-NLS-1$
+                    }
+                }
+            });
+            gateway.close();
+            // Remove all application versions from API Engine
+            versions.stream().forEach(version -> {
+                try {
+                    ApplicationVersionBean appVersion = storage.getApplicationVersion(version.getOrganizationId(), version.getId(), version.getVersion());
+                    storage.deleteApplicationVersion(appVersion);
+                } catch (AbstractRestException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new SystemErrorException(e);
+                }
+            });
+            // Finally, delete the application from API Engine
+            storage.deleteApplication(applicationBean);
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -1226,6 +1270,55 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public void deleteService(String organizationId, String serviceId) {
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        try {
+            // Get Service
+            ServiceBean serviceBean = storage.getService(organizationId, serviceId);
+            if (serviceBean == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+
+            // Get Service versions
+            List<ServiceVersionSummaryBean> versions = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
+            // For each version, verify the status: if Published we need to remove the API from Kong
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            versions.stream().forEach(version -> {
+                ServiceStatus status = version.getStatus();
+                if (status.equals(ServiceStatus.Published)) {
+                    Service service = new Service();
+                    service.setOrganizationId(version.getOrganizationId());
+                    service.setServiceId(version.getId());
+                    service.setVersion(version.getVersion());
+                    try {
+                        gateway.retireService(service);
+                    } catch (Exception e) {
+                        throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
+                    }
+                }
+            });
+            gateway.close();
+            // Remove all service versions from API Engine
+            versions.stream().forEach(version -> {
+                try {
+                    ServiceVersionBean svcVersion = storage.getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
+                    storage.deleteServiceVersion(svcVersion);
+                } catch (AbstractRestException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new SystemErrorException(e);
+                }
+            });
+            // Finally, delete the Service from API Engine
+            storage.deleteService(serviceBean);
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
     public SearchResultsBean<AuditEntryBean> getServiceActivity(String organizationId, String serviceId, int page, int pageSize) {
         if (page <= 1) {
             page = 1;
@@ -1727,16 +1820,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void grant(String organizationId, GrantRoleBean bean){
         // Verify that the references are valid.
         get(organizationId);
-        String userId = UserConventionUtil.formatUserName(bean.getUserId());
-        userFacade.get(userId);
+        userFacade.get(bean.getUserId());
         roleFacade.get(bean.getRoleId());
         MembershipData auditData = new MembershipData();
-        auditData.setUserId(userId);
+        auditData.setUserId(bean.getUserId());
         try {
-            RoleMembershipBean membership = RoleMembershipBean.create(userId, bean.getRoleId(), organizationId);
+            RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), bean.getRoleId(), organizationId);
             membership.setCreatedOn(new Date());
             // If the membership already exists, that's fine!
-            if (idmStorage.getMembership(userId, bean.getRoleId(), organizationId) == null) {
+            if (idmStorage.getMembership(bean.getUserId(), bean.getRoleId(), organizationId) == null) {
                 idmStorage.createMembership(membership);
             }
             auditData.addRole(bean.getRoleId());
@@ -1755,19 +1847,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void grant(String organizationId, GrantRolesBean bean){
         // Verify that the references are valid.
         get(organizationId);
-        String userId = UserConventionUtil.formatUserName(bean.getUserId());
-        userFacade.get(userId);
+        userFacade.get(bean.getUserId());
         for (String roleId : bean.getRoleIds()) {
             roleFacade.get(roleId);
         }
         MembershipData auditData = new MembershipData();
-        auditData.setUserId(userId);
+        auditData.setUserId(bean.getUserId());
         try {
             for (String roleId : bean.getRoleIds()) {
-                RoleMembershipBean membership = RoleMembershipBean.create(userId, roleId, organizationId);
+                RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), roleId, organizationId);
                 membership.setCreatedOn(new Date());
                 // If the membership already exists, that's fine!
-                if (idmStorage.getMembership(userId, roleId, organizationId) == null) {
+                if (idmStorage.getMembership(bean.getUserId(), roleId, organizationId) == null) {
                     idmStorage.createMembership(membership);
                 }
                 auditData.addRole(roleId);
@@ -1812,14 +1903,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void updateMembership(String organizationId, String userId, GrantRoleBean bean) {
         get(organizationId);
-        String formattedUserId = UserConventionUtil.formatUserName(userId);
-        userFacade.get(formattedUserId);
+        userFacade.get(userId);
         MembershipData auditData = new MembershipData();
-        auditData.setUserId(formattedUserId);
+        auditData.setUserId(userId);
         try {
             idmStorage.getRole(bean.getRoleId());
-            idmStorage.deleteMemberships(formattedUserId, organizationId);
-            RoleMembershipBean rmb = RoleMembershipBean.create(formattedUserId, bean.getRoleId(), organizationId);
+            idmStorage.deleteMemberships(userId, organizationId);
+            RoleMembershipBean rmb = RoleMembershipBean.create(userId, bean.getRoleId(), organizationId);
             rmb.setCreatedOn(new Date());
             idmStorage.createMembership(rmb);
             auditData.addRole(bean.getRoleId());
@@ -1857,8 +1947,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void transferOrgOwnership(String organizationId, TransferOwnershipBean bean) {
         get(organizationId);
-        String currentOwnerId = UserConventionUtil.formatUserName(bean.getCurrentOwnerId());
-        String newOwnerId = UserConventionUtil.formatUserName(bean.getNewOwnerId());
+        String currentOwnerId = bean.getCurrentOwnerId();
+        String newOwnerId = bean.getNewOwnerId();
         try {
             // Remove current as Owner
             RoleMembershipBean currentOwnerBean = idmStorage.getMembership(currentOwnerId, "Owner", organizationId);
