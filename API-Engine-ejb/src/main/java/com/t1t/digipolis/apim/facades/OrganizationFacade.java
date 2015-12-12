@@ -53,10 +53,7 @@ import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.GatewayPathUtilities;
-import com.t1t.digipolis.util.ServiceConventionUtil;
-import com.t1t.digipolis.util.URIUtils;
+import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
@@ -1730,15 +1727,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void grant(String organizationId, GrantRoleBean bean){
         // Verify that the references are valid.
         get(organizationId);
-        userFacade.get(bean.getUserId());
+        String userId = UserConventionUtil.formatUserName(bean.getUserId());
+        userFacade.get(userId);
         roleFacade.get(bean.getRoleId());
         MembershipData auditData = new MembershipData();
-        auditData.setUserId(bean.getUserId());
+        auditData.setUserId(userId);
         try {
-            RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), bean.getRoleId(), organizationId);
+            RoleMembershipBean membership = RoleMembershipBean.create(userId, bean.getRoleId(), organizationId);
             membership.setCreatedOn(new Date());
             // If the membership already exists, that's fine!
-            if (idmStorage.getMembership(bean.getUserId(), bean.getRoleId(), organizationId) == null) {
+            if (idmStorage.getMembership(userId, bean.getRoleId(), organizationId) == null) {
                 idmStorage.createMembership(membership);
             }
             auditData.addRole(bean.getRoleId());
@@ -1757,18 +1755,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void grant(String organizationId, GrantRolesBean bean){
         // Verify that the references are valid.
         get(organizationId);
-        userFacade.get(bean.getUserId());
+        String userId = UserConventionUtil.formatUserName(bean.getUserId());
+        userFacade.get(userId);
         for (String roleId : bean.getRoleIds()) {
             roleFacade.get(roleId);
         }
         MembershipData auditData = new MembershipData();
-        auditData.setUserId(bean.getUserId());
+        auditData.setUserId(userId);
         try {
             for (String roleId : bean.getRoleIds()) {
-                RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), roleId, organizationId);
+                RoleMembershipBean membership = RoleMembershipBean.create(userId, roleId, organizationId);
                 membership.setCreatedOn(new Date());
                 // If the membership already exists, that's fine!
-                if (idmStorage.getMembership(bean.getUserId(), roleId, organizationId) == null) {
+                if (idmStorage.getMembership(userId, roleId, organizationId) == null) {
                     idmStorage.createMembership(membership);
                 }
                 auditData.addRole(roleId);
@@ -1813,13 +1812,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void updateMembership(String organizationId, String userId, GrantRoleBean bean) {
         get(organizationId);
-        userFacade.get(userId);
+        String formattedUserId = UserConventionUtil.formatUserName(userId);
+        userFacade.get(formattedUserId);
         MembershipData auditData = new MembershipData();
-        auditData.setUserId(userId);
+        auditData.setUserId(formattedUserId);
         try {
             idmStorage.getRole(bean.getRoleId());
-            idmStorage.deleteMemberships(userId, organizationId);
-            RoleMembershipBean rmb = RoleMembershipBean.create(userId, bean.getRoleId(), organizationId);
+            idmStorage.deleteMemberships(formattedUserId, organizationId);
+            RoleMembershipBean rmb = RoleMembershipBean.create(formattedUserId, bean.getRoleId(), organizationId);
             rmb.setCreatedOn(new Date());
             idmStorage.createMembership(rmb);
             auditData.addRole(bean.getRoleId());
@@ -1857,8 +1857,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void transferOrgOwnership(String organizationId, TransferOwnershipBean bean) {
         get(organizationId);
-        String currentOwnerId = bean.getCurrentOwnerId();
-        String newOwnerId = bean.getNewOwnerId();
+        String currentOwnerId = UserConventionUtil.formatUserName(bean.getCurrentOwnerId());
+        String newOwnerId = UserConventionUtil.formatUserName(bean.getNewOwnerId());
         try {
             // Remove current as Owner
             RoleMembershipBean currentOwnerBean = idmStorage.getMembership(currentOwnerId, "Owner", organizationId);
