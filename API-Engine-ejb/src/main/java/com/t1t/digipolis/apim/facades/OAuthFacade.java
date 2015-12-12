@@ -66,7 +66,7 @@ public class OAuthFacade {
                 .withClientId(request.getAppOAuthId())
                 .withClientSecret(request.getAppOAuthSecret());
         KongPluginOAuthConsumerResponse response = null;
-        //retrieve applicatin name and redirect URI.
+        //retrieve application name and redirect URI.
         try {
             ApplicationVersionBean avb = query.getApplicationForOAuth(request.getAppOAuthId(), request.getAppOAuthSecret());
             if (avb == null)

@@ -2,24 +2,12 @@ package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
-import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
-import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
-import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
-import com.t1t.digipolis.apim.beans.plans.PlanStatus;
-import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyType;
-import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
-import com.t1t.digipolis.apim.beans.services.ServiceStatus;
-import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
-import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
+import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.core.IApplicationValidator;
 import com.t1t.digipolis.apim.core.IServiceValidator;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
-import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.ActionException;
 import com.t1t.digipolis.apim.facades.ActionFacade;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.rest.resources.IActionResource;
@@ -35,6 +23,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 /**
@@ -79,5 +68,18 @@ public class ActionResource implements IActionResource {
     public void performAction(ActionBean action) throws ActionException {
         Preconditions.checkNotNull(action);
         actionFacade.performAction(action);
+    }
+
+    @ApiOperation(value = "Fetch Swagger documentation from a remote server",
+            notes = "Provide this endpoint with a URI to your Swagger documentation and it will return a JSON string.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = SwaggerDocBean.class, message = "Swagger Documentation")
+    })
+    @POST
+    @Path("/swaggerdoc/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SwaggerDocBean fetchSwaggerDoc(SwaggerDocBean swaggerDocBean) throws ActionException {
+        Preconditions.checkNotNull(swaggerDocBean.getSwaggerURI());
+        return actionFacade.fetchSwaggerDoc(swaggerDocBean);
     }
 }
