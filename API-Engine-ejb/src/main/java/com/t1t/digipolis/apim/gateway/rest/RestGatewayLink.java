@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
@@ -52,6 +53,7 @@ public class RestGatewayLink implements IGatewayLink {
     private String metricsURI;
     private GatewayClient gatewayClient;
     private RestGatewayConfigBean config;
+    private AppConfig appConfig;
     private IStorage storage;
 
     /**
@@ -59,11 +61,12 @@ public class RestGatewayLink implements IGatewayLink {
      *
      * @param gateway the gateway
      */
-    public RestGatewayLink(final GatewayBean gateway, final IStorage storage,final String metricsURI) {
+    public RestGatewayLink(final GatewayBean gateway, final IStorage storage, final String metricsURI, final AppConfig appConfig) {
         try {
             this.gateway = gateway;
             this.storage = storage;
             this.metricsURI=metricsURI;
+            this.appConfig = appConfig;
             String cfg = gateway.getConfiguration();
             setConfig((RestGatewayConfigBean) mapper.reader(RestGatewayConfigBean.class).readValue(cfg));
             getConfig().setPassword(AesEncrypter.decrypt(getConfig().getPassword()));
@@ -259,7 +262,7 @@ public class RestGatewayLink implements IGatewayLink {
      */
     private GatewayClient createClient() {
         String gatewayEndpoint = getConfig().getEndpoint();
-        return new GatewayClient(httpClient,gateway,storage,metricsURI);
+        return new GatewayClient(httpClient,gateway,storage,metricsURI,appConfig);
     }
 
     /**

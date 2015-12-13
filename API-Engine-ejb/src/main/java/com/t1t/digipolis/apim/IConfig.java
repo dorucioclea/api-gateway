@@ -31,4 +31,13 @@ public interface IConfig {
     String PROP_FILE_VERSION = "version";
     String PROP_FILE_CONFIG_FILE = "configuration.file";
     String JWT_DEFAULT_TOKEN_EXP = "apiapp.jwt.token_default_exp_minutes";
+    String ANALYTICS_ENABLED = "apiapp.metrics.galileo.enable_external_metrics";
+    String ANALYTICS_TOKEN = "apiapp.metrics.galileo.service_token";
+    String ANALYTICS_BATCH_SIZE = "apiapp.metrics.galileo.batch_size";
+    String ANALYTICS_LOG_BODY = "apiapp.metrics.galileo.log_body";
+    String ANALYTICS_DELAY = "apiapp.metrics.galileo.delay";
+    String ANALYTICS_ENVIRONMENT = "apiapp.metrics.galileo.environment";
+    String ANALYTICS_MAX_SENDING_QUEUE = "apiapp.metrics.galileo.max_sending_queue_size";
+    String ANALYTICS_HOST = "apiapp.metrics.galileo.host";
+    String ANALYTICS_PORT = "apiapp.metrics.galileo.port";
 }
