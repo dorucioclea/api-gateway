@@ -4,24 +4,41 @@
   "type": "object",
   "javaInterfaces" : ["com.t1t.digipolis.kong.model.KongConfigValue"],
   "properties": {
+    "max_sending_queue_size": {
+      "id": "max_sending_queue_size",
+      "type": "integer"
+    },
     "log_body": {
-      "type": "boolean",
-      "default": false
+      "id": "log_body",
+      "type": "boolean"
     },
     "batch_size": {
-      "type": "number",
-      "default": 100
+      "id": "batch_size",
+      "type": "integer"
     },
     "service_token": {
-      "type": "string",
-      "required": true
+      "id": "service_token",
+      "type": "string"
     },
     "environment": {
+      "id": "environment",
       "type": "string"
     },
     "delay": {
-      "type": "number",
-      "default": 10
+      "id": "delay",
+      "type": "integer"
+    },
+    "host": {
+      "id": "host",
+      "type": "string"
+    },
+    "port": {
+      "id": "port",
+      "type": "integer"
+    },
+    "path": {
+      "id": "path",
+      "type": "string"
     }
   }
 }

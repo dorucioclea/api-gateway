@@ -24,8 +24,7 @@ import java.util.List;
 public class SCIMUserInfoProvider implements IUserExternalInfoService {
     private SCIMServiceBuilder scimServiceBuilder;
     private SCIMClient scimClient;
-    @Inject
-    private AppConfig config;
+    @Inject private AppConfig config;
 
     @PostConstruct
     public void initSCIMCommunication() {

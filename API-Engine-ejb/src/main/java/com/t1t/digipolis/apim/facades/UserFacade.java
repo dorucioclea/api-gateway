@@ -39,7 +39,9 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.CacheUtil;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.JWTUtils;
+import com.t1t.digipolis.util.UserConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.elasticsearch.gateway.GatewayException;
@@ -438,7 +440,7 @@ public class UserFacade implements Serializable {
             assertion = processSSOResponse(response);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
-            idAttribs.setUserName(assertion.getSubject().getNameID().getValue());
+            idAttribs.setUserName(UserConventionUtil.formatUserName(assertion.getSubject().getNameID().getValue()));
             log.info("Audience URI found: {}", relayState);
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
@@ -612,7 +614,7 @@ public class UserFacade implements Serializable {
             KongConsumer consumer = gatewayLink.getConsumer(userName);
             if (consumer == null) {
                 //user doesn't exists, implicit creation
-                consumer = gatewayLink.createConsumer(userName);
+                consumer = gatewayLink.createConsumer(ConsumerConventionUtil.createUserUniqueId(userName));
                 KongPluginKeyAuthResponse keyAuthResponse = gatewayLink.addConsumerKeyAuth(consumer.getId());
                 keytoken = keyAuthResponse.getKey();
                 //we are sure that this consumer must be a physical user
@@ -660,7 +662,7 @@ public class UserFacade implements Serializable {
             KongConsumer consumer = gatewayLink.getConsumer(identityAttributes.getUserName());
             if (consumer == null) {
                 //user doesn't exists, implicit creation
-                consumer = gatewayLink.createConsumer(identityAttributes.getUserName());
+                consumer = gatewayLink.createConsumer(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getUserName()));
                 KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
                 jwtKey = jwtResponse.getKey();//JWT "iss"
                 jwtSecret = jwtResponse.getSecret();
@@ -736,7 +738,7 @@ public class UserFacade implements Serializable {
                 String gatewayId = gatewayFacade.getDefaultGateway().getId();
                 Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
                 IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-                String userName = scimUser.getUsername();//should be unique
+                String userName = ConsumerConventionUtil.createUserUniqueId(scimUser.getUsername());//should be unique
                 KongConsumer consumer = gatewayLink.getConsumer(userName);
                 if (consumer == null) {
                     //user doesn't exists, implicit creation
@@ -824,7 +826,7 @@ public class UserFacade implements Serializable {
             ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUsername(username);
             //create user
             UserBean newUser = new UserBean();
-            newUser.setUsername(username);
+            newUser.setUsername(UserConventionUtil.formatUserName(username));
             newUser.setAdmin(false);
             if(userInfoByUsername!=null){
                 if(userInfoByUsername.getEmails()!=null&&userInfoByUsername.getEmails().size()>0)newUser.setEmail(userInfoByUsername.getEmails().get(0));
@@ -939,7 +941,7 @@ public class UserFacade implements Serializable {
         IdentityAttributes identityAttributes = new IdentityAttributes();
         //map values
         identityAttributes.setId(externalUserBean.getAccountId());
-        identityAttributes.setUserName(externalUserBean.getUsername());
+        identityAttributes.setUserName(UserConventionUtil.formatUserName(externalUserBean.getUsername()));
         identityAttributes.setFamilyName(externalUserBean.getSurname());
         identityAttributes.setGivenName(externalUserBean.getGivenname());
         return identityAttributes;

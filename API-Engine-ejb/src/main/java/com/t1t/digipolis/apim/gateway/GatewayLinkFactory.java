@@ -35,7 +35,7 @@ public class GatewayLinkFactory implements IGatewayLinkFactory {
                     .append(config.getMetricsURI())
                     .append((!StringUtils.isEmpty(config.getMetricsPort()))?":"+config.getMetricsPort():"")
                     .append("/").toString();
-            return new RestGatewayLink(gateway,storage,metricsURI);
+            return new RestGatewayLink(gateway,storage,metricsURI,config);
         } else {
             throw new IllegalArgumentException();
         }

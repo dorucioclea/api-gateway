@@ -207,6 +207,21 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getApp(organizationId, applicationId);
     }
 
+    @ApiOperation(value = "Delete Application By ID")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/applications/{applicationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteApp(@PathParam("organizationId") String organizationId,
+                                  @PathParam("applicationId") String applicationId)
+            throws ApplicationNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        orgFacade.deleteApp(organizationId, applicationId);
+    }
+
     @ApiOperation(value = "Get Application Activity",
             notes = "This endpoint returns audit activity information about the Application.")
     @ApiResponses({
@@ -734,6 +749,21 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         return orgFacade.getService(organizationId, serviceId);
+    }
+
+    @ApiOperation(value = "Delete Service By ID")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteService(@PathParam("organizationId") String organizationId,
+                          @PathParam("serviceId") String serviceId)
+            throws ServiceNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        orgFacade.deleteService(organizationId, serviceId);
     }
 
     @ApiOperation(value = "Get Service Activity",

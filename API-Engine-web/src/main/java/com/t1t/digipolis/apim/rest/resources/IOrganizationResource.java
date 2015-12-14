@@ -130,6 +130,19 @@ public interface IOrganizationResource {
     public ApplicationBean getApp(String organizationId, String applicationId) throws ApplicationNotFoundException, NotAuthorizedException;
 
     /**
+     * Use this endpoint to delete a single Application by ID.  Note
+     * that this is *irreversible* and should therefore be used with caution!
+     * @summary Delete Application By ID
+     * @param organizationId The Organization ID.
+     * @param applicationId The Application ID.
+     * @statuscode 204 If the Application is successfully deleted.
+     * @throws OrganizationNotFoundException when specifying an application to delete in an organization that does not exist
+     * @throws ApplicationNotFoundException when trying to remove an application that does not exist.
+     * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
+     */
+    public void deleteApp(String organizationId, String applicationId) throws ApplicationNotFoundException, NotAuthorizedException;
+
+    /**
      * This endpoint returns audit activity information about the Application.
      * @summary Get Application Activity
      * @param organizationId The Organization ID.
@@ -545,6 +558,19 @@ public interface IOrganizationResource {
      */
     public ServiceBean getService(String organizationId, String serviceId) throws ServiceNotFoundException,
             NotAuthorizedException;
+
+    /**
+     * Use this endpoint to delete a single Service by ID.  Note
+     * that this is *irreversible* and should therefore be used with caution!
+     * @summary Delete Service By ID
+     * @param organizationId The Organization ID.
+     * @param serviceId The Service ID.
+     * @statuscode 204 If the Application is successfully deleted.
+     * @throws OrganizationNotFoundException when specifying a service to delete in an organization that does not exist
+     * @throws ServiceNotFoundException when trying to remove a service that does not exist.
+     * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
+     */
+    public void deleteService(String organizationId, String serviceId) throws ServiceNotFoundException, NotAuthorizedException;
 
     /**
      * Use this endpoint to get a list of all Services in the Organization.
