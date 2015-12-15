@@ -1,10 +1,11 @@
 package com.t1t.digipolis.util;
 
-import org.opensaml.Configuration;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.xml.security.x509.BasicX509Credential;
 import org.opensaml.xml.signature.SignatureValidator;
 import org.opensaml.xml.validation.ValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,12 +20,12 @@ import java.security.spec.X509EncodedKeySpec;
  * Created by michallispashidis on 15/12/15.
  */
 public class SamlResponseValidator {
-    public void validateSAMLResponse(String certPath, Response response) throws ValidationException {
+    private static Logger _LOG = LoggerFactory.getLogger(SamlResponseValidator.class.getName());
+    public static void validateSAMLResponse(String certPath, Response response) throws ValidationException {
         try {
             //Get Public Key
             BasicX509Credential publicCredential = new BasicX509Credential();
-            File publicKeyFile = new File("/opt.cer");
-
+            File publicKeyFile = new File(certPath);
 
             if (publicKeyFile.exists()) {
                 CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
@@ -40,7 +41,7 @@ public class SamlResponseValidator {
                 if (key != null) {
                     publicCredential.setPublicKey(key);
                     SignatureValidator signatureValidator = new SignatureValidator(publicCredential);
-                    signatureValidator.validate(response.g);
+                    signatureValidator.validate(response.getSignature());
                 }
             }
         } catch (Exception e) {

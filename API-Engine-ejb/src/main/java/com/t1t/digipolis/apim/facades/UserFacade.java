@@ -38,10 +38,7 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
-import com.t1t.digipolis.util.CacheUtil;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.JWTUtils;
-import com.t1t.digipolis.util.UserConventionUtil;
+import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.elasticsearch.gateway.GatewayException;
@@ -75,6 +72,7 @@ import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.IDIndex;
 import org.opensaml.xml.util.XMLHelper;
+import org.opensaml.xml.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -431,7 +429,7 @@ public class UserFacade implements Serializable {
      * @param response
      * @return
      */
-    public SAMLResponseRedirect processSAML2Response(String response) {
+    public SAMLResponseRedirect processSAML2Response(String response) throws ValidationException {
         String relayState = response.split("&")[1].replaceFirst(SAML2_KEY_RELAY_STATE,"").trim();//the relaystate contains the correlation id for the calling web client == callbackurl
         StringBuffer clientUrl = new StringBuffer("");
         Assertion assertion = null;
@@ -510,7 +508,7 @@ public class UserFacade implements Serializable {
      * @throws IOException
      * @throws UnmarshallingException
      */
-    private Assertion processSSOResponse(String responseString) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
+    private Assertion processSSOResponse(String responseString) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException, ValidationException {
         DefaultBootstrap.bootstrap();
         //remove other query params
         String samlResp = responseString.split("&")[0];
@@ -529,9 +527,12 @@ public class UserFacade implements Serializable {
         Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
         Response response = (Response) unmarshaller.unmarshall(element);
 
-        //TODO validate signature - see SSOAgent example of WSO2
-        //String certificate = response.getSignature().getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue();
-        //get assertion
+        //validate response
+        try {
+            SamlResponseValidator.validateSAMLResponse(config.getIDPPublicKeyFile(),response);
+        } catch (ValidationException e) {
+            throw e;
+        }
         Assertion assertion = response.getAssertions().get(0);
         //Return base64url encoded assertion
         return assertion;
