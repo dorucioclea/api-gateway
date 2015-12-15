@@ -19,6 +19,7 @@ public interface IConfig {
     String IDP_OAUTH_CLIENT_ID = "apiapp.idp.client_id";
     String IDP_OAUTH_CLIENT_SECRET = "apiapp.idp.client_secret";
     String IDP_SCIM_ACTIVATE = "apiapp.idp.enable_scim";
+    String IDP_PUBLIC_KEY_FILE = "apiapp.idp.public_key_file";
     String METRICS_SCHEME = "apiapp.metrics.scheme";
     String METRICS_DNS = "apiapp.metrics.url";
     String METRICS_PORT = "apiapp.metrics.ports.default";
@@ -40,4 +41,5 @@ public interface IConfig {
     String ANALYTICS_MAX_SENDING_QUEUE = "apiapp.metrics.galileo.max_sending_queue_size";
     String ANALYTICS_HOST = "apiapp.metrics.galileo.host";
     String ANALYTICS_PORT = "apiapp.metrics.galileo.port";
+
 }

@@ -1,9 +1,7 @@
 package com.t1t.digipolis.apim;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +60,7 @@ public class AppConfig implements Serializable {
             _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
             _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
             _LOG.info("IDP SCIM activation: {}",getIDPSCIMActivation());
+            _LOG.info("IDP public-key path: {}", getIDPPublicKeyFile());
             _LOG.info("Metrics schema: {}",getMetricsScheme());
             _LOG.info("Metrics URI: {}",getMetricsURI());
             _LOG.info("Metrics port: {}",getMetricsPort());
@@ -89,6 +88,7 @@ public class AppConfig implements Serializable {
     public String getIDPOAuthClientId(){return config.getString(IConfig.IDP_OAUTH_CLIENT_ID);}
     public String getIDPOAuthClientSecret(){return config.getString(IConfig.IDP_OAUTH_CLIENT_SECRET);}
     public Boolean getIDPSCIMActivation(){return config.getBoolean(IConfig.IDP_SCIM_ACTIVATE);}
+    public String getIDPPublicKeyFile(){return config.getString(IConfig.IDP_PUBLIC_KEY_FILE);}
     public String getMetricsScheme(){return config.getString(IConfig.METRICS_SCHEME);}
     public String getMetricsURI(){return config.getString(IConfig.METRICS_DNS);}
     public String getMetricsPort(){return config.getString(IConfig.METRICS_PORT);}
