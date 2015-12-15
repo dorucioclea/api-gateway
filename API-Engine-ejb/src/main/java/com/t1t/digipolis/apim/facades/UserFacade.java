@@ -528,11 +528,11 @@ public class UserFacade implements Serializable {
         Response response = (Response) unmarshaller.unmarshall(element);
 
         //validate response
-        try {
+/*        try {
             SamlResponseValidator.validateSAMLResponse(config.getIDPPublicKeyFile(),response);
         } catch (ValidationException e) {
             throw e;
-        }
+        }*/
         Assertion assertion = response.getAssertions().get(0);
         //Return base64url encoded assertion
         return assertion;
