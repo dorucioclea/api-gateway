@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
+import com.t1t.digipolis.apim.beans.user.SAMLRequest;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
@@ -230,7 +231,14 @@ public class UserFacadeTest extends TestCase {
         Map<String, String> optClaimMap = new HashMap<>();
         when(config.getJWTDefaultTokenExpInMinutes()).thenReturn(10);
         thrown.expect(IllegalArgumentException.class);//some issue bootstrapping context
-        String retVal = userFacade.generateSAML2AuthRequest(idpUrl, spUrl, spName, clientUrl, tokeType, optClaimMap);
+        SAMLRequest samlRequest = new SAMLRequest();
+        samlRequest.setClientAppRedirect(clientUrl);
+        samlRequest.setIdpUrl(idpUrl);
+        samlRequest.setSpName(spName);
+        samlRequest.setSpUrl(spUrl);
+        samlRequest.setToken(tokeType);
+        samlRequest.setOptionalClaimMap(optClaimMap);
+        String retVal = userFacade.generateSAML2AuthRequest(samlRequest);
     }
 
     public void testGenerateSAML2LogoutRequest() throws Exception {

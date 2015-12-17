@@ -90,7 +90,6 @@ public class LoginResource implements ILoginResource {
     @POST
     @Path("/idp/redirect/proxied")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
     public Response getSAML2AuthRequestRedirect(SAMLRequest request) {
         Preconditions.checkNotNull(request);
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
