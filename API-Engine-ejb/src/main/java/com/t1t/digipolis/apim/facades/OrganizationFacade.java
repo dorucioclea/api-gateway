@@ -1303,6 +1303,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             versions.stream().forEach(version -> {
                 try {
                     ServiceVersionBean svcVersion = storage.getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
+                    //TODO break contracts in order to clean up the oauth2 stuff
                     storage.deleteServiceVersion(svcVersion);
                 } catch (AbstractRestException e) {
                     throw e;
