@@ -44,7 +44,8 @@ curl -X POST http://devapim.t1t.be:8001/consumers/dev.publisher.v1/key-auth \
 #Analytics
 curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins/ \
     --data "name=mashape-analytics" \
-    --data "config.service_token=558a95f80f7a734609de5c04"
+    --data "config.service_token=558a95f80f7a734609de5c04" \
+    --data "config.environment=t1t-dev"
 
 
 
@@ -74,4 +75,5 @@ curl -X POST http://devapim.t1t.be:8001/apis/devapiengineauth.v1/plugins \
 #Analytics
 curl -X POST http://devapim.t1t.be:8001/apis/devapiengineauth.v1/plugins/ \
     --data "name=mashape-analytics" \
-    --data "config.service_token=558a95f80f7a734609de5c04"
+    --data "config.service_token=558a95f80f7a734609de5c04" \
+    --data "config.environment=t1t-dev"
