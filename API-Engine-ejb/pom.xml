@@ -274,12 +274,6 @@
             <artifactId>swagger-parser</artifactId>
         </dependency>
 
-        <!--EHCache-->
-        <dependency>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache</artifactId>
-        </dependency>
-
         <!--OpenSAML-->
         <dependency>
             <groupId>org.opensaml</groupId>
@@ -349,6 +343,12 @@
             <artifactId>hystrix-core</artifactId>
         </dependency>
 
+        <!--Infinspan-->
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-core</artifactId>
+        </dependency>
+
     </dependencies>
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -373,6 +373,12 @@
                 <artifactId>maven-ejb-plugin</artifactId>
                 <version>${version.ejb.plugin}</version>
                 <configuration>
+                    <!--export infinispan-->
+                    <archive>
+                        <manifestEntries>
+                            <Dependencies>org.infinispan export</Dependencies>
+                        </manifestEntries>
+                    </archive>
                     <!-- Tell Maven we are using EJB 3.1 -->
                     <ejbVersion>3.1</ejbVersion>
                 </configuration>

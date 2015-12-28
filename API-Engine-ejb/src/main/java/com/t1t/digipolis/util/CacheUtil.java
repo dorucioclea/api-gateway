@@ -1,48 +1,119 @@
 package com.t1t.digipolis.util;
 
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Ehcache;
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.config.Configuration;
+import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
+import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import org.infinispan.manager.EmbeddedCacheManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.annotation.PreDestroy;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.*;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by michallispashidis on 07/09/15.
  */
 @Singleton
 @Startup
+@AccessTimeout(value = 1, unit = TimeUnit.MINUTES)
 public class CacheUtil implements Serializable {
-    //Clien application cache
-    private final static String CLIENT_CACHE = "clientcache";
-    private final static String TOKEN_CACHE = "tokencache";
-    private static CacheManager manager;
+    private static Logger _LOG = LoggerFactory.getLogger(CacheUtil.class.getName());
 
-    static {
-        Configuration cacheManagerConfiguration = new Configuration();
-        CacheConfiguration cacheConfiguration = new CacheConfiguration(CLIENT_CACHE, 200)
-                .eternal(true)
-                .maxEntriesLocalHeap(200);
-        CacheConfiguration tokenConfiguration = new CacheConfiguration(TOKEN_CACHE, 500)
-                .eternal(true)
-                .maxEntriesLocalHeap(500);
-        cacheManagerConfiguration.addCache(cacheConfiguration);
-        cacheManagerConfiguration.addCache(tokenConfiguration);
-        manager = new CacheManager(cacheManagerConfiguration);
+    @Resource(lookup = "java:jboss/infinispan/container/apiengine-sso-cache")
+    private EmbeddedCacheManager ssoCacheManager;
+    @Resource(lookup = "java:jboss/infinispan/container/apiengine-token-cache")
+    private EmbeddedCacheManager tokenCacheManager;
+    @Resource(lookup = "java:jboss/infinispan/container/apiengine-user-cache")
+    private EmbeddedCacheManager sessionCacheManager;
+
+    private Map<String, WebClientCacheBean> ssoCache;
+    private Map<String, String> tokenCache;
+    private Map<String, String> sessionCache;
+
+    @PostConstruct
+    public void setup() {
+        ssoCache = ssoCacheManager.getCache();
+        tokenCache = tokenCacheManager.getCache();
+        sessionCache = sessionCacheManager.getCache();
+        _LOG.info("Infinispan cache initialized.");
     }
 
-    public Ehcache getClientAppCache() {
-        return manager.getEhcache(CLIENT_CACHE);
+    @Lock(LockType.READ)
+    public  WebClientCacheBean getWebCacheBean(String webCacheId){
+        final WebClientCacheBean webClientCacheBean = ssoCache.get(webCacheId);
+        if (webClientCacheBean == null) {
+            throw new SystemErrorException("SSO Cache with id " + webCacheId + " does not exist!");
+        }
+        return webClientCacheBean;
     }
 
-    public Ehcache getUserTokenCache(){return manager.getEhcache(TOKEN_CACHE);}
-
-    @PreDestroy
-    public void shutdown() {
-        manager.clearAll();
-        manager.shutdown();
+    @Lock(LockType.READ)
+    public  String getToken(String tokenId){
+        final String cachedToken = tokenCache.get(tokenId);
+        if (cachedToken == null) {
+            throw new SystemErrorException("Token Cache with id " + tokenId + " does not exist!");
+        }
+        return cachedToken;
     }
+
+    @Lock(LockType.READ)
+    public  String getSessionIndex(String userId){
+        final String user = tokenCache.get(userId);
+        if (user == null) {
+            throw new SystemErrorException("User Cache with id " + userId + " does not exist!");
+        }
+        return user;
+    }
+
+    @Lock(LockType.WRITE)
+    public void cacheWebClientCacheBean(String webCacheId, WebClientCacheBean bean){
+        ssoCache.put(webCacheId, bean);
+    }
+
+    @Lock(LockType.WRITE)
+    public void cacheToken(String tokenId, String token){
+        tokenCache.put(tokenId, token);
+    }
+
+    @Lock(LockType.WRITE)
+    public void cacheSessionIndex(String userId, String user){
+        tokenCache.put(userId, user);
+    }
+
+    @Lock(LockType.READ)
+    public Set<String> getSSOKeys(){
+        return ssoCache.keySet();
+    }
+
+    @Lock(LockType.READ)
+    public Set<String> getTokenKeys(){
+        return tokenCache.keySet();
+    }
+
+    @Lock(LockType.READ)
+    public Set<String> getSessionKeys(){
+        return sessionCache.keySet();
+    }
+
+    @Lock(LockType.READ)
+    public Collection<WebClientCacheBean> getSSOCache(){
+        return ssoCache.values();
+    }
+
+    @Lock(LockType.READ)
+    public Collection<String> getTokens(){
+        return tokenCache.values();
+    }
+
+    @Lock(LockType.READ)
+    public Collection<String> getSessionCache(){
+        return sessionCache.values();
+    }
+
+
 }

@@ -121,7 +121,7 @@ public class UserFacade implements Serializable {
     @Inject
     private IIdmStorage idmStorage;
     @Inject
-    private CacheUtil ehcache;
+    private CacheUtil cacheUtil;
     @Inject
     private OrganizationFacade organizationFacade;
     @Inject
@@ -275,8 +275,8 @@ public class UserFacade implements Serializable {
         webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
         webCache.setOptionalClaimset(samlRequest.getOptionalClaimMap());
         //set client application name and callback in the cache
-        ehcache.getClientAppCache().put(new net.sf.ehcache.Element(urlEncodedClientUrl, webCache));//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
-        log.info("Cache contains:{}", ehcache.toString());
+        cacheUtil.cacheWebClientCacheBean(urlEncodedClientUrl,webCache);//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
+        log.info("Cache contains:{}", cacheUtil.toString());
         utilPrintCache();
         return encodeAuthnRequest(authnRequest);
     }
@@ -398,8 +398,8 @@ public class UserFacade implements Serializable {
         SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
         //add sessionindex from user
         //TODO nullpointer when read! verify
-        if (ehcache.getClientAppCache().get(user) != null) {
-            String sIndex = (String) ehcache.getClientAppCache().get(user).getObjectValue();
+        if (cacheUtil.getSessionIndex(user) != null) {
+            String sIndex = cacheUtil.getSessionIndex(user);
             sessionIndex.setSessionIndex(sIndex);
         }
         logoutReq.getSessionIndexes().add(sessionIndex);
@@ -461,7 +461,7 @@ public class UserFacade implements Serializable {
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
         utilPrintCache();
-        WebClientCacheBean webClientCacheBean = (WebClientCacheBean) ehcache.getClientAppCache().get(relayState.trim()).getObjectValue();
+        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
         if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
             List<AttributeStatement> attributeStatements = assertion.getAttributeStatements();
             responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
@@ -474,7 +474,7 @@ public class UserFacade implements Serializable {
         //for logout, we should keep the SessionIndex in cache with the username
         if (assertion != null && assertion.getAuthnStatements().size() > 0) {
             //update or create user sessionindex in cache
-            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(idAttribs.getUserName(), assertion.getAuthnStatements().get(0).getSessionIndex()));
+            cacheUtil.cacheSessionIndex(idAttribs.getUserName(), assertion.getAuthnStatements().get(0).getSessionIndex());
         }
         return responseRedirect; //be aware that this is enflated.
     }
@@ -789,7 +789,7 @@ public class UserFacade implements Serializable {
      * @param jwtSecret
      */
     private void setTokenCache(String jwtKey, String jwtSecret) {
-        ehcache.getUserTokenCache().put(new net.sf.ehcache.Element(jwtKey,jwtSecret));
+        cacheUtil.cacheToken(jwtKey,jwtSecret);
     }
 
     /**
@@ -799,7 +799,7 @@ public class UserFacade implements Serializable {
      * @return
      */
     private String getSecretFromTokenCache(String key, String userName){
-        String secret = (String) ehcache.getUserTokenCache().get(key).getObjectValue();
+        String secret = cacheUtil.getToken(key);
         if(StringUtils.isEmpty(secret)){
             //retrieve from Kong
             String gatewayId = null;
@@ -890,9 +890,15 @@ public class UserFacade implements Serializable {
      * Prints the full cache in the log file in order to verify application request parameters.
      */
     public void utilPrintCache() {
-        log.debug("Cache:{}", ehcache.getClientAppCache().getName());
-        List keys = ehcache.getClientAppCache().getKeys();
-        keys.forEach(key -> log.info("Key found:{} with value {}", key, ehcache.getClientAppCache().get(key)));
+        log.info("SessionIndex cache values:");
+        Set<String> sessionKeys = cacheUtil.getSessionKeys();
+        sessionKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getSessionIndex(key)));
+        log.info("Token cache values:");
+        Set<String> tokenKeys = cacheUtil.getTokenKeys();
+        tokenKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getToken(key)));
+        log.info("WebCacheBean cache values:");
+        Set<String> webKeys = cacheUtil.getTokenKeys();
+        webKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getWebCacheBean(key)));
     }
 
     /**
