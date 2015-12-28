@@ -1,7 +1,9 @@
 package com.t1t.digipolis.apim;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +69,8 @@ public class AppConfig implements Serializable {
             _LOG.info("Default user roles: {}",getDefaultUserRoles());
             _LOG.info("Consent page: {}",getOAuthConsentURI());
             _LOG.info("JWT default token expiration (in minutes):{}",getJWTDefaultTokenExpInMinutes());
+            _LOG.info("Analytics enables: {}",getAnalyticsEnabled());
+            _LOG.info("Analytics send towards {} with port {} and service token {}",getAnalyticsHost(),getAnalyticsPort(),getAnalyticsServiceToken());
             _LOG.info("=============================================================");
         };
     }
@@ -94,4 +98,13 @@ public class AppConfig implements Serializable {
     public String getIDPSCIMUserLogin(){return config.getString(IConfig.IDP_SCIM_USER_LOGIN);}
     public String getIDPSCIMUserPassword(){return config.getString(IConfig.IDP_SCIM_USER_PWD);}
     public Integer getJWTDefaultTokenExpInMinutes(){return config.getInt(IConfig.JWT_DEFAULT_TOKEN_EXP);}
+    public Boolean getAnalyticsEnabled(){return config.getBoolean(IConfig.ANALYTICS_ENABLED);}
+    public String getAnalyticsServiceToken(){return config.getString(IConfig.ANALYTICS_TOKEN);}
+    public Integer getAnalyticsBatchSize(){return config.getInt(IConfig.ANALYTICS_BATCH_SIZE);}
+    public Boolean getAnalyticsLogBody(){return config.getBoolean(IConfig.ANALYTICS_LOG_BODY);}
+    public Integer getAnalyticsDelay(){return config.getInt(IConfig.ANALYTICS_DELAY);}
+    public String getAnalyticsEnvironment(){return config.getString(IConfig.ANALYTICS_ENVIRONMENT);}
+    public Integer getAnalyticsMaxSendingQueue(){return config.getInt(IConfig.ANALYTICS_MAX_SENDING_QUEUE);}
+    public String getAnalyticsHost(){return config.getString(IConfig.ANALYTICS_HOST);}
+    public Integer getAnalyticsPort(){return config.getInt(IConfig.ANALYTICS_PORT);}
 }

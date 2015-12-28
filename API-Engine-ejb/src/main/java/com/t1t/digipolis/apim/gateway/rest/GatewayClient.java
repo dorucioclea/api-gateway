@@ -18,6 +18,7 @@ import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongInfo;
+import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
@@ -62,6 +63,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
     private KongClient httpClient;
     private GatewayBean gatewayBean;
     private IStorage storage;
+    private AppConfig appConfig;
     private static final ObjectMapper mapper = new ObjectMapper();
     private static String metricsURI;
     private static String AUTH_API_KEY = "apikey";
@@ -71,14 +73,16 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
      *
      * @param httpClient the http client
      */
-    public GatewayClient(KongClient httpClient, GatewayBean gateway,IStorage storage,String metricsURI) {
+    public GatewayClient(KongClient httpClient, GatewayBean gateway, IStorage storage, String metricsURI, AppConfig appConfig) {
         Preconditions.checkNotNull(httpClient);
         Preconditions.checkNotNull(storage);
         Preconditions.checkNotNull(gateway);
+        Preconditions.checkNotNull(appConfig);
         this.httpClient = httpClient;
         this.gatewayBean = gateway;
         this.storage = storage;
         this.metricsURI = metricsURI;
+        this.appConfig = appConfig;
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {
@@ -246,6 +250,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         boolean customKeyAuth = false;
         //flag for custom HTTP policy
         boolean customHttp = false;
+        //flag for custom Analytics policy
+        boolean customAnalytics = false;
         //verify if api creation has been succesfull
         if(!StringUtils.isEmpty(api.getId())){
             try{
@@ -271,7 +277,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                         case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
                         case RESPONSETRANSFORMER: createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(),Policies.RESPONSETRANSFORMER.getClazz());break;
                         case SSL: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.SSL.getClazz());break;
-                        case ANALYTICS: createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());break;
+                        case ANALYTICS: createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());customAnalytics=true;break;
                         default:break;
                     }
                 }
@@ -287,6 +293,8 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
         if(!customKeyAuth) registerDefaultKeyAuthPolicy(api);
         if(!customHttp&&!StringUtils.isEmpty(metricsURI)) registerDefaultHttpPolicy(api);
+        //add default Galileo policy
+        if(!customAnalytics)registerDefaultAnalyticsPolicy(api);
         //default enable jwt validation for a service - authorization bearer or jwt fieldname accepted by default
         //registerDefaultJWTPolicy(api);
     }
@@ -334,6 +342,24 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                 .withName(Policies.HTTPLOG.getKongIdentifier())
                 .withConfig(httpPolicy);
         httpClient.createPluginConfig(api.getId(),config);
+    }
+
+    private void registerDefaultAnalyticsPolicy(KongApi api){
+        if(appConfig.getAnalyticsEnabled()){
+            KongPluginAnalytics analyticsPolicy = new KongPluginAnalytics()
+                    .withBatchSize(appConfig.getAnalyticsBatchSize())
+                    .withDelay(appConfig.getAnalyticsDelay())
+                    .withEnvironment(appConfig.getAnalyticsEnvironment())
+                    .withHost(appConfig.getAnalyticsHost())
+                    .withPort(appConfig.getAnalyticsPort())
+                    .withLogBody(appConfig.getAnalyticsLogBody())
+                    .withMaxSendingQueueSize(appConfig.getAnalyticsMaxSendingQueue())
+                    .withServiceToken(appConfig.getAnalyticsServiceToken());
+            KongPluginConfig config = new KongPluginConfig()
+                    .withName(Policies.ANALYTICS.getKongIdentifier())
+                    .withConfig(analyticsPolicy);
+            httpClient.createPluginConfig(api.getId(),config);
+        }
     }
 
     /**

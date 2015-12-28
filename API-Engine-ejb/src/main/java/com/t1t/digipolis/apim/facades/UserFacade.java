@@ -16,6 +16,7 @@ import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
+import com.t1t.digipolis.apim.beans.user.SAMLRequest;
 import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
@@ -231,40 +232,53 @@ public class UserFacade implements Serializable {
     /**
      * Generates a SAML2 login/authentication request.
      *
-     * @param idpUrl
-     * @param spUrl
-     * @param spName
-     * @param clientUrl
-     * @param token
+     * @param samlRequest
      * @return
      */
-    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token, Map<String,String> optClaimMap) {
+    public String generateSAML2AuthRequest(SAMLRequest samlRequest) {//String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token, Map<String,String> optClaimMap
         // Initialize the library
-        log.info("Initate SAML2 request for {}", clientUrl);
+        log.info("Initate SAML2 request for {}", samlRequest.getIdpUrl());
         try {
-            //Bootstrap OpenSAML
-            DefaultBootstrap.bootstrap();
-            //Generate the request
-            AuthnRequest authnRequest = buildAuthnRequestObject(spUrl, spName, clientUrl);
-            WebClientCacheBean webCache = new WebClientCacheBean();
-            webCache.setToken(token);
-            webCache.setClientAppRedirect(clientUrl);
-            webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
-            webCache.setOptionalClaimset(optClaimMap);
             //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = clientUrl.replaceAll("https://","");
+            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","");
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
-            //set client application name and callback in the cache
-            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(urlEncodedClientUrl, webCache));//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
-            log.info("Cache contains:{}", ehcache.toString());
-            utilPrintCache();
-
-            String encodedRequestMessage = encodeAuthnRequest(authnRequest);
-            return idpUrl + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
+            String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
+            return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
         } catch (MarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
         }
+    }
+
+    public String generateSAML2Redirect(SAMLRequest samlRequest){
+        // Initialize the library
+        log.info("Initate SAML2 redirect for {}", samlRequest.getIdpUrl());
+        try {
+            //we need to send the clienUrl as a relaystate - should be URL encoded
+            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","");
+            String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
+            String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
+            return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
+        } catch (MarshallingException | IOException | ConfigurationException ex) {
+            throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
+        }
+    }
+
+    private String getSamlRequestEncoded(SAMLRequest samlRequest, String urlEncodedClientUrl) throws IOException, MarshallingException, ConfigurationException {
+        //Bootstrap OpenSAML
+        DefaultBootstrap.bootstrap();
+        //Generate the request
+        AuthnRequest authnRequest = buildAuthnRequestObject(samlRequest.getSpUrl(), samlRequest.getSpName(), samlRequest.getClientAppRedirect());
+        WebClientCacheBean webCache = new WebClientCacheBean();
+        webCache.setToken(samlRequest.getToken());
+        webCache.setClientAppRedirect(samlRequest.getClientAppRedirect());
+        webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+        webCache.setOptionalClaimset(samlRequest.getOptionalClaimMap());
+        //set client application name and callback in the cache
+        ehcache.getClientAppCache().put(new net.sf.ehcache.Element(urlEncodedClientUrl, webCache));//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
+        log.info("Cache contains:{}", ehcache.toString());
+        utilPrintCache();
+        return encodeAuthnRequest(authnRequest);
     }
 
     /**

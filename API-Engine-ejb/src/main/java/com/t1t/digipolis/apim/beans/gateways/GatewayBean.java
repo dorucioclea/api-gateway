@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.beans.gateways;
 
-import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.annotations.Type;
 

@@ -45,7 +45,7 @@ curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers/dev.publ
 curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/apis/dev.apiengine.v1/plugins/ \
     --data "name=mashape-analytics" \
     --data "config.service_token=558a95f80f7a734609de5c04" \
-    --data "config.environment=RTE"
+    --data "config.environment=digi-acc"
 
 
 
@@ -76,4 +76,4 @@ curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/apis/dev.apiengine
 curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/apis/dev.apiengineauth.v1/plugins/ \
     --data "name=mashape-analytics" \
     --data "config.service_token=558a95f80f7a734609de5c04" \
-    --data "config.environment=RTE"
+    --data "config.environment=digi-acc"
