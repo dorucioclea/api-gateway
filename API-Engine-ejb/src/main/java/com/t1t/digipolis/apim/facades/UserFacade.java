@@ -15,9 +15,9 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.beans.user.ClientTokeType;
 import com.t1t.digipolis.apim.beans.user.SAMLRequest;
 import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
+import com.t1t.digipolis.apim.beans.user.UserSession;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -42,7 +42,6 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.CacheUtil;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.JWTUtils;
-import com.t1t.digipolis.util.UserConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.elasticsearch.gateway.GatewayException;
@@ -379,7 +378,7 @@ public class UserFacade implements Serializable {
         return extensions;
     }
 
-    private LogoutRequest buildLogoutRequest(String user, String idpUrl, String spName) {
+    private LogoutRequest buildLogoutRequest(String userId, String idpUrl, String spName) {
         LogoutRequest logoutReq = (new LogoutRequestBuilder()).buildObject();
         logoutReq.setID(Integer.toHexString(new Double(Math.random()).intValue()));
         logoutReq.setDestination(idpUrl);
@@ -390,17 +389,19 @@ public class UserFacade implements Serializable {
         Issuer issuer = issuerBuilder.buildObject();
         issuer.setValue(spName);
         logoutReq.setIssuer(issuer);
+
+        //Get cached sessionIndex and subject ID.
+        //TODO nullpointer when read! verify
+        SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
+        UserSession sIndex = null;
+        if (cacheUtil.getSessionIndex(userId) != null) {
+            sIndex = cacheUtil.getSessionIndex(userId);
+            sessionIndex.setSessionIndex(sIndex.getSessionIndex());
+        }
         NameID nameId = (new NameIDBuilder()).buildObject();
         nameId.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
-        nameId.setValue(user);
+        nameId.setValue(sIndex.getSubjectId());
         logoutReq.setNameID(nameId);
-        SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
-        //add sessionindex from user
-        //TODO nullpointer when read! verify
-        if (cacheUtil.getSessionIndex(user) != null) {
-            String sIndex = cacheUtil.getSessionIndex(user);
-            sessionIndex.setSessionIndex(sIndex);
-        }
         logoutReq.getSessionIndexes().add(sessionIndex);
         logoutReq.setReason("Single Logout");
         return logoutReq;
@@ -453,26 +454,26 @@ public class UserFacade implements Serializable {
             assertion = processSSOResponse(response);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
-            idAttribs.setUserName(UserConventionUtil.formatUserName(assertion.getSubject().getNameID().getValue()));
-            log.info("Audience URI found: {}", relayState);
+            idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
+            log.info("Relay state found with correlation: {}", relayState);
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
-        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
-            List<AttributeStatement> attributeStatements = assertion.getAttributeStatements();
+/*        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
             responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
         } else {
             responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(idAttribs.getUserName()));
-        }
+        }*/
+        responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
         clientUrl.append(webClientCacheBean.getClientAppRedirect());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
         //for logout, we should keep the SessionIndex in cache with the username
         if (assertion != null && assertion.getAuthnStatements().size() > 0) {
-            //update or create user sessionindex in cache
-            cacheUtil.cacheSessionIndex(idAttribs.getUserName(), assertion.getAuthnStatements().get(0).getSessionIndex());
+            //update or create user sessionindex in cache -- id::the subject of JWT -- subject::saml2 subjectid -- sessionindex
+            cacheUtil.cacheSessionIndex(idAttribs.getId(), new UserSession(idAttribs.getSubjectId(),assertion.getAuthnStatements().get(0).getSessionIndex()));
         }
         return responseRedirect; //be aware that this is enflated.
     }
@@ -657,7 +658,7 @@ public class UserFacade implements Serializable {
      * No ACL activation.
      * Users are created implicitly, first we check if the user exists already on the gateway.
      *
-     * The securityflow param triggers optional flows for validation and token issuance.
+     * The security flow param triggers optional flows for validation and token issuance.
      *
      * @param identityAttributes SAML2 attributes
      * @return
@@ -671,34 +672,33 @@ public class UserFacade implements Serializable {
             String gatewayId = gatewayFacade.getDefaultGateway().getId();
             Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
             IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-            KongConsumer consumer = gatewayLink.getConsumer(identityAttributes.getUserName());
-            if (consumer == null) {
-                //user doesn't exists, implicit creation
-                consumer = gatewayLink.createConsumer(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getUserName()));
-                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
-                jwtKey = jwtResponse.getKey();//JWT "iss"
-                jwtSecret = jwtResponse.getSecret();
-                //we are sure that this consumer must be a physical user
-                UserBean tempUser = idmStorage.getUser(identityAttributes.getUserName());
-                if (tempUser == null) {
-                    initNewUser(identityAttributes.getUserName());
-                }
-            } else {
-                KongPluginJWTResponseList response = gatewayLink.getConsumerJWT(consumer.getId());
-                if (response.getData().size() > 0) {
-                    jwtKey = response.getData().get(0).getKey();
-                    jwtSecret = response.getData().get(0).getSecret();
-                } else {
-                    //create jwt credentials
+            //get user from local DB - if doesn't exists -> create new consumer
+            UserBean user = idmStorage.getUser(identityAttributes.getId());
+            if(user!=null){//exists already
+                KongConsumer consumer = gatewayLink.getConsumer(user.getKongUsername());
+                if(consumer==null){
+                    //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
+                    consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
                     KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
                     jwtKey = jwtResponse.getKey();//JWT "iss"
                     jwtSecret = jwtResponse.getSecret();
+                    //update kong username in local userbean
+                    user.setKongUsername(consumer.getUsername());
+                    idmStorage.updateUser(user);
+                }else {
+                    KongPluginJWTResponseList response = gatewayLink.getConsumerJWT(consumer.getId());
+                    if (response.getData().size() > 0) {
+                        jwtKey = response.getData().get(0).getKey();
+                        jwtSecret = response.getData().get(0).getSecret();
+                    } else {
+                        //create jwt credentials
+                        KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
+                        jwtKey = jwtResponse.getKey();//JWT "iss"
+                        jwtSecret = jwtResponse.getSecret();
+                    }
                 }
-                //it is possible that the user exists in the gateway but not in the API Engine
-                UserBean userToBeVerified = idmStorage.getUser(identityAttributes.getUserName());
-                if (userToBeVerified == null || StringUtils.isEmpty(userToBeVerified.getUsername())) {
-                    initNewUser(identityAttributes.getUserName());
-                }
+            }else{
+                initNewUser(identityAttributes);
             }
             //set the cache for performance and resilience
             setTokenCache(jwtKey,jwtSecret);
@@ -828,6 +828,47 @@ public class UserFacade implements Serializable {
 
     /**
      * TODO Specific role implementation should be covered here - depending on using XACML or JWT roles.
+     * We create a user only in the API Engine db. Upon next visit of the user, the Kong consumer will be created on demand and JWT
+     * token will be issued after user authentication.
+     *
+     * @param identityAttributes
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    private void initNewUser(IdentityAttributes identityAttributes) {
+        try {
+            //TODO add check if SCIM support is available
+            ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUserId(identityAttributes.getId());
+            //create user
+            UserBean newUser = new UserBean();
+            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));
+            newUser.setAdmin(false);
+            //provision with SCIM info retrieved
+            if(userInfoByUsername!=null){
+                if(userInfoByUsername.getEmails()!=null&&userInfoByUsername.getEmails().size()>0)newUser.setEmail(userInfoByUsername.getEmails().get(0));
+                if(!StringUtils.isEmpty(userInfoByUsername.getName()))newUser.setFullName(userInfoByUsername.getName());
+                else{
+                    if(!StringUtils.isEmpty(userInfoByUsername.getGivenname())&&!StringUtils.isEmpty(userInfoByUsername.getSurname()))newUser.setFullName(userInfoByUsername.getGivenname()+" "+userInfoByUsername.getSurname());
+                }
+            }
+            idmStorage.createUser(newUser);
+            //assign default roles in company
+            Set<String> roles = new TreeSet<>();
+            //TODO do it decently
+/*            roles.add(Role.WATCHER.toString());
+            roles.add(Role.DEVELOPER.toString());*/
+            roles.add(Role.OWNER.toString());
+            //assign to default company
+            GrantRolesBean usergrants = new GrantRolesBean();
+            usergrants.setRoleIds(roles);
+            usergrants.setUserId(newUser.getUsername());
+            organizationFacade.grant(config.getDefaultOrganization(), usergrants);
+        } catch (StorageException e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
+        }
+    }
+
+    /**
+     * Search for a user and init.
      *
      * @param username
      */
@@ -838,7 +879,7 @@ public class UserFacade implements Serializable {
             ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUsername(username);
             //create user
             UserBean newUser = new UserBean();
-            newUser.setUsername(UserConventionUtil.formatUserName(username));
+            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(username));
             newUser.setAdmin(false);
             if(userInfoByUsername!=null){
                 if(userInfoByUsername.getEmails()!=null&&userInfoByUsername.getEmails().size()>0)newUser.setEmail(userInfoByUsername.getEmails().get(0));
@@ -962,7 +1003,7 @@ public class UserFacade implements Serializable {
         IdentityAttributes identityAttributes = new IdentityAttributes();
         //map values
         identityAttributes.setId(externalUserBean.getAccountId());
-        identityAttributes.setUserName(UserConventionUtil.formatUserName(externalUserBean.getUsername()));
+        identityAttributes.setUserName(ConsumerConventionUtil.createUserUniqueId(externalUserBean.getUsername()));
         identityAttributes.setFamilyName(externalUserBean.getSurname());
         identityAttributes.setGivenName(externalUserBean.getGivenname());
         return identityAttributes;

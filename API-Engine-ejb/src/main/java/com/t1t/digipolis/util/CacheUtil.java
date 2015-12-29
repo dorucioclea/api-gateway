@@ -1,6 +1,7 @@
 package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
+import com.t1t.digipolis.apim.beans.user.UserSession;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import org.infinispan.Cache;
 import org.infinispan.manager.EmbeddedCacheManager;
@@ -30,7 +31,7 @@ public class CacheUtil implements Serializable {
 
     private Cache<String, WebClientCacheBean> ssoCache;
     private Cache<String, String> tokenCache;
-    private Cache<String, String> sessionCache;
+    private Cache<String, UserSession> sessionCache;
 
     @PostConstruct
     public void setup() {
@@ -60,12 +61,12 @@ public class CacheUtil implements Serializable {
     }
 
     @Lock(LockType.READ)
-    public  String getSessionIndex(String userId){
-        final String user = tokenCache.get(userId);
-        if (user == null) {
-            throw new SystemErrorException("User Cache with id " + userId + " does not exist!");
+    public  UserSession getSessionIndex(String userId){
+        final UserSession session = sessionCache.get(userId);
+        if (session == null) {
+            throw new SystemErrorException("User session Cache with id " + userId + " does not exist!");
         }
-        return user;
+        return session;
     }
 
     @Lock(LockType.WRITE)
@@ -79,8 +80,8 @@ public class CacheUtil implements Serializable {
     }
 
     @Lock(LockType.WRITE)
-    public void cacheSessionIndex(String userId, String user){
-        tokenCache.put(userId, user);
+    public void cacheSessionIndex(String userId, UserSession userSession){
+        sessionCache.put(userId, userSession);
     }
 
     @Lock(LockType.READ)
@@ -109,7 +110,7 @@ public class CacheUtil implements Serializable {
     }
 
     @Lock(LockType.READ)
-    public Collection<String> getSessionCache(){
+    public Collection<UserSession> getSessionCache(){
         return sessionCache.values();
     }
 

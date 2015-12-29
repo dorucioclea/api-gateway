@@ -1,6 +1,7 @@
 package com.t1t.digipolis.util;
 
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 
@@ -13,19 +14,19 @@ public class UserConventionUtilTest {
     @Test
     public void testFormatUsername() throws Exception {
         String username = "ex01234";
-        String formattedUsername = UserConventionUtil.formatUserName(username);
+        String formattedUsername = ConsumerConventionUtil.createUserUniqueId(username);
         assertTrue(formattedUsername.equals("ex01234"));
 
         username = "EX01234";
-        formattedUsername = UserConventionUtil.formatUserName(username);
+        formattedUsername = ConsumerConventionUtil.createUserUniqueId(username);
         assertTrue(formattedUsername.equals("ex01234"));
 
         username = "Ex01234";
-        formattedUsername = UserConventionUtil.formatUserName(username);
+        formattedUsername = ConsumerConventionUtil.createUserUniqueId(username);
         assertTrue(formattedUsername.equals("ex01234"));
 
         username = "eX01234";
-        formattedUsername = UserConventionUtil.formatUserName(username);
+        formattedUsername = ConsumerConventionUtil.createUserUniqueId(username);
         assertTrue(formattedUsername.equals("ex01234"));
     }
 

@@ -5,8 +5,8 @@ import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.rest.JaxRsActivator;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.JWTUtils;
-import com.t1t.digipolis.util.UserConventionUtil;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.slf4j.Logger;
@@ -68,8 +68,8 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
                 String validatedUser = "";
                 try {
                     JwtContext jwtContext = JWTUtils.validateHMACToken(jwt);
-                    validatedUser = (String) jwtContext.getJwtClaims().getClaimValue(IJWT.NAME);
-                    validatedUser = securityContext.setCurrentUser(UserConventionUtil.formatUserName(validatedUser));
+                    validatedUser = (String) jwtContext.getJwtClaims().getClaimValue(IJWT.NAME);//TODO change to subjectID
+                    validatedUser = securityContext.setCurrentUser(ConsumerConventionUtil.createUserUniqueId(validatedUser));
                 } catch (InvalidJwtException|UserNotFoundException ex) {
                     LOG.debug("Unauthorized user:{}", validatedUser);
                     containerRequestContext.abortWith(Response
