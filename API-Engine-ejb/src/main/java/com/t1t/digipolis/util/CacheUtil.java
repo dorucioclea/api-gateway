@@ -2,6 +2,7 @@ package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import org.infinispan.Cache;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,22 +25,19 @@ import java.util.concurrent.TimeUnit;
 public class CacheUtil implements Serializable {
     private static Logger _LOG = LoggerFactory.getLogger(CacheUtil.class.getName());
 
-    @Resource(lookup = "java:jboss/infinispan/container/apiengine-sso-cache")
-    private EmbeddedCacheManager ssoCacheManager;
-    @Resource(lookup = "java:jboss/infinispan/container/apiengine-token-cache")
-    private EmbeddedCacheManager tokenCacheManager;
-    @Resource(lookup = "java:jboss/infinispan/container/apiengine-user-cache")
-    private EmbeddedCacheManager sessionCacheManager;
+    @Resource(lookup = "java:jboss/infinispan/container/apiengine-cache")
+    private EmbeddedCacheManager cacheManager;
 
-    private Map<String, WebClientCacheBean> ssoCache;
-    private Map<String, String> tokenCache;
-    private Map<String, String> sessionCache;
+    private Cache<String, WebClientCacheBean> ssoCache;
+    private Cache<String, String> tokenCache;
+    private Cache<String, String> sessionCache;
 
     @PostConstruct
     public void setup() {
-        ssoCache = ssoCacheManager.getCache();
-        tokenCache = tokenCacheManager.getCache();
-        sessionCache = sessionCacheManager.getCache();
+        _LOG.info("Caches found: {}",cacheManager.getCacheNames());
+        ssoCache = cacheManager.getCache("sso");
+        tokenCache = cacheManager.getCache("token");
+        sessionCache = cacheManager.getCache("user");
         _LOG.info("Infinispan cache initialized.");
     }
 

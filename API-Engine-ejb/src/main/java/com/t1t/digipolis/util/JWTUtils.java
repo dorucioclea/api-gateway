@@ -1,7 +1,5 @@
 package com.t1t.digipolis.util;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;

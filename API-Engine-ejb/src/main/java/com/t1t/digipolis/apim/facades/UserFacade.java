@@ -277,7 +277,6 @@ public class UserFacade implements Serializable {
         //set client application name and callback in the cache
         cacheUtil.cacheWebClientCacheBean(urlEncodedClientUrl,webCache);//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
         log.info("Cache contains:{}", cacheUtil.toString());
-        utilPrintCache();
         return encodeAuthnRequest(authnRequest);
     }
 
@@ -460,7 +459,6 @@ public class UserFacade implements Serializable {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
-        utilPrintCache();
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
         if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
             List<AttributeStatement> attributeStatements = assertion.getAttributeStatements();
@@ -892,12 +890,15 @@ public class UserFacade implements Serializable {
     public void utilPrintCache() {
         log.info("SessionIndex cache values:");
         Set<String> sessionKeys = cacheUtil.getSessionKeys();
+        log.info("Sessionkeys: {}",sessionKeys);
         sessionKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getSessionIndex(key)));
         log.info("Token cache values:");
         Set<String> tokenKeys = cacheUtil.getTokenKeys();
+        log.info("Tokenkeys: {}",tokenKeys);
         tokenKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getToken(key)));
         log.info("WebCacheBean cache values:");
         Set<String> webKeys = cacheUtil.getTokenKeys();
+        log.info("webkeys: {}",webKeys);
         webKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getWebCacheBean(key)));
     }
 

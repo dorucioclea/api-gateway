@@ -102,6 +102,9 @@
             <logger category="org.apache.tomcat.util.modeler">
                 <level name="WARN"/>
             </logger>
+            <logger category="org.infinispan">
+                <level name="TRACE"/>
+            </logger>
             <logger category="org.jboss.as.config">
                 <level name="DEBUG"/>
             </logger>
@@ -238,22 +241,19 @@
             <buffer-pool name="default"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:infinispan:3.0">
-            <cache-container name="apiengine-sso-cache" default-cache="default" jndi-name="java:jboss/infinispan/apiengine-sso-cache" module="deployment.API-Engine-ejb.jar">
+            <cache-container name="apiengine-cache" default-cache="defcache" aliases="apiengine-cache">
                 <transport lock-timeout="60000"/>
-                <replicated-cache name="sso" batching="true" mode="SYNC">
-                    <locking isolation="REPEATABLE_READ"/>
+                <replicated-cache name="defcache" mode="SYNC">
+                    <transaction mode="BATCH"/>
                 </replicated-cache>
-            </cache-container>
-            <cache-container name="tokenCache" default-cache="default" jndi-name="java:jboss/infinispan/apiengine-token-cache" module="deployment.API-Engine-ejb.jar">
-                <transport lock-timeout="60000"/>
-                <replicated-cache name="default" batching="true" mode="SYNC">
-                    <locking isolation="REPEATABLE_READ"/>
+                <replicated-cache name="sso" mode="SYNC">
+                    <transaction mode="BATCH"/>
                 </replicated-cache>
-            </cache-container>
-            <cache-container name="userCache" default-cache="default" jndi-name="java:jboss/infinispan/apiengine-user-cache" module="deployment.API-Engine-ejb.jar">
-                <transport lock-timeout="60000"/>
-                <replicated-cache name="default" batching="true" mode="SYNC">
-                    <locking isolation="REPEATABLE_READ"/>
+                <replicated-cache name="token" mode="SYNC">
+                    <transaction mode="BATCH"/>
+                </replicated-cache>
+                <replicated-cache name="user" mode="SYNC">
+                    <transaction mode="BATCH"/>
                 </replicated-cache>
             </cache-container>
             <cache-container name="server" default-cache="default" module="org.wildfly.clustering.server" aliases="singleton cluster">
