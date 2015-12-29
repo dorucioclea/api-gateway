@@ -135,6 +135,16 @@ public interface IGatewayLink {
     public KongConsumer createConsumer(String userId) throws ConsumerAlreadyExistsException;
 
     /**
+     * Create a real user/consumer based on its customId - we can not use easily user unique id's in the username field
+     * so, we let Kong generate them for us.
+     *
+     * @param customId
+     * @return
+     * @throws ConsumerAlreadyExistsException
+     */
+    public KongConsumer createConsumerWithCustomId(String customId)throws ConsumerAlreadyExistsException;
+
+    /**
      * Create a new consumer
      *
      * @param userId    unique username used by Kong

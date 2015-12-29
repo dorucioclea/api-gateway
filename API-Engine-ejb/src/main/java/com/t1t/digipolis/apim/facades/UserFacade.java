@@ -836,7 +836,7 @@ public class UserFacade implements Serializable {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private void initNewUser(String username) {
         try {
-            //TODO add check if SCIM suppor tis available
+            //TODO add check if SCIM support is available
             ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUsername(username);
             //create user
             UserBean newUser = new UserBean();
