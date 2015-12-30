@@ -674,31 +674,32 @@ public class UserFacade implements Serializable {
             IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
             //get user from local DB - if doesn't exists -> create new consumer
             UserBean user = idmStorage.getUser(identityAttributes.getId());
-            if(user!=null){//exists already
-                KongConsumer consumer = gatewayLink.getConsumer(user.getKongUsername());
-                if(consumer==null){
-                    //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
-                    consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+            if(user==null) {//exists already
+                user = initNewUser(identityAttributes);
+            }
+            log.info("User found:{}",user);
+            KongConsumer consumer = null;
+            if(!StringUtils.isEmpty(user.getKongUsername())) consumer=gatewayLink.getConsumer(user.getKongUsername());
+            if(consumer==null){
+                //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
+                consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+                //update kong username in local userbean
+                user.setKongUsername(consumer.getId());
+                idmStorage.updateUser(user);
+                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
+                jwtKey = jwtResponse.getKey();//JWT "iss"
+                jwtSecret = jwtResponse.getSecret();
+            }else {
+                KongPluginJWTResponseList response = gatewayLink.getConsumerJWT(consumer.getId());
+                if (response.getData().size() > 0) {
+                    jwtKey = response.getData().get(0).getKey();
+                    jwtSecret = response.getData().get(0).getSecret();
+                } else {
+                    //create jwt credentials
                     KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
                     jwtKey = jwtResponse.getKey();//JWT "iss"
                     jwtSecret = jwtResponse.getSecret();
-                    //update kong username in local userbean
-                    user.setKongUsername(consumer.getUsername());
-                    idmStorage.updateUser(user);
-                }else {
-                    KongPluginJWTResponseList response = gatewayLink.getConsumerJWT(consumer.getId());
-                    if (response.getData().size() > 0) {
-                        jwtKey = response.getData().get(0).getKey();
-                        jwtSecret = response.getData().get(0).getSecret();
-                    } else {
-                        //create jwt credentials
-                        KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
-                        jwtKey = jwtResponse.getKey();//JWT "iss"
-                        jwtSecret = jwtResponse.getSecret();
-                    }
                 }
-            }else{
-                initNewUser(identityAttributes);
             }
             //set the cache for performance and resilience
             setTokenCache(jwtKey,jwtSecret);
@@ -750,7 +751,10 @@ public class UserFacade implements Serializable {
                 String gatewayId = gatewayFacade.getDefaultGateway().getId();
                 Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
                 IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-                String userName = ConsumerConventionUtil.createUserUniqueId(scimUser.getUsername());//should be unique
+                //TODO username or ID?
+                String userName = ConsumerConventionUtil.createUserUniqueId(scimUser.getAccountId());//should be unique
+                //TODO
+                UserBean userToVerify = idmStorage.getUser(scimUser.getAccountId());
                 KongConsumer consumer = gatewayLink.getConsumer(userName);
                 if (consumer == null) {
                     //user doesn't exists, implicit creation
@@ -834,14 +838,16 @@ public class UserFacade implements Serializable {
      * @param identityAttributes
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    private void initNewUser(IdentityAttributes identityAttributes) {
+    private UserBean initNewUser(IdentityAttributes identityAttributes) {
+        log.info("Init new user with attributes:{}",identityAttributes);
         try {
-            //TODO add check if SCIM support is available
-            ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUserId(identityAttributes.getId());
             //create user
             UserBean newUser = new UserBean();
-            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));
+            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));//upn of UUID
+            newUser.setFullName(identityAttributes.getGivenName()+" "+identityAttributes.getFamilyName());
             newUser.setAdmin(false);
+            //TODO add check if SCIM support is available
+/*            ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUserId(identityAttributes.getId());
             //provision with SCIM info retrieved
             if(userInfoByUsername!=null){
                 if(userInfoByUsername.getEmails()!=null&&userInfoByUsername.getEmails().size()>0)newUser.setEmail(userInfoByUsername.getEmails().get(0));
@@ -849,19 +855,18 @@ public class UserFacade implements Serializable {
                 else{
                     if(!StringUtils.isEmpty(userInfoByUsername.getGivenname())&&!StringUtils.isEmpty(userInfoByUsername.getSurname()))newUser.setFullName(userInfoByUsername.getGivenname()+" "+userInfoByUsername.getSurname());
                 }
-            }
+            }*/
             idmStorage.createUser(newUser);
             //assign default roles in company
             Set<String> roles = new TreeSet<>();
-            //TODO do it decently
-/*            roles.add(Role.WATCHER.toString());
-            roles.add(Role.DEVELOPER.toString());*/
+            //TODO do it decently with XACML
             roles.add(Role.OWNER.toString());
             //assign to default company
             GrantRolesBean usergrants = new GrantRolesBean();
             usergrants.setRoleIds(roles);
             usergrants.setUserId(newUser.getUsername());
             organizationFacade.grant(config.getDefaultOrganization(), usergrants);
+            return newUser;
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
@@ -891,9 +896,6 @@ public class UserFacade implements Serializable {
             idmStorage.createUser(newUser);
             //assign default roles in company
             Set<String> roles = new TreeSet<>();
-            //TODO do it decently
-/*            roles.add(Role.WATCHER.toString());
-            roles.add(Role.DEVELOPER.toString());*/
             roles.add(Role.OWNER.toString());
             //assign to default company
             GrantRolesBean usergrants = new GrantRolesBean();
