@@ -23,7 +23,8 @@ curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengine.v1/plugi
 
 #enable JWT
 curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengine.v1/plugins \
-    --data "name=jwt"
+    --data "name=jwt" \
+    --data "config.claims_to_verify=exp"
 
 #create marketplace consumer, username should be unique
 curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers \

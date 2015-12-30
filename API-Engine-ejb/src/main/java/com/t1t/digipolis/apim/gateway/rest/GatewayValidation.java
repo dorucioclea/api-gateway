@@ -84,7 +84,9 @@ public class GatewayValidation {
         JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
         KongPluginJWT kongPluginJWT = new KongPluginJWT();
         List<String> claimsToVerify = new ArrayList<>();
-        if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment
+        //if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment
+        //--enforce to validate JWT exp
+        claimsToVerify.add("exp");
         kongPluginJWT.setClaimsToVerify(claimsToVerify);
         //perform enhancements
         Policy responsePolicy = new Policy();

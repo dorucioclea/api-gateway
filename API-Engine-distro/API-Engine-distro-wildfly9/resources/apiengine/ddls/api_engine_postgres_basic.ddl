@@ -54,7 +54,7 @@ CREATE TABLE svc_gateways (service_version_id BIGINT NOT NULL, gateway_id VARCHA
 
 CREATE TABLE svc_plans (service_version_id BIGINT NOT NULL, plan_id VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL);
 
-CREATE TABLE users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on TIMESTAMP WITHOUT TIME ZONE NULL, admin BOOL DEFAULT FALSE,company VARCHAR(255),location VARCHAR(255),website VARCHAR(255),bio TEXT, pic OID );
+CREATE TABLE users (username VARCHAR(255) NOT NULL, kong_username VARCHAR(255), email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on TIMESTAMP WITHOUT TIME ZONE NULL, admin BOOL DEFAULT FALSE,company VARCHAR(255),location VARCHAR(255),website VARCHAR(255),bio TEXT, pic OID );
 
 CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organization_id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL);
 
@@ -279,7 +279,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "default": false
     }
   }
-}', 'JsonSchema', 'fa-user', 'Basic Authentication Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-user', 'Basic Authentication Policy', NULL ,FALSE ,FALSE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('KeyAuthentication', 'Add Key Authentication to your APIs', '{
   "type": "object",
@@ -387,7 +387,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "cert",
     "key"
   ]
-}', 'JsonSchema', 'fa-lock', 'SSL Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-lock', 'SSL Policy', NULL ,FALSE ,FALSE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('IPRestriction', 'Whitelist or Blacklist IPs that can make requests', '{
   "type": "object",
@@ -754,7 +754,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "required": [
     "path"
   ]
-}', 'JsonSchema', 'fa-file-text-o', 'File Log Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-file-text-o', 'File Log Policy', NULL ,FALSE ,FALSE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('Analytics', 'View API analytics in Mashape analytics - retention 1 day', '{
   "type": "object",

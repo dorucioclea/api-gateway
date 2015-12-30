@@ -23,7 +23,8 @@ curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/apis/dev.apiengine
 
 #enable JWT
 curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/apis/dev.apiengine.v1/plugins \
-    --data "name=jwt"
+    --data "name=jwt" \
+    --data "config.claims_to_verify=exp"
 
 #create marketplace consumer, username should be unique
 curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers \
