@@ -239,6 +239,20 @@
             <buffer-pool name="default"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:infinispan:3.0">
+            <cache-container name="apiengine-cache" default-cache="defcache" aliases="apiengine-cache">
+                <local-cache name="defcache">
+                    <transaction mode="BATCH"/>
+                </local-cache>
+                <local-cache name="sso">
+                    <transaction mode="BATCH"/>
+                </local-cache>
+                <local-cache name="token">
+                    <transaction mode="BATCH"/>
+                </local-cache>
+                <local-cache name="user">
+                    <transaction mode="BATCH"/>
+                </local-cache>
+            </cache-container>
             <cache-container name="server" default-cache="default" module="org.wildfly.clustering.server">
                 <local-cache name="default">
                     <transaction mode="BATCH"/>
