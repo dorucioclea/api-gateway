@@ -4,7 +4,7 @@ curl -i -X POST \
   --url http://rasu094.rte.antwerpen.local:8001/apis/ \
   --data 'request_path=/apiengine/v1' \
   --data 'name=apiengine.v1' \
-  --data 'upstream_url=http://api-engine-p.antwerpen.be/API-Engine-web/v1/' \
+  --data 'upstream_url=https://api-engine-p.antwerpen.be/API-Engine-web/v1/' \
   --data 'strip_request_path=true'
 
 #enable CORS
@@ -56,7 +56,7 @@ curl -i -X POST \
   --url http://rasu094.rte.antwerpen.local:8001/apis/ \
   --data 'request_path=/apiengineauth/v1' \
   --data 'name=apiengineauth.v1' \
-  --data 'upstream_url=http://api-engine-p.antwerpen.be/API-Engine-auth/v1/' \
+  --data 'upstream_url=https://api-engine-p.antwerpen.be/API-Engine-auth/v1/' \
   --data 'strip_request_path=true'
 
 #enable CORS
