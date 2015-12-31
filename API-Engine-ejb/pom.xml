@@ -531,6 +531,12 @@
                 <appconfig.file>application-digi-acc</appconfig.file>
             </properties>
         </profile>
+        <profile>
+            <id>digi-prod</id>
+            <properties>
+                <appconfig.file>application-digi-prod</appconfig.file>
+            </properties>
+        </profile>
 <!--        <profile>
             &lt;!&ndash; An optional Arquillian testing profile that executes tests
                 in your WildFly instance &ndash;&gt;
