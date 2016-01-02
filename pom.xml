@@ -177,7 +177,6 @@
         <swagger-parser.version>1.0.10</swagger-parser.version>
         <wso2.client.version>1.2.0</wso2.client.version>
         <opensaml.version>2.6.4</opensaml.version>
-        <ehcache.version>2.10.0</ehcache.version>
         <primefaces.version>5.2</primefaces.version>
         <primefaces.themes.version>1.0.10</primefaces.themes.version>
         <wink-common.version>1.4</wink-common.version>
@@ -191,6 +190,7 @@
         <buildNumber>${maven.build.timestamp}</buildNumber>
         <property.file>default</property.file>
         <hystrix-core.version>1.4.21</hystrix-core.version>
+        <infinispan-core.version>8.1.0.Final</infinispan-core.version>
     </properties>
 
     <dependencyManagement>
@@ -960,13 +960,6 @@
                 <version>${opensaml.version}</version>
             </dependency>
 
-            <!--EHCache-->
-            <dependency>
-                <groupId>net.sf.ehcache</groupId>
-                <artifactId>ehcache</artifactId>
-                <version>${ehcache.version}</version>
-            </dependency>
-
             <!-- Test -->
             <dependency>
                 <groupId>junit</groupId>
@@ -1029,6 +1022,13 @@
                 <groupId>com.netflix.hystrix</groupId>
                 <artifactId>hystrix-core</artifactId>
                 <version>${hystrix-core.version}</version>
+            </dependency>
+
+            <!--Infinspan-->
+            <dependency>
+                <groupId>org.infinispan</groupId>
+                <artifactId>infinispan-core</artifactId>
+                <version>${infinispan-core.version}</version>
             </dependency>
         </dependencies>
 

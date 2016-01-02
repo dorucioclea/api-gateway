@@ -4,6 +4,7 @@ package com.t1t.digipolis.apim.security;
  * Created by michallispashidis on 2/12/15.
  */
 public class IdentityAttributes {
+    private String subjectId;
     private String id;
     private String familyName;
     private String userName;
@@ -50,10 +51,19 @@ public class IdentityAttributes {
         this.givenName = givenName;
     }
 
+    public String getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(String subjectId) {
+        this.subjectId = subjectId;
+    }
+
     @Override
     public String toString() {
-        return "SamlAttributes{" +
-                "id='" + id + '\'' +
+        return "IdentityAttributes{" +
+                "subjectId='" + subjectId + '\'' +
+                ", id='" + id + '\'' +
                 ", familyName='" + familyName + '\'' +
                 ", userName='" + userName + '\'' +
                 ", emails='" + emails + '\'' +

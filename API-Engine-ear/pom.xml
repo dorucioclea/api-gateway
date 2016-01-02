@@ -107,6 +107,11 @@
                         <version>${version.ear.plugin}</version>
                         <configuration>
                             <outputDirectory>deployments</outputDirectory>
+<!--                            <archive>
+                                <manifestEntries>
+                                    <Dependencies>org.infinispan export</Dependencies>
+                                </manifestEntries>
+                            </archive>-->
                         </configuration>
                     </plugin>
                 </plugins>

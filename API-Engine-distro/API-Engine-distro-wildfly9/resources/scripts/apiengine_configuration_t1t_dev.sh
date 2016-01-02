@@ -23,7 +23,8 @@ curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
 
 #enable JWT
 curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
-    --data "name=jwt"
+    --data "name=jwt" \
+    --data "config.claims_to_verify=exp"
 
 #create marketplace consumer, username should be unique
 curl -X POST http://devapim.t1t.be:8001/consumers \

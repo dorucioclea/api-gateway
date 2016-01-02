@@ -444,6 +444,10 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
         return httpClient.createConsumer(new KongConsumer().withUsername(userUniqueName).withCustomId(userUniqueName));
     }
 
+    public KongConsumer createConsumerWithCustomID(String customId){
+        return httpClient.createConsumer(new KongConsumer().withCustomId(customId));
+    }
+
     public KongConsumer createConsumer(String userUniqueId, String customId){
         return httpClient.createConsumer(new KongConsumer().withUsername(userUniqueId).withCustomId(customId));
     }
