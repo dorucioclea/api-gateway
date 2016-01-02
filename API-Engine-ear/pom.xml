@@ -39,6 +39,10 @@
         </license>
     </licenses>
 
+    <properties>
+        <targetenv>env</targetenv>
+    </properties>
+
     <dependencies>
         <!-- Depend on the ejb module and war so that we can package them -->
         <dependency>
@@ -62,7 +66,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
+        <finalName>${project.artifactId}-${targetenv}-${version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

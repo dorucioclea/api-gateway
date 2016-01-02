@@ -15,6 +15,9 @@ In order to build the project, the ejb module contains the necessary profiles. E
 Example build for dev - skipping tests can be done:
 `clean install -Pt1t-dev -DskipTests=true`
 
+You can customize the artifact name adding a 'targetenv' property for building:
+`clean install -Pdefault -DskipTests=true -Dtargetenv=t1t`
+
 
 Release Notes - Digipolis-APIM - Version APIM-v0.5.0
 ----------------------------------------------------
