@@ -2,12 +2,13 @@ package com.t1t.digipolis.apim.beans.cache;
 
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
  * Created by michallispashidis on 23/11/15.
  */
-public class WebClientCacheBean {
+public class WebClientCacheBean implements Serializable{
     private Integer tokenExpirationTimeMinutes;
     private String clientAppRedirect;//only used as audience claim for JWT - optional for other tokentypes
     private ClientTokeType token;

@@ -81,7 +81,34 @@ public class LoginResource implements ILoginResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
         Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
-        return userFacade.generateSAML2AuthRequest(request.getIdpUrl(), request.getSpUrl(), request.getSpName(), request.getClientAppRedirect(), request.getToken(), request.getOptionalClaimMap());
+        return userFacade.generateSAML2AuthRequest(request);
+    }
+
+    @ApiOperation(value = "IDP Immediate Redirect URL for the Marketplace",
+            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating and performing the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim." +
+                    "When the token expiration time is set to 0, the token will be valid for all times. The optional claims map can be provided by the consuming application. The claim set can be changed upon refreshing the JWT.")
+    @ApiResponses({
+            @ApiResponse(code = 301, message = "SAML2 authentication request")
+    })
+    @POST
+    @Path("/idp/redirect/proxied")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getSAML2AuthRequestRedirect(SAMLRequest request) {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
+        Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
+        String idpRequest = userFacade.generateSAML2AuthRequest(request);
+        URI idpRequestUri = null;
+        try {
+            idpRequestUri = new URI(idpRequest);
+            return Response.seeOther(idpRequestUri).build();
+        } catch (URISyntaxException e) {
+            new SystemErrorException(e.getMessage());
+        }
+        throw  new SystemErrorException("Error in redirect");
     }
 
     @ApiOperation(value = "Refresh an existing valid JWT. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter.",

@@ -23,7 +23,8 @@ curl -X POST http://apim.t1t.be:8001/apis/apiengine.v1/plugins \
 
 #enable JWT
 curl -X POST http://apim.t1t.be:8001/apis/apiengine.v1/plugins \
-    --data "name=jwt"
+    --data "name=jwt" \
+    --data "config.claims_to_verify=exp"
 
 #create marketplace consumer, username should be unique
 curl -X POST http://apim.t1t.be:8001/consumers \
@@ -44,7 +45,8 @@ curl -X POST http://apim.t1t.be:8001/consumers/publisher.v1/key-auth \
 #Analytics
 curl -X POST http://apim.t1t.be:8001/apis/apiengine.v1/plugins/ \
     --data "name=mashape-analytics" \
-    --data "config.service_token=558a95f80f7a734609de5c04"
+    --data "config.service_token=558a95f80f7a734609de5c04" \
+    --data "config.environment=t1t-prod"
 
 
 
@@ -74,4 +76,5 @@ curl -X POST http://apim.t1t.be:8001/apis/apiengineauth.v1/plugins \
 #Analytics
 curl -X POST http://apim.t1t.be:8001/apis/apiengineauth.v1/plugins/ \
     --data "name=mashape-analytics" \
-    --data "config.service_token=558a95f80f7a734609de5c04"
+    --data "config.service_token=558a95f80f7a734609de5c04" \
+    --data "config.environment=t1t-prod"

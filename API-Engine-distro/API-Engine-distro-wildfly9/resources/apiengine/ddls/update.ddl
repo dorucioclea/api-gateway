@@ -74,6 +74,9 @@ update policydefs set scope_service=FALSE where id='FileLog';
 
 update policydefs set scope_service=FALSE where id='KeyAuthentication';
 
+ALTER TABLE users ADD COLUMN kong_username VARCHAR(255);
 
 
-INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (1536,CURRENT_DATE,'Inuits','Owner','ex02393');
+
+-- INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (1011,CURRENT_DATE,'Rombit','Owner','ex02394');
+-- INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (1011,CURRENT_DATE,'Trust1Team','Owner','maartens');

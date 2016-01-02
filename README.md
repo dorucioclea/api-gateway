@@ -7,6 +7,15 @@ Summary: API Engine Services
 Target Project: Digipolis API Manager
 Source: <https://bitbucket.org/Trust1T/api-engine-javaee>
 
+Build
+-----
+In order to build the project, the ejb module contains the necessary profiles. Example maven build for production environment:
+`mvn clean install -Pt1t-prod`
+
+Example build for dev - skipping tests can be done:
+`clean install -Pt1t-dev -DskipTests=true`
+
+
 Release Notes - Digipolis-APIM - Version APIM-v0.5.0
 ----------------------------------------------------
 

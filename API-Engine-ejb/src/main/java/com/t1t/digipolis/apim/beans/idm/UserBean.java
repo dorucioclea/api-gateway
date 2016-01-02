@@ -20,9 +20,15 @@ public class UserBean implements Serializable {
 
     private static final long serialVersionUID = 865765107251347714L;
 
+    /**
+     * username is unique and is the SAML2 id claim from authentication server - and subject for JWT token - must be used by the front-end applications.
+     * Be carefull the SAML2 Subject ID is used for single logout and is persisted in a distributed cache.
+     */
     @Id
     @Column(updatable=false, nullable=false)
     private String username;
+    @Column(name = "kong_username")
+    private String kongUsername;//to retrieve consumer from Kong
     @Column(name = "full_name")
     private String fullName;
     private String email;
@@ -150,6 +156,14 @@ public class UserBean implements Serializable {
         this.bio = bio;
     }
 
+    public String getKongUsername() {
+        return kongUsername;
+    }
+
+    public void setKongUsername(String kongUsername) {
+        this.kongUsername = kongUsername;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -193,6 +207,7 @@ public class UserBean implements Serializable {
     public String toString() {
         return "UserBean{" +
                 "username='" + username + '\'' +
+                ", kongUsername='" + kongUsername + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
                 ", joinedOn=" + joinedOn +

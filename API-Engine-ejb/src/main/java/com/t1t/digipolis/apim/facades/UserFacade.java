@@ -15,8 +15,9 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.beans.user.ClientTokeType;
+import com.t1t.digipolis.apim.beans.user.SAMLRequest;
 import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
+import com.t1t.digipolis.apim.beans.user.UserSession;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -38,7 +39,9 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
-import com.t1t.digipolis.util.*;
+import com.t1t.digipolis.util.CacheUtil;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.JWTUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.elasticsearch.gateway.GatewayException;
@@ -72,7 +75,6 @@ import org.opensaml.xml.security.x509.X509Credential;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.IDIndex;
 import org.opensaml.xml.util.XMLHelper;
-import org.opensaml.xml.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -118,7 +120,7 @@ public class UserFacade implements Serializable {
     @Inject
     private IIdmStorage idmStorage;
     @Inject
-    private CacheUtil ehcache;
+    private CacheUtil cacheUtil;
     @Inject
     private OrganizationFacade organizationFacade;
     @Inject
@@ -229,40 +231,52 @@ public class UserFacade implements Serializable {
     /**
      * Generates a SAML2 login/authentication request.
      *
-     * @param idpUrl
-     * @param spUrl
-     * @param spName
-     * @param clientUrl
-     * @param token
+     * @param samlRequest
      * @return
      */
-    public String generateSAML2AuthRequest(String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token, Map<String,String> optClaimMap) {
+    public String generateSAML2AuthRequest(SAMLRequest samlRequest) {//String idpUrl, String spUrl, String spName, String clientUrl, ClientTokeType token, Map<String,String> optClaimMap
         // Initialize the library
-        log.info("Initate SAML2 request for {}", clientUrl);
+        log.info("Initate SAML2 request for {}", samlRequest.getIdpUrl());
         try {
-            //Bootstrap OpenSAML
-            DefaultBootstrap.bootstrap();
-            //Generate the request
-            AuthnRequest authnRequest = buildAuthnRequestObject(spUrl, spName, clientUrl);
-            WebClientCacheBean webCache = new WebClientCacheBean();
-            webCache.setToken(token);
-            webCache.setClientAppRedirect(clientUrl);
-            webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
-            webCache.setOptionalClaimset(optClaimMap);
             //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = clientUrl.replaceAll("https://","");
+            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","");
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
-            //set client application name and callback in the cache
-            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(urlEncodedClientUrl, webCache));//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
-            log.info("Cache contains:{}", ehcache.toString());
-            utilPrintCache();
-
-            String encodedRequestMessage = encodeAuthnRequest(authnRequest);
-            return idpUrl + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
+            String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
+            return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
         } catch (MarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
         }
+    }
+
+    public String generateSAML2Redirect(SAMLRequest samlRequest){
+        // Initialize the library
+        log.info("Initate SAML2 redirect for {}", samlRequest.getIdpUrl());
+        try {
+            //we need to send the clienUrl as a relaystate - should be URL encoded
+            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","");
+            String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
+            String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
+            return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
+        } catch (MarshallingException | IOException | ConfigurationException ex) {
+            throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
+        }
+    }
+
+    private String getSamlRequestEncoded(SAMLRequest samlRequest, String urlEncodedClientUrl) throws IOException, MarshallingException, ConfigurationException {
+        //Bootstrap OpenSAML
+        DefaultBootstrap.bootstrap();
+        //Generate the request
+        AuthnRequest authnRequest = buildAuthnRequestObject(samlRequest.getSpUrl(), samlRequest.getSpName(), samlRequest.getClientAppRedirect());
+        WebClientCacheBean webCache = new WebClientCacheBean();
+        webCache.setToken(samlRequest.getToken());
+        webCache.setClientAppRedirect(samlRequest.getClientAppRedirect());
+        webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+        webCache.setOptionalClaimset(samlRequest.getOptionalClaimMap());
+        //set client application name and callback in the cache
+        cacheUtil.cacheWebClientCacheBean(urlEncodedClientUrl,webCache);//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
+        log.info("Cache contains:{}", cacheUtil.toString());
+        return encodeAuthnRequest(authnRequest);
     }
 
     /**
@@ -364,7 +378,7 @@ public class UserFacade implements Serializable {
         return extensions;
     }
 
-    private LogoutRequest buildLogoutRequest(String user, String idpUrl, String spName) {
+    private LogoutRequest buildLogoutRequest(String userId, String idpUrl, String spName) {
         LogoutRequest logoutReq = (new LogoutRequestBuilder()).buildObject();
         logoutReq.setID(Integer.toHexString(new Double(Math.random()).intValue()));
         logoutReq.setDestination(idpUrl);
@@ -375,17 +389,19 @@ public class UserFacade implements Serializable {
         Issuer issuer = issuerBuilder.buildObject();
         issuer.setValue(spName);
         logoutReq.setIssuer(issuer);
+
+        //Get cached sessionIndex and subject ID.
+        //TODO nullpointer when read! verify
+        SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
+        UserSession sIndex = null;
+        if (cacheUtil.getSessionIndex(userId) != null) {
+            sIndex = cacheUtil.getSessionIndex(userId);
+            sessionIndex.setSessionIndex(sIndex.getSessionIndex());
+        }
         NameID nameId = (new NameIDBuilder()).buildObject();
         nameId.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
-        nameId.setValue(user);
+        nameId.setValue(sIndex.getSubjectId());
         logoutReq.setNameID(nameId);
-        SessionIndex sessionIndex = (new SessionIndexBuilder()).buildObject();
-        //add sessionindex from user
-        //TODO nullpointer when read! verify
-        if (ehcache.getClientAppCache().get(user) != null) {
-            String sIndex = (String) ehcache.getClientAppCache().get(user).getObjectValue();
-            sessionIndex.setSessionIndex(sIndex);
-        }
         logoutReq.getSessionIndexes().add(sessionIndex);
         logoutReq.setReason("Single Logout");
         return logoutReq;
@@ -429,7 +445,7 @@ public class UserFacade implements Serializable {
      * @param response
      * @return
      */
-    public SAMLResponseRedirect processSAML2Response(String response) throws ValidationException {
+    public SAMLResponseRedirect processSAML2Response(String response) {
         String relayState = response.split("&")[1].replaceFirst(SAML2_KEY_RELAY_STATE,"").trim();//the relaystate contains the correlation id for the calling web client == callbackurl
         StringBuffer clientUrl = new StringBuffer("");
         Assertion assertion = null;
@@ -438,27 +454,26 @@ public class UserFacade implements Serializable {
             assertion = processSSOResponse(response);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
-            idAttribs.setUserName(UserConventionUtil.formatUserName(assertion.getSubject().getNameID().getValue()));
-            log.info("Audience URI found: {}", relayState);
+            idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
+            log.info("Relay state found with correlation: {}", relayState);
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
-        utilPrintCache();
-        WebClientCacheBean webClientCacheBean = (WebClientCacheBean) ehcache.getClientAppCache().get(relayState.trim()).getObjectValue();
-        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
-            List<AttributeStatement> attributeStatements = assertion.getAttributeStatements();
+        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
+/*        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
             responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
         } else {
             responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(idAttribs.getUserName()));
-        }
+        }*/
+        responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
         clientUrl.append(webClientCacheBean.getClientAppRedirect());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
         //for logout, we should keep the SessionIndex in cache with the username
         if (assertion != null && assertion.getAuthnStatements().size() > 0) {
-            //update or create user sessionindex in cache
-            ehcache.getClientAppCache().put(new net.sf.ehcache.Element(idAttribs.getUserName(), assertion.getAuthnStatements().get(0).getSessionIndex()));
+            //update or create user sessionindex in cache -- id::the subject of JWT -- subject::saml2 subjectid -- sessionindex
+            cacheUtil.cacheSessionIndex(idAttribs.getId(), new UserSession(idAttribs.getSubjectId(),assertion.getAuthnStatements().get(0).getSessionIndex()));
         }
         return responseRedirect; //be aware that this is enflated.
     }
@@ -508,7 +523,7 @@ public class UserFacade implements Serializable {
      * @throws IOException
      * @throws UnmarshallingException
      */
-    private Assertion processSSOResponse(String responseString) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException, ValidationException {
+    private Assertion processSSOResponse(String responseString) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
         DefaultBootstrap.bootstrap();
         //remove other query params
         String samlResp = responseString.split("&")[0];
@@ -527,12 +542,9 @@ public class UserFacade implements Serializable {
         Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
         Response response = (Response) unmarshaller.unmarshall(element);
 
-        //validate response
-/*        try {
-            SamlResponseValidator.validateSAMLResponse(config.getIDPPublicKeyFile(),response);
-        } catch (ValidationException e) {
-            throw e;
-        }*/
+        //TODO validate signature - see SSOAgent example of WSO2
+        //String certificate = response.getSignature().getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue();
+        //get assertion
         Assertion assertion = response.getAssertions().get(0);
         //Return base64url encoded assertion
         return assertion;
@@ -646,7 +658,7 @@ public class UserFacade implements Serializable {
      * No ACL activation.
      * Users are created implicitly, first we check if the user exists already on the gateway.
      *
-     * The securityflow param triggers optional flows for validation and token issuance.
+     * The security flow param triggers optional flows for validation and token issuance.
      *
      * @param identityAttributes SAML2 attributes
      * @return
@@ -660,19 +672,24 @@ public class UserFacade implements Serializable {
             String gatewayId = gatewayFacade.getDefaultGateway().getId();
             Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
             IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-            KongConsumer consumer = gatewayLink.getConsumer(identityAttributes.getUserName());
-            if (consumer == null) {
-                //user doesn't exists, implicit creation
-                consumer = gatewayLink.createConsumer(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getUserName()));
+            //get user from local DB - if doesn't exists -> create new consumer
+            UserBean user = idmStorage.getUser(identityAttributes.getId());
+            if(user==null) {//exists already
+                user = initNewUser(identityAttributes);
+            }
+            log.info("User found:{}",user);
+            KongConsumer consumer = null;
+            if(!StringUtils.isEmpty(user.getKongUsername())) consumer=gatewayLink.getConsumer(user.getKongUsername());
+            if(consumer==null){
+                //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
+                consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+                //update kong username in local userbean
+                user.setKongUsername(consumer.getId());
+                idmStorage.updateUser(user);
                 KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
                 jwtKey = jwtResponse.getKey();//JWT "iss"
                 jwtSecret = jwtResponse.getSecret();
-                //we are sure that this consumer must be a physical user
-                UserBean tempUser = idmStorage.getUser(identityAttributes.getUserName());
-                if (tempUser == null) {
-                    initNewUser(identityAttributes.getUserName());
-                }
-            } else {
+            }else {
                 KongPluginJWTResponseList response = gatewayLink.getConsumerJWT(consumer.getId());
                 if (response.getData().size() > 0) {
                     jwtKey = response.getData().get(0).getKey();
@@ -682,11 +699,6 @@ public class UserFacade implements Serializable {
                     KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
                     jwtKey = jwtResponse.getKey();//JWT "iss"
                     jwtSecret = jwtResponse.getSecret();
-                }
-                //it is possible that the user exists in the gateway but not in the API Engine
-                UserBean userToBeVerified = idmStorage.getUser(identityAttributes.getUserName());
-                if (userToBeVerified == null || StringUtils.isEmpty(userToBeVerified.getUsername())) {
-                    initNewUser(identityAttributes.getUserName());
                 }
             }
             //set the cache for performance and resilience
@@ -739,7 +751,10 @@ public class UserFacade implements Serializable {
                 String gatewayId = gatewayFacade.getDefaultGateway().getId();
                 Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
                 IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-                String userName = ConsumerConventionUtil.createUserUniqueId(scimUser.getUsername());//should be unique
+                //TODO username or ID?
+                String userName = ConsumerConventionUtil.createUserUniqueId(scimUser.getAccountId());//should be unique
+                //TODO
+                UserBean userToVerify = idmStorage.getUser(scimUser.getAccountId());
                 KongConsumer consumer = gatewayLink.getConsumer(userName);
                 if (consumer == null) {
                     //user doesn't exists, implicit creation
@@ -776,7 +791,7 @@ public class UserFacade implements Serializable {
      * @param jwtSecret
      */
     private void setTokenCache(String jwtKey, String jwtSecret) {
-        ehcache.getUserTokenCache().put(new net.sf.ehcache.Element(jwtKey,jwtSecret));
+        cacheUtil.cacheToken(jwtKey,jwtSecret);
     }
 
     /**
@@ -786,7 +801,7 @@ public class UserFacade implements Serializable {
      * @return
      */
     private String getSecretFromTokenCache(String key, String userName){
-        String secret = (String) ehcache.getUserTokenCache().get(key).getObjectValue();
+        String secret = cacheUtil.getToken(key);
         if(StringUtils.isEmpty(secret)){
             //retrieve from Kong
             String gatewayId = null;
@@ -817,17 +832,59 @@ public class UserFacade implements Serializable {
 
     /**
      * TODO Specific role implementation should be covered here - depending on using XACML or JWT roles.
+     * We create a user only in the API Engine db. Upon next visit of the user, the Kong consumer will be created on demand and JWT
+     * token will be issued after user authentication.
+     *
+     * @param identityAttributes
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    private UserBean initNewUser(IdentityAttributes identityAttributes) {
+        log.info("Init new user with attributes:{}",identityAttributes);
+        try {
+            //create user
+            UserBean newUser = new UserBean();
+            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));//upn of UUID
+            newUser.setFullName(identityAttributes.getGivenName()+" "+identityAttributes.getFamilyName());
+            newUser.setAdmin(false);
+            //TODO add check if SCIM support is available
+/*            ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUserId(identityAttributes.getId());
+            //provision with SCIM info retrieved
+            if(userInfoByUsername!=null){
+                if(userInfoByUsername.getEmails()!=null&&userInfoByUsername.getEmails().size()>0)newUser.setEmail(userInfoByUsername.getEmails().get(0));
+                if(!StringUtils.isEmpty(userInfoByUsername.getName()))newUser.setFullName(userInfoByUsername.getName());
+                else{
+                    if(!StringUtils.isEmpty(userInfoByUsername.getGivenname())&&!StringUtils.isEmpty(userInfoByUsername.getSurname()))newUser.setFullName(userInfoByUsername.getGivenname()+" "+userInfoByUsername.getSurname());
+                }
+            }*/
+            idmStorage.createUser(newUser);
+            //assign default roles in company
+            Set<String> roles = new TreeSet<>();
+            //TODO do it decently with XACML
+            roles.add(Role.OWNER.toString());
+            //assign to default company
+            GrantRolesBean usergrants = new GrantRolesBean();
+            usergrants.setRoleIds(roles);
+            usergrants.setUserId(newUser.getUsername());
+            organizationFacade.grant(config.getDefaultOrganization(), usergrants);
+            return newUser;
+        } catch (StorageException e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
+        }
+    }
+
+    /**
+     * Search for a user and init.
      *
      * @param username
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private void initNewUser(String username) {
         try {
-            //TODO add check if SCIM suppor tis available
+            //TODO add check if SCIM support is available
             ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUsername(username);
             //create user
             UserBean newUser = new UserBean();
-            newUser.setUsername(UserConventionUtil.formatUserName(username));
+            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(username));
             newUser.setAdmin(false);
             if(userInfoByUsername!=null){
                 if(userInfoByUsername.getEmails()!=null&&userInfoByUsername.getEmails().size()>0)newUser.setEmail(userInfoByUsername.getEmails().get(0));
@@ -839,9 +896,6 @@ public class UserFacade implements Serializable {
             idmStorage.createUser(newUser);
             //assign default roles in company
             Set<String> roles = new TreeSet<>();
-            //TODO do it decently
-/*            roles.add(Role.WATCHER.toString());
-            roles.add(Role.DEVELOPER.toString());*/
             roles.add(Role.OWNER.toString());
             //assign to default company
             GrantRolesBean usergrants = new GrantRolesBean();
@@ -877,9 +931,18 @@ public class UserFacade implements Serializable {
      * Prints the full cache in the log file in order to verify application request parameters.
      */
     public void utilPrintCache() {
-        log.debug("Cache:{}", ehcache.getClientAppCache().getName());
-        List keys = ehcache.getClientAppCache().getKeys();
-        keys.forEach(key -> log.info("Key found:{} with value {}", key, ehcache.getClientAppCache().get(key)));
+        log.info("SessionIndex cache values:");
+        Set<String> sessionKeys = cacheUtil.getSessionKeys();
+        log.info("Sessionkeys: {}",sessionKeys);
+        sessionKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getSessionIndex(key)));
+        log.info("Token cache values:");
+        Set<String> tokenKeys = cacheUtil.getTokenKeys();
+        log.info("Tokenkeys: {}",tokenKeys);
+        tokenKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getToken(key)));
+        log.info("WebCacheBean cache values:");
+        Set<String> webKeys = cacheUtil.getTokenKeys();
+        log.info("webkeys: {}",webKeys);
+        webKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getWebCacheBean(key)));
     }
 
     /**
@@ -942,7 +1005,7 @@ public class UserFacade implements Serializable {
         IdentityAttributes identityAttributes = new IdentityAttributes();
         //map values
         identityAttributes.setId(externalUserBean.getAccountId());
-        identityAttributes.setUserName(UserConventionUtil.formatUserName(externalUserBean.getUsername()));
+        identityAttributes.setUserName(ConsumerConventionUtil.createUserUniqueId(externalUserBean.getUsername()));
         identityAttributes.setFamilyName(externalUserBean.getSurname());
         identityAttributes.setGivenName(externalUserBean.getGivenname());
         return identityAttributes;
