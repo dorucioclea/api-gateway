@@ -15,6 +15,24 @@ In order to build the project, the ejb module contains the necessary profiles. E
 Example build for dev - skipping tests can be done:
 `clean install -Pt1t-dev -DskipTests=true`
 
+You can customize the artifact name adding a 'targetenv' property for building:
+`clean install -Pdefault -DskipTests=true -Dtargetenv=t1t`
+
+
+Release Notes - Digipolis-APIM - Version APIM-v0.5.1
+----------------------------------------------------
+## Bug
+
+*   [[APIE-402](https://jira.antwerpen.be/browse/APIE-402)] - Connectiestring tussen Kong en Cassandra was plots verdwenen
+*   [[APIE-448](https://jira.antwerpen.be/browse/APIE-448)] - Multilanguage Engine Swagger file breaks try-out functionality
+
+## New Feature
+
+*   [[APIE-447](https://jira.antwerpen.be/browse/APIE-447)] - Feature request: aanpassing copy "my marketplace"
+
+## Story
+
+*   [[APIE-475](https://jira.antwerpen.be/browse/APIE-475)] - Wijzigingen in IDP config en user attributen
 
 Release Notes - Digipolis-APIM - Version APIM-v0.5.0
 ----------------------------------------------------
