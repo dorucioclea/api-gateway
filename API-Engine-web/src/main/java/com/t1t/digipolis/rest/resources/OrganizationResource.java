@@ -871,7 +871,7 @@ public class OrganizationResource implements IOrganizationResource {
         try {
             ServiceVersionBean serviceVersion = getServiceVersion(organizationId, serviceId, version);
             InputStream definition = orgFacade.getServiceDefinition(organizationId, serviceId, version);
-            if (definition == null) throw new Exception("No definition found");
+            if (definition == null) return null;
             ResponseBuilder builder = Response.ok().entity(definition);
             if (serviceVersion.getDefinitionType() == ServiceDefinitionType.SwaggerJSON) {
                 builder.type(MediaType.APPLICATION_JSON);
