@@ -871,6 +871,7 @@ public class OrganizationResource implements IOrganizationResource {
         try {
             ServiceVersionBean serviceVersion = getServiceVersion(organizationId, serviceId, version);
             InputStream definition = orgFacade.getServiceDefinition(organizationId, serviceId, version);
+            if (definition == null) throw new Exception("No definition found");
             ResponseBuilder builder = Response.ok().entity(definition);
             if (serviceVersion.getDefinitionType() == ServiceDefinitionType.SwaggerJSON) {
                 builder.type(MediaType.APPLICATION_JSON);
@@ -881,12 +882,10 @@ public class OrganizationResource implements IOrganizationResource {
             } else {
                 throw new Exception("Service definition type not supported: " + serviceVersion.getDefinitionType()); //$NON-NLS-1$
             }
-
             return builder.build();
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
-
             throw new SystemErrorException(e);
         }
     }
