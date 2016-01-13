@@ -1193,9 +1193,7 @@ public class OrganizationResource implements IOrganizationResource {
     public ServiceMarketInfo getServiceMarketInfo(
             @PathParam("organizationId") String organizationId,
             @PathParam("serviceId") String serviceId,
-            @PathParam("version") String version) throws NotAuthorizedException, InvalidMetricCriteriaException {
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
+            @PathParam("version") String version) throws InvalidMetricCriteriaException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
