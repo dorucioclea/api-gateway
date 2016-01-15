@@ -544,7 +544,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
                 // Verify the status: if Created, Ready or Registered we need to remove the consumer from Kong
                 ApplicationStatus status = version.getStatus();
-                log.info("Application status: {}", version.getStatus());
                 if (status.equals(ApplicationStatus.Created) || status.equals(ApplicationStatus.Ready) || status.equals(ApplicationStatus.Registered)) {
                     Application application = new Application();
                     application.setOrganizationId(version.getOrganizationId());
