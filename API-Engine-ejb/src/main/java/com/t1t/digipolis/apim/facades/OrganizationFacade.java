@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
+import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
@@ -535,10 +536,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             // Get Application versions
             List<ApplicationVersionSummaryBean> versions = query.getApplicationVersions(applicationBean.getOrganization().getId(), applicationBean.getId());
-            // For each version, verify the status: if Created, Ready or Registered we need to remove the consumer from Kong
+            // For each version, we will clean up the database and the gateway
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
             versions.stream().forEach(version -> {
+                // We need to remove any existing contracts for this version
+                deleteAllContracts(version.getOrganizationId(), version.getId(), version.getVersion());
+
+                // Verify the status: if Created, Ready or Registered we need to remove the consumer from Kong
                 ApplicationStatus status = version.getStatus();
+                log.info("Application status: {}", version.getStatus());
                 if (status.equals(ApplicationStatus.Created) || status.equals(ApplicationStatus.Ready) || status.equals(ApplicationStatus.Registered)) {
                     Application application = new Application();
                     application.setOrganizationId(version.getOrganizationId());
@@ -1106,7 +1112,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             try {
                 //We create the new application version consumer
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                if(contract!=null){
+                if(!avb.getStatus().equals(ApplicationStatus.Retired)) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
                     gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());
                 }
@@ -1274,9 +1280,56 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
             // Get Service versions
             List<ServiceVersionSummaryBean> versions = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
-            // For each version, verify the status: if Published we need to remove the API from Kong
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
             versions.stream().forEach(version -> {
+
+                // Remove any existing contracts
+                try {
+                    List<ContractSummaryBean> contracts = query.getServiceContracts(version.getOrganizationId(), version.getId(), version.getVersion(), 1, 1000);
+                    contracts.stream().forEach(contract -> {
+                        try {
+                            ContractBean contractBean = storage.getContract(contract.getContractId());
+                            storage.deleteContract(contractBean);
+                        } catch (StorageException e) {
+                            throw new SystemErrorException(e);
+                        }
+                    });
+                } catch (StorageException e) {
+                    throw new SystemErrorException(e);
+                }
+
+                // Remove service definition if found
+                InputStream definitionStream = getServiceDefinition(version.getOrganizationId(), version.getId(), version.getVersion());
+                if (definitionStream != null) {
+                    deleteServiceDefinition(version.getOrganizationId(), version.getId(), version.getVersion());
+                }
+
+                // Remove service policies
+                List<PolicySummaryBean> policies = listServicePolicies(version.getOrganizationId(), version.getId(), version.getVersion());
+                policies.stream().forEach(policy -> {
+                    try {
+                        PolicyBean policyBean = storage.getPolicy(PolicyType.Service, version.getOrganizationId(), version.getId(), version.getVersion(), policy.getId());
+                        storage.deletePolicy(policyBean);
+                    } catch (AbstractRestException e) {
+                        throw e;
+                    } catch (Exception e) {
+                        throw new SystemErrorException(e);
+                    }
+                });
+
+                // Remove gateway config & plan configuration for service version
+                ServiceVersionBean svb = getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
+                svb.getGateways().clear();
+                svb.getPlans().clear();
+                try {
+                    storage.updateServiceVersion(svb);
+                } catch (AbstractRestException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new SystemErrorException(e);
+                }
+
+                // For each version, verify the status: if Published we need to remove the API from Kong
                 ServiceStatus status = version.getStatus();
                 if (status.equals(ServiceStatus.Published)) {
                     Service service = new Service();
@@ -1303,6 +1356,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     throw new SystemErrorException(e);
                 }
             });
+
+            // Remove support entries
+            List<SupportBean> supportTickets = listServiceSupportTickets(organizationId, serviceId);
+            supportTickets.stream().forEach(ticket -> {
+                deleteSupportTicket(organizationId, serviceId, ticket.getId());
+            });
+
+            // Remove service announcements
+            List<AnnouncementBean> announcements = getServiceAnnouncements(organizationId, serviceId);
+            announcements.stream().forEach(announcement -> {
+                deleteServiceAnnouncement(organizationId, serviceId, announcement.getId());
+            });
+
             // Finally, delete the Service from API Engine
             storage.deleteService(serviceBean);
         } catch (AbstractRestException e) {
