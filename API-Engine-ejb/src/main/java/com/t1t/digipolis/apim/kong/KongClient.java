@@ -78,8 +78,8 @@ public interface KongClient {
     @DELETE("/apis/{apinameorid}/plugins/{id}")Object deletePlugin(@Path("apinameorid")String apiNameOrId, @Path("id") String pluginId);
 
     /*********************   OAUTH   *******************/
-    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path("consumerId")String consumerId,@Query("name") String name, @Query("client_id")String clientId, @Query("client_secret")String clientSecret,@Query("redirect_uri")String redirectURL);
-    @GET("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(@Path("consumerId")String consumerId);
+    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path(value = "consumerId", encode = false)String consumerId,@Query("name") String name, @Query("client_id")String clientId, @Query("client_secret")String clientSecret,@Query("redirect_uri")String redirectURL);
+    @GET("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(@Path(value = "consumerId", encode = false)String consumerId);
     @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(@Query("client_id")String clientId);
-    @DELETE("/consumers/{consumerId}/oauth2/{pluginId}")Object deleteOAuth2Credential(@Path("consumerId")String consumerId, @Path("pluginId")String pluginId);
+    @DELETE("/consumers/{consumerId}/oauth2/{pluginId}")Object deleteOAuth2Credential(@Path(value = "consumerId", encode = false)String consumerId, @Path("pluginId")String pluginId);
 }
