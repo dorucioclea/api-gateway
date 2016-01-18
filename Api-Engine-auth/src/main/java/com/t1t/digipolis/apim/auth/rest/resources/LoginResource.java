@@ -6,6 +6,8 @@ import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
+import com.t1t.digipolis.apim.beans.jwt.JWTRequest;
+import com.t1t.digipolis.apim.beans.jwt.JWTResponse;
 import com.t1t.digipolis.apim.beans.scim.ExternalUserRequest;
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
 import com.t1t.digipolis.apim.beans.user.SAMLLogoutRequest;
@@ -154,6 +156,25 @@ public class LoginResource implements ILoginResource {
         }
         if (uri != null) return Response.seeOther(uri).build();
         return Response.ok(request).build();
+    }
+
+    @ApiOperation(value = "External SAML2 validation endpoint for consumers dealing with IDP directly",
+            notes = "This endpoint should be used by an application, who is know as a Service Provider for an IDP. The API Engine will validate the SAML2 response and issue a JWT.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = JWTResponse.class, message = "JWT response"),
+            @ApiResponse(code = 500, response = Response.class, message = "Server error validating and generating JWT")
+    })
+    @POST
+    @Path("/idp/ext/validation")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response externalSAML2Validation(JWTRequest request) {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSamlResponse()));
+        SAMLResponseRedirect response = userFacade.validateExtSAML2(request.getSamlResponse());
+        JWTResponse jwtResponse = new JWTResponse();
+        String jwtToken = response.getToken();
+        jwtResponse.setToken(jwtToken);
+        return Response.ok().entity(jwtResponse).build();
     }
 
     @ApiOperation(value = "User logout",
