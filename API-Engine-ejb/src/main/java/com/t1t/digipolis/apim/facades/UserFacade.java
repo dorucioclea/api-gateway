@@ -479,6 +479,45 @@ public class UserFacade implements Serializable {
     }
 
     /**
+     * Processes the SAML Assertion and returns a SAML2 Bearer token.
+     *
+     * @param response
+     * @return
+     */
+    public SAMLResponseRedirect validateExtSAML2(String response) {
+        String relayState = response.split("&")[1].replaceFirst(SAML2_KEY_RELAY_STATE,"").trim();//the relaystate contains the correlation id for the calling web client == callbackurl
+        StringBuffer clientUrl = new StringBuffer("");
+        Assertion assertion = null;
+        IdentityAttributes idAttribs;
+        try {
+            assertion = processSSOResponse(response);
+            //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
+            idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
+            idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
+            log.info("Relay state found with correlation: {}", relayState);
+        } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
+            throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
+        }
+        SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
+        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
+/*        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
+            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
+        } else {
+            responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(idAttribs.getUserName()));
+        }*/
+        responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
+        clientUrl.append(webClientCacheBean.getClientAppRedirect());
+        if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
+        responseRedirect.setClientUrl(clientUrl.toString());
+        //for logout, we should keep the SessionIndex in cache with the username
+        if (assertion != null && assertion.getAuthnStatements().size() > 0) {
+            //update or create user sessionindex in cache -- id::the subject of JWT -- subject::saml2 subjectid -- sessionindex
+            cacheUtil.cacheSessionIndex(idAttribs.getId(), new UserSession(idAttribs.getSubjectId(),assertion.getAuthnStatements().get(0).getSessionIndex()));
+        }
+        return responseRedirect; //be aware that this is enflated.
+    }
+
+    /**
      * Parses SAML2 attributes to custom IdenityAttributes object.
      * This common IdentityAttr object is commonly used with SCIM.
      *
