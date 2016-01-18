@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
+import com.t1t.digipolis.apim.beans.jwt.JWTRequest;
 import com.t1t.digipolis.apim.beans.jwt.JWTResponse;
 import com.t1t.digipolis.apim.beans.scim.ExternalUserRequest;
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
@@ -166,9 +167,11 @@ public class LoginResource implements ILoginResource {
     @POST
     @Path("/idp/ext/validation")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response externalSAML2Validation(String request) {
+    public Response externalSAML2Validation(JWTRequest request) {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSamlResponse()));
+        SAMLResponseRedirect response = userFacade.validateExtSAML2(request.getSamlResponse());
         JWTResponse jwtResponse = new JWTResponse();
-        SAMLResponseRedirect response = userFacade.processSAML2Response(request);
         String jwtToken = response.getToken();
         jwtResponse.setToken(jwtToken);
         return Response.ok().entity(jwtResponse).build();
