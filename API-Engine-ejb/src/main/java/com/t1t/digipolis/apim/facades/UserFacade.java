@@ -451,7 +451,7 @@ public class UserFacade implements Serializable {
         Assertion assertion = null;
         IdentityAttributes idAttribs;
         try {
-            assertion = processSSOResponse(response);
+            assertion = processSSOResponse(response.split("&")[0]);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
@@ -480,35 +480,23 @@ public class UserFacade implements Serializable {
 
     /**
      * Processes the SAML Assertion and returns a SAML2 Bearer token.
+     * Expects a string starting with "SAMLResponse=".
      *
      * @param response
      * @return
      */
     public SAMLResponseRedirect validateExtSAML2(String response) {
-        String relayState = response.split("&")[1].replaceFirst(SAML2_KEY_RELAY_STATE,"").trim();//the relaystate contains the correlation id for the calling web client == callbackurl
-        StringBuffer clientUrl = new StringBuffer("");
         Assertion assertion = null;
         IdentityAttributes idAttribs;
         try {
             assertion = processSSOResponse(response);
-            //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
-            log.info("Relay state found with correlation: {}", relayState);
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
-        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
-/*        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
-            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
-        } else {
-            responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(idAttribs.getUserName()));
-        }*/
-        responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
-        clientUrl.append(webClientCacheBean.getClientAppRedirect());
-        if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
-        responseRedirect.setClientUrl(clientUrl.toString());
+        responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,null));
         //for logout, we should keep the SessionIndex in cache with the username
         if (assertion != null && assertion.getAuthnStatements().size() > 0) {
             //update or create user sessionindex in cache -- id::the subject of JWT -- subject::saml2 subjectid -- sessionindex
@@ -554,7 +542,7 @@ public class UserFacade implements Serializable {
      * Method processes the SAML2 Response in order to capture the SAML Assertion.
      * See: http://sureshatt.blogspot.be/2012/11/how-to-read-saml-20-response-with.html
      *
-     * @param responseString
+     * @param samlResp
      * @return
      * @throws SAXException
      * @throws ParserConfigurationException
@@ -562,10 +550,9 @@ public class UserFacade implements Serializable {
      * @throws IOException
      * @throws UnmarshallingException
      */
-    private Assertion processSSOResponse(String responseString) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
+    private Assertion processSSOResponse(String samlResp) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
         DefaultBootstrap.bootstrap();
         //remove other query params
-        String samlResp = responseString.split("&")[0];
         String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
         String base64URLDecodedResponse = URLDecoder.decode(base64EncodedResponse, "UTF-8");
         byte[] base64DecodedResponse = Base64.decode(base64URLDecodedResponse);
@@ -745,14 +732,18 @@ public class UserFacade implements Serializable {
             //start composing JWT token
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
             jwtRequestBean.setIssuer(jwtKey);
-            if(cacheBean.getTokenExpirationTimeMinutes()!=null)jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
-            else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+            if(cacheBean!=null){
+                if(cacheBean.getTokenExpirationTimeMinutes()!=null)jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
+                else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+                jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
+                jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
+            }else {
+                jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+            }
             jwtRequestBean.setName(identityAttributes.getUserName());
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
             jwtRequestBean.setSurname(identityAttributes.getFamilyName());
             jwtRequestBean.setSubject(identityAttributes.getId());
-            jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
-            jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
             issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);
             //close gateway
             gatewayLink.close();
