@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
 import com.t1t.digipolis.kong.model.KongPluginAnalytics;
@@ -316,7 +317,7 @@ public class GatewayValidation {
         for (int i = 0; i < ratesArray.size(); i++) {
             for (int j = i + 1; j < ratesArray.size(); j++) {
                 if (ratesArray.get(i) > 0 && ratesArray.get(j) > ratesArray.get(i)) {
-                    throw new PolicyViolationException("Rates for higher order granularities must be higher than or equal to those of lower orders");
+                    throw new PolicyDefinitionInvalidException("Rates for higher order granularities must be higher than or equal to those of lower orders");
                 }
             }
         }
