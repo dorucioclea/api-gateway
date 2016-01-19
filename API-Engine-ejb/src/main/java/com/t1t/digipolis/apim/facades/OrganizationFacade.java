@@ -423,9 +423,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) {
+    public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) throws StorageException {
         //get the application version based on provided client_id and client_secret - we need the name and
-        log.debug("Start enabling consumer for oauth2");
+        log.info("Start enabling consumer for oauth2");
+        UserBean user = idmStorage.getUser(request.getUniqueUserName());
         KongPluginOAuthConsumerRequest oauthRequest = new KongPluginOAuthConsumerRequest()
                 .withClientId(request.getAppOAuthId())
                 .withClientSecret(request.getAppOAuthSecret());
@@ -443,8 +444,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
-                    log.debug("Enable consumer for oauth:{} with values: {}",request.getUniqueUserName(),oauthRequest);
-                    response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
+                    log.info("Enable consumer for oauth:{} with values: {}",user.getKongUsername(),oauthRequest);
+                    response = gatewayLink.enableConsumerForOAuth(user.getKongUsername(), oauthRequest);
                 } catch (Exception e) {
                     log.debug("Error enabling user for oauth:{}",e.getStackTrace());
                     ;//don't do anything
@@ -454,7 +455,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     //try to recover existing user
                     try {
                         IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
-                        KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(request.getUniqueUserName());
+                        KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(user.getKongUsername());
                         for (KongPluginOAuthConsumerResponse cred : credentials.getData()) {
                             if (cred.getClientId().equals(request.getAppOAuthId())) response = cred;
                         }
@@ -1149,9 +1150,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     //upon filling redirect URI the OAuth credential has been made, check if callback is there, otherwise 405 gateway exception.
                     if(contract!=null && !StringUtils.isEmpty(avb.getOauthClientRedirect())){
                         String uniqueUserId = securityContext.getCurrentUser();
+                        UserBean user = idmStorage.getUser(uniqueUserId);
                         KongPluginOAuthConsumerResponseList info = gateway.getApplicationOAuthInformation(avb.getoAuthClientId());
                         if(info.getData().size()>0){
-                            gateway.deleteOAuthConsumerPlugin(uniqueUserId, ((KongPluginOAuthConsumerResponse)info.getData().get(0)).getId());
+                            gateway.deleteOAuthConsumerPlugin(user.getKongUsername(), ((KongPluginOAuthConsumerResponse)info.getData().get(0)).getId());
                         }
                     }
                 } catch (StorageException e) {
