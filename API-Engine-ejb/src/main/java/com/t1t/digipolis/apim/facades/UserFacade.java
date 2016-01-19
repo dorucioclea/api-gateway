@@ -254,7 +254,7 @@ public class UserFacade implements Serializable {
         log.info("Initate SAML2 redirect for {}", samlRequest.getIdpUrl());
         try {
             //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","");
+            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","").replaceAll("http://","");
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
