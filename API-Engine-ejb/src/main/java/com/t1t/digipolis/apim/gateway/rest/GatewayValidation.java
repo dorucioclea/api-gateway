@@ -51,7 +51,7 @@ public class GatewayValidation {
     }
 
     public static Policy validate(Policy policy) throws PolicyViolationException{
-        _LOG.debug("Valdiate policy:{}",policy);
+        _LOG.debug("Valdiate policy:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
         switch(policies){
@@ -88,7 +88,7 @@ public class GatewayValidation {
         //perform enhancements
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
-        responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWT,KongPluginJWT.class));
+        responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWT, KongPluginJWT.class));
         _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }
@@ -283,7 +283,13 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginIPRestriction.class);
         //if lists empty -> error
-        if(isEmptyList(req.getBlacklist())&&isEmptyList(req.getWhitelist()))throw new PolicyViolationException("At least one value should be provided.");
+        if(isEmptyList(req.getBlacklist())&&isEmptyList(req.getWhitelist()))throw new PolicyDefinitionInvalidException("At least one value should be provided.");
+        // check for duplicate values
+        req.getBlacklist().stream().forEach(blackVal -> req.getWhitelist().stream().forEach(whiteVal -> {
+            if (blackVal.equals(whiteVal)) {
+                throw new PolicyDefinitionInvalidException("Conflicting white/blacklist values: A value cannot be both on the whitelist and the blacklist");
+            }
+        }));
         KongPluginIPRestriction res = new KongPluginIPRestriction();
         res.setBlacklist(new ArrayList<>());
         res.setWhitelist(new ArrayList<>());
