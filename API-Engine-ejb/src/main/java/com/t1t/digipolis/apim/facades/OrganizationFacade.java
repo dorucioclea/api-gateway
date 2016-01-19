@@ -1150,9 +1150,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     //upon filling redirect URI the OAuth credential has been made, check if callback is there, otherwise 405 gateway exception.
                     if(contract!=null && !StringUtils.isEmpty(avb.getOauthClientRedirect())){
                         String uniqueUserId = securityContext.getCurrentUser();
+                        UserBean user = idmStorage.getUser(uniqueUserId);
                         KongPluginOAuthConsumerResponseList info = gateway.getApplicationOAuthInformation(avb.getoAuthClientId());
                         if(info.getData().size()>0){
-                            gateway.deleteOAuthConsumerPlugin(uniqueUserId, ((KongPluginOAuthConsumerResponse)info.getData().get(0)).getId());
+                            gateway.deleteOAuthConsumerPlugin(user.getKongUsername(), ((KongPluginOAuthConsumerResponse)info.getData().get(0)).getId());
                         }
                     }
                 } catch (StorageException e) {

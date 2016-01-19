@@ -2,12 +2,10 @@ package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginJWT;
@@ -27,16 +25,14 @@ import com.t1t.digipolis.kong.model.KongPluginResponseTransformerAdd;
 import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
 import com.t1t.digipolis.kong.model.KongPluginTcpLog;
 import com.t1t.digipolis.kong.model.KongPluginUdpLog;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.gateway.Gateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -106,6 +102,8 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
         if(oauthValue.getScopes().size()==0)throw new PolicyViolationException("Scopes/scopes description must be provided in order to apply OAuth2");
+        //create custom provisionkey - explicitly
+        oauthValue.setProvisionKey(UUID.randomUUID().toString());
         _LOG.debug("Modified policy:{}",policy);
         return policy;
     }

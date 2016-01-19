@@ -57,8 +57,7 @@ import java.util.*;
  * A REST client for accessing the Gateway API.
  * TODO ACL groups cannot be mixed through API => unique naming
  */
-@SuppressWarnings("javadoc") // class is temporarily delinked from its interfaces
-public class GatewayClient { /*implements ISystemResource, IServiceResource, IApplicationResource*/
+public class GatewayClient {
     private static Logger log = LoggerFactory.getLogger(GatewayClient.class.getName());
     private KongClient httpClient;
     private GatewayBean gatewayBean;
@@ -271,7 +270,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
                         case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
                         //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
                         case OAUTH2: KongPluginConfig config = createServicePolicy(api, GatewayValidation.validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
-                            postOAuth2Actions(service, policy,config);break;//upon transformation we use another enhanced object for json deserialization
+                            log.info("start post oauth2 actions");postOAuth2Actions(service, policy,config);break;//upon transformation we use another enhanced object for json deserialization
                         case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
                         case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
                         case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
@@ -315,6 +314,7 @@ public class GatewayClient { /*implements ISystemResource, IServiceResource, IAp
             //retrieve scope info from policy json
             KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);//original request - we need this for the scope descriptions
             KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(config.getConfig().toString(),KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
+            log.info("Response after applying oauth on API:{}",enhancedOAuthValue);
             ServiceVersionBean svb = storage.getServiceVersion(service.getOrganizationId(), service.getServiceId(), service.getVersion());
             svb.setProvisionKey(enhancedOAuthValue.getProvisionKey());
             Map<String,String> scopeMap = new HashMap<>();
