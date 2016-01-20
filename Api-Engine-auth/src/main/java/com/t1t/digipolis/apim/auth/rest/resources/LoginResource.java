@@ -166,7 +166,7 @@ public class LoginResource implements ILoginResource {
     })
     @POST
     @Path("/idp/ext/validation")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response externalSAML2Validation(JWTRequest request) {
         Preconditions.checkNotNull(request);
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSamlResponse()));
