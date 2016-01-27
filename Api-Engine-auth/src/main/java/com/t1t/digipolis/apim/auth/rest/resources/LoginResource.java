@@ -153,6 +153,8 @@ public class LoginResource implements ILoginResource {
             e.printStackTrace();
         } catch (MalformedURLException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            //TODO
         }
         if (uri != null) return Response.seeOther(uri).build();
         return Response.ok(request).build();
@@ -170,7 +172,12 @@ public class LoginResource implements ILoginResource {
     public Response externalSAML2Validation(JWTRequest request) {
         Preconditions.checkNotNull(request);
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSamlResponse()));
-        SAMLResponseRedirect response = userFacade.validateExtSAML2(request.getSamlResponse());
+        SAMLResponseRedirect response = null;
+        try {
+            response = userFacade.validateExtSAML2(request.getSamlResponse());
+        } catch (Exception e) {
+            //TODO
+        }
         JWTResponse jwtResponse = new JWTResponse();
         String jwtToken = response.getToken();
         jwtResponse.setToken(jwtToken);

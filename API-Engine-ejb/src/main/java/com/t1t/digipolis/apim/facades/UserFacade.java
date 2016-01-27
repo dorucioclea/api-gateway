@@ -445,7 +445,7 @@ public class UserFacade implements Serializable {
      * @param response
      * @return
      */
-    public SAMLResponseRedirect processSAML2Response(String response) {
+    public SAMLResponseRedirect processSAML2Response(String response) throws Exception{
         String relayState = response.split("&")[1].replaceFirst(SAML2_KEY_RELAY_STATE,"").trim();//the relaystate contains the correlation id for the calling web client == callbackurl
         StringBuffer clientUrl = new StringBuffer("");
         Assertion assertion = null;
@@ -485,7 +485,7 @@ public class UserFacade implements Serializable {
      * @param response
      * @return
      */
-    public SAMLResponseRedirect validateExtSAML2(String response) {
+    public SAMLResponseRedirect validateExtSAML2(String response) throws Exception {
         Assertion assertion = null;
         IdentityAttributes idAttribs;
         try {
@@ -530,10 +530,14 @@ public class UserFacade implements Serializable {
         }
         //map values
         if(extractedAttributes.size()>0){
-            identityAttributes.setId(extractedAttributes.get(ISAML2.ATTR_ID));
-            identityAttributes.setUserName(extractedAttributes.get(ISAML2.ATTR_USER_NAME));
-            identityAttributes.setFamilyName(extractedAttributes.get(ISAML2.ATTR_FAMILY_NAME));
-            identityAttributes.setGivenName(extractedAttributes.get(ISAML2.ATTR_GIVEN_NAME));
+            if(extractedAttributes.containsKey(ISAML2.ATTR_ID)){identityAttributes.setId(extractedAttributes.get(ISAML2.ATTR_ID));}
+            else{identityAttributes.setId("none");}
+            if(extractedAttributes.containsKey(ISAML2.ATTR_USER_NAME)){identityAttributes.setUserName(extractedAttributes.get(ISAML2.ATTR_USER_NAME));}
+            else{identityAttributes.setUserName("");}
+            if(extractedAttributes.containsKey(ISAML2.ATTR_FAMILY_NAME)){identityAttributes.setFamilyName(extractedAttributes.get(ISAML2.ATTR_FAMILY_NAME));}
+            else{identityAttributes.setFamilyName("");}
+            if(extractedAttributes.containsKey(ISAML2.ATTR_GIVEN_NAME)){identityAttributes.setGivenName(extractedAttributes.get(ISAML2.ATTR_GIVEN_NAME));}
+            else{identityAttributes.setGivenName("");}
         }
         return identityAttributes;
     }
