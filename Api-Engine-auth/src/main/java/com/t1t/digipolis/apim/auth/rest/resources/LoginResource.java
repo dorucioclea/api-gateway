@@ -17,6 +17,7 @@ import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
+import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
@@ -154,7 +155,8 @@ public class LoginResource implements ILoginResource {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (Exception e) {
-            //TODO
+            log.error("Grant Error:{}",e.getMessage());
+            throw new SAMLAuthException(e.getMessage());
         }
         if (uri != null) return Response.seeOther(uri).build();
         return Response.ok(request).build();
@@ -176,7 +178,8 @@ public class LoginResource implements ILoginResource {
         try {
             response = userFacade.validateExtSAML2(request.getSamlResponse());
         } catch (Exception e) {
-            //TODO
+            log.error("Grant Error:{}",e.getMessage());
+            throw new SAMLAuthException(e.getMessage());
         }
         JWTResponse jwtResponse = new JWTResponse();
         String jwtToken = response.getToken();
