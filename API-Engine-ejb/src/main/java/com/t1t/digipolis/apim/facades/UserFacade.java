@@ -703,7 +703,7 @@ public class UserFacade implements Serializable {
             Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
             IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
             //get user from local DB - if doesn't exists -> create new consumer
-            UserBean user = idmStorage.getUser(identityAttributes.getId());
+            UserBean user = idmStorage.getUser(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));
             if(user==null) {//exists already
                 user = initNewUser(identityAttributes);
             }
