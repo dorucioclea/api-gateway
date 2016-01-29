@@ -332,7 +332,7 @@ public class UserFacade implements Serializable {
         nameIdPolicyBuilder = new NameIDPolicyBuilder();
         nameIdPolicy = nameIdPolicyBuilder.buildObject();
         nameIdPolicy.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
-        nameIdPolicy.setSPNameQualifier("Isser");
+        nameIdPolicy.setSPNameQualifier("apiengine");
         nameIdPolicy.setAllowCreate(new Boolean(true));
 
         // AuthnContextClass
@@ -767,19 +767,30 @@ public class UserFacade implements Serializable {
      * @param email
      * @return
      */
-    public ExternalUserBean getUserByEmail(String email){
+    public ExternalUserBean getUserByEmail(String email) throws StorageException {
         ExternalUserBean scimUser = userExternalInfoService.getUserInfoByMail(email);
-        return getExteralUserAndInit(scimUser);
+        UserBean userByMail = idmStorage.getUserByMail(email);
+        ExternalUserBean extUser = new ExternalUserBean();
+        extUser.setAccountId(userByMail.getUsername());
+        extUser.setUsername(userByMail.getUsername());
+        List<String> emails = new ArrayList<>();
+        emails.add(userByMail.getEmail());
+        extUser.setEmails(emails);
+        extUser.setName(userByMail.getFullName());
+        return extUser;
     }
 
     public ExternalUserBean getUserByUsername(String username){
         ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(username);
-        return getExteralUserAndInit(scimUser);
+        return null;
+        //return getExteralUserAndInit(scimUser);
     }
 
+    //TODO set out of scope for SCIM review - only existing users can be found in this service
     public ExternalUserBean getExteralUserAndInit(ExternalUserBean scimUser){
         Preconditions.checkNotNull(scimUser);
         if(scimUser!=null && !StringUtils.isEmpty(scimUser.getUsername())){
+            //user should be created already
             //create the user in early stage - because it's a know external user - and we have the unique identifier coming from a trusted source
             try {
                 String gatewayId = gatewayFacade.getDefaultGateway().getId();
@@ -880,16 +891,6 @@ public class UserFacade implements Serializable {
             newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));//upn of UUID
             newUser.setFullName(identityAttributes.getGivenName()+" "+identityAttributes.getFamilyName());
             newUser.setAdmin(false);
-            //TODO add check if SCIM support is available
-/*            ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUserId(identityAttributes.getId());
-            //provision with SCIM info retrieved
-            if(userInfoByUsername!=null){
-                if(userInfoByUsername.getEmails()!=null&&userInfoByUsername.getEmails().size()>0)newUser.setEmail(userInfoByUsername.getEmails().get(0));
-                if(!StringUtils.isEmpty(userInfoByUsername.getName()))newUser.setFullName(userInfoByUsername.getName());
-                else{
-                    if(!StringUtils.isEmpty(userInfoByUsername.getGivenname())&&!StringUtils.isEmpty(userInfoByUsername.getSurname()))newUser.setFullName(userInfoByUsername.getGivenname()+" "+userInfoByUsername.getSurname());
-                }
-            }*/
             idmStorage.createUser(newUser);
             //assign default roles in company
             Set<String> roles = new TreeSet<>();

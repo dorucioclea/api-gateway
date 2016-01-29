@@ -16,6 +16,7 @@ import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
@@ -252,7 +253,12 @@ public class LoginResource implements ILoginResource {
     public Response getUserByMail(ExternalUserRequest externalUserRequest) {
         Preconditions.checkNotNull(externalUserRequest);
         Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserMail()));
-        ExternalUserBean userByEmail = userFacade.getUserByEmail(externalUserRequest.getUserMail());
+        ExternalUserBean userByEmail = null;
+        try {
+            userByEmail = userFacade.getUserByEmail(externalUserRequest.getUserMail());
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
         return Response.ok().entity(userByEmail).build();
     }
 

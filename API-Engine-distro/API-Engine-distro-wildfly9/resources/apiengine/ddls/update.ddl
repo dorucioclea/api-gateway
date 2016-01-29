@@ -12,7 +12,7 @@ UPDATE policydefs set form='{
       "title": "Minute(s)",
       "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
       "pattern": "^[1-9][0-9]*$",
-      "type": "number"
+      "type": "string"
     },
     "second": {
       "title": "Second(s)",
