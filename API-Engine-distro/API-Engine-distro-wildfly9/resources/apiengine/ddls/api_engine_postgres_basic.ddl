@@ -489,32 +489,38 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "day": {
       "title": "Day(s)",
       "description": "The amount of HTTP requests the developer can make per day. At least one limit must exist.",
-      "type": "number"
+      "pattern": "^[1-9][0-9]*$",
+      "type": "string"
     },
     "minute": {
       "title": "Minute(s)",
       "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
+      "pattern": "^[1-9][0-9]*$",
       "type": "number"
     },
     "second": {
       "title": "Second(s)",
       "description": "The amount of HTTP requests the developer can make per second. At least one limit must exist.",
-      "type": "number"
+      "pattern": "^[1-9][0-9]*$",
+      "type": "string"
     },
     "hour": {
       "title": "Hour(s)",
       "description": "The amount of HTTP requests the developer can make per hour. At least one limit must exist.",
-      "type": "number"
+      "pattern": "^[1-9][0-9]*$",
+      "type": "string"
     },
     "month": {
       "title": "Month(s)",
       "description": "The amount of HTTP requests the developer can make per month. At least one limit must exist.",
-      "type": "number"
+      "pattern": "^[1-9][0-9]*$",
+      "type": "string"
     },
     "year": {
       "title": "Year(s)",
       "description": "The amount of HTTP requests the developer can make per year. At least one limit must exist.",
-      "type": "number"
+      "pattern": "^[1-9][0-9]*$",
+      "type": "string"
     }
   }
 }', 'JsonSchema', 'fa-tachometer', 'Rate Limiting Policy', NULL ,TRUE ,TRUE ,FALSE );
