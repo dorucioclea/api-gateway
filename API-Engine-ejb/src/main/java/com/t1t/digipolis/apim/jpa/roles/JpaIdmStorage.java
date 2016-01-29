@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.jpa.roles;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.jpa.AbstractJpaStorage;
@@ -103,6 +104,13 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
 
         // Then delete the role itself.
         super.delete(prole);
+    }
+
+    @Override
+    public UserBean getUserByMail(String mail) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        Query query = entityManager.createQuery("SELECT from UserBean u WHERE u.email = :mail").setParameter("mail", mail);
+        return (UserBean) query.getResultList();
     }
 
     /**

@@ -2,12 +2,11 @@ package com.t1t.digipolis.apim.gateway.rest;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginJWT;
@@ -27,16 +26,14 @@ import com.t1t.digipolis.kong.model.KongPluginResponseTransformerAdd;
 import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
 import com.t1t.digipolis.kong.model.KongPluginTcpLog;
 import com.t1t.digipolis.kong.model.KongPluginUdpLog;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.gateway.Gateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -54,7 +51,7 @@ public class GatewayValidation {
     }
 
     public static Policy validate(Policy policy) throws PolicyViolationException{
-        _LOG.debug("Valdiate policy:{}",policy);
+        _LOG.debug("Valdiate policy:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
         switch(policies){
@@ -91,7 +88,7 @@ public class GatewayValidation {
         //perform enhancements
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
-        responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWT,KongPluginJWT.class));
+        responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWT, KongPluginJWT.class));
         _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }
@@ -106,6 +103,8 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
         if(oauthValue.getScopes().size()==0)throw new PolicyViolationException("Scopes/scopes description must be provided in order to apply OAuth2");
+        //create custom provisionkey - explicitly
+        oauthValue.setProvisionKey(UUID.randomUUID().toString());
         _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
@@ -284,7 +283,13 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginIPRestriction.class);
         //if lists empty -> error
-        if(isEmptyList(req.getBlacklist())&&isEmptyList(req.getWhitelist()))throw new PolicyViolationException("At least one value should be provided.");
+        if(isEmptyList(req.getBlacklist())&&isEmptyList(req.getWhitelist()))throw new PolicyDefinitionInvalidException("At least one value should be provided.");
+        // check for duplicate values
+        req.getBlacklist().stream().forEach(blackVal -> req.getWhitelist().stream().forEach(whiteVal -> {
+            if (blackVal.equals(whiteVal)) {
+                throw new PolicyDefinitionInvalidException("Conflicting white/blacklist values: A value cannot be both on the whitelist and the blacklist");
+            }
+        }));
         KongPluginIPRestriction res = new KongPluginIPRestriction();
         res.setBlacklist(new ArrayList<>());
         res.setWhitelist(new ArrayList<>());
@@ -318,7 +323,7 @@ public class GatewayValidation {
         for (int i = 0; i < ratesArray.size(); i++) {
             for (int j = i + 1; j < ratesArray.size(); j++) {
                 if (ratesArray.get(i) > 0 && ratesArray.get(j) > ratesArray.get(i)) {
-                    throw new PolicyViolationException("Rates for higher order granularities must be higher than or equal to those of lower orders");
+                    throw new PolicyDefinitionInvalidException("Rates for higher order granularities must be higher than or equal to those of lower orders");
                 }
             }
         }

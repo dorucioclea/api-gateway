@@ -239,7 +239,7 @@ public class UserFacade implements Serializable {
         log.info("Initate SAML2 request for {}", samlRequest.getIdpUrl());
         try {
             //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","");
+            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","").replaceAll("http://","");
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
@@ -254,7 +254,7 @@ public class UserFacade implements Serializable {
         log.info("Initate SAML2 redirect for {}", samlRequest.getIdpUrl());
         try {
             //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","");
+            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","").replaceAll("http://","");
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
@@ -332,7 +332,7 @@ public class UserFacade implements Serializable {
         nameIdPolicyBuilder = new NameIDPolicyBuilder();
         nameIdPolicy = nameIdPolicyBuilder.buildObject();
         nameIdPolicy.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
-        nameIdPolicy.setSPNameQualifier("Isser");
+        nameIdPolicy.setSPNameQualifier("apiengine");
         nameIdPolicy.setAllowCreate(new Boolean(true));
 
         // AuthnContextClass
@@ -445,13 +445,13 @@ public class UserFacade implements Serializable {
      * @param response
      * @return
      */
-    public SAMLResponseRedirect processSAML2Response(String response) {
+    public SAMLResponseRedirect processSAML2Response(String response) throws Exception{
         String relayState = response.split("&")[1].replaceFirst(SAML2_KEY_RELAY_STATE,"").trim();//the relaystate contains the correlation id for the calling web client == callbackurl
         StringBuffer clientUrl = new StringBuffer("");
         Assertion assertion = null;
         IdentityAttributes idAttribs;
         try {
-            assertion = processSSOResponse(response);
+            assertion = processSSOResponse(response.split("&")[0]);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
@@ -470,6 +470,33 @@ public class UserFacade implements Serializable {
         clientUrl.append(webClientCacheBean.getClientAppRedirect());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
+        //for logout, we should keep the SessionIndex in cache with the username
+        if (assertion != null && assertion.getAuthnStatements().size() > 0) {
+            //update or create user sessionindex in cache -- id::the subject of JWT -- subject::saml2 subjectid -- sessionindex
+            cacheUtil.cacheSessionIndex(idAttribs.getId(), new UserSession(idAttribs.getSubjectId(),assertion.getAuthnStatements().get(0).getSessionIndex()));
+        }
+        return responseRedirect; //be aware that this is enflated.
+    }
+
+    /**
+     * Processes the SAML Assertion and returns a SAML2 Bearer token.
+     * Expects a string starting with "SAMLResponse=".
+     *
+     * @param response
+     * @return
+     */
+    public SAMLResponseRedirect validateExtSAML2(String response) throws Exception {
+        Assertion assertion = null;
+        IdentityAttributes idAttribs;
+        try {
+            assertion = processSSOResponse(response);
+            idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
+            idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
+        } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
+            throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
+        }
+        SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
+        responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,null));
         //for logout, we should keep the SessionIndex in cache with the username
         if (assertion != null && assertion.getAuthnStatements().size() > 0) {
             //update or create user sessionindex in cache -- id::the subject of JWT -- subject::saml2 subjectid -- sessionindex
@@ -503,10 +530,14 @@ public class UserFacade implements Serializable {
         }
         //map values
         if(extractedAttributes.size()>0){
-            identityAttributes.setId(extractedAttributes.get(ISAML2.ATTR_ID));
-            identityAttributes.setUserName(extractedAttributes.get(ISAML2.ATTR_USER_NAME));
-            identityAttributes.setFamilyName(extractedAttributes.get(ISAML2.ATTR_FAMILY_NAME));
-            identityAttributes.setGivenName(extractedAttributes.get(ISAML2.ATTR_GIVEN_NAME));
+            if(extractedAttributes.containsKey(ISAML2.ATTR_ID)){identityAttributes.setId(extractedAttributes.get(ISAML2.ATTR_ID));}
+            else{identityAttributes.setId("none");}
+            if(extractedAttributes.containsKey(ISAML2.ATTR_USER_NAME)){identityAttributes.setUserName(extractedAttributes.get(ISAML2.ATTR_USER_NAME));}
+            else{identityAttributes.setUserName("");}
+            if(extractedAttributes.containsKey(ISAML2.ATTR_FAMILY_NAME)){identityAttributes.setFamilyName(extractedAttributes.get(ISAML2.ATTR_FAMILY_NAME));}
+            else{identityAttributes.setFamilyName("");}
+            if(extractedAttributes.containsKey(ISAML2.ATTR_GIVEN_NAME)){identityAttributes.setGivenName(extractedAttributes.get(ISAML2.ATTR_GIVEN_NAME));}
+            else{identityAttributes.setGivenName("");}
         }
         return identityAttributes;
     }
@@ -515,7 +546,7 @@ public class UserFacade implements Serializable {
      * Method processes the SAML2 Response in order to capture the SAML Assertion.
      * See: http://sureshatt.blogspot.be/2012/11/how-to-read-saml-20-response-with.html
      *
-     * @param responseString
+     * @param samlResp
      * @return
      * @throws SAXException
      * @throws ParserConfigurationException
@@ -523,10 +554,9 @@ public class UserFacade implements Serializable {
      * @throws IOException
      * @throws UnmarshallingException
      */
-    private Assertion processSSOResponse(String responseString) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
+    private Assertion processSSOResponse(String samlResp) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
         DefaultBootstrap.bootstrap();
         //remove other query params
-        String samlResp = responseString.split("&")[0];
         String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
         String base64URLDecodedResponse = URLDecoder.decode(base64EncodedResponse, "UTF-8");
         byte[] base64DecodedResponse = Base64.decode(base64URLDecodedResponse);
@@ -673,7 +703,7 @@ public class UserFacade implements Serializable {
             Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
             IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
             //get user from local DB - if doesn't exists -> create new consumer
-            UserBean user = idmStorage.getUser(identityAttributes.getId());
+            UserBean user = idmStorage.getUser(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));
             if(user==null) {//exists already
                 user = initNewUser(identityAttributes);
             }
@@ -706,14 +736,18 @@ public class UserFacade implements Serializable {
             //start composing JWT token
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
             jwtRequestBean.setIssuer(jwtKey);
-            if(cacheBean.getTokenExpirationTimeMinutes()!=null)jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
-            else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+            if(cacheBean!=null){
+                if(cacheBean.getTokenExpirationTimeMinutes()!=null)jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
+                else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+                jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
+                jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
+            }else {
+                jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+            }
             jwtRequestBean.setName(identityAttributes.getUserName());
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
             jwtRequestBean.setSurname(identityAttributes.getFamilyName());
             jwtRequestBean.setSubject(identityAttributes.getId());
-            jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
-            jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
             issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);
             //close gateway
             gatewayLink.close();
@@ -733,19 +767,29 @@ public class UserFacade implements Serializable {
      * @param email
      * @return
      */
-    public ExternalUserBean getUserByEmail(String email){
-        ExternalUserBean scimUser = userExternalInfoService.getUserInfoByMail(email);
-        return getExteralUserAndInit(scimUser);
+    public ExternalUserBean getUserByEmail(String email) throws StorageException {
+        UserBean userByMail = idmStorage.getUserByMail(email);
+        ExternalUserBean extUser = new ExternalUserBean();
+        extUser.setAccountId(userByMail.getUsername());
+        extUser.setUsername(userByMail.getUsername());
+        List<String> emails = new ArrayList<>();
+        emails.add(userByMail.getEmail());
+        extUser.setEmails(emails);
+        extUser.setName(userByMail.getFullName());
+        return extUser;
     }
 
     public ExternalUserBean getUserByUsername(String username){
-        ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(username);
-        return getExteralUserAndInit(scimUser);
+        //ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(username);
+        return null;
+        //return getExteralUserAndInit(scimUser);
     }
 
+    //TODO set out of scope for SCIM review - only existing users can be found in this service
     public ExternalUserBean getExteralUserAndInit(ExternalUserBean scimUser){
         Preconditions.checkNotNull(scimUser);
         if(scimUser!=null && !StringUtils.isEmpty(scimUser.getUsername())){
+            //user should be created already
             //create the user in early stage - because it's a know external user - and we have the unique identifier coming from a trusted source
             try {
                 String gatewayId = gatewayFacade.getDefaultGateway().getId();
@@ -846,16 +890,6 @@ public class UserFacade implements Serializable {
             newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));//upn of UUID
             newUser.setFullName(identityAttributes.getGivenName()+" "+identityAttributes.getFamilyName());
             newUser.setAdmin(false);
-            //TODO add check if SCIM support is available
-/*            ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUserId(identityAttributes.getId());
-            //provision with SCIM info retrieved
-            if(userInfoByUsername!=null){
-                if(userInfoByUsername.getEmails()!=null&&userInfoByUsername.getEmails().size()>0)newUser.setEmail(userInfoByUsername.getEmails().get(0));
-                if(!StringUtils.isEmpty(userInfoByUsername.getName()))newUser.setFullName(userInfoByUsername.getName());
-                else{
-                    if(!StringUtils.isEmpty(userInfoByUsername.getGivenname())&&!StringUtils.isEmpty(userInfoByUsername.getSurname()))newUser.setFullName(userInfoByUsername.getGivenname()+" "+userInfoByUsername.getSurname());
-                }
-            }*/
             idmStorage.createUser(newUser);
             //assign default roles in company
             Set<String> roles = new TreeSet<>();

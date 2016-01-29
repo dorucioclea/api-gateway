@@ -18,6 +18,36 @@ Example build for dev - skipping tests can be done:
 You can customize the artifact name adding a 'targetenv' property for building:
 `clean install -Pdefault -DskipTests=true -Dtargetenv=t1t`
 
+You can customize artifact and define profile at the same time, for example:
+`clean install -DskipTests=true -Dtargetenv=dev -Pdigi-dev`
+
+
+Release Notes - Digipolis-APIM - Version APIM-v0.5.2
+----------------------------------------------------
+
+## Sub-task
+
+*   [[APIE-425](https://jira.antwerpen.be/browse/APIE-425)] - SCIM IDP protocol
+*   [[APIE-426](https://jira.antwerpen.be/browse/APIE-426)] - Enable signed SAML response on IS
+
+## Bug
+
+*   [[APIE-414](https://jira.antwerpen.be/browse/APIE-414)] - Add Policy - CORS allows incorrect values in form.
+*   [[APIE-415](https://jira.antwerpen.be/browse/APIE-415)] - OAuth2 policy form accepts negative "Token Expiration" values.
+*   [[APIE-416](https://jira.antwerpen.be/browse/APIE-416)] - IP Restriction policy accepts same IP's for both White and Black list.
+*   [[APIE-417](https://jira.antwerpen.be/browse/APIE-417)] - Error: Could not create Service Policy[TCP log policy & UDP policy] : unexpected error.
+*   [[APIE-418](https://jira.antwerpen.be/browse/APIE-418)] - New Announcement fails to create an announcement and an Unexpected error is thrown.
+*   [[APIE-421](https://jira.antwerpen.be/browse/APIE-421)] - Deleting Applications/Service does not always work correctly
+*   [[APIE-423](https://jira.antwerpen.be/browse/APIE-423)] - Creation of Tickets with redundant names possible.
+*   [[APIE-445](https://jira.antwerpen.be/browse/APIE-445)] - Uploaden van een ongeldige Swagger file geeft geen error
+
+## Story
+
+*   [[APIE-4](https://jira.antwerpen.be/browse/APIE-4)] - Ontwikkeling API engine
+*   [[APIE-7](https://jira.antwerpen.be/browse/APIE-7)] - Overdracht & acceptatie - API/SDK engine
+*   [[APIE-132](https://jira.antwerpen.be/browse/APIE-132)] - API Mgr gebruikt Identity Server als beveiligingssysteem
+*   [[APIE-272](https://jira.antwerpen.be/browse/APIE-272)] - Geautomatiseerde installatie van de API Mgr in de verschillende omgevingen
+*   [[APIE-278](https://jira.antwerpen.be/browse/APIE-278)] - Identity server heeft meerdere identiteit bronnen
 
 Release Notes - Digipolis-APIM - Version APIM-v0.5.1
 ----------------------------------------------------

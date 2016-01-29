@@ -46,7 +46,7 @@ curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers/rte.publisher.v1/
 curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengine.v1/plugins/ \
     --data "name=mashape-analytics" \
     --data "config.service_token=558a95f80f7a734609de5c04" \
-    --data "config.environment=digi-prod"
+    --data "config.environment=digi-acc"
 
 
 
@@ -77,4 +77,4 @@ curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengineauth.v1/p
 curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengineauth.v1/plugins/ \
     --data "name=mashape-analytics" \
     --data "config.service_token=558a95f80f7a734609de5c04" \
-    --data "config.environment=digi-prod"
+    --data "config.environment=digi-acc"

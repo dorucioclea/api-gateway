@@ -120,6 +120,14 @@ public interface IIdmStorage {
     public void deleteMembership(String userId, String roleId, String organizationId) throws StorageException;
 
     /**
+     * Retrieve a user based on his email.
+     *
+     * @param mail
+     * @throws StorageException
+     */
+    public UserBean getUserByMail(String mail) throws StorageException;
+
+    /**
      * Deletes all role memberships for a user in a given organization.
      * @param userId the user's id
      * @param organizationId the organization's id

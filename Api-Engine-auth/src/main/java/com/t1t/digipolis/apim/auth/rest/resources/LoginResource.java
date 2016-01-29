@@ -6,6 +6,8 @@ import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
+import com.t1t.digipolis.apim.beans.jwt.JWTRequest;
+import com.t1t.digipolis.apim.beans.jwt.JWTResponse;
 import com.t1t.digipolis.apim.beans.scim.ExternalUserRequest;
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
 import com.t1t.digipolis.apim.beans.user.SAMLLogoutRequest;
@@ -14,7 +16,9 @@ import com.t1t.digipolis.apim.beans.user.SAMLResponseRedirect;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
+import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
@@ -151,9 +155,37 @@ public class LoginResource implements ILoginResource {
             e.printStackTrace();
         } catch (MalformedURLException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            log.error("Grant Error:{}",e.getMessage());
+            throw new SAMLAuthException(e.getMessage());
         }
         if (uri != null) return Response.seeOther(uri).build();
         return Response.ok(request).build();
+    }
+
+    @ApiOperation(value = "External SAML2 validation endpoint for consumers dealing with IDP directly",
+            notes = "This endpoint should be used by an application, who is know as a Service Provider for an IDP. The API Engine will validate the SAML2 response and issue a JWT.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = JWTResponse.class, message = "JWT response"),
+            @ApiResponse(code = 500, response = Response.class, message = "Server error validating and generating JWT")
+    })
+    @POST
+    @Path("/idp/ext/validation")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response externalSAML2Validation(JWTRequest request) {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSamlResponse()));
+        SAMLResponseRedirect response = null;
+        try {
+            response = userFacade.validateExtSAML2(request.getSamlResponse());
+        } catch (Exception e) {
+            log.error("Grant Error:{}",e.getMessage());
+            throw new SAMLAuthException(e.getMessage());
+        }
+        JWTResponse jwtResponse = new JWTResponse();
+        String jwtToken = response.getToken();
+        jwtResponse.setToken(jwtToken);
+        return Response.ok().entity(jwtResponse).build();
     }
 
     @ApiOperation(value = "User logout",
@@ -221,7 +253,12 @@ public class LoginResource implements ILoginResource {
     public Response getUserByMail(ExternalUserRequest externalUserRequest) {
         Preconditions.checkNotNull(externalUserRequest);
         Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserMail()));
-        ExternalUserBean userByEmail = userFacade.getUserByEmail(externalUserRequest.getUserMail());
+        ExternalUserBean userByEmail = null;
+        try {
+            userByEmail = userFacade.getUserByEmail(externalUserRequest.getUserMail());
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
         return Response.ok().entity(userByEmail).build();
     }
 
