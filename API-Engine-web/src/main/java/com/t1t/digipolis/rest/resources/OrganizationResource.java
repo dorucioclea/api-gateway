@@ -871,6 +871,7 @@ public class OrganizationResource implements IOrganizationResource {
         try {
             ServiceVersionBean serviceVersion = getServiceVersion(organizationId, serviceId, version);
             InputStream definition = orgFacade.getServiceDefinition(organizationId, serviceId, version);
+            if (definition == null) return null;
             ResponseBuilder builder = Response.ok().entity(definition);
             if (serviceVersion.getDefinitionType() == ServiceDefinitionType.SwaggerJSON) {
                 builder.type(MediaType.APPLICATION_JSON);
@@ -881,12 +882,10 @@ public class OrganizationResource implements IOrganizationResource {
             } else {
                 throw new Exception("Service definition type not supported: " + serviceVersion.getDefinitionType()); //$NON-NLS-1$
             }
-
             return builder.build();
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
-
             throw new SystemErrorException(e);
         }
     }
@@ -1193,9 +1192,7 @@ public class OrganizationResource implements IOrganizationResource {
     public ServiceMarketInfo getServiceMarketInfo(
             @PathParam("organizationId") String organizationId,
             @PathParam("serviceId") String serviceId,
-            @PathParam("version") String version) throws NotAuthorizedException, InvalidMetricCriteriaException {
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
+            @PathParam("version") String version) throws InvalidMetricCriteriaException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));

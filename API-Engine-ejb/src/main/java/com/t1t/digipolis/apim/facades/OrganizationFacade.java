@@ -651,10 +651,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
         PolicyBean policy = doGetPolicy(PolicyType.Plan, organizationId, planId, version, policyId);
 
-        if (!hasPermission) {
-            policy.setConfiguration(null);
-        }
-
         log.debug(String.format("Got plan policy %s", policy)); //$NON-NLS-1$
         return policy;
     }
@@ -722,11 +718,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         // Make sure the service exists
         getServiceVersion(organizationId, serviceId, version);
-        PolicyBean policy = doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId)) {
-            policy.setConfiguration(null);
-        }
-        return policy;
+        return doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
     }
 
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) {
