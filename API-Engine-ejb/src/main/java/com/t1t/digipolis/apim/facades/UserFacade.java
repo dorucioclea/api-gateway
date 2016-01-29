@@ -768,7 +768,6 @@ public class UserFacade implements Serializable {
      * @return
      */
     public ExternalUserBean getUserByEmail(String email) throws StorageException {
-        ExternalUserBean scimUser = userExternalInfoService.getUserInfoByMail(email);
         UserBean userByMail = idmStorage.getUserByMail(email);
         ExternalUserBean extUser = new ExternalUserBean();
         extUser.setAccountId(userByMail.getUsername());
@@ -781,7 +780,7 @@ public class UserFacade implements Serializable {
     }
 
     public ExternalUserBean getUserByUsername(String username){
-        ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(username);
+        //ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(username);
         return null;
         //return getExteralUserAndInit(scimUser);
     }
