@@ -2116,7 +2116,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
             if (newVersion != null) {
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId(), newVersion.getVersion());
-                gateway.createConsumer(appConsumerName);
+                String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
+                gateway.createConsumer(appConsumerName,appConsumerNameVersionLess);
             }
         } catch (StorageException e) {
             throw new ApplicationNotFoundException(e.getMessage());
