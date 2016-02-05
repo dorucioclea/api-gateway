@@ -1,4 +1,4 @@
-UPDATE policydefs set form='{
+/*UPDATE policydefs set form='{
   "type": "object",
   "title": "Rate Limiting",
   "properties": {
@@ -39,17 +39,17 @@ UPDATE policydefs set form='{
       "type": "string"
     }
   }
-}' WHERE id = 'RateLimiting';
+}' WHERE id = 'RateLimiting';*/
 
-update policydefs set scope_service=FALSE where id='BasicAuthentication';
+--update policydefs set scope_service=FALSE where id='BasicAuthentication';
 
-update policydefs set scope_service=FALSE where id='SSL';
+--update policydefs set scope_service=FALSE where id='SSL';
 
-update policydefs set scope_service=FALSE where id='FileLog';
+--update policydefs set scope_service=FALSE where id='FileLog';
 
-update policydefs set scope_service=FALSE where id='KeyAuthentication';
+--update policydefs set scope_service=FALSE where id='KeyAuthentication';
 
-ALTER TABLE users ADD COLUMN kong_username VARCHAR(255);
+--ALTER TABLE users ADD COLUMN kong_username VARCHAR(255);
 
 
 
