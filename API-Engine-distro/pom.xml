@@ -125,7 +125,7 @@
                 <version>2.7</version>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
+                        <id>copy-docker-postgres</id>
                         <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>
@@ -135,6 +135,21 @@
                             <resources>
                                 <resource>
                                     <directory>${project.basedir}/src/main/docker_postgres</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-docker</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/target</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/docker</directory>
                                 </resource>
                             </resources>
                         </configuration>
@@ -153,13 +168,13 @@
                     <plugin>
                         <groupId>com.spotify</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.1.1</version>
+                        <version>0.4.0</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
-                                <goals>
+<!--                                <goals>
                                     <goal>build</goal>
-                                </goals>
+                                </goals>-->
                             </execution>
                         </executions>
                         <configuration>

@@ -22,10 +22,13 @@ You can customize artifact and define profile at the same time, for example:
 `clean install -DskipTests=true -Dtargetenv=dev -Pdigi-dev`
 
 Build and prepare a docker container
+`clean install -DskipTests=true -Pdocker`
+
+If you want to build an API-Engine with specific profile, but prepare it for a docker container, you can combine profiles:
 `clean install -DskipTests=true -Pt1t-dev,docker`
 
-Docker
-------
+Docker - Development environment
+--------------------------------
 In the target folder of API-Engine-distro you can find 2 artifacts:
 - docker
 - docker-postgres
@@ -50,6 +53,36 @@ $ eval $(docker-machine env apiengine)
 
 ### More information
 More information, related to docker, can be found in the README.md file of the API-Engine-disto module.
+
+### Pull a Cassandra container
+```sh
+$ docker pull cassandra:2.2.4
+``` 
+
+### Pull a Kong container
+```sh
+$ docker pull mashape/kong
+```
+
+### Start Cassandra
+```sh
+$ docker run -p 9042:9042 -d --name cassandra cassandra:2.2.4
+```
+
+### Start and link Kong to Cassandra
+```sh
+$ docker run -d --name kong \
+            --link cassandra:cassandra \
+            -p 8000:8000 \
+            -p 8443:8443 \
+            -p 8001:8001 \
+            -p 7946:7946 \
+            -p 7946:7946/udp \
+            mashape/kong
+```
+```sh
+$ docker run -d --name kong --link cassandra:cassandra -p 8000:8000 -p 8443:8443 -p 8001:8001 -p 7946:7946 -p 7946:7946/udp mashape/kong
+```
 
 ### Build docker container
 In the API-Engine-distro target folder, go to the docker-postgres folder and execute:
@@ -91,7 +124,7 @@ $ docker build -t api-engine .
 
 ### Run and connect API Engine to the running postgres instance
 ```sh
-$ docker run -p 8080:8080 -p 9990:9990  --name api-engine-inst1 --link api-engine-db:postgres -d api-engine
+$ docker run -p 8080:8080 -p 9990:9990  --name api-engine-inst1 --link api-engine-db:postgres --link kong:kong -d api-engine
 ```
 
 ### Verify your ip of the running machine
