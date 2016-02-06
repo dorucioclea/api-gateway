@@ -235,19 +235,18 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:infinispan:2.0">
             <cache-container name="apiengine-cache" default-cache="defcache" aliases="apiengine-cache">
-                <transport lock-timeout="60000"/>
-                <replicated-cache name="defcache" mode="SYNC">
+                <local-cache name="defcache" mode="SYNC">
                     <transaction mode="BATCH"/>
-                </replicated-cache>
-                <replicated-cache name="sso" mode="SYNC">
+                </local-cache>
+                <local-cache name="sso" mode="SYNC">
                     <transaction mode="BATCH"/>
-                </replicated-cache>
-                <replicated-cache name="token" mode="SYNC">
+                </local-cache>
+                <local-cache name="token" mode="SYNC">
                     <transaction mode="BATCH"/>
-                </replicated-cache>
-                <replicated-cache name="user" mode="SYNC">
+                </local-cache>
+                <local-cache name="user" mode="SYNC">
                     <transaction mode="BATCH"/>
-                </replicated-cache>
+                </local-cache>
             </cache-container>
             <cache-container name="web" default-cache="passivation" module="org.wildfly.clustering.web.infinispan">
                 <local-cache name="passivation" batching="true">

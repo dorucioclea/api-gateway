@@ -4,6 +4,8 @@
 --  ***********...
 --  ***********...
 
+ALTER USER postgres WITH PASSWORD 'postgres';
+
 CREATE SEQUENCE hibernate_sequence START WITH 999;
 
 CREATE TABLE application_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, app_id VARCHAR(255) NULL, app_org_id VARCHAR(255) NULL, oauth_client_id VARCHAR(255), oauth_client_secret VARCHAR(255), oauth_client_redirect VARCHAR(255));
