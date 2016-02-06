@@ -200,6 +200,53 @@ Release Notes - Digipolis-APIM - Version APIM-v0.0.2
 *   [[DPAPIM-254](https://trust1t.atlassian.net/browse/DPAPIM-254)] - As an developer I want to integrate the ME service using an existing client application
 *   [[DPAPIM-255](https://trust1t.atlassian.net/browse/DPAPIM-255)] - As a developer I want to support the integration of an authentication/authorization application
 
+Release Notes - Digipolis-APIM - Version APIM-v0.5.0
+----------------------------------------------------
+
+## Bug
+
+*   [[DPAPIM-258](https://trust1t.atlassian.net/browse/DPAPIM-258)] - Cannot upload a Swagger definition if it does not contain an externaldocs section ==> NPE on BE
+*   [[DPAPIM-260](https://trust1t.atlassian.net/browse/DPAPIM-260)] - Cannot retrieve market info for APIs that are published by organizations the user is not a member of
+
+## Story
+
+*   [[DPAPIM-15](https://trust1t.atlassian.net/browse/DPAPIM-15)] - As a developer I would like to have a Java tutorial upon how to create/generate an API
+*   [[DPAPIM-97](https://trust1t.atlassian.net/browse/DPAPIM-97)] - As an API consumer I want to be able to subscribe on an API service in order be notified when changes occur
+*   [[DPAPIM-172](https://trust1t.atlassian.net/browse/DPAPIM-172)] - As an system administrator I want the user updates to be synchronized - both ways - with the IDP using SCIM v1.1 protocol
+*   [[DPAPIM-205](https://trust1t.atlassian.net/browse/DPAPIM-205)] - As a User I want to manage my authorization credentials provisions by the API gateway
+*   [[DPAPIM-224](https://trust1t.atlassian.net/browse/DPAPIM-224)] - As a developer publishing services I want to add JWT policy to a service
+*   [[DPAPIM-225](https://trust1t.atlassian.net/browse/DPAPIM-225)] - As a consumer for the API Marketplace I want to have an overview of my different credentials and manage them
+*   [[DPAPIM-231](https://trust1t.atlassian.net/browse/DPAPIM-231)] - As a developer for the API Engine I want to retrieve consumer information from the IDP - at least the user email for notification purposes
+*   [[DPAPIM-235](https://trust1t.atlassian.net/browse/DPAPIM-235)] - Migration Kong 0.5.0
+*   [[DPAPIM-245](https://trust1t.atlassian.net/browse/DPAPIM-245)] - As a integration developer I want to have example code available for API integration
+*   [[DPAPIM-250](https://trust1t.atlassian.net/browse/DPAPIM-250)] - As a Digipolis develop I want to enable explicitly a service to be exposed on the marketplace view scoped for external users
+*   [[DPAPIM-264](https://trust1t.atlassian.net/browse/DPAPIM-264)] - As a developer of the publisher i want an alternative validation for my swagger file, in order to be less restrictive
+*   [[DPAPIM-265](https://trust1t.atlassian.net/browse/DPAPIM-265)] - As an integrator I want to integrate a first Engine
+*   [[DPAPIM-266](https://trust1t.atlassian.net/browse/DPAPIM-266)] - As a developer I want to integrate my API on the API Engine
+*   [[DPAPIM-268](https://trust1t.atlassian.net/browse/DPAPIM-268)] - Double login causes error
+
+Release Notes - Digipolis-APIM - Version APIM-v0.0.2
+----------------------------------------------------
+
+## Bug
+
+*   [[DPAPIM-218](https://trust1t.atlassian.net/browse/DPAPIM-218)] - Market Documentation needs to be testable for OAuth2 enabled Services even if application is not yet published
+*   [[DPAPIM-220](https://trust1t.atlassian.net/browse/DPAPIM-220)] - BE returns Error 500 when trying to retrieve a Service's definition if none exists
+*   [[DPAPIM-221](https://trust1t.atlassian.net/browse/DPAPIM-221)] - Code cleanup
+*   [[DPAPIM-234](https://trust1t.atlassian.net/browse/DPAPIM-234)] - Metrics page when resizing you seem to loose information
+
+## Story
+
+*   [[DPAPIM-228](https://trust1t.atlassian.net/browse/DPAPIM-228)] - As a user from a 3rd Party application using OAuth2 I only want to see applicable scopes - withing my role - and not all available scopes
+*   [[DPAPIM-242](https://trust1t.atlassian.net/browse/DPAPIM-242)] - As a developer I want to see a page that i'm succesfully loggedout without being redirected to the login page.
+*   [[DPAPIM-248](https://trust1t.atlassian.net/browse/DPAPIM-248)] - As a developer I want to have a crud support functionality in both front-end applications
+
+## Task
+
+*   [[DPAPIM-253](https://trust1t.atlassian.net/browse/DPAPIM-253)] - As a tester I want to test functionalities from the API publisher/marketplace
+*   [[DPAPIM-254](https://trust1t.atlassian.net/browse/DPAPIM-254)] - As an developer I want to integrate the ME service using an existing client application
+*   [[DPAPIM-255](https://trust1t.atlassian.net/browse/DPAPIM-255)] - As a developer I want to support the integration of an authentication/authorization application
+
 Releases - Digipolis-APIM - Version APIM-v0.0.1
 ------------------------------------------------
 
