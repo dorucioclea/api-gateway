@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
-<server xmlns="urn:jboss:domain:3.0">
+<server xmlns="urn:jboss:domain:2.2">
 
     <extensions>
         <extension module="org.jboss.as.clustering.infinispan"/>
@@ -24,10 +24,7 @@
         <extension module="org.jboss.as.webservices"/>
         <extension module="org.jboss.as.weld"/>
         <extension module="org.wildfly.extension.batch"/>
-        <extension module="org.wildfly.extension.bean-validation"/>
         <extension module="org.wildfly.extension.io"/>
-        <extension module="org.wildfly.extension.request-controller"/>
-        <extension module="org.wildfly.extension.security.manager"/>
         <extension module="org.wildfly.extension.undertow"/>
     </extensions>
 
@@ -83,7 +80,7 @@
     </management>
 
     <profile>
-        <subsystem xmlns="urn:jboss:domain:logging:3.0">
+        <subsystem xmlns="urn:jboss:domain:logging:2.0">
             <console-handler name="CONSOLE">
                 <level name="INFO"/>
                 <formatter>
@@ -124,10 +121,10 @@
                 </handlers>
             </root-logger>
             <formatter name="PATTERN">
-                <pattern-formatter pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n"/>
+                <pattern-formatter pattern="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
             </formatter>
             <formatter name="COLOR-PATTERN">
-                <pattern-formatter pattern="%K{level}%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%e%n"/>
+                <pattern-formatter pattern="%K{level}%d{HH:mm:ss,SSS} %-5p [%c] (%t) %s%E%n"/>
             </formatter>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:batch:1.0">
@@ -139,8 +136,7 @@
                 <keepalive-time time="30" unit="seconds"/>
             </thread-pool>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:bean-validation:1.0"/>
-        <subsystem xmlns="urn:jboss:domain:datasources:3.0">
+        <subsystem xmlns="urn:jboss:domain:datasources:2.0">
             <datasources>
                 <datasource jndi-name="java:jboss/datasources/api_engine" pool-name="api_engine" enabled="true" use-java-context="true">
                     <connection-url>jdbc:postgresql://localhost:5432/api_engine?useUnicode=yes&amp;characterEncoding=UTF-8</connection-url>
@@ -179,9 +175,9 @@
             </datasources>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:deployment-scanner:2.0">
-            <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" runtime-failure-causes-rollback="${jboss.deployment.scanner.rollback.on.failure:false}"/>
+            <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:ee:3.0">
+        <subsystem xmlns="urn:jboss:domain:ee:2.0">
             <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
             <concurrent>
                 <context-services>
@@ -197,9 +193,9 @@
                     <managed-scheduled-executor-service name="default" jndi-name="java:jboss/ee/concurrency/scheduler/default" context-service="default" hung-task-threshold="60000" core-threads="2" keepalive-time="3000"/>
                 </managed-scheduled-executor-services>
             </concurrent>
-            <default-bindings context-service="java:jboss/ee/concurrency/context/default" datasource="java:jboss/datasources/ExampleDS" managed-executor-service="java:jboss/ee/concurrency/executor/default" managed-scheduled-executor-service="java:jboss/ee/concurrency/scheduler/default" managed-thread-factory="java:jboss/ee/concurrency/factory/default"/>
+            <default-bindings context-service="java:jboss/ee/concurrency/context/default" datasource="java:jboss/datasources/ExampleDS" jms-connection-factory="java:jboss/DefaultJMSConnectionFactory" managed-executor-service="java:jboss/ee/concurrency/executor/default" managed-scheduled-executor-service="java:jboss/ee/concurrency/scheduler/default" managed-thread-factory="java:jboss/ee/concurrency/factory/default"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:ejb3:3.0">
+        <subsystem xmlns="urn:jboss:domain:ejb3:2.0">
             <session-bean>
                 <stateful default-access-timeout="5000" cache-ref="simple" passivation-disabled-cache-ref="simple"/>
                 <singleton default-access-timeout="5000"/>
@@ -232,71 +228,62 @@
             </thread-pools>
             <default-security-domain value="other"/>
             <default-missing-method-permissions-deny-access value="true"/>
-            <log-system-exceptions value="true"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:io:1.1">
             <worker name="default"/>
             <buffer-pool name="default"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:infinispan:3.0">
+        <subsystem xmlns="urn:jboss:domain:infinispan:2.0">
             <cache-container name="apiengine-cache" default-cache="defcache" aliases="apiengine-cache">
-                <local-cache name="defcache">
+                <transport lock-timeout="60000"/>
+                <replicated-cache name="defcache" mode="SYNC">
                     <transaction mode="BATCH"/>
-                </local-cache>
-                <local-cache name="sso">
+                </replicated-cache>
+                <replicated-cache name="sso" mode="SYNC">
                     <transaction mode="BATCH"/>
-                </local-cache>
-                <local-cache name="token">
+                </replicated-cache>
+                <replicated-cache name="token" mode="SYNC">
                     <transaction mode="BATCH"/>
-                </local-cache>
-                <local-cache name="user">
+                </replicated-cache>
+                <replicated-cache name="user" mode="SYNC">
                     <transaction mode="BATCH"/>
-                </local-cache>
-            </cache-container>
-            <cache-container name="server" default-cache="default" module="org.wildfly.clustering.server">
-                <local-cache name="default">
-                    <transaction mode="BATCH"/>
-                </local-cache>
+                </replicated-cache>
             </cache-container>
             <cache-container name="web" default-cache="passivation" module="org.wildfly.clustering.web.infinispan">
-                <local-cache name="passivation">
-                    <locking isolation="REPEATABLE_READ"/>
-                    <transaction mode="BATCH"/>
+                <local-cache name="passivation" batching="true">
                     <file-store passivation="true" purge="false"/>
                 </local-cache>
-                <local-cache name="persistent">
-                    <locking isolation="REPEATABLE_READ"/>
-                    <transaction mode="BATCH"/>
+                <local-cache name="persistent" batching="true">
                     <file-store passivation="false" purge="false"/>
                 </local-cache>
             </cache-container>
             <cache-container name="ejb" default-cache="passivation" module="org.wildfly.clustering.ejb.infinispan" aliases="sfsb">
-                <local-cache name="passivation">
-                    <locking isolation="REPEATABLE_READ"/>
-                    <transaction mode="BATCH"/>
+                <local-cache name="passivation" batching="true">
                     <file-store passivation="true" purge="false"/>
                 </local-cache>
-                <local-cache name="persistent">
-                    <locking isolation="REPEATABLE_READ"/>
-                    <transaction mode="BATCH"/>
+                <local-cache name="persistent" batching="true">
                     <file-store passivation="false" purge="false"/>
                 </local-cache>
             </cache-container>
-            <cache-container name="hibernate" default-cache="local-query" module="org.hibernate.infinispan">
-                <local-cache name="local-query">
-                    <eviction strategy="LRU" max-entries="10000"/>
-                    <expiration max-idle="100000"/>
-                </local-cache>
+            <cache-container name="hibernate" default-cache="local-query" module="org.hibernate">
                 <local-cache name="entity">
                     <transaction mode="NON_XA"/>
                     <eviction strategy="LRU" max-entries="10000"/>
                     <expiration max-idle="100000"/>
                 </local-cache>
-                <local-cache name="timestamps"/>
+                <local-cache name="local-query">
+                    <transaction mode="NONE"/>
+                    <eviction strategy="LRU" max-entries="10000"/>
+                    <expiration max-idle="100000"/>
+                </local-cache>
+                <local-cache name="timestamps">
+                    <transaction mode="NONE"/>
+                    <eviction strategy="NONE"/>
+                </local-cache>
             </cache-container>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jaxrs:1.0"/>
-        <subsystem xmlns="urn:jboss:domain:jca:3.0">
+        <subsystem xmlns="urn:jboss:domain:jca:2.0">
             <archive-validation enabled="true" fail-on-error="true" fail-on-warn="false"/>
             <bean-validation enabled="true"/>
             <default-workmanager>
@@ -334,20 +321,12 @@
             <remote-naming/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:pojo:1.0"/>
-        <subsystem xmlns="urn:jboss:domain:remoting:3.0">
+        <subsystem xmlns="urn:jboss:domain:remoting:2.0">
             <endpoint worker="default"/>
             <http-connector name="http-remoting-connector" connector-ref="default" security-realm="ApplicationRealm"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:resource-adapters:3.0"/>
-        <subsystem xmlns="urn:jboss:domain:request-controller:1.0"/>
+        <subsystem xmlns="urn:jboss:domain:resource-adapters:2.0"/>
         <subsystem xmlns="urn:jboss:domain:sar:1.0"/>
-        <subsystem xmlns="urn:jboss:domain:security-manager:1.0">
-            <deployment-permissions>
-                <maximum-set>
-                    <permission class="java.security.AllPermission"/>
-                </maximum-set>
-            </deployment-permissions>
-        </subsystem>
         <subsystem xmlns="urn:jboss:domain:security:1.2">
             <security-domains>
                 <security-domain name="other" cache-type="default">
@@ -372,7 +351,7 @@
                 </security-domain>
             </security-domains>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:transactions:3.0">
+        <subsystem xmlns="urn:jboss:domain:transactions:2.0">
             <core-environment>
                 <process-id>
                     <uuid/>
@@ -380,10 +359,10 @@
             </core-environment>
             <recovery-environment socket-binding="txn-recovery-environment" status-socket-binding="txn-status-manager"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:undertow:2.0">
+        <subsystem xmlns="urn:jboss:domain:undertow:1.2">
             <buffer-cache name="default"/>
             <server name="default-server">
-                <http-listener name="default" socket-binding="http" redirect-socket="https"/>
+                <http-listener name="default" socket-binding="http"/>
                 <host name="default-host" alias="localhost">
                     <location name="/" handler="welcome-content"/>
                     <filter-ref name="server-header"/>
@@ -398,11 +377,11 @@
                 <file name="welcome-content" path="${jboss.home.dir}/welcome-content"/>
             </handlers>
             <filters>
-                <response-header name="server-header" header-name="Server" header-value="WildFly/9"/>
+                <response-header name="server-header" header-name="Server" header-value="WildFly/8"/>
                 <response-header name="x-powered-by-header" header-name="X-Powered-By" header-value="Undertow/1"/>
             </filters>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:webservices:2.0">
+        <subsystem xmlns="urn:jboss:domain:webservices:1.2">
             <wsdl-host>${jboss.bind.address:127.0.0.1}</wsdl-host>
             <endpoint-config name="Standard-Endpoint-Config"/>
             <endpoint-config name="Recording-Endpoint-Config">
@@ -439,4 +418,5 @@
             <remote-destination host="localhost" port="25"/>
         </outbound-socket-binding>
     </socket-binding-group>
+
 </server>
