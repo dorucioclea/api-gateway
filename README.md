@@ -3,9 +3,9 @@ API-Engine: API Management Services based on Mashape's KONG gateway
 Author: Michallis Pashidis
 Level: Intermediate
 Technologies: EAR, JPA, Java EE
-Summary: API Engine Services
-Target Project: Digipolis API Manager
-Source: <https://bitbucket.org/Trust1T/api-engine-javaee>
+Summary: API Engine
+Target Project: Digipolis API Engine
+Source: <https://bitbucket.org/Trust1T/digi-api-engine-javaee>
 
 Build
 -----
@@ -20,6 +20,95 @@ You can customize the artifact name adding a 'targetenv' property for building:
 
 You can customize artifact and define profile at the same time, for example:
 `clean install -DskipTests=true -Dtargetenv=dev -Pdigi-dev`
+
+Build and prepare a docker container
+`clean install -DskipTests=true -Pt1t-dev,docker`
+
+Docker
+------
+In the target folder of API-Engine-distro you can find 2 artifacts:
+- docker
+- docker-postgres
+
+Off course first you should provide a postgres container, a kong container, and after that run an api-engine container linked to the postgres container.
+### Prerequisites
+Install docker on your machine
+
+* [Mac OSX](https://docs.docker.com/engine/installation/mac/)
+* [Windows](https://docs.docker.com/engine/installation/windows/)
+
+### Create a new docker-machine (virtual image)
+```sh
+$ docker-machine create --driver virtualbox apiengine
+```
+### Login to your docker-machine
+```sh
+$ docker-machine ls
+$ docker-machine env apiengine
+$ eval $(docker-machine env apiengine)
+```
+
+### More information
+More information, related to docker, can be found in the README.md file of the API-Engine-disto module.
+
+### Build docker container
+In the API-Engine-distro target folder, go to the docker-postgres folder and execute:
+```sh
+$ docker build -t api-db .
+``` 
+
+### See images
+Verify the images has been created
+```sh
+$ docker images
+```
+Remark: You'll see an image for api-db and for postgres (where it depends on)
+
+### Run docker container
+Run the Postgres container:
+```sh
+$ docker run -p 5432:5432 --name api-engine-db -t api-db
+``` 
+If you have already a container with this name you can easily remove it with:
+```sh
+$ docker rm api-engine-db
+```
+or inspect more info
+```sh
+$ docker inspect api-engine-db
+```
+
+### Verify running docker containers
+```sh
+$ docker ps
+```
+
+### Build Apiengine in target folder
+In the API-Engine-distro target folder, go to the docker folder and execute:
+```sh
+$ docker build -t api-engine .
+```
+
+### Run and connect API Engine to the running postgres instance
+```sh
+$ docker run -p 8080:8080 -p 9990:9990  --name api-engine-inst1 --link api-engine-db:postgres -d api-engine
+```
+
+### Verify your ip of the running machine
+```sh
+$ docker-machine ip apiengine
+```
+By default the management console is enabled.
+Management console on IP:9990 username:admin password:admin123!
+Web API on IP:8080/API-Engine-web
+Auth API on IP:8080/API-Engine-auth
+
+### remove a running container and its image
+```sh
+$ docker stop api-engine-inst1
+$ docker rm api-engine-inst1
+$ docker rmi api-engine
+```
 
 
 Release Notes - Digipolis-APIM - Version APIM-v0.5.2
