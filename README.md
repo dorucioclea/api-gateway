@@ -3,9 +3,9 @@ API-Engine: API Management Services based on Mashape's KONG gateway
 Author: Michallis Pashidis
 Level: Intermediate
 Technologies: EAR, JPA, Java EE
-Summary: API Engine Services
-Target Project: Digipolis API Manager
-Source: <https://bitbucket.org/Trust1T/api-engine-javaee>
+Summary: API Engine
+Target Project: Digipolis API Engine
+Source: <https://bitbucket.org/Trust1T/digi-api-engine-javaee>
 
 Build
 -----
@@ -20,6 +20,128 @@ You can customize the artifact name adding a 'targetenv' property for building:
 
 You can customize artifact and define profile at the same time, for example:
 `clean install -DskipTests=true -Dtargetenv=dev -Pdigi-dev`
+
+Build and prepare a docker container
+`clean install -DskipTests=true -Pdocker`
+
+If you want to build an API-Engine with specific profile, but prepare it for a docker container, you can combine profiles:
+`clean install -DskipTests=true -Pt1t-dev,docker`
+
+Docker - Development environment
+--------------------------------
+In the target folder of API-Engine-distro you can find 2 artifacts:
+- docker
+- docker-postgres
+
+Off course first you should provide a postgres container, a kong container, and after that run an api-engine container linked to the postgres container.
+### Prerequisites
+Install docker on your machine
+
+* [Mac OSX](https://docs.docker.com/engine/installation/mac/)
+* [Windows](https://docs.docker.com/engine/installation/windows/)
+
+### Create a new docker-machine (virtual image)
+```sh
+$ docker-machine create --driver virtualbox apiengine
+```
+### Login to your docker-machine
+```sh
+$ docker-machine ls
+$ docker-machine env apiengine
+$ eval $(docker-machine env apiengine)
+```
+
+### More information
+More information, related to docker, can be found in the README.md file of the API-Engine-disto module.
+
+### Pull a Cassandra container
+```sh
+$ docker pull cassandra:2.2.4
+``` 
+
+### Pull a Kong container
+```sh
+$ docker pull mashape/kong
+```
+
+### Start Cassandra
+```sh
+$ docker run -p 9042:9042 -d --name cassandra cassandra:2.2.4
+```
+
+### Start and link Kong to Cassandra
+```sh
+$ docker run -d --name kong \
+            --link cassandra:cassandra \
+            -p 8000:8000 \
+            -p 8443:8443 \
+            -p 8001:8001 \
+            -p 7946:7946 \
+            -p 7946:7946/udp \
+            mashape/kong
+```
+```sh
+$ docker run -d --name kong --link cassandra:cassandra -p 8000:8000 -p 8443:8443 -p 8001:8001 -p 7946:7946 -p 7946:7946/udp mashape/kong
+```
+
+### Build docker container
+In the API-Engine-distro target folder, go to the docker-postgres folder and execute:
+```sh
+$ docker build -t api-db .
+``` 
+
+### See images
+Verify the images has been created
+```sh
+$ docker images
+```
+Remark: You'll see an image for api-db and for postgres (where it depends on)
+
+### Run docker container
+Run the Postgres container:
+```sh
+$ docker run -p 5432:5432 --name api-engine-db -t api-db
+``` 
+If you have already a container with this name you can easily remove it with:
+```sh
+$ docker rm api-engine-db
+```
+or inspect more info
+```sh
+$ docker inspect api-engine-db
+```
+
+### Verify running docker containers
+```sh
+$ docker ps
+```
+
+### Build Apiengine in target folder
+In the API-Engine-distro target folder, go to the docker folder and execute:
+```sh
+$ docker build -t api-engine .
+```
+
+### Run and connect API Engine to the running postgres instance
+```sh
+$ docker run -p 8080:8080 -p 9990:9990  --name api-engine-inst1 --link api-engine-db:postgres --link kong:kong -d api-engine
+```
+
+### Verify your ip of the running machine
+```sh
+$ docker-machine ip apiengine
+```
+By default the management console is enabled.
+Management console on IP:9990 username:admin password:admin123!
+Web API on IP:8080/API-Engine-web
+Auth API on IP:8080/API-Engine-auth
+
+### remove a running container and its image
+```sh
+$ docker stop api-engine-inst1
+$ docker rm api-engine-inst1
+$ docker rmi api-engine
+```
 
 
 Release Notes - Digipolis-APIM - Version APIM-v0.5.2
@@ -63,6 +185,53 @@ Release Notes - Digipolis-APIM - Version APIM-v0.5.1
 ## Story
 
 *   [[APIE-475](https://jira.antwerpen.be/browse/APIE-475)] - Wijzigingen in IDP config en user attributen
+
+Release Notes - Digipolis-APIM - Version APIM-v0.5.0
+----------------------------------------------------
+
+## Bug
+
+*   [[DPAPIM-258](https://trust1t.atlassian.net/browse/DPAPIM-258)] - Cannot upload a Swagger definition if it does not contain an externaldocs section ==> NPE on BE
+*   [[DPAPIM-260](https://trust1t.atlassian.net/browse/DPAPIM-260)] - Cannot retrieve market info for APIs that are published by organizations the user is not a member of
+
+## Story
+
+*   [[DPAPIM-15](https://trust1t.atlassian.net/browse/DPAPIM-15)] - As a developer I would like to have a Java tutorial upon how to create/generate an API
+*   [[DPAPIM-97](https://trust1t.atlassian.net/browse/DPAPIM-97)] - As an API consumer I want to be able to subscribe on an API service in order be notified when changes occur
+*   [[DPAPIM-172](https://trust1t.atlassian.net/browse/DPAPIM-172)] - As an system administrator I want the user updates to be synchronized - both ways - with the IDP using SCIM v1.1 protocol
+*   [[DPAPIM-205](https://trust1t.atlassian.net/browse/DPAPIM-205)] - As a User I want to manage my authorization credentials provisions by the API gateway
+*   [[DPAPIM-224](https://trust1t.atlassian.net/browse/DPAPIM-224)] - As a developer publishing services I want to add JWT policy to a service
+*   [[DPAPIM-225](https://trust1t.atlassian.net/browse/DPAPIM-225)] - As a consumer for the API Marketplace I want to have an overview of my different credentials and manage them
+*   [[DPAPIM-231](https://trust1t.atlassian.net/browse/DPAPIM-231)] - As a developer for the API Engine I want to retrieve consumer information from the IDP - at least the user email for notification purposes
+*   [[DPAPIM-235](https://trust1t.atlassian.net/browse/DPAPIM-235)] - Migration Kong 0.5.0
+*   [[DPAPIM-245](https://trust1t.atlassian.net/browse/DPAPIM-245)] - As a integration developer I want to have example code available for API integration
+*   [[DPAPIM-250](https://trust1t.atlassian.net/browse/DPAPIM-250)] - As a Digipolis develop I want to enable explicitly a service to be exposed on the marketplace view scoped for external users
+*   [[DPAPIM-264](https://trust1t.atlassian.net/browse/DPAPIM-264)] - As a developer of the publisher i want an alternative validation for my swagger file, in order to be less restrictive
+*   [[DPAPIM-265](https://trust1t.atlassian.net/browse/DPAPIM-265)] - As an integrator I want to integrate a first Engine
+*   [[DPAPIM-266](https://trust1t.atlassian.net/browse/DPAPIM-266)] - As a developer I want to integrate my API on the API Engine
+*   [[DPAPIM-268](https://trust1t.atlassian.net/browse/DPAPIM-268)] - Double login causes error
+
+Release Notes - Digipolis-APIM - Version APIM-v0.0.2
+----------------------------------------------------
+
+## Bug
+
+*   [[DPAPIM-218](https://trust1t.atlassian.net/browse/DPAPIM-218)] - Market Documentation needs to be testable for OAuth2 enabled Services even if application is not yet published
+*   [[DPAPIM-220](https://trust1t.atlassian.net/browse/DPAPIM-220)] - BE returns Error 500 when trying to retrieve a Service's definition if none exists
+*   [[DPAPIM-221](https://trust1t.atlassian.net/browse/DPAPIM-221)] - Code cleanup
+*   [[DPAPIM-234](https://trust1t.atlassian.net/browse/DPAPIM-234)] - Metrics page when resizing you seem to loose information
+
+## Story
+
+*   [[DPAPIM-228](https://trust1t.atlassian.net/browse/DPAPIM-228)] - As a user from a 3rd Party application using OAuth2 I only want to see applicable scopes - withing my role - and not all available scopes
+*   [[DPAPIM-242](https://trust1t.atlassian.net/browse/DPAPIM-242)] - As a developer I want to see a page that i'm succesfully loggedout without being redirected to the login page.
+*   [[DPAPIM-248](https://trust1t.atlassian.net/browse/DPAPIM-248)] - As a developer I want to have a crud support functionality in both front-end applications
+
+## Task
+
+*   [[DPAPIM-253](https://trust1t.atlassian.net/browse/DPAPIM-253)] - As a tester I want to test functionalities from the API publisher/marketplace
+*   [[DPAPIM-254](https://trust1t.atlassian.net/browse/DPAPIM-254)] - As an developer I want to integrate the ME service using an existing client application
+*   [[DPAPIM-255](https://trust1t.atlassian.net/browse/DPAPIM-255)] - As a developer I want to support the integration of an authentication/authorization application
 
 Release Notes - Digipolis-APIM - Version APIM-v0.5.0
 ----------------------------------------------------

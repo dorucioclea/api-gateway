@@ -508,6 +508,12 @@
             </build>-->
         </profile>
         <profile>
+            <id>docker</id>
+            <properties>
+                <appconfig.file>application-docker</appconfig.file>
+            </properties>
+        </profile>
+        <profile>
             <id>t1t-dev</id>
             <properties>
                 <appconfig.file>application-t1t-dev</appconfig.file>
@@ -537,35 +543,6 @@
                 <appconfig.file>application-digi-prod</appconfig.file>
             </properties>
         </profile>
-<!--        <profile>
-            &lt;!&ndash; An optional Arquillian testing profile that executes tests
-                in your WildFly instance &ndash;&gt;
-            &lt;!&ndash; This profile will start a new WildFly instance, and execute
-                the test, shutting it down when done &ndash;&gt;
-            &lt;!&ndash; Run with: mvn clean test -Parq-wildfly-managed &ndash;&gt;
-            <id>arq-wildfly-managed</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.wildfly</groupId>
-                    <artifactId>wildfly-arquillian-container-managed</artifactId>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-
-        <profile>
-            &lt;!&ndash; An optional Arquillian testing profile that executes tests
-                in a remote WildFly instance &ndash;&gt;
-            &lt;!&ndash; Run with: mvn clean test -Parq-wildfly-remote &ndash;&gt;
-            <id>arq-wildfly-remote</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.wildfly</groupId>
-                    <artifactId>wildfly-arquillian-container-remote</artifactId>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-        </profile>-->
     </profiles>
 
 </project>
