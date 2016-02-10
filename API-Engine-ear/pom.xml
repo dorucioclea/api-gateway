@@ -66,7 +66,8 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}-${targetenv}-${version}</finalName>
+        <!--<finalName>${project.artifactId}-${targetenv}-${version}</finalName>-->
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
