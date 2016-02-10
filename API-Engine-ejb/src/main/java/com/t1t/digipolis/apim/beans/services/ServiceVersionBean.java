@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.beans.services;
 
+import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.URL;
 
@@ -55,6 +56,8 @@ public class ServiceVersionBean implements Serializable {
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name="svc_plans", joinColumns=@JoinColumn(name="service_version_id"))
     private Set<ServicePlanBean> plans;
+    @CollectionTable(name="svc_visibility", joinColumns=@JoinColumn(name="service_version_id"))
+    private Set<VisibilityBean> visibility;
     @Column(updatable=false)
     private String version;
     @Column(name = "created_by", updatable=false, nullable=false)
