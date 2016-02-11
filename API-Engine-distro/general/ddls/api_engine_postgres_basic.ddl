@@ -30,6 +30,12 @@ CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NO
 
 CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 
+CREATE TABLE availabilities (name VARCHAR(255) NOT NULL, code VARCHAR(3) NOT NULL);
+
+CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
+
+CREATE TABLE black_ip_restriction (netw_value VARCHAR(255));
+
 CREATE TABLE plan_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, locked_on TIMESTAMP WITHOUT TIME ZONE NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, plan_id VARCHAR(255) NULL, plan_org_id VARCHAR(255) NULL);
 
 CREATE TABLE plans (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, name VARCHAR(255) NOT NULL, organization_id VARCHAR(255) NOT NULL);
