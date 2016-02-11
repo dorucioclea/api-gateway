@@ -13,7 +13,7 @@ curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
     --data "config.origin=*" \
     --data "config.methods=GET,HEAD,PUT,PATCH,POST,DELETE" \
     --data "config.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey, Authorization" \
-    --data "config.credentials=true" \
+    --data "config.credentials=false" \
     --data "config.max_age=3600"
 
 #enable Keyauth
@@ -21,10 +21,10 @@ curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
     --data "name=key-auth" \
     --data "config.key_names=apikey"
 
-#enable JWT
-curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
-    --data "name=jwt" \
-    --data "config.claims_to_verify=exp"
+#enable JWT - we enforce JWT with a request filter
+#curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
+#    --data "name=jwt" \
+#    --data "config.claims_to_verify=exp"
 
 #create marketplace consumer, username should be unique
 curl -X POST http://devapim.t1t.be:8001/consumers \

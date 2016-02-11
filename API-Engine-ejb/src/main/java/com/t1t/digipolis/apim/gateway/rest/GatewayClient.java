@@ -395,6 +395,7 @@ public class GatewayClient {
         List<String> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY, "Authorization");
         KongPluginCors corsPolicy = new KongPluginCors(); //default values are ok
         corsPolicy.setHeaders(headers);
+        corsPolicy.setCredentials(false);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.CORS.getKongIdentifier())
                 .withConfig(corsPolicy);

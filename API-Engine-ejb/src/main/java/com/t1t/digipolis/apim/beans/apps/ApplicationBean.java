@@ -158,7 +158,6 @@ public class ApplicationBean implements Serializable {
                 ", context='" + context + '\'' +
                 ", createdBy='" + createdBy + '\'' +
                 ", createdOn=" + createdOn +
-                ", base64logo=" + Arrays.toString(base64logo) +
                 '}';
     }
 }
