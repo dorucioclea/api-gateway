@@ -28,15 +28,23 @@ curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengine.v1/plugi
 
 #create marketplace consumer, username should be unique
 curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers \
-    --data "username=rte.marketplace.v1"
+    --data "username=marketplace.v1"
+curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers \
+    --data "username=int.marketplace.v1"
+curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers \
+    --data "username=ext.marketplace.v1"
+
+#enable keyauth for marketplace and return API key, result should be captured and is the API key for the given consumer
+curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers/marketplace.v1/key-auth \
+    --data "key=229e2ea08ba94919c9d221cdf3be1f72"
+curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers/int.marketplace.v1/key-auth \
+    --data "key=229e2ea08ba94919c9d221cdf3be1f71"
+curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers/ext.marketplace.v1/key-auth \
+    --data "key=229e2ea08ba94919c9d221cdf3be1f73"
 
 #create publisher consumer
 curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers \
     --data "username=rte.publisher.v1"
-
-#enable keyauth for marketplace and return API key, result should be captured and is the API key for the given consumer
-curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers/rte.marketplace.v1/key-auth \
-    --data "key=229e2ea08ba94919c9d221cdf3be1f7d"
 
 #enable keyauth for publisher and return API key, result should be captured and is the API key for the given consumer
 curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers/rte.publisher.v1/key-auth \

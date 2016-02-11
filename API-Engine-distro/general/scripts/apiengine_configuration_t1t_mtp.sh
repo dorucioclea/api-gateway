@@ -29,14 +29,22 @@ curl -X POST http://apim.t1t.be:8001/apis/apiengine.v1/plugins \
 #create marketplace consumer, username should be unique
 curl -X POST http://apim.t1t.be:8001/consumers \
     --data "username=marketplace.v1"
-
-#create publisher consumer
 curl -X POST http://apim.t1t.be:8001/consumers \
-    --data "username=publisher.v1"
+    --data "username=int.marketplace.v1"
+curl -X POST http://apim.t1t.be:8001/consumers \
+    --data "username=ext.marketplace.v1"
 
 #enable keyauth for marketplace and return API key, result should be captured and is the API key for the given consumer
 curl -X POST http://apim.t1t.be:8001/consumers/marketplace.v1/key-auth \
     --data "key=6b8406cc81fe4ca3cc9cd4a0abfb97c2"
+curl -X POST http://apim.t1t.be:8001/consumers/int.marketplace.v1/key-auth \
+    --data "key=***REMOVED***"
+curl -X POST http://apim.t1t.be:8001/consumers/ext.marketplace.v1/key-auth \
+    --data "key=***REMOVED***"
+
+#create publisher consumer
+curl -X POST http://apim.t1t.be:8001/consumers \
+    --data "username=publisher.v1"
 
 #enable keyauth for publisher and return API key, result should be captured and is the API key for the given consumer
 curl -X POST http://apim.t1t.be:8001/consumers/publisher.v1/key-auth \
