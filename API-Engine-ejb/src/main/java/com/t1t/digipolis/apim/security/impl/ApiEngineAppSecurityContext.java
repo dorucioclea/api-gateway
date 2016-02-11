@@ -41,7 +41,6 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
         } else {
             return "";
         }
-        LOG.debug("Logged-in application:{}", currentApplication);
         return currentApplication;
     }
 
@@ -49,6 +48,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
         LOG.info("Application context:{}",currentApplication);
         this.currentApplication = currentApplication;
         this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication,config.getAvailableMarketplaces());
+        LOG.debug("Application:{}",appIdentifier);
         return getApplication();
     }
 

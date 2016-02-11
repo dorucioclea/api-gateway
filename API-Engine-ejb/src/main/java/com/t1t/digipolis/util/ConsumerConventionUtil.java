@@ -2,13 +2,17 @@ package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Created by michallispashidis on 19/09/15.
  */
 public class ConsumerConventionUtil {
+    private static Logger _LOG = LoggerFactory.getLogger(ConsumerConventionUtil.class.getName());
     public static String createAppConsumerUnqiueId(String orgId, String appId, String appVersionId, String userId){
         StringBuilder uniqueName = new StringBuilder("");
         uniqueName.append(orgId)
