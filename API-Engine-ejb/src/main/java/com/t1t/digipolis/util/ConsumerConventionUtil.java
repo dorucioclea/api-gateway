@@ -29,6 +29,14 @@ public class ConsumerConventionUtil {
         return uniqueName.toString().toLowerCase();
     }
 
+    public static String createAppVersionlessId(String orgId, String appId){
+        StringBuilder uniqueName = new StringBuilder("");
+        uniqueName.append(orgId)
+                .append(".")
+                .append(appId);
+        return uniqueName.toString().toLowerCase();
+    }
+
     public static String createUserUniqueId(String userName) {
         return userName.toLowerCase();
     }
