@@ -238,12 +238,8 @@ public class UserFacade implements Serializable {
         // Initialize the library
         log.info("Initate SAML2 request for {}", samlRequest.getIdpUrl());
         try {
-            //we need to send the clienUrl as a relaystate - should be URL encoded - but first parse and be sure it's decoded
-            String decodedURL = URLDecoder.decode(samlRequest.getClientAppRedirect(),"UTF-8");
-            String condensedUri = decodedURL.replaceAll("https://","").replaceAll("http://","");
-            if(condensedUri.startsWith("localhost") && condensedUri.contains(":")){
-                condensedUri = (condensedUri.split(":"))[0];
-            }
+            //we need to send the clienUrl as a relaystate - should be URL encoded
+            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","").replaceAll("http://","");
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
@@ -257,12 +253,8 @@ public class UserFacade implements Serializable {
         // Initialize the library
         log.info("Initate SAML2 redirect for {}", samlRequest.getIdpUrl());
         try {
-            //we need to send the clienUrl as a relaystate - should be URL encoded - but first parse and be sure it's decoded
-            String decodedURL = URLDecoder.decode(samlRequest.getClientAppRedirect(),"UTF-8");
-            String condensedUri = decodedURL.replaceAll("https://","").replaceAll("http://","");
-            if(condensedUri.startsWith("localhost") && condensedUri.contains(":")){
-                condensedUri = (condensedUri.split(":"))[0];
-            }
+            //we need to send the clienUrl as a relaystate - should be URL encoded
+            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","").replaceAll("http://","");
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
