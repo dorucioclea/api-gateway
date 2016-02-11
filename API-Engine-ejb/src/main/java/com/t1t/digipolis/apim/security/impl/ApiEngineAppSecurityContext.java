@@ -46,6 +46,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     }
 
     public String setCurrentApplication(String currentApplication) {
+        LOG.info("Application context:{}",currentApplication);
         this.currentApplication = currentApplication;
         this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication,config.getAvailableMarketplaces());
         return getApplication();

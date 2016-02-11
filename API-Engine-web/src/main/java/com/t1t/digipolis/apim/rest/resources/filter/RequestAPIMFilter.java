@@ -27,7 +27,8 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
      * Logger: is not possible to inject logger in filters
      */
     private static final Logger LOG = LoggerFactory.getLogger(RequestAPIMFilter.class.getName());
-    private static final String HEADER_APIKEY_APP = "X-Consumer-Username";//considerred to be an application consumer - we use this to setup an application context
+    private static final String HEADER_CNSUMER_USERNAME = "x-consumer-username";//considerred to be an application consumer - we use this to setup an application context
+    private static final String HEADER_CONSUMER_ID = "x-consumer-id";
     private static final String HEADER_USER_AUTHORIZATION = "Authorization"; // will contain the JWT user token
     //exclusions
     private static final String REDIRECT_PATH = "/users/idp/redirect";
@@ -59,9 +60,11 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             ;//allow from idp
         } else {
             //Get apikey - app context - SHOULD BE ALWAYS PROVIDED
-            String appId = containerRequestContext.getHeaderString(HEADER_APIKEY_APP);
+            String appName = containerRequestContext.getHeaderString(HEADER_CNSUMER_USERNAME);
+            LOG.info("consumer-username:{}",appName);
+            String appId = containerRequestContext.getHeaderString(HEADER_CONSUMER_ID);
+            LOG.info("consumer-id:{}",appId);
             securityAppContext.setCurrentApplication(appId);
-            LOG.info("Application access:{}",securityAppContext.getApplication());
             //Get the authorization header
             String jwt = containerRequestContext.getHeaderString(HEADER_USER_AUTHORIZATION);
             if(jwt!=null){
