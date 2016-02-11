@@ -28,6 +28,7 @@ import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +53,8 @@ import java.util.*;
 public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorageQuery {
 
     private static Logger logger = LoggerFactory.getLogger(JpaStorage.class);
-    @Inject
-    AppConfig config;
+    @Inject AppConfig config;
+    @Inject ISecurityAppContext appContext;
 
     /**
      * Constructor.

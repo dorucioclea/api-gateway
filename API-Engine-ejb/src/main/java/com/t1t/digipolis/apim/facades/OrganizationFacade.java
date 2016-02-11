@@ -48,6 +48,7 @@ import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
@@ -97,8 +98,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private static Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
     @PersistenceContext
     private EntityManager em;
-    @Inject
-    private ISecurityContext securityContext;
+    @Inject private ISecurityContext securityContext;
+    @Inject private ISecurityAppContext appContext;
     @Inject
     private IStorage storage;
     @Inject
@@ -265,6 +266,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newApp.setDescription(bean.getDescription());
         newApp.setCreatedBy(securityContext.getCurrentUser());
         newApp.setCreatedOn(new Date());
+        newApp.setContext(appContext.getApplicationIdentifier().getScope());
         try {
             // Store/persist the new application
             OrganizationBean org = storage.getOrganization(organizationId);
@@ -793,6 +795,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (AuditUtils.valueChanged(svb.isPublicService(), bean.getPublicService())) {
             data.addChange("publicService", String.valueOf(svb.isPublicService()), String.valueOf(bean.getPublicService())); //$NON-NLS-1$
             svb.setPublicService(bean.getPublicService());
+        }
+        if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
+            data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
+            svb.setVisibility(bean.getVisibility());
         }
         try {
             if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
