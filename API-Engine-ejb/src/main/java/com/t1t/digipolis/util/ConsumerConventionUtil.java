@@ -33,6 +33,13 @@ public class ConsumerConventionUtil {
         return userName.toLowerCase();
     }
 
+    /**
+     * The application identifier denotes the consuming application of the service.
+     * In order to support scoped marketplaces/publishers; a scope will be set if the unique appId contains a known prefix.
+     * The known prefixes are in configruation to avoid table lookups.
+     * @param appId
+     * @return
+     */
     public static AppIdentifier parseApplicationIdentifier(String appId){
         if(StringUtils.isEmpty(appId))return null;
         if(StringUtils.countMatches(appId,".")!=2)return null;

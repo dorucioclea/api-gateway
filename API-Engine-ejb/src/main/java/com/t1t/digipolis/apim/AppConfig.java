@@ -11,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -48,6 +49,7 @@ public class AppConfig implements Serializable {
             _LOG.info("Build: {}",getBuildDate());
             _LOG.info("version: {}",getVersion());
             _LOG.info("environment: {}",getEnvironment());
+            _LOG.info("Available market prefixes: "+getAvailableMarketplaces());
             _LOG.info("Kong host: {}",getKongHost());
             _LOG.info("Kong endpoint: {}",getKongEndpoint());
             _LOG.info("Kong management endpoint: {}",getKongManagementEndpoint());
@@ -105,4 +107,5 @@ public class AppConfig implements Serializable {
     public Integer getAnalyticsMaxSendingQueue(){return config.getInt(IConfig.ANALYTICS_MAX_SENDING_QUEUE);}
     public String getAnalyticsHost(){return config.getString(IConfig.ANALYTICS_HOST);}
     public Integer getAnalyticsPort(){return config.getInt(IConfig.ANALYTICS_PORT);}
+    public List<String> getAvailableMarketplaces(){return config.getStringList(IConfig.MARKETS);}
 }

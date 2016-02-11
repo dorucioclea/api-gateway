@@ -27,7 +27,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
      * Logger: is not possible to inject logger in filters
      */
     private static final Logger LOG = LoggerFactory.getLogger(RequestAPIMFilter.class.getName());
-    private static final String HEADER_APIKEY_APP = "X-Consumer-Username";//considerred to be an application consumer - we use this to setup an apllication context
+    private static final String HEADER_APIKEY_APP = "X-Consumer-Username";//considerred to be an application consumer - we use this to setup an application context
     private static final String HEADER_USER_AUTHORIZATION = "Authorization"; // will contain the JWT user token
     //exclusions
     private static final String REDIRECT_PATH = "/users/idp/redirect";
