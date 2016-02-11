@@ -60,7 +60,8 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
         } else {
             //Get apikey - app context - SHOULD BE ALWAYS PROVIDED
             String appId = containerRequestContext.getHeaderString(HEADER_APIKEY_APP);
-            securityAppContext.setCurrentApplication(appId);//TODO parse consumer name for appid
+            securityAppContext.setCurrentApplication(appId);
+            LOG.info("Application access:{}",securityAppContext.getApplication());
             //Get the authorization header
             String jwt = containerRequestContext.getHeaderString(HEADER_USER_AUTHORIZATION);
             if(jwt!=null){

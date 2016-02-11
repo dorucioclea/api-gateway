@@ -3,6 +3,8 @@ package com.t1t.digipolis.util;
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+
 /**
  * Created by michallispashidis on 19/09/15.
  */
@@ -40,13 +42,16 @@ public class ConsumerConventionUtil {
      * @param appId
      * @return
      */
-    public static AppIdentifier parseApplicationIdentifier(String appId){
-        if(StringUtils.isEmpty(appId))return null;
+    public static AppIdentifier parseApplicationIdentifier(String appId, List<String> availableMarketplaces){
+        if(StringUtils.isEmpty(appId))return null;//normally shouldn't be null
         if(StringUtils.countMatches(appId,".")!=2)return null;
         AppIdentifier appIdBean = new AppIdentifier();
         String[] splitResult = appId.split("\\.");
         if(splitResult.length==3){
-            appIdBean.setOrgId(splitResult[0]);
+            //set optional marketplace scope
+            if(availableMarketplaces!=null && availableMarketplaces.size()>0){
+                appIdBean.setScope(((availableMarketplaces.contains(splitResult[0].toLowerCase()))?splitResult[0].toLowerCase():""));
+            }
             appIdBean.setAppId(splitResult[1]);
             appIdBean.setVersion(splitResult[2]);
         }

@@ -3,6 +3,9 @@ package com.t1t.digipolis.util;
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
@@ -52,28 +55,36 @@ public class ConsumerConventionUtilTest {
     public void testParseApplicationIdentifier() throws Exception {
         String tobeParsed = "org.name.version";
         AppIdentifier appExpectedId = new AppIdentifier();
-        appExpectedId.setOrgId("org");
+        appExpectedId.setScope("int");
         appExpectedId.setAppId("name");
         appExpectedId.setVersion("version");
-        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(tobeParsed);
+        List<String> availableScopes = new ArrayList<>();
+        availableScopes.add("int");
+        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(tobeParsed,availableScopes);
         assertEquals(appExpectedId,appIdentifier);
     }
 
     @Test
     public void testParseApplicationIdentifierNullValue() throws Exception {
-        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(null);
+        List<String> availableScopes = new ArrayList<>();
+        availableScopes.add("int");
+        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(null,availableScopes);
         assertNull(appIdentifier);
     }
 
     @Test
     public void testParseApplicationIdentifierEmptyValue() throws Exception {
-        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("");
+        List<String> availableScopes = new ArrayList<>();
+        availableScopes.add("int");
+        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("",availableScopes);
         assertNull(appIdentifier);
     }
 
     @Test
     public void testParseApplicationIdentifierWrongFormatValue() throws Exception {
-        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("org.org.app.app.v.v");
+        List<String> availableScopes = new ArrayList<>();
+        availableScopes.add("int");
+        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("org.org.app.app.v.v",availableScopes);
         assertNull(appIdentifier);
     }
 }

@@ -238,8 +238,12 @@ public class UserFacade implements Serializable {
         // Initialize the library
         log.info("Initate SAML2 request for {}", samlRequest.getIdpUrl());
         try {
-            //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","").replaceAll("http://","");
+            //we need to send the clienUrl as a relaystate - should be URL encoded - but first parse and be sure it's decoded
+            String decodedURL = URLDecoder.decode(samlRequest.getClientAppRedirect(),"UTF-8");
+            String condensedUri = decodedURL.replaceAll("https://","").replaceAll("http://","");
+            if(condensedUri.startsWith("localhost") && condensedUri.contains(":")){
+                condensedUri = (condensedUri.split(":"))[0];
+            }
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
@@ -253,8 +257,12 @@ public class UserFacade implements Serializable {
         // Initialize the library
         log.info("Initate SAML2 redirect for {}", samlRequest.getIdpUrl());
         try {
-            //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","").replaceAll("http://","");
+            //we need to send the clienUrl as a relaystate - should be URL encoded - but first parse and be sure it's decoded
+            String decodedURL = URLDecoder.decode(samlRequest.getClientAppRedirect(),"UTF-8");
+            String condensedUri = decodedURL.replaceAll("https://","").replaceAll("http://","");
+            if(condensedUri.startsWith("localhost") && condensedUri.contains(":")){
+                condensedUri = (condensedUri.split(":"))[0];
+            }
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
@@ -455,6 +463,7 @@ public class UserFacade implements Serializable {
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
+            utilPrintCache();
             log.info("Relay state found with correlation: {}", relayState);
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
@@ -966,6 +975,8 @@ public class UserFacade implements Serializable {
      */
     public void utilPrintCache() {
         log.info("SessionIndex cache values:");
+        Set<String> ssoKeys = cacheUtil.getSSOKeys();
+        log.info("Sessionkeys: {}",ssoKeys);
         Set<String> sessionKeys = cacheUtil.getSessionKeys();
         log.info("Sessionkeys: {}",sessionKeys);
         sessionKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getSessionIndex(key)));

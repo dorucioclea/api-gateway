@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.security.impl;
 
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.facades.UserFacade;
@@ -25,6 +26,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     //Logger
     private static Logger LOG = LoggerFactory.getLogger(ApiEngineAppSecurityContext.class.getName());
     @Inject private UserFacade userFacade;
+    @Inject private AppConfig config;
 
     private String currentApplication;
     private AppIdentifier appIdentifier;
@@ -45,7 +47,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
 
     public String setCurrentApplication(String currentApplication) {
         this.currentApplication = currentApplication;
-        this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication);
+        this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication,config.getAvailableMarketplaces());
         return getApplication();
     }
 
