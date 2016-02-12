@@ -4,6 +4,9 @@ import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
+import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
+import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -16,6 +19,7 @@ import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -340,5 +344,34 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<SupportComment> listServiceSupportComment(Long supportBeanId)throws StorageException;
+
+    /**
+     * List all available marketplaces for this environment.
+     * The list is needed in the publisher to set the Service version's visibility throughout supported marketplaces.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public Map<String,AvailabilityBean> listAvailableMarkets() throws StorageException;
+
+    /**
+     * Returns the default whitelist records. This can be used for an implicit IP Restriction policy.
+     * This is the case for example when exposing services, that are not visible in the API marketplace, but should
+     * be exposed to the outside world with IP restrictions.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<WhitelistBean> listWhitelistRecords()throws StorageException;
+
+    /**
+     * Returns the default blacklist records. This can be used for an implicit IP Restriction policy.
+     * This is the case for example when exposing services, that are not visible in the API marketplace, but should
+     * be exposed to the outside world with IP restrictions.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<BlacklistBean> listBlacklistRecords()throws StorageException;
 
 }

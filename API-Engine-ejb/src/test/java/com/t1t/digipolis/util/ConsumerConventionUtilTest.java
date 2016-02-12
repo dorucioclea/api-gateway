@@ -60,7 +60,7 @@ public class ConsumerConventionUtilTest {
         appExpectedId.setVersion("version");
         List<String> availableScopes = new ArrayList<>();
         availableScopes.add("int");
-        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(tobeParsed,availableScopes);
+        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(tobeParsed,null);
         assertEquals(appExpectedId,appIdentifier);
     }
 
@@ -68,7 +68,7 @@ public class ConsumerConventionUtilTest {
     public void testParseApplicationIdentifierNullValue() throws Exception {
         List<String> availableScopes = new ArrayList<>();
         availableScopes.add("int");
-        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(null,availableScopes);
+        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(null,null);
         assertNull(appIdentifier);
     }
 
@@ -76,7 +76,7 @@ public class ConsumerConventionUtilTest {
     public void testParseApplicationIdentifierEmptyValue() throws Exception {
         List<String> availableScopes = new ArrayList<>();
         availableScopes.add("int");
-        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("",availableScopes);
+        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("",null);
         assertNull(appIdentifier);
     }
 
@@ -84,7 +84,7 @@ public class ConsumerConventionUtilTest {
     public void testParseApplicationIdentifierWrongFormatValue() throws Exception {
         List<String> availableScopes = new ArrayList<>();
         availableScopes.add("int");
-        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("org.org.app.app.v.v",availableScopes);
+        AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("org.org.app.app.v.v",null);
         assertNull(appIdentifier);
     }
 }

@@ -1,11 +1,13 @@
 package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -54,7 +56,7 @@ public class ConsumerConventionUtil {
      * @param appId
      * @return
      */
-    public static AppIdentifier parseApplicationIdentifier(String appId, List<String> availableMarketplaces){
+    public static AppIdentifier parseApplicationIdentifier(String appId, Set<String>availableMarketplaces){
         if(StringUtils.isEmpty(appId))return null;//normally shouldn't be null
         if(StringUtils.countMatches(appId,".")!=2)return null;
         AppIdentifier appIdBean = new AppIdentifier();

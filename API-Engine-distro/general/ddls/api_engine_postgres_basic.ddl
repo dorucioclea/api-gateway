@@ -30,7 +30,7 @@ CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NO
 
 CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 
-CREATE TABLE availabilities (name VARCHAR(255) NOT NULL, code VARCHAR(3) NOT NULL);
+CREATE TABLE availabilities (code VARCHAR(3) NOT NULL, name VARCHAR(255) NOT NULL);
 
 CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
 
@@ -71,6 +71,12 @@ ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_i
 ALTER TABLE endpoint_properties ADD PRIMARY KEY (service_version_id, name);
 
 ALTER TABLE svc_gateways ADD PRIMARY KEY (service_version_id, gateway_id);
+
+ALTER TABLE availabilities ADD PRIMARY KEY (code);
+
+ALTER TABLE white_ip_restriction ADD PRIMARY KEY (netw_value);
+
+ALTER TABLE black_ip_restriction ADD PRIMARY KEY (netw_value);
 
 ALTER TABLE svc_plans ADD PRIMARY KEY (service_version_id, plan_id, version);
 

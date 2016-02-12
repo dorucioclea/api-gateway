@@ -12,6 +12,12 @@ CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
 
 CREATE TABLE black_ip_restriction (netw_value VARCHAR(255));
 
+ALTER TABLE availabilities ADD PRIMARY KEY (code);
+
+ALTER TABLE white_ip_restriction ADD PRIMARY KEY (netw_value);
+
+ALTER TABLE black_ip_restriction ADD PRIMARY KEY (netw_value);
+
 
 /*insert statements*/
 INSERT INTO availabilities(name, code) VALUES ('external', 'ext');

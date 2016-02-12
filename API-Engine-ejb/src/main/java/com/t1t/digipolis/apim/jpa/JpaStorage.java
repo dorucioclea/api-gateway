@@ -7,9 +7,12 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
+import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
+import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -29,9 +32,11 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.x509.AVA;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
@@ -438,6 +443,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.delete(commentBean);
     }
 
+    @Override
+    public void deleteAvailableMarket(AvailabilityBean availabilityBean) throws StorageException {
+        super.delete(availabilityBean);
+    }
+
+    @Override
+    public void deleteWhitelistRecord(WhitelistBean whitelistBean) throws StorageException {
+        super.delete(whitelistBean);
+    }
+
+    @Override
+    public void deleteBalcklistRecord(BlacklistBean blacklistBean) throws StorageException {
+        super.delete(blacklistBean);
+    }
+
     /**
      * @see IStorage#getOrganization(String)
      */
@@ -583,6 +603,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public SupportComment getServiceSupportComment(Long id) throws StorageException {
         return super.get(id, SupportComment.class);
+    }
+
+    @Override
+    public AvailabilityBean getAvailableMarket(String id) throws StorageException {
+        return super.get(id, AvailabilityBean.class);
+    }
+
+    @Override
+    public WhitelistBean getWhitelistRecord(String id) throws StorageException {
+        return super.get(id, WhitelistBean.class);
+    }
+
+    @Override
+    public BlacklistBean getBlacklistRecord(String id) throws StorageException {
+        return super.get(id, BlacklistBean.class);
     }
 
     /**
@@ -780,6 +815,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createServiceSupportComment(SupportComment commentBean) throws StorageException {
         super.create(commentBean);
+    }
+
+    @Override
+    public void createAvailableMarket(AvailabilityBean availabilityBean) throws StorageException {
+        super.create(availabilityBean);
+    }
+
+    @Override
+    public void createWhilelistRecord(WhitelistBean whitelistBean) throws StorageException {
+        super.create(whitelistBean);
+    }
+
+    @Override
+    public void createBlacklistRecord(BlacklistBean blacklistBean) throws StorageException {
+        super.create(blacklistBean);
     }
 
     /**
@@ -1707,5 +1757,54 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             rval.add(res);
         }
         return rval;
+    }
+
+    @Override
+    public Map<String,AvailabilityBean> listAvailableMarkets() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String sql =
+                "SELECT a.code, a.name FROM availabilities a ORDER BY a.code ASC";
+        Query query = entityManager.createNativeQuery(sql);
+        List<Object[]> rows = (List<Object[]>) query.getResultList();
+        Map<String,AvailabilityBean> markets = new HashMap<>();
+            for (Object[] row : rows) {
+            AvailabilityBean market  = new AvailabilityBean();
+            market.setCode(String.valueOf(row[0]));
+            market.setName(String.valueOf(row[1]));
+            markets.put(market.getCode(),market);
+        }
+        return markets;
+    }
+
+    @Override
+    public List<WhitelistBean> listWhitelistRecords() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String sql =
+                "SELECT w.netw_value FROM white_ip_restriction w";
+        Query query = entityManager.createNativeQuery(sql);
+        List<Object[]> rows = (List<Object[]>) query.getResultList();
+        List<WhitelistBean> records = new ArrayList<>(rows.size());
+        for (Object[] row : rows) {
+            WhitelistBean record  = new WhitelistBean();
+            record.setNetwValue(String.valueOf(row[0]));
+            records.add(record);
+        }
+        return records;
+    }
+
+    @Override
+    public List<BlacklistBean> listBlacklistRecords() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String sql =
+                "SELECT b.netw_value FROM black_ip_restriction b";
+        Query query = entityManager.createNativeQuery(sql);
+        List<Object[]> rows = (List<Object[]>) query.getResultList();
+        List<BlacklistBean> records = new ArrayList<>(rows.size());
+        for (Object[] row : rows) {
+            BlacklistBean record  = new BlacklistBean();
+            record.setNetwValue(String.valueOf(row[0]));
+            records.add(record);
+        }
+        return records;
     }
 }

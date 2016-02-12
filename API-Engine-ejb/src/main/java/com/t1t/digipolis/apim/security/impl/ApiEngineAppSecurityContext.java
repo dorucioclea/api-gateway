@@ -1,20 +1,17 @@
 package com.t1t.digipolis.apim.security.impl;
 
-import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
-import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ConversationScoped;
-import javax.enterprise.context.RequestScoped;
 import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 
 /**
@@ -26,7 +23,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     //Logger
     private static Logger LOG = LoggerFactory.getLogger(ApiEngineAppSecurityContext.class.getName());
     @Inject private UserFacade userFacade;
-    @Inject private AppConfig config;
+    @Inject private IStorageQuery query;
 
     private String currentApplication;
     private AppIdentifier appIdentifier;
@@ -44,11 +41,13 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
         return currentApplication;
     }
 
-    public String setCurrentApplication(String currentApplication) {
+    public String setCurrentApplication(String currentApplication) throws StorageException {
+
         this.currentApplication = currentApplication;
-        this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication,config.getAvailableMarketplaces());
-        LOG.trace("Application:{}",appIdentifier);
+        this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication, query.listAvailableMarkets().keySet());
+        LOG.trace("Application:{}", appIdentifier);
         return getApplication();
+
     }
 
     @Override

@@ -908,7 +908,20 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getServiceVersionEndpointInfo(organizationId, serviceId, version);
     }
 
-    //TODO add available scopes
+    @ApiOperation(value = "Get Service Availabilities",
+                  notes = "Use this endpoint to get information about the available marketplaces that are defined on the API.")
+    @ApiResponses({@ApiResponse(code = 200, response = ServiceVersionEndpointSummaryBean.class, message = "Available API marketplaces information.")})
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/availability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceVersionEndpointSummaryBean getServiceVersionAvailabilityInfo(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
+                                                                           @PathParam("version") String version) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        //TODO
+        return orgFacade.getServiceVersionEndpointInfo(organizationId, serviceId, version);
+    }
 
     @ApiOperation(value = "Get Service Version Activity",
             notes = "Use this endpoint to get audit activity information for a single version of the Service.")

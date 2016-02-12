@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.rest.resources.filter;
 
 import com.t1t.digipolis.apim.beans.jwt.IJWT;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -48,8 +49,12 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
         //dev mode
         LOG.debug("Security context - request:{}",containerRequestContext.getUriInfo().getRequestUri().getPath());
         if (!JaxRsActivator.securedMode) {
-            securityContext.setCurrentUser("admin");
-            securityAppContext.setCurrentApplication("dummyapp");
+            try {
+                securityContext.setCurrentUser("admin");
+                securityAppContext.setCurrentApplication("dummyapp");
+            } catch (StorageException e) {
+                throw new IOException(e);
+            }
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(REDIRECT_PATH)) {
             ;//allow access without setting security context.
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_CALLBACK)) {
@@ -61,8 +66,11 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
         } else {
             //Get apikey - app context - SHOULD BE ALWAYS PROVIDED
             String appId = containerRequestContext.getHeaderString(HEADER_CONSUMER_USERNAME);
-            LOG.info("consumer-id:{}",appId);
-            securityAppContext.setCurrentApplication(appId);
+            try {
+                securityAppContext.setCurrentApplication(appId);
+            } catch (StorageException e) {
+                throw new IOException(e);
+            }
             //Get the authorization header
             String jwt = containerRequestContext.getHeaderString(HEADER_USER_AUTHORIZATION);
             if(jwt!=null){
