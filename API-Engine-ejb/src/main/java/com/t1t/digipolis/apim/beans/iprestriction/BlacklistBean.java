@@ -15,8 +15,7 @@ import java.io.Serializable;
 @Table(name = "black_ip_restriction")
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class BlacklistBean implements Serializable{
-    public BlacklistBean() {
-    }
+    public BlacklistBean() {}
 
     @Id
     @Column(name = "netw_value", nullable=false)
@@ -48,7 +47,7 @@ public class BlacklistBean implements Serializable{
 
     @Override
     public String toString() {
-        return "WhitelistBean{" +
+        return "BlacklistBean{" +
                 "netwValue='" + netwValue + '\'' +
                 '}';
     }

@@ -1775,8 +1775,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<WhitelistBean> listWhitelistRecords() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT w.netw_value FROM WhitelistBean w";
-        Query query = entityManager.createNativeQuery(jpql);
+        String jpql = "SELECT w FROM WhitelistBean w";
+        Query query = entityManager.createQuery(jpql);
         List<WhitelistBean> rows = query.getResultList();
         return rows;
     }
@@ -1784,8 +1784,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<BlacklistBean> listBlacklistRecords() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT w.netw_value FROM BlacklistBean w";
-        Query query = entityManager.createNativeQuery(jpql);
+        String jpql = "SELECT b FROM BlacklistBean b";
+        Query query = entityManager.createQuery(jpql);
         List<BlacklistBean> rows = query.getResultList();
         return rows;
     }
