@@ -1900,16 +1900,4 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.deleteOrganization(organizationId);
     }
 
-    @ApiOperation(value = "Get Service Availabilities",
-                  notes = "Use this endpoint to get information about the available marketplaces that are defined on the API.")
-    @ApiResponses({@ApiResponse(code = 200, response = ServiceVersionAvailabilityBean.class, message = "Available API marketplaces information.")})
-    @GET
-    @Path("/marketplaces")
-    @Produces(MediaType.APPLICATION_JSON)
-    public ServiceVersionAvailabilityBean getServiceVersionAvailabilityInfo() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
-        ServiceVersionAvailabilityBean svab = new ServiceVersionAvailabilityBean();
-        svab.setAvailableMarketplaces(orgFacade.getAvailableMarketplaces());
-        return svab;
-    }
-
 }
