@@ -24,6 +24,7 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.core.*;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
@@ -910,17 +911,19 @@ public class OrganizationResource implements IOrganizationResource {
 
     @ApiOperation(value = "Get Service Availabilities",
                   notes = "Use this endpoint to get information about the available marketplaces that are defined on the API.")
-    @ApiResponses({@ApiResponse(code = 200, response = ServiceVersionEndpointSummaryBean.class, message = "Available API marketplaces information.")})
+    @ApiResponses({@ApiResponse(code = 200, response = ServiceVersionAvailabilityBean.class, message = "Available API marketplaces information.")})
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/availability")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceVersionEndpointSummaryBean getServiceVersionAvailabilityInfo(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
+    public ServiceVersionAvailabilityBean getServiceVersionAvailabilityInfo(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
                                                                            @PathParam("version") String version) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        //TODO
-        return orgFacade.getServiceVersionEndpointInfo(organizationId, serviceId, version);
+        ServiceVersionAvailabilityBean svab = new ServiceVersionAvailabilityBean();
+        //TODO do this for a service
+        svab.setAvailableMarketplaces(orgFacade.getServiceVersionAvailabilityInfo(organizationId, serviceId, version));
+        return svab;
     }
 
     @ApiOperation(value = "Get Service Version Activity",
@@ -1896,4 +1899,17 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         orgFacade.deleteOrganization(organizationId);
     }
+
+    @ApiOperation(value = "Get Service Availabilities",
+                  notes = "Use this endpoint to get information about the available marketplaces that are defined on the API.")
+    @ApiResponses({@ApiResponse(code = 200, response = ServiceVersionAvailabilityBean.class, message = "Available API marketplaces information.")})
+    @GET
+    @Path("/marketplaces")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceVersionAvailabilityBean getServiceVersionAvailabilityInfo() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
+        ServiceVersionAvailabilityBean svab = new ServiceVersionAvailabilityBean();
+        svab.setAvailableMarketplaces(orgFacade.getAvailableMarketplaces());
+        return svab;
+    }
+
 }

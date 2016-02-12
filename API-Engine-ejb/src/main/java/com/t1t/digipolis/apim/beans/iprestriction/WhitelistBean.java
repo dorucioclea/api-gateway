@@ -16,6 +16,9 @@ import java.util.Date;
 @Table(name = "white_ip_restriction")
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class WhitelistBean implements Serializable{
+    public WhitelistBean() {
+    }
+
     @Id
     @Column(name = "netw_value", nullable=false)
     private String netwValue;

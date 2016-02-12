@@ -15,6 +15,9 @@ import java.io.Serializable;
 @Table(name = "black_ip_restriction")
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class BlacklistBean implements Serializable{
+    public BlacklistBean() {
+    }
+
     @Id
     @Column(name = "netw_value", nullable=false)
     private String netwValue;

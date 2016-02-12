@@ -21,6 +21,9 @@ public class AvailabilityBean implements Serializable {
     @Column(nullable=false)
     private String name;
 
+    public AvailabilityBean() {
+    }
+
     public String getCode() {
         return code;
     }

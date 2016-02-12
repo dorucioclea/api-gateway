@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -1487,6 +1488,20 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 rval.setOauth2TokenEndpoint("");
             }
             return rval;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public Map<String, AvailabilityBean> getServiceVersionAvailabilityInfo(String organizationId, String serviceId, String version) {
+        try {
+            ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
+            if (serviceVersion == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
+            return query.listAvailableMarkets();
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -3037,5 +3052,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //remove all plans
 
         return true;
+    }
+
+    public Map<String, AvailabilityBean> getAvailableMarketplaces() throws StorageException {
+        return query.listAvailableMarkets();
     }
 }

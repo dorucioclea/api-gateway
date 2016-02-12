@@ -1762,16 +1762,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public Map<String,AvailabilityBean> listAvailableMarkets() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String sql =
-                "SELECT a.code, a.name FROM availabilities a ORDER BY a.code ASC";
-        Query query = entityManager.createNativeQuery(sql);
-        List<Object[]> rows = (List<Object[]>) query.getResultList();
+        String jpql = "SELECT a FROM AvailabilityBean a ORDER BY a.code ASC";
+        Query query = entityManager.createQuery(jpql);
+        List<AvailabilityBean> rows = query.getResultList();
         Map<String,AvailabilityBean> markets = new HashMap<>();
-            for (Object[] row : rows) {
-            AvailabilityBean market  = new AvailabilityBean();
-            market.setCode(String.valueOf(row[0]));
-            market.setName(String.valueOf(row[1]));
-            markets.put(market.getCode(),market);
+        for(AvailabilityBean bean:rows){
+            markets.put(bean.getCode(),bean);
         }
         return markets;
     }
@@ -1779,32 +1775,18 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<WhitelistBean> listWhitelistRecords() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String sql =
-                "SELECT w.netw_value FROM white_ip_restriction w";
-        Query query = entityManager.createNativeQuery(sql);
-        List<Object[]> rows = (List<Object[]>) query.getResultList();
-        List<WhitelistBean> records = new ArrayList<>(rows.size());
-        for (Object[] row : rows) {
-            WhitelistBean record  = new WhitelistBean();
-            record.setNetwValue(String.valueOf(row[0]));
-            records.add(record);
-        }
-        return records;
+        String jpql = "SELECT w.netw_value FROM WhitelistBean w";
+        Query query = entityManager.createNativeQuery(jpql);
+        List<WhitelistBean> rows = query.getResultList();
+        return rows;
     }
 
     @Override
     public List<BlacklistBean> listBlacklistRecords() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String sql =
-                "SELECT b.netw_value FROM black_ip_restriction b";
-        Query query = entityManager.createNativeQuery(sql);
-        List<Object[]> rows = (List<Object[]>) query.getResultList();
-        List<BlacklistBean> records = new ArrayList<>(rows.size());
-        for (Object[] row : rows) {
-            BlacklistBean record  = new BlacklistBean();
-            record.setNetwValue(String.valueOf(row[0]));
-            records.add(record);
-        }
-        return records;
+        String jpql = "SELECT w.netw_value FROM BlacklistBean w";
+        Query query = entityManager.createNativeQuery(jpql);
+        List<BlacklistBean> rows = query.getResultList();
+        return rows;
     }
 }

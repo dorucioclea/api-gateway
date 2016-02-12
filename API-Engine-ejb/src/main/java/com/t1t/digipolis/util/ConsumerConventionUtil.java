@@ -56,18 +56,18 @@ public class ConsumerConventionUtil {
      * @param appId
      * @return
      */
-    public static AppIdentifier parseApplicationIdentifier(String appId, Set<String>availableMarketplaces){
+    public static AppIdentifier parseApplicationIdentifier(String appId){
         if(StringUtils.isEmpty(appId))return null;//normally shouldn't be null
-        if(StringUtils.countMatches(appId,".")!=2)return null;
         AppIdentifier appIdBean = new AppIdentifier();
         String[] splitResult = appId.split("\\.");
         if(splitResult.length==3){
             //set optional marketplace scope
-            if(availableMarketplaces!=null && availableMarketplaces.size()>0){
-                appIdBean.setScope(((availableMarketplaces.contains(splitResult[0].toLowerCase()))?splitResult[0].toLowerCase():""));
-            }
+            appIdBean.setScope(splitResult[0]);
             appIdBean.setAppId(splitResult[1]);
             appIdBean.setVersion(splitResult[2]);
+        }else if (splitResult.length == 2){
+            appIdBean.setScope(splitResult[0]);
+            appIdBean.setAppId(splitResult[1]);
         }
         return appIdBean;
     }
