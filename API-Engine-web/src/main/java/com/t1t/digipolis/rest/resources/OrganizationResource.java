@@ -908,6 +908,8 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getServiceVersionEndpointInfo(organizationId, serviceId, version);
     }
 
+    //TODO add available scopes
+
     @ApiOperation(value = "Get Service Version Activity",
             notes = "Use this endpoint to get audit activity information for a single version of the Service.")
     @ApiResponses({

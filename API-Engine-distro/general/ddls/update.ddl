@@ -6,4 +6,20 @@ ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY 
 
 ALTER TABLE applications ADD context VARCHAR(255) NULL;
 
-/*update all applications with int*/
+CREATE TABLE availabilities (name VARCHAR(255) NOT NULL, code VARCHAR(3) NOT NULL);
+
+CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
+
+CREATE TABLE black_ip_restriction (netw_value VARCHAR(255));
+
+
+/*insert statements*/
+INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
+
+INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
+
+INSERT INTO white_ip_restriction(netw_value) VALUES ('127.0.0.0/24');
+
+INSERT INTO black_ip_restriction(netw_value) VALUES ('32.0.0.0/8');
+
+
