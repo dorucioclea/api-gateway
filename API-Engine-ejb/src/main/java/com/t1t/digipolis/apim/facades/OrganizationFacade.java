@@ -3054,7 +3054,4 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return true;
     }
 
-    public Map<String, AvailabilityBean> getAvailableMarketplaces() throws StorageException {
-        return query.listAvailableMarkets();
-    }
 }

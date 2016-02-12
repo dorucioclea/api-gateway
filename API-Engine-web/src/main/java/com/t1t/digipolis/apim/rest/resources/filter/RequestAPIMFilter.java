@@ -35,7 +35,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     private static final String REDIRECT_PATH = "/users/idp/redirect";
     private static final String IDP_CALLBACK = "/users/idp/callback";
     private static final String IDP_SLO = "/users/idp/slo";
-    private static final String SYSTEM_INFO = "/system/status";
+    private static final String SYSTEM_INFO = "/system";
     private static final String SWAGGER_DOC_URI = "API-Engine-web";
     private static final String SWAGGER_DOC_JSON = "/API-Engine-web/v1/swagger.json";
 
