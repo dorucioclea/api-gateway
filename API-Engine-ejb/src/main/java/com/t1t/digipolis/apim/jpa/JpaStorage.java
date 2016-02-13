@@ -34,6 +34,7 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.security.x509.AVA;
@@ -49,6 +50,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * A JPA implementation of the storage interface.
@@ -678,7 +681,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public SearchResultsBean<ApplicationSummaryBean> findApplications(SearchCriteriaBean criteria)
             throws StorageException {
-        SearchResultsBean<ApplicationBean> result = find(criteria, ApplicationBean.class);
+        //filter Applications along scope
+        SearchResultsBean<ApplicationBean> tempResult = find(criteria, ApplicationBean.class);
+        SearchResultsBean<ApplicationBean> result = new SearchResultsBean<>();
+        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
+            List<ApplicationBean> appBeans = tempResult.getBeans().stream().filter(a -> a.getContext().equalsIgnoreCase(appContext.getApplicationScope())).collect(Collectors.toList());
+            result.setBeans(appBeans);
+            result.setTotalSize(appBeans.size());
+        }else {
+            result = tempResult;
+        }
 
         SearchResultsBean<ApplicationSummaryBean> rval = new SearchResultsBean<>();
         rval.setTotalSize(result.getTotalSize());
@@ -724,7 +736,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException {
-        return super.findAllServicesByStatus(status);
+        List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(status);
+        List<ServiceVersionBean> allServicesByStatusFiltered = new ArrayList<>();
+        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
+            for(ServiceVersionBean svb:allServicesByStatus){
+                if((svb.getVisibility().stream().filter(svbVis -> svbVis.getCode().equalsIgnoreCase(appContext.getApplicationScope())).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
+            }
+        }else{
+            allServicesByStatusFiltered = allServicesByStatus;
+        }
+        return allServicesByStatusFiltered;
     }
 
     public List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories) throws StorageException {

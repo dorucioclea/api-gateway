@@ -52,4 +52,11 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     public AppIdentifier getApplicationIdentifier() {
         return this.appIdentifier;
     }
+
+    @Override
+    public String getApplicationScope() {
+        if(appIdentifier!=null && !StringUtils.isEmpty(appIdentifier.getScope())){
+            return appIdentifier.getScope();
+        }return "";
+    }
 }
