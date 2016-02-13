@@ -44,7 +44,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     public String setCurrentApplication(String currentApplication) throws StorageException {
         this.currentApplication = currentApplication;
         this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication);
-        LOG.trace("Application:{}", appIdentifier);
+        LOG.debug("Application:{}", appIdentifier);
         return getApplication();
     }
 
