@@ -20,8 +20,6 @@ public class AvailabilityBean implements Serializable {
     private String code;
     @Column(nullable=false)
     private String name;
-    @Column(nullable = false)
-    private Boolean show;
 
     public AvailabilityBean() {
     }
@@ -40,14 +38,6 @@ public class AvailabilityBean implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Boolean getShow() {
-        return show;
-    }
-
-    public void setShow(Boolean show) {
-        this.show = show;
     }
 
     @Override
@@ -74,7 +64,6 @@ public class AvailabilityBean implements Serializable {
         return "AvailabilityBean{" +
                 "code='" + code + '\'' +
                 ", name='" + name + '\'' +
-                ", show=" + show +
                 '}';
     }
 }

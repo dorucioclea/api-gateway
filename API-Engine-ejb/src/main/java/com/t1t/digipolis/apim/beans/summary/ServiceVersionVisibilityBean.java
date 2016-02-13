@@ -9,14 +9,14 @@ import java.util.Map;
 /**
  * Created by michallispashidis on 12/02/16.
  */
-public class ServiceVersionAvailabilityBean implements Serializable {
-    private Map<String,AvailabilityBean> availableMarketplaces;
+public class ServiceVersionVisibilityBean implements Serializable {
+    private Map<String,VisibilityBean> availableMarketplaces;
 
-    public Map<String, AvailabilityBean> getAvailableMarketplaces() {
+    public Map<String, VisibilityBean> getAvailableMarketplaces() {
         return availableMarketplaces;
     }
 
-    public void setAvailableMarketplaces(Map<String, AvailabilityBean> availableMarketplaces) {
+    public void setAvailableMarketplaces(Map<String, VisibilityBean> availableMarketplaces) {
         this.availableMarketplaces = availableMarketplaces;
     }
 

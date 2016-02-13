@@ -911,16 +911,16 @@ public class OrganizationResource implements IOrganizationResource {
 
     @ApiOperation(value = "Get Service Availabilities",
                   notes = "Use this endpoint to get information about the available marketplaces that are defined on the API.")
-    @ApiResponses({@ApiResponse(code = 200, response = ServiceVersionAvailabilityBean.class, message = "Available API marketplaces information.")})
+    @ApiResponses({@ApiResponse(code = 200, response = ServiceVersionVisibilityBean.class, message = "Available API marketplaces information.")})
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/availability")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceVersionAvailabilityBean getServiceVersionAvailabilityInfo(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
+    public ServiceVersionVisibilityBean getServiceVersionAvailabilityInfo(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
                                                                            @PathParam("version") String version) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        ServiceVersionAvailabilityBean svab = new ServiceVersionAvailabilityBean();
+        ServiceVersionVisibilityBean svab = new ServiceVersionVisibilityBean();
         //TODO do this for a service
         svab.setAvailableMarketplaces(orgFacade.getServiceVersionAvailabilityInfo(organizationId, serviceId, version));
         return svab;
