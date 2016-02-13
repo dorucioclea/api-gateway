@@ -28,4 +28,7 @@ INSERT INTO white_ip_restriction(netw_value) VALUES ('127.0.0.0/24');
 
 INSERT INTO black_ip_restriction(netw_value) VALUES ('32.0.0.0/8');
 
+/*Update existing services to be available on the internal marketplace*/
+
+
 
