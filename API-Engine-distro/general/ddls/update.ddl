@@ -6,7 +6,7 @@ ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY 
 
 ALTER TABLE applications ADD context VARCHAR(255) NULL;
 
-CREATE TABLE availabilities (name VARCHAR(255) NOT NULL, code VARCHAR(3) NOT NULL);
+CREATE TABLE availabilities (code VARCHAR(3) NOT NULL, name VARCHAR(255) NOT NULL);
 
 CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
 

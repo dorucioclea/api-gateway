@@ -33,6 +33,7 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
+import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -68,6 +69,7 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
@@ -89,6 +91,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 15/08/15.
@@ -1495,13 +1499,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public Map<String, AvailabilityBean> getServiceVersionAvailabilityInfo(String organizationId, String serviceId, String version) {
+    public Map<String, VisibilityBean> getServiceVersionAvailabilityInfo(String organizationId, String serviceId, String version) {
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
-            return query.listAvailableMarkets();
+            Map<String,VisibilityBean> serviceVisibilities = serviceVersion.getVisibility().stream().collect(Collectors.toMap(VisibilityBean::getCode, Function.identity()));
+            return serviceVisibilities;
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
