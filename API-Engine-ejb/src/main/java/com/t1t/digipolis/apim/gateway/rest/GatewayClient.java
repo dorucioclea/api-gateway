@@ -396,7 +396,6 @@ public class GatewayClient {
         List<String> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY, "Authorization");
         KongPluginCors corsPolicy = new KongPluginCors(); //default values are ok
         corsPolicy.setHeaders(headers);
-        corsPolicy.setCredentials(false);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.CORS.getKongIdentifier())
                 .withConfig(corsPolicy);
@@ -549,7 +548,6 @@ public class GatewayClient {
                 .withName(kongIdentifier)//set required kong identifier
                 .withConfig(plugin);
         //TODO: strong validation should be done and rollback of the service registration upon error?!
-        //execute
         config = httpClient.createPluginConfig(api.getId(),config);
         return config;
     }

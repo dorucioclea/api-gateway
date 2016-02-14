@@ -1004,7 +1004,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceVersionBean updateServiceVersion(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version,
-                                                   UpdateServiceVersionBean bean) throws ServiceVersionNotFoundException, NotAuthorizedException {
+                                                   UpdateServiceVersionBean bean) throws ServiceVersionNotFoundException, NotAuthorizedException, StorageException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));

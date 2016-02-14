@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
@@ -56,10 +57,7 @@ import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.GatewayPathUtilities;
-import com.t1t.digipolis.util.ServiceConventionUtil;
-import com.t1t.digipolis.util.URIUtils;
+import com.t1t.digipolis.util.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
@@ -752,7 +750,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
     }
 
-    public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) {
+    public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
@@ -807,6 +805,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
             data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
             svb.setVisibility(bean.getVisibility());
+            //add implicitly the IP Restriction when: External available and hide = false
+            KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(query.listWhitelistRecords(), query.listBlacklistRecords());
+            boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
+            if(defaultIPRestriction !=null && enableIPR){
+                Gson gson = new Gson();
+                NewPolicyBean npb = new NewPolicyBean();
+                npb.setDefinitionId("IPRestriction");//TODO == definition id in the DB - should not be hardcoded -> but addes to the Policies class
+                npb.setConfiguration(gson.toJson(defaultIPRestriction));
+                try{
+                    createServicePolicy(organizationId,serviceId,version,npb);
+                }catch(PolicyDefinitionAlreadyExistsException pdex){;}//ignore if policy already exists
+            }else{
+                //remove eventual policies already added
+                List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
+                for(PolicySummaryBean psb:policies){
+                    psb.getPolicyDefinitionId().equalsIgnoreCase("IPRestriction");
+                    deleteServicePolicy(organizationId,serviceId,version,psb.getId());
+                }
+            }
         }
         try {
             if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
