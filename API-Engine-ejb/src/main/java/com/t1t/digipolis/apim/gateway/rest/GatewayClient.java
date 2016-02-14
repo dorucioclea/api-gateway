@@ -23,6 +23,7 @@ import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginHttpLog;
 import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
@@ -471,6 +472,18 @@ public class GatewayClient {
 
     public KongPluginJWTResponseList getConsumerJWT(String id){
         return httpClient.getConsumerJWTCredentials(id);
+    }
+
+    public KongPluginConfigList getServicePlugins(String serviceId){
+        return httpClient.getKongPluginConfigList(serviceId);
+    }
+
+    public KongPluginConfig getServicePlugin(String serviceId, String pluginId){
+        return httpClient.getKongPluginConfig(serviceId, pluginId);
+    }
+
+    public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config){
+        return httpClient.updateKongPluginConfig(serviceId,config);
     }
 
     public void deleteConsumerKeyAuth(String id, String apikey){

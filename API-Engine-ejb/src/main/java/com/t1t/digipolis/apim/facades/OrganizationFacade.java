@@ -53,6 +53,9 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
@@ -1514,6 +1517,39 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             Map<String,VisibilityBean> serviceVisibilities = serviceVersion.getVisibility().stream().collect(Collectors.toMap(VisibilityBean::getCode, Function.identity()));
             return serviceVisibilities;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public KongPluginConfigList getServicePlugins(String organizationId, String serviceId, String version) {
+        try {
+            KongPluginConfigList servicePlugins = null;
+            String serviceKongId = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
+            try {
+                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                servicePlugins = gateway.getServicePlugins(serviceKongId);
+            } catch (StorageException e) {
+                throw new ApplicationNotFoundException(e.getMessage());
+            }
+            return servicePlugins;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public KongPluginConfig changeEnabledStateServicePlugin(String organizationId, String serviceId, String version,String pluginId, boolean enable) {
+        String serviceKongId = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
+        try {
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            KongPluginConfig pluginConfig = gateway.getServicePlugin(serviceKongId, pluginId);
+            pluginConfig.setEnabled(enable);
+            pluginConfig = gateway.updateServicePlugin(serviceKongId,pluginConfig);
+            return pluginConfig;
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
