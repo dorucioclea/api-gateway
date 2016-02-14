@@ -32,6 +32,7 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
+import com.t1t.digipolis.util.ServiceScopeUtil;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -736,28 +737,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException {
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(status);
-        List<ServiceVersionBean> allServicesByStatusFiltered = new ArrayList<>();
-        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
-            for(ServiceVersionBean svb:allServicesByStatus){
-                if((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(appContext.getApplicationScope())&&svbVis.getShow())).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
-            }
-        }else{
-            allServicesByStatusFiltered = allServicesByStatus;
-        }
-        return allServicesByStatusFiltered;
+        return ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationScope());
     }
 
     public List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories) throws StorageException {
-        List<ServiceVersionBean> allServicesByStatus = findAllServiceVersionsInCategory(categories);
-        List<ServiceVersionBean> allServicesByStatusFiltered = new ArrayList<>();
-        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
-            for(ServiceVersionBean svb:allServicesByStatus){
-                if((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(appContext.getApplicationScope())&&svbVis.getShow())).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
-            }
-        }else{
-            allServicesByStatusFiltered = allServicesByStatus;
-        }
-        return allServicesByStatusFiltered;
+        List<ServiceVersionBean> allServicesForCat = findAllServiceVersionsInCategory(categories);
+        return ServiceScopeUtil.resolveSVBScope(allServicesForCat,appContext.getApplicationScope());
     }
 
     public Set<String> findAllUniqueCategories() throws StorageException {
@@ -773,19 +758,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public Set<String> findAllUniquePublishedCategories() throws StorageException {
         List<ServiceBean> services = new ArrayList<>();
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
-        List<ServiceVersionBean> allServicesByStatusFiltered = new ArrayList<>();
-        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
-            for(ServiceVersionBean svb:allServicesByStatus){
-                if((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(appContext.getApplicationScope())&&svbVis.getShow())).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
-            }
-        }else{
-            allServicesByStatusFiltered = allServicesByStatus;
-        }
-
-        for(ServiceVersionBean svb:allServicesByStatusFiltered){
+        List<ServiceVersionBean> allServicesFiltered = ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationScope());
+        for(ServiceVersionBean svb:allServicesFiltered){
             services.add(svb.getService());
         }
-
         Set<String> catSet = new TreeSet<>();
         for (ServiceBean service : services) {
             catSet.addAll(service.getCategories());
