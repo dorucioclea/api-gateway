@@ -746,10 +746,15 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     public Set<String> findAllUniqueCategories() throws StorageException {
-        List<ServiceBean> serviceList = findAllServiceDefinitions();
+        List<ServiceBean> services = new ArrayList<>();
+        List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
+        List<ServiceVersionBean> allServicesFiltered = ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationScope());
+        for(ServiceVersionBean svb:allServicesFiltered){
+            services.add(svb.getService());
+        }
         //extract all categories in a set
         Set<String> catSet = new TreeSet<>();
-        for (ServiceBean sb : serviceList) {
+        for (ServiceBean sb : services) {
             for (String cat : sb.getCategories()) catSet.add(cat);
         }
         return catSet;
