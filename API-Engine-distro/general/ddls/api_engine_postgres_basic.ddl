@@ -492,12 +492,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "default": false,
       "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by Kong before proxying the request."
     }
-  },
-  "required": [
-    "mandatory_scope",
-    "token_expiration",
-    "enable_implicit_grant"
-  ]
+  }
 }', 'JsonSchema', 'fa-sign-in', 'OAuth2 Policy', NULL ,TRUE ,FALSE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RateLimiting', 'Rate-limit how many HTTP requests a consumer can make', '{
