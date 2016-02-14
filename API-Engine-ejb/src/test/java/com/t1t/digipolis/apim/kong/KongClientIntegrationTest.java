@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.kong;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -15,6 +16,7 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.Plugins;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
@@ -22,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -43,7 +46,7 @@ public class KongClientIntegrationTest {
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
-    private static final String KONG_UNDER_TEST_URL = "http://192.168.99.100:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_URL = "http://devapim.t1t.be:8001";//should point to the admin url:port
     //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
@@ -501,5 +504,47 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         return pluginConfig;
     }
+
+    @Test
+    public void testCreateIPRestrictionPlugin() throws Exception {
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apiipr = createDummyApi("apiipr","/apiipr",API_URL);
+        KongConsumer consumer = createDummyConsumer("ipr123", "apruser");
+        apiipr = kongClient.addApi(apiipr);
+        //create a IPRestrcition policy
+        List<String> whitelistrecords = new ArrayList<>();
+        whitelistrecords.add("127.0.0.0/24");
+        whitelistrecords.add("128.0.0.0/24");
+        List<String> blacklistrecords = new ArrayList<>();
+        blacklistrecords.add("32.0.0.0/24");
+        blacklistrecords.add("33.0.0.0/24");
+        KongPluginIPRestriction iprConfig = new KongPluginIPRestriction()
+                .withBlacklist(whitelistrecords)
+                .withWhitelist(blacklistrecords);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("ip-restriction")//as an example
+                .withConfig(iprConfig);
+        print(pluginConfig);
+        kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
+        kongClient.deleteApi(apiipr.getId());
+    }
+
+    @Test
+    public void testCreateIPRestrictionPluginWithJSONConvertion() throws Exception {
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apiipr = createDummyApi("apiiprjson","/apiiprjson",API_URL);
+        String iprestrictionValues = "{\"blacklist\":[\"32.0.0.0/8\"],\"whitelist\":[\"127.0.0.0/24\"]}";
+        Gson gson = new Gson();
+        KongPluginIPRestriction kongPluginIPRestriction = gson.fromJson(iprestrictionValues, KongPluginIPRestriction.class);
+        KongConsumer consumer = createDummyConsumer("ipr1234", "apruser4");
+        apiipr = kongClient.addApi(apiipr);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("ip-restriction")//as an example
+                .withConfig(kongPluginIPRestriction);
+        print(pluginConfig);
+        kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
+        kongClient.deleteApi(apiipr.getId());
+    }
+
     private void print(Object obj){log.info(gson.toJson(obj));};
 }

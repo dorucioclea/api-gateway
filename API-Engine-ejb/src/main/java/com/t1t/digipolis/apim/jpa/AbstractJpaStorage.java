@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +30,7 @@ import java.util.Set;
 public abstract class AbstractJpaStorage {
     private static Logger log = LoggerFactory.getLogger(AbstractJpaStorage.class.getName());
 
-    @PersistenceContext
-    protected EntityManager em;
+    @PersistenceContext protected EntityManager em;
 
     /**
      * Constructor.

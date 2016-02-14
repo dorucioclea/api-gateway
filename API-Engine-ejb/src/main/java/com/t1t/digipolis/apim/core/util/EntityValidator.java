@@ -79,6 +79,9 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
         if (service.getGateways() == null || service.getGateways().isEmpty()) {
             ready = false;
         }
+        if(service.getVisibility() == null || service.getVisibility().isEmpty()){
+            ready = false;
+        }
         return ready;
     }
 

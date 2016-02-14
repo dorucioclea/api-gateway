@@ -34,7 +34,6 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
             clearPermissions();
             currentUser = "";
         }
-        logger.debug("Logged-in user:{}", currentUser);
         return currentUser;
     }
 

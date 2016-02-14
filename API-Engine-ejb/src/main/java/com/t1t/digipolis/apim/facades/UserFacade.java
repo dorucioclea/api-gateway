@@ -460,6 +460,7 @@ public class UserFacade implements Serializable {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
+        utilPrintCache();
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
 /*        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
             responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
@@ -966,17 +967,18 @@ public class UserFacade implements Serializable {
      */
     public void utilPrintCache() {
         log.info("SessionIndex cache values:");
+        Set<String> ssoKeys = cacheUtil.getSSOKeys();
+        log.info("SSOKeys: {}",ssoKeys);
+        log.info("SSO cache values: {}",ssoKeys);
+        ssoKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getWebCacheBean(key)));
         Set<String> sessionKeys = cacheUtil.getSessionKeys();
         log.info("Sessionkeys: {}",sessionKeys);
+        log.info("Session cach values: {}",sessionKeys);
         sessionKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getSessionIndex(key)));
-        log.info("Token cache values:");
         Set<String> tokenKeys = cacheUtil.getTokenKeys();
         log.info("Tokenkeys: {}",tokenKeys);
+        log.info("Token cache values:");
         tokenKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getToken(key)));
-        log.info("WebCacheBean cache values:");
-        Set<String> webKeys = cacheUtil.getTokenKeys();
-        log.info("webkeys: {}",webKeys);
-        webKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getWebCacheBean(key)));
     }
 
     /**

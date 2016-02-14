@@ -13,6 +13,8 @@ import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
@@ -257,5 +259,31 @@ public interface IGatewayLink {
      * @param pluginId
      */
     public void deleteOAuthConsumerPlugin(String consumerId, String pluginId);
+
+    /**
+     * Returns all plugins for a given service.
+     *
+     * @param serviceId
+     * @return
+     */
+    public KongPluginConfigList getServicePlugins(String serviceId);
+
+    /**
+     * Returns a plugin for a service by its unique id.
+     *
+     * @param serviceId
+     * @param pluginId
+     * @return
+     */
+    public KongPluginConfig getServicePlugin(String serviceId, String pluginId);
+
+    /**
+     * Updates a given plugin for a service.
+     *
+     * @param serviceId
+     * @param config
+     * @return
+     */
+    public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config);
     
 }

@@ -7,9 +7,12 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
+import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
+import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -28,9 +31,14 @@ import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
+import com.t1t.digipolis.util.ServiceScopeUtil;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.x509.AVA;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
@@ -43,6 +51,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * A JPA implementation of the storage interface.
@@ -52,8 +62,8 @@ import java.util.*;
 public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorageQuery {
 
     private static Logger logger = LoggerFactory.getLogger(JpaStorage.class);
-    @Inject
-    AppConfig config;
+    @Inject AppConfig config;
+    @Inject ISecurityAppContext appContext;
 
     /**
      * Constructor.
@@ -437,6 +447,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.delete(commentBean);
     }
 
+    @Override
+    public void deleteAvailableMarket(AvailabilityBean availabilityBean) throws StorageException {
+        super.delete(availabilityBean);
+    }
+
+    @Override
+    public void deleteWhitelistRecord(WhitelistBean whitelistBean) throws StorageException {
+        super.delete(whitelistBean);
+    }
+
+    @Override
+    public void deleteBalcklistRecord(BlacklistBean blacklistBean) throws StorageException {
+        super.delete(blacklistBean);
+    }
+
     /**
      * @see IStorage#getOrganization(String)
      */
@@ -584,6 +609,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return super.get(id, SupportComment.class);
     }
 
+    @Override
+    public AvailabilityBean getAvailableMarket(String id) throws StorageException {
+        return super.get(id, AvailabilityBean.class);
+    }
+
+    @Override
+    public WhitelistBean getWhitelistRecord(String id) throws StorageException {
+        return super.get(id, WhitelistBean.class);
+    }
+
+    @Override
+    public BlacklistBean getBlacklistRecord(String id) throws StorageException {
+        return super.get(id, BlacklistBean.class);
+    }
+
     /**
      * @see IStorage#reorderPolicies(PolicyType, String, String, String, List)
      */
@@ -640,9 +680,17 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorageQuery#findApplications(SearchCriteriaBean)
      */
     @Override
-    public SearchResultsBean<ApplicationSummaryBean> findApplications(SearchCriteriaBean criteria)
-            throws StorageException {
-        SearchResultsBean<ApplicationBean> result = find(criteria, ApplicationBean.class);
+    public SearchResultsBean<ApplicationSummaryBean> findApplications(SearchCriteriaBean criteria) throws StorageException {
+        //filter Applications along scope
+        SearchResultsBean<ApplicationBean> tempResult = find(criteria, ApplicationBean.class);
+        SearchResultsBean<ApplicationBean> result = new SearchResultsBean<>();
+        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
+            List<ApplicationBean> appBeans = tempResult.getBeans().stream().filter(a -> a.getContext().equalsIgnoreCase(appContext.getApplicationScope())).collect(Collectors.toList());
+            result.setBeans(appBeans);
+            result.setTotalSize(appBeans.size());
+        }else {
+            result = tempResult;
+        }
 
         SearchResultsBean<ApplicationSummaryBean> rval = new SearchResultsBean<>();
         rval.setTotalSize(result.getTotalSize());
@@ -688,37 +736,37 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException {
-        return super.findAllServicesByStatus(status);
+        List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(status);
+        return ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationScope());
     }
 
     public List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories) throws StorageException {
-        return findAllServiceVersionsInCategory(categories);
+        List<ServiceVersionBean> allServicesForCat = findAllServiceVersionsInCategory(categories);
+        return ServiceScopeUtil.resolveSVBScope(allServicesForCat,appContext.getApplicationScope());
     }
 
     public Set<String> findAllUniqueCategories() throws StorageException {
-        List<ServiceBean> serviceList = findAllServiceDefinitions();
+        List<ServiceBean> services = new ArrayList<>();
+        List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
+        List<ServiceVersionBean> allServicesFiltered = ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationScope());
+        for(ServiceVersionBean svb:allServicesFiltered){
+            services.add(svb.getService());
+        }
         //extract all categories in a set
         Set<String> catSet = new TreeSet<>();
-        for (ServiceBean sb : serviceList) {
+        for (ServiceBean sb : services) {
             for (String cat : sb.getCategories()) catSet.add(cat);
         }
         return catSet;
     }
 
     public Set<String> findAllUniquePublishedCategories() throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        @SuppressWarnings("nls")
-        String jpql =
-                "SELECT s "
-                        + "  FROM ServiceVersionBean v"
-                        + "  JOIN v.service s"
-                        + " WHERE v.status = :status"
-                        + " ORDER BY s.id DESC";
-        Query query = entityManager.createQuery(jpql);
-        query.setMaxResults(500);
-        query.setParameter("status", ServiceStatus.Published); //$NON-NLS-1$
-
-        List<ServiceBean> services = (List<ServiceBean>) query.getResultList();
+        List<ServiceBean> services = new ArrayList<>();
+        List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
+        List<ServiceVersionBean> allServicesFiltered = ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationScope());
+        for(ServiceVersionBean svb:allServicesFiltered){
+            services.add(svb.getService());
+        }
         Set<String> catSet = new TreeSet<>();
         for (ServiceBean service : services) {
             catSet.addAll(service.getCategories());
@@ -779,6 +827,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createServiceSupportComment(SupportComment commentBean) throws StorageException {
         super.create(commentBean);
+    }
+
+    @Override
+    public void createAvailableMarket(AvailabilityBean availabilityBean) throws StorageException {
+        super.create(availabilityBean);
+    }
+
+    @Override
+    public void createWhilelistRecord(WhitelistBean whitelistBean) throws StorageException {
+        super.create(whitelistBean);
+    }
+
+    @Override
+    public void createBlacklistRecord(BlacklistBean blacklistBean) throws StorageException {
+        super.create(blacklistBean);
     }
 
     /**
@@ -993,7 +1056,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         query.setParameter("orgs", orgIds); //$NON-NLS-1$
 
         List<ApplicationBean> qr = (List<ApplicationBean>) query.getResultList();
-        for (ApplicationBean bean : qr) {
+        List<ApplicationBean> qrFiltered = new ArrayList<>();
+        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
+            qrFiltered = qr.stream().filter(app -> app.getContext().equalsIgnoreCase(appContext.getApplicationScope())).collect(Collectors.toList());
+        }else qrFiltered = qr;
+
+        for (ApplicationBean bean : qrFiltered) {
             ApplicationSummaryBean summary = new ApplicationSummaryBean();
             summary.setId(bean.getId());
             summary.setName(bean.getName());
@@ -1706,5 +1774,36 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             rval.add(res);
         }
         return rval;
+    }
+
+    @Override
+    public Map<String,AvailabilityBean> listAvailableMarkets() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT a FROM AvailabilityBean a ORDER BY a.code ASC";
+        Query query = entityManager.createQuery(jpql);
+        List<AvailabilityBean> rows = query.getResultList();
+        Map<String,AvailabilityBean> markets = new HashMap<>();
+        for(AvailabilityBean bean:rows){
+            markets.put(bean.getCode(),bean);
+        }
+        return markets;
+    }
+
+    @Override
+    public List<WhitelistBean> listWhitelistRecords() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT w FROM WhitelistBean w";
+        Query query = entityManager.createQuery(jpql);
+        List<WhitelistBean> rows = query.getResultList();
+        return rows;
+    }
+
+    @Override
+    public List<BlacklistBean> listBlacklistRecords() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT b FROM BlacklistBean b";
+        Query query = entityManager.createQuery(jpql);
+        List<BlacklistBean> rows = query.getResultList();
+        return rows;
     }
 }

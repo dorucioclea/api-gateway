@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
@@ -11,6 +12,7 @@ import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -32,6 +34,7 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
+import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -48,12 +51,13 @@ import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.GatewayPathUtilities;
-import com.t1t.digipolis.util.ServiceConventionUtil;
-import com.t1t.digipolis.util.URIUtils;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.util.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
@@ -66,6 +70,7 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
@@ -87,6 +92,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 15/08/15.
@@ -97,8 +104,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private static Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
     @PersistenceContext
     private EntityManager em;
-    @Inject
-    private ISecurityContext securityContext;
+    @Inject private ISecurityContext securityContext;
+    @Inject private ISecurityAppContext appContext;
     @Inject
     private IStorage storage;
     @Inject
@@ -265,6 +272,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newApp.setDescription(bean.getDescription());
         newApp.setCreatedBy(securityContext.getCurrentUser());
         newApp.setCreatedOn(new Date());
+        newApp.setContext(appContext.getApplicationIdentifier().getScope());
         try {
             // Store/persist the new application
             OrganizationBean org = storage.getOrganization(organizationId);
@@ -742,7 +750,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
     }
 
-    public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) {
+    public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
@@ -793,6 +801,29 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (AuditUtils.valueChanged(svb.isPublicService(), bean.getPublicService())) {
             data.addChange("publicService", String.valueOf(svb.isPublicService()), String.valueOf(bean.getPublicService())); //$NON-NLS-1$
             svb.setPublicService(bean.getPublicService());
+        }
+        if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
+            data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
+            svb.setVisibility(bean.getVisibility());
+            //add implicitly the IP Restriction when: External available and hide = false
+            KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(query.listWhitelistRecords(), query.listBlacklistRecords());
+            boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
+            if(defaultIPRestriction !=null && enableIPR){
+                Gson gson = new Gson();
+                NewPolicyBean npb = new NewPolicyBean();
+                npb.setDefinitionId("IPRestriction");//TODO == definition id in the DB - should not be hardcoded -> but addes to the Policies class
+                npb.setConfiguration(gson.toJson(defaultIPRestriction));
+                try{
+                    createServicePolicy(organizationId,serviceId,version,npb);
+                }catch(PolicyDefinitionAlreadyExistsException pdex){;}//ignore if policy already exists
+            }else{
+                //remove eventual policies already added
+                List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
+                for(PolicySummaryBean psb:policies){
+                    psb.getPolicyDefinitionId().equalsIgnoreCase("IPRestriction");
+                    deleteServicePolicy(organizationId,serviceId,version,psb.getId());
+                }
+            }
         }
         try {
             if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
@@ -1481,6 +1512,61 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 rval.setOauth2TokenEndpoint("");
             }
             return rval;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public Map<String, VisibilityBean> getServiceVersionAvailabilityInfo(String organizationId, String serviceId, String version) {
+        try {
+            ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
+            if (serviceVersion == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
+            //enrich visibility with name (coming from other entity)
+            Map<String, AvailabilityBean> availableMarkets = query.listAvailableMarkets();
+            for(VisibilityBean vb: serviceVersion.getVisibility()){
+                if(availableMarkets.containsKey(vb.getCode())){
+                    vb.setName(availableMarkets.get(vb.getCode()).getName());
+                }
+            }
+            Map<String,VisibilityBean> serviceVisibilities = serviceVersion.getVisibility().stream().collect(Collectors.toMap(VisibilityBean::getCode, Function.identity()));
+            return serviceVisibilities;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public KongPluginConfigList getServicePlugins(String organizationId, String serviceId, String version) {
+        try {
+            KongPluginConfigList servicePlugins = null;
+            String serviceKongId = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
+            try {
+                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                servicePlugins = gateway.getServicePlugins(serviceKongId);
+            } catch (StorageException e) {
+                throw new ApplicationNotFoundException(e.getMessage());
+            }
+            return servicePlugins;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
+    }
+
+    public KongPluginConfig changeEnabledStateServicePlugin(String organizationId, String serviceId, String version,String pluginId, boolean enable) {
+        String serviceKongId = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
+        try {
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            KongPluginConfig pluginConfig = gateway.getServicePlugin(serviceKongId, pluginId);
+            pluginConfig.setEnabled(enable);
+            pluginConfig = gateway.updateServicePlugin(serviceKongId,pluginConfig);
+            return pluginConfig;
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -3032,4 +3118,5 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
         return true;
     }
+
 }

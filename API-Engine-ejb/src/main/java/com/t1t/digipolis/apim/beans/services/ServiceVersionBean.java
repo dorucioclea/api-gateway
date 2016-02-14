@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.beans.services;
 
+import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.URL;
 
@@ -55,6 +56,9 @@ public class ServiceVersionBean implements Serializable {
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name="svc_plans", joinColumns=@JoinColumn(name="service_version_id"))
     private Set<ServicePlanBean> plans;
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name="svc_visibility", joinColumns=@JoinColumn(name="service_version_id"))
+    private Set<VisibilityBean> visibility;
     @Column(updatable=false)
     private String version;
     @Column(name = "created_by", updatable=false, nullable=false)
@@ -319,6 +323,14 @@ public class ServiceVersionBean implements Serializable {
         this.definitionType = definitionType;
     }
 
+    public Set<VisibilityBean> getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Set<VisibilityBean> visibility) {
+        this.visibility = visibility;
+    }
+
     /**
      * @return the endpointProperties
      */
@@ -388,18 +400,30 @@ public class ServiceVersionBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "ServiceVersionBean [id=" + id + ", service=" + service + ", status=" + status + ", endpoint="
-                + endpoint + ", endpointType=" + endpointType + ", gateways=" + gateways + ", publicService="
-                + publicService + ", plans=" + plans + ", version=" + version + ", createdBy=" + createdBy
-                + ", onlinedoc=" + onlinedoc
-                + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy + ", modifiedOn=" + modifiedOn
-                + ", publishedOn=" + publishedOn + ", retiredOn=" + retiredOn + ", definitionType="
-                + definitionType + "]";
+        return "ServiceVersionBean{" +
+                "id=" + id +
+                ", service=" + service +
+                ", status=" + status +
+                ", endpoint='" + endpoint + '\'' +
+                ", endpointType=" + endpointType +
+                ", endpointProperties=" + endpointProperties +
+                ", gateways=" + gateways +
+                ", publicService=" + publicService +
+                ", plans=" + plans +
+                ", visibility=" + visibility +
+                ", version='" + version + '\'' +
+                ", createdBy='" + createdBy + '\'' +
+                ", createdOn=" + createdOn +
+                ", modifiedBy='" + modifiedBy + '\'' +
+                ", modifiedOn=" + modifiedOn +
+                ", publishedOn=" + publishedOn +
+                ", retiredOn=" + retiredOn +
+                ", definitionType=" + definitionType +
+                ", provisionKey='" + provisionKey + '\'' +
+                ", onlinedoc='" + onlinedoc + '\'' +
+                ", oauthScopes=" + oauthScopes +
+                '}';
     }
 }

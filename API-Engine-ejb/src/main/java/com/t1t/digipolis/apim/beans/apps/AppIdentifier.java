@@ -6,16 +6,16 @@ import java.io.Serializable;
  * Created by michallispashidis on 29/11/15.
  */
 public class AppIdentifier implements Serializable {
-    private String orgId;
+    private String scope;
     private String appId;
     private String version;
 
-    public String getOrgId() {
-        return orgId;
+    public String getScope() {
+        return scope;
     }
 
-    public void setOrgId(String orgId) {
-        this.orgId = orgId;
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 
     public String getAppId() {
@@ -41,7 +41,7 @@ public class AppIdentifier implements Serializable {
 
         AppIdentifier that = (AppIdentifier) o;
 
-        if (!orgId.equals(that.orgId)) return false;
+        if (!scope.equals(that.scope)) return false;
         if (!appId.equals(that.appId)) return false;
         return version.equals(that.version);
 
@@ -49,7 +49,7 @@ public class AppIdentifier implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = orgId.hashCode();
+        int result = scope.hashCode();
         result = 31 * result + appId.hashCode();
         result = 31 * result + version.hashCode();
         return result;
@@ -58,7 +58,7 @@ public class AppIdentifier implements Serializable {
     @Override
     public String toString() {
         return "AppIdentifier{" +
-                "orgId='" + orgId + '\'' +
+                "scope='" + scope + '\'' +
                 ", appId='" + appId + '\'' +
                 ", version='" + version + '\'' +
                 '}';

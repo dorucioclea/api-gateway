@@ -3,7 +3,6 @@ package com.t1t.digipolis.apim.gateway.rest;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
@@ -23,6 +22,7 @@ import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginHttpLog;
 import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
@@ -41,8 +41,6 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
@@ -472,6 +470,19 @@ public class GatewayClient {
         return httpClient.getConsumerJWTCredentials(id);
     }
 
+    public KongPluginConfigList getServicePlugins(String serviceId){
+        return httpClient.getKongPluginConfigList(serviceId);
+    }
+
+    public KongPluginConfig getServicePlugin(String serviceId, String pluginId){
+        return httpClient.getKongPluginConfig(serviceId, pluginId);
+    }
+
+    public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config){
+        httpClient.updateKongPluginConfig(serviceId,config);
+        return config;
+    }
+
     public void deleteConsumerKeyAuth(String id, String apikey){
         //get all registered api key values for a consumer
         KongPluginKeyAuthResponseList keyAuthCredentials = httpClient.getConsumerKeyAuthCredentials(id);
@@ -535,7 +546,6 @@ public class GatewayClient {
                 .withName(kongIdentifier)//set required kong identifier
                 .withConfig(plugin);
         //TODO: strong validation should be done and rollback of the service registration upon error?!
-        //execute
         config = httpClient.createPluginConfig(api.getId(),config);
         return config;
     }
