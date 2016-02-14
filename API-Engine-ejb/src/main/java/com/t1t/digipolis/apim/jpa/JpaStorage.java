@@ -739,7 +739,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         List<ServiceVersionBean> allServicesByStatusFiltered = new ArrayList<>();
         if(!StringUtils.isEmpty(appContext.getApplicationScope())){
             for(ServiceVersionBean svb:allServicesByStatus){
-                if((svb.getVisibility().stream().filter(svbVis -> svbVis.getCode().equalsIgnoreCase(appContext.getApplicationScope())).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
+                if((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(appContext.getApplicationScope())&&svbVis.getShow())).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
             }
         }else{
             allServicesByStatusFiltered = allServicesByStatus;
@@ -748,7 +748,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     public List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories) throws StorageException {
-        return findAllServiceVersionsInCategory(categories);
+        List<ServiceVersionBean> allServicesByStatus = findAllServiceVersionsInCategory(categories);
+        List<ServiceVersionBean> allServicesByStatusFiltered = new ArrayList<>();
+        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
+            for(ServiceVersionBean svb:allServicesByStatus){
+                if((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(appContext.getApplicationScope())&&svbVis.getShow())).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
+            }
+        }else{
+            allServicesByStatusFiltered = allServicesByStatus;
+        }
+        return allServicesByStatusFiltered;
     }
 
     public Set<String> findAllUniqueCategories() throws StorageException {
@@ -762,19 +771,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     public Set<String> findAllUniquePublishedCategories() throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        @SuppressWarnings("nls")
-        String jpql =
-                "SELECT s "
-                        + "  FROM ServiceVersionBean v"
-                        + "  JOIN v.service s"
-                        + " WHERE v.status = :status"
-                        + " ORDER BY s.id DESC";
-        Query query = entityManager.createQuery(jpql);
-        query.setMaxResults(500);
-        query.setParameter("status", ServiceStatus.Published); //$NON-NLS-1$
+        List<ServiceBean> services = new ArrayList<>();
+        List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
+        List<ServiceVersionBean> allServicesByStatusFiltered = new ArrayList<>();
+        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
+            for(ServiceVersionBean svb:allServicesByStatus){
+                if((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(appContext.getApplicationScope())&&svbVis.getShow())).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
+            }
+        }else{
+            allServicesByStatusFiltered = allServicesByStatus;
+        }
 
-        List<ServiceBean> services = (List<ServiceBean>) query.getResultList();
+        for(ServiceVersionBean svb:allServicesByStatusFiltered){
+            services.add(svb.getService());
+        }
+
         Set<String> catSet = new TreeSet<>();
         for (ServiceBean service : services) {
             catSet.addAll(service.getCategories());
