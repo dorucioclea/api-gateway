@@ -679,8 +679,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorageQuery#findApplications(SearchCriteriaBean)
      */
     @Override
-    public SearchResultsBean<ApplicationSummaryBean> findApplications(SearchCriteriaBean criteria)
-            throws StorageException {
+    public SearchResultsBean<ApplicationSummaryBean> findApplications(SearchCriteriaBean criteria) throws StorageException {
         //filter Applications along scope
         SearchResultsBean<ApplicationBean> tempResult = find(criteria, ApplicationBean.class);
         SearchResultsBean<ApplicationBean> result = new SearchResultsBean<>();
@@ -1065,7 +1064,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         query.setParameter("orgs", orgIds); //$NON-NLS-1$
 
         List<ApplicationBean> qr = (List<ApplicationBean>) query.getResultList();
-        for (ApplicationBean bean : qr) {
+        List<ApplicationBean> qrFiltered = new ArrayList<>();
+        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
+            qrFiltered = qr.stream().filter(app -> app.getContext().equalsIgnoreCase(appContext.getApplicationScope())).collect(Collectors.toList());
+        }else qrFiltered = qr;
+
+        for (ApplicationBean bean : qrFiltered) {
             ApplicationSummaryBean summary = new ApplicationSummaryBean();
             summary.setId(bean.getId());
             summary.setName(bean.getName());
