@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.beans.visibility;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.Transient;
 import java.io.Serializable;
 
 /**
@@ -19,6 +20,8 @@ public class VisibilityBean implements Serializable {
     private String code;
     @Column(nullable=false)
     private Boolean show;
+    @Transient
+    private String name;
 
     public String getCode() {
         return code;
@@ -34,6 +37,14 @@ public class VisibilityBean implements Serializable {
 
     public void setShow(Boolean show) {
         this.show = show;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -60,6 +71,7 @@ public class VisibilityBean implements Serializable {
         return "VisibilityBean{" +
                 "code='" + code + '\'' +
                 ", show=" + show +
+                ", name='" + name + '\'' +
                 '}';
     }
 }
