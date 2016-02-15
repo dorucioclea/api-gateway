@@ -4,7 +4,7 @@ ALTER TABLE svc_visibility ADD PRIMARY KEY (service_version_id, code);
 
 ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
 
-ALTER TABLE applications ADD context VARCHAR(255) NULL;
+ALTER TABLE applications ADD context VARCHAR(255) NOT NULL DEFAULT 'int';
 
 CREATE TABLE availabilities (code VARCHAR(3) NOT NULL, name VARCHAR(255) NOT NULL);
 
@@ -96,3 +96,5 @@ UPDATE policydefs set form='{
 }' WHERE id = 'OAuth2';
 
 
+--get ids of services select id from service_versions;
+--update for existing services INSERT INTO svc_visibility(service_version_id, code, show) VALUES (1173, 'INT', true);

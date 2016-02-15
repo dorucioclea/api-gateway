@@ -75,7 +75,7 @@ public class KongClientIntegrationTest {
 
     @Test
     public void testGetInfo() throws Exception {
-        KongInfo kongInfo = kongClient.getInfo();
+        KongInfo kongInfo = kongClient.getParsedInfo();
         assertNotNull(kongInfo);
         print(kongInfo);
         //verify all properties are not empty
@@ -87,6 +87,20 @@ public class KongClientIntegrationTest {
         //normally minimum 1 plugin should be available
         assertNotNull(plugins.getAvailableOnServer());
         assertTrue(plugins.getAvailableOnServer().size()>0);
+    }
+
+    @Test
+    public void testGetStatus() throws Exception {
+        Object kongStatus = kongClient.getStatus();
+        assertNotNull(kongStatus);
+        print(kongStatus);
+    }
+
+    @Test
+    public void testGetCluster() throws Exception {
+        Object kongCluster = kongClient.getCluster();
+        assertNotNull(kongCluster);
+        print(kongCluster);
     }
 
     @Test

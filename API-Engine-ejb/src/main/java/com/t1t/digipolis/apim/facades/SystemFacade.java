@@ -1,11 +1,16 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
+import com.t1t.digipolis.apim.gateway.IGatewayLink;
+import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.slf4j.Logger;
@@ -29,6 +34,8 @@ public class SystemFacade {
     @Inject private ISecurityAppContext appContext;
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
+    @Inject private AppConfig config;
+    @Inject private GatewayFacade gatewayFacade;
 
     public Map<String, AvailabilityBean> getAvailableMarketplaces() throws StorageException {
         return query.listAvailableMarkets();
@@ -40,5 +47,24 @@ public class SystemFacade {
 
     public List<BlacklistBean> getBlacklistRecords()throws StorageException{
         return query.listBlacklistRecords();
+    }
+
+    public SystemStatusBean getStatus() throws StorageException, GatewayAuthenticationException {
+        SystemStatusBean rval = new SystemStatusBean();
+        rval.setId("apim-manager-api"); //$NON-NLS-1$
+        rval.setName("API Manager REST API"); //$NON-NLS-1$
+        rval.setDescription("The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services."); //$NON-NLS-1$
+        rval.setMoreInfo("http://www.trust1team.com"); //$NON-NLS-1$
+        rval.setEnvironment(config.getEnvironment());
+        rval.setBuiltOn(config.getBuildDate());
+        rval.setVersion(config.getVersion());
+        rval.setUp(storage != null);
+        //get Kong info
+        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+        SystemStatus status = gateway.getStatus();
+        rval.setKongInfo(status.getInfo());
+        rval.setKongCluster(status.getCluster());
+        rval.setKongStatus(status.getStatus());
+        return rval;
     }
 }

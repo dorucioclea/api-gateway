@@ -13,6 +13,7 @@ import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.SystemFacade;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.rest.resources.ISystemResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,16 +48,8 @@ public class SystemResource implements ISystemResource {
     @GET
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
-    public SystemStatusBean getStatus() {
-        SystemStatusBean rval = new SystemStatusBean();
-        rval.setId("apim-manager-api"); //$NON-NLS-1$
-        rval.setName("API Manager REST API"); //$NON-NLS-1$
-        rval.setDescription("The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services."); //$NON-NLS-1$
-        rval.setMoreInfo("http://www.trust1team.com"); //$NON-NLS-1$
-        rval.setEnvironment(config.getEnvironment());
-        rval.setBuiltOn(config.getBuildDate());
-        rval.setVersion(config.getVersion());
-        rval.setUp(storage != null);
+    public SystemStatusBean getStatus() throws GatewayAuthenticationException, StorageException {
+        SystemStatusBean rval = systemFacade.getStatus();
         return rval;
     }
 

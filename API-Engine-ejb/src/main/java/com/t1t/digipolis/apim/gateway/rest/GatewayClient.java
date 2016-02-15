@@ -83,12 +83,19 @@ public class GatewayClient {
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {
-        KongInfo kongInformation = httpClient.getInfo();
+        Object kongInfo = httpClient.getInfo();
+        KongInfo kongInformation = httpClient.getParsedInfo();
+        Object kongStatus = httpClient.getStatus();
+        Object kongCluster = httpClient.getCluster();
+        Gson gson = new Gson();
         SystemStatus systemStatus = new SystemStatus();
         systemStatus.setDescription(kongInformation.getTagline());
         systemStatus.setVersion(kongInformation.getVersion());
         systemStatus.setName(kongInformation.getHostname());
         systemStatus.setId(kongInformation.getHostname());
+        systemStatus.setInfo(gson.toJson(kongInfo));
+        systemStatus.setStatus(gson.toJson(kongStatus));
+        systemStatus.setCluster(gson.toJson(kongCluster));
         systemStatus.setUp(true);
         return systemStatus;
     }

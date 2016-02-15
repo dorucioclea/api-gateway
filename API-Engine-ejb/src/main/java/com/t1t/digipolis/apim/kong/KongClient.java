@@ -30,9 +30,13 @@ import retrofit.http.*;
 public interface KongClient {
     /*********************   GENERAL   *******************/
     @GET("/")
-    KongInfo getInfo();
+    Object getInfo();
+    @GET("/")
+    KongInfo getParsedInfo();
     @GET("/status")
-    KongStatus getStatus();
+    Object getStatus();
+    @GET("/cluster")
+    Object getCluster();
 
     /*********************   API   ***********************/
     @POST("/apis") KongApi addApi(@Body KongApi api);
