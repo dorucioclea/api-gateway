@@ -12,3 +12,6 @@ INSERT INTO organizations (id,description,name,created_by,created_on,modified_by
 INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CURRENT_DATE,'Digipolis','Owner','admin');
 
 INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('runscope', 'michallis@trust1team.com', 'runscope', CURRENT_DATE,TRUE ,NULL );
+
+INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
+INSERT INTO availabilities(name, code) VALUES ('internal', 'int');

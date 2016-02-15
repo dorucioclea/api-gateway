@@ -13,9 +13,8 @@ INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CU
 
 /*insert statements*/
 INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
-
 INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
 
-INSERT INTO white_ip_restriction(netw_value) VALUES ('127.0.0.0/24');
-
-INSERT INTO black_ip_restriction(netw_value) VALUES ('32.0.0.0/8');
+INSERT INTO white_ip_restriction(netw_value) VALUES ('192.168.0.0/16');
+INSERT INTO white_ip_restriction(netw_value) VALUES ('10.0.0.0/8');
+INSERT INTO white_ip_restriction(netw_value) VALUES ('172.0.0.0/8');
