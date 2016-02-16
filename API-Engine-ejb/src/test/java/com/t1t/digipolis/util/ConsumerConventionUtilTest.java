@@ -53,7 +53,7 @@ public class ConsumerConventionUtilTest {
 
     @Test
     public void testParseApplicationIdentifier() throws Exception {
-        String tobeParsed = "org.name.version";
+        String tobeParsed = "int.name.version";
         AppIdentifier appExpectedId = new AppIdentifier();
         appExpectedId.setScope("int");
         appExpectedId.setAppId("name");

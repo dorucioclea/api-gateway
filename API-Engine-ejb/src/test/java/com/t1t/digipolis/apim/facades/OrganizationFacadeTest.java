@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.sun.deploy.appcontext.AppContext;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
@@ -18,6 +19,7 @@ import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -25,8 +27,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-
-import static org.hamcrest.CoreMatchers.any;
 import static org.mockito.Mockito.*;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -34,7 +34,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
-import static org.hamcrest.CoreMatchers.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,6 +53,7 @@ public class OrganizationFacadeTest {
 
     @Mock EntityManager em;
     @Mock ISecurityContext securityContext;
+    @Mock ISecurityAppContext appContext;
     @Mock IStorage storage;
     @Mock IStorageQuery query;
     @Mock IIdmStorage idmStorage;
@@ -174,6 +174,7 @@ public class OrganizationFacadeTest {
     public void testCreateAppAlreadyExists() throws Exception {
         when(securityContext.hasPermission(anyObject(), anyString())).thenReturn(true);
         when(securityContext.getCurrentUser()).thenReturn("admin");
+        when(appContext.getApplicationIdentifier()).thenReturn(new AppIdentifier());
         when(storage.getOrganization(anyString())).thenReturn(new OrganizationBean());
         when(storage.getApplication(anyString(), anyString())).thenReturn(new ApplicationBean());
         thrown.expect(ApplicationAlreadyExistsException.class);
@@ -188,6 +189,7 @@ public class OrganizationFacadeTest {
     public void testCreateApp() throws Exception {
         when(securityContext.hasPermission(anyObject(), anyString())).thenReturn(true);
         when(securityContext.getCurrentUser()).thenReturn("admin");
+        when(appContext.getApplicationIdentifier()).thenReturn(new AppIdentifier());
         when(storage.getOrganization(anyString())).thenReturn(new OrganizationBean());
         when(storage.getApplication(anyString(), anyString())).thenReturn(null);
         NewApplicationBean bean = new NewApplicationBean();
