@@ -68,6 +68,8 @@ public class ConsumerConventionUtil {
         }else if (splitResult.length == 2){
             appIdBean.setScope(splitResult[0]);
             appIdBean.setAppId(splitResult[1]);
+        }else {
+            return null;
         }
         return appIdBean;
     }

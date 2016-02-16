@@ -416,7 +416,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
         "items":{
                "type": "string",
                "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$",
-                "description": "List of IPs or CIDR ranges to blacklist.",
+                "description": "List of IPs or CIDR ranges to blacklist. You cannot set blacklist values if you have already whitelist values specified!",
                 "validationMessage":"IP or CIDR required"
         }
     },
@@ -425,7 +425,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
         "items":{
             "type": "string",
             "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$",
-            "description": "List of IPs or CIDR ranges to whitelist.",
+            "description": "List of IPs or CIDR ranges to whitelist. You cannot set whitelist values if you have already blacklist values specified.",
             "validationMessage":"IP or CIDR required"
         }
     }

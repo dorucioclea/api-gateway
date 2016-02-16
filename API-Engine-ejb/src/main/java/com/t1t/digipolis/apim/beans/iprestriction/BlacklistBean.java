@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "black_ip_restriction")
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class BlacklistBean implements Serializable{
+public class BlacklistBean extends IPRestrictionBean implements Serializable{
     public BlacklistBean() {}
 
     @Id

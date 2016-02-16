@@ -25,15 +25,15 @@ INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
 INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
 
 INSERT INTO white_ip_restriction(netw_value) VALUES ('192.168.0.0/16');
-INSERT INTO white_ip_restriction(netw_value) VALUES ('10.0.0.0/8');
-INSERT INTO white_ip_restriction(netw_value) VALUES ('172.0.0.0/8');
 
-INSERT INTO black_ip_restriction(netw_value) VALUES ('32.0.0.0/8');
+INSERT INTO white_ip_restriction(netw_value) VALUES ('10.0.0.0/8');
+
+INSERT INTO white_ip_restriction(netw_value) VALUES ('172.0.0.0/8');
 
 /*Update existing services to be available on the internal marketplace*/
 
 
-/*Update OAuth2 policy*/
+/*Update OAuth2 policy to avoid required fields*/
 UPDATE policydefs set form='{
   "type": "object",
   "title": "OAuth2",
@@ -97,6 +97,31 @@ UPDATE policydefs set form='{
   }
 }' WHERE id = 'OAuth2';
 
+--update iprestriction to work exlusive
+UPDATE policydefs set form='{
+  "type": "object",
+  "title": "IP Restriction",
+  "properties": {
+    "blacklist": {
+        "type": "array",
+        "items":{
+               "type": "string",
+               "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$",
+                "description": "List of IPs or CIDR ranges to blacklist. You cannot set blacklist values if you have already whitelist values specified!",
+                "validationMessage":"IP or CIDR required"
+        }
+    },
+    "whitelist": {
+        "type": "array",
+        "items":{
+            "type": "string",
+            "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$",
+            "description": "List of IPs or CIDR ranges to whitelist. You cannot set whitelist values if you have already blacklist values specified.",
+            "validationMessage":"IP or CIDR required"
+        }
+    }
+  }
+}' WHERE id = 'IPRestriction';
 
 --get ids of services select id from service_versions;
 --update for existing services INSERT INTO svc_visibility(service_version_id, code, show) VALUES (1173, 'INT', true);

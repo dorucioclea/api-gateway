@@ -313,7 +313,7 @@ public class KongClientIntegrationTest {
     @Test
     public void testGetAllPlugins() throws Exception {
         KongPluginConfigList confList = kongClient.getAllPlugins();
-        int initSize = confList.getData().size();
+        int initSize = confList.getTotal();
         print(confList);
         //add some api config
         KongApi apie = createDummyApi("apiexx", "/apiexx", API_URL);
@@ -326,7 +326,7 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         //verify one has been added
         confList = kongClient.getAllPlugins();
-        int sizeAfter = confList.getData().size();
+        int sizeAfter = confList.getTotal();
         log.info("size before:{}",initSize);
         log.info("size after:{}", sizeAfter);
         kongClient.deleteApi(apie.getId());
@@ -520,10 +520,10 @@ public class KongClientIntegrationTest {
     }
 
     @Test
-    public void testCreateIPRestrictionPlugin() throws Exception {
+    public void testCreateIPRestrictionPluginWL() throws Exception {
         //in order to create a plugin you should have an api registered and a consumer
-        KongApi apiipr = createDummyApi("apiipr","/apiipr",API_URL);
-        KongConsumer consumer = createDummyConsumer("ipr123", "apruser");
+        KongApi apiipr = createDummyApi("apiiprwl","/apiiprwl",API_URL);
+        KongConsumer consumer = createDummyConsumer("ipr123wl", "apruserwl");
         apiipr = kongClient.addApi(apiipr);
         //create a IPRestrcition policy
         List<String> whitelistrecords = new ArrayList<>();
@@ -533,24 +533,65 @@ public class KongClientIntegrationTest {
         blacklistrecords.add("32.0.0.0/24");
         blacklistrecords.add("33.0.0.0/24");
         KongPluginIPRestriction iprConfig = new KongPluginIPRestriction()
-                .withBlacklist(whitelistrecords)
+                .withWhitelist(whitelistrecords);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("ip-restriction")//as an example
+                .withConfig(iprConfig);
+        Gson gson = new Gson();
+        log.info(gson.toJson(pluginConfig));
+        kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
+        kongClient.deleteApi(apiipr.getId());
+    }
+
+    @Test
+    public void testCreateIPRestrictionPluginBL() throws Exception {
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apiipr = createDummyApi("apiiprb","/apiiprb",API_URL);
+        KongConsumer consumer = createDummyConsumer("ipr123b", "apruserb");
+        apiipr = kongClient.addApi(apiipr);
+        //create a IPRestrcition policy
+        List<String> whitelistrecords = new ArrayList<>();
+        whitelistrecords.add("127.0.0.0/24");
+        whitelistrecords.add("128.0.0.0/24");
+        List<String> blacklistrecords = new ArrayList<>();
+        blacklistrecords.add("32.0.0.0/24");
+        blacklistrecords.add("33.0.0.0/24");
+        KongPluginIPRestriction iprConfig = new KongPluginIPRestriction()
                 .withWhitelist(blacklistrecords);
         KongPluginConfig pluginConfig = new KongPluginConfig()
                 .withName("ip-restriction")//as an example
                 .withConfig(iprConfig);
+        Gson gson = new Gson();
+        log.info(gson.toJson(pluginConfig));
+        kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
+        kongClient.deleteApi(apiipr.getId());
+    }
+
+    @Test
+    public void testCreateIPRestrictionPluginWithJSONConvertionWL() throws Exception {
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apiipr = createDummyApi("apiiprjsonw","/apiiprjsonw",API_URL);
+        String iprestrictionValues = "{\"whitelist\":[\"127.0.0.0/24\"]}";
+        Gson gson = new Gson();
+        KongPluginIPRestriction kongPluginIPRestriction = gson.fromJson(iprestrictionValues, KongPluginIPRestriction.class);
+        KongConsumer consumer = createDummyConsumer("ipr1234w", "apruser4w");
+        apiipr = kongClient.addApi(apiipr);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("ip-restriction")//as an example
+                .withConfig(kongPluginIPRestriction);
         print(pluginConfig);
         kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
         kongClient.deleteApi(apiipr.getId());
     }
 
     @Test
-    public void testCreateIPRestrictionPluginWithJSONConvertion() throws Exception {
+    public void testCreateIPRestrictionPluginWithJSONConvertionBL() throws Exception {
         //in order to create a plugin you should have an api registered and a consumer
-        KongApi apiipr = createDummyApi("apiiprjson","/apiiprjson",API_URL);
-        String iprestrictionValues = "{\"blacklist\":[\"32.0.0.0/8\"],\"whitelist\":[\"127.0.0.0/24\"]}";
+        KongApi apiipr = createDummyApi("apiiprjsonb","/apiiprjsonb",API_URL);
+        String iprestrictionValues = "{\"blacklist\":[\"127.0.0.0/24\"]}";
         Gson gson = new Gson();
         KongPluginIPRestriction kongPluginIPRestriction = gson.fromJson(iprestrictionValues, KongPluginIPRestriction.class);
-        KongConsumer consumer = createDummyConsumer("ipr1234", "apruser4");
+        KongConsumer consumer = createDummyConsumer("ipr1234b", "apruser4b");
         apiipr = kongClient.addApi(apiipr);
         KongPluginConfig pluginConfig = new KongPluginConfig()
                 .withName("ip-restriction")//as an example

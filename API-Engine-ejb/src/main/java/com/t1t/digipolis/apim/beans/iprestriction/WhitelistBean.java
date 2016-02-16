@@ -7,7 +7,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * Created by michallispashidis on 12/02/16.
@@ -15,7 +14,7 @@ import java.util.Date;
 @Entity
 @Table(name = "white_ip_restriction")
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class WhitelistBean implements Serializable{
+public class WhitelistBean extends IPRestrictionBean implements Serializable{
     public WhitelistBean() {
     }
 
