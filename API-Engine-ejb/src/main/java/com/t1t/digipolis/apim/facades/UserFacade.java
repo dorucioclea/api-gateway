@@ -792,6 +792,7 @@ public class UserFacade implements Serializable {
             extUser.setUsername(user.getUsername());
             extUser.setAccountId(user.getUsername());
             extUser.setCreatedon(df.format(user.getJoinedOn()));
+            extUser.setLastModified(df.format(user.getJoinedOn()));
             extUser.setGivenname(user.getFullName());
         } catch (StorageException e) {
             throw new UserNotFoundException("User unknow in the application: "+username);
