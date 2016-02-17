@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.sun.deploy.appcontext.AppContext;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;

@@ -93,6 +93,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -781,9 +783,20 @@ public class UserFacade implements Serializable {
     }
 
     public ExternalUserBean getUserByUsername(String username){
-        //ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(username);
-        return null;
-        //return getExteralUserAndInit(scimUser);
+        DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        ExternalUserBean extUser = null;
+        try {
+            UserBean user = idmStorage.getUser(username);
+            log.info("User: {}",user);
+            extUser = new ExternalUserBean();
+            extUser.setUsername(user.getUsername());
+            extUser.setAccountId(user.getUsername());
+            extUser.setCreatedon(df.format(user.getJoinedOn()));
+            extUser.setGivenname(user.getFullName());
+        } catch (StorageException e) {
+            throw new UserNotFoundException("User unknow in the application: "+username);
+        }
+        return extUser;
     }
 
     //TODO set out of scope for SCIM review - only existing users can be found in this service
