@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.rest.resources.filter;
 
-import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
@@ -22,6 +21,8 @@ import java.io.IOException;
 
 /**
  * Created by michallispashidis on 20/09/15.
+ * The request filter doesn't take into account any JWT.
+ * The request filter is based upon APIkey, the application context will be provided.
  */
 public class RequestAPIMFilter implements ContainerRequestFilter {
     /**
@@ -47,7 +48,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         //dev mode
-        LOG.debug("Security context - request:{}",containerRequestContext.getUriInfo().getRequestUri().getPath());
+        LOG.debug("Security context - request:{}", containerRequestContext.getUriInfo().getRequestUri().getPath());
         if (!JaxRsActivator.securedMode) {
             try {
                 securityContext.setCurrentUser("admin");
@@ -73,24 +74,24 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             }
             //Get the authorization header
             String jwt = containerRequestContext.getHeaderString(HEADER_USER_AUTHORIZATION);
-            if(jwt!=null){
+            if (jwt != null) {
                 //remove Bearer prefix
-                jwt = jwt.replaceFirst("Bearer","").trim();
+                jwt = jwt.replaceFirst("Bearer", "").trim();
                 String validatedUser = "";
                 try {
                     JwtContext jwtContext = JWTUtils.validateHMACToken(jwt);
-                    //validatedUser = (String) jwtContext.getJwtClaims().getClaimValue(IJWT.NAME);//TODO change to subjectID
                     validatedUser = jwtContext.getJwtClaims().getSubject();
                     validatedUser = securityContext.setCurrentUser(ConsumerConventionUtil.createUserUniqueId(validatedUser));
-                } catch (InvalidJwtException|UserNotFoundException|MalformedClaimException ex) {
-                    LOG.debug("Unauthorized user:{}", validatedUser);
+                } catch (InvalidJwtException | UserNotFoundException | MalformedClaimException ex) {
+                    //this shouldnt be thrown because of implicit user creation during initial user intake (saml2 provider and JWT issuance)
+                    LOG.error("Unauthorized user:{}", validatedUser);
                     containerRequestContext.abortWith(Response
                             .status(Response.Status.UNAUTHORIZED)
-                            .entity("User cannot access the resource:"+validatedUser)
+                            .entity("User cannot access the resource:" + validatedUser)
                             .build());
                     return;
                 }
-            }else{
+            } else {
                 securityContext.setCurrentUser("");
             }
             return;

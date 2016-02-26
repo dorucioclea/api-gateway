@@ -454,7 +454,7 @@ public class UserFacade implements Serializable {
         IdentityAttributes idAttribs;
         try {
             assertion = processSSOResponse(response.split("&")[0]);
-            //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
+            //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
             log.info("Relay state found with correlation: {}", relayState);
@@ -464,11 +464,6 @@ public class UserFacade implements Serializable {
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
         utilPrintCache();
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
-/*        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
-            responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
-        } else {
-            responseRedirect.setToken(updateOrCreateConsumerKeyAuthOnGateway(idAttribs.getUserName()));
-        }*/
         responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
         clientUrl.append(webClientCacheBean.getClientAppRedirect());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");

@@ -2,10 +2,14 @@ API-Engine: API Management Services based on Mashape's KONG gateway
 ===================================================================
 Author: Michallis Pashidis
 Level: Intermediate
-Technologies: EAR, JPA, Java EE
+Technologies: EAR, JPA, Java EE, CDI
 Summary: API Engine
 Target Project: Digipolis API Engine
 Source: <https://bitbucket.org/Trust1T/digi-api-engine-javaee>
+
+Kong version
+------------
+Kong 0.7.0
 
 Build
 -----
@@ -26,6 +30,11 @@ Build and prepare a docker container
 
 If you want to build an API-Engine with specific profile, but prepare it for a docker container, you can combine profiles:
 `clean install -DskipTests=true -Pt1t-dev,docker`
+
+Docker - Demo
+-------------
+TODO provision docker through repository
+TODO docker compose for demo setup
 
 Docker - Development environment
 --------------------------------
