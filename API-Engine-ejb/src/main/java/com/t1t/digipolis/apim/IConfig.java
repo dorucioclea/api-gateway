@@ -25,8 +25,9 @@ public interface IConfig {
     String CONSENT_URI = "apiapp.oauth.consent_uri";
     String DEFAULT_USER_ORGANIZATION = "apiapp.defaults.orgId";
     String DEFAULT_USER_ROLES_FOR_DEFAULT_ORG = "apiapp.defaults.roles";
-    String SECURITY_REST_RESORUCES = "rest_resources";
-    String SECURITY_REST_AUTH_RESOURCES = "rest_auth_resources";
+    String SECURITY_REST_RESORUCES = "apiapp.security.rest_resources";
+    String SECURITY_REST_AUTH_RESOURCES = "apiapp.security.rest_auth_resources";
+    String SECURITY_RESTRICTED_MODE = "apiapp.security.only_admin_mode";
     String PROP_FILE_DATE = "date";
     String PROP_FILE_VERSION = "version";
     String PROP_FILE_CONFIG_FILE = "configuration.file";

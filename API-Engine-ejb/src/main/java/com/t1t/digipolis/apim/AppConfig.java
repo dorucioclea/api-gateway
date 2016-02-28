@@ -45,6 +45,7 @@ public class AppConfig implements Serializable {
         //read specific application config, depends on the maven profile that has been set
         config = ConfigFactory.load(getConfigurationFile()); if(config==null) throw new RuntimeException("API Engine log not found");else{
             _LOG.info("===== API Engine configruation ==============================");
+            if(getRestrictedMode()) _LOG.info("===== RESTRICTED MODE =======================================");
             _LOG.info("Using configuration file: {}",getConfigurationFile());
             _LOG.info("Build: {}",getBuildDate());
             _LOG.info("version: {}",getVersion());
@@ -99,6 +100,7 @@ public class AppConfig implements Serializable {
     public String getIDPSCIMUserPassword(){return config.getString(IConfig.IDP_SCIM_USER_PWD);}
     public Integer getJWTDefaultTokenExpInMinutes(){return config.getInt(IConfig.JWT_DEFAULT_TOKEN_EXP);}
     public Boolean getAnalyticsEnabled(){return config.getBoolean(IConfig.ANALYTICS_ENABLED);}
+    public Boolean getRestrictedMode(){return config.getBoolean(IConfig.SECURITY_RESTRICTED_MODE);}
     public String getAnalyticsServiceToken(){return config.getString(IConfig.ANALYTICS_TOKEN);}
     public Integer getAnalyticsBatchSize(){return config.getInt(IConfig.ANALYTICS_BATCH_SIZE);}
     public Boolean getAnalyticsLogBody(){return config.getBoolean(IConfig.ANALYTICS_LOG_BODY);}

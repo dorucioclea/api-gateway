@@ -443,6 +443,8 @@ public class UserFacade implements Serializable {
 
     /**
      * Processes the SAML Assertion and returns a SAML2 Bearer token.
+     * If in restricted mode, the resolved user is not an admin, then null is returned
+     * in order for the rest layer to send the appropriate error to the UI.
      *
      * @param response
      * @return
@@ -456,7 +458,12 @@ public class UserFacade implements Serializable {
             assertion = processSSOResponse(response.split("&")[0]);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
-            idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
+            String userId = ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue());
+            //preempt if restricted mode and user is not admin
+            if(config.getRestrictedMode()){
+                if(!(idmStorage.getUser(userId)).getAdmin())return null;
+            }
+            idAttribs.setSubjectId(userId);
             log.info("Relay state found with correlation: {}", relayState);
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
