@@ -36,12 +36,11 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         //Get the authorization header
         String appId = containerRequestContext.getHeaderString(HEADER_CONSUMER_USERNAME);
-        String validatedApp = "";
         try {
             if(!JaxRsActivator.securedMode){
                 securityAppContext.setCurrentApplication("dummyapp");
             }else {
-                validatedApp = securityAppContext.setCurrentApplication(appId);
+                securityAppContext.setCurrentApplication(appId);
             }
         } catch (ApplicationNotFoundException|StorageException ex) {
             LOG.info("Unauthorized application:{}", appId);

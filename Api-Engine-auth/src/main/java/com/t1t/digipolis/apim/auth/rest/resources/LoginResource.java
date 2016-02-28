@@ -68,8 +68,8 @@ public class LoginResource implements ILoginResource {
             notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim." +
                     "When the token expiration time is set to 0, the token will be valid for all times. The optional claims map can be provided by the consuming application. The claim set can be changed upon refreshing the JWT.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
-            @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
+                          @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
+                          @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
     })
     @POST
     @Path("/idp/redirect")
@@ -147,10 +147,9 @@ public class LoginResource implements ILoginResource {
         URI uri = null;
         try {
             SAMLResponseRedirect response = userFacade.processSAML2Response(request);
+            //if returned null - we are operating in restricted mode - 401 should be returned
             String jwtToken = response.getToken();
             uri = new URL(response.getClientUrl() + "?jwt=" + jwtToken).toURI();
-            //Get the audience using the assertion => create new table for registered audiences == client applications.
-            //String audience = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {
@@ -203,18 +202,6 @@ public class LoginResource implements ILoginResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getUsername()));
         return userFacade.generateSAML2LogoutRequest(request.getIdpUrl(), request.getSpName(), request.getUsername());
-        //don't do anything, logout triggered from client
-
-/*        String url = "https://idp.t1t.be:9443/dashboard";
-        URI redirectURL = null;
-        try {
-            redirectURL = new URL(url).toURI();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }*/
-        //return Response.seeOther(redirectURL).build();
     }
 
     @ApiOperation(value = "IDP single logout",

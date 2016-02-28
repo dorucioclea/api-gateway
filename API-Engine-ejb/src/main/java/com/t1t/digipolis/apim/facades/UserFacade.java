@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
@@ -32,6 +33,7 @@ import com.t1t.digipolis.apim.idp.IDPRestServiceBuilder;
 import com.t1t.digipolis.apim.idp.RestIDPConfigBean;
 import com.t1t.digipolis.apim.saml2.ISAML2;
 import com.t1t.digipolis.apim.saml2.ProxyLoginFailSafe;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.IdentityAttributes;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -113,6 +115,8 @@ public class UserFacade implements Serializable {
     private EntityManager em;
     @Inject
     private ISecurityContext securityContext;
+    @Inject
+    private ISecurityAppContext securityAppContext;
     @Inject
     private IStorage storage;
     @Inject
@@ -245,21 +249,6 @@ public class UserFacade implements Serializable {
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
-            //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
-        } catch (MarshallingException | IOException | ConfigurationException ex) {
-            throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
-        }
-    }
-
-    public String generateSAML2Redirect(SAMLRequest samlRequest){
-        // Initialize the library
-        log.info("Initate SAML2 redirect for {}", samlRequest.getIdpUrl());
-        try {
-            //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://","").replaceAll("http://","");
-            String urlEncodedClientUrl = URLEncoder.encode(condensedUri,"UTF-8");
-            String encodedRequestMessage = getSamlRequestEncoded(samlRequest,urlEncodedClientUrl);
-            return samlRequest.getIdpUrl() + "?"+ SAML2_KEY_REQUEST + encodedRequestMessage+"&" + SAML2_KEY_RELAY_STATE +urlEncodedClientUrl;
         } catch (MarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
         }
@@ -275,6 +264,7 @@ public class UserFacade implements Serializable {
         webCache.setClientAppRedirect(samlRequest.getClientAppRedirect());
         webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
         webCache.setOptionalClaimset(samlRequest.getOptionalClaimMap());
+        webCache.setAppRequester(securityAppContext.getApplicationIdentifier());
         //set client application name and callback in the cache
         cacheUtil.cacheWebClientCacheBean(urlEncodedClientUrl,webCache);//the callback url is maintained as a ref for the cache - the saml2 response relaystate will correlate this value
         log.info("Cache contains:{}", cacheUtil.toString());
@@ -454,23 +444,31 @@ public class UserFacade implements Serializable {
         StringBuffer clientUrl = new StringBuffer("");
         Assertion assertion = null;
         IdentityAttributes idAttribs;
+        utilPrintCache();
+        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
         try {
             assertion = processSSOResponse(response.split("&")[0]);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             String userId = ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue());
-            //preempt if restricted mode and user is not admin
-            if(config.getRestrictedMode()){
-                if(!(idmStorage.getUser(userId)).getAdmin())return null;
+            //preempt if restricted mode and user is not admin; be carefull to scope the application, non api-engine applications uses this endpoint as well.
+            if(config.getRestrictedMode()&& webClientCacheBean.getAppRequester()!=null && config.getFilteredMarketplaces().contains(webClientCacheBean.getAppRequester().getScope())){
+                final UserBean user = idmStorage.getUser(userId);
+                if(user==null || !user.getAdmin()){
+                    SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
+                    responseRedirect.setToken("unauthorized");
+                    clientUrl.append(webClientCacheBean.getClientAppRedirect());
+                    if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
+                    responseRedirect.setClientUrl(clientUrl.toString());
+                    return responseRedirect;
+                }
             }
             idAttribs.setSubjectId(userId);
-            log.info("Relay state found with correlation: {}", relayState);
+            log.debug("Relay state found with correlation: {}", relayState);
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
-        utilPrintCache();
-        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
         responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
         clientUrl.append(webClientCacheBean.getClientAppRedirect());
         if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
@@ -496,7 +494,9 @@ public class UserFacade implements Serializable {
         try {
             assertion = processSSOResponse(response);
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
-            idAttribs.setSubjectId(ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue()));
+            String userId = ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue());
+            idAttribs.setSubjectId(userId);
+            log.debug("External SAML response validation");
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
@@ -908,18 +908,18 @@ public class UserFacade implements Serializable {
             newUser.setFullName(identityAttributes.getGivenName()+" "+identityAttributes.getFamilyName());
             newUser.setAdmin(false);
             idmStorage.createUser(newUser);
-            //assign default roles in company
+            //we don't assign anymore a default role for default organization
+/*            //assign default roles in company
             Set<String> roles = new TreeSet<>();
-            //TODO do it decently with XACML
             roles.add(Role.OWNER.toString());
             //assign to default company
             GrantRolesBean usergrants = new GrantRolesBean();
             usergrants.setRoleIds(roles);
             usergrants.setUserId(newUser.getUsername());
-            organizationFacade.grant(config.getDefaultOrganization(), usergrants);
+            organizationFacade.grant(config.getDefaultOrganization(), usergrants);*/
             return newUser;
         } catch (StorageException e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
+            throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e);
         }
     }
 
@@ -982,19 +982,19 @@ public class UserFacade implements Serializable {
      * Prints the full cache in the log file in order to verify application request parameters.
      */
     public void utilPrintCache() {
-        log.info("SessionIndex cache values:");
+        log.debug("SessionIndex cache values:");
         Set<String> ssoKeys = cacheUtil.getSSOKeys();
-        log.info("SSOKeys: {}",ssoKeys);
-        log.info("SSO cache values: {}",ssoKeys);
-        ssoKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getWebCacheBean(key)));
+        log.debug("SSOKeys: {}",ssoKeys);
+        log.debug("SSO cache values: {}",ssoKeys);
+        ssoKeys.forEach(key -> log.debug("Key found:{} with value {}", key, cacheUtil.getWebCacheBean(key)));
         Set<String> sessionKeys = cacheUtil.getSessionKeys();
-        log.info("Sessionkeys: {}",sessionKeys);
-        log.info("Session cach values: {}",sessionKeys);
-        sessionKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getSessionIndex(key)));
+        log.debug("Sessionkeys: {}",sessionKeys);
+        log.debug("Session cach values: {}",sessionKeys);
+        sessionKeys.forEach(key -> log.debug("Key found:{} with value {}", key, cacheUtil.getSessionIndex(key)));
         Set<String> tokenKeys = cacheUtil.getTokenKeys();
-        log.info("Tokenkeys: {}",tokenKeys);
-        log.info("Token cache values:");
-        tokenKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getToken(key)));
+        log.debug("Tokenkeys: {}",tokenKeys);
+        log.debug("Token cache values:");
+        tokenKeys.forEach(key -> log.debug("Key found:{} with value {}", key, cacheUtil.getToken(key)));
     }
 
     /**

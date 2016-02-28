@@ -23,7 +23,7 @@ public class JaxRsActivator extends Application {
          * will not be loaded and REST communication can be
          * done unsecure.
          */
-        securedMode = false;
+        securedMode = true;
     }
 
     public JaxRsActivator() {
