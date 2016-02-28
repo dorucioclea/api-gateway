@@ -15,6 +15,7 @@ import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.Plugins;
@@ -452,12 +453,17 @@ public class KongClientIntegrationTest {
     }
 
     @Test
+    public void registerOAuthService()throws Exception{
+        //TODO
+    }
+
+    @Test
     public void enableOAuthForConsumer()throws Exception{
-   /*     KongConsumer consumer = new KongConsumer().withUsername("oauthconsumer1");
+        KongConsumer consumer = new KongConsumer().withUsername("oauthconsumer1");
         consumer = kongClient.createConsumer(consumer);
         KongPluginOAuthConsumerResponse response = kongClient.enableOAuthForConsumer(consumer.getId(),"TestApplication","ABCCLIENTID","ABCCLIENTSECRET","http://localhost:4000/");
         assertTrue(response!=null);
-        kongClient.deleteConsumer(consumer.getId());*/
+        kongClient.deleteConsumer(consumer.getId());
     }
 
     @Test(expected = RetrofitError.class)

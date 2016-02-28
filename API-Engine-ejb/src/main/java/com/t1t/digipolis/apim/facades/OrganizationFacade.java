@@ -2262,6 +2262,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         contract.setPlan(pvb);
         contract.setCreatedBy(securityContext.getCurrentUser());
         contract.setCreatedOn(new Date());
+        //TODO fix this bug - don't create always new apikey!!!!
         contract.setApikey(apiKeyGenerator.generate());
         // Validate the state of the application.
         if (applicationValidator.isReady(avb, true)) {
