@@ -28,6 +28,7 @@ public interface IConfig {
     String SECURITY_REST_RESORUCES = "apiapp.security.rest_resources";
     String SECURITY_REST_AUTH_RESOURCES = "apiapp.security.rest_auth_resources";
     String SECURITY_RESTRICTED_MODE = "apiapp.security.only_admin_mode";
+    String SECURITY_RESTRICTION_APPLIED = "apiapp.security.applied_restriction";
     String PROP_FILE_DATE = "date";
     String PROP_FILE_VERSION = "version";
     String PROP_FILE_CONFIG_FILE = "configuration.file";

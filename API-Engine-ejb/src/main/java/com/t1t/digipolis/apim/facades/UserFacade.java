@@ -441,7 +441,7 @@ public class UserFacade implements Serializable {
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             String userId = ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue());
             //preempt if restricted mode and user is not admin; be carefull to scope the application, non api-engine applications uses this endpoint as well.
-            if (config.getRestrictedMode() && webClientCacheBean.getAppRequester() != null && config.getFilteredMarketplaces().contains(webClientCacheBean.getAppRequester().getScope())) {
+            if (config.getRestrictedMode() && webClientCacheBean.getAppRequester() != null && config.getAppliedRestrictions().contains(webClientCacheBean.getAppRequester().getAppId())) {
                 final UserBean user = idmStorage.getUser(userId);
                 if (user == null || !user.getAdmin()) {
                     SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
@@ -823,15 +823,6 @@ public class UserFacade implements Serializable {
             newUser.setFullName(identityAttributes.getGivenName() + " " + identityAttributes.getFamilyName());
             newUser.setAdmin(false);
             idmStorage.createUser(newUser);
-            //we don't assign anymore a default role for default organization
-/*            //assign default roles in company
-            Set<String> roles = new TreeSet<>();
-            roles.add(Role.OWNER.toString());
-            //assign to default company
-            GrantRolesBean usergrants = new GrantRolesBean();
-            usergrants.setRoleIds(roles);
-            usergrants.setUserId(newUser.getUsername());
-            organizationFacade.grant(config.getDefaultOrganization(), usergrants);*/
             return newUser;
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e);
@@ -839,14 +830,15 @@ public class UserFacade implements Serializable {
     }
 
     /**
-     * Search for a user and init.
+     * Initializes new users if they don't exist yet. You can set aswell if the user should be an admin or not.
+     * Deferred kong initialization is targeted for this method. Upon the first login of the addes user, necessary
+     * tokens en user initialization will be done on the gateway (kong).
      *
      * @param username
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private void initNewUser(String username) {
         try {
-            //TODO add check if SCIM support is available
             ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUsername(username);
             //create user
             UserBean newUser = new UserBean();

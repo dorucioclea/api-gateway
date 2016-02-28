@@ -45,7 +45,10 @@ public class AppConfig implements Serializable {
         //read specific application config, depends on the maven profile that has been set
         config = ConfigFactory.load(getConfigurationFile()); if(config==null) throw new RuntimeException("API Engine log not found");else{
             _LOG.info("===== API Engine configruation ==============================");
-            if(getRestrictedMode()) _LOG.info("===== RESTRICTED MODE =======================================");
+            if(getRestrictedMode()){
+                _LOG.info("===== RESTRICTED MODE =======================================");
+                _LOG.info("Restricted applications (only admin): {}",getAppliedRestrictions());
+            }
             _LOG.info("Using configuration file: {}",getConfigurationFile());
             _LOG.info("Build: {}",getBuildDate());
             _LOG.info("version: {}",getVersion());
@@ -63,6 +66,8 @@ public class AppConfig implements Serializable {
             _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
             _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
             _LOG.info("IDP SCIM activation: {}",getIDPSCIMActivation());
+            _LOG.info("REST resource security: {}", getRestResourceSecurity());
+            _LOG.info("REST AUTH resource security: {}", getRestAuthResourceSecurity());
             _LOG.info("Metrics schema: {}",getMetricsScheme());
             _LOG.info("Metrics URI: {}",getMetricsURI());
             _LOG.info("Metrics port: {}",getMetricsPort());
@@ -100,6 +105,8 @@ public class AppConfig implements Serializable {
     public String getIDPSCIMUserPassword(){return config.getString(IConfig.IDP_SCIM_USER_PWD);}
     public Integer getJWTDefaultTokenExpInMinutes(){return config.getInt(IConfig.JWT_DEFAULT_TOKEN_EXP);}
     public Boolean getAnalyticsEnabled(){return config.getBoolean(IConfig.ANALYTICS_ENABLED);}
+    public Boolean getRestResourceSecurity(){return config.getBoolean(IConfig.SECURITY_REST_RESORUCES);}
+    public Boolean getRestAuthResourceSecurity(){return config.getBoolean(IConfig.SECURITY_REST_AUTH_RESOURCES);}
     public Boolean getRestrictedMode(){return config.getBoolean(IConfig.SECURITY_RESTRICTED_MODE);}
     public String getAnalyticsServiceToken(){return config.getString(IConfig.ANALYTICS_TOKEN);}
     public Integer getAnalyticsBatchSize(){return config.getInt(IConfig.ANALYTICS_BATCH_SIZE);}
@@ -110,4 +117,5 @@ public class AppConfig implements Serializable {
     public String getAnalyticsHost(){return config.getString(IConfig.ANALYTICS_HOST);}
     public Integer getAnalyticsPort(){return config.getInt(IConfig.ANALYTICS_PORT);}
     public List<String> getFilteredMarketplaces(){return config.getStringList(IConfig.MARKETS_FILTER);}
+    public List<String> getAppliedRestrictions(){return config.getStringList(IConfig.SECURITY_RESTRICTION_APPLIED);}
 }
