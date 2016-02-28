@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.rest.resources.filter;
 
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;

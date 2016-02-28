@@ -22,9 +22,9 @@ curl -X POST http://rasu094.rte.antwerpen.local:8001/apis/apiengine.v1/plugins \
     --data "config.key_names=apikey"
 
 #enable JWT - we enforce JWT with a request filter
-#curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
-#    --data "name=jwt" \
-#    --data "config.claims_to_verify=exp"
+curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
+    --data "name=jwt" \
+    --data "config.claims_to_verify=exp"
 
 #create marketplace consumer, username should be unique
 curl -X POST http://rasu094.rte.antwerpen.local:8001/consumers \
