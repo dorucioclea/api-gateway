@@ -16,6 +16,8 @@ import java.io.IOException;
 /**
  * Created by michallispashidis on 20/09/15.
  * A request filter in order to validate an authorized application.
+ * The request filter doesn't take into account any JWT.
+ * The request filter is based upon APIkey, the application context will be provided.
  */
 public class RequestAUTHFilter implements ContainerRequestFilter {
     /**
