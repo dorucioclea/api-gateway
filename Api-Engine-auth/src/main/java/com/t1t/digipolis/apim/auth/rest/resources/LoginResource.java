@@ -265,25 +265,4 @@ public class LoginResource implements ILoginResource {
         return Response.ok().entity(userByEmail).build();
     }
 
-
-    @ApiOperation(value = "Authentication proxy endpoint, authenticates the user through trusted application.",
-            notes = "Utility method. The client application serves as a OAuth service provider, and is know to the IDP. The client application uses OAuth client credentials to authenticate the user's provided credentials.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = JWTRefreshResponseBean.class, message = "When authenticated succesfull, the user will be returned, else null response.")
-    })
-    @POST
-    @Path("/proxy-auth/user")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response ipdClientCredGrantForUserAuthentication(ProxyAuthRequest request) {
-        if(!config.getIDPSCIMActivation()){
-            throw new OAuthException("SCIM must be enabled for this functionality. Contanct your administrator.");
-        }
-        Preconditions.checkNotNull(request);
-        String jwt = userFacade.authenticateResourceOwnerCredential(request);
-        JWTRefreshResponseBean jwtResponse = new JWTRefreshResponseBean();
-        jwtResponse.setJwt(jwt);
-        return Response.ok().entity(jwtResponse).build();
-    }
-
 }
