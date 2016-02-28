@@ -18,6 +18,15 @@ public final class ExceptionFactory {
     }
 
     /**
+     * Creates an exception from a username.
+     * @param username the username
+     * @return the exception
+     */
+    public static final UserCannotDeleteException userCannotDeleteException(String username) {
+        return new UserCannotDeleteException(Messages.i18n.format("UserCannotDelete", username)); //$NON-NLS-1$
+    }
+
+    /**
      * Creates a not authorized exception.
      * @return the exception
      */

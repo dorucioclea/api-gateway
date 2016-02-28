@@ -31,6 +31,13 @@ public interface IIdmStorage {
     public void createUser(UserBean user) throws StorageException;
 
     /**
+     * Deletes a user from the IDM system.
+     * @param userId
+     * @throws StorageException
+     */
+    public void deleteUser(String userId) throws StorageException;
+
+    /**
      * Gets a user by id.
      * @param userId user's id
      * @return the user

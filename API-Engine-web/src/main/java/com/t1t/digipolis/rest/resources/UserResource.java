@@ -2,6 +2,8 @@ package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
+import com.t1t.digipolis.apim.beans.idm.NewUserBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
@@ -15,6 +17,7 @@ import com.t1t.digipolis.apim.beans.user.*;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.UserFacade;
@@ -159,5 +162,22 @@ public class UserResource implements IUserResource {
     public SearchResultsBean<AuditEntryBean> getActivity(@PathParam("userId") String userId, @QueryParam("page") int page, @QueryParam("count") int pageSize) {
         Preconditions.checkArgument(!StringUtils.isEmpty(userId));
         return userFacade.getActivity(userId, page, pageSize);
+    }
+
+    @ApiOperation(value = "Create a new user (admin)",
+                  notes = "Use this endpoint to create.  You must have admin privileges to create a new user.")
+    @ApiResponses({
+                          @ApiResponse(code = 204, message = "successful, no content"),
+                          @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
+                  })
+    @PUT
+    @Path("/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response create(NewUserBean user) throws UserAlreadyExistsException, StorageException {
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkNotNull(user);
+        Preconditions.checkArgument(!StringUtils.isEmpty(user.getUsername()), "Username must be provided and must be an unique identifier");
+        userFacade.initNewUser(user);
+        return Response.ok().status(204).build();
     }
 }

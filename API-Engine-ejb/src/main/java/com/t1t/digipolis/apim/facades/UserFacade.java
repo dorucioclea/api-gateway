@@ -22,10 +22,7 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.IUserExternalInfoService;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
-import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
@@ -132,6 +129,34 @@ public class UserFacade implements Serializable {
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    /**
+     * Initializes new users if they don't exist yet. You can set aswell if the user should be an admin or not.
+     * Deferred kong initialization is targeted for this method. Upon the first login of the addes user, necessary
+     * tokens en user initialization will be done on the gateway (kong).
+     *
+     * @param user
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void initNewUser(NewUserBean user) throws UserAlreadyExistsException, StorageException {
+        //create user
+        UserBean newUser = new UserBean();
+        newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+        newUser.setAdmin(user.getAdmin());
+        idmStorage.createUser(newUser);
+    }
+
+    public void deleteUser(String userId) throws UserNotFoundException, StorageException {
+        final UserBean user = idmStorage.getUser(userId);
+        if (user==null)throw ExceptionFactory.userNotFoundException(userId);
+        //check if user is owner of organizations
+        final Set<RoleMembershipBean> userMemberships = idmStorage.getUserMemberships(userId);
+        for(RoleMembershipBean role: userMemberships){
+            if(role.getRoleId().equalsIgnoreCase("owner"))throw ExceptionFactory.userCannotDeleteException(userId);
+        }
+        //if exception has not been thrown, delete user
+        idmStorage.deleteUser(userId);
     }
 
     public UserBean update(String userId, UpdateUserBean user) {
@@ -826,45 +851,6 @@ public class UserFacade implements Serializable {
             return newUser;
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e);
-        }
-    }
-
-    /**
-     * Initializes new users if they don't exist yet. You can set aswell if the user should be an admin or not.
-     * Deferred kong initialization is targeted for this method. Upon the first login of the addes user, necessary
-     * tokens en user initialization will be done on the gateway (kong).
-     *
-     * @param username
-     */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    private void initNewUser(String username) {
-        try {
-            ExternalUserBean userInfoByUsername = userExternalInfoService.getUserInfoByUsername(username);
-            //create user
-            UserBean newUser = new UserBean();
-            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(username));
-            newUser.setAdmin(false);
-            if (userInfoByUsername != null) {
-                if (userInfoByUsername.getEmails() != null && userInfoByUsername.getEmails().size() > 0)
-                    newUser.setEmail(userInfoByUsername.getEmails().get(0));
-                if (!StringUtils.isEmpty(userInfoByUsername.getName()))
-                    newUser.setFullName(userInfoByUsername.getName());
-                else {
-                    if (!StringUtils.isEmpty(userInfoByUsername.getGivenname()) && !StringUtils.isEmpty(userInfoByUsername.getSurname()))
-                        newUser.setFullName(userInfoByUsername.getGivenname() + " " + userInfoByUsername.getSurname());
-                }
-            }
-            idmStorage.createUser(newUser);
-            //assign default roles in company
-            Set<String> roles = new TreeSet<>();
-            roles.add(Role.OWNER.toString());
-            //assign to default company
-            GrantRolesBean usergrants = new GrantRolesBean();
-            usergrants.setRoleIds(roles);
-            usergrants.setUserId(username);
-            organizationFacade.grant(config.getDefaultOrganization(), usergrants);
-        } catch (StorageException e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
     }
 
