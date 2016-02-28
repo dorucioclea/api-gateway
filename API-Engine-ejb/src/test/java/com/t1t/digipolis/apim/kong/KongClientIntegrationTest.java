@@ -106,6 +106,13 @@ public class KongClientIntegrationTest {
     }
 
     @Test
+    public void testGetOauthTokenEnpoint()throws Exception{
+        Object kongOAuth2TokenEndpoint = kongClient.getOAuth2Tokens();
+        assertNotNull(kongOAuth2TokenEndpoint);
+        print(kongOAuth2TokenEndpoint);
+    }
+
+    @Test
     public void testApiFunctionality() throws Exception {
         //create new api
         KongApi api = createTestApi();
@@ -467,7 +474,14 @@ public class KongClientIntegrationTest {
         kongClient.deleteConsumer(oauthConsumer.getId());
         kongClient.deleteApi(apioauth.getId());
         //verify the provision key is not null!
+        assertNotNull(enhancedOAuthValue);
         assertTrue(!StringUtils.isEmpty(enhancedOAuthValue.getProvisionKey()));
+        assertTrue(enhancedOAuthValue.getScopes().size()==3);
+        assertTrue(enhancedOAuthValue.getEnableAuthorizationCode());
+        assertTrue(enhancedOAuthValue.getEnableClientCredentials());
+        assertTrue(enhancedOAuthValue.getEnableImplicitGrant());
+        assertTrue(enhancedOAuthValue.getEnablePasswordGrant());
+        assertTrue(enhancedOAuthValue.getMandatoryScope());
     }
 
     @Test
