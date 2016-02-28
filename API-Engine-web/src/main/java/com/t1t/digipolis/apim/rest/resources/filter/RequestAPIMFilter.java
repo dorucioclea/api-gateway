@@ -44,13 +44,14 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     //Security context
     @Inject private ISecurityContext securityContext;
     @Inject private ISecurityAppContext securityAppContext;
+    @Inject private AppConfig config;
 
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         //dev mode
         LOG.debug("Security context - request:{}", containerRequestContext.getUriInfo().getRequestUri().getPath());
-        if (!JaxRsActivator.securedMode) {
+        if (!config.getRestResourceSecurity()) {
             try {
                 securityContext.setCurrentUser("admin");
                 securityAppContext.setCurrentApplication("dummyapp");

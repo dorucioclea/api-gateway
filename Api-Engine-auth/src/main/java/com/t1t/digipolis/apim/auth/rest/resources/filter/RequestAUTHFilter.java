@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.auth.rest.resources.filter;
 
+import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.auth.rest.JaxRsActivator;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
@@ -29,15 +30,15 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
     private static final String SWAGGER_DOC_JSON = "/API-Engine-auth/v1/swagger.json";
 
     //Security context
-    @Inject
-    private ISecurityAppContext securityAppContext;
+    @Inject private ISecurityAppContext securityAppContext;
+    @Inject private AppConfig config;
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         //Get the authorization header
         String appId = containerRequestContext.getHeaderString(HEADER_CONSUMER_USERNAME);
         try {
-            if(!JaxRsActivator.securedMode){
+            if(!config.getRestAuthResourceSecurity()){
                 securityAppContext.setCurrentApplication("dummyapp");
             }else {
                 securityAppContext.setCurrentApplication(appId);

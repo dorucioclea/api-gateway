@@ -48,6 +48,12 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         super.create(user);
     }
 
+    @Override
+    public void deleteUser(String userId) throws StorageException {
+        final UserBean user = getUser(userId);
+        super.delete(user);
+    }
+
     /**
      * @see IIdmStorage#getUser(String)
      */

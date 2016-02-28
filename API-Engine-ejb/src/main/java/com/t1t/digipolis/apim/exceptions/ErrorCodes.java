@@ -24,8 +24,12 @@ public final class ErrorCodes {
     // User API related
     //
     public static final int USER_NOT_FOUND                  = 1001;
+    public static final int USER_ALREADY_EXISTS             = 1002;
+    public static final int USER_STILL_OWNER                = 1003;
 
     public static final String USER_NOT_FOUND_INFO          = null;
+    public static final String USER_ALREADY_EXISTS_INFO     = null;
+    public static final String USER_STILL_OWNER_INFO        = null;
 
 
     //
