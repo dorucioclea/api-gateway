@@ -100,7 +100,7 @@ public class UserResource implements IUserResource {
     }
 
     @ApiOperation(value = "Search for Users",
-            notes = "Use this endpoint to search for users.  The search criteria is provided in the body of the request, including filters, order-by, and paging information.")
+            notes = "Use this endpoint to search for users.  The search criteria is provided in the body of the request, including filters (bool_eq, eq, neq, gt, gte, lt, lte, like), order-by, and paging information.")
     @ApiResponses({
             @ApiResponse(code = 200, response = SearchResultsBean.class, message = "The search results (a page of organizations).")
     })
@@ -178,6 +178,21 @@ public class UserResource implements IUserResource {
         Preconditions.checkNotNull(user);
         Preconditions.checkArgument(!StringUtils.isEmpty(user.getUsername()), "Username must be provided and must be an unique identifier");
         userFacade.initNewUser(user);
+        return Response.ok().status(204).build();
+    }
+
+    @ApiOperation(value = "Delete user (admin)",
+                  notes = "Use this endpoint to delete a user. When a user has still ownership on an organization an error message will be thrown. You must have admin privileges to delete an user.")
+    @ApiResponses({
+                          @ApiResponse(code = 204, message = "successful, no content")
+                  })
+    @PUT
+    @Path("/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response delete(String userId) throws UserAlreadyExistsException, StorageException {
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), "Username must be provided and must be an unique identifier");
+        userFacade.deleteUser(userId);
         return Response.ok().status(204).build();
     }
 }

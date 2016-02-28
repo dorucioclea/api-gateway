@@ -47,6 +47,7 @@ public class CurrentUserBean extends UserBean {
         setWebsite(user.getWebsite());
         setBio(user.getBio());
         setEmail(user.getEmail());
+        setAdmin(user.getAdmin());
     }
 
     /* (non-Javadoc)
