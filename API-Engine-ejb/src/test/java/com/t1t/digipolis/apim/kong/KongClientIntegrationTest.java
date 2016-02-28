@@ -16,6 +16,7 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.Plugins;
@@ -102,6 +103,13 @@ public class KongClientIntegrationTest {
         Object kongCluster = kongClient.getCluster();
         assertNotNull(kongCluster);
         print(kongCluster);
+    }
+
+    @Test
+    public void testGetOauthTokenEnpoint()throws Exception{
+        Object kongOAuth2TokenEndpoint = kongClient.getOAuth2Tokens();
+        assertNotNull(kongOAuth2TokenEndpoint);
+        print(kongOAuth2TokenEndpoint);
     }
 
     @Test
@@ -454,7 +462,26 @@ public class KongClientIntegrationTest {
 
     @Test
     public void registerOAuthService()throws Exception{
-        //TODO
+        KongApi apioauth = createDummyApi("apioat","/apioat",API_URL);
+        KongConsumer oauthConsumer = createDummyConsumer("123456789","apiuseroauth");
+        apioauth = kongClient.addApi(apioauth);
+        oauthConsumer = kongClient.createConsumer(oauthConsumer);
+        //create an oauth config
+        KongPluginConfig pluginConfig = createTestOAuthPlugin();
+        pluginConfig = kongClient.createPluginConfig(apioauth.getId(),pluginConfig);
+        KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(pluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        String provisionKey = enhancedOAuthValue.getProvisionKey();
+        kongClient.deleteConsumer(oauthConsumer.getId());
+        kongClient.deleteApi(apioauth.getId());
+        //verify the provision key is not null!
+        assertNotNull(enhancedOAuthValue);
+        assertTrue(!StringUtils.isEmpty(enhancedOAuthValue.getProvisionKey()));
+        assertTrue(enhancedOAuthValue.getScopes().size()==3);
+        assertTrue(enhancedOAuthValue.getEnableAuthorizationCode());
+        assertTrue(enhancedOAuthValue.getEnableClientCredentials());
+        assertTrue(enhancedOAuthValue.getEnableImplicitGrant());
+        assertTrue(enhancedOAuthValue.getEnablePasswordGrant());
+        assertTrue(enhancedOAuthValue.getMandatoryScope());
     }
 
     @Test
@@ -521,6 +548,23 @@ public class KongClientIntegrationTest {
                 .withConsumerId(consumer.getId())
                 .withName("rate-limiting")//as an example
                 .withConfig(rateLimitingConfig);
+        print(pluginConfig);
+        return pluginConfig;
+    }
+
+    private KongPluginConfig createTestOAuthPlugin(){
+        List<Object> scopes = new ArrayList<>(Arrays.asList("basic","extended","full"));
+        KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
+                .withEnableAuthorizationCode(true)
+                .withEnableClientCredentials(true)
+                .withEnableImplicitGrant(true)
+                .withEnablePasswordGrant(true)
+                .withHideCredentials(false)
+                .withMandatoryScope(true)
+                .withScopes(scopes);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("oauth2")//as an example
+                .withConfig(oAuthEnhancedConfig);
         print(pluginConfig);
         return pluginConfig;
     }

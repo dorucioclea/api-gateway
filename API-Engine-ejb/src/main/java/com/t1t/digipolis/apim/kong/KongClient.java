@@ -37,6 +37,8 @@ public interface KongClient {
     Object getStatus();
     @GET("/cluster")
     Object getCluster();
+    @GET("/oauth2_tokens")
+    Object getOAuth2Tokens();
 
     /*********************   API   ***********************/
     @POST("/apis") KongApi addApi(@Body KongApi api);
