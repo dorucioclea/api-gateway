@@ -21,7 +21,7 @@ public class KongCleanup {
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
-    private static final String KONG_UNDER_TEST_URL = "http://acc.apim.t1t.be:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_URL = "http://devapim.t1t.be:8001";//should point to the admin url:port
     //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
