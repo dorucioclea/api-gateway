@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
  *
  * It is possible that some json schema's should be updated, you can find the json schema's in the main/resources/schema folder.
  */
-//@Ignore("Integration test in order to test Kong gateway directly on compatibility.")
+@Ignore("Integration test in order to test Kong gateway directly on compatibility.")
 public class KongClientIntegrationTest {
     private static Logger log = LoggerFactory.getLogger(KongClientIntegrationTest.class.getName());
     private static KongClient kongClient;
