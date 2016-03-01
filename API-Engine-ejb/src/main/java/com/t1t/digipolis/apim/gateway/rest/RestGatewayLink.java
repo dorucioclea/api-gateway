@@ -18,9 +18,12 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.KongServiceBuilder;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
@@ -176,6 +179,21 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void deleteOAuthConsumerPlugin(String consumerId, String pluginId) {
         getClient().deleteOAuthConsumerCredential(consumerId, pluginId);
+    }
+
+    @Override
+    public KongPluginConfigList getServicePlugins(String serviceId) {
+        return getClient().getServicePlugins(serviceId);
+    }
+
+    @Override
+    public KongPluginConfig getServicePlugin(String serviceId, String pluginId) {
+        return getClient().getServicePlugin(serviceId, pluginId);
+    }
+
+    @Override
+    public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config) {
+        return getClient().updateServicePlugin(serviceId, config);
     }
 
     /**

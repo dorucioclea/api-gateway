@@ -5,8 +5,11 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
+import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -49,6 +52,9 @@ public interface IStorage {
     public void createServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
     public void createServiceSupport(SupportBean supportBean) throws StorageException;
     public void createServiceSupportComment(SupportComment commentBean) throws StorageException;
+    public void createAvailableMarket(AvailabilityBean availabilityBean)throws StorageException;
+    public void createWhilelistRecord(WhitelistBean whitelistBean)throws StorageException;
+    public void createBlacklistRecord(BlacklistBean blacklistBean)throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -91,6 +97,9 @@ public interface IStorage {
     public void deleteServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
     public void deleteServiceSupport(SupportBean supportBean) throws StorageException;
     public void deleteServiceSupportComment(SupportComment commentBean) throws StorageException;
+    public void deleteAvailableMarket(AvailabilityBean availabilityBean)throws StorageException;
+    public void deleteWhitelistRecord(WhitelistBean whitelistBean) throws StorageException;
+    public void deleteBalcklistRecord(BlacklistBean blacklistBean) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -114,6 +123,9 @@ public interface IStorage {
     public AnnouncementBean getServiceAnnouncement(Long id) throws StorageException;
     public SupportBean getServiceSupport(Long id) throws StorageException;
     public SupportComment getServiceSupportComment(Long id) throws StorageException;
+    public AvailabilityBean getAvailableMarket(String id) throws StorageException;
+    public WhitelistBean getWhitelistRecord(String id) throws StorageException;
+    public BlacklistBean getBlacklistRecord(String id) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

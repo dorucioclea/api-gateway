@@ -21,6 +21,7 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
@@ -716,7 +717,7 @@ public interface IOrganizationResource {
      * @throws InvalidServiceStatusException when the user attempts some action on the service when it is not in an appropriate state/status
      */
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws ServiceVersionNotFoundException, NotAuthorizedException,
-            InvalidServiceStatusException;
+            InvalidServiceStatusException, StorageException;
 
     /**
      * Use this endpoint to update the Service's definition document.  A service

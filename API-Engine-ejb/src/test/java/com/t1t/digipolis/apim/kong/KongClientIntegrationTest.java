@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.kong;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -15,6 +16,7 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.Plugins;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
@@ -22,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,13 +40,13 @@ import static org.junit.Assert.*;
  *
  * It is possible that some json schema's should be updated, you can find the json schema's in the main/resources/schema folder.
  */
-@Ignore("Integration test in order to test Kong gateway directly on compatibility.")
+//@Ignore("Integration test in order to test Kong gateway directly on compatibility.")
 public class KongClientIntegrationTest {
     private static Logger log = LoggerFactory.getLogger(KongClientIntegrationTest.class.getName());
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
-    private static final String KONG_UNDER_TEST_URL = "http://192.168.99.100:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_URL = "http://devapim.t1t.be:8001";//should point to the admin url:port
     //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
@@ -72,7 +75,7 @@ public class KongClientIntegrationTest {
 
     @Test
     public void testGetInfo() throws Exception {
-        KongInfo kongInfo = kongClient.getInfo();
+        KongInfo kongInfo = kongClient.getParsedInfo();
         assertNotNull(kongInfo);
         print(kongInfo);
         //verify all properties are not empty
@@ -84,6 +87,20 @@ public class KongClientIntegrationTest {
         //normally minimum 1 plugin should be available
         assertNotNull(plugins.getAvailableOnServer());
         assertTrue(plugins.getAvailableOnServer().size()>0);
+    }
+
+    @Test
+    public void testGetStatus() throws Exception {
+        Object kongStatus = kongClient.getStatus();
+        assertNotNull(kongStatus);
+        print(kongStatus);
+    }
+
+    @Test
+    public void testGetCluster() throws Exception {
+        Object kongCluster = kongClient.getCluster();
+        assertNotNull(kongCluster);
+        print(kongCluster);
     }
 
     @Test
@@ -296,7 +313,7 @@ public class KongClientIntegrationTest {
     @Test
     public void testGetAllPlugins() throws Exception {
         KongPluginConfigList confList = kongClient.getAllPlugins();
-        int initSize = confList.getData().size();
+        int initSize = confList.getTotal();
         print(confList);
         //add some api config
         KongApi apie = createDummyApi("apiexx", "/apiexx", API_URL);
@@ -309,7 +326,7 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         //verify one has been added
         confList = kongClient.getAllPlugins();
-        int sizeAfter = confList.getData().size();
+        int sizeAfter = confList.getTotal();
         log.info("size before:{}",initSize);
         log.info("size after:{}", sizeAfter);
         kongClient.deleteApi(apie.getId());
@@ -501,5 +518,88 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         return pluginConfig;
     }
+
+    @Test
+    public void testCreateIPRestrictionPluginWL() throws Exception {
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apiipr = createDummyApi("apiiprwl","/apiiprwl",API_URL);
+        KongConsumer consumer = createDummyConsumer("ipr123wl", "apruserwl");
+        apiipr = kongClient.addApi(apiipr);
+        //create a IPRestrcition policy
+        List<String> whitelistrecords = new ArrayList<>();
+        whitelistrecords.add("127.0.0.0/24");
+        whitelistrecords.add("128.0.0.0/24");
+        List<String> blacklistrecords = new ArrayList<>();
+        blacklistrecords.add("32.0.0.0/24");
+        blacklistrecords.add("33.0.0.0/24");
+        KongPluginIPRestriction iprConfig = new KongPluginIPRestriction()
+                .withWhitelist(whitelistrecords);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("ip-restriction")//as an example
+                .withConfig(iprConfig);
+        Gson gson = new Gson();
+        log.info(gson.toJson(pluginConfig));
+        kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
+        kongClient.deleteApi(apiipr.getId());
+    }
+
+    @Test
+    public void testCreateIPRestrictionPluginBL() throws Exception {
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apiipr = createDummyApi("apiiprb","/apiiprb",API_URL);
+        KongConsumer consumer = createDummyConsumer("ipr123b", "apruserb");
+        apiipr = kongClient.addApi(apiipr);
+        //create a IPRestrcition policy
+        List<String> whitelistrecords = new ArrayList<>();
+        whitelistrecords.add("127.0.0.0/24");
+        whitelistrecords.add("128.0.0.0/24");
+        List<String> blacklistrecords = new ArrayList<>();
+        blacklistrecords.add("32.0.0.0/24");
+        blacklistrecords.add("33.0.0.0/24");
+        KongPluginIPRestriction iprConfig = new KongPluginIPRestriction()
+                .withWhitelist(blacklistrecords);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("ip-restriction")//as an example
+                .withConfig(iprConfig);
+        Gson gson = new Gson();
+        log.info(gson.toJson(pluginConfig));
+        kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
+        kongClient.deleteApi(apiipr.getId());
+    }
+
+    @Test
+    public void testCreateIPRestrictionPluginWithJSONConvertionWL() throws Exception {
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apiipr = createDummyApi("apiiprjsonw","/apiiprjsonw",API_URL);
+        String iprestrictionValues = "{\"whitelist\":[\"127.0.0.0/24\"]}";
+        Gson gson = new Gson();
+        KongPluginIPRestriction kongPluginIPRestriction = gson.fromJson(iprestrictionValues, KongPluginIPRestriction.class);
+        KongConsumer consumer = createDummyConsumer("ipr1234w", "apruser4w");
+        apiipr = kongClient.addApi(apiipr);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("ip-restriction")//as an example
+                .withConfig(kongPluginIPRestriction);
+        print(pluginConfig);
+        kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
+        kongClient.deleteApi(apiipr.getId());
+    }
+
+    @Test
+    public void testCreateIPRestrictionPluginWithJSONConvertionBL() throws Exception {
+        //in order to create a plugin you should have an api registered and a consumer
+        KongApi apiipr = createDummyApi("apiiprjsonb","/apiiprjsonb",API_URL);
+        String iprestrictionValues = "{\"blacklist\":[\"127.0.0.0/24\"]}";
+        Gson gson = new Gson();
+        KongPluginIPRestriction kongPluginIPRestriction = gson.fromJson(iprestrictionValues, KongPluginIPRestriction.class);
+        KongConsumer consumer = createDummyConsumer("ipr1234b", "apruser4b");
+        apiipr = kongClient.addApi(apiipr);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("ip-restriction")//as an example
+                .withConfig(kongPluginIPRestriction);
+        print(pluginConfig);
+        kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
+        kongClient.deleteApi(apiipr.getId());
+    }
+
     private void print(Object obj){log.info(gson.toJson(obj));};
 }

@@ -40,4 +40,5 @@ public interface IConfig {
     String ANALYTICS_MAX_SENDING_QUEUE = "apiapp.metrics.galileo.max_sending_queue_size";
     String ANALYTICS_HOST = "apiapp.metrics.galileo.host";
     String ANALYTICS_PORT = "apiapp.metrics.galileo.port";
+    String MARKETS_FILTER = "apiapp.marketplaces.filter";
 }

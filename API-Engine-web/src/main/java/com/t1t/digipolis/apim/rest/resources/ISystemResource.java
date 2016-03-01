@@ -1,6 +1,8 @@
 package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -20,6 +22,6 @@ public interface ISystemResource {
      * @statuscode 200 On success.
      * @return System status information.
      */
-    public SystemStatusBean getStatus();
+    public SystemStatusBean getStatus() throws GatewayAuthenticationException, StorageException;
 
 }

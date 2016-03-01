@@ -14,6 +14,9 @@ public class SystemStatus implements Serializable {
     private String name;
     private String description;
     private String version;
+    private String info;
+    private String status;
+    private String cluster;
     private boolean up;
     
     /**
@@ -85,6 +88,30 @@ public class SystemStatus implements Serializable {
         return description;
     }
 
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(String cluster) {
+        this.cluster = cluster;
+    }
+
     /**
      * @param description the description to set
      */
@@ -92,4 +119,17 @@ public class SystemStatus implements Serializable {
         this.description = description;
     }
 
+    @Override
+    public String toString() {
+        return "SystemStatus{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", version='" + version + '\'' +
+                ", info='" + info + '\'' +
+                ", status='" + status + '\'' +
+                ", cluster='" + cluster + '\'' +
+                ", up=" + up +
+                '}';
+    }
 }

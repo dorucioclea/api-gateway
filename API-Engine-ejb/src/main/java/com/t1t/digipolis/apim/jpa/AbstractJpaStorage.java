@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +30,7 @@ import java.util.Set;
 public abstract class AbstractJpaStorage {
     private static Logger log = LoggerFactory.getLogger(AbstractJpaStorage.class.getName());
 
-    @PersistenceContext
-    protected EntityManager em;
+    @PersistenceContext protected EntityManager em;
 
     /**
      * Constructor.
@@ -78,7 +78,7 @@ public abstract class AbstractJpaStorage {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <T> void delete(T bean) throws StorageException {
-        log.debug("delete:" + bean.toString());
+        log.debug("delete:" + bean);
         em.remove(em.merge(bean));
     }
 
@@ -92,7 +92,7 @@ public abstract class AbstractJpaStorage {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <T> T get(Long id, Class<T> type) throws StorageException {
-        log.debug("get(long:id):" + id.toString());
+        log.debug("get(long:id):" + id);
         T rval = null;
         rval = em.find(type, id);
         return rval;
@@ -107,7 +107,7 @@ public abstract class AbstractJpaStorage {
      * @throws StorageException if a storage problem occurs while storing a bean
      */
     public <T> T get(String id, Class<T> type) throws StorageException {
-        log.debug("get(string:id):" + id.toString());
+        log.debug("get(string:id):" + id);
         T rval = null;
         rval = em.find(type, id);
         return rval;
@@ -123,7 +123,7 @@ public abstract class AbstractJpaStorage {
      * @throws StorageException if a storage problem occurs while storing a bean
      */
     public <T> T get(String organizationId, String id, Class<T> type) throws StorageException {
-        log.debug("getOrganzationComposite(id):" + id.toString());
+        log.debug("getOrganzationComposite(id):" + id);
         T rval = null;
         OrganizationBean orgBean = em.find(OrganizationBean.class, organizationId);
         Object key = new OrganizationBasedCompositeId(orgBean, id);

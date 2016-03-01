@@ -10,3 +10,6 @@ INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('adm
 INSERT INTO organizations (id,description,name,created_by,created_on,modified_by,modified_on) VALUES ('Trust1Team','Trust1Team bvba','Trust1Team','admin',CURRENT_DATE,'admin',CURRENT_DATE);
 
 INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CURRENT_DATE,'Digipolis','Owner','admin');
+
+INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
+INSERT INTO availabilities(name, code) VALUES ('internal', 'int');

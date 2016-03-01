@@ -93,6 +93,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -460,6 +462,7 @@ public class UserFacade implements Serializable {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
+        utilPrintCache();
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
 /*        if (assertion != null && webClientCacheBean.getToken().equals(ClientTokeType.jwt)) {
             responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs,webClientCacheBean));
@@ -780,9 +783,21 @@ public class UserFacade implements Serializable {
     }
 
     public ExternalUserBean getUserByUsername(String username){
-        //ExternalUserBean scimUser = userExternalInfoService.getUserInfoByUsername(username);
-        return null;
-        //return getExteralUserAndInit(scimUser);
+        DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        ExternalUserBean extUser = null;
+        try {
+            UserBean user = idmStorage.getUser(username);
+            log.info("User: {}",user);
+            extUser = new ExternalUserBean();
+            extUser.setUsername(user.getUsername());
+            extUser.setAccountId(user.getUsername());
+            extUser.setCreatedon(df.format(user.getJoinedOn()));
+            extUser.setLastModified(df.format(user.getJoinedOn()));
+            extUser.setGivenname(user.getFullName());
+        } catch (StorageException e) {
+            throw new UserNotFoundException("User unknow in the application: "+username);
+        }
+        return extUser;
     }
 
     //TODO set out of scope for SCIM review - only existing users can be found in this service
@@ -966,17 +981,18 @@ public class UserFacade implements Serializable {
      */
     public void utilPrintCache() {
         log.info("SessionIndex cache values:");
+        Set<String> ssoKeys = cacheUtil.getSSOKeys();
+        log.info("SSOKeys: {}",ssoKeys);
+        log.info("SSO cache values: {}",ssoKeys);
+        ssoKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getWebCacheBean(key)));
         Set<String> sessionKeys = cacheUtil.getSessionKeys();
         log.info("Sessionkeys: {}",sessionKeys);
+        log.info("Session cach values: {}",sessionKeys);
         sessionKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getSessionIndex(key)));
-        log.info("Token cache values:");
         Set<String> tokenKeys = cacheUtil.getTokenKeys();
         log.info("Tokenkeys: {}",tokenKeys);
+        log.info("Token cache values:");
         tokenKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getToken(key)));
-        log.info("WebCacheBean cache values:");
-        Set<String> webKeys = cacheUtil.getTokenKeys();
-        log.info("webkeys: {}",webKeys);
-        webKeys.forEach(key -> log.info("Key found:{} with value {}", key, cacheUtil.getWebCacheBean(key)));
     }
 
     /**

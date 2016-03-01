@@ -17,6 +17,9 @@ public class SystemStatusBean implements Serializable {
     private String version;
     private String environment;
     private String builtOn;
+    private String kongInfo;
+    private String kongStatus;
+    private String kongCluster;
     private boolean up;
 
     /**
@@ -118,6 +121,30 @@ public class SystemStatusBean implements Serializable {
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
+    }
+
+    public String getKongInfo() {
+        return kongInfo;
+    }
+
+    public void setKongInfo(String kongInfo) {
+        this.kongInfo = kongInfo;
+    }
+
+    public String getKongStatus() {
+        return kongStatus;
+    }
+
+    public void setKongStatus(String kongStatus) {
+        this.kongStatus = kongStatus;
+    }
+
+    public String getKongCluster() {
+        return kongCluster;
+    }
+
+    public void setKongCluster(String kongCluster) {
+        this.kongCluster = kongCluster;
     }
 
     /**

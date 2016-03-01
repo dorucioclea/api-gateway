@@ -142,7 +142,14 @@ $ docker stop api-engine-inst1
 $ docker rm api-engine-inst1
 $ docker rmi api-engine
 ```
+Using the API Marketplace
+-------------------------
+Start your Kong container by adding your localhost IP:
+```sh
+$ docker run --add-host=localhost:84.198.85.191 -d --name konglocal --link cassandra:cassandra -p 8000:8000 -p 8443:8443 -p 8001:8001 -p 7946:7946 -p 7946:7946/udp mashape/kong 
+```
 
+See [Docker-info](https://docs.docker.com/engine/reference/commandline/run/#add-entries-to-container-hosts-file-add-host)
 
 Release Notes - Digipolis-APIM - Version APIM-v0.5.2
 ----------------------------------------------------

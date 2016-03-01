@@ -284,6 +284,7 @@ public class GatewayValidation {
         KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginIPRestriction.class);
         //if lists empty -> error
         if(isEmptyList(req.getBlacklist())&&isEmptyList(req.getWhitelist()))throw new PolicyDefinitionInvalidException("At least one value should be provided.");
+        if(isNotEmptyList(req.getBlacklist())&& isNotEmptyList(req.getWhitelist()))throw new PolicyDefinitionInvalidException("You cannot provide both blacklist and whitelist values.");
         // check for duplicate values
         req.getBlacklist().stream().forEach(blackVal -> req.getWhitelist().stream().forEach(whiteVal -> {
             if (blackVal.equals(whiteVal)) {
@@ -353,5 +354,9 @@ public class GatewayValidation {
 
     private static boolean isEmptyList(List list){
         return (list==null||list.size()==0);
+    }
+
+    private static boolean isNotEmptyList(List list){
+        return list!=null && list.size()>0;
     }
 }
