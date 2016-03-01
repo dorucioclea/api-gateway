@@ -194,6 +194,8 @@ public class UserFacade implements Serializable {
     }
 
     public void deleteAdminPriviledges(String userId)throws StorageException{
+        if (!idmStorage.getUser(securityContext.getCurrentUser()).getAdmin())
+            throw ExceptionFactory.notAuthorizedException();
         final UserBean user = idmStorage.getUser(userId);
         if(user==null)throw new UserNotFoundException("User unknow in the application: " + userId);
         user.setAdmin(false);
@@ -201,6 +203,8 @@ public class UserFacade implements Serializable {
     }
 
     public void addAdminPriviledges(String userId)throws StorageException{
+        if (!idmStorage.getUser(securityContext.getCurrentUser()).getAdmin())
+            throw ExceptionFactory.notAuthorizedException();
         final UserBean user = idmStorage.getUser(userId);
         if(user==null){
             NewUserBean newUserBean = new NewUserBean();
