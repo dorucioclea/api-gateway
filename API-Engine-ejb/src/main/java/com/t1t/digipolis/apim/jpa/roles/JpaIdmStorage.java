@@ -266,6 +266,18 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         return permissions;
     }
 
+    public List<UserBean> getAllUsers() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        Query query = em.createQuery("SELECT u FROM UserBean u");
+        return (List<UserBean>)query.getResultList();
+    }
+
+    public List<UserBean> getAdminUsers() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        Query query = em.createQuery("SELECT u FROM UserBean u WHERE u.admin = true");
+        return (List<UserBean>)query.getResultList();
+    }
+
     /**
      * @param roleId
      * @return a role by id

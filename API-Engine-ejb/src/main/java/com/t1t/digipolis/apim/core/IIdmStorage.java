@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -175,5 +176,21 @@ public interface IIdmStorage {
      * @throws StorageException if an exception occurs during storage attempt
      */
     public Set<PermissionBean> getPermissions(String userId) throws StorageException;
+
+    /**
+     * Return ALL users. Not taken into consideration 'paging'.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<UserBean> getAllUsers()throws StorageException;
+
+    /**
+     * Returns all users with admin priviledges.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<UserBean> getAdminUsers()throws StorageException;
 
 }

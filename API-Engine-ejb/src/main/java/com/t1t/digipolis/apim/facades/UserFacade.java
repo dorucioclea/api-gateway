@@ -185,6 +185,34 @@ public class UserFacade implements Serializable {
         }
     }
 
+    public List<UserBean> getAdmins() throws StorageException {
+        return idmStorage.getAdminUsers();
+    }
+
+    public List<UserBean> getAllUsers()throws StorageException{
+        return idmStorage.getAllUsers();
+    }
+
+    public void deleteAdminPriviledges(String userId)throws StorageException{
+        final UserBean user = idmStorage.getUser(userId);
+        if(user==null)throw new UserNotFoundException("User unknow in the application: " + userId);
+        user.setAdmin(false);
+        idmStorage.updateUser(user);
+    }
+
+    public void addAdminPriviledges(String userId)throws StorageException{
+        final UserBean user = idmStorage.getUser(userId);
+        if(user==null){
+            NewUserBean newUserBean = new NewUserBean();
+            newUserBean.setUsername(userId);
+            newUserBean.setAdmin(true);
+            initNewUser(newUserBean);
+        }else{
+            user.setAdmin(true);
+            idmStorage.updateUser(user);
+        }
+    }
+
     public List<OrganizationSummaryBean> getOrganizations(String userId) {
         Set<String> permittedOrganizations = new HashSet<>();
         try {

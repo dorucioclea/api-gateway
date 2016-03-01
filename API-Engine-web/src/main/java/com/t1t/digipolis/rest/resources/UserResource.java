@@ -82,6 +82,45 @@ public class UserResource implements IUserResource {
         return userFacade.get(userId);
     }
 
+    @ApiOperation(value = "Get Admin users",
+                  notes = "Use this endpoint to get users who are granted with admin priviledges.")
+    @ApiResponses({
+                          @ApiResponse(code = 200,responseContainer = "List", response = UserBean.class, message = "Admin users.")
+                  })
+    @GET
+    @Path("/admins")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAdmins() throws UserNotFoundException, StorageException {
+        final List<UserBean> admins = userFacade.getAdmins();
+        return Response.ok().entity(admins).build();
+    }
+
+    @ApiOperation(value = "Delete admin priviledges for user",
+                  notes = "Use this endpoint to remove admin priviledges from user.")
+    @ApiResponses({
+                          @ApiResponse(code = 204, response = Response.class, message = "Admin priviledges removed.")
+                  })
+    @DELETE
+    @Path("/admins/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteAdminPriviledges(@PathParam("userId") String userId) throws UserNotFoundException, StorageException {
+        userFacade.deleteAdminPriviledges(userId);
+        return Response.ok().status(204).build();
+    }
+
+    @ApiOperation(value = "Add admin priviledges for user",
+                  notes = "Use this endpoint to add admin priviledges for user. If the user doesn't exist, user will be created.")
+    @ApiResponses({
+                          @ApiResponse(code = 204, response = Response.class, message = "Admin priviledges added.")
+                  })
+    @POST
+    @Path("/admins/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addAdminPriviledges(@PathParam("userId") String userId) throws UserNotFoundException, StorageException {
+        userFacade.addAdminPriviledges(userId);
+        return Response.ok().status(204).build();
+    }
+
     @ApiOperation(value = "Update a User by ID",
             notes = "Use this endpoint to update the information about a user.  This will fail unless the authenticated user is an admin or identical to the user being updated.")
     @ApiResponses({
