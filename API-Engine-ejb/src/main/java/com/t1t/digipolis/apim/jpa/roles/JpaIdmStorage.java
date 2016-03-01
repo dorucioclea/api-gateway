@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.jpa.roles;
 
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
@@ -249,7 +250,7 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<RoleMembershipBean> criteriaQuery = builder.createQuery(RoleMembershipBean.class);
         Root<RoleMembershipBean> from = criteriaQuery.from(RoleMembershipBean.class);
-        criteriaQuery.where(builder.equal(from.get("userId"), userId)); //$NON-NLS-1$
+        criteriaQuery.where(builder.equal(from.get("userId"), userId));
         TypedQuery<RoleMembershipBean> typedQuery = entityManager.createQuery(criteriaQuery);
         typedQuery.setMaxResults(500);
         List<RoleMembershipBean> resultList = typedQuery.getResultList();
@@ -260,6 +261,24 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
                 PermissionBean p = new PermissionBean();
                 p.setName(permission);
                 p.setOrganizationId(qualifier);
+                permissions.add(p);
+            }
+        }
+        return permissions;
+    }
+
+    @Override
+    public Set<PermissionBean> getAllPermissions() throws StorageException {
+        Set<PermissionBean> permissions = new HashSet<>();
+        EntityManager em = getActiveEntityManager();
+        Query query = em.createQuery("SELECT o FROM OrganizationBean o");
+        List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
+        for(OrganizationBean org:orgs){
+            PermissionType[] ptypes = PermissionType.values();
+            for(PermissionType ptunit:ptypes){
+                PermissionBean p = new PermissionBean();
+                p.setName(ptunit);
+                p.setOrganizationId(org.getId());
                 permissions.add(p);
             }
         }

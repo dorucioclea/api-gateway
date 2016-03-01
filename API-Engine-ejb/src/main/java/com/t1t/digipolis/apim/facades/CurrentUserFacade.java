@@ -67,7 +67,11 @@ public class CurrentUserFacade {
             } else {
                 rval.initFromUser(user);
                 Set<PermissionBean> permissions = idmStorage.getPermissions(userId);
-                rval.setPermissions(permissions);
+                if(securityContext.isAdmin()){
+                    rval.setPermissions(idmStorage.getAllPermissions());
+                }else{
+                    rval.setPermissions(permissions);
+                }
                 rval.setAdmin(securityContext.isAdmin());
             }
 

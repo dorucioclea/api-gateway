@@ -178,6 +178,13 @@ public interface IIdmStorage {
     public Set<PermissionBean> getPermissions(String userId) throws StorageException;
 
     /**
+     * Returns all permission in case of an admin to have access right to everything - GOD-mode
+     * @return
+     * @throws StorageException
+     */
+    public Set<PermissionBean> getAllPermissions() throws StorageException;
+
+    /**
      * Return ALL users. Not taken into consideration 'paging'.
      *
      * @return
