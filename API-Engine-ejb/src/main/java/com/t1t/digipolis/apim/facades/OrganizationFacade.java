@@ -406,8 +406,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                     gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
                 }
-            } catch (StorageException e) {
-                throw new ApplicationNotFoundException(e.getMessage());
+            } catch (Exception e) {
+                //apikey for consumer already exists
             }
             //verify if the contracting service has OAuth enabled
             List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
@@ -2256,14 +2256,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (pvb.getStatus() != PlanStatus.Locked) {
             throw ExceptionFactory.invalidPlanStatusException();
         }
+        //verify contracts - reuse key if multiple
+        final List<ContractSummaryBean> applicationVersionContracts = getApplicationVersionContracts(organizationId, applicationId, version);
         contract = new ContractBean();
         contract.setApplication(avb);
         contract.setService(svb);
         contract.setPlan(pvb);
         contract.setCreatedBy(securityContext.getCurrentUser());
         contract.setCreatedOn(new Date());
-        //TODO fix this bug - don't create always new apikey!!!!
-        contract.setApikey(apiKeyGenerator.generate());
+        if(applicationVersionContracts.size()>0){
+            contract.setApikey(applicationVersionContracts.get(0).getApikey());//use same apikey when already a contract
+        }else {
+            contract.setApikey(apiKeyGenerator.generate());
+        }
         // Validate the state of the application.
         if (applicationValidator.isReady(avb, true)) {
             avb.setStatus(ApplicationStatus.Ready);
