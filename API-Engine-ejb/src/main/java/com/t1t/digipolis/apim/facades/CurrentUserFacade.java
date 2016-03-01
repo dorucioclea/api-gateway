@@ -5,11 +5,13 @@ import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
+import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,10 +21,7 @@ import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -36,6 +35,7 @@ public class CurrentUserFacade {
     @Inject private ISecurityContext securityContext;
     @Inject private IStorageQuery query;
     @Inject private IIdmStorage idmStorage;
+    @Inject private IStorage storage;
 
     public CurrentUserBean getInfo(){
         String userId = securityContext.getCurrentUser();
@@ -53,7 +53,7 @@ public class CurrentUserFacade {
                 if (securityContext.getEmail() != null) {
                     user.setEmail(securityContext.getEmail());
                 } else {
-                    user.setEmail(userId + "@example.org"); //$NON-NLS-1$
+                    user.setEmail(userId + "@example.org");
                 }
                 user.setJoinedOn(new Date());
                 try {
@@ -101,8 +101,22 @@ public class CurrentUserFacade {
     }
 
     public List<OrganizationSummaryBean> getAppOrganizations(){
-        Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appEdit);
+        log.info("Getting organizations");
+        String currentUser = securityContext.getCurrentUser();
+        Set<String> permittedOrganizations = new TreeSet<>();
         try {
+            log.info("currentuser:{}",currentUser);
+            log.info("isadmin:{}",idmStorage.getUser(currentUser).getAdmin());
+            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
+                permittedOrganizations = storage.getAllOrganizations();
+            }else{
+                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appEdit);
+            }
+        } catch (StorageException e) {
+            throw ExceptionFactory.userNotFoundException(currentUser);
+        }
+        try {
+            log.info("Permitted organizations:"+permittedOrganizations);
             return query.getOrgs(permittedOrganizations);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -110,7 +124,17 @@ public class CurrentUserFacade {
     }
 
     public List<OrganizationSummaryBean> getPlanOrganizations(){
-        Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.planEdit);
+        String currentUser = securityContext.getCurrentUser();
+        Set<String> permittedOrganizations = new TreeSet<>();
+        try {
+            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
+                permittedOrganizations = storage.getAllOrganizations();
+            }else{
+                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.planEdit);
+            }
+        } catch (StorageException e) {
+            throw ExceptionFactory.userNotFoundException(currentUser);
+        }
         try {
             return query.getOrgs(permittedOrganizations);
         } catch (StorageException e) {
@@ -119,7 +143,17 @@ public class CurrentUserFacade {
     }
 
     public List<OrganizationSummaryBean> getServiceOrganizations(){
-        Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcEdit);
+        String currentUser = securityContext.getCurrentUser();
+        Set<String> permittedOrganizations = new TreeSet<>();
+        try {
+            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
+                permittedOrganizations = storage.getAllOrganizations();
+            }else{
+                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcEdit);
+            }
+        } catch (StorageException e) {
+            throw ExceptionFactory.userNotFoundException(currentUser);
+        }
         try {
             return query.getOrgs(permittedOrganizations);
         } catch (StorageException e) {
@@ -128,7 +162,17 @@ public class CurrentUserFacade {
     }
 
     public List<ApplicationSummaryBean> getApplications(){
-        Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appView);
+        String currentUser = securityContext.getCurrentUser();
+        Set<String> permittedOrganizations = new TreeSet<>();
+        try {
+            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
+                permittedOrganizations = storage.getAllOrganizations();
+            }else{
+                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appView);
+            }
+        } catch (StorageException e) {
+            throw ExceptionFactory.userNotFoundException(currentUser);
+        }
         try {
             return query.getApplicationsInOrgs(permittedOrganizations);
         } catch (StorageException e) {
@@ -137,7 +181,17 @@ public class CurrentUserFacade {
     }
 
     public List<ServiceSummaryBean> getServices(){
-        Set<String> permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcView);
+        String currentUser = securityContext.getCurrentUser();
+        Set<String> permittedOrganizations = new TreeSet<>();
+        try {
+            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
+                permittedOrganizations = storage.getAllOrganizations();
+            }else{
+                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcView);
+            }
+        } catch (StorageException e) {
+            throw ExceptionFactory.userNotFoundException(currentUser);
+        }
         try {
             return query.getServicesInOrgs(permittedOrganizations);
         } catch (StorageException e) {

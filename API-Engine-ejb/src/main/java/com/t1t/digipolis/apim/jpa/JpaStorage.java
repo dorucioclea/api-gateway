@@ -647,6 +647,20 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return super.get(defaultOrgId, OrganizationBean.class);
     }
 
+    @Override
+    public Set<String> getAllOrganizations() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT o FROM OrganizationBean o";
+        Query query = entityManager.createQuery(jpql);
+        List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
+        logger.info("dborgs all:{}",orgs);
+        Set<String> orgNames = new TreeSet<>();
+        for(OrganizationBean org:orgs){
+            orgNames.add(org.getId());
+        }
+        return orgNames;
+    }
+
     /**
      * @see AbstractJpaStorage#find(SearchCriteriaBean, Class)
      */
@@ -1018,9 +1032,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return orgs;
         }
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT o from OrganizationBean o WHERE o.id IN :orgs ORDER BY o.id ASC"; //$NON-NLS-1$
+        String jpql = "SELECT o from OrganizationBean o WHERE o.id IN :orgs ORDER BY o.id ASC";
         Query query = entityManager.createQuery(jpql);
-        query.setParameter("orgs", orgIds); //$NON-NLS-1$
+        query.setParameter("orgs", orgIds);
         List<OrganizationBean> qr = (List<OrganizationBean>) query.getResultList();
         for (OrganizationBean bean : qr) {
             OrganizationSummaryBean summary = new OrganizationSummaryBean();

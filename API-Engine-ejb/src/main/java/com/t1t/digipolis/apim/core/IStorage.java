@@ -25,6 +25,7 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the persistent storage interface for Apiman DT.
@@ -136,4 +137,13 @@ public interface IStorage {
      * Defaults
      */
     public OrganizationBean getDefaultOrganizationForConsumers()throws StorageException;
+
+    /**
+     * Returns all organizations, this method is exceptional list of orgs for logged-in admin.
+     * In other cases we use the currentuser or search endpoints.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public Set<String> getAllOrganizations()throws StorageException;
 }
