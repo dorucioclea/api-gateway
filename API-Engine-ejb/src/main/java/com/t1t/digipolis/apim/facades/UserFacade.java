@@ -496,7 +496,7 @@ public class UserFacade implements Serializable {
             assertion = processSSOResponse(response.split("&")[0]);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
-            String userId = ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue());
+            String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());
             //preempt if restricted mode and user is not admin; be carefull to scope the application, non api-engine applications uses this endpoint as well.
             if (config.getRestrictedMode() && webClientCacheBean.getAppRequester() != null && config.getAppliedRestrictions().contains(webClientCacheBean.getAppRequester().getAppId())) {
                 final UserBean user = idmStorage.getUser(userId);
@@ -540,7 +540,7 @@ public class UserFacade implements Serializable {
         try {
             assertion = processSSOResponse(response);
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
-            String userId = ConsumerConventionUtil.createUserUniqueId(assertion.getSubject().getNameID().getValue());
+            String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());
             idAttribs.setSubjectId(userId);
             log.debug("External SAML response validation");
         } catch (SAXException | ParserConfigurationException | UnmarshallingException | IOException | ConfigurationException ex) {
