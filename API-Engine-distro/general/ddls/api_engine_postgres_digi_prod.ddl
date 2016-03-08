@@ -18,3 +18,8 @@ INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
 INSERT INTO white_ip_restriction(netw_value) VALUES ('192.168.0.0/16');
 INSERT INTO white_ip_restriction(netw_value) VALUES ('10.0.0.0/8');
 INSERT INTO white_ip_restriction(netw_value) VALUES ('172.0.0.0/8');
+
+
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('rc00115@digant.antwerpen.local', '','peter.claes@digipolis.be', 'Peter Claes', CURRENT_DATE, TRUE);
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('rc00260@digant.antwerpen.local', '','chris.jacobs@digipolis.be', 'Chris Jacobs', CURRENT_DATE, TRUE);
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('ex02393@digant.antwerpen.local', '','michallis.pashidis@digipolis.be', 'Michallis Pashidis', CURRENT_DATE, TRUE);

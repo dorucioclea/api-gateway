@@ -22,7 +22,7 @@ curl -X POST http://rasu094.rte.antwerpen.local:8001/apis/apiengine.v1/plugins \
     --data "config.key_names=apikey"
 
 #enable JWT - we enforce JWT with a request filter
-curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
+curl -X POST http://rasu094.rte.antwerpen.local:8001/apis/apiengine.v1/plugins \
     --data "name=jwt" \
     --data "config.claims_to_verify=exp"
 
@@ -44,10 +44,10 @@ curl -X POST http://rasu094.rte.antwerpen.local:8001/consumers/ext.marketplace.v
 
 #create publisher consumer
 curl -X POST http://rasu094.rte.antwerpen.local:8001/consumers \
-    --data "username=publisher.v1"
+    --data "username=prd.publisher.v1"
 
 #enable keyauth for publisher and return API key, result should be captured and is the API key for the given consumer
-curl -X POST http://rasu094.rte.antwerpen.local:8001/consumers/publisher.v1/key-auth \
+curl -X POST http://rasu094.rte.antwerpen.local:8001/consumers/prd.publisher.v1/key-auth \
     --data "key=***REMOVED***"
 
 #Analytics

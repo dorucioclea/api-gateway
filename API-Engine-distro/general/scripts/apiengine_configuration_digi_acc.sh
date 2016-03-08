@@ -44,7 +44,7 @@ curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers/ext.marketplace.v
 
 #create publisher consumer
 curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers \
-    --data "username=rte.publisher.v1"
+    --data "username=acc.publisher.v1"
 
 #enable keyauth for publisher and return API key, result should be captured and is the API key for the given consumer
 curl -X POST http://rasu076.rte.antwerpen.local:8001/consumers/rte.publisher.v1/key-auth \
