@@ -22,7 +22,7 @@ curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengine.v1/plugi
     --data "config.key_names=apikey"
 
 #enable JWT - we enforce JWT with a request filter
-curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
+curl -X POST http://rasu076.rte.antwerpen.local:8001/apis/rte.apiengine.v1/plugins \
     --data "name=jwt" \
     --data "config.claims_to_verify=exp"
 
