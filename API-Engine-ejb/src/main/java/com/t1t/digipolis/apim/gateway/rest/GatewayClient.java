@@ -254,6 +254,8 @@ public class GatewayClient {
         boolean customKeyAuth = false;
         //flag for custom HTTP policy
         boolean customHttp = false;
+        //flag for OAuth2
+        boolean flagOauth2 = false;
         //flag for custom Analytics policy
         boolean customAnalytics = false;
         //verify if api creation has been succesfull
@@ -275,7 +277,7 @@ public class GatewayClient {
                         case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
                         //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
                         case OAUTH2: KongPluginConfig config = createServicePolicy(api, GatewayValidation.validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
-                            log.info("start post oauth2 actions");postOAuth2Actions(service, policy,config);break;//upon transformation we use another enhanced object for json deserialization
+                            log.info("start post oauth2 actions");flagOauth2=true;postOAuth2Actions(service, policy,config);break;//upon transformation we use another enhanced object for json deserialization
                         case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
                         case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
                         case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
@@ -295,7 +297,8 @@ public class GatewayClient {
 
         //add default CORS Policy if no custom CORS defined
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
-        if(!customKeyAuth) registerDefaultKeyAuthPolicy(api);
+        //don't apply on the UI a API key if OAuth2 enabled
+        if(!customKeyAuth&&!flagOauth2) registerDefaultKeyAuthPolicy(api);
         if(!customHttp&&!StringUtils.isEmpty(metricsURI)) registerDefaultHttpPolicy(api);
         //add default Galileo policy
         //if(!customAnalytics)registerDefaultAnalyticsPolicy(api);
