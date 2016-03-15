@@ -2,8 +2,8 @@
 #register api engine
 curl -i -X POST \
   --url http://devasu018.dev.digant.antwerpen.local:8001/apis/ \
-  --data 'request_path=/dev/apiengine/v1' \
-  --data 'name=dev.apiengine.v1' \
+  --data 'request_path=/apiengine/v1' \
+  --data 'name=apiengine.v1' \
   --data 'upstream_url=http://devasu016.dev.digant.antwerpen.local/API-Engine-web/v1/' \
   --data 'strip_request_path=true'
 
@@ -33,6 +33,8 @@ curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers \
     --data "username=int.marketplace.v1"
 curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers \
     --data "username=ext.marketplace.v1"
+curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers \
+    --data "username=acpaas.consent_app_nodejs.v1"
 
 #enable keyauth for marketplace and return API key, result should be captured and is the API key for the given consumer
 curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers/marketplace.v1/key-auth \
@@ -41,6 +43,9 @@ curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers/int.mark
     --data "key=229e2ea08ba94919c9d221cdf3be1f71"
 curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers/ext.marketplace.v1/key-auth \
     --data "key=229e2ea08ba94919c9d221cdf3be1f73"
+curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers/acpaas.consent_app_nodejs.v1/key-auth \
+    --data "key=229e2ea08ba94919c9d221cdf3be1124"
+
 
 #create publisher consumer
 curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers \
@@ -62,8 +67,8 @@ curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/apis/dev.apiengine
 #register api engine authorization endpoints
 curl -i -X POST \
   --url http://devasu018.dev.digant.antwerpen.local:8001/apis/ \
-  --data 'request_path=/dev/apiengineauth/v1' \
-  --data 'name=dev.apiengineauth.v1' \
+  --data 'request_path=/apiengineauth/v1' \
+  --data 'name=apiengineauth.v1' \
   --data 'upstream_url=http://devasu016.dev.digant.antwerpen.local/API-Engine-auth/v1/' \
   --data 'strip_request_path=true'
 
