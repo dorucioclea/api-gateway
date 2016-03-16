@@ -16,6 +16,7 @@ import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.apim.security.IdentityAttributes;
 import com.t1t.digipolis.util.CacheUtil;
 import junit.framework.TestCase;
 import org.junit.Rule;
@@ -265,5 +266,14 @@ public class UserFacadeTest extends TestCase {
 
     public void testGetDecryptedAssertion() throws Exception {
 
+    }
+
+    public void testInitNewUser()throws Exception{
+        NewUserBean newUserBean = new NewUserBean();
+        newUserBean.setAdmin(true);
+        newUserBean.setUsername("michallis@trust1team.com");
+        userFacade.initNewUser(newUserBean);
+        verify(idmStorage).createUser(anyObject());
+        verifyNoMoreInteractions(idmStorage);
     }
 }
