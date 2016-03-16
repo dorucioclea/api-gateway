@@ -393,6 +393,39 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public ApplicationVersionBean renewApiKeys(String organizationId, String applicationId, String version) {
+        boolean hasPermission = securityContext.hasPermission(PermissionType.appEdit, organizationId);
+        ApplicationVersionBean appVersion = null;
+        try {
+            appVersion = storage.getApplicationVersion(organizationId, applicationId, version);
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.applicationNotFoundException("Application not found");
+        }
+        List<ContractSummaryBean> contractSummaries = null;
+        try {
+            contractSummaries = query.getApplicationContracts(organizationId, applicationId, version);
+            if (contractSummaries != null && !contractSummaries.isEmpty()) {
+                List<Long> contractIds = new ArrayList<>();
+                for (ContractSummaryBean contractSummary : contractSummaries) {
+                    contractIds.add(contractSummary.getContractId());
+                }
+                List<ContractBean> contracts = new ArrayList<>();
+                for (long id : contractIds) {
+                    contracts.add(storage.getContract(id));
+                }
+                storage.updateApplicationVersion();
+            }
+        }
+        catch (StorageException ex) {
+            ex.printStackTrace();
+        }
+        if (appVersion != null) {
+
+        }
+        return appVersion;
+    }
+
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
         try {
             //add OAuth2 consumer default to the application
