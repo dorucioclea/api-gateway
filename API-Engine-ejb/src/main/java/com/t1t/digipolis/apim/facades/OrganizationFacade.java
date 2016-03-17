@@ -349,10 +349,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //register application credentials for OAuth2
             //create OAuth2 application credentials on the application consumer - should only been done once for this application
             if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
-                //String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
-                String uniqueUserId = securityContext.getCurrentUser();
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
+                //String uniqueUserId = securityContext.getCurrentUser();
                 OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
-                requestBean.setUniqueUserName(uniqueUserId);
+                requestBean.setUniqueUserName(appConsumerName);
                 requestBean.setAppOAuthId(avb.getoAuthClientId());
                 requestBean.setAppOAuthSecret(avb.getOauthClientSecret());
                 enableOAuthForConsumer(requestBean);
