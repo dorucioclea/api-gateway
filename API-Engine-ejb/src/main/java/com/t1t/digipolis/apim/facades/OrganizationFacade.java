@@ -442,7 +442,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) throws StorageException {
         //get the application version based on provided client_id and client_secret - we need the name and
         log.info("Start enabling consumer for oauth2");
-        UserBean user = idmStorage.getUser(request.getUniqueUserName());
         KongPluginOAuthConsumerRequest oauthRequest = new KongPluginOAuthConsumerRequest()
                 .withClientId(request.getAppOAuthId())
                 .withClientSecret(request.getAppOAuthSecret());
@@ -452,6 +451,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ApplicationVersionBean avb = query.getApplicationForOAuth(request.getAppOAuthId(), request.getAppOAuthSecret());
             if (avb == null)
                 throw new ApplicationNotFoundException("Application not found with given OAuth2 clientId and clientSecret.");
+            String appUniqueName = ConsumerConventionUtil.createAppUniqueId(avb.getApplication().getOrganization().getId(), avb.getApplication().getId(), avb.getVersion());
             oauthRequest.setName(avb.getApplication().getName());
             if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
                 throw new OAuthException("The application must provide an OAuth2 redirect URL");
@@ -460,18 +460,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
-                    log.info("Enable consumer for oauth:{} with values: {}", user.getKongUsername(), oauthRequest);
-                    response = gatewayLink.enableConsumerForOAuth(user.getKongUsername(), oauthRequest);
+                    log.info("Enable consumer for oauth:{} with values: {}", appUniqueName, oauthRequest);
+                    response = gatewayLink.enableConsumerForOAuth(appUniqueName, oauthRequest);
                 } catch (Exception e) {
-                    log.debug("Error enabling user for oauth:{}", e.getStackTrace());
+                    log.debug("Error enabling application for oauth:{}", e.getStackTrace());
                     ;//don't do anything
                 }
                 if (response == null) {
                     log.debug("Enable consumer for oauth - response empty");
-                    //try to recover existing user
+                    //try to recover existing application
                     try {
                         IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
-                        KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(user.getKongUsername());
+                        KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(appUniqueName);
                         for (KongPluginOAuthConsumerResponse cred : credentials.getData()) {
                             if (cred.getClientId().equals(request.getAppOAuthId())) response = cred;
                         }
