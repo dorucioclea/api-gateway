@@ -44,10 +44,7 @@ import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
-import com.t1t.digipolis.apim.gateway.dto.Application;
-import com.t1t.digipolis.apim.gateway.dto.Policy;
-import com.t1t.digipolis.apim.gateway.dto.Service;
-import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
+import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
@@ -349,10 +346,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //register application credentials for OAuth2
             //create OAuth2 application credentials on the application consumer - should only been done once for this application
             if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
-                //String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
-                String uniqueUserId = securityContext.getCurrentUser();
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
+                //String uniqueUserId = securityContext.getCurrentUser();
                 OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
-                requestBean.setUniqueUserName(uniqueUserId);
+                requestBean.setUniqueUserName(appConsumerName);
                 requestBean.setAppOAuthId(avb.getoAuthClientId());
                 requestBean.setAppOAuthSecret(avb.getOauthClientSecret());
                 enableOAuthForConsumer(requestBean);
@@ -391,39 +388,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
-    }
-
-    public ApplicationVersionBean renewApiKeys(String organizationId, String applicationId, String version) {
-        boolean hasPermission = securityContext.hasPermission(PermissionType.appEdit, organizationId);
-        ApplicationVersionBean appVersion = null;
-        try {
-            appVersion = storage.getApplicationVersion(organizationId, applicationId, version);
-        }
-        catch (StorageException ex) {
-            throw ExceptionFactory.applicationNotFoundException("Application not found");
-        }
-        List<ContractSummaryBean> contractSummaries = null;
-        try {
-            contractSummaries = query.getApplicationContracts(organizationId, applicationId, version);
-            if (contractSummaries != null && !contractSummaries.isEmpty()) {
-                List<Long> contractIds = new ArrayList<>();
-                for (ContractSummaryBean contractSummary : contractSummaries) {
-                    contractIds.add(contractSummary.getContractId());
-                }
-                List<ContractBean> contracts = new ArrayList<>();
-                for (long id : contractIds) {
-                    contracts.add(storage.getContract(id));
-                }
-                storage.updateApplicationVersion();
-            }
-        }
-        catch (StorageException ex) {
-            ex.printStackTrace();
-        }
-        if (appVersion != null) {
-
-        }
-        return appVersion;
     }
 
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
@@ -3154,6 +3118,93 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //remove all plans
 
         return true;
+    }
+
+    public ApplicationVersionBean renewApplicationCredentials(String organizationId, String applicationId, String version) {
+        try {
+            ApplicationVersionBean appVersion = storage.getApplicationVersion(organizationId, applicationId, version);
+            if (appVersion != null) {
+                //Get list of contracts associated with application
+                List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(organizationId, applicationId, version);
+                if (contractSummaries != null && !contractSummaries.isEmpty()) {
+
+                    //Generate new API key for contracts
+                    String newApiKey = apiKeyGenerator.generate();
+
+                    //Is the old API key still needed for revocation purposes?
+                    //String oldApiKey = contractSummaries.get(0).getApikey();
+                    for (ContractSummaryBean contractSummary : contractSummaries) {
+                        ContractBean contract = storage.getContract(contractSummary.getContractId());
+                        contract.setApikey(newApiKey);
+                        storage.updateContract(contract);
+                    }
+                }
+                appVersion.setoAuthClientId(apiKeyGenerator.generate());
+                appVersion.setOauthClientSecret(apiKeyGenerator.generate());
+                storage.updateApplicationVersion(appVersion);
+                String uniqueUserId = securityContext.getCurrentUser();
+                OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
+                requestBean.setUniqueUserName(uniqueUserId);
+                requestBean.setAppOAuthId(appVersion.getoAuthClientId());
+                requestBean.setAppOAuthSecret(appVersion.getOauthClientSecret());
+                updateConsumerOAuthCredentials(requestBean);
+                return appVersion;
+            }
+            else {
+                throw ExceptionFactory.applicationNotFoundException("Application does not exist");
+            }
+        }
+        catch (StorageException ex) {
+            ex.printStackTrace();
+            throw new SystemErrorException(ex);
+        }
+    }
+
+    //Essentially a copy of enableOAuthForConsumer() except that it executes a PUT-request instead of POST
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(OAuthConsumerRequestBean request) throws StorageException {
+        UserBean user = idmStorage.getUser(request.getUniqueUserName());
+        KongPluginOAuthConsumerRequest oauthRequest = new KongPluginOAuthConsumerRequest()
+                .withClientId(request.getAppOAuthId())
+                .withClientSecret(request.getAppOAuthSecret());
+        KongPluginOAuthConsumerResponse response = null;
+        //retrieve application name and redirect URI.
+        try {
+            ApplicationVersionBean avb = query.getApplicationForOAuth(request.getAppOAuthId(), request.getAppOAuthSecret());
+            if (avb == null)
+                throw new ApplicationNotFoundException("Application not found with given OAuth2 clientId and clientSecret.");
+            oauthRequest.setName(avb.getApplication().getName());
+            if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
+                throw new OAuthException("The application must provide an OAuth2 redirect URL");
+            oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
+            String defaultGateway = query.listGateways().get(0).getId();
+            if (!StringUtils.isEmpty(defaultGateway)) {
+                try {
+                    IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                    log.info("Update consumer:{} OAuth credentials with values: {}", user.getKongUsername(), oauthRequest);
+                    response = gatewayLink.updateConsumerOAuthCredentials(user.getKongUsername(), oauthRequest);
+                } catch (Exception e) {
+                    log.debug("Error updating credentials for oauth:{}", e.getStackTrace());
+                    //don't do anything
+                }
+                if (response == null) {
+                    log.debug("Update OAuth credentials for consumer - response empty");
+                    //try to recover existing user
+                    try {
+                        IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                        KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(user.getKongUsername());
+                        for (KongPluginOAuthConsumerResponse cred : credentials.getData()) {
+                            if (cred.getClientId().equals(request.getAppOAuthId())) response = cred;
+                        }
+                    } catch (Exception e) {
+                        //now throw an error if that's not working too.
+                        throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                    }
+                }
+            } else throw new GatewayException("No default gateway found!");
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+        return response;
     }
 
 }

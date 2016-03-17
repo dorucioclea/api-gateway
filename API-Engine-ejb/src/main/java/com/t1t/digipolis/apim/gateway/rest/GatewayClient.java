@@ -525,6 +525,11 @@ public class GatewayClient {
         return httpClient.enableOAuthForConsumer(consumerId,request.getName(),request.getClientId(),request.getClientSecret(),request.getRedirectUri());
     }
 
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, KongPluginOAuthConsumerRequest request) {
+        if(!request.getRedirectUri().endsWith("/"))request.setRedirectUri(request.getRedirectUri() + "/");
+        return httpClient.updateOAuthForConsumer(consumerId,request.getName(),request.getClientId(),request.getClientSecret(),request.getRedirectUri());
+    }
+
     public KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(String clientId){
         return httpClient.getApplicationOAuthInformation(clientId);
     }

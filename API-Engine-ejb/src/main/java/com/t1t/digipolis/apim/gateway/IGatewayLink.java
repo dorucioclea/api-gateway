@@ -237,6 +237,15 @@ public interface IGatewayLink {
     public com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId,KongPluginOAuthConsumerRequest request);
 
     /**
+     * Update OAuth credentials for consumer
+     *
+     * @param consumerId
+     * @param request
+     * @return
+     */
+    public com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId,KongPluginOAuthConsumerRequest request);
+
+    /**
      * Get application specific information for OAuth.
      *
      * @param clientId
