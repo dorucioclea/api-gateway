@@ -285,5 +285,15 @@ public interface IGatewayLink {
      * @return
      */
     public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config);
+
+    /**
+     *Returns an ACL plugin for a service.
+     *
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @return
+     */
+    public KongPluginConfig createACLPlugin(String organizationId, String serviceId, String version);
     
 }

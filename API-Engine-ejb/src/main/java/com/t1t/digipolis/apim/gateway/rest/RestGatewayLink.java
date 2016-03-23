@@ -302,4 +302,8 @@ public class RestGatewayLink implements IGatewayLink {
         this.config = config;
     }
 
+    @Override
+    public KongPluginConfig createACLPlugin(String organizationId, String serviceId, String version) {
+        return getClient().createACLPlugin(organizationId, serviceId, version);
+    }
 }
