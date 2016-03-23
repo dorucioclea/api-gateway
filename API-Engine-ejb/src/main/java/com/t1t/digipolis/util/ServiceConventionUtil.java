@@ -25,4 +25,15 @@ public class ServiceConventionUtil {
                 .append(serviceVersionsId);
         return serviceGatewayName.toString().toLowerCase();
     }
+
+    public static String generateServiceUniqueGroup(Service service) {
+        return generateServiceUniqueGroup(service.getOrganizationId(), service.getServiceId());
+    }
+
+    public static String generateServiceUniqueGroup(String orgId, String serviceId) {
+        StringBuilder serviceGroupName = new StringBuilder(orgId)
+                .append(".")
+                .append(serviceId);
+        return serviceGroupName.toString().toLowerCase();
+    }
 }

@@ -538,6 +538,14 @@ public class GatewayClient {
         httpClient.deleteOAuth2Credential(consumerId, oauthPluginId);
     }
 
+    public KongPluginConfig createACLPlugin(String orgId, String servId, String version) {
+        KongPluginACL configValue = new KongPluginACL();
+        String uniqueGroup = ServiceConventionUtil.generateServiceUniqueGroup(orgId, servId);
+        configValue.setWhitelist(Arrays.asList(uniqueGroup));
+        KongPluginConfig config = new KongPluginConfig().withName(Policies.ACL.name()).withConfig(configValue);
+        return httpClient.createPluginConfig(ServiceConventionUtil.generateServiceUniqueName(orgId, servId, version), config);
+    }
+
     /*Service policies*/
 
     /**
