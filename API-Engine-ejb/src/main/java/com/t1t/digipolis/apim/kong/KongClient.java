@@ -72,6 +72,12 @@ public interface KongClient {
     KongPluginJWTResponse createConsumerJWTCredentials(@Path("id") String id, @Body KongPluginJWTRequest kongPluginJWTRequest);
     @GET("/consumers/{id}/jwt")
     KongPluginJWTResponseList getConsumerJWTCredentials(@Path("id")String id);
+    @POST("/consumers/{id}/acls")
+    KongPluginACLResponse addConsumerToACL(@Path("id") String id, @Body  KongPluginACLRequest request);
+    @GET("/consumers/{id}/acls")
+    KongPluginACLResponseList getConsumerACL(@Path("id") String id);
+    @DELETE("/consumers/{id}/acls/{pluginId}")
+    Object deleteConsumerACLEntry(@Path("id") String id, @Path("pluginId") String pluginId);
 
     /*********************   PLUGINS   *******************/
     @GET("/plugins/enabled")KongInstalledPlugins getInstalledPlugins();
