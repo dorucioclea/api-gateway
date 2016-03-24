@@ -6,7 +6,9 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.*;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -23,6 +25,7 @@ import com.t1t.digipolis.apim.idp.IDPRestServiceBuilder;
 import com.t1t.digipolis.apim.idp.RestIDPConfigBean;
 import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
+import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
@@ -49,6 +52,7 @@ public class OAuthFacade {
     private static Logger log = LoggerFactory.getLogger(OAuthFacade.class.getName());
     @Inject IStorageQuery query;
     @Inject private IStorage storage;
+    @Inject private IIdmStorage idmStorage;
     @Inject private IGatewayLinkFactory gatewayLinkFactory;
     @Inject private AppConfig config;
     @Inject private ISecurityAppContext appContext;
@@ -122,12 +126,17 @@ public class OAuthFacade {
                     response.setBase64AppLogo(applicationForOAuth.getApplication().getBase64logo());
                     response.setAppVersion(applicationForOAuth.getVersion());
                     //retrieve the Kong consumer
-                    if (appInfoList.getData() != null && appInfoList.getData().size() > 0) {
+                    /*if (appInfoList.getData() != null && appInfoList.getData().size() > 0) {
                         String consumerId = appInfoList.getData().get(0).getConsumerId();
                         if (!StringUtils.isEmpty(consumerId)) {
                             response.setConsumer(gatewayLink.getConsumer(consumerId));
                         }
-                    }
+                    }*/
+                    //
+                    UserBean user = idmStorage.getUser(applicationForOAuth.getCreatedBy());
+                    response.setConsumer(gatewayLink.getConsumer(user.getKongUsername()));
+                } catch (StorageException ex) {
+                  ex.printStackTrace();
                 } catch (Exception e) {
                     throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e); //$NON-NLS-1$
                 }

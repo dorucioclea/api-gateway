@@ -18,7 +18,7 @@
       "default": false
     },
     "token_expiration": {
-      "type": "number",
+      "type": "integer",
       "required": true,
       "default": 7200
     },
