@@ -35,6 +35,7 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
+import com.t1t.digipolis.apim.common.plugin.Plugin;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
