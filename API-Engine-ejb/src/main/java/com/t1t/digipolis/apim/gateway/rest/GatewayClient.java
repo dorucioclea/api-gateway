@@ -540,7 +540,7 @@ public class GatewayClient {
 
     public KongPluginConfig createACLPlugin(String orgId, String servId, String version) {
         KongPluginACL configValue = new KongPluginACL();
-        String uniqueGroup = ServiceConventionUtil.generateServiceUniqueGroup(orgId, servId);
+        String uniqueGroup = ServiceConventionUtil.generateServiceUniqueName(orgId, servId, version);
         configValue.setWhitelist(Arrays.asList(uniqueGroup));
         KongPluginConfig config = new KongPluginConfig().withName(Policies.ACL.name()).withConfig(configValue);
         return httpClient.createPluginConfig(ServiceConventionUtil.generateServiceUniqueName(orgId, servId, version), config);
