@@ -140,8 +140,9 @@ public class LoginResource implements ILoginResource {
     @POST
     @Path("/idp/callback")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response executeSAML2Callback(@PathParam("SAMLResponse") String samlResponse, @PathParam("RelayState") String relayState) {
+    public Response executeSAML2Callback(@FormParam("SAMLResponse") String samlResponse, @FormParam("RelayState") String relayState) {
         URI uri = null;
+        log.info("SAML Response - pure: {}",samlResponse);
         try {
             SAMLResponseRedirect response = userFacade.processSAML2Response(samlResponse,relayState);
             //if returned null - we are operating in restricted mode - 401 should be returned

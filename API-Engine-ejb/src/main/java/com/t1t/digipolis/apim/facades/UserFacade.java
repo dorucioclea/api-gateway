@@ -622,10 +622,8 @@ public class UserFacade implements Serializable {
      */
     private Assertion processSSOResponse(String samlResp) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
         DefaultBootstrap.bootstrap();
-        //remove other query params
-        String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
-        String base64URLDecodedResponse = URLDecoder.decode(base64EncodedResponse, "UTF-8");
-        byte[] base64DecodedResponse = Base64.decode(base64URLDecodedResponse);
+        //String base64URLDecodedResponse = URLDecoder.decode(samlResp, "UTF-8");
+        byte[] base64DecodedResponse = Base64.decode(samlResp);
         String samlResponseString = new String(base64DecodedResponse);
         log.info("Decoded SAML response:{}", samlResponseString);
 
