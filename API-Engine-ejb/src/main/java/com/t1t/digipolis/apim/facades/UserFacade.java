@@ -482,18 +482,21 @@ public class UserFacade implements Serializable {
      * If in restricted mode, the resolved user is not an admin, then null is returned
      * in order for the rest layer to send the appropriate error to the UI.
      *
-     * @param response
+     * @param samlResponse
+     * @param relaystate
+     *
      * @return
      */
-    public SAMLResponseRedirect processSAML2Response(String response) throws Exception {
-        String relayState = response.split("&")[1].replaceFirst(SAML2_KEY_RELAY_STATE, "").trim();//the relaystate contains the correlation id for the calling web client == callbackurl
+    public SAMLResponseRedirect processSAML2Response(String samlResponse, String relaystate) throws Exception {
+
+        String relayState = relaystate;
         StringBuffer clientUrl = new StringBuffer("");
         Assertion assertion = null;
         IdentityAttributes idAttribs;
         utilPrintCache();
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
         try {
-            assertion = processSSOResponse(response.split("&")[0]);
+            assertion = processSSOResponse(samlResponse);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());

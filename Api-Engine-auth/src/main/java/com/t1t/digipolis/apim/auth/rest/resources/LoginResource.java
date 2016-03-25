@@ -36,10 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
@@ -143,10 +140,10 @@ public class LoginResource implements ILoginResource {
     @POST
     @Path("/idp/callback")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response executeSAML2Callback(String request) {
+    public Response executeSAML2Callback(@PathParam("SAMLResponse") String samlResponse, @PathParam("RelayState") String relayState) {
         URI uri = null;
         try {
-            SAMLResponseRedirect response = userFacade.processSAML2Response(request);
+            SAMLResponseRedirect response = userFacade.processSAML2Response(samlResponse,relayState);
             //if returned null - we are operating in restricted mode - 401 should be returned
             String jwtToken = response.getToken();
             uri = new URL(response.getClientUrl() + "?jwt=" + jwtToken).toURI();
@@ -159,7 +156,7 @@ public class LoginResource implements ILoginResource {
             throw new SAMLAuthException(e.getMessage());
         }
         if (uri != null) return Response.seeOther(uri).build();
-        return Response.ok(request).build();
+        return Response.status(500).entity("Could not parse the initial consumer URI").build();
     }
 
     @ApiOperation(value = "External SAML2 validation endpoint for consumers dealing with IDP directly",
