@@ -54,18 +54,8 @@ import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
@@ -406,6 +396,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 if (contract != null) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                     gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+                    //Add ACL group membership by default on gateway
+                    KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
+                            ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
+                    //Persist the unique Kong plugin id in a new policy associated with the app.
+                    NewPolicyBean npb = new NewPolicyBean();
+                    npb.setDefinitionId(Policies.ACL.name());
+                    npb.setPolicyId(response.getId());
+                    npb.setContractId(contract.getId());
+                    createAppPolicy(organizationId, applicationId, version, npb);
                 }
             } catch (Exception e) {
                 //apikey for consumer already exists
@@ -1165,6 +1164,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             } catch (StorageException e) {
                 throw new ApplicationNotFoundException(e.getMessage());
             }
+            //Revoke application's ACL membership
+
             //remove contract
             storage.deleteContract(contract);
             //validate application state
@@ -2399,6 +2400,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setEntityVersion(entityVersion);
             policy.setType(type);
             policy.setOrderIndex(newIdx);
+            policy.setPolicyId(bean.getPolicyId());
+            policy.setContractId(bean.getContractId());
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
             //PolicyTemplateUtil.generatePolicyDescription(policy);
