@@ -72,8 +72,14 @@ public class GatewayValidation {
             case SSL: return validateSSL(policy);
             case ANALYTICS: return validateAnalytics(policy);
             case JWT: return validateJWT(policy);
+            case ACL: return validateACL(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
+    }
+
+    private static Policy validateACL(Policy policy) {
+        //TODO - figure out if an ACL policy needs validation and if so, make it do that here.
+        return policy;
     }
 
     private static Policy validateJWT(Policy policy) {
