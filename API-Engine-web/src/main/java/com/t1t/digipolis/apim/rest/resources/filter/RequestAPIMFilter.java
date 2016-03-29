@@ -54,7 +54,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
         if (!config.getRestResourceSecurity()) {
             try {
                 securityContext.setCurrentUser("admin");
-                securityAppContext.setCurrentApplication("dummyapp");
+                securityAppContext.setCurrentApplication("dummyorg.dummyapp.version");
             } catch (StorageException e) {
                 throw new IOException(e);
             }
