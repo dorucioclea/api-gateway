@@ -288,6 +288,8 @@ public class GatewayClient {
                         default:break;
                     }
                 }
+                //Apply ACL plugin by default. ACL group names are a convention, so they don't need to be persisted
+                createACLPlugin(service);
             }catch (Exception e){
                 //if anything goes wrong, return exception and rollback api created
                 if(api!=null&&!StringUtils.isEmpty(api.getId())){
@@ -538,12 +540,17 @@ public class GatewayClient {
         httpClient.deleteOAuth2Credential(consumerId, oauthPluginId);
     }
 
-    public KongPluginConfig createACLPlugin(String orgId, String servId, String version) {
-        KongPluginACL configValue = new KongPluginACL();
-        String uniqueGroup = ServiceConventionUtil.generateServiceUniqueName(orgId, servId, version);
-        configValue.setWhitelist(Arrays.asList(uniqueGroup));
-        KongPluginConfig config = new KongPluginConfig().withName(Policies.ACL.name()).withConfig(configValue);
-        return httpClient.createPluginConfig(ServiceConventionUtil.generateServiceUniqueName(orgId, servId, version), config);
+    public KongPluginConfig createACLPlugin(Service service) {
+        String uniqueName = ServiceConventionUtil.generateServiceUniqueName(service);
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(Policies.ACL.getKongIdentifier())
+                .withConfig(new KongPluginACL()
+                        .withWhitelist(Arrays.asList(uniqueName)));
+        return httpClient.createPluginConfig(uniqueName, config);
+    }
+
+    public KongPluginACLResponse addConsumerToACL(String consumerId, String serviceVersionId) {
+        return httpClient.addConsumerToACL(consumerId, new KongPluginACLRequest().withGroup(serviceVersionId));
     }
 
     /*Service policies*/
