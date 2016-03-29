@@ -12,6 +12,8 @@ public class NewPolicyBean implements Serializable {
 
     private String definitionId;
     private String configuration;
+    private String policyId;
+    private Long contractId;
 
     /**
      * Constructor.
@@ -47,12 +49,42 @@ public class NewPolicyBean implements Serializable {
         this.definitionId = definitionId;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
+    /**
+     *
+     * @return the policyId
      */
+    public String getPolicyId() {
+        return policyId;
+    }
+
+    /**
+     *
+     * @param policyId the policyId to set
+     */
+    public void setPolicyId(String policyId) {
+        this.policyId = policyId;
+    }
+
+    /**
+     * @return the contractId
+     */
+    public Long getContractId() {
+        return contractId;
+    }
+
+    /**
+     * @param contractId the contractId to set
+     */
+    public void setContractId(Long contractId) {
+        this.contractId = contractId;
+    }
+
+    /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {
-        return "NewPolicyBean [definitionId=" + definitionId + ", configuration=***]";
+        return "NewPolicyBean [definitionId=" + definitionId + ", configuration=***, policyId=" + policyId + "]";
     }
 }

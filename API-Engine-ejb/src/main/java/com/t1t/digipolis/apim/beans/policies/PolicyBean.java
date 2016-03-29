@@ -53,6 +53,10 @@ public class PolicyBean implements Serializable {
     private PolicyDefinitionBean definition;
     @Column(name = "order_index", updatable=true, nullable=false)
     private int orderIndex;
+    @Column(name = "policy_id", updatable = true, nullable = true)
+    private String policyId;
+    @Column(name = "contract_id", updatable = true, nullable = true)
+    private Long contractId;
 
     /**
      * Constructor.
@@ -257,6 +261,30 @@ public class PolicyBean implements Serializable {
     }
 
     /**
+     *
+     * @return the policyId
+     */
+    public String getPolicyId() {
+        return policyId;
+    }
+
+    /**
+     *
+     * @param policyId the policyId to set
+     */
+    public void setPolicyId(String policyId) {
+        this.policyId = policyId;
+    }
+
+    public Long getContractId() {
+        return contractId;
+    }
+
+    public void setContractId(Long contractId) {
+        this.contractId = contractId;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -297,7 +325,7 @@ public class PolicyBean implements Serializable {
                 + ", entityId=" + entityId + ", entityVersion=" + entityVersion + ", name=" + name
                 + ", description=" + description + ", configuration=***, createdBy="
                 + createdBy + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy + ", modifiedOn="
-                + modifiedOn + ", definition=" + definition + ", orderIndex=" + orderIndex + "]";
+                + modifiedOn + ", definition=" + definition + ", orderIndex=" + orderIndex + ", policyId" + policyId + "]";
     }
 
 }
