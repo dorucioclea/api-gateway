@@ -42,7 +42,7 @@ CREATE TABLE plans (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, 
 
 CREATE TABLE plugins (id BIGINT NOT NULL, artifact_id VARCHAR(255) NOT NULL, classifier VARCHAR(255) NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, group_id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NULL, version VARCHAR(255) NOT NULL);
 
-CREATE TABLE policies (id BIGINT NOT NULL, configuration TEXT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, entity_id VARCHAR(255) NOT NULL, entity_version VARCHAR(255) NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, order_index INT NOT NULL, organization_id VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, definition_id VARCHAR(255) NOT NULL);
+CREATE TABLE policies (id BIGINT NOT NULL, configuration TEXT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, entity_id VARCHAR(255) NOT NULL, entity_version VARCHAR(255) NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, order_index INT NOT NULL, organization_id VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, definition_id VARCHAR(255) NOT NULL, policy_id VARCHAR(255) NULL, contract_id BIGINT NULL);
 
 CREATE TABLE oauth_apps (id BIGINT NOT NULL, oauth_svc_orgid VARCHAR(255) NOT NULL, oauth_svc_id VARCHAR(255) NOT NULL,oauth_svc_version VARCHAR(255) NOT NULL,oauth_client_id VARCHAR(255) NOT NULL,oauth_client_secret VARCHAR(255) NOT NULL,oauth_client_redirect VARCHAR(255),app_id BIGINT NOT NULL);
 
@@ -805,3 +805,5 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "claims_to_verify"
   ]
 }', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
+
+INSERT INTO policydefs (id, description, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', 'fa-acl', 'ACL Policy', NULL ,TRUE ,TRUE ,FALSE );
