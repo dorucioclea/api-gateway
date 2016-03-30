@@ -1825,11 +1825,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public PolicyBean getApplicationACLPolicy(String organizationId, String applicationId, String version, Long contractId) throws StorageException {
         try {
             EntityManager entityManager = getActiveEntityManager();
-            String jpql = "SELECT p from PolicyBean p JOIN p.definition d JOIN p.contractId c WHERE p.organizationId = :orgId AND p.entityId = :appId AND p.entityVersion = :version AND d.id = 'ACL'"; //$NON-NLS-1$
+            String jpql = "SELECT p from PolicyBean p JOIN p.definition d WHERE p.organizationId = :orgId AND p.entityId = :appId AND p.entityVersion = :version AND p.contractId = :contrId AND d.id = 'ACL'"; //$NON-NLS-1$
             Query query = entityManager.createQuery(jpql);
             query.setParameter("orgId", organizationId); //$NON-NLS-1$
             query.setParameter("appId", applicationId); //$NON-NLS-1$
             query.setParameter("version", version); //$NON-NLS-1$
+            query.setParameter("contrId", contractId); //$NON-NLS-1$
 
             return (PolicyBean) query.getSingleResult();
         } catch (NoResultException e) {
