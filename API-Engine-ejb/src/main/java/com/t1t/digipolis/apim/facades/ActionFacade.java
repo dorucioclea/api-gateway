@@ -45,6 +45,8 @@ import javax.persistence.PersistenceContext;
 import java.net.URL;
 import java.util.*;
 
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
+
 /**
  * Created by michallispashidis on 17/08/15.
  */
@@ -217,6 +219,16 @@ public class ActionFacade {
             versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (ServiceVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
+        }
+        // Verify that the service doesn't still have contracts before retiring
+        try {
+            List<ContractSummaryBean> contracts = query.getServiceContracts(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion(), 1, 1000);
+            if (contracts.size() > 0) {
+                throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
         }
 
         // Validate that it's ok to perform this action - service must be Ready.
