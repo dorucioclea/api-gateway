@@ -540,6 +540,12 @@ public class GatewayClient {
         httpClient.deleteOAuth2Credential(consumerId, oauthPluginId);
     }
 
+    /**
+     * Enables ACL on a service and adds the service unique name to the group whitelist
+     *
+     * @param service the service on wich to enable ACL
+     * @return
+     */
     public KongPluginConfig createACLPlugin(Service service) {
         String uniqueName = ServiceConventionUtil.generateServiceUniqueName(service);
         KongPluginConfig config = new KongPluginConfig()
@@ -549,10 +555,26 @@ public class GatewayClient {
         return httpClient.createPluginConfig(uniqueName, config);
     }
 
+    /**
+     * Adds a consumer to a service's ACL
+     *
+     * @param consumerId the consumer to add to an ACL
+     * @param serviceVersionId the service ACL to which the consumer should be added
+     * @return
+     */
     public KongPluginACLResponse addConsumerToACL(String consumerId, String serviceVersionId) {
         return httpClient.addConsumerToACL(consumerId, new KongPluginACLRequest().withGroup(serviceVersionId));
     }
 
+    /**
+     * Removes a consumer from a service's ACL
+     *
+     * @param consumerId the consumer to remove from an ACL
+     * @param pluginId the pluginId corresponding to the consumer's ACL membership
+     */
+    public void deleteConsumerACLPlugin(String consumerId, String pluginId) {
+        httpClient.deleteConsumerACLEntry(consumerId, pluginId);
+    }
     /*Service policies*/
 
     /**

@@ -302,8 +302,25 @@ public class RestGatewayLink implements IGatewayLink {
         this.config = config;
     }
 
+    /**
+     * Adds a consumer to a service's ACL
+     *
+     * @param consumerId
+     * @param serviceId
+     * @return the KongPluginACLResponse
+     */
     @Override
     public KongPluginACLResponse addConsumerToACL(String consumerId, String serviceId) {
         return getClient().addConsumerToACL(consumerId, serviceId);
+    }
+
+    /**
+     * Removes a consumer's membership to a specific ACL
+     * @param consumerId
+     * @param pluginId
+     */
+    @Override
+    public void deleteConsumerACLPlugin(String consumerId, String pluginId) {
+        getClient().deleteConsumerACLPlugin(consumerId, pluginId);
     }
 }

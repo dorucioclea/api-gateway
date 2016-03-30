@@ -25,6 +25,8 @@ import org.elasticsearch.gateway.GatewayException;
 
 import java.util.function.Consumer;
 
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
+
 /**
  * Links the design time API with a Gateway.  This allows the design time API
  * to interface with the runtime Gateway in order to do things like publishing
@@ -294,4 +296,11 @@ public interface IGatewayLink {
      * @return
      */
     public KongPluginACLResponse addConsumerToACL(String consumerId, String serviceId);
+
+    /**
+     * Remove a consumer from a service's ACL
+     * @param consumerId
+     * @param pluginId
+     */
+    public void deleteConsumerACLPlugin(String consumerId, String pluginId);
 }
