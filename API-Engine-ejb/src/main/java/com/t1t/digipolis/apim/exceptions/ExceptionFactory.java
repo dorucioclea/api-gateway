@@ -371,4 +371,8 @@ public final class ExceptionFactory {
         return new InvalidVersionException(message);
     }
 
+    public static final ServiceCannotDeleteException serviceCannotDeleteException(String message) {
+        return new ServiceCannotDeleteException(message);
+    }
+
 }
