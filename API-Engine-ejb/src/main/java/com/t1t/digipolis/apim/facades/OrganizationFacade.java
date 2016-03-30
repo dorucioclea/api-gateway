@@ -35,7 +35,6 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
-import com.t1t.digipolis.apim.common.plugin.Plugin;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -402,7 +401,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     //Persist the unique Kong plugin id in a new policy associated with the app.
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(Policies.ACL.name());
-                    npb.setPolicyId(response.getId());
+                    npb.setKongPluginId(response.getId());
                     npb.setContractId(contract.getId());
                     createAppPolicy(organizationId, applicationId, version, npb);
                 }
@@ -1165,7 +1164,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new ApplicationNotFoundException(e.getMessage());
             }
             //Revoke application's ACL membership
-
+            try {
+                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId);
+                if (policy == null) {
+                    throw ExceptionFactory.policyNotFoundException(0);
+                }
+                gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version), policy.getKongPluginId());
+                deleteAppPolicy(organizationId, applicationId, version, policy.getId());
+            }
+            catch (StorageException ex) {
+                throw new SystemErrorException(ex);
+            }
             //remove contract
             storage.deleteContract(contract);
             //validate application state
@@ -1333,17 +1343,20 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
             versions.stream().forEach(version -> {
 
-                // Remove any existing contracts
+                // (Remove any existing contracts) Instead of removing existing contrasts, throw error if there still are any.
                 try {
                     List<ContractSummaryBean> contracts = query.getServiceContracts(version.getOrganizationId(), version.getId(), version.getVersion(), 1, 1000);
-                    contracts.stream().forEach(contract -> {
+                    if (contracts.size() > 0) {
+                        throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
+                    }
+                    /*contracts.stream().forEach(contract -> {
                         try {
                             ContractBean contractBean = storage.getContract(contract.getContractId());
                             storage.deleteContract(contractBean);
                         } catch (StorageException e) {
                             throw new SystemErrorException(e);
                         }
-                    });
+                    });*/
                 } catch (StorageException e) {
                     throw new SystemErrorException(e);
                 }
@@ -2400,7 +2413,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setEntityVersion(entityVersion);
             policy.setType(type);
             policy.setOrderIndex(newIdx);
-            policy.setPolicyId(bean.getPolicyId());
+            policy.setKongPluginId(bean.getKongPluginId());
             policy.setContractId(bean.getContractId());
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
