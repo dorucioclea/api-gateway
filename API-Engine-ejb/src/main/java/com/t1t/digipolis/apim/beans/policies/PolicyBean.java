@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.beans.policies;
 
-import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.annotations.Type;
 
@@ -53,10 +52,11 @@ public class PolicyBean implements Serializable {
     private PolicyDefinitionBean definition;
     @Column(name = "order_index", updatable=true, nullable=false)
     private int orderIndex;
-    @Column(name = "policy_id", updatable = true, nullable = true)
-    private String policyId;
+    @Column(name = "kong_plugin_id", updatable = true, nullable = true)
+    private String kongPluginId;
     @Column(name = "contract_id", updatable = true, nullable = true)
     private Long contractId;
+
 
     /**
      * Constructor.
@@ -264,16 +264,16 @@ public class PolicyBean implements Serializable {
      *
      * @return the policyId
      */
-    public String getPolicyId() {
-        return policyId;
+    public String getKongPluginId() {
+        return kongPluginId;
     }
 
     /**
      *
      * @param policyId the policyId to set
      */
-    public void setPolicyId(String policyId) {
-        this.policyId = policyId;
+    public void setKongPluginId(String policyId) {
+        this.kongPluginId = policyId;
     }
 
     public Long getContractId() {
@@ -325,7 +325,7 @@ public class PolicyBean implements Serializable {
                 + ", entityId=" + entityId + ", entityVersion=" + entityVersion + ", name=" + name
                 + ", description=" + description + ", configuration=***, createdBy="
                 + createdBy + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy + ", modifiedOn="
-                + modifiedOn + ", definition=" + definition + ", orderIndex=" + orderIndex + ", policyId" + policyId + "]";
+                + modifiedOn + ", definition=" + definition + ", orderIndex=" + orderIndex + ", policyId" + kongPluginId + "]";
     }
 
 }

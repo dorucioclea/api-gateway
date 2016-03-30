@@ -12,7 +12,7 @@ public class NewPolicyBean implements Serializable {
 
     private String definitionId;
     private String configuration;
-    private String policyId;
+    private String kongPluginId;
     private Long contractId;
 
     /**
@@ -51,18 +51,18 @@ public class NewPolicyBean implements Serializable {
 
     /**
      *
-     * @return the policyId
+     * @return the kongPluginId
      */
-    public String getPolicyId() {
-        return policyId;
+    public String getKongPluginId() {
+        return kongPluginId;
     }
 
     /**
      *
-     * @param policyId the policyId to set
+     * @param kongPluginId the kongPluginId to set
      */
-    public void setPolicyId(String policyId) {
-        this.policyId = policyId;
+    public void setKongPluginId(String kongPluginId) {
+        this.kongPluginId = kongPluginId;
     }
 
     /**
@@ -85,6 +85,6 @@ public class NewPolicyBean implements Serializable {
     @Override
     @SuppressWarnings("nls")
     public String toString() {
-        return "NewPolicyBean [definitionId=" + definitionId + ", configuration=***, policyId=" + policyId + "]";
+        return "NewPolicyBean [definitionId=" + definitionId + ", configuration=***, kongPluginId=" + kongPluginId + "]";
     }
 }
