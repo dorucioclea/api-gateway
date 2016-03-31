@@ -29,6 +29,7 @@ import retrofit.RetrofitError;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -53,6 +54,9 @@ public class KongClientIntegrationTest {
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
     private static final String API_URL = "http://domain.com/app/rest/v1";
+    private static final String API_URL_OAUTH_A = "http://servicea.com/endpoint";
+    private static final String API_URL_OAUTH_B = "http://serviceb.com/endpoint";
+    private static final String API_URL_OAUTH_ORG= "http://dummyhost";
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -485,6 +489,44 @@ public class KongClientIntegrationTest {
     }
 
     @Test
+    public void registerOAuthCentralService()throws Exception{
+        //create service identifiers
+        String serviceAId = "orgA.serviceA.v1";
+        String serviceBId = "orgA.serviceB.v1";
+
+        //create 2 services for the same organization
+        KongApi apiServiceA = createDummyApi(serviceAId,"/orga/servicea/v1",API_URL_OAUTH_A);
+        KongApi apiServiceB = createDummyApi(serviceBId,"/orga/serviceb/v1",API_URL_OAUTH_B);
+        KongApi apiOrgAuthEndpoint = createDummyApi("orgA","/orga",API_URL_OAUTH_B);
+        apiServiceA = kongClient.addApi(apiServiceA);
+        apiServiceB = kongClient.addApi(apiServiceB);
+
+        //create organization oauth endpoint
+        apiOrgAuthEndpoint = kongClient.addApi(apiOrgAuthEndpoint);
+
+        //add oauth policy to services
+        KongPluginConfig pluginConfigA = createTestOAuthPluginPrefixedSet(serviceAId);
+        pluginConfigA = kongClient.createPluginConfig(apiServiceA.getId(),pluginConfigA);
+        KongPluginConfig pluginConfigB = createTestOAuthPluginPrefixedSet(serviceBId);
+        pluginConfigB = kongClient.createPluginConfig(apiServiceA.getId(),pluginConfigB);
+
+        //create org oauth policy with consolidated scopes
+        KongPluginConfig pluginConfigOrg = createTestOAuthPluginConsolidatedScopes(new ArrayList<>(Arrays.asList(serviceAId,serviceBId)));
+        pluginConfigOrg = kongClient.createPluginConfig(apiOrgAuthEndpoint.getId(),pluginConfigOrg);
+
+        //register consumer
+        KongConsumer oauthConsumer = createDummyConsumer("someoauthapp","apimultiuserscope");
+
+        //create contract for consumer with service A and B
+
+
+
+
+
+
+    }
+
+    @Test
     public void enableOAuthForConsumer()throws Exception{
         KongConsumer consumer = new KongConsumer().withUsername("oauthconsumer1");
         consumer = kongClient.createConsumer(consumer);
@@ -568,6 +610,46 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         return pluginConfig;
     }
+
+    private KongPluginConfig createTestOAuthPluginPrefixedSet(String serviceprefix){
+        List<Object> scopes = new ArrayList<>(Arrays.asList(serviceprefix+".basic",serviceprefix+".extended",serviceprefix+".full"));
+        KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
+                .withEnableAuthorizationCode(true)
+                .withEnableClientCredentials(true)
+                .withEnableImplicitGrant(true)
+                .withEnablePasswordGrant(true)
+                .withHideCredentials(false)
+                .withMandatoryScope(true)
+                .withScopes(scopes);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("oauth2")//as an example
+                .withConfig(oAuthEnhancedConfig);
+        print(pluginConfig);
+        return pluginConfig;
+    }
+
+    private KongPluginConfig createTestOAuthPluginConsolidatedScopes(List<String> prefixList){
+        List<Object> scopes = new ArrayList<>();
+        prefixList.stream().forEach(prefix -> {
+            scopes.add(prefix+".basic");
+            scopes.add(prefix+".extended");
+            scopes.add(prefix+".full");
+        });
+        KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
+                .withEnableAuthorizationCode(true)
+                .withEnableClientCredentials(true)
+                .withEnableImplicitGrant(true)
+                .withEnablePasswordGrant(true)
+                .withHideCredentials(false)
+                .withMandatoryScope(true)
+                .withScopes(scopes);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("oauth2")//as an example
+                .withConfig(oAuthEnhancedConfig);
+        print(pluginConfig);
+        return pluginConfig;
+    }
+
 
     @Test
     public void testCreateIPRestrictionPluginWL() throws Exception {

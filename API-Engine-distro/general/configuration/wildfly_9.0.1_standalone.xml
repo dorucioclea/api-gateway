@@ -235,16 +235,16 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:infinispan:2.0">
             <cache-container name="apiengine-cache" default-cache="defcache" aliases="apiengine-cache">
-                <local-cache name="defcache" mode="SYNC">
+                <local-cache name="defcache" >
                     <transaction mode="BATCH"/>
                 </local-cache>
-                <local-cache name="sso" mode="SYNC">
+                <local-cache name="sso" >
                     <transaction mode="BATCH"/>
                 </local-cache>
-                <local-cache name="token" mode="SYNC">
+                <local-cache name="token" >
                     <transaction mode="BATCH"/>
                 </local-cache>
-                <local-cache name="user" mode="SYNC">
+                <local-cache name="user" >
                     <transaction mode="BATCH"/>
                 </local-cache>
             </cache-container>
