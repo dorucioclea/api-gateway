@@ -13,6 +13,8 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -1839,5 +1841,28 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             logger.error(t.getMessage(), t);
             throw new StorageException(t);
         }
+    }
+
+    @Override
+    public List<ManagedApplicationBean> getMarketplaces() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :appType";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("appType", ManagedApplicationTypes.Marketplace);
+        List<ManagedApplicationBean> rows = query.getResultList();
+        return rows;
+    }
+
+    @Override
+    public List<PolicyBean> getMarketplaceACLPolicies(String organizationId, String serviceId, String version) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.type = :policyType AND p.organizationId = :orgId AND p.entityId = :serviceId AND p.entityVersion = :version";
+        Query query = em.createQuery(jpql)
+                .setParameter("policyType", PolicyType.Marketplace)
+                .setParameter("orgId", organizationId)
+                .setParameter("serviceId", serviceId)
+                .setParameter("version", version);
+        List<PolicyBean> rows = query.getResultList();
+        return rows;
     }
 }
