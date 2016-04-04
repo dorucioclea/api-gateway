@@ -7,6 +7,8 @@ ALTER TABLE policies ADD COLUMN kong_plugin_id VARCHAR(255) NULL;
 
 ALTER TABLE policies ADD COLUMN contract_id BIGINT NULL;
 
+ALTER TABLE policies ADD COLUMN marketplace_id VARCHAR(255) NULL;
+
 ALTER TABLE managed_applications ADD PRIMARY KEY (id);
 
 ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk1 FOREIGN KEY (gateway_id) REFERENCES gateways (id);
