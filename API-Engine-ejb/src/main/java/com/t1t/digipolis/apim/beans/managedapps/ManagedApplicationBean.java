@@ -105,17 +105,6 @@ public class ManagedApplicationBean implements Serializable {
         this.version = version;
     }
 
-    public String getConsumerName() {
-        StringBuilder builder = new StringBuilder(availability == null ? "" : availability);
-        if (builder.length() > 0) builder.append(".");
-        if (name != null) builder.append(name);
-        if (version != null) {
-            builder.append(".");
-            builder.append(version);
-        }
-        return builder.length() > 0 ? builder.toString() : null;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
