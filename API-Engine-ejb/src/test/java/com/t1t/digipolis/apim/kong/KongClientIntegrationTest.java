@@ -520,6 +520,21 @@ public class KongClientIntegrationTest {
         assertNull(deleteAPIPluginResponse);
     }
 
+    @Test
+    public void addConsumerTo1000ACLs() {
+        KongConsumer consumer = new KongConsumer().withUsername("misterpopular");
+        consumer = kongClient.createConsumer(consumer);
+        String acl = "orgid.archid.v%d";
+        List<KongPluginACLResponse> responses = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            responses.add(kongClient.addConsumerToACL(consumer.getId(), new KongPluginACLRequest().withGroup(String.format(acl, i))));
+        }
+        kongClient.deleteConsumer(consumer.getId());
+        for (KongPluginACLResponse response : responses) {
+            assertNotNull(response);
+        }
+    }
+
     @Test(expected = RetrofitError.class)
     public void getNonExistingConsumer(){
         KongConsumer consumer = kongClient.getConsumer("nonexistingid");
