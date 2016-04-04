@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
+
 /**
  * Models a single version of a service "impl".  Every service in
  * APIEngine has basic meta-data stored in {@link ServiceBean}.  All
@@ -73,6 +75,8 @@ public class ServiceVersionBean implements Serializable {
     private Date publishedOn;
     @Column(name = "retired_on")
     private Date retiredOn;
+    @Column(name = "deprecated_on")
+    private Date deprecatedOn;
     @Column(name = "definition_type")
     @Enumerated(EnumType.STRING)
     private ServiceDefinitionType definitionType;
@@ -367,6 +371,14 @@ public class ServiceVersionBean implements Serializable {
 
     public void setOnlinedoc(String onlinedoc) {
         this.onlinedoc = onlinedoc;
+    }
+
+    public Date getDeprecatedOn() {
+        return deprecatedOn;
+    }
+
+    public void setDeprecatedOn(Date deprecatedOn) {
+        this.deprecatedOn = deprecatedOn;
     }
 
     /**
