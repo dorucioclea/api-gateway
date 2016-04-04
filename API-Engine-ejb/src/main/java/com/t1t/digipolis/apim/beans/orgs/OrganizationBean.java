@@ -36,6 +36,8 @@ public class OrganizationBean implements Serializable {
     private String modifiedBy;
     @Column(name = "modified_on", updatable=true, nullable=false)
     private Date modifiedOn;
+    @Column(name = "friendly_name", updatable = true)
+    private String friendlyName;
 
     /**
      * Constructor.
@@ -139,6 +141,20 @@ public class OrganizationBean implements Serializable {
      */
     public void setModifiedOn(Date modifiedOn) {
         this.modifiedOn = modifiedOn;
+    }
+
+    /**
+     * @return the user-friendly name
+     */
+    public String getFriendlyName() {
+        return friendlyName;
+    }
+
+    /**
+     * @param friendlyName the user-friendly name to set
+     */
+    public void setFriendlyName(String friendlyName) {
+        this.friendlyName = friendlyName;
     }
 
     /**
