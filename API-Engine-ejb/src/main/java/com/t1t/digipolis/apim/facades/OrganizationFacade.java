@@ -17,6 +17,7 @@ import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
 import com.t1t.digipolis.apim.beans.metrics.AppUsagePerServiceBean;
@@ -360,6 +361,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw ExceptionFactory.invalidApplicationStatusException();
         }
         return doCreatePolicy(organizationId, applicationId, version, bean, PolicyType.Application);
+    }
+
+    public PolicyBean createMarketplacePolicy(String organizationId, String serviceId, String version, NewPolicyBean bean) {
+        return doCreatePolicy(organizationId, serviceId, version, bean, PolicyType.Marketplace);
     }
 
     public PolicyBean getAppPolicy(String organizationId, String applicationId, String version, long policyId) {
@@ -1380,6 +1385,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     }
                 });
 
+                //Revoke marketplace ACL memberships
+                try {
+                    List<PolicyBean> aclPolicies = query.getMarketplaceACLPolicies(organizationId, serviceId, version.getVersion());
+                    for (PolicyBean policy : aclPolicies) {
+                        gateway.deleteConsumerACLPlugin(policy.getMarketplaceId(), policy.getKongPluginId());
+                        storage.deletePolicy(policy);
+                    }
+                }
+                catch (StorageException ex) {
+                    throw new SystemErrorException(ex);
+                }
+
                 // Remove gateway config & plan configuration for service version
                 ServiceVersionBean svb = getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
                 svb.getGateways().clear();
@@ -1431,7 +1448,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             announcements.stream().forEach(announcement -> {
                 deleteServiceAnnouncement(organizationId, serviceId, announcement.getId());
             });
-
             // Finally, delete the Service from API Engine
             storage.deleteService(serviceBean);
         } catch (AbstractRestException e) {
@@ -2415,6 +2431,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setOrderIndex(newIdx);
             policy.setKongPluginId(bean.getKongPluginId());
             policy.setContractId(bean.getContractId());
+            policy.setMarketplaceId(bean.getMarketplaceId());
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
             //PolicyTemplateUtil.generatePolicyDescription(policy);

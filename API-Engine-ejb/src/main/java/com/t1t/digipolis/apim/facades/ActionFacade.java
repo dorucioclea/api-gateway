@@ -7,8 +7,11 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
+import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
@@ -32,6 +35,9 @@ import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,15 +170,27 @@ public class ActionFacade {
             if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
+            //Add various marketplaces to service ACL while we're at it
+            List<ManagedApplicationBean> marketplaces = query.getMarketplaces();
+            List<NewPolicyBean> policies = new ArrayList<>();
+            String serviceName = ServiceConventionUtil.generateServiceUniqueName(gatewaySvc);
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                for (ManagedApplicationBean marketplace : marketplaces) {
+                    String marketplaceId = ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace);
+                    KongPluginACLResponse response = gatewayLink.addConsumerToACL(marketplaceId, serviceName);
+                    NewPolicyBean npb = new NewPolicyBean();
+                    npb.setDefinitionId(Policies.ACL.name());
+                    npb.setKongPluginId(response.getId());
+                    npb.setMarketplaceId(marketplaceId);
+                    orgFacade.createMarketplacePolicy(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), npb);
+                }
                 gatewayLink.publishService(gatewaySvc);
                 gatewayLink.close();
             }
 
             versionBean.setStatus(ServiceStatus.Published);
             versionBean.setPublishedOn(new Date());
-
             storage.updateServiceVersion(versionBean);
             storage.createAuditEntry(AuditUtils.servicePublished(versionBean, securityContext));
         } catch (PublishingException e) {
@@ -180,7 +198,6 @@ public class ActionFacade {
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         }
-
         log.debug(String.format("Successfully published Service %s on specified gateways: %s", //$NON-NLS-1$
                 versionBean.getService().getName(), versionBean.getService()));
     }
