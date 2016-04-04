@@ -175,6 +175,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         orgBean.setCreatedBy(securityContext.getCurrentUser());
         orgBean.setModifiedOn(new Date());
         orgBean.setModifiedBy(securityContext.getCurrentUser());
+        if (bean.getFriendlyName() == null) {
+            orgBean.setFriendlyName(bean.getName());
+        }
+        else {
+            orgBean.setFriendlyName(bean.getFriendlyName());
+        }
         try {
             // Store/persist the new organization
             if (storage.getOrganization(orgBean.getId()) != null) {
@@ -227,6 +233,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (AuditUtils.valueChanged(orgForUpdate.getDescription(), bean.getDescription())) {
                 auditData.addChange("description", orgForUpdate.getDescription(), bean.getDescription());
                 orgForUpdate.setDescription(bean.getDescription());
+            }
+            if (AuditUtils.valueChanged(orgForUpdate.getFriendlyName(), bean.getFriendlyName())) {
+                auditData.addChange("friendlyName", orgForUpdate.getFriendlyName(), bean.getFriendlyName());
+                orgForUpdate.setFriendlyName(bean.getFriendlyName());
             }
             storage.updateOrganization(orgForUpdate);
             storage.createAuditEntry(AuditUtils.organizationUpdated(orgForUpdate, auditData, securityContext));
