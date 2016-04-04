@@ -14,6 +14,7 @@ public class NewPolicyBean implements Serializable {
     private String configuration;
     private String kongPluginId;
     private Long contractId;
+    private String marketplaceId;
 
     /**
      * Constructor.
@@ -79,9 +80,17 @@ public class NewPolicyBean implements Serializable {
         this.contractId = contractId;
     }
 
+    public String getMarketplaceId() {
+        return marketplaceId;
+    }
+
+    public void setMarketplaceId(String marketplaceId) {
+        this.marketplaceId = marketplaceId;
+    }
+
     /* (non-Javadoc)
-         * @see java.lang.Object#toString()
-         */
+             * @see java.lang.Object#toString()
+             */
     @Override
     @SuppressWarnings("nls")
     public String toString() {
