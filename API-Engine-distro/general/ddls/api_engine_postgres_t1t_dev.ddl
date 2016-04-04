@@ -17,7 +17,7 @@ INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
 INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
 
 INSERT INTO managed_applications (id, name, type, availability, api_key) VALUES
-  (1000, 'marketplace.v1', 'marketplace', NULL, '6b8406cc81fe4ca3cc9cd4a0abfb97c2'),
-  (1001, 'marketplace.v1', 'marketplace', 'ext', '***REMOVED***'),
-  (1002, 'marketplace.v1', 'marketplace', 'int', '***REMOVED***'),
-  (1003, 'dev.publisher.v1', 'publisher', NULL, '***REMOVED***');
+  (1000, 'marketplace.v1', 'Marketplace', NULL, '6b8406cc81fe4ca3cc9cd4a0abfb97c2'),
+  (1001, 'marketplace.v1', 'Marketplace', 'ext', '***REMOVED***'),
+  (1002, 'marketplace.v1', 'Marketplace', 'int', '***REMOVED***'),
+  (1003, 'dev.publisher.v1', 'Publisher', NULL, '***REMOVED***');

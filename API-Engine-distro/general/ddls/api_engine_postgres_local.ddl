@@ -25,8 +25,8 @@ INSERT INTO white_ip_restriction(netw_value) VALUES ('127.0.0.0/24');
 
 INSERT INTO black_ip_restriction(netw_value) VALUES ('32.0.0.0/8');
 
-INSERT INTO managed_applications (name, type, availability, api_key) VALUES
-  ('marketplace.v1', 'marketplace', NULL, '6b8406cc81fe4ca3cc9cd4a0abfb97c2'),
-  ('marketplace.v1', 'marketplace', 'ext', '***REMOVED***'),
-  ('marketplace.v1', 'marketplace', 'int', '***REMOVED***'),
-  ('dev.publisher.v1', 'publisher', NULL, '***REMOVED***');
+INSERT INTO managed_applications (id, name, type, availability, api_key) VALUES
+  (1000, 'marketplace.v1', 'Marketplace', NULL, '6b8406cc81fe4ca3cc9cd4a0abfb97c2'),
+  (1001, 'marketplace.v1', 'Marketplace', 'ext', '***REMOVED***'),
+  (1002, 'marketplace.v1', 'Marketplace', 'int', '***REMOVED***'),
+  (1003, 'dev.publisher.v1', 'Publisher', NULL, '***REMOVED***');
