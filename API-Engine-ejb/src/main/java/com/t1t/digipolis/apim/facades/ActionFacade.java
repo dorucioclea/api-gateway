@@ -108,7 +108,6 @@ public class ActionFacade {
     private void publishService(ActionBean action) throws ActionException {
         if (!securityContext.hasPermission(PermissionType.svcAdmin, action.getOrganizationId()))
             throw ExceptionFactory.notAuthorizedException();
-
         ServiceVersionBean versionBean = null;
         try {
             versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());

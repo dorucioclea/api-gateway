@@ -36,11 +36,16 @@ public class AppConfig implements Serializable {
     @PostConstruct
     public void init() {
         initConfig();
-        try {
-            _LOG.info("Gateways:{}",storageQuery.listGatewayBeans());
-        } catch (StorageException e) {
-            _LOG.error(e.getMessage());
-        }
+        initGateways();
+    }
+
+    private void initGateways() {
+        //get gateways from db
+        //create kong client
+        //check if oauth endpoint exists - based on gateway oauth context
+        //create if needed
+        //apply kong oauth policy
+        //provide methods for gateway policy extension/removal
     }
 
     public void initConfig(){
