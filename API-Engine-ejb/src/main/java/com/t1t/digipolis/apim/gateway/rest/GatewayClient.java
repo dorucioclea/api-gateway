@@ -38,6 +38,7 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
+import com.t1t.digipolis.kong.model.Method;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.ServiceConventionUtil;
@@ -400,8 +401,10 @@ public class GatewayClient {
      * @param api
      */
     private void registerDefaultCORSPolicy(KongApi api) {
+        List<Method> defaultMethods = Arrays.asList(Method.HEAD, Method.DELETE,Method.GET,Method.POST,Method.PUT,Method.PATCH);
         List<String> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY, "Authorization");
         KongPluginCors corsPolicy = new KongPluginCors(); //default values are ok
+        corsPolicy.setMethods(defaultMethods);
         corsPolicy.setHeaders(headers);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.CORS.getKongIdentifier())
