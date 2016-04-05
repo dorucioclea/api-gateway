@@ -15,6 +15,7 @@ public class NewOrganizationBean implements Serializable {
 
     private String name;
     private String description;
+    private String friendlyName;
 
     /**
      * Constructor.
@@ -50,4 +51,17 @@ public class NewOrganizationBean implements Serializable {
         this.description = description;
     }
 
+    /**
+     * @return the user-friendly name
+     */
+    public String getFriendlyName() {
+        return friendlyName;
+    }
+
+    /**
+     * @param friendlyName the user-friendly name to set
+     */
+    public void setFriendlyName(String friendlyName) {
+        this.friendlyName = friendlyName;
+    }
 }
