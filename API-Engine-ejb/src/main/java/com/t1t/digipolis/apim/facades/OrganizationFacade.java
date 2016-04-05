@@ -405,9 +405,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                             ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
                     //Persist the unique Kong plugin id in a new policy associated with the app.
                     NewPolicyBean npb = new NewPolicyBean();
+                    KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
                     npb.setDefinitionId(Policies.ACL.name());
                     npb.setKongPluginId(response.getId());
                     npb.setContractId(contract.getId());
+                    npb.setConfiguration(new Gson().toJson(conf));
                     createAppPolicy(organizationId, applicationId, version, npb);
                 }
             } catch (Exception e) {
@@ -1389,7 +1391,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 try {
                     List<PolicyBean> aclPolicies = query.getMarketplaceACLPolicies(organizationId, serviceId, version.getVersion());
                     for (PolicyBean policy : aclPolicies) {
-                        gateway.deleteConsumerACLPlugin(policy.getMarketplaceId(), policy.getKongPluginId());
+                        gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
                         storage.deletePolicy(policy);
                     }
                 }
@@ -2431,7 +2433,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setOrderIndex(newIdx);
             policy.setKongPluginId(bean.getKongPluginId());
             policy.setContractId(bean.getContractId());
-            policy.setMarketplaceId(bean.getMarketplaceId());
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
             //PolicyTemplateUtil.generatePolicyDescription(policy);

@@ -1,10 +1,12 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.google.common.io.Resources;
+import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
 import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
@@ -170,19 +172,20 @@ public class ActionFacade {
             if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
-            //Add various marketplaces to service ACL while we're at it
             List<ManagedApplicationBean> marketplaces = query.getMarketplaces();
             List<NewPolicyBean> policies = new ArrayList<>();
             String serviceName = ServiceConventionUtil.generateServiceUniqueName(gatewaySvc);
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
                 for (ManagedApplicationBean marketplace : marketplaces) {
                     String marketplaceId = ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace);
                     KongPluginACLResponse response = gatewayLink.addConsumerToACL(marketplaceId, serviceName);
+                    KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(Policies.ACL.name());
+                    npb.setConfiguration(new Gson().toJson(conf));
                     npb.setKongPluginId(response.getId());
-                    npb.setMarketplaceId(marketplaceId);
                     orgFacade.createMarketplacePolicy(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), npb);
                 }
                 gatewayLink.publishService(gatewaySvc);
