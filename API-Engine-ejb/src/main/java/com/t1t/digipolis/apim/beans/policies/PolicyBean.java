@@ -56,8 +56,6 @@ public class PolicyBean implements Serializable {
     private String kongPluginId;
     @Column(name = "contract_id", updatable = true, nullable = true)
     private Long contractId;
-    @Column(name = "marketplace_id")
-    private String marketplaceId;
 
 
     /**
@@ -284,14 +282,6 @@ public class PolicyBean implements Serializable {
 
     public void setContractId(Long contractId) {
         this.contractId = contractId;
-    }
-
-    public String getMarketplaceId() {
-        return marketplaceId;
-    }
-
-    public void setMarketplaceId(String marketplaceId) {
-        this.marketplaceId = marketplaceId;
     }
 
     /**
