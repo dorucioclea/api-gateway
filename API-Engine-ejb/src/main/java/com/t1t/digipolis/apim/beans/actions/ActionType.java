@@ -8,6 +8,6 @@ public enum ActionType {
     
     publishService, retireService, 
     registerApplication, unregisterApplication,
-    lockPlan;
+    lockPlan, deprecateService;
 
 }

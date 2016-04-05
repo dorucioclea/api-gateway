@@ -724,7 +724,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public PolicyBean createServicePolicy(String organizationId, String serviceId, String version, NewPolicyBean bean) {
         // Make sure the service exists
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
-        if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired) {
+        if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         //validate no other policy of the same type has been added for this service - only on policy of the same type is allowed
@@ -760,7 +760,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
-        if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired) {
+        if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         svb.setModifiedBy(securityContext.getCurrentUser());
@@ -1649,7 +1649,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void deleteServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         // Make sure the service exists
         ServiceVersionBean service = getServiceVersion(organizationId, serviceId, version);
-        if (service.getStatus() == ServiceStatus.Published || service.getStatus() == ServiceStatus.Retired) {
+        if (service.getStatus() == ServiceStatus.Published || service.getStatus() == ServiceStatus.Retired || service.getStatus() == ServiceStatus.Deprecated) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         try {
