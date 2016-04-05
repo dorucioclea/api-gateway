@@ -15,9 +15,11 @@ INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('run
 
 INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
 INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
+INSERT INTO availabilities(name, code) VALUES ('all', 'all');
+
 
 INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES
-  (1000, 'marketplace', 'v1', 'Marketplace', NULL, '6b8406cc81fe4ca3cc9cd4a0abfb97c2'),
-  (1001, 'marketplace', 'v1', 'Marketplace', 'ext', '***REMOVED***'),
-  (1002, 'marketplace', 'v1', 'Marketplace', 'int', '***REMOVED***'),
-  (1003, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***');
+  (900, 'marketplace', 'v1', 'Marketplace', 'all', '6b8406cc81fe4ca3cc9cd4a0abfb97c2'),
+  (901, 'marketplace', 'v1', 'Marketplace', 'ext', '***REMOVED***'),
+  (902, 'marketplace', 'v1', 'Marketplace', 'int', '***REMOVED***'),
+  (903, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***');

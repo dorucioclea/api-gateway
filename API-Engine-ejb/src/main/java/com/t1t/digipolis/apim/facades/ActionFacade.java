@@ -186,7 +186,7 @@ public class ActionFacade {
                     npb.setDefinitionId(Policies.ACL.name());
                     npb.setConfiguration(new Gson().toJson(conf));
                     npb.setKongPluginId(response.getId());
-                    orgFacade.createMarketplacePolicy(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), npb);
+                    orgFacade.createMarketplacePolicy(marketplace.getAvailability(), marketplace.getName(), marketplace.getVersion(), npb);
                 }
                 gatewayLink.publishService(gatewaySvc);
                 gatewayLink.close();

@@ -36,7 +36,7 @@ CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
 
 CREATE TABLE black_ip_restriction (netw_value VARCHAR(255));
 
-CREATE TABLE managed_applications (id BIGINT NOT NULL, name VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, gateway_id BIGINT NULL, type VARCHAR(255) NULL, availability VARCHAR(255) NULL, gateway_username VARCHAR(255) NULL, api_key VARCHAR(255) NULL);
+CREATE TABLE managed_applications (id BIGINT NOT NULL, name VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, gateway_id VARCHAR(255) NULL, type VARCHAR(255) NULL, availability VARCHAR(255) NULL, gateway_username VARCHAR(255) NULL, api_key VARCHAR(255) NULL);
 
 CREATE TABLE plan_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, locked_on TIMESTAMP WITHOUT TIME ZONE NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, plan_id VARCHAR(255) NULL, plan_org_id VARCHAR(255) NULL);
 
@@ -130,7 +130,7 @@ ALTER TABLE managed_applications ADD PRIMARY KEY (id);
 
 ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk5 FOREIGN KEY (gateway_id) REFERENCES gateways (id);
 
-ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk5 FOREIGN KEY (availability) REFERENCES availabilities (code) ;
+ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk6 FOREIGN KEY (availability) REFERENCES availabilities (code) ;
 
 ALTER TABLE services ADD CONSTRAINT FK_31hj3xmhp1wedxjh5bklnlg15 FOREIGN KEY (organization_id) REFERENCES organizations (id);
 
@@ -814,4 +814,18 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   ]
 }', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', 'fa-acl', 'ACL Policy', NULL ,TRUE ,TRUE ,FALSE );
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
+  "type": "object",
+  "title": "ACL",
+  "properties": {
+    "group": {
+      "title": "ACL group name",
+      "description":"Name of the ACL group belonging to the service",
+      "type": "string",
+      "required": true
+    }
+  },
+  "required": [
+    "group"
+  ]
+}', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );

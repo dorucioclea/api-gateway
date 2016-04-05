@@ -13,7 +13,21 @@ ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk1 FOR
 
 ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk2 FOREIGN KEY (availability) REFERENCES availabilities (code) ;
 
-INSERT INTO policydefs (id, description, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', 'fa-acl', 'ACL Policy', NULL ,TRUE ,TRUE ,FALSE );
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
+  "type": "object",
+  "title": "ACL",
+  "properties": {
+    "group": {
+      "title": "ACL group name",
+      "description":"Name of the ACL group belonging to the service",
+      "type": "string",
+      "required": true
+    }
+  },
+  "required": [
+    "group"
+  ]
+}', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
 
 INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES
   (1000, 'marketplace', 'v1', 'Marketplace', NULL, '6b8406cc81fe4ca3cc9cd4a0abfb97c2'),
