@@ -837,6 +837,9 @@
       <Cl au="0" df="" nm="onlinedoc" nu="1">
         <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
       </Cl>
+      <Cl au="0" df="" nm="deprecated_on" nu="1">
+        <DT arr="0" ds="TimeStamp" en="" id="93" ln="null" sc="null" sg="1" un="0"/>
+      </Cl>
       <Fk deAc="3" nm="fk_92erjg9k1lni97gd87nt6tq37" prLkCl="id" upAc="3">
         <PrTb mn="0" nm="services" oe="1" sch="public" zr="1"/>
         <CdTb mn="1" nm="service_versions" oe="0" sch="public" zr="1"/>
@@ -1162,7 +1165,7 @@
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="EAST" nm="public.endpoint_properties.fk_gn0ydqur10sxuvpyw2jvv4xxb" parentEdge="SOUTH" positioner="TwoLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="PARENT_LINE" x1="1311" x2="1311" y1="298" y2="540"/>
+        <positionableLine lineRole="PARENT_LINE" x1="1311" x2="1311" y1="311" y2="540"/>
         <positionableLine lineRole="CHILD_LINE" x1="1081" x2="1307" y1="544" y2="544"/>
       </positionableLines>
     </FkGl>
@@ -1178,7 +1181,7 @@
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="EAST" nm="public.oauth_scopes.oauth_scopes_serviceversionbean_id_fkey" parentEdge="SOUTH" positioner="TwoLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="PARENT_LINE" x1="1371" x2="1371" y1="298" y2="621"/>
+        <positionableLine lineRole="PARENT_LINE" x1="1371" x2="1371" y1="311" y2="621"/>
         <positionableLine lineRole="CHILD_LINE" x1="1091" x2="1367" y1="625" y2="625"/>
       </positionableLines>
     </FkGl>
@@ -1204,12 +1207,12 @@
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="WEST" nm="public.service_defs.fk_81fuw1n8afmvpw4buk7l4tyxk" parentEdge="EAST" positioner="OneLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="SINGLE_LINE" x1="1494" x2="1644" y1="83" y2="83"/>
+        <positionableLine lineRole="SINGLE_LINE" x1="1495" x2="1644" y1="83" y2="83"/>
       </positionableLines>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="EAST" nm="public.service_versions.fk_92erjg9k1lni97gd87nt6tq37" parentEdge="WEST" positioner="OneLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="SINGLE_LINE" x1="1614" x2="1494" y1="289" y2="289"/>
+        <positionableLine lineRole="SINGLE_LINE" x1="1614" x2="1495" y1="289" y2="289"/>
       </positionableLines>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="SOUTH" nm="public.services.fk_31hj3xmhp1wedxjh5bklnlg15" parentEdge="WEST" positioner="TwoLineUserLinkPositioner">
@@ -1220,18 +1223,18 @@
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="WEST" nm="public.svc_gateways.fk_p5dm3cngljt6yrsnvc7uc6a75" parentEdge="EAST" positioner="OneLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="SINGLE_LINE" x1="1494" x2="1634" y1="157" y2="157"/>
+        <positionableLine lineRole="SINGLE_LINE" x1="1495" x2="1634" y1="157" y2="157"/>
       </positionableLines>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="EAST" nm="public.svc_plans.fk_t7uvfcsswopb9kh8wpa86blqr" parentEdge="SOUTH" positioner="TwoLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="PARENT_LINE" x1="1431" x2="1431" y1="298" y2="735"/>
+        <positionableLine lineRole="PARENT_LINE" x1="1431" x2="1431" y1="311" y2="735"/>
         <positionableLine lineRole="CHILD_LINE" x1="1121" x2="1427" y1="739" y2="739"/>
       </positionableLines>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="WEST" nm="public.svc_visibility.fk_svc_version_visibility" parentEdge="EAST" positioner="OneLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="SINGLE_LINE" x1="1494" x2="1614" y1="232" y2="232"/>
+        <positionableLine lineRole="SINGLE_LINE" x1="1495" x2="1614" y1="232" y2="232"/>
       </positionableLines>
     </FkGl>
     <Notes/>

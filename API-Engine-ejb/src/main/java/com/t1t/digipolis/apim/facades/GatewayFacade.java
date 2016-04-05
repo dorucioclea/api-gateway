@@ -131,7 +131,6 @@ public class GatewayFacade {
     public void update(String gatewayId, UpdateGatewayBean bean){
         try {
             Date now = new Date();
-
             GatewayBean gbean = storage.getGateway(gatewayId);
             if (gbean == null) {
                 throw ExceptionFactory.gatewayNotFoundException(gatewayId);

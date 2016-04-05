@@ -1,14 +1,11 @@
 package com.t1t.digipolis.apim;
 
-import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
@@ -31,21 +28,15 @@ public class AppConfig implements Serializable {
     private static Config config;
     private static Properties properties;
     private static Logger _LOG = LoggerFactory.getLogger(AppConfig.class.getName());
-    @Inject private IStorageQuery storageQuery;
+    @Inject private StartupService startupService;
 
-    @PostConstruct
-    public void init() {
-        initConfig();
-        initGateways();
-    }
-
-    private void initGateways() {
-        //get gateways from db
-        //create kong client
-        //check if oauth endpoint exists - based on gateway oauth context
-        //create if needed
-        //apply kong oauth policy
-        //provide methods for gateway policy extension/removal
+    public AppConfig() {
+        try {
+            initConfig();
+            startupService.initOAuthOnGateways();
+        } catch (StorageException e) {
+            _LOG.error(e.getMessage());
+        }
     }
 
     public void initConfig(){

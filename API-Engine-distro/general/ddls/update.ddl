@@ -123,16 +123,9 @@ UPDATE policydefs set form='{
   }
 }' WHERE id = 'IPRestriction';
 
-/******************** Update Table: gateways ************************/
+--get ids of services select id from service_versions;
+--update for existing services INSERT INTO svc_visibility(service_version_id, code, show) VALUES (1173, 'INT', true);
 
-ALTER TABLE public.gateways ADD aouth_token VARCHAR(255) NULL;
+/******************** Update Table: service_versions ************************/
 
-ALTER TABLE public.gateways ADD oauth_authorize VARCHAR(255) NULL;
-
-ALTER TABLE public.gateways ADD oauth_context VARCHAR(255) NULL;
-
--- update gateway values
-
-/******************** Update Table: organizations ************************/
-
-ALTER TABLE public.organizations ADD friendly_name VARCHAR(255) NULL;
+ALTER TABLE public.service_versions ADD deprecated_on TIMESTAMP NULL;
