@@ -29,10 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -546,6 +543,29 @@ public class KongClientIntegrationTest {
     }
 
     @Test
+    public void registerOAuthServiceWithManyScopes()throws Exception{
+        KongApi apioauth = createDummyApi("apioatx","/apioatx",API_URL);
+        KongConsumer oauthConsumer = createDummyConsumer("123456789x","apiuseroauthx");
+        apioauth = kongClient.addApi(apioauth);
+        oauthConsumer = kongClient.createConsumer(oauthConsumer);
+        //create an oauth config
+        KongPluginConfig pluginConfig = createTestOAuthPluginWithManyScopes();
+        pluginConfig = kongClient.createPluginConfig(apioauth.getId(),pluginConfig);
+        KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(pluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        String provisionKey = enhancedOAuthValue.getProvisionKey();
+        kongClient.deleteConsumer(oauthConsumer.getId());
+        kongClient.deleteApi(apioauth.getId());
+        //verify the provision key is not null!
+        assertNotNull(enhancedOAuthValue);
+        //assertTrue(!StringUtils.isEmpty(enhancedOAuthValue.getProvisionKey()));//is not automatically generated in some versions
+        assertTrue(enhancedOAuthValue.getEnableAuthorizationCode());
+        assertTrue(enhancedOAuthValue.getEnableClientCredentials());
+        assertTrue(enhancedOAuthValue.getEnableImplicitGrant());
+        assertTrue(enhancedOAuthValue.getEnablePasswordGrant());
+        assertTrue(enhancedOAuthValue.getMandatoryScope());
+    }
+
+    @Test
     public void enableOAuthForConsumer()throws Exception{
         KongConsumer consumer = new KongConsumer().withUsername("oauthconsumer1");
         consumer = kongClient.createConsumer(consumer);
@@ -615,6 +635,24 @@ public class KongClientIntegrationTest {
 
     private KongPluginConfig createTestOAuthPlugin(){
         List<Object> scopes = new ArrayList<>(Arrays.asList("basic","extended","full"));
+        KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
+                .withEnableAuthorizationCode(true)
+                .withEnableClientCredentials(true)
+                .withEnableImplicitGrant(true)
+                .withEnablePasswordGrant(true)
+                .withHideCredentials(false)
+                .withMandatoryScope(true)
+                .withScopes(scopes);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("oauth2")//as an example
+                .withConfig(oAuthEnhancedConfig);
+        print(pluginConfig);
+        return pluginConfig;
+    }
+
+    private KongPluginConfig createTestOAuthPluginWithManyScopes(){
+        String[] randomScopes = generateRandomWords(10000);
+        List<Object> scopes = new ArrayList<>(Arrays.asList(randomScopes));
         KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
                 .withEnableAuthorizationCode(true)
                 .withEnableClientCredentials(true)
@@ -750,6 +788,21 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
         kongClient.deleteApi(apiipr.getId());
+    }
+
+    public static String[] generateRandomWords(int numberOfWords) {
+        String[] randomStrings = new String[numberOfWords];
+        Random random = new Random();
+        for(int i = 0; i < numberOfWords; i++)
+        {
+            char[] word = new char[random.nextInt(8)+3]; // words of length 3 through 10. (1 and 2 letter words are boring.)
+            for(int j = 0; j < word.length; j++)
+            {
+                word[j] = (char)('a' + random.nextInt(26));
+            }
+            randomStrings[i] = new String(word);
+        }
+        return randomStrings;
     }
 
     private void print(Object obj){log.info(gson.toJson(obj));};
