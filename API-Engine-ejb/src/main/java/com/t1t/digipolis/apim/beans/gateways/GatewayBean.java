@@ -187,6 +187,30 @@ public class GatewayBean implements Serializable {
         return configuration;
     }
 
+    public String getOauthTokenPath() {
+        return oauthTokenPath;
+    }
+
+    public void setOauthTokenPath(String oauthTokenPath) {
+        this.oauthTokenPath = oauthTokenPath;
+    }
+
+    public String getOauthAuthPath() {
+        return oauthAuthPath;
+    }
+
+    public void setOauthAuthPath(String oauthAuthPath) {
+        this.oauthAuthPath = oauthAuthPath;
+    }
+
+    public String getOauthContext() {
+        return oauthContext;
+    }
+
+    public void setOauthContext(String oauthContext) {
+        this.oauthContext = oauthContext;
+    }
+
     /**
      * @param configuration the configuration to set
      */

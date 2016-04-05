@@ -6,6 +6,8 @@ import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
@@ -30,7 +32,8 @@ public class AppConfig implements Serializable {
     private static Logger _LOG = LoggerFactory.getLogger(AppConfig.class.getName());
     @Inject private StartupService startupService;
 
-    public AppConfig() {
+    @PostConstruct
+    public void postInit() {
         try {
             initConfig();
             startupService.initOAuthOnGateways();
