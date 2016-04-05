@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.beans.orgs;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.Column;
@@ -147,6 +148,7 @@ public class OrganizationBean implements Serializable {
      * @return the user-friendly name
      */
     public String getFriendlyName() {
+        if(StringUtils.isEmpty(friendlyName))return name;
         return friendlyName;
     }
 
