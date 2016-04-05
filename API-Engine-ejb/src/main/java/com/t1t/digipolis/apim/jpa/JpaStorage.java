@@ -34,6 +34,7 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import com.t1t.digipolis.util.ServiceScopeUtil;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
@@ -1855,14 +1856,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public List<PolicyBean> getMarketplaceACLPolicies(String organizationId, String serviceId, String version) throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT p FROM PolicyBean p WHERE p.type = :policyType AND p.organizationId = :orgId AND p.entityId = :serviceId AND p.entityVersion = :version";
-        Query query = em.createQuery(jpql)
-                .setParameter("policyType", PolicyType.Marketplace)
-                .setParameter("orgId", organizationId)
-                .setParameter("serviceId", serviceId)
-                .setParameter("version", version);
-        List<PolicyBean> rows = query.getResultList();
-        return rows;
+        EntityManager entityManager = getActiveEntityManager();
+        String content = new StringBuilder().append("%")
+                .append(ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version))
+                .append("%").toString();
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.type = :polType AND p.configuration LIKE :content";
+        return entityManager.createQuery(jpql)
+                .setParameter("polType", PolicyType.Marketplace)
+                .setParameter("content", content)
+                .getResultList();
     }
 }
