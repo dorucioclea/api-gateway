@@ -2,7 +2,7 @@
   <VerLbl/>
   <VerNotes/>
   <DefTblOpts/>
-  <DocFolder>/Users/michallispashidis/_Trust1Team/digi-api-engine-javaee/API-Engine-distro/general/ddls</DocFolder>
+  <DocFolder>/Users/michallispashidis/Documents/_Trust1Team/digi-api-engine-javaee/API-Engine-distro/general/ddls</DocFolder>
   <Sch Cm="standard public schema" nm="public">
     <Tbl UsSo="1" nm="announcements">
       <TblOpts>WITHOUT OIDS</TblOpts>
@@ -115,6 +115,9 @@
       <Cl au="0" df="" nm="description" nu="1">
         <DT arr="0" ds="VarChar" en="" id="12" ln="512" sc="null" sg="1" un="0"/>
       </Cl>
+      <Cl au="0" df="" nm="context" nu="0">
+        <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
+      </Cl>
       <Cl au="0" df="" nm="name" nu="0">
         <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
       </Cl>
@@ -123,9 +126,6 @@
       </Cl>
       <Cl au="0" df="" nm="logo" nu="1">
         <DT arr="0" ds="UniqueID" en="" id="704" ln="null" sc="null" sg="1" un="0"/>
-      </Cl>
-      <Cl au="0" df="" nm="context" nu="1">
-        <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="3" nm="fk_jenpu34rtuncsgvtw0sfo8qq9" prLkCl="id" upAc="3">
         <PrTb mn="0" nm="organizations" oe="1" sch="public" zr="0"/>
@@ -182,6 +182,7 @@
     </Tbl>
     <Tbl UsSo="1" nm="availabilities">
       <TblOpts>WITHOUT OIDS</TblOpts>
+      <Pk ClNs="code" nm="availabilities_pkey"/>
       <Cl au="0" df="" nm="code" nu="0">
         <DT arr="0" ds="VarChar" en="" id="12" ln="3" sc="null" sg="1" un="0"/>
       </Cl>
@@ -193,7 +194,8 @@
     </Tbl>
     <Tbl UsSo="1" nm="black_ip_restriction">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Cl au="0" df="" nm="netw_value" nu="1">
+      <Pk ClNs="netw_value" nm="black_ip_restriction_pkey"/>
+      <Cl au="0" df="" nm="netw_value" nu="0">
         <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
       </Cl>
       <UniqueConstraints/>
@@ -357,6 +359,12 @@
         <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
       </Cl>
       <Cl au="0" df="" nm="type" nu="0">
+        <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="aouth_token" nu="1">
+        <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
+      </Cl>
+      <Cl au="0" df="" nm="oauth_authorize" nu="1">
         <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
       </Cl>
       <UniqueConstraints/>
@@ -990,7 +998,7 @@
       <Cl au="0" df="" nm="code" nu="0">
         <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
       </Cl>
-      <Cl au="0" df="" nm="show" nu="0">
+      <Cl au="0" df="true" nm="show" nu="1">
         <DT arr="0" ds="Boolean" en="" id="16" ln="null" sc="null" sg="1" un="0"/>
       </Cl>
       <Fk deAc="3" nm="fk_svc_version_visibility" prLkCl="id" upAc="3">
@@ -1050,7 +1058,8 @@
     </Tbl>
     <Tbl UsSo="1" nm="white_ip_restriction">
       <TblOpts>WITHOUT OIDS</TblOpts>
-      <Cl au="0" df="" nm="netw_value" nu="1">
+      <Pk ClNs="netw_value" nm="white_ip_restriction_pkey"/>
+      <Cl au="0" df="" nm="netw_value" nu="0">
         <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
       </Cl>
       <UniqueConstraints/>
@@ -1084,35 +1093,35 @@
     <TbGl bkCl="ff6666ff" sch="public" tbl="announcements" x="2402" y="50"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="application_versions" x="449" y="50"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="applications" x="83" y="196"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="auditlog" x="2708" y="50"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="availabilities" x="3019" y="50"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="black_ip_restriction" x="3303" y="50"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="auditlog" x="2713" y="50"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="availabilities" x="3024" y="50"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="black_ip_restriction" x="3308" y="50"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="categories" x="1990" y="280"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="contracts" x="848" y="50"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="endpoint_properties" x="815" y="544"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="followers" x="1980" y="361"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="gateways" x="2402" y="209"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="memberships" x="2708" y="209"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="memberships" x="2713" y="209"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="oauth_apps" x="50" y="50"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="oauth_scopes" x="804" y="625"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="organizations" x="1980" y="442"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="permissions" x="393" y="812"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="plan_versions" x="499" y="357"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="plans" x="133" y="357"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="plugins" x="3019" y="209"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="plugins" x="3024" y="209"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="policies" x="417" y="957"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="policydefs" x="50" y="957"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="roles" x="50" y="812"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="service_defs" x="1644" y="50"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="service_versions" x="1251" y="50"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="services" x="1614" y="280"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="support" x="3303" y="209"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="support_comments" x="2402" y="381"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="support" x="3308" y="209"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="support_comments" x="2402" y="407"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="svc_gateways" x="1634" y="131"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="svc_plans" x="855" y="706"/>
     <TbGl bkCl="ff6666ff" sch="public" tbl="svc_visibility" x="1614" y="199"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="users" x="2708" y="381"/>
-    <TbGl bkCl="ff6666ff" sch="public" tbl="white_ip_restriction" x="3019" y="381"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="users" x="2713" y="407"/>
+    <TbGl bkCl="ff6666ff" sch="public" tbl="white_ip_restriction" x="3024" y="407"/>
     <FkGl bkCl="ff000000" childEdge="WEST" nm="public.application_versions.fk_8epnoby31bt7xakegakigpikp" parentEdge="EAST" positioner="OneLineUserLinkPositioner">
       <positionableLines>
         <positionableLine lineRole="SINGLE_LINE" x1="329" x2="449" y1="227" y2="227"/>

@@ -123,5 +123,8 @@ UPDATE policydefs set form='{
   }
 }' WHERE id = 'IPRestriction';
 
---get ids of services select id from service_versions;
---update for existing services INSERT INTO svc_visibility(service_version_id, code, show) VALUES (1173, 'INT', true);
+/******************** Update Table: gateways ************************/
+
+ALTER TABLE public.gateways ADD aouth_token VARCHAR(255) NULL;
+
+ALTER TABLE public.gateways ADD oauth_authorize VARCHAR(255) NULL;
