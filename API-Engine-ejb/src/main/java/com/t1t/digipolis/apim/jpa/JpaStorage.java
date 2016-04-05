@@ -33,12 +33,10 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.util.ServiceScopeUtil;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.security.x509.AVA;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
@@ -51,7 +49,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -926,16 +923,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      */
     @Override
     public List<GatewaySummaryBean> listGateways() throws StorageException {
-
         EntityManager entityManager = getActiveEntityManager();
-
         @SuppressWarnings("nls")
         String sql =
                 "SELECT g.id, g.name, g.description, g.type" +
                         "  FROM gateways g" +
                         " ORDER BY g.name ASC";
         Query query = entityManager.createNativeQuery(sql);
-
         List<Object[]> rows = (List<Object[]>) query.getResultList();
         List<GatewaySummaryBean> gateways = new ArrayList<>(rows.size());
         for (Object[] row : rows) {
@@ -947,7 +941,15 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             gateways.add(gateway);
         }
         return gateways;
+    }
 
+    @Override
+    public List<GatewayBean> listGatewayBeans() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT g FROM GatewayBean g";
+        Query query = entityManager.createQuery(jpql);
+        List<GatewayBean> rows = query.getResultList();
+        return rows;
     }
 
     /**

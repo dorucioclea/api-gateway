@@ -1,13 +1,18 @@
 package com.t1t.digipolis.apim;
 
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -26,10 +31,16 @@ public class AppConfig implements Serializable {
     private static Config config;
     private static Properties properties;
     private static Logger _LOG = LoggerFactory.getLogger(AppConfig.class.getName());
+    @Inject private IStorageQuery storageQuery;
 
-    public AppConfig() {
+    @PostConstruct
+    public void init() {
         initConfig();
-
+        try {
+            _LOG.info("Gateways:{}",storageQuery.listGatewayBeans());
+        } catch (StorageException e) {
+            _LOG.error(e.getMessage());
+        }
     }
 
     public void initConfig(){

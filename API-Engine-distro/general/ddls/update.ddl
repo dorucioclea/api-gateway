@@ -132,3 +132,7 @@ ALTER TABLE public.gateways ADD oauth_authorize VARCHAR(255) NULL;
 ALTER TABLE public.gateways ADD oauth_context VARCHAR(255) NULL;
 
 -- update gateway values
+
+/******************** Update Table: organizations ************************/
+
+ALTER TABLE public.organizations ADD friendly_name VARCHAR(255) NULL;
