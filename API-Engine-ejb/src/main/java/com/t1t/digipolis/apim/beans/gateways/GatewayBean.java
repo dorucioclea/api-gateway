@@ -40,6 +40,8 @@ public class GatewayBean implements Serializable {
     private String oauthTokenPath;
     @Column(name="oauth_authorize",nullable = true)
     private String oauthAuthPath;
+    @Column(name="oauth_context",nullable = true)
+    private String oauthContext;
 
     @Column(updatable=true, nullable=false)
     @Enumerated(EnumType.STRING)

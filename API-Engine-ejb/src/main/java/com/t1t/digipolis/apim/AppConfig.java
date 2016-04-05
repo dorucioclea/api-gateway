@@ -28,10 +28,11 @@ public class AppConfig implements Serializable {
     private static Logger _LOG = LoggerFactory.getLogger(AppConfig.class.getName());
 
     public AppConfig() {
-        init();
+        initConfig();
+
     }
 
-    public void init(){
+    public void initConfig(){
         //read properties file
         InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties");
         properties = new Properties();

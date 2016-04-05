@@ -370,7 +370,7 @@ public class KongClientIntegrationTest {
 
     @Test
     public void testCreateOrUpdatePlugin() throws Exception {
-        //create plugin config; read init value; update value and re-read to verify
+        //create plugin config; read initConfig value; update value and re-read to verify
         KongApi apif = createDummyApi("apif", "/apif", API_URL);
         KongConsumer consumer = createDummyConsumer("123f", "apifuser");
         apif = kongClient.addApi(apif);

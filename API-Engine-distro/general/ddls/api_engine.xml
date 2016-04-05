@@ -367,6 +367,9 @@
       <Cl au="0" df="" nm="oauth_authorize" nu="1">
         <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
       </Cl>
+      <Cl au="0" df="" nm="oauth_context" nu="1">
+        <DT arr="0" ds="VarChar" en="" id="12" ln="255" sc="null" sg="1" un="0"/>
+      </Cl>
       <UniqueConstraints/>
       <SchTrHis/>
     </Tbl>
@@ -1129,8 +1132,8 @@
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="EAST" nm="public.applications.fk_jenpu34rtuncsgvtw0sfo8qq9" parentEdge="NORTH" positioner="TwoLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="PARENT_LINE" x1="2094" x2="2094" y1="442" y2="286"/>
-        <positionableLine lineRole="CHILD_LINE" x1="329" x2="2090" y1="282" y2="282"/>
+        <positionableLine lineRole="PARENT_LINE" x1="2094" x2="2094" y1="442" y2="200"/>
+        <positionableLine lineRole="CHILD_LINE" x1="329" x2="2090" y1="196" y2="196"/>
       </positionableLines>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="WEST" nm="public.categories.categories_servicebean_id_fkey" parentEdge="EAST" positioner="OneLineUserLinkPositioner">
@@ -1156,8 +1159,8 @@
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="EAST" nm="public.endpoint_properties.fk_gn0ydqur10sxuvpyw2jvv4xxb" parentEdge="SOUTH" positioner="TwoLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="PARENT_LINE" x1="1311" x2="1311" y1="298" y2="573"/>
-        <positionableLine lineRole="CHILD_LINE" x1="1081" x2="1307" y1="577" y2="577"/>
+        <positionableLine lineRole="PARENT_LINE" x1="1311" x2="1311" y1="298" y2="540"/>
+        <positionableLine lineRole="CHILD_LINE" x1="1081" x2="1307" y1="544" y2="544"/>
       </positionableLines>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="WEST" nm="public.followers.fk_29hj3xmhp1wedxjh1bklnlg15" parentEdge="EAST" positioner="OneLineUserLinkPositioner">
@@ -1172,8 +1175,8 @@
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="EAST" nm="public.oauth_scopes.oauth_scopes_serviceversionbean_id_fkey" parentEdge="SOUTH" positioner="TwoLineUserLinkPositioner">
       <positionableLines>
-        <positionableLine lineRole="PARENT_LINE" x1="1371" x2="1371" y1="298" y2="654"/>
-        <positionableLine lineRole="CHILD_LINE" x1="1091" x2="1367" y1="658" y2="658"/>
+        <positionableLine lineRole="PARENT_LINE" x1="1371" x2="1371" y1="298" y2="621"/>
+        <positionableLine lineRole="CHILD_LINE" x1="1091" x2="1367" y1="625" y2="625"/>
       </positionableLines>
     </FkGl>
     <FkGl bkCl="ff000000" childEdge="WEST" nm="public.permissions.fk_sq51ihfrapwdr98uufenhcocg" parentEdge="EAST" positioner="OneLineUserLinkPositioner">

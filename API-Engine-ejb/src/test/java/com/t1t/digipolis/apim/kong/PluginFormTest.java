@@ -34,7 +34,7 @@ public class PluginFormTest {
             if(header==null)_LOG.info("found null header");
         }
         _LOG.info(kongPluginRequestTransformer.getRemove().toString());
-        //create init policy
+        //create initConfig policy
         Policy initPol = new Policy();
         initPol.setPolicyImpl(Policies.REQUESTTRANSFORMER.getKongIdentifier());
         initPol.setPolicyJsonConfig(json);

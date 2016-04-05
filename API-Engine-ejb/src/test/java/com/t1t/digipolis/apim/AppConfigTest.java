@@ -27,7 +27,7 @@ public class AppConfigTest {
     @BeforeClass
     public static void init() throws Exception {
         config = new AppConfig();
-        config.init();
+        config.initConfig();
     }
 
     @Test

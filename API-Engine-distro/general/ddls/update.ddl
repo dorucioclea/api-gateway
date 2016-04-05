@@ -128,3 +128,7 @@ UPDATE policydefs set form='{
 ALTER TABLE public.gateways ADD aouth_token VARCHAR(255) NULL;
 
 ALTER TABLE public.gateways ADD oauth_authorize VARCHAR(255) NULL;
+
+ALTER TABLE public.gateways ADD oauth_context VARCHAR(255) NULL;
+
+-- update gateway values
