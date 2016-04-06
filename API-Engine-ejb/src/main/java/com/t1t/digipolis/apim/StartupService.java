@@ -12,6 +12,10 @@ import com.t1t.digipolis.kong.model.KongApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.ejb.DependsOn;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
@@ -26,12 +30,12 @@ import java.util.List;
  * <li>gateway configuration</li>
  * </ul>
  */
-@ApplicationScoped
-@Default
+@Singleton
+@Startup
+@DependsOn(value="AppConfig")
 public class StartupService {
     private static final Logger _LOG = LoggerFactory.getLogger(StartupService.class.getName());
-    @Inject
-    private IStorageQuery storageQuery;
+    @Inject private IStorageQuery storageQuery;
     @Inject
     private IGatewayLinkFactory gatewayLinkFactory;
 
@@ -40,15 +44,20 @@ public class StartupService {
      *
      * @throws StorageException
      */
-    public void initOAuthOnGateways() throws StorageException {
+    @PostConstruct
+    public void initOAuthOnGateways() {
         _LOG.info("start init");
-        List<GatewayBean> gatewayBeans = storageQuery.listGatewayBeans();
-        gatewayBeans.forEach(gtw -> {
-            IGatewayLink iGatewayLink = gatewayLinkFactory.create(gtw);
-            if (!oauthEndpointExists(iGatewayLink, gtw)) {
-                initGatewayOauthEndpoint(iGatewayLink, gtw);
-            }//else nothing to do
-        });
+        try{
+            List<GatewayBean> gatewayBeans = storageQuery.listGatewayBeans();
+            gatewayBeans.forEach(gtw -> {
+                IGatewayLink iGatewayLink = gatewayLinkFactory.create(gtw);
+                if (!oauthEndpointExists(iGatewayLink, gtw)) {
+                    initGatewayOauthEndpoint(iGatewayLink, gtw);
+                }//else nothing to do
+            });
+        }catch (StorageException ex){
+            _LOG.error(ex.getMessage());
+        }
     }
 
     /**

@@ -565,7 +565,12 @@ public class GatewayClient {
     }
 
     public KongApi getApi(String id){
-        return httpClient.getApi(id);
+        try{
+            return httpClient.getApi(id);
+        }catch(RetrofitError err){
+            //expected := no api found with given id
+            return null;
+        }
     }
 
     public void deleteConsumer(String id){

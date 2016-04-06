@@ -1,12 +1,10 @@
 package com.t1t.digipolis.apim;
 
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
@@ -34,12 +32,7 @@ public class AppConfig implements Serializable {
 
     @PostConstruct
     public void postInit() {
-        try {
             initConfig();
-            startupService.initOAuthOnGateways();
-        } catch (StorageException e) {
-            _LOG.error(e.getMessage());
-        }
     }
 
     public void initConfig(){
