@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.gateway.rest;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
@@ -48,8 +49,6 @@ import org.elasticsearch.gateway.GatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
-
-import javax.inject.Inject;
 import java.util.*;
 
 /**
@@ -65,6 +64,7 @@ public class GatewayClient {
     private static final ObjectMapper mapper = new ObjectMapper();
     private static String metricsURI;
     private static String AUTH_API_KEY = "apikey";
+    private static final String DUMMY_UPSTREAM_URI = "http://localhost:3000";
 
     /**
      * Constructor.
@@ -203,6 +203,49 @@ public class GatewayClient {
     }
 
     /**
+     * Publishes a dummy endpoint on the given gateway that can be used as a single point of OAuth 2 Authorization.
+     * The endpoint is merely a service endpoint with dummy upstream, where OAuth policy applies.
+     * The endpoint is prefixed by a gateway context, this can only be used when services with oauth enabled policies are
+     * registered after the given gateway path.
+     * The dummy endpoint should be kept updated with all published and prefixed scopes of endpoints.
+     *
+     * Introducing this centralized OAuth endpoint is complementary to the Oauth endpoints defined on service level.
+     *
+     * @throws PublishingException
+     */
+    public void publishGatewayOAuthEndpoint(Gateway gtw)throws PublishingException{
+        KongApi api = new KongApi();
+        api.setStripRequestPath(true);
+        api.setName(gtw.getId().toLowerCase());
+        if(gtw.getOauthBasePath().startsWith("/")) api.setRequestPath(gtw.getOauthBasePath());
+        else api.setRequestPath("/"+gtw.getOauthBasePath());
+        api.setUpstreamUrl(DUMMY_UPSTREAM_URI);
+        log.info("Initialize oauth for gateway to Kong:{}", api.toString());
+
+        //safe publish
+        api = publishAPIWithFallback(api);
+
+        //apply OAuth policy
+        registerDefaultOAuthPolicy(api);
+    }
+
+    private KongApi publishAPIWithFallback(KongApi api){
+        try{
+            //If service exists already on the gateway due to an invalid action before, delete the existing with the same name (republish)
+            KongApi existingAPI = httpClient.getApi(api.getName());
+            if(existingAPI!=null&&!StringUtils.isEmpty(existingAPI.getId())){
+                //the API exists already - please override - this is restricted due to the naming convention
+                httpClient.deleteApi(api.getId());
+            }
+        }catch (Exception ex){
+            //start new client to comm with kong
+            log.info("Warning during service publication: {}",ex.getMessage());
+            //continue
+        }
+        return httpClient.addApi(api);
+    }
+
+    /**
      * Publishes an API to the kong gateway.
      * The properties path and target_url are variable, and will be retrieved from the service dto.
      * The properties strip_path, preserve_host and public_dns will be set equally for all registered endpoints
@@ -234,20 +277,9 @@ public class GatewayClient {
         //context path that will be stripped away
         api.setRequestPath(validateServicePath(service));
         log.info("Send to Kong:{}", api.toString());
-        //TODO validate if path exists - should be done in GUI, but here it's possible that another user registered using the same path variable.
-        try{
-            //If service exists already on the gateway due to an invalid action before, delete the existing with the same name (republish)
-            KongApi existingAPI = httpClient.getApi(api.getName());
-            if(existingAPI!=null&&!StringUtils.isEmpty(existingAPI.getId())){
-                //the API exists already - please override - this is restricted due to the naming convention
-                httpClient.deleteApi(api.getId());
-            }
-        }catch (Exception ex){
-            //start new client to comm with kong
-            log.info("Warning during service publication: {}",ex.getMessage());
-            //continue
-        }
-        api = httpClient.addApi(api);
+
+        //safe publish API
+        api = publishAPIWithFallback(api);
 
         //flag for custom CORS policy
         boolean customCorsFlag = false;
@@ -410,6 +442,23 @@ public class GatewayClient {
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.CORS.getKongIdentifier())
                 .withConfig(corsPolicy);
+        httpClient.createPluginConfig(api.getId(),config);
+    }
+
+    private void registerDefaultOAuthPolicy(KongApi api){
+        KongPluginOAuthEnhanced oauthPlugin = new KongPluginOAuthEnhanced();
+        oauthPlugin.setEnableAuthorizationCode(true);
+        oauthPlugin.setEnableClientCredentials(true);
+        oauthPlugin.setEnableImplicitGrant(true);
+        oauthPlugin.setEnablePasswordGrant(true);
+        oauthPlugin.setHideCredentials(false);
+        oauthPlugin.setMandatoryScope(true);
+        oauthPlugin.setScopes(new ArrayList<>());
+        oauthPlugin.setTokenExpiration(new Integer(7200));
+        oauthPlugin.setProvisionKey(UUID.randomUUID().toString());
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(Policies.OAUTH2.getKongIdentifier())
+                .withConfig(oauthPlugin);
         httpClient.createPluginConfig(api.getId(),config);
     }
 

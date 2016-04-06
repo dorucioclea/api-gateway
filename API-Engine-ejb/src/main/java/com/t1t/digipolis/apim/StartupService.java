@@ -1,8 +1,10 @@
 package com.t1t.digipolis.apim;
 
+import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Service;
@@ -28,9 +30,6 @@ import java.util.List;
 @Default
 public class StartupService {
     private static final Logger _LOG = LoggerFactory.getLogger(StartupService.class.getName());
-    private static final String DUMMY_UPSTREAM_URI = "http://localhost:3000";
-    private static final String GTW_SERVICE_PREFIX = "org";
-    private static final String GTW_SERVICE_VERSION = "v1";
     @Inject
     private IStorageQuery storageQuery;
     @Inject
@@ -59,13 +58,14 @@ public class StartupService {
      * @param gtw
      */
     private void initGatewayOauthEndpoint(IGatewayLink gatewayLink, GatewayBean gtw) {
-        Service gtwApi = new Service();
-        gtwApi.setBasepath(gtw.getOauthContext());
-        gtwApi.setEndpoint(DUMMY_UPSTREAM_URI);
-        gtwApi.setOrganizationId(GTW_SERVICE_PREFIX);//version will not change, but provided conventionally
-        gtwApi.setServiceId(gtw.getId().toLowerCase());
-        gtwApi.setVersion(GTW_SERVICE_VERSION);
-        gtwApi.setPublicService(true);
+        Gateway gtwDto = new Gateway();
+        gtwDto.setId(gtw.getId());
+        gtwDto.setOauthBasePath(gtw.getOauthContext());
+        try {
+            gatewayLink.publishGatewayOAuthEndpoint(gtwDto);
+        } catch (GatewayAuthenticationException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.gateway;
 
+import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
@@ -46,6 +47,15 @@ public interface IGatewayLink {
      * @throws GatewayAuthenticationException when unable to authenticate with gateway  
      */
     public void publishService(Service service) throws PublishingException, GatewayAuthenticationException;
+
+    /**
+     * Published a centralized OAuth authorization and token endpoint for a gateway.
+     *
+     * @param gateway
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+    public void publishGatewayOAuthEndpoint(Gateway gateway)throws PublishingException, GatewayAuthenticationException;
 
     /**
      * Retires (removes) a {@link Service} from the registry.
