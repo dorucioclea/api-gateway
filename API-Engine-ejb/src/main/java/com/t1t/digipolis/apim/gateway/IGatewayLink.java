@@ -58,6 +58,15 @@ public interface IGatewayLink {
     public void publishGatewayOAuthEndpoint(Gateway gateway)throws PublishingException, GatewayAuthenticationException;
 
     /**
+     * Add the OAuth scopes enabled on the api to the centralized OAuth endpoints.
+     *
+     * @param api
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+ //   public void addGatewayOAuthScopes(KongApi api)throws PublishingException, GatewayAuthenticationException;
+
+    /**
      * Retires (removes) a {@link Service} from the registry.
      * @param service the service to retire/remove
      * @throws PublishingException when unable to retire service
