@@ -733,7 +733,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
-        log.info("malaka10:{}", bean);
         //validate no other policy of the same type has been added for this service - only on policy of the same type is allowed
         List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
         for (PolicySummaryBean polsum : policies) {
@@ -2406,14 +2405,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @throws NotAuthorizedException
      */
     protected PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion, NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
-        log.info("malaka11:{}", bean);
         if (bean.getDefinitionId() == null) {
             ExceptionFactory.policyDefNotFoundException("null"); //$NON-NLS-1$
         }
         PolicyDefinitionBean def = null;
         try {
             def = storage.getPolicyDefinition(bean.getDefinitionId());
-            log.info("malaka20:{}", def);
             if (def == null) {
                 throw ExceptionFactory.policyDefNotFoundException(bean.getDefinitionId());
             }
@@ -2434,12 +2431,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setDefinition(def);
             policy.setName(def.getName());
             //validate (remove null values) and apply custom implementation for the policy
-            log.info("malaka12:{}", bean);
-            log.info("malaka12-def:{}", def);
             String policyJsonConfig = GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration())).getPolicyJsonConfig();
-            log.info("malaka12-validationresult:{}", policyJsonConfig);
             policy.setConfiguration(policyJsonConfig);
-            log.info("malaka13:{}", policy);
             policy.setCreatedBy(securityContext.getCurrentUser());
             policy.setCreatedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
