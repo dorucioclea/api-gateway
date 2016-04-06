@@ -114,15 +114,14 @@ public class GatewayValidation {
      */
     public static synchronized Policy validateOAuth(Policy policy){
         Gson gson = new Gson();
-        _LOG.info("malaka3:{}", policy);
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
-        _LOG.info("malaka4:{}", oauthValue);
         if(oauthValue.getScopes().size()==0)throw new PolicyViolationException("Scopes/scopes description must be provided in order to apply OAuth2");
         //create custom provisionkey - explicitly
         oauthValue.setProvisionKey(UUID.randomUUID().toString());
-        _LOG.info("malaka5:{}", oauthValue);
-        _LOG.debug("Modified policy:{}",policy);
-        return policy;
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(oauthValue,KongPluginOAuth.class));
+        return responsePolicy;
     }
 
     /**
@@ -135,7 +134,6 @@ public class GatewayValidation {
         //we can be sure this is an OAuth Policy
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
-        _LOG.info("malaka6:{}", oauthValue);
         KongPluginOAuthEnhanced newOAuthValue = new KongPluginOAuthEnhanced();
         newOAuthValue.setEnableImplicitGrant(oauthValue.getEnableImplicitGrant());
         newOAuthValue.setEnableAuthorizationCode(oauthValue.getEnableAuthorizationCode());
@@ -150,15 +148,11 @@ public class GatewayValidation {
         for(KongPluginOAuthScope scope:scopeObjects){
             scopes.add(scope.getScope());
         }
-        _LOG.info("malaka7:{}", scopes);
         newOAuthValue.setScopes(scopes);
         //perform enhancements
         Policy responsePolicy = new Policy();
-        _LOG.info("malaka8:{}", policy);
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
-        _LOG.info("malaka9:{}", responsePolicy);
-        _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }
 

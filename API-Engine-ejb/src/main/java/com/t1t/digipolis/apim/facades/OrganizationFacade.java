@@ -2435,7 +2435,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setName(def.getName());
             //validate (remove null values) and apply custom implementation for the policy
             log.info("malaka12:{}", bean);
-            policy.setConfiguration(GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration())).getPolicyJsonConfig());
+            log.info("malaka12-def:{}", def);
+            String policyJsonConfig = GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration())).getPolicyJsonConfig();
+            log.info("malaka12-validationresult:{}", policyJsonConfig);
+            policy.setConfiguration(policyJsonConfig);
             log.info("malaka13:{}", policy);
             policy.setCreatedBy(securityContext.getCurrentUser());
             policy.setCreatedOn(new Date());
