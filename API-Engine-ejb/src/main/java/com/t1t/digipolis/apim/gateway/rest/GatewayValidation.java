@@ -35,6 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.t1t.digipolis.apim.beans.policies.Policies.BASICAUTHENTICATION;
+import static com.t1t.digipolis.apim.beans.policies.Policies.CORS;
+
 /**
  * Created by michallispashidis on 30/09/15.
  */
@@ -50,8 +53,9 @@ public class GatewayValidation {
         }
     }
 
-    public static Policy validate(Policy policy) throws PolicyViolationException{
+   public static Policy validate(Policy policy) throws PolicyViolationException{
         _LOG.debug("Valdiate policy:{}", policy);
+        _LOG.info("malaka1:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
         switch(policies){
@@ -64,7 +68,10 @@ public class GatewayValidation {
             case TCPLOG: return validateTCPLog(policy);
             case IPRESTRICTION: return validateIPRestriction(policy);
             case KEYAUTHENTICATION: return validateKeyAuth(policy);
-            case OAUTH2: return validateOAuth(policy);
+            case OAUTH2:
+                Policy pol = validateOAuth(policy);
+                _LOG.info("malaka2:{}", policy);
+                return pol;
             case RATELIMITING: return validateRateLimiting(policy);
             case REQUESTSIZELIMITING: return validateRequestSizeLimiting(policy);
             case REQUESTTRANSFORMER: return validateRequestTransformer(policy);
@@ -107,10 +114,13 @@ public class GatewayValidation {
      */
     public static synchronized Policy validateOAuth(Policy policy){
         Gson gson = new Gson();
+        _LOG.info("malaka3:{}", policy);
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        _LOG.info("malaka4:{}", oauthValue);
         if(oauthValue.getScopes().size()==0)throw new PolicyViolationException("Scopes/scopes description must be provided in order to apply OAuth2");
         //create custom provisionkey - explicitly
         oauthValue.setProvisionKey(UUID.randomUUID().toString());
+        _LOG.info("malaka5:{}", oauthValue);
         _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
@@ -125,6 +135,7 @@ public class GatewayValidation {
         //we can be sure this is an OAuth Policy
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        _LOG.info("malaka6:{}", oauthValue);
         KongPluginOAuthEnhanced newOAuthValue = new KongPluginOAuthEnhanced();
         newOAuthValue.setEnableImplicitGrant(oauthValue.getEnableImplicitGrant());
         newOAuthValue.setEnableAuthorizationCode(oauthValue.getEnableAuthorizationCode());
@@ -139,11 +150,14 @@ public class GatewayValidation {
         for(KongPluginOAuthScope scope:scopeObjects){
             scopes.add(scope.getScope());
         }
+        _LOG.info("malaka7:{}", scopes);
         newOAuthValue.setScopes(scopes);
         //perform enhancements
         Policy responsePolicy = new Policy();
+        _LOG.info("malaka8:{}", policy);
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
+        _LOG.info("malaka9:{}", responsePolicy);
         _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }

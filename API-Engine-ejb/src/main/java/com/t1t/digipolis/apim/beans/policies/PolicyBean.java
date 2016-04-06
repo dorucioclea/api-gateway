@@ -315,17 +315,24 @@ public class PolicyBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "PolicyBean [id=" + id + ", type=" + type + ", organizationId=" + organizationId
-                + ", entityId=" + entityId + ", entityVersion=" + entityVersion + ", name=" + name
-                + ", description=" + description + ", configuration=***, createdBy="
-                + createdBy + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy + ", modifiedOn="
-                + modifiedOn + ", definition=" + definition + ", orderIndex=" + orderIndex + ", policyId" + kongPluginId + "]";
+        return "PolicyBean{" +
+                "id=" + id +
+                ", type=" + type +
+                ", organizationId='" + organizationId + '\'' +
+                ", entityId='" + entityId + '\'' +
+                ", entityVersion='" + entityVersion + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", configuration='" + configuration + '\'' +
+                ", createdBy='" + createdBy + '\'' +
+                ", createdOn=" + createdOn +
+                ", modifiedBy='" + modifiedBy + '\'' +
+                ", modifiedOn=" + modifiedOn +
+                ", orderIndex=" + orderIndex +
+                ", kongPluginId='" + kongPluginId + '\'' +
+                ", contractId=" + contractId +
+                '}';
     }
-
 }

@@ -79,12 +79,13 @@ public class NewPolicyBean implements Serializable {
         this.contractId = contractId;
     }
 
-    /* (non-Javadoc)
-             * @see java.lang.Object#toString()
-             */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "NewPolicyBean [definitionId=" + definitionId + ", configuration=***, kongPluginId=" + kongPluginId + "]";
+        return "NewPolicyBean{" +
+                "definitionId='" + definitionId + '\'' +
+                ", configuration='" + configuration + '\'' +
+                ", kongPluginId='" + kongPluginId + '\'' +
+                ", contractId=" + contractId +
+                '}';
     }
 }
