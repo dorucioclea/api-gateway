@@ -76,7 +76,7 @@ public class StartupService {
      * @return
      */
     private boolean oauthEndpointExists(IGatewayLink gatewayLink, GatewayBean gtw) {
-        KongApi gtwApi = gatewayLink.getApi(gtw.getId());
+        KongApi gtwApi = gatewayLink.getApi(gtw.getId().toLowerCase());
         if (gtwApi != null && gtwApi.getId() != null) return true;
         else return false;
     }

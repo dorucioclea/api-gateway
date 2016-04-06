@@ -35,7 +35,7 @@ public class GatewayBean implements Serializable {
     private String modifiedBy;
     @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
-    @Column(name = "aouth_token", nullable = true)
+    @Column(name = "oauth_token", nullable = true)
     private String oauthTokenPath;
     @Column(name = "oauth_authorize", nullable = true)
     private String oauthAuthPath;

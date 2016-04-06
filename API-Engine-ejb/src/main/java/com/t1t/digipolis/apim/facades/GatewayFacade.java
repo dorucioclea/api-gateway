@@ -213,7 +213,9 @@ public class GatewayFacade {
      * @throws StorageException
      */
     public GatewaySummaryBean getDefaultGateway() throws StorageException {
-        return query.listGateways().get(0);
+        final List<GatewaySummaryBean> gatewaySummaryBeen = query.listGateways();
+        if(gatewaySummaryBeen!=null&&gatewaySummaryBeen.size()>0)return query.listGateways().get(0);
+        else return null;
     }
 
     /**
