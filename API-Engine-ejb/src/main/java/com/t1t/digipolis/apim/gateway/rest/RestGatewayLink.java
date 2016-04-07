@@ -20,6 +20,7 @@ import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.KongServiceBuilder;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
@@ -244,6 +245,16 @@ public class RestGatewayLink implements IGatewayLink {
             throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
         }
         getClient().publishGatewayOAuthEndpoint(gateway);
+    }
+
+    @Override
+    public void addGatewayOAuthScopes(KongApi api) throws PublishingException, GatewayAuthenticationException {
+
+    }
+
+    @Override
+    public void removeGatewayOAuthscopes(KongApi api) throws PublishingException, GatewayAuthenticationException {
+
     }
 
     /**

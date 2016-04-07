@@ -221,12 +221,32 @@ public class GatewayClient {
         else api.setRequestPath("/"+gtw.getOauthBasePath());
         api.setUpstreamUrl(DUMMY_UPSTREAM_URI);
         log.info("Initialize oauth for gateway to Kong:{}", api.toString());
-
         //safe publish
         api = publishAPIWithFallback(api);
-
         //apply OAuth policy
         registerDefaultOAuthPolicy(api);
+    }
+
+    public void addGatewayOAuthScopes(Gateway gtw, KongApi api){
+        Gson gson = new Gson();
+        final KongPluginConfig gtwPluginConfig = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        //get oauth scopes from api
+        final KongPluginConfig apiPluginConfig = httpClient.getKongPluginConfig(gtw.getId(),Policies.OAUTH2.getKongIdentifier());
+        KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(apiPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        List<Object> gtwScopes = gtwOAuthValue.getScopes();
+        final List<Object> apiScopes = apiOAuthValue.getScopes();
+        //avoid duplicates
+        gtwScopes.removeAll(apiScopes);
+        gtwScopes.addAll(apiScopes);
+        //persist scopes on oauth endpoint
+        //TODO PUT or patch
+    }
+
+    public void removeGatewayOAuthScopes(Gateway gtw, KongApi api){
+        Gson gson = new Gson();
+        final KongPluginConfig kongPluginConfig = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(kongPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
     }
 
     private KongApi publishAPIWithFallback(KongApi api){
