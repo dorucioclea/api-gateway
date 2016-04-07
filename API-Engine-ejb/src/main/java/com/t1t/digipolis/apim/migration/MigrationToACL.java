@@ -82,20 +82,21 @@ public class MigrationToACL {
                 //Get service contracts and apply ACL
                 List<ContractSummaryBean> contracts = query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 10000);
                 for (ContractSummaryBean contract : contracts) {
-                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(contract.getAppOrganizationName(), contract.getAppId(), contract.getAppVersion());
-                    /*
+                    String organizationId = contract.getAppOrganizationName();
+                    String applicationId = contract.getAppName();
+                    String version = contract.getAppVersion();
+                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                     //Add ACL group membership by default on gateway
                     KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
-                            ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
+                            ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
                     //Persist the unique Kong plugin id in a new policy associated with the app.
                     NewPolicyBean npb = new NewPolicyBean();
                     KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
                     npb.setDefinitionId(Policies.ACL.name());
                     npb.setKongPluginId(response.getId());
-                    npb.setContractId(contract.getId());
+                    npb.setContractId(contract.getContractId());
                     npb.setConfiguration(new Gson().toJson(conf));
-                    createAppPolicy(organizationId, applicationId, version, npb);
-                    */
+                    orgFacade.createAppPolicy(organizationId, applicationId, version, npb);
                 }
             }
         }
