@@ -173,22 +173,20 @@ public class ActionFacade {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
             List<ManagedApplicationBean> marketplaces = query.getMarketplaces();
-            List<NewPolicyBean> policies = new ArrayList<>();
-            String serviceName = ServiceConventionUtil.generateServiceUniqueName(gatewaySvc);
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                gatewayLink.publishService(gatewaySvc);
                 //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
                 for (ManagedApplicationBean marketplace : marketplaces) {
-                    String marketplaceId = ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace);
-                    KongPluginACLResponse response = gatewayLink.addConsumerToACL(marketplaceId, serviceName);
-                    KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+                    KongPluginACLResponse response = gatewayLink.addConsumerToACL(
+                            ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace),
+                            ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(Policies.ACL.name());
-                    npb.setConfiguration(new Gson().toJson(conf));
+                    npb.setConfiguration(new Gson().toJson(response));
                     npb.setKongPluginId(response.getId());
-                    orgFacade.createMarketplacePolicy(marketplace.getAvailability(), marketplace.getName(), marketplace.getVersion(), npb);
+                    orgFacade.createManagedApplicationPolicy(marketplace, npb);
                 }
-                gatewayLink.publishService(gatewaySvc);
                 gatewayLink.close();
             }
 

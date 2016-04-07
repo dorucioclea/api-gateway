@@ -259,6 +259,8 @@ public class GatewayClient {
         boolean flagOauth2 = false;
         //flag for custom Analytics policy
         boolean customAnalytics = false;
+        //flag for custom ACL policy
+        boolean customAclflag = false;
         //verify if api creation has been succesfull
         if(!StringUtils.isEmpty(api.getId())){
             try{
@@ -286,11 +288,10 @@ public class GatewayClient {
                         case RESPONSETRANSFORMER: createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(),Policies.RESPONSETRANSFORMER.getClazz());break;
                         case SSL: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.SSL.getClazz());break;
                         case ANALYTICS: createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());customAnalytics=true;break;
+                        case ACL: createServicePolicy(api, policy, Policies.ACL.getKongIdentifier(), Policies.ACL.getClazz()); customAclflag = true; break;
                         default:break;
                     }
                 }
-                //Apply ACL plugin by default. ACL group names are a convention, so they don't need to be persisted
-                createACLPlugin(service);
             }catch (Exception e){
                 //if anything goes wrong, return exception and rollback api created
                 if(api!=null&&!StringUtils.isEmpty(api.getId())){
@@ -298,7 +299,8 @@ public class GatewayClient {
                 }
             }
         }
-
+        //Apply ACL plugin by default. ACL group names are a convention, so they don't need to be persisted
+        if (!customAclflag) createACLPlugin(service);
         //add default CORS Policy if no custom CORS defined
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
         //don't apply on the UI a API key if OAuth2 enabled
