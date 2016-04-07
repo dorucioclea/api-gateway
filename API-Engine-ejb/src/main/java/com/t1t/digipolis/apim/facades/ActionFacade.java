@@ -53,8 +53,6 @@ import javax.persistence.PersistenceContext;
 import java.net.URL;
 import java.util.*;
 
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
-
 /**
  * Created by michallispashidis on 17/08/15.
  */
@@ -88,6 +86,8 @@ public class ActionFacade {
             case lockPlan:
                 lockPlan(action);
                 return;
+            case deprecateService:
+                deprecateService(action);
             default:
                 throw ExceptionFactory.actionException("Action type not supported: " + action.getType().toString()); //$NON-NLS-1$
         }
@@ -229,30 +229,7 @@ public class ActionFacade {
      * @param action
      */
     private void retireService(ActionBean action) throws ActionException {
-        if (!securityContext.hasPermission(PermissionType.svcAdmin, action.getOrganizationId()))
-            throw ExceptionFactory.notAuthorizedException();
-
-        ServiceVersionBean versionBean = null;
-        try {
-            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
-        } catch (ServiceVersionNotFoundException e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
-        }
-        // Verify that the service doesn't still have contracts before retiring
-        try {
-            List<ContractSummaryBean> contracts = query.getServiceContracts(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion(), 1, 1000);
-            if (contracts.size() > 0) {
-                throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
-            }
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
-
-        // Validate that it's ok to perform this action - service must be Ready.
-        if (versionBean.getStatus() != ServiceStatus.Published) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("InvalidServiceStatus")); //$NON-NLS-1$
-        }
+        ServiceVersionBean versionBean = getAndValidateServiceVersionBeanForStatusChange(action);
 
         Service gatewaySvc = new Service();
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
@@ -284,6 +261,38 @@ public class ActionFacade {
 
         log.debug(String.format("Successfully retired Service %s on specified gateways: %s", //$NON-NLS-1$
                 versionBean.getService().getName(), versionBean.getService()));
+    }
+
+    private void deprecateService(ActionBean action) {
+        ServiceVersionBean svb = getAndValidateServiceVersionBeanForStatusChange(action);
+
+            svb.setStatus(ServiceStatus.Deprecated);
+            svb.setDeprecatedOn(new Date());
+        try {
+            storage.updateServiceVersion(svb);
+            storage.createAuditEntry(AuditUtils.serviceRetired(svb, securityContext));
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("DeprecateError"), ex); //$NON-NLS-1$
+        }
+    }
+
+    private ServiceVersionBean getAndValidateServiceVersionBeanForStatusChange(ActionBean action) {
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, action.getOrganizationId()))
+            throw ExceptionFactory.notAuthorizedException();
+
+        ServiceVersionBean versionBean = null;
+        try {
+            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
+        } catch (ServiceVersionNotFoundException e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
+        }
+
+        // Validate that it's ok to perform this action - service must be Ready.
+        if (versionBean.getStatus() != ServiceStatus.Published) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("InvalidServiceStatus")); //$NON-NLS-1$
+        }
+        return versionBean;
     }
 
     /**
@@ -542,5 +551,4 @@ public class ActionFacade {
         log.debug(String.format("Successfully locked Plan %s: %s", //$NON-NLS-1$
                 versionBean.getPlan().getName(), versionBean.getPlan()));
     }
-
 }

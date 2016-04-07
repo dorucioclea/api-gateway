@@ -59,7 +59,7 @@ public class ActionResource implements IActionResource {
     @ApiOperation(value = "Execute an Entity Action (lifecycle related)",
             notes = "Call this endpoint in order to execute actions for entities such" +
                     " as Plans, Services, or Applications.  The type of the action must be" +
-                    " included in the request payload and can be one of: publishService, retireService, registerApplication, unregisterApplication, lockPlan .")
+                    " included in the request payload and can be one of: publishService, retireService, deprecateService, registerApplication, unregisterApplication, lockPlan .")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content"),
             @ApiResponse(code = 409, message = "service has contracts")

@@ -6,6 +6,6 @@ package com.t1t.digipolis.apim.beans.services;
  */
 public enum ServiceStatus {
 
-    Created, Ready, Published, Retired
+    Created, Ready, Published, Retired, Deprecated
     
 }

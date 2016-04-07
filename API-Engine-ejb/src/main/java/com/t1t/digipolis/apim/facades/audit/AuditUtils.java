@@ -709,6 +709,14 @@ public class AuditUtils {
         return entry;
     }
 
+    public static AuditEntryBean serviceDeprecated(ServiceVersionBean bean, ISecurityContext securityContext) {
+        AuditEntryBean entry = newEntry(bean.getService().getOrganization().getId(), AuditEntityType.Service, securityContext);
+        entry.setEntityId(bean.getService().getId());
+        entry.setEntityVersion(bean.getVersion());
+        entry.setWhat(AuditEntryType.Deprecate);
+        return entry;
+    }
+
     /**
      * Creates an audit entry for the 'application registered' event.
      * @param bean the bean
