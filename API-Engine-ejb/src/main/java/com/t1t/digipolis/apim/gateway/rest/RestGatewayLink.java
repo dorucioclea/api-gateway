@@ -249,12 +249,18 @@ public class RestGatewayLink implements IGatewayLink {
 
     @Override
     public void addGatewayOAuthScopes(KongApi api) throws PublishingException, GatewayAuthenticationException {
-
+        Gateway gtw = new Gateway();
+        gtw.setId(gateway.getId());
+        gtw.setOauthBasePath(gateway.getOauthContext());
+        getClient().addGatewayOAuthScopes(gtw,api);
     }
 
     @Override
     public void removeGatewayOAuthscopes(KongApi api) throws PublishingException, GatewayAuthenticationException {
-
+        Gateway gtw = new Gateway();
+        gtw.setId(gateway.getId());
+        gtw.setOauthBasePath(gateway.getOauthContext());
+        getClient().removeGatewayOAuthScopes(gtw,api);
     }
 
     /**

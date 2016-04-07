@@ -248,8 +248,20 @@ public class GatewayClient {
 
     public void removeGatewayOAuthScopes(Gateway gtw, KongApi api){
         Gson gson = new Gson();
-        final KongPluginConfig kongPluginConfig = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
-        KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(kongPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        final KongPluginConfig gtwPluginConfig = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        //get oauth scopes from api
+        final KongPluginConfig apiPluginConfig = httpClient.getKongPluginConfig(gtw.getId(),Policies.OAUTH2.getKongIdentifier());
+        KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(apiPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        List<Object> gtwScopes = gtwOAuthValue.getScopes();
+        final List<Object> apiScopes = apiOAuthValue.getScopes();
+        //avoid duplicates
+        gtwScopes.removeAll(apiScopes);
+        gtwOAuthValue.setScopes(gtwScopes);
+        //persist scopes on oauth endpoint
+        String updateOAuthConfig = gson.toJson(gtwOAuthValue, KongPluginOAuthEnhanced.class);
+        gtwPluginConfig.setConfig(updateOAuthConfig);
+        httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
     }
 
     private KongApi publishAPIWithFallback(KongApi api){

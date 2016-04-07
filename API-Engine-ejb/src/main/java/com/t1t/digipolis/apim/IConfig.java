@@ -23,6 +23,7 @@ public interface IConfig {
     String METRICS_DNS = "apiapp.metrics.url";
     String METRICS_PORT = "apiapp.metrics.ports.default";
     String CONSENT_URI = "apiapp.oauth.consent_uri";
+    String OAUTH_ENABLE_GTW_ENDPOINTS = "apiapp.oauth.enable_shared_endpoints";
     String DEFAULT_USER_ORGANIZATION = "apiapp.defaults.orgId";
     String DEFAULT_USER_ROLES_FOR_DEFAULT_ORG = "apiapp.defaults.roles";
     String SECURITY_REST_RESORUCES = "apiapp.security.rest_resources";
