@@ -494,7 +494,8 @@ public class UserFacade implements Serializable {
         Assertion assertion = null;
         IdentityAttributes idAttribs;
         utilPrintCache();
-        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
+        String urlEncodedRelaystate = URLEncoder.encode(relayState, "UTF-8");
+        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(urlEncodedRelaystate.trim());
         try {
             assertion = processSSOResponse(samlResponse);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
