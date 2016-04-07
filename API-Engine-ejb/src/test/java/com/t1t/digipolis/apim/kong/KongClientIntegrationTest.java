@@ -20,6 +20,7 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.Plugins;
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 import org.slf4j.Logger;
@@ -493,6 +494,47 @@ public class KongClientIntegrationTest {
         kongClient.deleteConsumer(consumer.getId());
     }
 
+    @Test
+    public void testACLPluginLifecycle() throws Exception {
+        //Create API you'll add ACL plugin to and consumer you'll add to group
+        KongApi api = createDummyApi(API_NAME, API_PATH, API_URL);
+        KongConsumer consumer = new KongConsumer().withUsername("aclconsumer");
+        api = kongClient.addApi(api);
+        consumer = kongClient.createConsumer(consumer);
+        //Create plugin
+        KongPluginConfig config = kongClient.createPluginConfig(api.getId(), createTestACLPlugin());
+        //Apply to consumer
+        KongPluginACLResponse response = kongClient.addConsumerToACL(consumer.getId(), new KongPluginACLRequest()
+                .withGroup("org.serv.version"));
+        //Delete consumer plugin
+        Object deleteConsumerPluginResponse = kongClient.deleteConsumerACLEntry(consumer.getId(), response.getId());
+        //Delete API plugin
+        Object deleteAPIPluginResponse = kongClient.deletePlugin(api.getId(), config.getId());
+        //Clean up
+        kongClient.deleteConsumer(consumer.getId());
+        kongClient.deleteApi(api.getId());
+        //Assertions
+        assertNotNull(config);
+        assertNotNull(response);
+        assertNull(deleteConsumerPluginResponse);
+        assertNull(deleteAPIPluginResponse);
+    }
+
+    @Test
+    public void addConsumerTo1000ACLs() {
+        KongConsumer consumer = new KongConsumer().withUsername("misterpopular");
+        consumer = kongClient.createConsumer(consumer);
+        String acl = "orgid.archid.v%d";
+        List<KongPluginACLResponse> responses = new ArrayList<>();
+        for (int i = 0; i < 1000; i++) {
+            responses.add(kongClient.addConsumerToACL(consumer.getId(), new KongPluginACLRequest().withGroup(String.format(acl, i))));
+        }
+        kongClient.deleteConsumer(consumer.getId());
+        for (KongPluginACLResponse response : responses) {
+            assertNotNull(response);
+        }
+    }
+
     @Test(expected = RetrofitError.class)
     public void getNonExistingConsumer(){
         KongConsumer consumer = kongClient.getConsumer("nonexistingid");
@@ -550,6 +592,16 @@ public class KongClientIntegrationTest {
                 .withConfig(rateLimitingConfig);
         print(pluginConfig);
         return pluginConfig;
+    }
+
+    private KongPluginConfig createTestACLPlugin() {
+        KongPluginACL kongPluginACL = new KongPluginACL()
+                .withWhitelist(Arrays.asList("orgid.serv.version"));
+        KongPluginConfig config = new KongPluginConfig()
+                .withName("acl")
+                .withConfig(kongPluginACL);
+        print(config);
+        return config;
     }
 
     private KongPluginConfig createTestOAuthPlugin(){

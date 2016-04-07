@@ -259,6 +259,8 @@ public class GatewayClient {
         boolean flagOauth2 = false;
         //flag for custom Analytics policy
         boolean customAnalytics = false;
+        //flag for custom ACL policy
+        boolean customAclflag = false;
         //verify if api creation has been succesfull
         if(!StringUtils.isEmpty(api.getId())){
             try{
@@ -286,6 +288,7 @@ public class GatewayClient {
                         case RESPONSETRANSFORMER: createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(),Policies.RESPONSETRANSFORMER.getClazz());break;
                         case SSL: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.SSL.getClazz());break;
                         case ANALYTICS: createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());customAnalytics=true;break;
+                        case ACL: createServicePolicy(api, policy, Policies.ACL.getKongIdentifier(), Policies.ACL.getClazz()); customAclflag = true; break;
                         default:break;
                     }
                 }
@@ -296,7 +299,8 @@ public class GatewayClient {
                 }
             }
         }
-
+        //Apply ACL plugin by default. ACL group names are a convention, so they don't need to be persisted
+        if (!customAclflag) createACLPlugin(service);
         //add default CORS Policy if no custom CORS defined
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
         //don't apply on the UI a API key if OAuth2 enabled
@@ -541,6 +545,41 @@ public class GatewayClient {
         httpClient.deleteOAuth2Credential(consumerId, oauthPluginId);
     }
 
+    /**
+     * Enables ACL on a service and adds the service unique name to the group whitelist
+     *
+     * @param service the service on wich to enable ACL
+     * @return
+     */
+    public KongPluginConfig createACLPlugin(Service service) {
+        String uniqueName = ServiceConventionUtil.generateServiceUniqueName(service);
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(Policies.ACL.getKongIdentifier())
+                .withConfig(new KongPluginACL()
+                        .withWhitelist(Arrays.asList(uniqueName)));
+        return httpClient.createPluginConfig(uniqueName, config);
+    }
+
+    /**
+     * Adds a consumer to a service's ACL
+     *
+     * @param consumerId the consumer to add to an ACL
+     * @param serviceVersionId the service ACL to which the consumer should be added
+     * @return
+     */
+    public KongPluginACLResponse addConsumerToACL(String consumerId, String serviceVersionId) {
+        return httpClient.addConsumerToACL(consumerId, new KongPluginACLRequest().withGroup(serviceVersionId));
+    }
+
+    /**
+     * Removes a consumer from a service's ACL
+     *
+     * @param consumerId the consumer to remove from an ACL
+     * @param pluginId the pluginId corresponding to the consumer's ACL membership
+     */
+    public void deleteConsumerACLPlugin(String consumerId, String pluginId) {
+        httpClient.deleteConsumerACLEntry(consumerId, pluginId);
+    }
     /*Service policies*/
 
     /**

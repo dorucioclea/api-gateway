@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "group": {
+      "id": "group",
+      "type": "string"
+      },
+    "consumer_id": {
+      "id": "consumer_id",
+      "type": "string"
+    },
+    "created_at": {
+      "id": "created_at",
+      "type": "number"
+    },
+    "id": {
+      "id": "id",
+      "type": "string"
+    }
+  }
+}

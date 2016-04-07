@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "data": {
+      "id": "kongPluginACLResponse",
+      "type": "array",
+      "items": {
+        "$ref":"KongPluginACLResponse.json"
+      }
+    },
+    "next": {
+      "id": "next",
+      "type": "string"
+    }
+  }
+}

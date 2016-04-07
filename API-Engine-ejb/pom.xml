@@ -393,6 +393,10 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongConsumerList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongInfo.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongInstalledPlugins.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginACL.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginACLRequest.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginACLResponse.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginACLResponseList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuth.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginConfig.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginConfigList.json</sourcePath>

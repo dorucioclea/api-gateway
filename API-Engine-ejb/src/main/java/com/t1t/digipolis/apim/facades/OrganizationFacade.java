@@ -17,6 +17,7 @@ import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
 import com.t1t.digipolis.apim.beans.metrics.AppUsagePerServiceBean;
@@ -53,18 +54,8 @@ import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
@@ -382,6 +373,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return doCreatePolicy(organizationId, applicationId, version, bean, PolicyType.Application);
     }
 
+    public PolicyBean createManagedApplicationPolicy(ManagedApplicationBean managedApp, NewPolicyBean bean) {
+        return doCreatePolicy(managedApp.getAvailability(), managedApp.getName(), managedApp.getVersion(), bean, PolicyType.Marketplace);
+    }
+
     public PolicyBean getAppPolicy(String organizationId, String applicationId, String version, long policyId) {
         boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
         // Make sure the app version exists
@@ -415,6 +410,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 if (contract != null) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                     gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+                    //Add ACL group membership by default on gateway
+                    KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
+                            ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
+                    //Persist the unique Kong plugin id in a new policy associated with the app.
+                    NewPolicyBean npb = new NewPolicyBean();
+                    KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+                    npb.setDefinitionId(Policies.ACL.name());
+                    npb.setKongPluginId(response.getId());
+                    npb.setContractId(contract.getId());
+                    npb.setConfiguration(new Gson().toJson(conf));
+                    createAppPolicy(organizationId, applicationId, version, npb);
                 }
             } catch (Exception e) {
                 //apikey for consumer already exists
@@ -1174,6 +1180,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             } catch (StorageException e) {
                 throw new ApplicationNotFoundException(e.getMessage());
             }
+            //Revoke application's ACL membership
+            try {
+                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId);
+                if (policy == null) {
+                    throw ExceptionFactory.policyNotFoundException(0);
+                }
+                gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version), policy.getKongPluginId());
+                deleteAppPolicy(organizationId, applicationId, version, policy.getId());
+            }
+            catch (StorageException ex) {
+                throw new SystemErrorException(ex);
+            }
             //remove contract
             storage.deleteContract(contract);
             //validate application state
@@ -1341,17 +1360,20 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
             versions.stream().forEach(version -> {
 
-                // Remove any existing contracts
+                // (Remove any existing contracts) Instead of removing existing contrasts, throw error if there still are any.
                 try {
                     List<ContractSummaryBean> contracts = query.getServiceContracts(version.getOrganizationId(), version.getId(), version.getVersion(), 1, 1000);
-                    contracts.stream().forEach(contract -> {
+                    if (contracts.size() > 0) {
+                        throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
+                    }
+                    /*contracts.stream().forEach(contract -> {
                         try {
                             ContractBean contractBean = storage.getContract(contract.getContractId());
                             storage.deleteContract(contractBean);
                         } catch (StorageException e) {
                             throw new SystemErrorException(e);
                         }
-                    });
+                    });*/
                 } catch (StorageException e) {
                     throw new SystemErrorException(e);
                 }
@@ -1374,6 +1396,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         throw new SystemErrorException(e);
                     }
                 });
+
+                //Revoke marketplace ACL memberships
+                try {
+                    List<PolicyBean> aclPolicies = query.getMarketplaceACLPolicies(organizationId, serviceId, version.getVersion());
+                    for (PolicyBean policy : aclPolicies) {
+                        gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
+                        storage.deletePolicy(policy);
+                    }
+                }
+                catch (StorageException ex) {
+                    throw new SystemErrorException(ex);
+                }
 
                 // Remove gateway config & plan configuration for service version
                 ServiceVersionBean svb = getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
@@ -1426,7 +1460,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             announcements.stream().forEach(announcement -> {
                 deleteServiceAnnouncement(organizationId, serviceId, announcement.getId());
             });
-
             // Finally, delete the Service from API Engine
             storage.deleteService(serviceBean);
         } catch (AbstractRestException e) {
@@ -2398,7 +2431,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setDefinition(def);
             policy.setName(def.getName());
             //validate (remove null values) and apply custom implementation for the policy
-            policy.setConfiguration(GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration())).getPolicyJsonConfig());
+            String policyJsonConfig = GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration())).getPolicyJsonConfig();
+            policy.setConfiguration(policyJsonConfig);
             policy.setCreatedBy(securityContext.getCurrentUser());
             policy.setCreatedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
@@ -2408,6 +2442,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setEntityVersion(entityVersion);
             policy.setType(type);
             policy.setOrderIndex(newIdx);
+            policy.setKongPluginId(bean.getKongPluginId());
+            policy.setContractId(bean.getContractId());
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
             //PolicyTemplateUtil.generatePolicyDescription(policy);

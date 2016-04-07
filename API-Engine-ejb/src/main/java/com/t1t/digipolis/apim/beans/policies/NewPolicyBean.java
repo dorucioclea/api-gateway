@@ -12,6 +12,8 @@ public class NewPolicyBean implements Serializable {
 
     private String definitionId;
     private String configuration;
+    private String kongPluginId;
+    private Long contractId;
 
     /**
      * Constructor.
@@ -47,12 +49,43 @@ public class NewPolicyBean implements Serializable {
         this.definitionId = definitionId;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
+    /**
+     *
+     * @return the kongPluginId
      */
+    public String getKongPluginId() {
+        return kongPluginId;
+    }
+
+    /**
+     *
+     * @param kongPluginId the kongPluginId to set
+     */
+    public void setKongPluginId(String kongPluginId) {
+        this.kongPluginId = kongPluginId;
+    }
+
+    /**
+     * @return the contractId
+     */
+    public Long getContractId() {
+        return contractId;
+    }
+
+    /**
+     * @param contractId the contractId to set
+     */
+    public void setContractId(Long contractId) {
+        this.contractId = contractId;
+    }
+
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "NewPolicyBean [definitionId=" + definitionId + ", configuration=***]";
+        return "NewPolicyBean{" +
+                "definitionId='" + definitionId + '\'' +
+                ", configuration='" + configuration + '\'' +
+                ", kongPluginId='" + kongPluginId + '\'' +
+                ", contractId=" + contractId +
+                '}';
     }
 }
