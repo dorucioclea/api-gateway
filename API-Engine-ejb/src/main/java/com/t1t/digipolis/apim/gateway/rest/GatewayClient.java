@@ -227,7 +227,7 @@ public class GatewayClient {
         registerDefaultOAuthPolicy(api);
     }
 
-    public void addGatewayOAuthScopes(Gateway gtw, KongApi api){
+    public void addGatewayOAuthScopes(GatewayBean gtw, KongApi api){
         Gson gson = new Gson();
         final KongPluginConfig gtwPluginConfig = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
         KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
@@ -246,7 +246,7 @@ public class GatewayClient {
         httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
     }
 
-    public void removeGatewayOAuthScopes(Gateway gtw, KongApi api){
+    public void removeGatewayOAuthScopes(GatewayBean gtw, KongApi api){
         Gson gson = new Gson();
         final KongPluginConfig gtwPluginConfig = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
         KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
@@ -347,7 +347,7 @@ public class GatewayClient {
                         case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
                         //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
                         case OAUTH2: KongPluginConfig config = createServicePolicy(api, GatewayValidation.validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
-                            log.info("start post oauth2 actions");flagOauth2=true;postOAuth2Actions(service, policy,config);break;//upon transformation we use another enhanced object for json deserialization
+                            log.info("start post oauth2 actions");flagOauth2=true;postOAuth2Actions(service, policy, config, api);break;//upon transformation we use another enhanced object for json deserialization
                         case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
                         case JWT: createServicePolicy(api,policy,Policies.JWT.getKongIdentifier(),Policies.JWT.getClazz());break;
                         case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
@@ -376,7 +376,6 @@ public class GatewayClient {
         //add default Galileo policy
         //if(!customAnalytics)registerDefaultAnalyticsPolicy(api);
         //default enable jwt validation for a service - authorization bearer or jwt fieldname accepted by default
-        //registerDefaultJWTPolicy(api);
     }
 
     /**
@@ -385,7 +384,7 @@ public class GatewayClient {
      *
      * @param policy
      */
-    private void postOAuth2Actions(Service service, Policy policy, KongPluginConfig config) {
+    private void postOAuth2Actions(Service service, Policy policy, KongPluginConfig config, KongApi api) {
         Preconditions.checkNotNull(service);
         Preconditions.checkNotNull(policy);
         Preconditions.checkNotNull(config);
@@ -405,6 +404,10 @@ public class GatewayClient {
             }
             svb.setOauthScopes(scopeMap);
             storage.updateServiceVersion(svb);
+            //publish scopes to central endpoint if configured
+            if(appConfig.getOAuthEnableGatewayEnpoints()){
+                addGatewayOAuthScopes(gatewayBean, api);
+            }
         } catch (StorageException e) {
             throw new GatewayException("Error update service version bean with OAuth2 info:"+e.getMessage());
         }
@@ -526,6 +529,11 @@ public class GatewayClient {
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         //create the service using path, and target_url
         String nameAndDNS = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
+        //preconditions to fullfill for certain policies (OAuth in first case)
+        KongPluginConfigList servicePlugins = getServicePlugins(nameAndDNS);
+        if(appConfig.getOAuthEnableGatewayEnpoints()){
+            removeGatewayOAuthScopes(gatewayBean,getApi(nameAndDNS));
+        }
         httpClient.deleteApi(nameAndDNS);
     }
 
