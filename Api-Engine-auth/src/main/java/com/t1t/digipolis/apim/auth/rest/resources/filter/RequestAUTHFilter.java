@@ -39,7 +39,7 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
         String appId = containerRequestContext.getHeaderString(HEADER_CONSUMER_USERNAME);
         try {
             if(!config.getRestAuthResourceSecurity()){
-                securityAppContext.setCurrentApplication("dummyapp");
+                securityAppContext.setCurrentApplication("dummyorg.dummyapp.version");
             }else {
                 securityAppContext.setCurrentApplication(appId);
             }

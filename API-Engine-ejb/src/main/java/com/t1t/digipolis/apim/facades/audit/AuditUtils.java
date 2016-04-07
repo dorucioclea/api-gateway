@@ -517,15 +517,17 @@ public class AuditUtils {
         entry.setEntityId(bean.getEntityId());
         entry.setEntityVersion(bean.getEntityVersion());
         switch (type) {
-        case Application:
-            entry.setEntityType(AuditEntityType.Application);
-            break;
-        case Plan:
-            entry.setEntityType(AuditEntityType.Plan);
-            break;
-        case Service:
-            entry.setEntityType(AuditEntityType.Service);
-            break;
+            case Application:
+                entry.setEntityType(AuditEntityType.Application);
+                break;
+            case Plan:
+                entry.setEntityType(AuditEntityType.Plan);
+                break;
+            case Service:
+                entry.setEntityType(AuditEntityType.Service);
+                break;
+            case Marketplace:
+                entry.setEntityType(AuditEntityType.Marketplace);
         }
         PolicyData data = new PolicyData();
         data.setPolicyDefId(bean.getDefinition().getId());

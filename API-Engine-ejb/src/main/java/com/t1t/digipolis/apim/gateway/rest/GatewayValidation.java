@@ -4,28 +4,11 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
-import com.t1t.digipolis.kong.model.KongPluginAnalytics;
-import com.t1t.digipolis.kong.model.KongPluginCors;
-import com.t1t.digipolis.kong.model.KongPluginJWT;
-import com.t1t.digipolis.kong.model.KongPluginFileLog;
-import com.t1t.digipolis.kong.model.KongPluginHttpLog;
-import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
-import com.t1t.digipolis.kong.model.KongPluginOAuth;
-import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
-import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
-import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
-import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
-import com.t1t.digipolis.kong.model.KongPluginRequestTransformerAdd;
-import com.t1t.digipolis.kong.model.KongPluginRequestTransformerRemove;
-import com.t1t.digipolis.kong.model.KongPluginResponseTransformer;
-import com.t1t.digipolis.kong.model.KongPluginResponseTransformerAdd;
-import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
-import com.t1t.digipolis.kong.model.KongPluginTcpLog;
-import com.t1t.digipolis.kong.model.KongPluginUdpLog;
+import com.t1t.digipolis.kong.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +17,9 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import static com.t1t.digipolis.apim.beans.policies.Policies.BASICAUTHENTICATION;
+import static com.t1t.digipolis.apim.beans.policies.Policies.CORS;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -50,7 +36,7 @@ public class GatewayValidation {
         }
     }
 
-    public static Policy validate(Policy policy) throws PolicyViolationException{
+   public static Policy validate(Policy policy) throws PolicyViolationException{
         _LOG.debug("Valdiate policy:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
@@ -64,7 +50,9 @@ public class GatewayValidation {
             case TCPLOG: return validateTCPLog(policy);
             case IPRESTRICTION: return validateIPRestriction(policy);
             case KEYAUTHENTICATION: return validateKeyAuth(policy);
-            case OAUTH2: return validateOAuth(policy);
+            case OAUTH2:
+                Policy pol = validateOAuth(policy);
+                return pol;
             case RATELIMITING: return validateRateLimiting(policy);
             case REQUESTSIZELIMITING: return validateRequestSizeLimiting(policy);
             case REQUESTTRANSFORMER: return validateRequestTransformer(policy);
@@ -72,8 +60,18 @@ public class GatewayValidation {
             case SSL: return validateSSL(policy);
             case ANALYTICS: return validateAnalytics(policy);
             case JWT: return validateJWT(policy);
+            case ACL: return validateACL(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
+    }
+
+    private static Policy validateACL(Policy policy) {
+        Gson gson = new Gson();
+        String group = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginACLResponse.class).getGroup();
+        Policy pol = new Policy();
+        pol.setPolicyImpl(policy.getPolicyImpl());
+        pol.setPolicyJsonConfig(gson.toJson(new KongPluginACLResponse().withGroup(group)));
+        return pol;
     }
 
     private static Policy validateJWT(Policy policy) {
@@ -102,11 +100,22 @@ public class GatewayValidation {
     public static synchronized Policy validateOAuth(Policy policy){
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
-        if(oauthValue.getScopes().size()==0)throw new PolicyViolationException("Scopes/scopes description must be provided in order to apply OAuth2");
+        List<KongPluginOAuthScope> scopes = oauthValue.getScopes();
+        List<KongPluginOAuthScope> responseScopes = new ArrayList<>();
+        for (KongPluginOAuthScope scope : scopes) {
+            if (!StringUtils.isEmpty(scope.getScope())) {
+                if (StringUtils.isEmpty(scope.getScopeDesc())) scope.setScopeDesc(scope.getScope());
+                responseScopes.add(scope);
+            }
+        }
+        if (responseScopes.isEmpty()) throw ExceptionFactory.invalidPolicyException("Scopes/scopes description must be provided in order to apply OAuth2");
         //create custom provisionkey - explicitly
+        oauthValue.setScopes(responseScopes);
         oauthValue.setProvisionKey(UUID.randomUUID().toString());
-        _LOG.debug("Modified policy:{}",policy);
-        return policy;
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(oauthValue,KongPluginOAuth.class));
+        return responsePolicy;
     }
 
     /**
@@ -138,7 +147,6 @@ public class GatewayValidation {
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
-        _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }
 

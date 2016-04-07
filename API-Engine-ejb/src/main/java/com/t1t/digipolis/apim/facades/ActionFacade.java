@@ -1,14 +1,19 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.google.common.io.Resources;
+import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
 import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
+import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
@@ -32,6 +37,9 @@ import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,15 +171,26 @@ public class ActionFacade {
             if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
+            List<ManagedApplicationBean> marketplaces = query.getMarketplaces();
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                 gatewayLink.publishService(gatewaySvc);
+                //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
+                for (ManagedApplicationBean marketplace : marketplaces) {
+                    KongPluginACLResponse response = gatewayLink.addConsumerToACL(
+                            ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace),
+                            ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
+                    NewPolicyBean npb = new NewPolicyBean();
+                    npb.setDefinitionId(Policies.ACL.name());
+                    npb.setConfiguration(new Gson().toJson(response));
+                    npb.setKongPluginId(response.getId());
+                    orgFacade.createManagedApplicationPolicy(marketplace, npb);
+                }
                 gatewayLink.close();
             }
 
             versionBean.setStatus(ServiceStatus.Published);
             versionBean.setPublishedOn(new Date());
-
             storage.updateServiceVersion(versionBean);
             storage.createAuditEntry(AuditUtils.servicePublished(versionBean, securityContext));
         } catch (PublishingException e) {
@@ -179,7 +198,6 @@ public class ActionFacade {
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         }
-
         log.debug(String.format("Successfully published Service %s on specified gateways: %s", //$NON-NLS-1$
                 versionBean.getService().getName(), versionBean.getService()));
     }
@@ -216,6 +234,15 @@ public class ActionFacade {
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
         gatewaySvc.setServiceId(versionBean.getService().getId());
         gatewaySvc.setVersion(versionBean.getVersion());
+        //Checks if service still has contracts
+        try {
+            if (!query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 1000).isEmpty()) {
+                throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
 
         // Retire the service from all relevant gateways
         try {
@@ -239,7 +266,6 @@ public class ActionFacade {
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
         }
-
         log.debug(String.format("Successfully retired Service %s on specified gateways: %s", //$NON-NLS-1$
                 versionBean.getService().getName(), versionBean.getService()));
     }

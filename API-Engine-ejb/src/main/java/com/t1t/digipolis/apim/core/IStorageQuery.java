@@ -8,6 +8,8 @@ import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -383,4 +385,30 @@ public interface IStorageQuery {
      */
     public List<BlacklistBean> listBlacklistRecords()throws StorageException;
 
+    /**
+     * Returns an ACL policybean for a given application
+     *
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @return
+     * @throws StorageException
+     */
+    public PolicyBean getApplicationACLPolicy(String organizationId, String applicationId, String version, Long contractId) throws StorageException;
+
+    /**
+     * Returns a list of all ManagedApplications of Marketplace type
+     *
+     * @return List of ManagedApplicationBeans
+     * @throws StorageException
+     */
+    public List<ManagedApplicationBean> getMarketplaces() throws StorageException;
+
+    /**
+     * Returns a List of ACL Policies associated with marketplaces
+     *
+     * @return List of Policies
+     * @throws StorageException
+     */
+    public List<PolicyBean> getMarketplaceACLPolicies(String organizationId, String serviceId, String version) throws StorageException;
 }

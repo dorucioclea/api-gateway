@@ -81,6 +81,7 @@ public final class ErrorCodes {
     public static final int SERVICE_STATUS_ERROR                = 5004;
     public static final int SERVICE_DEFINITION_NOT_FOUND        = 5005;
     public static final int SERVICE_VERSION_ALREADY_EXISTS      = 5006;
+    public static final int SERVICE_STILL_HAS_CONTRACTS         = 5009;
 
     public static final String SERVICE_ALREADY_EXISTS_INFO      = null;
     public static final String SERVICE_NOT_FOUND_INFO           = null;
@@ -123,6 +124,7 @@ public final class ErrorCodes {
     //
     // Policy related
     //
+    public static final int POLICY_INVALID                    = 9000;
     public static final int POLICY_NOT_FOUND                  = 9001;
 
     public static final String POLICY_NOT_FOUND_INFO          = null;

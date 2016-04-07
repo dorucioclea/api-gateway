@@ -6,6 +6,6 @@ package com.t1t.digipolis.apim.beans.audit;
  */
 public enum AuditEntityType {
 
-    Organization, Application, Plan, Service
+    Organization, Application, Plan, Service, Marketplace
     
 }

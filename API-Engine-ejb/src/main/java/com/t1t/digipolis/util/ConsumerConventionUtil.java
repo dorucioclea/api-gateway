@@ -2,6 +2,7 @@ package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
 
 /**
  * Created by michallispashidis on 19/09/15.
@@ -47,6 +50,15 @@ public class ConsumerConventionUtil {
 
     public static String createUserUniqueId(String userName) {
         return userName.toLowerCase();
+    }
+
+    public static String createManagedApplicationConsumerName(ManagedApplicationBean bean) {
+        StringBuilder builder = new StringBuilder(bean.getAvailability() == null ? "" : bean.getAvailability());
+        if (builder.length() > 0) builder.append(".");
+        return builder.append(bean.getName())
+                .append(".")
+                .append(bean.getVersion())
+                .toString();
     }
 
     /**

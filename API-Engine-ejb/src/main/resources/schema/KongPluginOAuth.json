@@ -51,6 +51,11 @@
       "required": false,
       "func": "function",
       "type": "string"
+    },
+    "accept_http_if_already_terminated": {
+      "required": false,
+      "type": "boolean",
+      "default": false
     }
   }
 }

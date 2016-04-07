@@ -61,7 +61,8 @@ public class ActionResource implements IActionResource {
                     " as Plans, Services, or Applications.  The type of the action must be" +
                     " included in the request payload and can be one of: publishService, retireService, deprecateService, registerApplication, unregisterApplication, lockPlan .")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "successful, no content")
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 409, message = "service has contracts")
     })
     @POST
     @Consumes(MediaType.APPLICATION_JSON)

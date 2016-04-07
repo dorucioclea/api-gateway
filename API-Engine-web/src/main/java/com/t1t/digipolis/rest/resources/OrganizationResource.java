@@ -756,7 +756,8 @@ public class OrganizationResource implements IOrganizationResource {
 
     @ApiOperation(value = "Delete Service By ID")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "successful, no content")
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 409, message = "service has contracts")
     })
     @DELETE
     @Path("/{organizationId}/services/{serviceId}")

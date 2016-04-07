@@ -371,4 +371,21 @@ public final class ExceptionFactory {
         return new InvalidVersionException(message);
     }
 
+    /**
+     * Creates an exception.
+     * @param message
+     * @return
+     */
+    public static final ServiceCannotDeleteException serviceCannotDeleteException(String message) {
+        return new ServiceCannotDeleteException(message);
+    }
+
+    /**
+     * Creates an exception.
+     * @param message
+     * @return
+     */
+    public static final InvalidPolicyException invalidPolicyException(String message) {
+        return new InvalidPolicyException(message);
+    }
 }
