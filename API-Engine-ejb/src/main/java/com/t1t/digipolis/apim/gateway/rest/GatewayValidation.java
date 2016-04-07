@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
@@ -107,7 +108,7 @@ public class GatewayValidation {
                 responseScopes.add(scope);
             }
         }
-        if (responseScopes.isEmpty()) throw new PolicyViolationException("Scopes/scopes description must be provided in order to apply OAuth2");
+        if (responseScopes.isEmpty()) throw ExceptionFactory.invalidPolicyException("Scopes/scopes description must be provided in order to apply OAuth2");
         //create custom provisionkey - explicitly
         oauthValue.setScopes(responseScopes);
         oauthValue.setProvisionKey(UUID.randomUUID().toString());

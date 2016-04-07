@@ -124,6 +124,7 @@ public final class ErrorCodes {
     //
     // Policy related
     //
+    public static final int POLICY_INVALID                    = 9000;
     public static final int POLICY_NOT_FOUND                  = 9001;
 
     public static final String POLICY_NOT_FOUND_INFO          = null;
