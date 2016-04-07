@@ -272,7 +272,15 @@ public class ActionFacade {
 
     private void deprecateService(ActionBean action) {
         ServiceVersionBean svb = getAndValidateServiceVersionBeanForStatusChange(action);
-
+        //Checks if service still has contracts
+        try {
+            if (!query.getServiceContracts(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion(), 1, 1000).isEmpty()) {
+                throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
             svb.setStatus(ServiceStatus.Deprecated);
             svb.setDeprecatedOn(new Date());
         try {
