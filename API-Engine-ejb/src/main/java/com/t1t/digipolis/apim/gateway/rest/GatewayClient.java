@@ -239,8 +239,11 @@ public class GatewayClient {
         //avoid duplicates
         gtwScopes.removeAll(apiScopes);
         gtwScopes.addAll(apiScopes);
+        gtwOAuthValue.setScopes(gtwScopes);
         //persist scopes on oauth endpoint
-        httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),)
+        String updateOAuthConfig = gson.toJson(gtwOAuthValue, KongPluginOAuthEnhanced.class);
+        gtwPluginConfig.setConfig(updateOAuthConfig);
+        httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
     }
 
     public void removeGatewayOAuthScopes(Gateway gtw, KongApi api){
