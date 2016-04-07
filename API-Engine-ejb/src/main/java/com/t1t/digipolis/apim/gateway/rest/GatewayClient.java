@@ -240,7 +240,7 @@ public class GatewayClient {
         gtwScopes.removeAll(apiScopes);
         gtwScopes.addAll(apiScopes);
         //persist scopes on oauth endpoint
-        //TODO PUT or patch
+        httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),)
     }
 
     public void removeGatewayOAuthScopes(Gateway gtw, KongApi api){
