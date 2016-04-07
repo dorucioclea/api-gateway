@@ -273,7 +273,6 @@ public class ActionFacade {
 
     private void deprecateService(ActionBean action) {
         ServiceVersionBean svb = getAndValidateServiceVersionBeanForStatusChange(action);
-
             svb.setStatus(ServiceStatus.Deprecated);
             svb.setDeprecatedOn(new Date());
         try {
