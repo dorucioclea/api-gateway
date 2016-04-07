@@ -191,7 +191,7 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongPluginConfig getServicePlugin(String serviceId, String pluginId) {
+    public KongPluginConfigList getServicePlugin(String serviceId, String pluginId) {
         return getClient().getServicePlugin(serviceId, pluginId);
     }
 

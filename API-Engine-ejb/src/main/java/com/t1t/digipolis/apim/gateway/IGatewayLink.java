@@ -304,7 +304,7 @@ public interface IGatewayLink {
      * @param pluginId
      * @return
      */
-    public KongPluginConfig getServicePlugin(String serviceId, String pluginId);
+    public KongPluginConfigList getServicePlugin(String serviceId, String pluginId);
 
     /**
      * Updates a given plugin for a service.

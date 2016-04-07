@@ -15,6 +15,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongPluginACLRequest;
 import com.t1t.digipolis.kong.model.KongPluginACL;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -230,39 +231,51 @@ public class GatewayClient {
 
     public void addGatewayOAuthScopes(GatewayBean gtw, KongApi api){
         Gson gson = new Gson();
-        final KongPluginConfig gtwPluginConfig = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
-        KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        //get oauth scopes from api
-        final KongPluginConfig apiPluginConfig = httpClient.getKongPluginConfig(gtw.getId(),Policies.OAUTH2.getKongIdentifier());
-        KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(apiPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        List<Object> gtwScopes = gtwOAuthValue.getScopes();
-        final List<Object> apiScopes = apiOAuthValue.getScopes();
-        //avoid duplicates
-        gtwScopes.removeAll(apiScopes);
-        gtwScopes.addAll(apiScopes);
-        gtwOAuthValue.setScopes(gtwScopes);
-        //persist scopes on oauth endpoint
-        String updateOAuthConfig = gson.toJson(gtwOAuthValue, KongPluginOAuthEnhanced.class);
-        gtwPluginConfig.setConfig(updateOAuthConfig);
-        httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
+        final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
+            KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
+            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+            //get oauth scopes from api
+            final KongPluginConfigList apiPluginConfigList = httpClient.getKongPluginConfig(gtw.getId(),Policies.OAUTH2.getKongIdentifier());
+            if(apiPluginConfigList!=null && apiPluginConfigList.getData().size()>0){
+                KongPluginConfig apiPluginConfig = apiPluginConfigList.getData().get(0);
+                KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(apiPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+                List<Object> gtwScopes = gtwOAuthValue.getScopes();
+                final List<Object> apiScopes = apiOAuthValue.getScopes();
+                //avoid duplicates
+                gtwScopes.removeAll(apiScopes);
+                gtwScopes.addAll(apiScopes);
+                gtwOAuthValue.setScopes(gtwScopes);
+                //persist scopes on oauth endpoint
+                String updateOAuthConfig = gson.toJson(gtwOAuthValue, KongPluginOAuthEnhanced.class);
+                gtwPluginConfig.setConfig(updateOAuthConfig);
+                httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
+            }
+        }
     }
 
     public void removeGatewayOAuthScopes(GatewayBean gtw, KongApi api){
         Gson gson = new Gson();
-        final KongPluginConfig gtwPluginConfig = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
-        KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        //get oauth scopes from api
-        final KongPluginConfig apiPluginConfig = httpClient.getKongPluginConfig(gtw.getId(),Policies.OAUTH2.getKongIdentifier());
-        KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(apiPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        List<Object> gtwScopes = gtwOAuthValue.getScopes();
-        final List<Object> apiScopes = apiOAuthValue.getScopes();
-        //avoid duplicates
-        gtwScopes.removeAll(apiScopes);
-        gtwOAuthValue.setScopes(gtwScopes);
-        //persist scopes on oauth endpoint
-        String updateOAuthConfig = gson.toJson(gtwOAuthValue, KongPluginOAuthEnhanced.class);
-        gtwPluginConfig.setConfig(updateOAuthConfig);
-        httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
+        final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
+            KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
+            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+            //get oauth scopes from api
+            final KongPluginConfigList apiPluginConfigList = httpClient.getKongPluginConfig(gtw.getId(),Policies.OAUTH2.getKongIdentifier());
+            if(apiPluginConfigList!=null && apiPluginConfigList.getData().size()>0){
+                KongPluginConfig apiPluginConfig = apiPluginConfigList.getData().get(0);
+                KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(apiPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+                List<Object> gtwScopes = gtwOAuthValue.getScopes();
+                final List<Object> apiScopes = apiOAuthValue.getScopes();
+                //avoid duplicates
+                gtwScopes.removeAll(apiScopes);
+                gtwOAuthValue.setScopes(gtwScopes);
+                //persist scopes on oauth endpoint
+                String updateOAuthConfig = gson.toJson(gtwOAuthValue, KongPluginOAuthEnhanced.class);
+                gtwPluginConfig.setConfig(updateOAuthConfig);
+                httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
+            }
+        }
     }
 
     private KongApi publishAPIWithFallback(KongApi api){
@@ -376,7 +389,12 @@ public class GatewayClient {
         if(!customHttp&&!StringUtils.isEmpty(metricsURI)) registerDefaultHttpPolicy(api);
         //add default Galileo policy
         //if(!customAnalytics)registerDefaultAnalyticsPolicy(api);
-        //default enable jwt validation for a service - authorization bearer or jwt fieldname accepted by default
+        //additional oauth actions
+        if(flagOauth2){
+            if(appConfig.getOAuthEnableGatewayEnpoints()){
+                addGatewayOAuthScopes(gatewayBean, api);
+            }
+        }
     }
 
     /**
@@ -405,10 +423,6 @@ public class GatewayClient {
             }
             svb.setOauthScopes(scopeMap);
             storage.updateServiceVersion(svb);
-            //publish scopes to central endpoint if configured
-            if(appConfig.getOAuthEnableGatewayEnpoints()){
-                addGatewayOAuthScopes(gatewayBean, api);
-            }
         } catch (StorageException e) {
             throw new GatewayException("Error update service version bean with OAuth2 info:"+e.getMessage());
         }
@@ -585,7 +599,7 @@ public class GatewayClient {
         return httpClient.getKongPluginConfigList(serviceId);
     }
 
-    public KongPluginConfig getServicePlugin(String serviceId, String pluginId){
+    public KongPluginConfigList getServicePlugin(String serviceId, String pluginId){
         return httpClient.getKongPluginConfig(serviceId, pluginId);
     }
 
