@@ -236,8 +236,12 @@ public class ActionFacade {
         gatewaySvc.setServiceId(versionBean.getService().getId());
         gatewaySvc.setVersion(versionBean.getVersion());
 
+
         // Retire the service from all relevant gateways
         try {
+            if (!query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 1000).isEmpty()) {
+                throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
+            }
             Set<ServiceGatewayBean> gateways = versionBean.getGateways();
             if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
