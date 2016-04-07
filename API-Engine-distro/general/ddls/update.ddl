@@ -125,3 +125,37 @@ UPDATE policydefs set form='{
 
 --get ids of services select id from service_versions;
 --update for existing services INSERT INTO svc_visibility(service_version_id, code, show) VALUES (1173, 'INT', true);
+
+-- Updates necessary for deprecation/friendly name/ACL features
+
+ALTER TABLE organizations ADD COLUMN friendly_name VARCHAR(255) NULL;
+
+ALTER TABLE service_versions ADD COLUMN deprecated_on TIMESTAMP WITHOUT TIME ZONE NULL;
+
+CREATE TABLE managed_applications (id BIGINT NOT NULL, name VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, gateway_id VARCHAR(255) NULL, type VARCHAR(255) NULL, availability VARCHAR(255) NULL, gateway_username VARCHAR(255) NULL, api_key VARCHAR(255) NULL);
+
+ALTER TABLE policies ADD COLUMN kong_plugin_id VARCHAR(255) NULL;
+
+ALTER TABLE policies ADD COLUMN contract_id BIGINT NULL;
+
+ALTER TABLE managed_applications ADD PRIMARY KEY (id);
+
+ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk1 FOREIGN KEY (gateway_id) REFERENCES gateways (id);
+
+ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk2 FOREIGN KEY (availability) REFERENCES availabilities (code) ;
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
+  "type": "object",
+  "title": "ACL",
+  "properties": {
+    "group": {
+      "title": "ACL group name",
+      "description":"Name of the ACL group belonging to the service",
+      "type": "string",
+      "required": true
+    }
+  },
+  "required": [
+    "group"
+  ]
+}', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
