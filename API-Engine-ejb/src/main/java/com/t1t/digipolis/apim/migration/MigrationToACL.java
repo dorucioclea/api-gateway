@@ -1,11 +1,13 @@
 package com.t1t.digipolis.apim.migration;
 
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -78,6 +80,23 @@ public class MigrationToACL {
                     orgFacade.createManagedApplicationPolicy(market, npb);
                 }
                 //Get service contracts and apply ACL
+                List<ContractSummaryBean> contracts = query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 10000);
+                for (ContractSummaryBean contract : contracts) {
+                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(contract.getAppOrganizationName(), contract.getAppId(), contract.getAppVersion());
+                    /*
+                    //Add ACL group membership by default on gateway
+                    KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
+                            ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
+                    //Persist the unique Kong plugin id in a new policy associated with the app.
+                    NewPolicyBean npb = new NewPolicyBean();
+                    KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+                    npb.setDefinitionId(Policies.ACL.name());
+                    npb.setKongPluginId(response.getId());
+                    npb.setContractId(contract.getId());
+                    npb.setConfiguration(new Gson().toJson(conf));
+                    createAppPolicy(organizationId, applicationId, version, npb);
+                    */
+                }
             }
         }
         catch (StorageException ex) {
