@@ -2,19 +2,20 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.categories.CategorySearchBean;
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.NewServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.ServiceVersionSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
-import com.t1t.digipolis.apim.exceptions.InvalidMetricCriteriaException;
-import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
-import com.t1t.digipolis.apim.exceptions.OrganizationNotFoundException;
+import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.SearchFacade;
 import com.t1t.digipolis.apim.util.SearchCriteriaUtil;
@@ -27,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Set;
@@ -161,5 +163,36 @@ public class SearchResource {
         return orgFacade.getMarketInfo(organizationId, serviceId, version);
     }
 
+    @ApiOperation(value = "Get Service Version",
+                  notes = "Use this endpoint to get detailed information about a single version of a Service.")
+    @ApiResponses({
+                          @ApiResponse(code = 200, response = ServiceVersionBean.class, message = "A Service version.")
+                  })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceVersionBean getServiceVersion(@PathParam("organizationId") String organizationId,
+                                                @PathParam("serviceId") String serviceId,
+                                                @PathParam("version") String version) throws ServiceVersionNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getServiceVersion(organizationId, serviceId, version);
+    }
+
+    @ApiOperation(value = "List Service Versions",
+                  notes = "Use this endpoint to list all of the versions of a Service.")
+    @ApiResponses({
+                          @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionSummaryBean.class, message = "A list of Services.")
+                  })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceVersionSummaryBean> listServiceVersions(@PathParam("organizationId") String organizationId,
+                                                               @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        return orgFacade.listServiceVersions(organizationId, serviceId);
+    }
 
 }
