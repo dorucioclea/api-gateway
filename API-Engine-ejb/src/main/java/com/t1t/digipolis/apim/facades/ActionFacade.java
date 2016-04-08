@@ -88,6 +88,7 @@ public class ActionFacade {
                 return;
             case deprecateService:
                 deprecateService(action);
+                return;
             default:
                 throw ExceptionFactory.actionException("Action type not supported: " + action.getType().toString()); //$NON-NLS-1$
         }
