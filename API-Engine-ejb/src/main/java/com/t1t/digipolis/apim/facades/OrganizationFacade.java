@@ -55,6 +55,8 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -1600,14 +1602,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public KongPluginConfig changeEnabledStateServicePlugin(String organizationId, String serviceId, String version,String pluginId, boolean enable) {
+    public KongPluginConfig changeEnabledStateServicePlugin(String organizationId, String serviceId, String version, String pluginId, boolean enable) {
         String serviceKongId = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
         try {
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            KongPluginConfig pluginConfig = gateway.getServicePlugin(serviceKongId, pluginId);
-            pluginConfig.setEnabled(enable);
-            pluginConfig = gateway.updateServicePlugin(serviceKongId,pluginConfig);
-            return pluginConfig;
+            KongPluginConfigList pluginConfigList = gateway.getServicePlugin(serviceKongId, pluginId);
+            if(pluginConfigList!=null && pluginConfigList.getData().size()>0){
+                KongPluginConfig pluginConfig = pluginConfigList.getData().get(0);
+                pluginConfig.setEnabled(enable);
+                pluginConfig = gateway.updateServicePlugin(serviceKongId,pluginConfig);
+                return pluginConfig;
+            }else{
+                return null;
+            }
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {

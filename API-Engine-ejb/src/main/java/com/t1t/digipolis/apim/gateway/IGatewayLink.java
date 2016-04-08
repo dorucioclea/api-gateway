@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.gateway;
 
+import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
@@ -48,6 +49,32 @@ public interface IGatewayLink {
      * @throws GatewayAuthenticationException when unable to authenticate with gateway  
      */
     public void publishService(Service service) throws PublishingException, GatewayAuthenticationException;
+
+    /**
+     * Published a centralized OAuth authorization and token endpoint for a gateway.
+     *
+     * @param gateway
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+    public void publishGatewayOAuthEndpoint(Gateway gateway)throws PublishingException, GatewayAuthenticationException;
+
+    /**
+     * Add the OAuth scopes enabled on the api to the centralized OAuth endpoints.
+     *
+     * @param serviceId
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+    public void addGatewayOAuthScopes(String serviceId)throws PublishingException, GatewayAuthenticationException;
+
+    /**
+     * Removes the OAuth scopes from the given api (oauth policies) on the central oauth api
+     * @param serviceId
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+    public void removeGatewayOAuthscopes(String serviceId) throws PublishingException, GatewayAuthenticationException;
 
     /**
      * Retires (removes) a {@link Service} from the registry.
@@ -277,7 +304,7 @@ public interface IGatewayLink {
      * @param pluginId
      * @return
      */
-    public KongPluginConfig getServicePlugin(String serviceId, String pluginId);
+    public KongPluginConfigList getServicePlugin(String serviceId, String pluginId);
 
     /**
      * Updates a given plugin for a service.

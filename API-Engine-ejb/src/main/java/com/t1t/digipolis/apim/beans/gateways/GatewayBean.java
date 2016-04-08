@@ -10,38 +10,43 @@ import java.util.Date;
 /**
  * Models a single gateway configured by an admin.  When publishing services,
  * the user must specific which Gateway to publish to.
- *
  */
 @Entity
 @Table(name = "gateways")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class GatewayBean implements Serializable {
 
     private static final long serialVersionUID = 388316225715740602L;
 
     @Id
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String id;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String name;
     @Column(nullable = false)
     private String endpoint;
-    @Column(updatable=true, nullable=true, length=512)
+    @Column(updatable = true, nullable = true, length = 512)
     private String description;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(name = "modified_by", updatable=true, nullable=false)
+    @Column(name = "modified_by", updatable = true, nullable = false)
     private String modifiedBy;
-    @Column(name = "modified_on", updatable=true, nullable=false)
+    @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
+    @Column(name = "oauth_token", nullable = true)
+    private String oauthTokenPath;
+    @Column(name = "oauth_authorize", nullable = true)
+    private String oauthAuthPath;
+    @Column(name = "oauth_context", nullable = true)
+    private String oauthContext;
 
-    @Column(updatable=true, nullable=false)
+    @Column(updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private GatewayType type;
     @Lob
-    @Column(updatable=true, nullable=false)
+    @Column(updatable = true, nullable = false)
     @Type(type = "org.hibernate.type.TextType")
     private String configuration;
 
@@ -182,6 +187,30 @@ public class GatewayBean implements Serializable {
         return configuration;
     }
 
+    public String getOauthTokenPath() {
+        return oauthTokenPath;
+    }
+
+    public void setOauthTokenPath(String oauthTokenPath) {
+        this.oauthTokenPath = oauthTokenPath;
+    }
+
+    public String getOauthAuthPath() {
+        return oauthAuthPath;
+    }
+
+    public void setOauthAuthPath(String oauthAuthPath) {
+        this.oauthAuthPath = oauthAuthPath;
+    }
+
+    public String getOauthContext() {
+        return oauthContext;
+    }
+
+    public void setOauthContext(String oauthContext) {
+        this.oauthContext = oauthContext;
+    }
+
     /**
      * @param configuration the configuration to set
      */
@@ -197,14 +226,21 @@ public class GatewayBean implements Serializable {
         this.endpoint = endpoint;
     }
 
-    /* (non-Javadoc)
-         * @see java.lang.Object#toString()
-         */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "GatewayBean [id=" + id + ", name=" + name + ", description=" + description + ", createdBy="
-                + createdBy + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy + ", modifiedOn="
-                + modifiedOn + ", endpoint=" + endpoint +", type=" + type + ", configuration=***]";
+        return "GatewayBean{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", endpoint='" + endpoint + '\'' +
+                ", description='" + description + '\'' +
+                ", createdBy='" + createdBy + '\'' +
+                ", createdOn=" + createdOn +
+                ", modifiedBy='" + modifiedBy + '\'' +
+                ", modifiedOn=" + modifiedOn +
+                ", oauthTokenPath='" + oauthTokenPath + '\'' +
+                ", oauthAuthPath='" + oauthAuthPath + '\'' +
+                ", oauthContext='" + oauthContext + '\'' +
+                ", type=" + type +
+                '}';
     }
 }

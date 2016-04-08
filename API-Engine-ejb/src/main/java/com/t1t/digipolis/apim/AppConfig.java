@@ -5,9 +5,11 @@ import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -26,12 +28,14 @@ public class AppConfig implements Serializable {
     private static Config config;
     private static Properties properties;
     private static Logger _LOG = LoggerFactory.getLogger(AppConfig.class.getName());
+    @Inject private StartupService startupService;
 
-    public AppConfig() {
-        init();
+    @PostConstruct
+    public void postInit() {
+            initConfig();
     }
 
-    public void init(){
+    public void initConfig(){
         //read properties file
         InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties");
         properties = new Properties();
@@ -74,6 +78,7 @@ public class AppConfig implements Serializable {
             _LOG.info("Default user organization: {}",getDefaultOrganization());
             _LOG.info("Default user roles: {}",getDefaultUserRoles());
             _LOG.info("Consent page: {}",getOAuthConsentURI());
+            _LOG.info("Enable centralized OAuth2 token/authorization endpoints: {}",getOAuthEnableGatewayEnpoints());
             _LOG.info("JWT default token expiration (in minutes):{}",getJWTDefaultTokenExpInMinutes());
             _LOG.info("Analytics enables: {}",getAnalyticsEnabled());
             _LOG.info("Analytics send towards {} with port {} and service token {}",getAnalyticsHost(),getAnalyticsPort(),getAnalyticsServiceToken());
@@ -101,6 +106,7 @@ public class AppConfig implements Serializable {
     public String getDefaultOrganization(){return config.getString(IConfig.DEFAULT_USER_ORGANIZATION);}
     public String getDefaultUserRoles(){return config.getString(IConfig.DEFAULT_USER_ROLES_FOR_DEFAULT_ORG);}
     public String getOAuthConsentURI(){return config.getString(IConfig.CONSENT_URI);}
+    public Boolean getOAuthEnableGatewayEnpoints(){return config.getBoolean(IConfig.OAUTH_ENABLE_GTW_ENDPOINTS);}
     public String getIDPSCIMUserLogin(){return config.getString(IConfig.IDP_SCIM_USER_LOGIN);}
     public String getIDPSCIMUserPassword(){return config.getString(IConfig.IDP_SCIM_USER_PWD);}
     public Integer getJWTDefaultTokenExpInMinutes(){return config.getInt(IConfig.JWT_DEFAULT_TOKEN_EXP);}

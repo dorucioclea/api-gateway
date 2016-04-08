@@ -15,9 +15,7 @@ import java.io.Serializable;
 @Table(name = "white_ip_restriction")
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 public class WhitelistBean extends IPRestrictionBean implements Serializable{
-    public WhitelistBean() {
-    }
-
+    public WhitelistBean() {}
     @Id
     @Column(name = "netw_value", nullable=false)
     private String netwValue;
@@ -34,9 +32,7 @@ public class WhitelistBean extends IPRestrictionBean implements Serializable{
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof WhitelistBean)) return false;
-
         WhitelistBean that = (WhitelistBean) o;
-
         return netwValue.equals(that.netwValue);
 
     }
