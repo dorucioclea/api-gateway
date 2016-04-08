@@ -234,7 +234,6 @@ public class GatewayClient {
         final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
         if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
             KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
-            log.info("-->gateway plugin:{}",gtwPluginConfig.getConfig());
             KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
             //get oauth scopes from api
             final KongPluginConfigList apiPluginConfigList = httpClient.getKongPluginConfig(api.getId(),Policies.OAUTH2.getKongIdentifier());
@@ -247,11 +246,10 @@ public class GatewayClient {
                 gtwScopes.removeAll(apiScopes);
                 gtwScopes.addAll(apiScopes);
                 gtwOAuthValue.setScopes(gtwScopes);
-                //persist scopes on oauth endpoint
-                String updateOAuthConfig = gson.toJson(gtwOAuthValue, KongPluginOAuthEnhanced.class);
                 Policy responsePolicy = new Policy();
                 responsePolicy.setPolicyImpl(gtwPluginConfig.getName());
-                responsePolicy.setPolicyJsonConfig(gson.toJson(updateOAuthConfig,KongPluginOAuthEnhanced.class));
+                responsePolicy.setPolicyJsonConfig(gson.toJson(gtwOAuthValue,KongPluginOAuthEnhanced.class));
+                log.info("-->add scopes to central oauth endpoint with id:{} and config: {}",gtw.getId(),gtwPluginConfig);
                 httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
             }
         }
@@ -274,11 +272,10 @@ public class GatewayClient {
                 //avoid duplicates
                 gtwScopes.removeAll(apiScopes);
                 gtwOAuthValue.setScopes(gtwScopes);
-                //persist scopes on oauth endpoint
-                String updateOAuthConfig = gson.toJson(gtwOAuthValue, KongPluginOAuthEnhanced.class);
                 Policy responsePolicy = new Policy();
                 responsePolicy.setPolicyImpl(gtwPluginConfig.getName());
-                responsePolicy.setPolicyJsonConfig(gson.toJson(updateOAuthConfig,KongPluginOAuthEnhanced.class));
+                responsePolicy.setPolicyJsonConfig(gson.toJson(gtwOAuthValue,KongPluginOAuthEnhanced.class));
+                log.info("-->remove scopes to central oauth endpoint with id:{} and config: {}",gtw.getId(),gtwPluginConfig);
                 httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
             }
         }
