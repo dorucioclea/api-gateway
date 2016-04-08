@@ -240,19 +240,41 @@ public class GatewayClient {
             if(apiPluginConfigList!=null && apiPluginConfigList.getData().size()>0){
                 KongPluginConfig apiPluginConfig = apiPluginConfigList.getData().get(0);
                 KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(apiPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
-                List<Object> gtwScopes = gtwOAuthValue.getScopes();
-                List<Object> apiScopes = apiOAuthValue.getScopes();
-                //avoid duplicates
-                gtwScopes.removeAll(apiScopes);
+                Set<String> gtwScopes = objectListToStringSet(gtwOAuthValue.getScopes());
+                Set<String> apiScopes = objectListToStringSet(apiOAuthValue.getScopes());
+                log.info("-->gateway socpe collection:{}",gtwScopes);
+                log.info("-->api scopes to resolve:{}",apiScopes);
                 gtwScopes.addAll(apiScopes);
-                gtwOAuthValue.setScopes(gtwScopes);
-                Policy responsePolicy = new Policy();
+                gtwOAuthValue.setScopes(stringSetToObjectList(gtwScopes));
+/*                Policy responsePolicy = new Policy();
                 responsePolicy.setPolicyImpl(gtwPluginConfig.getName());
-                responsePolicy.setPolicyJsonConfig(gson.toJson(gtwOAuthValue,KongPluginOAuthEnhanced.class));
-                log.info("-->add scopes to central oauth endpoint with id:{} and config: {}",gtw.getId(),gtwPluginConfig);
-                httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
+                responsePolicy.setPolicyJsonConfig(gson.toJson(gtwOAuthValue,KongPluginOAuthEnhanced.class));*/
+                gtwPluginConfig.setConfig(gson.toJson(gtwOAuthValue,KongPluginOAuthEnhanced.class));
+                log.info("-->add scopes to central oauth endpoint with id:{} and config: {}",gtw.getId().toLowerCase(),gtwPluginConfig);
+                httpClient.updateOrCreatePluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
             }
         }
+    }
+
+    /**
+     *
+     * @param initlist
+     * @return
+     */
+    public Set<String> objectListToStringSet(List<Object> initlist){
+        Set<String> resultList = new TreeSet<>();
+        if(initlist!=null && initlist.size()>0){
+            initlist.forEach(obj->resultList.add(obj.toString()));
+        }
+        return resultList;
+    }
+
+    public List<Object> stringSetToObjectList(Set<String> initlist){
+        List<Object> resultList = new ArrayList<>();
+        if(initlist!=null && initlist.size()>0){
+            initlist.forEach(obj->resultList.add(obj.toString()));
+        }
+        return resultList;
     }
 
     public void removeGatewayOAuthScopes(GatewayBean gtw, KongApi api){
@@ -260,23 +282,25 @@ public class GatewayClient {
         final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
         if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
             KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
-            log.info("-->gateway plugin:{}",gtwPluginConfig.getConfig());
             KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
             //get oauth scopes from api
             final KongPluginConfigList apiPluginConfigList = httpClient.getKongPluginConfig(api.getId(),Policies.OAUTH2.getKongIdentifier());
             if(apiPluginConfigList!=null && apiPluginConfigList.getData().size()>0){
                 KongPluginConfig apiPluginConfig = apiPluginConfigList.getData().get(0);
                 KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(apiPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
-                List<Object> gtwScopes = gtwOAuthValue.getScopes();
-                List<Object> apiScopes = apiOAuthValue.getScopes();
-                //avoid duplicates
-                gtwScopes.removeAll(apiScopes);
-                gtwOAuthValue.setScopes(gtwScopes);
+                Set<String> gtwScopes = objectListToStringSet(gtwOAuthValue.getScopes());
+                Set<String> apiScopes = objectListToStringSet(apiOAuthValue.getScopes());
+                log.info("-->gateway socpe collection:{}",gtwScopes);
+                log.info("-->api scopes to resolve:{}",apiScopes);
+                apiScopes.forEach(scope -> {
+                    gtwScopes.remove(scope);
+                });
+                gtwOAuthValue.setScopes(stringSetToObjectList(gtwScopes));
                 Policy responsePolicy = new Policy();
                 responsePolicy.setPolicyImpl(gtwPluginConfig.getName());
                 responsePolicy.setPolicyJsonConfig(gson.toJson(gtwOAuthValue,KongPluginOAuthEnhanced.class));
-                log.info("-->remove scopes to central oauth endpoint with id:{} and config: {}",gtw.getId(),gtwPluginConfig);
-                httpClient.updateKongPluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
+                log.info("-->add scopes to central oauth endpoint with id:{} and config: {}",gtw.getId().toLowerCase(),gtwPluginConfig);
+                httpClient.updateOrCreatePluginConfig(gtw.getId().toLowerCase(),gtwPluginConfig);
             }
         }
     }
