@@ -13,6 +13,7 @@ public class OrganizationSummaryBean implements Serializable {
 
     private String id;
     private String name;
+    private String friendly_name;
     private String description;
     private int numApps;
     private int numServices;
@@ -108,6 +109,14 @@ public class OrganizationSummaryBean implements Serializable {
         this.numMembers = numMembers;
     }
 
+    public String getFriendly_name() {
+        return friendly_name;
+    }
+
+    public void setFriendly_name(String friendly_name) {
+        this.friendly_name = friendly_name;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -139,15 +148,16 @@ public class OrganizationSummaryBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "OrganizationSummaryBean [id=" + id + ", name=" + name + ", description=" + description
-                + ", numApps=" + numApps + ", numServices=" + numServices + ", numMembers=" + numMembers
-                + "]";
+        return "OrganizationSummaryBean{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", friendly_name='" + friendly_name + '\'' +
+                ", description='" + description + '\'' +
+                ", numApps=" + numApps +
+                ", numServices=" + numServices +
+                ", numMembers=" + numMembers +
+                '}';
     }
-
 }
