@@ -683,7 +683,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         for (OrganizationBean bean : beans) {
             OrganizationSummaryBean osb = new OrganizationSummaryBean();
             osb.setId(bean.getId());
-            osb.setFriendly_name(bean.getFriendlyName());
+            osb.setFriendlyName(bean.getFriendlyName());
             osb.setName(bean.getName());
             osb.setDescription(bean.getDescription());
             rval.getBeans().add(osb);
@@ -1045,7 +1045,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         for (OrganizationBean bean : qr) {
             OrganizationSummaryBean summary = new OrganizationSummaryBean();
             summary.setId(bean.getId());
-            summary.setFriendly_name(bean.getFriendlyName());
+            summary.setFriendlyName(bean.getFriendlyName());
             summary.setName(bean.getName());
             summary.setDescription(bean.getDescription());
             orgs.add(summary);

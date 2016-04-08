@@ -13,7 +13,7 @@ public class OrganizationSummaryBean implements Serializable {
 
     private String id;
     private String name;
-    private String friendly_name;
+    private String friendlyName;
     private String description;
     private int numApps;
     private int numServices;
@@ -102,19 +102,12 @@ public class OrganizationSummaryBean implements Serializable {
         return numMembers;
     }
 
-    /**
-     * @param numMembers the numMembers to set
-     */
-    public void setNumMembers(int numMembers) {
-        this.numMembers = numMembers;
+    public String getFriendlyName() {
+        return friendlyName;
     }
 
-    public String getFriendly_name() {
-        return friendly_name;
-    }
-
-    public void setFriendly_name(String friendly_name) {
-        this.friendly_name = friendly_name;
+    public void setFriendlyName(String friendlyName) {
+        this.friendlyName = friendlyName;
     }
 
     /**
@@ -148,12 +141,16 @@ public class OrganizationSummaryBean implements Serializable {
         return true;
     }
 
+    public void setNumMembers(int numMembers) {
+        this.numMembers = numMembers;
+    }
+
     @Override
     public String toString() {
         return "OrganizationSummaryBean{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
-                ", friendly_name='" + friendly_name + '\'' +
+                ", friendlyName='" + friendlyName + '\'' +
                 ", description='" + description + '\'' +
                 ", numApps=" + numApps +
                 ", numServices=" + numServices +
