@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Service;
+import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.kong.model.KongApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +37,8 @@ import java.util.List;
 public class StartupService {
     private static final Logger _LOG = LoggerFactory.getLogger(StartupService.class.getName());
     @Inject private IStorageQuery storageQuery;
-    @Inject
-    private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject private MailProvider mailProvider;
 
     /**
      * Verify if the available gateways have OAuth - centralized authorization - endpoints available
@@ -47,6 +48,8 @@ public class StartupService {
     @PostConstruct
     public void initOAuthOnGateways() {
         _LOG.info("start init");
+        mailProvider.sendMail();
+        _LOG.info("test mail sent");
         try{
             List<GatewayBean> gatewayBeans = storageQuery.listGatewayBeans();
             gatewayBeans.forEach(gtw -> {

@@ -74,7 +74,11 @@
             <artifactId>hibernate-entitymanager</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        <!--Mail API-->
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>javax.mail-api</artifactId>
+        </dependency>
         <!-- Test scope dependencies -->
         <dependency>
             <groupId>junit</groupId>

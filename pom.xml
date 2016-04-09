@@ -192,6 +192,7 @@
         <property.file>default</property.file>
         <hystrix-core.version>1.4.21</hystrix-core.version>
         <infinispan-core.version>8.1.0.Final</infinispan-core.version>
+        <javax.mail-api.version>1.5.3</javax.mail-api.version>
     </properties>
 
     <dependencyManagement>
@@ -239,6 +240,14 @@
                 <version>${version.jboss.bom}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!--Mail Api-->
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>javax.mail-api</artifactId>
+                <version>${javax.mail-api.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <!-- Undertow -->
