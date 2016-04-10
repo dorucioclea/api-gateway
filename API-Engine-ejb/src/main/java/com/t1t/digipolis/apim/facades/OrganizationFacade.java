@@ -55,6 +55,16 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.util.*;
@@ -405,13 +415,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //add OAuth2 consumer default to the application
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
-            //for contract add keyauth to applciation consumer
-            try {
+            //for contract add keyauth to application consumer
+
                 //We create the new application version consumer
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                 if (contract != null) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                    gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+                    try {
+                        gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+                    } catch (Exception e) {
+                        //apikey for consumer already exists
+                    }
                     //Add ACL group membership by default on gateway
                     KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
                             ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
@@ -424,9 +438,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     npb.setConfiguration(new Gson().toJson(conf));
                     createAppPolicy(organizationId, applicationId, version, npb);
                 }
-            } catch (Exception e) {
-                //apikey for consumer already exists
-            }
             //verify if the contracting service has OAuth enabled
             List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
             for (PolicySummaryBean summaryBean : policySummaryBeans) {
@@ -1187,7 +1198,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                 PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId);
                 if (policy == null) {
-                    throw ExceptionFactory.policyNotFoundException(0);
+                    throw ExceptionFactory.policyNotFoundException(0);//TODO-> this indicated inconsistency in code! shouldnt be there
                 }
                 gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version), policy.getKongPluginId());
                 deleteAppPolicy(organizationId, applicationId, version, policy.getId());
@@ -2411,6 +2422,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @return the stored policy bean (with updated information)
      * @throws NotAuthorizedException
      */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     protected PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion, NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
         if (bean.getDefinitionId() == null) {
             ExceptionFactory.policyDefNotFoundException("null"); //$NON-NLS-1$
