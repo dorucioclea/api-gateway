@@ -230,6 +230,28 @@ public class GatewayClient {
         registerDefaultOAuthPolicy(api);
     }
 
+    /**
+     * Updates the OAuth2 central endpoint token expiration time.
+     *
+     * @param gtw
+     * @param expirationTimeSeconds
+     */
+    public void updateOAuth2ExpirationForCentralOAuth(GatewayBean gtw, Integer expirationTimeSeconds){
+        Gson gson = new Gson();
+        final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
+            KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
+            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+            gtwOAuthValue.setTokenExpiration(expirationTimeSeconds);
+            gtwPluginConfig.setConfig(gtwOAuthValue);
+            KongPluginConfig updatedConfig = new KongPluginConfig()
+                    .withId(gtwPluginConfig.getId())
+                    .withName(Policies.OAUTH2.getKongIdentifier())
+                    .withConfig(gtwPluginConfig.getConfig());
+            httpClient.updateOrCreatePluginConfig(gtw.getId().toLowerCase(),updatedConfig);
+        }
+    }
+
     public void addGatewayOAuthScopes(GatewayBean gtw, KongApi api){
         Gson gson = new Gson();
         final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());

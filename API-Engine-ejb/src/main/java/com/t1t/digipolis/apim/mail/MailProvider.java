@@ -9,19 +9,4 @@ public interface MailProvider {
      */
     void sendMail();
 
-    /**
-     * Send email for a server event, this can be a startup event, or shutdown, or can be used for a cron
-     * heath check results.
-     */
-    void sendServerEventMail();
-
-    /**
-     * Send email for a membership request.
-     */
-    void sendRequestMembership();
-
-    /**
-     * Send a user notification.
-     */
-    void sendUserNotification();
 }

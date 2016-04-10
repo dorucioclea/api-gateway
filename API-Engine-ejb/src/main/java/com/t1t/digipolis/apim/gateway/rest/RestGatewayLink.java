@@ -217,6 +217,11 @@ public class RestGatewayLink implements IGatewayLink {
         return getClient().getStatus();
     }
 
+    @Override
+    public void updateCentralOAuthTokenExpirationTime(Integer exirationTimeInSeconds) throws PublishingException, GatewayAuthenticationException {
+        getClient().updateOAuth2ExpirationForCentralOAuth(gateway, exirationTimeInSeconds);
+    }
+
     /**
      * @see IGatewayLink#getServiceEndpoint(String, String, String, String)
      */

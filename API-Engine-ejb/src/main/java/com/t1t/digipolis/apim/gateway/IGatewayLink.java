@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway;
 
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
@@ -42,6 +43,16 @@ public interface IGatewayLink {
      * @throws GatewayAuthenticationException when unable to authenticate with gateway 
      */
     public SystemStatus getStatus() throws GatewayAuthenticationException;
+
+    /**
+     * Sets the OAuth2 expiration time for tokens issues on the gateway's central oauth endpoints.
+     *
+     * @param gtw
+     * @param exirationTimeInSeconds
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+    public void updateCentralOAuthTokenExpirationTime(Integer exirationTimeInSeconds) throws PublishingException, GatewayAuthenticationException;
 
     /**
      * Publishes a new {@link Service}.
