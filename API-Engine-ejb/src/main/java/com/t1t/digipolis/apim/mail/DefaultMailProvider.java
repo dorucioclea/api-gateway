@@ -29,8 +29,7 @@ public class DefaultMailProvider implements MailProvider {
 
     @PostConstruct
     public void init(){
-        //TODO set conditionally (appconfig)
-        mailSession.setDebug(true);
+        mailSession.setDebug(config.getNotificationsEnableDebug());
     }
 
     public void sendTestMail(){
@@ -39,24 +38,32 @@ public class DefaultMailProvider implements MailProvider {
 
     @Override
     public void sendStatusMail(StatusMailBean statusMailBean) {
-
+        sendMail(composeMessage(statusMailBean.getTo(),statusMailBean.getSubject(),statusMailBean.getContent()));
     }
 
     @Override
     public void sendRequestMembership(RequestMembershipMailBean requestMembershipMailBean) {
-
+        sendMail(composeMessage(requestMembershipMailBean.getTo(),requestMembershipMailBean.getSubject(),requestMembershipMailBean.getContent()));
     }
 
     @Override
     public void sendUpdateMember(UpdateMemberMailBean updateMemberMailBean) {
-
+        sendMail(composeMessage(updateMemberMailBean.getTo(),updateMemberMailBean.getSubject(),updateMemberMailBean.getContent()));
     }
 
     @Override
     public void sendUpdateAdmin(UpdateAdminMailBean updateAdminMailBean) {
-
+        sendMail(composeMessage(updateAdminMailBean.getTo(),updateAdminMailBean.getSubject(),updateAdminMailBean.getContent()));
     }
 
+    /**
+     * Utility method to compose the Mime message.
+     *
+     * @param toAddress
+     * @param subject
+     * @param content
+     * @return
+     */
     private MimeMessage composeMessage(String toAddress, String subject, String content){
         try{
             MimeMessage m = new MimeMessage(mailSession);
@@ -74,6 +81,10 @@ public class DefaultMailProvider implements MailProvider {
         }
     }
 
+    /**
+     * Utility method to send a composed mime message
+     * @param m
+     */
     private void sendMail(MimeMessage m){
         try{
             if(m!=null){
