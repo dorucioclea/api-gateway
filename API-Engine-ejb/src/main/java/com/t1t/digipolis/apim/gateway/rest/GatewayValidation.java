@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginJWT;
@@ -47,8 +48,8 @@ import static com.t1t.digipolis.apim.beans.policies.Policies.CORS;
 public class GatewayValidation {
     private static Logger _LOG = LoggerFactory.getLogger(GatewayValidation.class.getName());
     private static String environment;
-    @Inject
-    private AppConfig config;
+    private static final String OAUTH_SCOPE_CONCAT = ".";
+    @Inject private AppConfig config;
     {
         environment = "";
         if(config!=null){
@@ -56,7 +57,7 @@ public class GatewayValidation {
         }
     }
 
-   public static Policy validate(Policy policy) throws PolicyViolationException{
+   public static Policy validate(Policy policy, String... optionalPrefixId) throws PolicyViolationException{
         _LOG.debug("Valdiate policy:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
@@ -71,7 +72,7 @@ public class GatewayValidation {
             case IPRESTRICTION: return validateIPRestriction(policy);
             case KEYAUTHENTICATION: return validateKeyAuth(policy);
             case OAUTH2:
-                Policy pol = validateOAuth(policy);
+                Policy pol = validateOAuth(policy,(optionalPrefixId.length>0?optionalPrefixId[0]:null));
                 return pol;
             case RATELIMITING: return validateRateLimiting(policy);
             case REQUESTSIZELIMITING: return validateRequestSizeLimiting(policy);
@@ -113,17 +114,20 @@ public class GatewayValidation {
 
     /**
      * OAuth is a special case, we want to keep the scopes until the gateway applies the policy.
+     * Gateway supports a central oauth context path, in order to distinguish oauth scopes, a prefix is added implicitly
      *
      * @param policy
      * @return
      */
-    public static synchronized Policy validateOAuth(Policy policy){
+    public static synchronized Policy validateOAuth(Policy policy, String optionalPrefixId){
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
         List<KongPluginOAuthScope> scopes = oauthValue.getScopes();
         List<KongPluginOAuthScope> responseScopes = new ArrayList<>();
         for (KongPluginOAuthScope scope : scopes) {
             if (!StringUtils.isEmpty(scope.getScope())) {
+                //add prefix
+                if(!StringUtils.isEmpty(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope());
                 if (StringUtils.isEmpty(scope.getScopeDesc())) scope.setScopeDesc(scope.getScope());
                 responseScopes.add(scope);
             }

@@ -46,7 +46,7 @@ UPDATE policydefs set form='{
             "scope":{
                 "title": "Scope",
                 "type": "string",
-                "pattern": "^[a-z,A-Z,.]+$",
+                "pattern": "^[a-z,A-Z]+$",
                 "description": "Provide the scope identifier that will be available to the end user (use only lowercase characters and no special characters)."
             },
             "scope_desc":{

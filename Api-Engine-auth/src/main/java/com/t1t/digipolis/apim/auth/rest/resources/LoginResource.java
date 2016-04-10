@@ -33,6 +33,7 @@ import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit.http.Query;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -62,23 +63,50 @@ public class LoginResource implements ILoginResource {
     private static final Logger log = LoggerFactory.getLogger(LoginResource.class.getName());
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
-            notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim." +
-                    "When the token expiration time is set to 0, the token will be valid for all times. The optional claims map can be provided by the consuming application. The claim set can be changed upon refreshing the JWT.")
+                       notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim." +
+                               "When the token expiration time is set to 0, the token will be valid for all times. The optional claims map can be provided by the consuming application. The claim set can be changed upon refreshing the JWT.")
     @ApiResponses({
                           @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
                           @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
-    })
+                  })
     @POST
     @Path("/idp/redirect")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    public String getSAML2AuthRequestUri(SAMLRequest request) {
+    public String postSAML2AuthRequestUri(SAMLRequest request) {
         Preconditions.checkNotNull(request);
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
         Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
+        return userFacade.generateSAML2AuthRequest(request);
+    }
+
+    @ApiOperation(value = "IDP Callback URL for the Marketplace",
+                  notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim.")
+    @ApiResponses({
+                          @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
+                          @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
+                  })
+    @GET
+    @Path("/idp/redirect")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getSAML2AuthRequestUri(@QueryParam("idp_url")String idpUrl,
+                                         @QueryParam("sp_name")String spName,
+                                         @Query("sp_url")String spUrl,
+                                         @QueryParam("client_redirect")String clientRedirect) {
+        Preconditions.checkArgument(!StringUtils.isEmpty(idpUrl));
+        Preconditions.checkArgument(!StringUtils.isEmpty(spName));
+        Preconditions.checkArgument(!StringUtils.isEmpty(spUrl));
+        Preconditions.checkArgument(!StringUtils.isEmpty(clientRedirect));
+        SAMLRequest request = new SAMLRequest();
+        request.setClientAppRedirect(clientRedirect);
+        request.setIdpUrl(idpUrl);
+        request.setSpName(spName);
+        request.setSpUrl(spUrl);
+        request.setToken(ClientTokeType.jwt);
         return userFacade.generateSAML2AuthRequest(request);
     }
 
@@ -91,13 +119,44 @@ public class LoginResource implements ILoginResource {
     @POST
     @Path("/idp/redirect/proxied")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getSAML2AuthRequestRedirect(SAMLRequest request) {
+    public Response postSAML2AuthRequestRedirect(SAMLRequest request) {
         Preconditions.checkNotNull(request);
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
         Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
+        String idpRequest = userFacade.generateSAML2AuthRequest(request);
+        URI idpRequestUri = null;
+        try {
+            idpRequestUri = new URI(idpRequest);
+            return Response.seeOther(idpRequestUri).build();
+        } catch (URISyntaxException e) {
+            new SystemErrorException(e.getMessage());
+        }
+        throw  new SystemErrorException("Error in redirect");
+    }
+
+    @ApiOperation(value = "IDP Immediate Redirect URL for the Marketplace",
+                  notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating and performing the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim.")
+    @ApiResponses({@ApiResponse(code = 301, message = "SAML2 authentication request")})
+    @GET
+    @Path("/idp/redirect/proxied")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getSAML2AuthRequestRedirect(@QueryParam("idp_url")String idpUrl,
+                                                @QueryParam("sp_name")String spName,
+                                                @Query("sp_url")String spUrl,
+                                                @QueryParam("client_redirect")String clientRedirect) {
+        Preconditions.checkArgument(!StringUtils.isEmpty(idpUrl));
+        Preconditions.checkArgument(!StringUtils.isEmpty(spName));
+        Preconditions.checkArgument(!StringUtils.isEmpty(spUrl));
+        Preconditions.checkArgument(!StringUtils.isEmpty(clientRedirect));
+        SAMLRequest request = new SAMLRequest();
+        request.setClientAppRedirect(clientRedirect);
+        request.setIdpUrl(idpUrl);
+        request.setSpName(spName);
+        request.setSpUrl(spUrl);
+        request.setToken(ClientTokeType.jwt);
         String idpRequest = userFacade.generateSAML2AuthRequest(request);
         URI idpRequestUri = null;
         try {
