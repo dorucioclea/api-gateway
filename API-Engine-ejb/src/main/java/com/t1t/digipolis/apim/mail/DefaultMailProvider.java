@@ -42,6 +42,7 @@ public class DefaultMailProvider implements MailProvider {
 
     @Override
     public void sendStatusMail(StatusMailBean statusMailBean) {
+        statusMailBean.setSubject("API Engine - status mail");
         //TODO: templating
         StringBuilder sContent = new StringBuilder("");
         sContent.append("Not yet implemented");
@@ -53,6 +54,7 @@ public class DefaultMailProvider implements MailProvider {
 
     @Override
     public void sendRequestMembership(RequestMembershipMailBean requestMembershipMailBean) {
+        requestMembershipMailBean.setSubject("API Engine - request membership for "+requestMembershipMailBean.getOrgFriendlyName());
         //TODO: templating
         StringBuilder sContent = new StringBuilder("");
         sContent.append("The following user requests membership for your organization: ");
@@ -77,19 +79,28 @@ public class DefaultMailProvider implements MailProvider {
         sContent.append(" ("+updateMemberMailBean.getOrgName()+")");
         switch(updateMemberMailBean.getMembershipAction()){
             case NEW_MEMBERSHIP:{
+                updateMemberMailBean.setSubject("API Engine - welcome to "+updateMemberMailBean.getOrgFriendlyName());
                 sContent.append("\nYou have been added as a new member for the organization.");
                 sContent.append("\nYou have been assigned with the role '"+updateMemberMailBean.getRole()+"'");
                 break;
             }
+            case TRANSFER:{
+                updateMemberMailBean.setSubject("API Engine - transfer owner");
+                sContent.append("\nYou have been assigned as owner of the organization.");
+                break;
+            }
             case DELETE_MEMBERSHIP:{
+                updateMemberMailBean.setSubject("API Engine - membership deleted");
                 sContent.append("\nYou have been removed from the organization.");
                 break;
             }
             case UPDATE_ROLE:{
+                updateMemberMailBean.setSubject("API Engine - updated role");
                 sContent.append("\nYour role has been changed to '"+updateMemberMailBean.getRole()+"'.");
                 break;
             }
             default:{
+                updateMemberMailBean.setSubject("API Engine - verify account");
                 sContent.append("Verify your account.");
             }
         }
@@ -106,14 +117,17 @@ public class DefaultMailProvider implements MailProvider {
         sContent.append("Your admin profile has been updated: ");
         switch(updateAdminMailBean.getMembershipAction()){
             case NEW_MEMBERSHIP:{
+                updateAdminMailBean.setSubject("API Engine - admin rights assigned");
                 sContent.append("\nYou have been added as administrator for the API Engine.");
                 break;
             }
             case DELETE_MEMBERSHIP:{
+                updateAdminMailBean.setSubject("API Engine - admin rights revoked");
                 sContent.append("\nYou have been removed as administrator for the API Engine.");
                 break;
             }
             default:{
+                updateAdminMailBean.setSubject("API Engine - verify account");
                 sContent.append("Verify your account.");
             }
         }
