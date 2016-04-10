@@ -17,7 +17,11 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 /**
- * Created by michallispashidis on 8/04/16.
+ * Simple mailprovider, no templating and no dynamic substitutions.
+ * For a straight forward impl, only text messages supported, with inline replacements.
+ * For this first implementation the mail beans, doesn't carry content with them. The content is provided hard-coded in
+ * the provided methods.
+ * TODO: introduce string replacement, templating etc.
  */
 @ApplicationScoped
 @Default
@@ -38,21 +42,85 @@ public class DefaultMailProvider implements MailProvider {
 
     @Override
     public void sendStatusMail(StatusMailBean statusMailBean) {
+        //TODO: templating
+        StringBuilder sContent = new StringBuilder("");
+        sContent.append("Not yet implemented");
+
+        //set content
+        statusMailBean.setContent(sContent.toString());
         sendMail(composeMessage(statusMailBean.getTo(),statusMailBean.getSubject(),statusMailBean.getContent()));
     }
 
     @Override
     public void sendRequestMembership(RequestMembershipMailBean requestMembershipMailBean) {
+        //TODO: templating
+        StringBuilder sContent = new StringBuilder("");
+        sContent.append("The following user requests membership for your organization: ");
+        sContent.append(requestMembershipMailBean.getOrgFriendlyName());
+        sContent.append("("+requestMembershipMailBean.getOrgName()+")");
+        sContent.append("\n- Username: "+ requestMembershipMailBean.getUserId());
+        sContent.append("\n- Email   : " + requestMembershipMailBean.getUserMail());
+        sContent.append("\n\nYou can add the user in the 'Members'-tab of your organization.");
+        sContent.append("\n\n\nGreetings from the APIe Team.");
+        sContent.append(getMailSignature());
+        //set content
+        requestMembershipMailBean.setContent(sContent.toString());
         sendMail(composeMessage(requestMembershipMailBean.getTo(),requestMembershipMailBean.getSubject(),requestMembershipMailBean.getContent()));
     }
 
     @Override
     public void sendUpdateMember(UpdateMemberMailBean updateMemberMailBean) {
+        //TODO: templating
+        StringBuilder sContent = new StringBuilder("");
+        sContent.append("Your organization profile has been updated for organization: ");
+        sContent.append(updateMemberMailBean.getOrgFriendlyName());
+        sContent.append(" ("+updateMemberMailBean.getOrgName()+")");
+        switch(updateMemberMailBean.getMembershipAction()){
+            case NEW_MEMBERSHIP:{
+                sContent.append("\nYou have been added as a new member for the organization.");
+                sContent.append("\nYou have been assigned with the role '"+updateMemberMailBean.getRole()+"'");
+                break;
+            }
+            case DELETE_MEMBERSHIP:{
+                sContent.append("\nYou have been removed from the organization.");
+                break;
+            }
+            case UPDATE_ROLE:{
+                sContent.append("\nYour role has been changed to '"+updateMemberMailBean.getRole()+"'.");
+                break;
+            }
+            default:{
+                sContent.append("Verify your account.");
+            }
+        }
+        sContent.append(getMailSignature());
+        //set content
+        updateMemberMailBean.setContent(sContent.toString());
         sendMail(composeMessage(updateMemberMailBean.getTo(),updateMemberMailBean.getSubject(),updateMemberMailBean.getContent()));
     }
 
     @Override
     public void sendUpdateAdmin(UpdateAdminMailBean updateAdminMailBean) {
+        //TODO: templating
+        StringBuilder sContent = new StringBuilder("");
+        sContent.append("Your admin profile has been updated: ");
+        switch(updateAdminMailBean.getMembershipAction()){
+            case NEW_MEMBERSHIP:{
+                sContent.append("\nYou have been added as administrator for the API Engine.");
+                break;
+            }
+            case DELETE_MEMBERSHIP:{
+                sContent.append("\nYou have been removed as administrator for the API Engine.");
+                break;
+            }
+            default:{
+                sContent.append("Verify your account.");
+            }
+        }
+        sContent.append(getMailSignature());
+
+        //set content
+        updateAdminMailBean.setContent(sContent.toString());
         sendMail(composeMessage(updateAdminMailBean.getTo(),updateAdminMailBean.getSubject(),updateAdminMailBean.getContent()));
     }
 
@@ -94,5 +162,16 @@ public class DefaultMailProvider implements MailProvider {
         }catch(MessagingException e){
             _LOG.error("Error sending email:{}",e.getMessage());
         }
+    }
+
+    private String getMailSignature(){
+        StringBuilder sContent = new StringBuilder();
+        sContent.append("\n\n\nGreetings from the APIe Team.");
+        sContent.append("\n\n");
+        sContent.append("\n  /~\\");
+        sContent.append("\n C oo");
+        sContent.append("\n _( ^)");
+        sContent.append("\n/   ~\\");
+        return sContent.toString();
     }
 }
