@@ -41,6 +41,8 @@ public class GatewayBean implements Serializable {
     private String oauthAuthPath;
     @Column(name = "oauth_context", nullable = true)
     private String oauthContext;
+    @Column(name = "jwt_exp_time", nullable = true)
+    private Integer JWTExpTime;
 
     @Column(updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
@@ -226,6 +228,14 @@ public class GatewayBean implements Serializable {
         this.endpoint = endpoint;
     }
 
+    public Integer getJWTExpTime() {
+        return JWTExpTime;
+    }
+
+    public void setJWTExpTime(Integer JWTExpTime) {
+        this.JWTExpTime = JWTExpTime;
+    }
+
     @Override
     public String toString() {
         return "GatewayBean{" +
@@ -240,6 +250,7 @@ public class GatewayBean implements Serializable {
                 ", oauthTokenPath='" + oauthTokenPath + '\'' +
                 ", oauthAuthPath='" + oauthAuthPath + '\'' +
                 ", oauthContext='" + oauthContext + '\'' +
+                ", jwtExpTime='" + JWTExpTime + '\'' +
                 ", type=" + type +
                 '}';
     }

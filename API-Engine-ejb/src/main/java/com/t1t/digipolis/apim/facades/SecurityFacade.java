@@ -1,15 +1,19 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.gateways.UpdateGatewayBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
+import com.t1t.digipolis.apim.exceptions.JWTException;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.apim.security.JWTExpTimeResponse;
 import com.t1t.digipolis.apim.security.OAuthExpTimeResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +67,27 @@ public class SecurityFacade {
             } catch (GatewayAuthenticationException e) {
                 throw new OAuthException("Could not update the OAuth expiration time"+e.getMessage());
             }
+        }
+    }
+
+    public void setJWTExpTime(Integer expTime){
+        try {
+            UpdateGatewayBean updateGatewayBean = new UpdateGatewayBean();
+            updateGatewayBean.setJwtExpTime(expTime);
+            gatewayFacade.update(gatewayFacade.getDefaultGateway().getId(),updateGatewayBean);
+        } catch (StorageException e) {
+            throw new JWTException("Could not update the JWT expiration time:"+e.getMessage());
+        }
+    }
+
+    public JWTExpTimeResponse getJWTExpTime(){
+        try {
+            Integer exptime = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId()).getJWTExpTime();
+            JWTExpTimeResponse response = new JWTExpTimeResponse();
+            response.setExpirationTime(exptime);
+            return response;
+        } catch (StorageException e) {
+            throw new JWTException("Could not return the JWT expiration time:"+e.getMessage());
         }
     }
 }

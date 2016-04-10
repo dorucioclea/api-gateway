@@ -143,6 +143,8 @@ public class GatewayFacade {
                 gbean.setType(bean.getType());
             if (bean.getConfiguration() != null)
                 gbean.setConfiguration(bean.getConfiguration());
+            if (bean.getJwtExpTime() != null)
+                gbean.setJWTExpTime(bean.getJwtExpTime());
             //encryptPasswords(gbean);
             storage.updateGateway(gbean);
             log.debug(String.format("Successfully updated gateway %s: %s", gbean.getName(), gbean)); //$NON-NLS-1$
