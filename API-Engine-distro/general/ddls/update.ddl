@@ -143,7 +143,7 @@ ALTER TABLE managed_applications ADD PRIMARY KEY (id);
 ALTER TABLE gateways ADD COLUMN aouth_token VARCHAR(255) NULL;
 ALTER TABLE gateways ADD COLUMN oauth_authorize VARCHAR(255) NULL;
 ALTER TABLE gateways ADD COLUMN oauth_context VARCHAR(255) NULL;
-ALTER TABLE gateways ADD COLUMN jwt_exp_time BIGINT NULL;
+ALTER TABLE gateways ADD COLUMN jwt_exp_time BIGINT NULL DEFAULT 7200;
 
 ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk1 FOREIGN KEY (gateway_id) REFERENCES gateways (id);
 

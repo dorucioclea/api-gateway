@@ -36,6 +36,7 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -220,6 +221,12 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void updateCentralOAuthTokenExpirationTime(Integer exirationTimeInSeconds) throws PublishingException, GatewayAuthenticationException {
         getClient().updateOAuth2ExpirationForCentralOAuth(gateway, exirationTimeInSeconds);
+    }
+
+    @Override
+    public Integer getCentralOAuthTokenExpirationTime() throws GatewayAuthenticationException {
+        final KongPluginOAuthEnhanced oAuth2ExpirationForCentralOAuth = getClient().getOAuth2ExpirationForCentralOAuth(gateway);
+        return oAuth2ExpirationForCentralOAuth.getTokenExpiration();
     }
 
     /**

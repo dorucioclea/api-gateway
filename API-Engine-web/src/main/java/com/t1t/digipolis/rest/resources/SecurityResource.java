@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
+import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceVersionAvailabilityBean;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.config.Version;
@@ -21,6 +22,7 @@ import com.t1t.digipolis.apim.rest.resources.ISecurityResource;
 import com.t1t.digipolis.apim.rest.resources.ISystemResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.apim.security.OAuthExpTimeRequest;
+import com.t1t.digipolis.apim.security.OAuthExpTimeResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -59,5 +61,20 @@ public class SecurityResource implements ISecurityResource {
         Preconditions.checkNotNull(request.getExpirationTime());
         Preconditions.checkArgument(request.getExpirationTime()>0);
         securityFacade.setOAuthExpTime(request.getExpirationTime());
+    }
+
+    @ApiOperation(value = "Get OAuth2 expiration time (in seconds)",
+                  notes = "Use this endpoint to get the central OAuth2 token expiration time (in seconds).")
+    @ApiResponses({
+                          @ApiResponse(code = 200, response = OAuthExpTimeResponse.class, message = "OAuth2 central token issuance expiration time.")
+                  })
+    @GET
+    @Path("/oauth/expiration-time")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public OAuthExpTimeResponse getOAuthExpTime() throws NotAuthorizedException {
+        //only admin can perform this action
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        return securityFacade.getOAuthExpTime();
     }
 }

@@ -252,6 +252,21 @@ public class GatewayClient {
         }
     }
 
+    /**
+     * Returns the central OAuth configuration for a gateway.
+     * @param gtw
+     * @return
+     */
+    public KongPluginOAuthEnhanced getOAuth2ExpirationForCentralOAuth(GatewayBean gtw){
+        Gson gson = new Gson();
+        final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
+            KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
+            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+            return gtwOAuthValue;
+        }else return null;
+    }
+
     public void addGatewayOAuthScopes(GatewayBean gtw, KongApi api){
         Gson gson = new Gson();
         final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());

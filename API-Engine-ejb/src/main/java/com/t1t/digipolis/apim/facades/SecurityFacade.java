@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.apim.security.OAuthExpTimeResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,24 @@ public class SecurityFacade {
                 //We create the new application version consumer
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                 gateway.updateCentralOAuthTokenExpirationTime(expTime);
+            } catch (StorageException e) {
+                throw new ApplicationNotFoundException(e.getMessage());
+            } catch (GatewayAuthenticationException e) {
+                throw new OAuthException("Could not update the OAuth expiration time"+e.getMessage());
+            }
+        }
+    }
+
+    public OAuthExpTimeResponse getOAuthExpTime(){
+        if(!config.getOAuthEnableGatewayEnpoints())throw new OAuthException("Central OAuth2 endpoints are deactivate, this method cannot be used in the current configruation.");
+        else{
+            try {
+                //We create the new application version consumer
+                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                final Integer centralOAuthTokenExpirationTime = gateway.getCentralOAuthTokenExpirationTime();
+                OAuthExpTimeResponse oAuthExpTimeResponse = new OAuthExpTimeResponse();
+                oAuthExpTimeResponse.setExpirationTime(centralOAuthTokenExpirationTime);
+                return oAuthExpTimeResponse;
             } catch (StorageException e) {
                 throw new ApplicationNotFoundException(e.getMessage());
             } catch (GatewayAuthenticationException e) {

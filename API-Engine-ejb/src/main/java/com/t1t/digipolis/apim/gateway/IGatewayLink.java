@@ -47,12 +47,19 @@ public interface IGatewayLink {
     /**
      * Sets the OAuth2 expiration time for tokens issues on the gateway's central oauth endpoints.
      *
-     * @param gtw
      * @param exirationTimeInSeconds
      * @throws PublishingException
      * @throws GatewayAuthenticationException
      */
     public void updateCentralOAuthTokenExpirationTime(Integer exirationTimeInSeconds) throws PublishingException, GatewayAuthenticationException;
+
+    /**
+     * Returns the central OAuth expiration time value.
+     *
+     * @return
+     * @throws GatewayAuthenticationException
+     */
+    public Integer getCentralOAuthTokenExpirationTime() throws GatewayAuthenticationException;
 
     /**
      * Publishes a new {@link Service}.
