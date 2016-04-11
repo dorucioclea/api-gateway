@@ -44,4 +44,6 @@ public interface IConfig {
     String ANALYTICS_HOST = "apiapp.metrics.galileo.host";
     String ANALYTICS_PORT = "apiapp.metrics.galileo.port";
     String MARKETS_FILTER = "apiapp.marketplaces.filter";
+    String NOTIFICATION_ENABLE_DEBUG = "apiapp.notifications.enable_debug";
+    String NOTIFICATION_STARTUP_MAIL = "apiapp.notifications.startup_mail";
 }

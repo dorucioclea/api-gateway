@@ -17,6 +17,8 @@ import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
+import com.t1t.digipolis.apim.beans.mail.MembershipAction;
+import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
@@ -52,6 +54,7 @@ import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
+import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
@@ -131,6 +134,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private RoleFacade roleFacade;
     @Inject
     private AppConfig config;
+    @Inject
+    private MailProvider mailProvider;
 
 
     @SuppressWarnings("nls")
@@ -2065,6 +2070,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+        //send email
+        try{
+            final RoleBean roleBean = roleFacade.get(bean.getRoleId());
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(bean.getUserId());
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                updateMemberMailBean.setRole(roleBean.getName());
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
+        }
     }
 
     public void grant(String organizationId, GrantRolesBean bean) {
@@ -2122,6 +2144,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new SystemErrorException(e);
             }
         }
+        //send email
+        try{
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                updateMemberMailBean.setRole("");
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
+        }
     }
 
     public void updateMembership(String organizationId, String userId, GrantRoleBean bean) {
@@ -2146,6 +2184,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+        //send email
+        try{
+            final RoleBean roleBean = roleFacade.get(bean.getRoleId());
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.UPDATE_ROLE);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                updateMemberMailBean.setRole(roleBean.getName());
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
+        }
     }
 
     public void revokeAll(String organizationId, String userId) {
@@ -2165,6 +2220,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+        //send email
+        try{
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                updateMemberMailBean.setRole("");
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
         }
     }
 
@@ -2198,6 +2269,21 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             storage.createAuditEntry(AuditUtils.ownershipTransferred(organizationId, auditData, securityContext));
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+        //send email
+        try{
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(bean.getNewOwnerId());
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.TRANSFER);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
         }
     }
 

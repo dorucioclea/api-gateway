@@ -63,13 +63,13 @@ public class AppConfig implements Serializable {
             _LOG.info("Marketplace filter: {}",getFilteredMarketplaces());
             _LOG.info("IDP SAML2 endpoint: {}",getIDPSAMLEndpoint());
             _LOG.info("IDP NameID format: {}",getIDPSAMLNameIdFormat());
-            _LOG.info("IDP SCIM endpoint: {}",getIDPSCIMEndpoint());
+/*            _LOG.info("IDP SCIM endpoint: {}",getIDPSCIMEndpoint());
             _LOG.info("IDP SCIM user login has been configured?: {}",!StringUtils.isEmpty(getIDPSCIMUserLogin()));
-            _LOG.info("IDP SCIM user password has been configured?: {}",!StringUtils.isEmpty(getIDPSCIMUserPassword()));
+            _LOG.info("IDP SCIM user password has been configured?: {}",!StringUtils.isEmpty(getIDPSCIMUserPassword()));*/
             _LOG.info("IDP OAUTH token endpoint: {}",getIDPOAuthTokenEndpoint());
             _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
             _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
-            _LOG.info("IDP SCIM activation: {}",getIDPSCIMActivation());
+            /*_LOG.info("IDP SCIM activation: {}",getIDPSCIMActivation());*/
             _LOG.info("REST resource security: {}", getRestResourceSecurity());
             _LOG.info("REST AUTH resource security: {}", getRestAuthResourceSecurity());
             _LOG.info("Metrics schema: {}",getMetricsScheme());
@@ -82,6 +82,8 @@ public class AppConfig implements Serializable {
             _LOG.info("JWT default token expiration (in minutes):{}",getJWTDefaultTokenExpInMinutes());
             _LOG.info("Analytics enables: {}",getAnalyticsEnabled());
             _LOG.info("Analytics send towards {} with port {} and service token {}",getAnalyticsHost(),getAnalyticsPort(),getAnalyticsServiceToken());
+            _LOG.info("Notifications: debug enabled? {}", getNotificationsEnableDebug());
+            _LOG.info("Notifications: startup mail will be sent to {}", getNotificationStartupMail());
             _LOG.info("=============================================================");
         };
     }
@@ -124,4 +126,6 @@ public class AppConfig implements Serializable {
     public Integer getAnalyticsPort(){return config.getInt(IConfig.ANALYTICS_PORT);}
     public List<String> getFilteredMarketplaces(){return config.getStringList(IConfig.MARKETS_FILTER);}
     public List<String> getAppliedRestrictions(){return config.getStringList(IConfig.SECURITY_RESTRICTION_APPLIED);}
+    public Boolean getNotificationsEnableDebug(){return config.getBoolean(IConfig.NOTIFICATION_ENABLE_DEBUG);}
+    public String getNotificationStartupMail(){return config.getString(IConfig.NOTIFICATION_STARTUP_MAIL);}
 }

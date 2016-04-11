@@ -16,8 +16,6 @@ import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import java.util.List;
 
@@ -46,9 +44,9 @@ public class StartupService {
      */
     @PostConstruct
     public void initOAuthOnGateways() {
-        _LOG.info("start init");
-        mailProvider.sendMail();
-        _LOG.info("test mail sent");
+        _LOG.debug("Send test mail");
+        mailProvider.sendTestMail();
+        _LOG.debug("Start init OAuthGateways");
         try{
             List<GatewayBean> gatewayBeans = storageQuery.listGatewayBeans();
             gatewayBeans.forEach(gtw -> {

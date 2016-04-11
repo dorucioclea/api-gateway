@@ -164,3 +164,5 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "group"
   ]
 }', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
+
+ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
