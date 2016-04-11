@@ -19,6 +19,8 @@ INSERT INTO white_ip_restriction(netw_value) VALUES ('172.0.0.0/8');
 INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('rc00115@digant.antwerpen.local', '','peter.claes@digipolis.be', 'Peter Claes', CURRENT_DATE, TRUE);
 INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('rc00260@digant.antwerpen.local', '','chris.jacobs@digipolis.be', 'Chris Jacobs', CURRENT_DATE, TRUE);
 INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('ex02393@digant.antwerpen.local', '','michallis.pashidis@digipolis.be', 'Michallis Pashidis', CURRENT_DATE, TRUE);
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('ex02394@digant.antwerpen.local', '','maarten.somers@digipolis.be', 'Maarten Somers', CURRENT_DATE, TRUE);
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('ex02607@digant.antwerpen.local', '','guillaume.vandecasteele@digipolis.be', 'Guillaume Vandecasteele', CURRENT_DATE, TRUE);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
   "type": "object",
