@@ -30,9 +30,6 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
 }', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
 
 INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES
-  (1000, 'marketplace', 'v1', 'Marketplace', NULL, '6b8406cc81fe4ca3cc9cd4a0abfb97c2'),
   (1001, 'marketplace', 'v1', 'Marketplace', 'ext', '***REMOVED***'),
   (1002, 'marketplace', 'v1', 'Marketplace', 'int', '***REMOVED***'),
   (1003, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***');
-
-INSERT INTO availabilities (code, name) VALUES ('all', 'all');
