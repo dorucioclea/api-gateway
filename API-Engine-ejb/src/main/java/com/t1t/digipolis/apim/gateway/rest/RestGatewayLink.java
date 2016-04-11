@@ -88,6 +88,10 @@ public class RestGatewayLink implements IGatewayLink {
         }
     }
 
+    public KongPluginConfig createACLPlugin(Service service){
+        return getClient().createACLPlugin(service);
+    }
+
     /**
      * @see IGatewayLink#close()
      */

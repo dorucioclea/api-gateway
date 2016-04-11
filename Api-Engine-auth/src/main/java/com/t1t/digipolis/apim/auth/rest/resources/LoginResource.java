@@ -92,7 +92,6 @@ public class LoginResource implements ILoginResource {
                   })
     @GET
     @Path("/idp/redirect")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     public String getSAML2AuthRequestUri(@QueryParam("idp_url")String idpUrl,
                                          @QueryParam("sp_name")String spName,
@@ -143,7 +142,6 @@ public class LoginResource implements ILoginResource {
     @ApiResponses({@ApiResponse(code = 301, message = "SAML2 authentication request")})
     @GET
     @Path("/idp/redirect/proxied")
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response getSAML2AuthRequestRedirect(@QueryParam("idp_url")String idpUrl,
                                                 @QueryParam("sp_name")String spName,
                                                 @Query("sp_url")String spUrl,
@@ -289,8 +287,7 @@ public class LoginResource implements ILoginResource {
     @ApiOperation(value = "Performs a search on user email towards the coupled Identity Provider.",
             notes = "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.")
     @ApiResponses({
-                          @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user."),
-                          @ApiResponse(code = 404, response = UserNotFoundException.class, message = "User not found.")
+                          @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user.")
     })
     @POST
     @Path("/idp/user/mail")
@@ -307,8 +304,7 @@ public class LoginResource implements ILoginResource {
     @ApiOperation(value = "Performs a search on user unique name towards the coupled Identity Provider.",
             notes = "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.")
     @ApiResponses({
-                          @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user."),
-                          @ApiResponse(code = 404, response = UserNotFoundException.class, message = "User not found.")
+                          @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user.")
     })
     @POST
     @Path("/idp/user/name")

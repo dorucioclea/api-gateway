@@ -36,6 +36,7 @@ public class SystemFacade {
     @Inject private IStorageQuery query;
     @Inject private AppConfig config;
     @Inject private GatewayFacade gatewayFacade;
+    @Inject private MigrationToACL migrationToACL;
 
     public Map<String, AvailabilityBean> getAvailableMarketplaces() throws StorageException {
         return query.listAvailableMarkets();
@@ -67,4 +68,9 @@ public class SystemFacade {
         rval.setKongStatus(status.getStatus());
         return rval;
     }
+
+    public void migrateACL(){
+        migrationToACL.migrate();
+    }
+
 }
