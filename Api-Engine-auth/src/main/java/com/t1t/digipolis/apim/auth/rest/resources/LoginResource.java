@@ -95,7 +95,7 @@ public class LoginResource implements ILoginResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String getSAML2AuthRequestUri(@QueryParam("idp_url")String idpUrl,
                                          @QueryParam("sp_name")String spName,
-                                         @Query("sp_url")String spUrl,
+                                         @QueryParam("sp_url") String spUrl,
                                          @QueryParam("client_redirect")String clientRedirect) {
         Preconditions.checkArgument(!StringUtils.isEmpty(idpUrl));
         Preconditions.checkArgument(!StringUtils.isEmpty(spName));
@@ -144,7 +144,7 @@ public class LoginResource implements ILoginResource {
     @Path("/idp/redirect/proxied")
     public Response getSAML2AuthRequestRedirect(@QueryParam("idp_url")String idpUrl,
                                                 @QueryParam("sp_name")String spName,
-                                                @Query("sp_url")String spUrl,
+                                                @QueryParam("sp_url") String spUrl,
                                                 @QueryParam("client_redirect")String clientRedirect) {
         Preconditions.checkArgument(!StringUtils.isEmpty(idpUrl));
         Preconditions.checkArgument(!StringUtils.isEmpty(spName));
