@@ -20,6 +20,7 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -288,7 +289,8 @@ public class LoginResource implements ILoginResource {
     @ApiOperation(value = "Performs a search on user email towards the coupled Identity Provider.",
             notes = "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user.")
+                          @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user."),
+                          @ApiResponse(code = 404, response = UserNotFoundException.class, message = "User not found.")
     })
     @POST
     @Path("/idp/user/mail")
@@ -298,18 +300,15 @@ public class LoginResource implements ILoginResource {
         Preconditions.checkNotNull(externalUserRequest);
         Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserMail()));
         ExternalUserBean userByEmail = null;
-        try {
-            userByEmail = userFacade.getUserByEmail(externalUserRequest.getUserMail());
-        } catch (StorageException e) {
-            e.printStackTrace();
-        }
+        userByEmail = userFacade.getUserByEmail(externalUserRequest.getUserMail());
         return Response.ok().entity(userByEmail).build();
     }
 
     @ApiOperation(value = "Performs a search on user unique name towards the coupled Identity Provider.",
             notes = "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user.")
+                          @ApiResponse(code = 200, response = ExternalUserBean.class, message = "External and initialized user."),
+                          @ApiResponse(code = 404, response = UserNotFoundException.class, message = "User not found.")
     })
     @POST
     @Path("/idp/user/name")

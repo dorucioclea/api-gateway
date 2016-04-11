@@ -823,6 +823,8 @@ public class UserFacade implements Serializable {
     public ExternalUserBean getUserByEmail(String email) {
         try{
             UserBean userByMail = idmStorage.getUserByMail(email);
+            if(userByMail==null)throw new StorageException();
+            log.debug("User found by mail ({}): {}",email, userByMail);
             ExternalUserBean extUser = new ExternalUserBean();
             extUser.setAccountId(userByMail.getUsername());
             extUser.setUsername(userByMail.getUsername());
@@ -841,7 +843,8 @@ public class UserFacade implements Serializable {
         ExternalUserBean extUser = null;
         try {
             UserBean user = idmStorage.getUser(username);
-            log.info("User: {}", user);
+            if(user==null)throw new StorageException();
+            log.debug("User found by id ({}): {}",username, user);
             extUser = new ExternalUserBean();
             extUser.setUsername(user.getUsername());
             extUser.setAccountId(user.getUsername());
