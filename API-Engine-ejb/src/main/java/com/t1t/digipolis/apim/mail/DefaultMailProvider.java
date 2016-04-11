@@ -85,7 +85,7 @@ public class DefaultMailProvider implements MailProvider {
                 break;
             }
             case TRANSFER:{
-                updateMemberMailBean.setSubject("API Engine - transfer owner");
+                updateMemberMailBean.setSubject("API Engine - transfer ownership "+updateMemberMailBean.getOrgFriendlyName());
                 sContent.append("\nYou have been assigned as owner of the organization.");
                 break;
             }
