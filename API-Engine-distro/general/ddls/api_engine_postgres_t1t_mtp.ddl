@@ -13,3 +13,28 @@ INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CU
 
 INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
 INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
+
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('guillaume@trust1team.com', '','guillaume@trust1team.com', 'Guillaume Vandecasteele', CURRENT_DATE, TRUE);
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('michallis@trust1team.com', '','michallis@trust1team.com', 'Michallis Pashidis', CURRENT_DATE, TRUE);
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('maarten.somers@trust1team.com', '','maarten.somers@trust1team.com', 'Maarten Somers', CURRENT_DATE, TRUE);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
+  "type": "object",
+  "title": "ACL",
+  "properties": {
+    "group": {
+      "title": "ACL group name",
+      "description":"Name of the ACL group belonging to the service",
+      "type": "string",
+      "required": true
+    }
+  },
+  "required": [
+    "group"
+  ]
+}', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
+
+INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES
+  (1001, 'marketplace', 'v1', 'Marketplace', 'ext', '***REMOVED***'),
+  (1002, 'marketplace', 'v1', 'Marketplace', 'int', '***REMOVED***'),
+  (1003, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***');
