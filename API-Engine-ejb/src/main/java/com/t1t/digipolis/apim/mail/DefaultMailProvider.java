@@ -37,7 +37,7 @@ public class DefaultMailProvider implements MailProvider {
     }
 
     public void sendTestMail(){
-        sendMail(composeMessage("michallis@trust1team.com","API Engine mail test","This is a test message - you can ignore the content."));
+        sendMail(composeMessage(config.getNotificationStartupMail(),"API Engine mail test","This is a test message - you can ignore the content."));
     }
 
     @Override

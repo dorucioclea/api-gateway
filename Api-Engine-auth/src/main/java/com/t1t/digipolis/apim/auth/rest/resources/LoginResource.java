@@ -185,7 +185,7 @@ public class LoginResource implements ILoginResource {
         JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
         try {
             jwtRefreshResponseBean = userFacade.refreshToken(jwtRefreshRequestBean);
-        } catch (UnsupportedEncodingException | InvalidJwtException | MalformedClaimException | JoseException e) {
+        } catch (UnsupportedEncodingException | InvalidJwtException | MalformedClaimException | JoseException |StorageException e) {
             new SystemErrorException(e);
         }
         return jwtRefreshResponseBean;

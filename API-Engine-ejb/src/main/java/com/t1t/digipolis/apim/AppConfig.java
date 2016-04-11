@@ -83,6 +83,7 @@ public class AppConfig implements Serializable {
             _LOG.info("Analytics enables: {}",getAnalyticsEnabled());
             _LOG.info("Analytics send towards {} with port {} and service token {}",getAnalyticsHost(),getAnalyticsPort(),getAnalyticsServiceToken());
             _LOG.info("Notifications: debug enabled? {}", getNotificationsEnableDebug());
+            _LOG.info("Notifications: startup mail will be sent to {}", getNotificationStartupMail());
             _LOG.info("=============================================================");
         };
     }
@@ -126,4 +127,5 @@ public class AppConfig implements Serializable {
     public List<String> getFilteredMarketplaces(){return config.getStringList(IConfig.MARKETS_FILTER);}
     public List<String> getAppliedRestrictions(){return config.getStringList(IConfig.SECURITY_RESTRICTION_APPLIED);}
     public Boolean getNotificationsEnableDebug(){return config.getBoolean(IConfig.NOTIFICATION_ENABLE_DEBUG);}
+    public String getNotificationStartupMail(){return config.getString(IConfig.NOTIFICATION_STARTUP_MAIL);}
 }

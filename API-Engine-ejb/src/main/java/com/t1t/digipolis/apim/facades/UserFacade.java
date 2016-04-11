@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
@@ -123,7 +124,8 @@ public class UserFacade implements Serializable {
     private IUserExternalInfoService userExternalInfoService;
     @Inject
     private AppConfig config;
-    @Inject private MailProvider mailProvider;
+    @Inject
+    private MailProvider mailProvider;
 
     public UserBean get(String userId) {
         try {
@@ -324,20 +326,25 @@ public class UserFacade implements Serializable {
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri, "UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest, urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?" + SAML2_KEY_REQUEST + encodedRequestMessage + "&" + SAML2_KEY_RELAY_STATE + urlEncodedClientUrl;
-        } catch (MarshallingException | IOException | ConfigurationException ex) {
+        } catch (MarshallingException | IOException | ConfigurationException |StorageException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
         }
     }
 
-    private String getSamlRequestEncoded(SAMLRequest samlRequest, String urlEncodedClientUrl) throws IOException, MarshallingException, ConfigurationException {
+    private String getSamlRequestEncoded(SAMLRequest samlRequest, String urlEncodedClientUrl) throws IOException, MarshallingException, ConfigurationException, StorageException {
         //Bootstrap OpenSAML
         DefaultBootstrap.bootstrap();
+        final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
         //Generate the request
         AuthnRequest authnRequest = buildAuthnRequestObject(samlRequest.getSpUrl(), samlRequest.getSpName(), samlRequest.getClientAppRedirect());
         WebClientCacheBean webCache = new WebClientCacheBean();
         webCache.setToken(samlRequest.getToken());
         webCache.setClientAppRedirect(samlRequest.getClientAppRedirect());
-        webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+        if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
+            webCache.setTokenExpirationTimeMinutes(gatewayBean.getJWTExpTime());
+        }else{
+            webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+        }
         webCache.setOptionalClaimset(samlRequest.getOptionalClaimMap());
         webCache.setAppRequester(securityAppContext.getApplicationIdentifier());
         //set client application name and callback in the cache
@@ -892,14 +899,22 @@ public class UserFacade implements Serializable {
         return secret;
     }
 
-    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JoseException {
+    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JoseException, StorageException {
         //get body
         JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
         JwtClaims jwtClaims = jwtContext.getJwtClaims();
+        //get gateway default expiration time for JWT
+        final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+        Integer jwtExpirationTime = 60;//default 10min.
+        if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
+            jwtExpirationTime = gatewayBean.getJWTExpTime();
+        }else{
+            jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
+        }
         //get secret based on iss/username - cached
         String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
         JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret));
+        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret,jwtExpirationTime));
         return jwtRefreshResponseBean;
     }
 
