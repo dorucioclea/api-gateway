@@ -300,7 +300,7 @@ public class GatewayClient {
             }
         }
         //Apply ACL plugin by default. ACL group names are a convention, so they don't need to be persisted
-        if (!customAclflag) createACLPlugin(api);
+        if (!customAclflag) createACLPlugin(service);
         //add default CORS Policy if no custom CORS defined
         if(!customCorsFlag) registerDefaultCORSPolicy(api);
         //don't apply on the UI a API key if OAuth2 enabled
@@ -548,15 +548,16 @@ public class GatewayClient {
     /**
      * Enables ACL on a service and adds the service unique name to the group whitelist
      *
-     * @param api the service on wich to enable ACL
+     * @param service the service on wich to enable ACL
      * @return
      */
-    public KongPluginConfig createACLPlugin(KongApi api) {
+    public KongPluginConfig createACLPlugin(Service service) {
+        String serviceDNS = ServiceConventionUtil.generateServiceUniqueName(service);
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.ACL.getKongIdentifier())
                 .withConfig(new KongPluginACL()
-                        .withWhitelist(Arrays.asList(api.getName())));
-        return httpClient.createPluginConfig(api.getId(), config);
+                        .withWhitelist(Arrays.asList(serviceDNS)));
+        return httpClient.createPluginConfig(serviceDNS, config);
     }
 
     /**

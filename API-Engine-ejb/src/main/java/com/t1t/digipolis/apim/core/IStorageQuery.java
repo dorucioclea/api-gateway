@@ -402,4 +402,12 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<PolicyBean> getMarketplaceACLPolicies(String organizationId, String serviceId, String version) throws StorageException;
+
+    /**
+     * Returns all applications
+     *
+     * @return List of ApplicationVersionBeans
+     * @throws StorageException
+     */
+    public List<ApplicationVersionBean> findAllApplicationVersions() throws StorageException;
 }

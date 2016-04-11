@@ -1,10 +1,11 @@
-package com.t1t.digipolis.apim.migration;
+package com.t1t.digipolis.apim.facades;
 
 import com.google.gson.Gson;
-import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
@@ -12,9 +13,6 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
-import com.t1t.digipolis.apim.facades.GatewayFacade;
-import com.t1t.digipolis.apim.facades.OrganizationFacade;
-import com.t1t.digipolis.apim.facades.SearchFacade;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.rest.GatewayClient;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
@@ -52,6 +50,7 @@ public class MigrationToACL {
     public void migrate() {
         List<ServiceVersionBean> publishedServices = searchFacade.searchServicesByStatus(ServiceStatus.Published);
         enableAclOnPublishedServices(publishedServices);
+        enableAclOnApplications();
     }
     /**
      * Enables ACL plugin on every published service
@@ -67,36 +66,18 @@ public class MigrationToACL {
                 gatewaySvc.setServiceId(versionBean.getService().getId());
                 gatewaySvc.setVersion(versionBean.getVersion());
                 //Create plugin on Kong api
-                gateway.createACLPlugin(gatewaySvc);
+                _LOG.info("ACL plugin:{}", gateway.createACLPlugin(gatewaySvc));
                 //Add marketplaces to Service ACL
                 for (ManagedApplicationBean market : marketplaces) {
                     KongPluginACLResponse response = gateway.addConsumerToACL(
                             ConsumerConventionUtil.createManagedApplicationConsumerName(market),
                             ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
+                    _LOG.info("Marketplace ACL:{}", response);
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(Policies.ACL.name());
                     npb.setConfiguration(new Gson().toJson(response));
                     npb.setKongPluginId(response.getId());
-                    orgFacade.createManagedApplicationPolicy(market, npb);
-                }
-                //Get service contracts and apply ACL
-                List<ContractSummaryBean> contracts = query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 10000);
-                for (ContractSummaryBean contract : contracts) {
-                    String organizationId = contract.getAppOrganizationName();
-                    String applicationId = contract.getAppName();
-                    String version = contract.getAppVersion();
-                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                    //Add ACL group membership by default on gateway
-                    KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
-                            ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
-                    //Persist the unique Kong plugin id in a new policy associated with the app.
-                    NewPolicyBean npb = new NewPolicyBean();
-                    KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
-                    npb.setDefinitionId(Policies.ACL.name());
-                    npb.setKongPluginId(response.getId());
-                    npb.setContractId(contract.getContractId());
-                    npb.setConfiguration(new Gson().toJson(conf));
-                    orgFacade.createAppPolicy(organizationId, applicationId, version, npb);
+                    _LOG.info("Marketplace policy:{}", orgFacade.createManagedApplicationPolicy(market, npb));
                 }
             }
         }
@@ -105,7 +86,29 @@ public class MigrationToACL {
         }
     }
 
-    private void addMarketPlaceToServiceACL(Service gatewaySvc, List<ManagedApplicationBean> marketplaces) {
-
+    private void enableAclOnApplications() {
+        try {
+            GatewayClient gateway = (GatewayClient) gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            List<ApplicationVersionBean> applications = query.findAllApplicationVersions();
+            for (ApplicationVersionBean appVersion : applications) {
+                String applicationName = ConsumerConventionUtil.createAppUniqueId(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
+                List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
+                for (ContractSummaryBean summary : contractSummaries) {
+                    String serviceName = ServiceConventionUtil.generateServiceUniqueName(summary.getServiceOrganizationId(), summary.getServiceId(), summary.getServiceVersion());
+                    KongPluginACLResponse response = gateway.addConsumerToACL(applicationName, serviceName);
+                    //Persist the unique Kong plugin id in a new policy associated with the app.
+                    NewPolicyBean npb = new NewPolicyBean();
+                    KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+                    npb.setDefinitionId(Policies.ACL.name());
+                    npb.setKongPluginId(response.getId());
+                    npb.setContractId(summary.getContractId());
+                    npb.setConfiguration(new Gson().toJson(conf));
+                    _LOG.info("Policy " + applicationName + ":{}", orgFacade.doCreatePolicy(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion(), npb, PolicyType.Application));
+                }
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
     }
 }
