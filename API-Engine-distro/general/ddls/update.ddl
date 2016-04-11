@@ -140,7 +140,7 @@ ALTER TABLE policies ADD COLUMN contract_id BIGINT NULL;
 
 ALTER TABLE managed_applications ADD PRIMARY KEY (id);
 
-ALTER TABLE gateways ADD COLUMN aouth_token VARCHAR(255) NULL;
+ALTER TABLE gateways ADD COLUMN oauth_token VARCHAR(255) NULL;
 
 ALTER TABLE gateways ADD COLUMN oauth_authorize VARCHAR(255) NULL;
 

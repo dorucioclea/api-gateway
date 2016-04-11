@@ -46,3 +46,5 @@ INSERT INTO managed_applications (id, name, version, type, availability, api_key
   (1001, 'marketplace', 'v1', 'Marketplace', 'ext', '229e2ea08ba94919c9d221cdf3be1f73'),
   (1002, 'marketplace', 'v1', 'Marketplace', 'int', '229e2ea08ba94919c9d221cdf3be1f71'),
   (1003, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***');
+
+UPDATE gateways SET oauth_token='/oauth2/token', oauth_authorize='/oauth2/authorize', oauth_context='/secure', jwt_exp_time=60 WHERE id='KongGateway';
