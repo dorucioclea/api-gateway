@@ -22,7 +22,7 @@ CREATE TABLE contracts (id BIGINT NOT NULL, apikey VARCHAR(255) NOT NULL, create
 
 CREATE TABLE endpoint_properties (service_version_id BIGINT NOT NULL, value VARCHAR(255) NULL, name VARCHAR(255) NOT NULL);
 
-CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL);
+CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, aouth_token VARCHAR(255) NULL,oauth_authorize VARCHAR(255) NULL, oauth_context VARCHAR(255) NULL, jwt_exp_time INT NULL DEFAULT 7200);
 
 CREATE TABLE memberships (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NULL, org_id VARCHAR(255) NULL, role_id VARCHAR(255) NULL, user_id VARCHAR(255) NULL);
 
@@ -179,6 +179,8 @@ ALTER TABLE service_versions ADD CONSTRAINT UK_service_versions_1 UNIQUE (servic
 ALTER TABLE service_defs ADD CONSTRAINT UK_service_defs_1 UNIQUE (service_version_id);
 
 ALTER TABLE contracts ADD CONSTRAINT UK_contracts_1 UNIQUE (appv_id, svcv_id, planv_id);
+
+ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
 
 ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id);
 
@@ -452,7 +454,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
             "scope":{
                 "title": "Scope",
                 "type": "string",
-                "pattern": "^[a-z,A-Z]+$",
+                "pattern": "^[a-z,A-Z,.]+$",
                 "description": "Provide the scope identifier that will be available to the end user (use only lowercase characters and no special characters)."
             },
             "scope_desc":{

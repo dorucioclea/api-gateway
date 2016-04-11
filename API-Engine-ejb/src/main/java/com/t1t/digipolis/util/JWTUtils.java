@@ -124,8 +124,9 @@ public class JWTUtils {
         return jwtContext;
     }
 
-    public static String refreshJWT(JWTRefreshRequestBean jwtRefreshRequestBean, JwtClaims jwtClaims ,String secret)throws JoseException, UnsupportedEncodingException{
-        //add optoinal claims
+    public static String refreshJWT(JWTRefreshRequestBean jwtRefreshRequestBean, JwtClaims jwtClaims ,String secret,Integer jwtExpirationTime)throws JoseException, UnsupportedEncodingException{
+        //add optional claims
+        jwtClaims.setExpirationTimeMinutesInTheFuture(jwtExpirationTime); // time when the token will expire (10 minutes from now)
         addOptionalClaims(jwtClaims,jwtRefreshRequestBean.getOptionalClaims());
         return composeJWT(secret, jwtClaims);
     }

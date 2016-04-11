@@ -3,7 +3,7 @@
 --  ***********...
 --  ***********...
 
-INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type) VALUES ('KongGateway', '{"endpoint":"http://devapim.t1t.be:8001","username":"","password":""}','https://devapim.t1t.be:443', '', CURRENT_DATE, 'This is the gateway.', '', CURRENT_DATE, 'Default Kong Gateway', 'REST');
+INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type, oauth_authorize, oauth_token, oauth_context,jwt_exp_time) VALUES ('KongGateway', '{"endpoint":"http://devapim.t1t.be:8001","username":"","password":""}','https://devapim.t1t.be:443', '', CURRENT_DATE, 'This is the gateway.', '', CURRENT_DATE, 'Default Kong Gateway', 'REST', '/oauth2/authorize', '/oauth2/token','/secure',7200);
 
 INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('admin', 'admin@example.org', 'Admin', CURRENT_DATE,TRUE ,NULL );
 
@@ -15,11 +15,28 @@ INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('run
 
 INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
 INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
-INSERT INTO availabilities(name, code) VALUES ('all', 'all');
 
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('guillaume@trust1team.com', '','guillaume@trust1team.com', 'Guillaume Vandecasteele', CURRENT_DATE, TRUE);
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('michallis@trust1team.com', '','michallis@trust1team.com', 'Michallis Pashidis', CURRENT_DATE, TRUE);
+INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('maarten.somers@trust1team.com', '','maarten.somers@trust1team.com', 'Maarten Somers', CURRENT_DATE, TRUE);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
+  "type": "object",
+  "title": "ACL",
+  "properties": {
+    "group": {
+      "title": "ACL group name",
+      "description":"Name of the ACL group belonging to the service",
+      "type": "string",
+      "required": true
+    }
+  },
+  "required": [
+    "group"
+  ]
+}', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
 
 INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES
-  (900, 'marketplace', 'v1', 'Marketplace', 'all', '6b8406cc81fe4ca3cc9cd4a0abfb97c2'),
-  (901, 'marketplace', 'v1', 'Marketplace', 'ext', '***REMOVED***'),
-  (902, 'marketplace', 'v1', 'Marketplace', 'int', '***REMOVED***'),
-  (903, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***');
+  (1001, 'marketplace', 'v1', 'Marketplace', 'ext', '***REMOVED***'),
+  (1002, 'marketplace', 'v1', 'Marketplace', 'int', '***REMOVED***'),
+  (1003, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***');

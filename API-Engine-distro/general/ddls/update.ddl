@@ -1,4 +1,4 @@
-CREATE TABLE svc_visibility (service_version_id BIGINT NOT NULL, code VARCHAR(255) NOT NULL, show BOOLEAN NOT NULL);
+/*CREATE TABLE svc_visibility (service_version_id BIGINT NOT NULL, code VARCHAR(255) NOT NULL, show BOOLEAN NOT NULL);
 
 ALTER TABLE svc_visibility ADD PRIMARY KEY (service_version_id, code);
 
@@ -19,7 +19,7 @@ ALTER TABLE white_ip_restriction ADD PRIMARY KEY (netw_value);
 ALTER TABLE black_ip_restriction ADD PRIMARY KEY (netw_value);
 
 
-/*insert statements*/
+*//*insert statements*//*
 INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
 
 INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
@@ -30,10 +30,10 @@ INSERT INTO white_ip_restriction(netw_value) VALUES ('10.0.0.0/8');
 
 INSERT INTO white_ip_restriction(netw_value) VALUES ('172.0.0.0/8');
 
-/*Update existing services to be available on the internal marketplace*/
+*//*Update existing services to be available on the internal marketplace*//*
 
 
-/*Update OAuth2 policy to avoid required fields*/
+*//*Update OAuth2 policy to avoid required fields*//*
 UPDATE policydefs set form='{
   "type": "object",
   "title": "OAuth2",
@@ -121,7 +121,7 @@ UPDATE policydefs set form='{
         }
     }
   }
-}' WHERE id = 'IPRestriction';
+}' WHERE id = 'IPRestriction';*/
 
 --get ids of services select id from service_versions;
 --update for existing services INSERT INTO svc_visibility(service_version_id, code, show) VALUES (1173, 'INT', true);
@@ -140,9 +140,17 @@ ALTER TABLE policies ADD COLUMN contract_id BIGINT NULL;
 
 ALTER TABLE managed_applications ADD PRIMARY KEY (id);
 
-ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk1 FOREIGN KEY (gateway_id) REFERENCES gateways (id);
+ALTER TABLE gateways ADD COLUMN aouth_token VARCHAR(255) NULL;
 
-ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk2 FOREIGN KEY (availability) REFERENCES availabilities (code) ;
+ALTER TABLE gateways ADD COLUMN oauth_authorize VARCHAR(255) NULL;
+
+ALTER TABLE gateways ADD COLUMN oauth_context VARCHAR(255) NULL;
+
+ALTER TABLE gateways ADD COLUMN jwt_exp_time INT NULL DEFAULT 7200;
+
+ALTER TABLE managed_applications ADD CONSTRAINT FK_manapp_gateway_id FOREIGN KEY (gateway_id) REFERENCES gateways (id);
+
+ALTER TABLE managed_applications ADD CONSTRAINT FK_manap_available_code FOREIGN KEY (availability) REFERENCES availabilities (code) ;
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
   "type": "object",
@@ -159,3 +167,5 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "group"
   ]
 }', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
+
+ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);

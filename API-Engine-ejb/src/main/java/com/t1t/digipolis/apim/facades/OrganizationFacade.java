@@ -17,6 +17,8 @@ import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
+import com.t1t.digipolis.apim.beans.mail.MembershipAction;
+import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
@@ -52,9 +54,22 @@ import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
+import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -119,6 +134,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private RoleFacade roleFacade;
     @Inject
     private AppConfig config;
+    @Inject
+    private MailProvider mailProvider;
 
 
     @SuppressWarnings("nls")
@@ -403,13 +420,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //add OAuth2 consumer default to the application
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
-            //for contract add keyauth to applciation consumer
-            try {
+            //for contract add keyauth to application consumer
+
                 //We create the new application version consumer
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                 if (contract != null) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                    gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+                    try {
+                        gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+                    } catch (Exception e) {
+                        //apikey for consumer already exists
+                    }
                     //Add ACL group membership by default on gateway
                     KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
                             ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
@@ -422,9 +443,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     npb.setConfiguration(new Gson().toJson(conf));
                     createAppPolicy(organizationId, applicationId, version, npb);
                 }
-            } catch (Exception e) {
-                //apikey for consumer already exists
-            }
             //verify if the contracting service has OAuth enabled
             List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
             for (PolicySummaryBean summaryBean : policySummaryBeans) {
@@ -972,7 +990,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getServicePolicy(organizationId, serviceId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration())).getPolicyJsonConfig());
+                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,serviceId,bean.getCloneVersion())).getPolicyJsonConfig());
                     createServicePolicy(organizationId, serviceId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -1185,7 +1203,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                 PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId);
                 if (policy == null) {
-                    throw ExceptionFactory.policyNotFoundException(0);
+                    throw ExceptionFactory.policyNotFoundException(0);//TODO-> this indicated inconsistency in code! shouldnt be there
                 }
                 gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version), policy.getKongPluginId());
                 deleteAppPolicy(organizationId, applicationId, version, policy.getId());
@@ -1600,14 +1618,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public KongPluginConfig changeEnabledStateServicePlugin(String organizationId, String serviceId, String version,String pluginId, boolean enable) {
+    public KongPluginConfig changeEnabledStateServicePlugin(String organizationId, String serviceId, String version, String pluginId, boolean enable) {
         String serviceKongId = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
         try {
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            KongPluginConfig pluginConfig = gateway.getServicePlugin(serviceKongId, pluginId);
-            pluginConfig.setEnabled(enable);
-            pluginConfig = gateway.updateServicePlugin(serviceKongId,pluginConfig);
-            return pluginConfig;
+            KongPluginConfigList pluginConfigList = gateway.getServicePlugin(serviceKongId, pluginId);
+            if(pluginConfigList!=null && pluginConfigList.getData().size()>0){
+                KongPluginConfig pluginConfig = pluginConfigList.getData().get(0);
+                pluginConfig.setEnabled(enable);
+                pluginConfig = gateway.updateServicePlugin(serviceKongId,pluginConfig);
+                return pluginConfig;
+            }else{
+                return null;
+            }
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -1664,7 +1687,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             // TODO capture specific change values when auditing policy updates
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration())).getPolicyJsonConfig());
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,serviceId,version)).getPolicyJsonConfig());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
@@ -2047,6 +2070,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+        //send email
+        try{
+            final RoleBean roleBean = roleFacade.get(bean.getRoleId());
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(bean.getUserId());
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                updateMemberMailBean.setRole(roleBean.getName());
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
+        }
     }
 
     public void grant(String organizationId, GrantRolesBean bean) {
@@ -2104,6 +2144,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new SystemErrorException(e);
             }
         }
+        //send email
+        try{
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                updateMemberMailBean.setRole("");
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
+        }
     }
 
     public void updateMembership(String organizationId, String userId, GrantRoleBean bean) {
@@ -2128,6 +2184,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+        //send email
+        try{
+            final RoleBean roleBean = roleFacade.get(bean.getRoleId());
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.UPDATE_ROLE);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                updateMemberMailBean.setRole(roleBean.getName());
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
+        }
     }
 
     public void revokeAll(String organizationId, String userId) {
@@ -2147,6 +2220,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+        //send email
+        try{
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                updateMemberMailBean.setRole("");
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
         }
     }
 
@@ -2180,6 +2269,21 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             storage.createAuditEntry(AuditUtils.ownershipTransferred(organizationId, auditData, securityContext));
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+        //send email
+        try{
+            final OrganizationBean organizationBean = get(organizationId);
+            final UserBean userBean = userFacade.get(bean.getNewOwnerId());
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                updateMemberMailBean.setTo(userBean.getEmail());
+                updateMemberMailBean.setMembershipAction(MembershipAction.TRANSFER);
+                updateMemberMailBean.setOrgName(organizationBean.getName());
+                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                mailProvider.sendUpdateMember(updateMemberMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
         }
     }
 
@@ -2404,6 +2508,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @return the stored policy bean (with updated information)
      * @throws NotAuthorizedException
      */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     protected PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion, NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
         if (bean.getDefinitionId() == null) {
             ExceptionFactory.policyDefNotFoundException("null"); //$NON-NLS-1$
@@ -2431,7 +2536,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setDefinition(def);
             policy.setName(def.getName());
             //validate (remove null values) and apply custom implementation for the policy
-            String policyJsonConfig = GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration())).getPolicyJsonConfig();
+            String policyJsonConfig = GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,entityId,entityVersion)).getPolicyJsonConfig();
             policy.setConfiguration(policyJsonConfig);
             policy.setCreatedBy(securityContext.getCurrentUser());
             policy.setCreatedOn(new Date());

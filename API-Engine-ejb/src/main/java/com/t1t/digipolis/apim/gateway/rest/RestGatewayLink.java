@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
@@ -19,10 +20,14 @@ import com.t1t.digipolis.apim.gateway.i18n.Messages;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.KongServiceBuilder;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
@@ -31,6 +36,7 @@ import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -68,7 +74,7 @@ public class RestGatewayLink implements IGatewayLink {
         try {
             this.gateway = gateway;
             this.storage = storage;
-            this.metricsURI=metricsURI;
+            this.metricsURI = metricsURI;
             this.appConfig = appConfig;
             String cfg = gateway.getConfiguration();
             setConfig((RestGatewayConfigBean) mapper.reader(RestGatewayConfigBean.class).readValue(cfg));
@@ -116,7 +122,7 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongConsumer createConsumerWithCustomId(String customId)throws ConsumerAlreadyExistsException{
+    public KongConsumer createConsumerWithCustomId(String customId) throws ConsumerAlreadyExistsException {
         return getClient().createConsumerWithCustomID(customId);
     }
 
@@ -127,7 +133,7 @@ public class RestGatewayLink implements IGatewayLink {
 
     @Override
     public KongPluginKeyAuthResponse addConsumerKeyAuth(String id, String apiKey) throws ConsumerException {
-        if(StringUtils.isEmpty(apiKey))return addConsumerKeyAuth(id);
+        if (StringUtils.isEmpty(apiKey)) return addConsumerKeyAuth(id);
         else return getClient().createConsumerKeyAuth(id, apiKey);
     }
 
@@ -142,13 +148,13 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public void deleteConsumerKeyAuth(String id, String apiKey)throws ConsumerException{
-        getClient().deleteConsumerKeyAuth(id,apiKey);
+    public void deleteConsumerKeyAuth(String id, String apiKey) throws ConsumerException {
+        getClient().deleteConsumerKeyAuth(id, apiKey);
     }
 
     @Override
-    public KongPluginBasicAuthResponse addConsumerBasicAuth(String userId, String userLoginName,String userLoginPassword) throws ConsumerException {
-        return getClient().createConsumerBasicAuth(userId,userLoginName,userLoginPassword);
+    public KongPluginBasicAuthResponse addConsumerBasicAuth(String userId, String userLoginName, String userLoginPassword) throws ConsumerException {
+        return getClient().createConsumerBasicAuth(userId, userLoginName, userLoginPassword);
     }
 
     @Override
@@ -172,7 +178,7 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(String consumerId){
+    public KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(String consumerId) {
         return getClient().getConsumerOAuthCredentials(consumerId);
     }
 
@@ -187,7 +193,7 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongPluginConfig getServicePlugin(String serviceId, String pluginId) {
+    public KongPluginConfigList getServicePlugin(String serviceId, String pluginId) {
         return getClient().getServicePlugin(serviceId, pluginId);
     }
 
@@ -212,13 +218,24 @@ public class RestGatewayLink implements IGatewayLink {
         return getClient().getStatus();
     }
 
+    @Override
+    public void updateCentralOAuthTokenExpirationTime(Integer exirationTimeInSeconds) throws PublishingException, GatewayAuthenticationException {
+        getClient().updateOAuth2ExpirationForCentralOAuth(gateway, exirationTimeInSeconds);
+    }
+
+    @Override
+    public Integer getCentralOAuthTokenExpirationTime() throws GatewayAuthenticationException {
+        final KongPluginOAuthEnhanced oAuth2ExpirationForCentralOAuth = getClient().getOAuth2ExpirationForCentralOAuth(gateway);
+        return oAuth2ExpirationForCentralOAuth.getTokenExpiration();
+    }
+
     /**
      * @see IGatewayLink#getServiceEndpoint(String, String, String, String)
      */
     @Override
-    public ServiceEndpoint getServiceEndpoint(String basePath,String organizationId, String serviceId, String version)
+    public ServiceEndpoint getServiceEndpoint(String basePath, String organizationId, String serviceId, String version)
             throws GatewayAuthenticationException {
-        return getClient().getServiceEndpoint(basePath,organizationId, serviceId, version);
+        return getClient().getServiceEndpoint(basePath, organizationId, serviceId, version);
     }
 
     @Override
@@ -235,6 +252,26 @@ public class RestGatewayLink implements IGatewayLink {
             throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
         }
         getClient().publish(service);
+    }
+
+    @Override
+    public void publishGatewayOAuthEndpoint(Gateway gateway) throws PublishingException, GatewayAuthenticationException {
+        if (!isGatewayUp()) {
+            throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
+        }
+        getClient().publishGatewayOAuthEndpoint(gateway);
+    }
+
+    @Override
+    public void addGatewayOAuthScopes(String serviceId) throws PublishingException, GatewayAuthenticationException {
+        KongApi api = getApi(serviceId);
+        getClient().addGatewayOAuthScopes(gateway, api);
+    }
+
+    @Override
+    public void removeGatewayOAuthscopes(String serviceId) throws PublishingException, GatewayAuthenticationException {
+        KongApi api = getApi(serviceId);
+        getClient().removeGatewayOAuthScopes(gateway, api);
     }
 
     /**
@@ -285,7 +322,7 @@ public class RestGatewayLink implements IGatewayLink {
      */
     private GatewayClient createClient() {
         String gatewayEndpoint = getConfig().getEndpoint();
-        return new GatewayClient(httpClient,gateway,storage,metricsURI,appConfig);
+        return new GatewayClient(httpClient, gateway, storage, metricsURI, appConfig);
     }
 
     /**
@@ -316,6 +353,7 @@ public class RestGatewayLink implements IGatewayLink {
 
     /**
      * Removes a consumer's membership to a specific ACL
+     *
      * @param consumerId
      * @param pluginId
      */

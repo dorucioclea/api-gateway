@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
@@ -44,6 +45,14 @@ public interface IStorageQuery {
      * @throws StorageException if a storage problem occurs while storing a bean.
      */
     public List<GatewaySummaryBean> listGateways() throws StorageException;
+
+    /**
+     * List all the gatewaybeans with all available information.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<GatewayBean> listGatewayBeans() throws StorageException;
 
     /**
      * Finds organizations by the provided criteria.
