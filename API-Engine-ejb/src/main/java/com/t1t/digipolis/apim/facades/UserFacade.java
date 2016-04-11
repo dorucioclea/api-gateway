@@ -8,6 +8,10 @@ import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
+import com.t1t.digipolis.apim.beans.mail.MembershipAction;
+import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
+import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
+import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
@@ -26,6 +30,7 @@ import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.apim.saml2.ISAML2;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -118,6 +123,7 @@ public class UserFacade implements Serializable {
     private IUserExternalInfoService userExternalInfoService;
     @Inject
     private AppConfig config;
+    @Inject private MailProvider mailProvider;
 
     public UserBean get(String userId) {
         try {
@@ -200,6 +206,18 @@ public class UserFacade implements Serializable {
         if(user==null)throw new UserNotFoundException("User unknow in the application: " + userId);
         user.setAdmin(false);
         idmStorage.updateUser(user);
+        //send email
+        try{
+            final UserBean userBean = get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
+                updateAdminMailBean.setTo(userBean.getEmail());
+                updateAdminMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
+                mailProvider.sendUpdateAdmin(updateAdminMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
+        }
     }
 
     public void addAdminPriviledges(String userId)throws StorageException{
@@ -214,6 +232,18 @@ public class UserFacade implements Serializable {
         }else{
             user.setAdmin(true);
             idmStorage.updateUser(user);
+        }
+        //send email
+        try{
+            final UserBean userBean = get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
+                updateAdminMailBean.setTo(userBean.getEmail());
+                updateAdminMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
+                mailProvider.sendUpdateAdmin(updateAdminMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
         }
     }
 
