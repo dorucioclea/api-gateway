@@ -54,6 +54,14 @@ public interface IGatewayLink {
     public void updateCentralOAuthTokenExpirationTime(Integer exirationTimeInSeconds) throws PublishingException, GatewayAuthenticationException;
 
     /**
+     * Creates an ACL plugin for given service.
+     *
+     * @param service
+     * @return
+     */
+    public KongPluginConfig createACLPlugin(Service service);
+
+    /**
      * Returns the central OAuth expiration time value.
      *
      * @return

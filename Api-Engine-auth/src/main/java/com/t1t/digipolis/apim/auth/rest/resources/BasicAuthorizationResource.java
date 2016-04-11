@@ -65,7 +65,6 @@ public class BasicAuthorizationResource implements IBasicAuthorization {
     @GET
     @Path("/{key}/org/{orgId}/app/{appId}/version/{version}/user/{customUser}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
     @Override
     public Response getBasicAuthConsumer(@PathParam("key")String apiKey,
                                          @PathParam("orgId")String orgId,

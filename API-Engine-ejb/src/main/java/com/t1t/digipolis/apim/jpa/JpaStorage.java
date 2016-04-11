@@ -1870,4 +1870,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("content", content)
                 .getResultList();
     }
+
+    @Override
+    public List<ApplicationVersionBean> findAllApplicationVersions() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT a FROM ApplicationVersionBean a";
+        return em.createQuery(jpql).getResultList();
+    }
 }
