@@ -160,6 +160,77 @@ $ docker run --add-host=localhost:84.198.85.191 -d --name konglocal --link cassa
 
 See [Docker-info](https://docs.docker.com/engine/reference/commandline/run/#add-entries-to-container-hosts-file-add-host)
 
+Release Notes - APIe - Version API/SDK engine 0.6.3
+---------------------------------------------------
+
+## Sub-task
+
+*   [[APIE-425](https://jira.antwerpen.be/browse/APIE-425)] - Nagaan indien SCIM nog steeds werkt over de IDP broker
+*   [[APIE-426](https://jira.antwerpen.be/browse/APIE-426)] - Enable signed SAML response on IS
+*   [[APIE-574](https://jira.antwerpen.be/browse/APIE-574)] - Userfacade add admin
+*   [[APIE-575](https://jira.antwerpen.be/browse/APIE-575)] - Update IDMStorage
+*   [[APIE-576](https://jira.antwerpen.be/browse/APIE-576)] - Update Userbean model
+*   [[APIE-577](https://jira.antwerpen.be/browse/APIE-577)] - Update Request filter
+*   [[APIE-578](https://jira.antwerpen.be/browse/APIE-578)] - Update User context
+*   [[APIE-579](https://jira.antwerpen.be/browse/APIE-579)] - Update IDMstorage implementation
+*   [[APIE-580](https://jira.antwerpen.be/browse/APIE-580)] - Fallback for consumer creation
+*   [[APIE-581](https://jira.antwerpen.be/browse/APIE-581)] - Update web resources
+*   [[APIE-582](https://jira.antwerpen.be/browse/APIE-582)] - Update auth resources
+*   [[APIE-584](https://jira.antwerpen.be/browse/APIE-584)] - Differentiate scope in views
+*   [[APIE-585](https://jira.antwerpen.be/browse/APIE-585)] - update ngHide/ngShow for publisher screens
+*   [[APIE-633](https://jira.antwerpen.be/browse/APIE-633)] - Kong 0.7.0 upgrade and migrate in PROD
+*   [[APIE-635](https://jira.antwerpen.be/browse/APIE-635)] - Friendly names voorzien in ACC
+
+## Bug
+
+*   [[APIE-416](https://jira.antwerpen.be/browse/APIE-416)] - IP Restriction policy accepts same IP's for both White and Black list.
+*   [[APIE-417](https://jira.antwerpen.be/browse/APIE-417)] - Error: Could not create Service Policy[TCP log policy & UDP policy] : unexpected error.
+*   [[APIE-445](https://jira.antwerpen.be/browse/APIE-445)] - Uploaden van een ongeldige Swagger file geeft geen error
+*   [[APIE-476](https://jira.antwerpen.be/browse/APIE-476)] - JWT token is not expiring after 60mins
+*   [[APIE-495](https://jira.antwerpen.be/browse/APIE-495)] - Incorrect API URL is shown
+*   [[APIE-526](https://jira.antwerpen.be/browse/APIE-526)] - login fails for publisher (identity server)
+*   [[APIE-532](https://jira.antwerpen.be/browse/APIE-532)] - No JWT token is sent - Grant error is shown on Publisher and marketplace.
+*   [[APIE-537](https://jira.antwerpen.be/browse/APIE-537)] - Callback not working - DNS problem
+*   [[APIE-546](https://jira.antwerpen.be/browse/APIE-546)] - SAML authentication exception error
+*   [[APIE-555](https://jira.antwerpen.be/browse/APIE-555)] - Multilanguage engine calls do not work in acceptance environment
+*   [[APIE-588](https://jira.antwerpen.be/browse/APIE-588)] - Meerdere API keys voor een application als er meerdere service contracten zijn (1 per service)
+*   [[APIE-595](https://jira.antwerpen.be/browse/APIE-595)] - Not possible to add a new IP restriction policy
+*   [[APIE-617](https://jira.antwerpen.be/browse/APIE-617)] - Not all API's are visible on Marketplace
+*   [[APIE-636](https://jira.antwerpen.be/browse/APIE-636)] - Issue when using 'oauth' in application or service name
+*   [[APIE-681](https://jira.antwerpen.be/browse/APIE-681)] - Toevoegen van een Jwt policy aan een service wordt niet opgenomen in Kong (in ieder geval niet zichtbaar in Kong-Dashboard) (bv DEV : acpaas - outputgenerator - v2)
+*   [[APIE-738](https://jira.antwerpen.be/browse/APIE-738)] - In Plans "Add Policy" button is always enabled.
+
+## Story
+
+*   [[APIE-4](https://jira.antwerpen.be/browse/APIE-4)] - Ontwikkeling API engine
+*   [[APIE-7](https://jira.antwerpen.be/browse/APIE-7)] - Overdracht & acceptatie - API/SDK engine
+*   [[APIE-132](https://jira.antwerpen.be/browse/APIE-132)] - API Mgr gebruikt Identity Server als beveiligingssysteem
+*   [[APIE-272](https://jira.antwerpen.be/browse/APIE-272)] - Geautomatiseerde installatie van de API Mgr in de verschillende omgevingen
+*   [[APIE-278](https://jira.antwerpen.be/browse/APIE-278)] - Identity server heeft meerdere identiteit bronnen
+*   [[APIE-288](https://jira.antwerpen.be/browse/APIE-288)] - Werken met OAuth scopes
+*   [[APIE-352](https://jira.antwerpen.be/browse/APIE-352)] - Conventie omtrent het groeperen van services en apps in organizatie groepen
+*   [[APIE-405](https://jira.antwerpen.be/browse/APIE-405)] - Externe marketplace beschikbaar
+*   [[APIE-411](https://jira.antwerpen.be/browse/APIE-411)] - versie onafhankelijke application consumer naam
+*   [[APIE-412](https://jira.antwerpen.be/browse/APIE-412)] - Als ontwikkelaar wil ik de ACL policy impliciet activeren op de services
+*   [[APIE-456](https://jira.antwerpen.be/browse/APIE-456)] - API Engine in PROD voor extern gebruik
+*   [[APIE-569](https://jira.antwerpen.be/browse/APIE-569)] - Admin rol in de API engine
+*   [[APIE-570](https://jira.antwerpen.be/browse/APIE-570)] - Te herformatteren : User geen default org : Based on application environment - update user access
+*   [[APIE-571](https://jira.antwerpen.be/browse/APIE-571)] - Te herformatteren : Rework the consumer creation on Kong for JWT access
+*   [[APIE-572](https://jira.antwerpen.be/browse/APIE-572)] - API Manager REST endpoints aanpassen voor admin rol
+*   [[APIE-573](https://jira.antwerpen.be/browse/APIE-573)] - API manager UI's (Publisher / Store) aanpassen met admin rol functionaliteiten
+*   [[APIE-586](https://jira.antwerpen.be/browse/APIE-586)] - User registratie : email adres verplicht
+*   [[APIE-587](https://jira.antwerpen.be/browse/APIE-587)] - URL Branding (Friendly name) voorzien cfr 352
+*   [[APIE-592](https://jira.antwerpen.be/browse/APIE-592)] - Deprecated status voor een service/engine
+*   [[APIE-693](https://jira.antwerpen.be/browse/APIE-693)] - Integration Notification Engine
+*   [[APIE-708](https://jira.antwerpen.be/browse/APIE-708)] - Proxy for API-GW for external access
+*   [[APIE-745](https://jira.antwerpen.be/browse/APIE-745)] - CORS - default values are not provided anymore by Kong
+*   [[APIE-750](https://jira.antwerpen.be/browse/APIE-750)] - Change session storage keys for different API Engine consumers
+*   [[APIE-751](https://jira.antwerpen.be/browse/APIE-751)] - Provide an GET querystring based variant for idp login request
+
+## Task
+
+*   [[APIE-506](https://jira.antwerpen.be/browse/APIE-506)] - JWT token not sent and internal error is shown when Relaystate:https%3A%2F%2Fapi-pub-a.antwerpen.be
+
 Release Notes - APIe - Version API/SDK engine 0.6.0
 ---------------------------------------------------
 
