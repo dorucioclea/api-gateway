@@ -18,6 +18,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
 import com.t1t.digipolis.apim.beans.mail.MembershipAction;
+import com.t1t.digipolis.apim.beans.mail.RequestMembershipMailBean;
 import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -3077,6 +3078,33 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
         return announcementBeans;
+    }
+
+    public void requestMembership(String orgId){
+        //get organization
+        OrganizationBean organizationBean = get(orgId);
+        List<MemberBean> members = listMembers(orgId);
+        for(MemberBean member:members){
+            member.getRoles().forEach(role -> {
+                if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){
+                    //send email
+                    try{
+                        if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
+                            RequestMembershipMailBean requestMembershipMailBean = new RequestMembershipMailBean();
+                            requestMembershipMailBean.setTo(member.getEmail());
+                            UserBean userBean = userFacade.get(securityContext.getCurrentUser());
+                            requestMembershipMailBean.setUserId(userBean.getUsername());
+                            requestMembershipMailBean.setUserMail(userBean.getEmail());
+                            requestMembershipMailBean.setOrgName(organizationBean.getName());
+                            requestMembershipMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                            mailProvider.sendRequestMembership(requestMembershipMailBean);
+                        }
+                    }catch(Exception e){
+                        log.error("Error sending mail:{}",e.getMessage());
+                    }
+                }
+            });
+        }
     }
 
     /**

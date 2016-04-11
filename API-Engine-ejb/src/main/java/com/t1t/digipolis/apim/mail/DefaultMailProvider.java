@@ -63,7 +63,6 @@ public class DefaultMailProvider implements MailProvider {
         sContent.append("\n- Username: "+ requestMembershipMailBean.getUserId());
         sContent.append("\n- Email   : " + requestMembershipMailBean.getUserMail());
         sContent.append("\n\nYou can add the user in the 'Members'-tab of your organization.");
-        sContent.append("\n\n\nGreetings from the APIe Team.");
         sContent.append(getMailSignature());
         //set content
         requestMembershipMailBean.setContent(sContent.toString());

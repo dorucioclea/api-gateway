@@ -1950,4 +1950,17 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.deleteOrganization(organizationId);
     }
 
+    @ApiOperation(value = "Request membership for organization",
+            notes = "This action will result in a mail sent to the organization owners, in order for them to manually add the user to the organization.")
+    @ApiResponses({
+            @ApiResponse(code = 204, response = MemberBean.class, message = "Request sent.")
+    })
+    @POST
+    @Path("/{organizationId}/request-membership")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void requestMembership(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        orgFacade.requestMembership(organizationId);
+    }
+
 }
