@@ -528,6 +528,9 @@ public class AuditUtils {
                 break;
             case Marketplace:
                 entry.setEntityType(AuditEntityType.Marketplace);
+                break;
+            case Consent:
+                entry.setEntityType(AuditEntityType.Consent);
         }
         PolicyData data = new PolicyData();
         data.setPolicyDefId(bean.getDefinition().getId());

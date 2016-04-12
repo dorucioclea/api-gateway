@@ -392,7 +392,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public PolicyBean createManagedApplicationPolicy(ManagedApplicationBean managedApp, NewPolicyBean bean) {
-        return doCreatePolicy(managedApp.getAvailability().getCode(), managedApp.getName(), managedApp.getVersion(), bean, PolicyType.Marketplace);
+        PolicyType type = null;
+        switch (managedApp.getType()) {
+            case Marketplace:
+                type = PolicyType.Marketplace;
+                break;
+            case Consent:
+                type = PolicyType.Consent;
+                break;
+            default:
+                throw ExceptionFactory.invalidPolicyException("Invalid policy type");
+        }
+        return doCreatePolicy(managedApp.getAvailability().getCode(), managedApp.getName(), managedApp.getVersion(), bean, type);
     }
 
     public PolicyBean getAppPolicy(String organizationId, String applicationId, String version, long policyId) {
@@ -1418,7 +1429,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
                 //Revoke marketplace ACL memberships
                 try {
-                    List<PolicyBean> aclPolicies = query.getMarketplaceACLPolicies(organizationId, serviceId, version.getVersion());
+                    List<PolicyBean> aclPolicies = query.getManagedAppACLPolicies(organizationId, serviceId, version.getVersion());
                     for (PolicyBean policy : aclPolicies) {
                         gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
                         storage.deletePolicy(policy);

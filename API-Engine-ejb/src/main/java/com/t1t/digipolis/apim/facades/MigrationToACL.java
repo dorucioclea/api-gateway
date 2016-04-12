@@ -70,7 +70,7 @@ public class MigrationToACL {
     private void enableAclOnPublishedServices (List<ServiceVersionBean> publishedServices) {
         try {
             IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            List<ManagedApplicationBean> marketplaces = query.getMarketplaces();
+            List<ManagedApplicationBean> managedApps = query.getManagedApps();
             for (ServiceVersionBean versionBean : publishedServices) {
                 Service gatewaySvc = new Service();
                 gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
@@ -83,17 +83,17 @@ public class MigrationToACL {
                     ;//ignore
                 }
                 //Add marketplaces to Service ACL
-                for (ManagedApplicationBean market : marketplaces) {
+                for (ManagedApplicationBean managedApp : managedApps) {
                     try{
                         KongPluginACLResponse response = gateway.addConsumerToACL(
-                                ConsumerConventionUtil.createManagedApplicationConsumerName(market),
+                                ConsumerConventionUtil.createManagedApplicationConsumerName(managedApp),
                                 ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
                         _LOG.info("Marketplace ACL:{}", response);
                         NewPolicyBean npb = new NewPolicyBean();
                         npb.setDefinitionId(Policies.ACL.name());
                         npb.setConfiguration(new Gson().toJson(response));
                         npb.setKongPluginId(response.getId());
-                        _LOG.info("Marketplace policy:{}", orgFacade.createManagedApplicationPolicy(market, npb));
+                        _LOG.info("Marketplace policy:{}", orgFacade.createManagedApplicationPolicy(managedApp, npb));
                     }catch(Exception ex){
                         ;//ignore
                     }

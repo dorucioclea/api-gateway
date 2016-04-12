@@ -402,7 +402,7 @@ public interface IStorageQuery {
      * @return List of ManagedApplicationBeans
      * @throws StorageException
      */
-    public List<ManagedApplicationBean> getMarketplaces() throws StorageException;
+    public List<ManagedApplicationBean> getManagedApps() throws StorageException;
 
     /**
      * Returns a List of ACL Policies associated with marketplaces
@@ -410,7 +410,7 @@ public interface IStorageQuery {
      * @return List of Policies
      * @throws StorageException
      */
-    public List<PolicyBean> getMarketplaceACLPolicies(String organizationId, String serviceId, String version) throws StorageException;
+    public List<PolicyBean> getManagedAppACLPolicies(String organizationId, String serviceId, String version) throws StorageException;
 
     /**
      * Returns all applications

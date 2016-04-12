@@ -172,7 +172,7 @@ public class ActionFacade {
             if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
-            List<ManagedApplicationBean> marketplaces = query.getMarketplaces();
+            List<ManagedApplicationBean> marketplaces = query.getManagedApps();
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                 gatewayLink.publishService(gatewaySvc);
@@ -254,6 +254,12 @@ public class ActionFacade {
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                 gatewayLink.retireService(gatewaySvc);
+                //Revoke marketplace ACL memberships
+                List<PolicyBean> aclPolicies = query.getManagedAppACLPolicies(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion());
+                for (PolicyBean policy : aclPolicies) {
+                    gatewayLink.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
+                    storage.deletePolicy(policy);
+                }
                 gatewayLink.close();
             }
 

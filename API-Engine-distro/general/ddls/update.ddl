@@ -170,4 +170,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
 
 ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
 
-ALTER TABLE availabilities ADD COLUMN marketplace_visibility BOOLEAN
+ALTER TABLE availabilities ALTER COLUMN code TYPE VARCHAR(25);
+
+INSERT INTO availabilities (code, name) VALUES ('acpaas', 'acpaas');
+
+INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES (904, 'consent_app_nodejs', 'v1', 'Consent', 'acpaas', '229e2ea08ba94919c9d221cdf3be1124');

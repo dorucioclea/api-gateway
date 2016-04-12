@@ -1849,24 +1849,26 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public List<ManagedApplicationBean> getMarketplaces() throws StorageException {
+    public List<ManagedApplicationBean> getManagedApps() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :appType";
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :appType OR m.type = :appType2";
         Query query = entityManager.createQuery(jpql);
         query.setParameter("appType", ManagedApplicationTypes.Marketplace);
+        query.setParameter("appType2", ManagedApplicationTypes.Consent);
         List<ManagedApplicationBean> rows = query.getResultList();
         return rows;
     }
 
     @Override
-    public List<PolicyBean> getMarketplaceACLPolicies(String organizationId, String serviceId, String version) throws StorageException {
+    public List<PolicyBean> getManagedAppACLPolicies(String organizationId, String serviceId, String version) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
         String content = new StringBuilder().append("%")
                 .append(ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version))
                 .append("%").toString();
-        String jpql = "SELECT p FROM PolicyBean p WHERE p.type = :polType AND p.configuration LIKE :content";
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.type = :polType OR p.type = :polType2 AND p.configuration LIKE :content";
         return entityManager.createQuery(jpql)
                 .setParameter("polType", PolicyType.Marketplace)
+                .setParameter("polType2", PolicyType.Consent)
                 .setParameter("content", content)
                 .getResultList();
     }
