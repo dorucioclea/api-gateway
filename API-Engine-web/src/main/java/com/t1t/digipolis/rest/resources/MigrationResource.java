@@ -1,0 +1,52 @@
+package com.t1t.digipolis.rest.resources;
+
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
+import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
+import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
+import com.t1t.digipolis.apim.facades.MigrationFacade;
+import com.t1t.digipolis.apim.rest.resources.IMigrationResource;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import static javafx.scene.input.KeyCode.M;
+
+/**
+ * @author Guillaume Vandecasteele
+ * @since 2016
+ */
+@Api(value = "/migration", description = "Test endpoint. Can be used to validate the url endpoint.")
+@Path("/migration")
+@ApplicationScoped
+public class MigrationResource implements IMigrationResource {
+
+    private static final Logger _LOG = LoggerFactory.getLogger(MigrationResource.class);
+    @Inject private MigrationFacade migrationFacade;
+
+    @ApiOperation(value = "Migrate ACL",
+            notes = "Migrate ACL endpoint")
+    @ApiResponses({@ApiResponse(code = 204, response = Response.class, message = "Migration complete?")})
+    @POST
+    @Path("/acl/migrate")
+    public void migrateToAcl() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
+        migrationFacade.migrateToAcl();
+    }
+
+    @Override
+    public void updateConsumersCustomId() {
+
+    }
+}
