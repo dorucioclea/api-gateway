@@ -85,14 +85,4 @@ public class SystemResource implements ISystemResource {
     public List<BlacklistBean> getBlacklistRecords() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
         return systemFacade.getBlacklistRecords();
     }
-
-    @ApiOperation(value = "Migrate ACL",
-            notes = "Migrate ACL endpoint")
-    @ApiResponses({@ApiResponse(code = 204, response = Response.class, message = "Migration complete?")})
-    @GET
-    @Path("/migrate/acl")
-    @Produces(MediaType.APPLICATION_JSON)
-    public void migrateACL() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
-        systemFacade.migrateACL();
-    }
 }
