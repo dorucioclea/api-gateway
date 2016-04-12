@@ -392,7 +392,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public PolicyBean createManagedApplicationPolicy(ManagedApplicationBean managedApp, NewPolicyBean bean) {
-        return doCreatePolicy(managedApp.getAvailability(), managedApp.getName(), managedApp.getVersion(), bean, PolicyType.Marketplace);
+        return doCreatePolicy(managedApp.getAvailability().getCode(), managedApp.getName(), managedApp.getVersion(), bean, PolicyType.Marketplace);
     }
 
     public PolicyBean getAppPolicy(String organizationId, String applicationId, String version, long policyId) {

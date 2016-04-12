@@ -53,7 +53,7 @@ public class ConsumerConventionUtil {
     }
 
     public static String createManagedApplicationConsumerName(ManagedApplicationBean bean) {
-        StringBuilder builder = new StringBuilder(bean.getAvailability() == null ? "" : bean.getAvailability());
+        StringBuilder builder = new StringBuilder(bean.getAvailability() == null ? "" : bean.getAvailability().getCode());
         if (builder.length() > 0) builder.append(".");
         return builder.append(bean.getName())
                 .append(".")

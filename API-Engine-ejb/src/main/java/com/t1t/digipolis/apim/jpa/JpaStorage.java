@@ -1800,7 +1800,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public Map<String,AvailabilityBean> listAvailableMarkets() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT a FROM AvailabilityBean a ORDER BY a.code ASC";
+        String jpql = "SELECT m.availability FROM ManagedApplicationBean m WHERE m.type = 'Marketplace' ORDER BY m.availability.code ASC";
         Query query = entityManager.createQuery(jpql);
         List<AvailabilityBean> rows = query.getResultList();
         Map<String,AvailabilityBean> markets = new HashMap<>();

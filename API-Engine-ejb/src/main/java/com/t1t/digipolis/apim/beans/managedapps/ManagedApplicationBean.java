@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.beans.managedapps;
 
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
@@ -28,8 +29,9 @@ public class ManagedApplicationBean implements Serializable {
     private ManagedApplicationTypes type;
     @Column(name = "gateway_id")
     private String gatewayId;
-    @Column(name = "availability")
-    private String availability;
+    @ManyToOne()
+    @JoinColumn(name = "availability")
+    private AvailabilityBean availability;
     @Column(name = "name")
     private String name;
     @Column(name = "version")
@@ -65,11 +67,11 @@ public class ManagedApplicationBean implements Serializable {
         this.gatewayId = gatewayId;
     }
 
-    public String getAvailability() {
+    public AvailabilityBean getAvailability() {
         return availability;
     }
 
-    public void setAvailability(String availability) {
+    public void setAvailability(AvailabilityBean availability) {
         this.availability = availability;
     }
 
