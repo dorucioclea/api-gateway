@@ -732,6 +732,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public SearchResultsBean<ServiceSummaryBean> findServices(SearchCriteriaBean criteria) throws StorageException {
         SearchResultsBean<ServiceBean> result = find(criteria, ServiceBean.class);
+
         SearchResultsBean<ServiceSummaryBean> rval = new SearchResultsBean<>();
         rval.setTotalSize(result.getTotalSize());
         List<ServiceBean> beans = result.getBeans();
@@ -795,7 +796,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public SearchResultsBean<PlanSummaryBean> findPlans(String organizationId, SearchCriteriaBean criteria)
             throws StorageException {
-
         criteria.addFilter("organization.id", organizationId, SearchCriteriaFilterOperator.eq); //$NON-NLS-1$
         SearchResultsBean<PlanBean> result = find(criteria, PlanBean.class);
         SearchResultsBean<PlanSummaryBean> rval = new SearchResultsBean<>();

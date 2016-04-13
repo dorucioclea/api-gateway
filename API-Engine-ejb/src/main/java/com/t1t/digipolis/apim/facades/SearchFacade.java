@@ -21,6 +21,7 @@ import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -58,8 +59,24 @@ public class SearchFacade {
     }
 
     public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria) {
+        //TODO: temporary solution - Service contians no visibility option, thus we return modified service versions
         try {
-            return query.findServices(criteria);
+            List<ServiceSummaryBean> resultServices = new ArrayList<>();
+            List<ServiceVersionBean> serviceByStatus = query.findServiceByStatus(ServiceStatus.Published);
+            serviceByStatus.forEach(serviceVersionBean -> {
+                ServiceSummaryBean summBean = new ServiceSummaryBean();
+                summBean.setCreatedOn(serviceVersionBean.getService().getCreatedOn());
+                summBean.setDescription(serviceVersionBean.getService().getDescription());
+                summBean.setId(serviceVersionBean.getService().getId());
+                summBean.setName(serviceVersionBean.getService().getName());
+                summBean.setOrganizationId(serviceVersionBean.getService().getOrganization().getId());
+                summBean.setOrganizationName(serviceVersionBean.getService().getOrganization().getName());
+                resultServices.add(summBean);
+            });
+            SearchResultsBean<ServiceSummaryBean> searchResult = new SearchResultsBean<>();
+            searchResult.setBeans(resultServices);
+            searchResult.setTotalSize(resultServices.size());
+            return searchResult;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
