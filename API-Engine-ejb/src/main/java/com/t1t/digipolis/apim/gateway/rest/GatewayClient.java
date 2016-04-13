@@ -809,4 +809,12 @@ public class GatewayClient {
     public static String getMetricsURI() {
         return metricsURI;
     }
+
+    public KongConsumerList getConsumers() {
+        return httpClient.getConsumers();
+    }
+
+    public KongConsumer upateOrCreateConsumer(KongConsumer consumer) {
+        return httpClient.updateOrCreateConsumer(consumer);
+    }
 }

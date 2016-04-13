@@ -19,9 +19,12 @@ import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongConsumerList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.ServiceConventionUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,13 +58,30 @@ public class MigrationFacade {
 
     public MigrationFacade() {}
 
-
     public void migrateToAcl() {
         List<ServiceVersionBean> publishedServices = searchFacade.searchServicesByStatus(ServiceStatus.Published);
         enableAclOnPublishedServices(publishedServices);
         enableAclOnApplications();
         _LOG.info("Migration ACL finished");
     }
+
+    public void renameApplicationCustomIds() {
+        try {
+            IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            gateway.getConsumers().getData().forEach(consumer -> {
+                if (!StringUtils.isEmpty(consumer.getUsername())) {
+                    if (!consumer.getUsername().equals(consumer.getCustomId())) {
+                        consumer.setCustomId(consumer.getUsername());
+                        gateway.updateOrCreateConsumer(consumer);
+                    }
+                }
+            });
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
     /**
      * Enables ACL plugin on every published service
      */

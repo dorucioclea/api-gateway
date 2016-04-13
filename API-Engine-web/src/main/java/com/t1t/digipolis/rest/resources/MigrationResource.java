@@ -32,13 +32,14 @@ import static javafx.scene.input.KeyCode.M;
 @Path("/migration")
 @ApplicationScoped
 public class MigrationResource implements IMigrationResource {
-
     private static final Logger _LOG = LoggerFactory.getLogger(MigrationResource.class);
+
     @Inject private MigrationFacade migrationFacade;
 
+    @Override
     @ApiOperation(value = "Migrate ACL",
             notes = "Migrate ACL endpoint")
-    @ApiResponses({@ApiResponse(code = 204, response = Response.class, message = "Migration complete?")})
+    @ApiResponses({@ApiResponse(code = 204, message = "Migration complete?")})
     @POST
     @Path("/acl/migrate")
     public void migrateToAcl() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
@@ -46,7 +47,12 @@ public class MigrationResource implements IMigrationResource {
     }
 
     @Override
+    @ApiOperation(value =  "Rename Application CustomId",
+            notes = "Update applications custom Id's to contain version")
+    @ApiResponses({@ApiResponse(code = 204, message = "Rename complete")})
+    @POST
+    @Path("applications/rename")
     public void updateConsumersCustomId() {
-
+        migrationFacade.renameApplicationCustomIds();
     }
 }

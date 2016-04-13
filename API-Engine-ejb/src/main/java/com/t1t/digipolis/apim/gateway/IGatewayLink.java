@@ -26,6 +26,7 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import org.elasticsearch.gateway.GatewayException;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
@@ -357,4 +358,17 @@ public interface IGatewayLink {
      * @param pluginId
      */
     public void deleteConsumerACLPlugin(String consumerId, String pluginId);
+
+    /**
+     * Get a list of consumers
+     * @return KongConsumerList
+     */
+    public KongConsumerList getConsumers();
+
+    /**
+     * Update or create a consumer
+     * @param consumer
+     * @return
+     */
+    public KongConsumer updateOrCreateConsumer(KongConsumer consumer);
 }
