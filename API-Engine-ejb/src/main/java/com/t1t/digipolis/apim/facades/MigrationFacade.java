@@ -19,10 +19,12 @@ import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.apim.gateway.rest.GatewayClient;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongConsumerList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.ServiceConventionUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +40,9 @@ import java.util.List;
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
-public class MigrationToACL {
+public class MigrationFacade {
 
-    private static final Logger _LOG = LoggerFactory.getLogger(MigrationToACL.class);
+    private static final Logger _LOG = LoggerFactory.getLogger(MigrationFacade.class);
     @Inject
     private IStorage storage;
     @Inject
@@ -54,15 +56,32 @@ public class MigrationToACL {
     @Inject
     private IGatewayLinkFactory gatewayLinkFactory;
 
-    public MigrationToACL() {}
+    public MigrationFacade() {}
 
-
-    public void migrate() {
+    public void migrateToAcl() {
         List<ServiceVersionBean> publishedServices = searchFacade.searchServicesByStatus(ServiceStatus.Published);
         enableAclOnPublishedServices(publishedServices);
         enableAclOnApplications();
         _LOG.info("Migration ACL finished");
     }
+
+    public void renameApplicationCustomIds() {
+        try {
+            IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            gateway.getConsumers().getData().forEach(consumer -> {
+                if (!StringUtils.isEmpty(consumer.getUsername())) {
+                    if (!consumer.getUsername().equals(consumer.getCustomId())) {
+                        consumer.setCustomId(consumer.getUsername());
+                        gateway.updateOrCreateConsumer(consumer);
+                    }
+                }
+            });
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
     /**
      * Enables ACL plugin on every published service
      */

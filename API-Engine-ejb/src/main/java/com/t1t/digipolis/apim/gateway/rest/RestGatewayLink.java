@@ -365,4 +365,14 @@ public class RestGatewayLink implements IGatewayLink {
     public void deleteConsumerACLPlugin(String consumerId, String pluginId) {
         getClient().deleteConsumerACLPlugin(consumerId, pluginId);
     }
+
+    @Override
+    public KongConsumerList getConsumers() {
+        return getClient().getConsumers();
+    }
+
+    @Override
+    public KongConsumer updateOrCreateConsumer(KongConsumer consumer) {
+        return getClient().upateOrCreateConsumer(consumer);
+    }
 }
