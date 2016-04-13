@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
@@ -129,22 +130,24 @@ public class MigrationFacade {
             IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
             List<ApplicationVersionBean> applications = query.findAllApplicationVersions();
             for (ApplicationVersionBean appVersion : applications) {
-                String applicationName = ConsumerConventionUtil.createAppUniqueId(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
-                List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
-                for (ContractSummaryBean summary : contractSummaries) {
-                    String serviceName = ServiceConventionUtil.generateServiceUniqueName(summary.getServiceOrganizationId(), summary.getServiceId(), summary.getServiceVersion());
-                    try{
-                        KongPluginACLResponse response = gateway.addConsumerToACL(applicationName, serviceName);
-                        //Persist the unique Kong plugin id in a new policy associated with the app.
-                        NewPolicyBean npb = new NewPolicyBean();
-                        KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
-                        npb.setDefinitionId(Policies.ACL.name());
-                        npb.setKongPluginId(response.getId());
-                        npb.setContractId(summary.getContractId());
-                        npb.setConfiguration(new Gson().toJson(conf));
-                        _LOG.info("Policy " + applicationName + ":{}", orgFacade.doCreatePolicy(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion(), npb, PolicyType.Application));
-                    }catch(Exception ex){
-                        ;//ignore
+                if (appVersion.getStatus() != ApplicationStatus.Retired) {
+                    String applicationName = ConsumerConventionUtil.createAppUniqueId(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
+                    List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
+                    for (ContractSummaryBean summary : contractSummaries) {
+                        String serviceName = ServiceConventionUtil.generateServiceUniqueName(summary.getServiceOrganizationId(), summary.getServiceId(), summary.getServiceVersion());
+                        try{
+                            KongPluginACLResponse response = gateway.addConsumerToACL(applicationName, serviceName);
+                            //Persist the unique Kong plugin id in a new policy associated with the app.
+                            NewPolicyBean npb = new NewPolicyBean();
+                            KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+                            npb.setDefinitionId(Policies.ACL.name());
+                            npb.setKongPluginId(response.getId());
+                            npb.setContractId(summary.getContractId());
+                            npb.setConfiguration(new Gson().toJson(conf));
+                            _LOG.info("Policy " + applicationName + ":{}", orgFacade.doCreatePolicy(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion(), npb, PolicyType.Application));
+                        }catch(Exception ex){
+                            ;//ignore
+                        }
                     }
                 }
             }
