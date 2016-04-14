@@ -21,8 +21,7 @@ import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -58,8 +57,27 @@ public class SearchFacade {
     }
 
     public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria) {
+        //TODO: temporary solution - Service contians no visibility option, thus we return modified service versions
         try {
-            return query.findServices(criteria);
+            //we store records in sorted set, otherwise we'll have duplicates
+            Set<ServiceSummaryBean> resultServices = new TreeSet<>();
+            List<ServiceVersionBean> serviceByStatus = query.findServiceByStatus(ServiceStatus.Published);
+            serviceByStatus.forEach(serviceVersionBean -> {
+                ServiceSummaryBean summBean = new ServiceSummaryBean();
+                summBean.setCreatedOn(serviceVersionBean.getService().getCreatedOn());
+                summBean.setDescription(serviceVersionBean.getService().getDescription());
+                summBean.setId(serviceVersionBean.getService().getId());
+                summBean.setName(serviceVersionBean.getService().getName());
+                summBean.setOrganizationId(serviceVersionBean.getService().getOrganization().getId());
+                summBean.setOrganizationName(serviceVersionBean.getService().getOrganization().getName());
+                resultServices.add(summBean);
+            });
+            SearchResultsBean<ServiceSummaryBean> searchResult = new SearchResultsBean<>();
+            List<ServiceSummaryBean> uniqueServiceList = new ArrayList<>();
+            uniqueServiceList.addAll(resultServices);
+            searchResult.setBeans(uniqueServiceList);
+            searchResult.setTotalSize(resultServices.size());
+            return searchResult;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }

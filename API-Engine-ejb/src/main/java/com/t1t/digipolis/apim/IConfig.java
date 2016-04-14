@@ -46,4 +46,5 @@ public interface IConfig {
     String MARKETS_FILTER = "apiapp.marketplaces.filter";
     String NOTIFICATION_ENABLE_DEBUG = "apiapp.notifications.enable_debug";
     String NOTIFICATION_STARTUP_MAIL = "apiapp.notifications.startup_mail";
+    String NOTIFICATION_MAIL_FROM = "apiapp.notifications.mail_from";
 }
