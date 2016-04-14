@@ -30,7 +30,7 @@ CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NO
 
 CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 
-CREATE TABLE availabilities (code VARCHAR(3) NOT NULL, name VARCHAR(255) NOT NULL);
+CREATE TABLE availabilities (code VARCHAR(25) NOT NULL, name VARCHAR(255) NOT NULL);
 
 CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
 

@@ -66,7 +66,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void updateInfo(UpdateUserBean info) {
         Preconditions.checkNotNull(info);
-        Preconditions.checkArgument(info.getPic().getBytes().length <= 15000, "Logo should not be greater than 10k");
+        Preconditions.checkArgument(info.getPic().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         currentUserFacade.updateInfo(info);
     }
 
