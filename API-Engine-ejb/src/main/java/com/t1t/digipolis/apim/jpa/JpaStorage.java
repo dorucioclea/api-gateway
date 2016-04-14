@@ -468,7 +468,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
 
     public OrganizationBean getOrganization(String id) throws StorageException {
-        return super.get(id, OrganizationBean.class);
+        return super.get(id.toLowerCase(), OrganizationBean.class);
     }
 
     /**
