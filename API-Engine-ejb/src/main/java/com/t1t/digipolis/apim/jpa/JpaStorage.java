@@ -1865,7 +1865,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         String content = new StringBuilder().append("%")
                 .append(ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version))
                 .append("%").toString();
-        String jpql = "SELECT p FROM PolicyBean p WHERE p.type = :polType OR p.type = :polType2 AND p.configuration LIKE :content";
+        String jpql = "SELECT p FROM PolicyBean p WHERE (p.type = :polType OR p.type = :polType2) AND p.configuration LIKE :content";
         return entityManager.createQuery(jpql)
                 .setParameter("polType", PolicyType.Marketplace)
                 .setParameter("polType2", PolicyType.Consent)
