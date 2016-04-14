@@ -148,7 +148,7 @@ public class DefaultMailProvider implements MailProvider {
     private MimeMessage composeMessage(String toAddress, String subject, String content){
         try{
             MimeMessage m = new MimeMessage(mailSession);
-            Address from = new InternetAddress("apiengine@digipolis.be");
+            Address from = new InternetAddress(config.getNotificationMailFrom());
             Address[] to = new InternetAddress[] {new InternetAddress(toAddress) };
             m.setFrom(from);
             m.setRecipients(Message.RecipientType.TO, to);
