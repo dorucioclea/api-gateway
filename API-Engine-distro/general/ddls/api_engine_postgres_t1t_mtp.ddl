@@ -45,3 +45,4 @@ INSERT INTO managed_applications (id, name, version, type, availability, api_key
 
 UPDATE gateways SET oauth_token='/oauth2/token', oauth_authorize='/oauth2/authorize', oauth_context='/secure', jwt_exp_time=60 WHERE id='KongGateway';
 
+ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
