@@ -11,6 +11,9 @@ INSERT INTO organizations (id,description,name,created_by,created_on,modified_by
 
 INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CURRENT_DATE,'Digipolis','Owner','admin');
 
+ALTER TABLE availabilities ALTER COLUMN code TYPE VARCHAR(25);
+
+INSERT INTO availabilities (code, name) VALUES ('acpaas', 'acpaas');
 INSERT INTO availabilities(name, code) VALUES ('external', 'ext');
 INSERT INTO availabilities(name, code) VALUES ('internal', 'int');
 
@@ -35,8 +38,11 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
 }', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
 
 INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES
-  (1001, 'marketplace', 'v1', 'Marketplace', 'ext', '***REMOVED***'),
-  (1002, 'marketplace', 'v1', 'Marketplace', 'int', '***REMOVED***'),
-  (1003, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***');
+  (901, 'marketplace', 'v1', 'Marketplace', 'ext', '229e2ea08ba94919c9d221cdf3be1f73'),
+  (902, 'marketplace', 'v1', 'Marketplace', 'int', '229e2ea08ba94919c9d221cdf3be1f71'),
+  (903, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***'),
+  (904, 'consent_app_nodejs', 'v1', 'Consent', 'acpaas', '229e2ea08ba94919c9d221cdf3be1124');
 
 UPDATE gateways SET oauth_token='/oauth2/token', oauth_authorize='/oauth2/authorize', oauth_context='/secure', jwt_exp_time=60 WHERE id='KongGateway';
+
+ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
