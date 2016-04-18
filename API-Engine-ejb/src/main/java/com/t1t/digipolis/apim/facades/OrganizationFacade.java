@@ -179,7 +179,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         OrganizationBean orgBean = new OrganizationBean();
         orgBean.setName(bean.getName());
         orgBean.setDescription(bean.getDescription());
-        orgBean.setId(BeanUtils.idFromName(bean.getName()).toLowerCase());
+        orgBean.setId(BeanUtils.idFromName(bean.getName()));
         orgBean.setCreatedOn(new Date());
         orgBean.setCreatedBy(securityContext.getCurrentUser());
         orgBean.setModifiedOn(new Date());
