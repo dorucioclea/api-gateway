@@ -375,4 +375,9 @@ public class RestGatewayLink implements IGatewayLink {
     public KongConsumer updateOrCreateConsumer(KongConsumer consumer) {
         return getClient().upateOrCreateConsumer(consumer);
     }
+
+    @Override
+    public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL) {
+        return getClient().updateApiUpstreamURL(organizationId, serviceId, version, upstreamURL);
+    }
 }

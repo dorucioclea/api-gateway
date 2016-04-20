@@ -817,4 +817,10 @@ public class GatewayClient {
     public KongConsumer upateOrCreateConsumer(KongConsumer consumer) {
         return httpClient.updateOrCreateConsumer(consumer);
     }
+
+    public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL) {
+        KongApi api = getApi(ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version));
+        api.setUpstreamUrl(upstreamURL);
+        return httpClient.updateOrCreateApi(api);
+    }
 }
