@@ -419,4 +419,13 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<ApplicationVersionBean> findAllApplicationVersions() throws StorageException;
+
+    /**
+     * Returns service version beans for a specific availability
+     *
+     * @param bean
+     * @return
+     * @throws StorageException
+     */
+    public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException;
 }

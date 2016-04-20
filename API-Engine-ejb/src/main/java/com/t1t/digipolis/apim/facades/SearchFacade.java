@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
@@ -10,6 +11,7 @@ import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.slf4j.Logger;
@@ -114,5 +116,30 @@ public class SearchFacade {
         } catch (StorageException e) {
             throw new SystemErrorException();
         }
+    }
+
+    public List<String> findServiceVersionEndpointsForScope(String availability) {
+        List<String> returnValue = new ArrayList<>();
+        try {
+            AvailabilityBean ab = storage.getAvailableMarket(availability);
+            if (ab == null) {
+                throw ExceptionFactory.availabilityNotFoundException();
+            }
+            List<ServiceVersionBean> svbs = query.findServiceVersionsByAvailability(ab);
+            svbs.forEach(sv -> {
+                returnValue.add(new StringBuilder("/")
+                        .append(sv.getService().getOrganization().getId().toLowerCase())
+                        .append("/")
+                        .append(sv.getService().getId().toLowerCase())
+                        .append("/")
+                        .append(sv.getVersion().toLowerCase())
+                        .append("/")
+                        .toString());
+            });
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+        return returnValue;
     }
 }

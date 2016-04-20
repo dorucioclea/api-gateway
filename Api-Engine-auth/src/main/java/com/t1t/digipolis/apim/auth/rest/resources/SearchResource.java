@@ -195,4 +195,16 @@ public class SearchResource {
         return orgFacade.listServiceVersions(organizationId, serviceId);
     }
 
+    @ApiOperation(value = "List Service Versions by marketplace scope",
+            notes = "Use this endpoint to list all service versions belonging to a specific marketplace scope .")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = String.class, message = "A list of Services.")
+    })
+    @GET
+    @Path("/{availability}/services/versions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<String> listServiceVersionEndpointsForScope(@PathParam("availability") String availability) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(availability));
+        return searchFacade.findServiceVersionEndpointsForScope(availability);
+    }
 }
