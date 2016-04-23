@@ -30,6 +30,7 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.SupportBean;
 import com.t1t.digipolis.apim.beans.support.SupportComment;
+import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -1878,5 +1879,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT a FROM ApplicationVersionBean a";
         return em.createQuery(jpql).getResultList();
+    }
+
+    @Override
+    public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException {
+        List<ServiceVersionBean> returnValue = new ArrayList<>();
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceVersionBean s";
+        List<ServiceVersionBean> svbs = (List<ServiceVersionBean>) em.createQuery(jpql).getResultList();
+        svbs.forEach(sv -> {
+            sv.getVisibility().forEach(vis -> {
+                if (vis.getCode().equals(bean.getCode())) {
+                    returnValue.add(sv);
+                }
+            });
+        });
+        return returnValue;
     }
 }
