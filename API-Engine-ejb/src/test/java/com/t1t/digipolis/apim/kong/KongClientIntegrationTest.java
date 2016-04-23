@@ -607,7 +607,7 @@ public class KongClientIntegrationTest {
         consumer = kongClient.createConsumer(consumer);
         String acl = "orgid.archid.v%d";
         List<KongPluginACLResponse> responses = new ArrayList<>();
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10; i++) {
             responses.add(kongClient.addConsumerToACL(consumer.getId(), new KongPluginACLRequest().withGroup(String.format(acl, i))));
         }
         kongClient.deleteConsumer(consumer.getId());
