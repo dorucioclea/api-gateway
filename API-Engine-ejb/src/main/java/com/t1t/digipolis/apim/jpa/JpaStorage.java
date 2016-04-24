@@ -34,6 +34,7 @@ import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import com.t1t.digipolis.util.ServiceScopeUtil;
@@ -1298,6 +1299,27 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             rval.add(csb);
         }
         return rval;
+    }
+
+    public List<ContractBean> getServiceContracts(String organizationId, String serviceId, String version) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql =
+                "SELECT c from ContractBean c " +
+                        "  JOIN c.service svcv " +
+                        "  JOIN svcv.service svc " +
+                        "  JOIN c.application appv " +
+                        "  JOIN appv.application app " +
+                        "  JOIN svc.organization sorg" +
+                        "  JOIN app.organization aorg" +
+                        " WHERE svc.id = :serviceId " +
+                        "   AND sorg.id = :orgId " +
+                        "   AND svcv.version = :version " +
+                        " ORDER BY sorg.id, svc.id ASC"; //$NON-NLS-1$
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("orgId", organizationId); //$NON-NLS-1$
+        query.setParameter("serviceId", serviceId); //$NON-NLS-1$
+        query.setParameter("version", version); //$NON-NLS-1$
+        return (List<ContractBean>) query.getResultList();
     }
 
     /**

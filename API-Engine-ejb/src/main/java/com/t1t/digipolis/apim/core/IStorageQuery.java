@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -296,6 +297,16 @@ public interface IStorageQuery {
      * @throws StorageException if a storage problem occurs while storing a bean. 
      */
     public List<ContractSummaryBean> getServiceContracts(String organizationId, String serviceId, String version, int page, int pageSize) throws StorageException;
+
+    /**
+     * Gets a list of contracts for the given service.  This is not paged.
+     * @param organizationId the organization id
+     * @param serviceId the service id
+     * @param version the version
+     * @return list of service contracts
+     * @throws StorageException if a storage problem occurs while storing a bean.
+     */
+    public List<ContractBean> getServiceContracts(String organizationId, String serviceId, String version) throws StorageException;
 
     /**
      * Returns the largest order index value for the policies assigned to the
