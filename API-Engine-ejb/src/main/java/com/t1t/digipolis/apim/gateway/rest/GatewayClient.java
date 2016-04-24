@@ -203,7 +203,7 @@ public class GatewayClient {
         if(credentials!=null && credentials.getData()!=null && credentials.getData().size()>0){
             for(KongPluginKeyAuthResponse cred:credentials.getData())httpClient.deleteConsumerKeyAuthCredential(consumerId,cred.getId());
         }
-        //remove application consumer
+        //remove application consumer - all other policies and credentials will be removed as well
         httpClient.deleteConsumer(consumerId);
     }
 
