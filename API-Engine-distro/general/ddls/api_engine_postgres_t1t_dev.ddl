@@ -7,7 +7,6 @@ INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, descri
 INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('admin', 'admin@example.org', 'Admin', CURRENT_DATE,TRUE ,NULL );
 INSERT INTO organizations (id,description,name,created_by,created_on,modified_by,modified_on) VALUES ('Digipolis','Digipolis','Digipolis','admin',CURRENT_DATE,'admin',CURRENT_DATE);
 INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CURRENT_DATE,'Digipolis','Owner','admin');
-INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('runscope', 'michallis@trust1team.com', 'runscope', CURRENT_DATE,TRUE ,NULL );
 
 INSERT INTO white_ip_restriction(netw_value) VALUES ('192.168.0.0/16');
 INSERT INTO white_ip_restriction(netw_value) VALUES ('10.0.0.0/8');
