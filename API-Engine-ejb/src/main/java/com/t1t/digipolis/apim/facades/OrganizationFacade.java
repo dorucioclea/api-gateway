@@ -903,26 +903,29 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 }
             }
         }
-        try {
-            if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
-                GatewaySummaryBean gateway = getSingularGateway();
-                if (gateway != null) {
-                    if (svb.getGateways() == null) {
-                        svb.setGateways(new HashSet<ServiceGatewayBean>());
-                        ServiceGatewayBean sgb = new ServiceGatewayBean();
-                        sgb.setGatewayId(gateway.getId());
-                        svb.getGateways().add(sgb);
+        if(svb.getStatus()!=ServiceStatus.Published){
+            try {
+                if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
+                    GatewaySummaryBean gateway = getSingularGateway();
+                    if (gateway != null) {
+                        if (svb.getGateways() == null) {
+                            svb.setGateways(new HashSet<ServiceGatewayBean>());
+                            ServiceGatewayBean sgb = new ServiceGatewayBean();
+                            sgb.setGatewayId(gateway.getId());
+                            svb.getGateways().add(sgb);
+                        }
                     }
                 }
+                if (serviceValidator.isReady(svb)) {
+                    svb.setStatus(ServiceStatus.Ready);
+                } else {
+                    svb.setStatus(ServiceStatus.Created);
+                }
+            } catch (Exception e) {
+                throw new SystemErrorException(e);
             }
-            if (serviceValidator.isReady(svb)) {
-                svb.setStatus(ServiceStatus.Ready);
-            } else {
-                svb.setStatus(ServiceStatus.Created);
-            }
-        } catch (Exception e) {
-            throw new SystemErrorException(e);
         }
+
         try {
             encryptEndpointProperties(svb);
             // Ensure all of the plans are in the right status (locked)
