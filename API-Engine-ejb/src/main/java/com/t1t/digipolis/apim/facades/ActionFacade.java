@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.actions.ActionBean;
 import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
@@ -480,7 +481,7 @@ public class ActionFacade {
             throw ExceptionFactory.actionException(Messages.i18n.format("ApplicationNotFound"), e); //$NON-NLS-1$
         }
 
-        // Validate that it's ok to perform this action - application must be Ready.
+        // Validate that it's ok to perform this action - application must be Registered.
         if (versionBean.getStatus() != ApplicationStatus.Registered) {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidApplicationStatus")); //$NON-NLS-1$
         }
@@ -519,6 +520,20 @@ public class ActionFacade {
 
         versionBean.setStatus(ApplicationStatus.Retired);
         versionBean.setRetiredOn(new Date());
+
+        // delete all contracts
+        for(ContractSummaryBean contractSumBean:contractBeans){
+            ContractBean contract = null;
+            try {
+                contract = storage.getContract(contractSumBean.getContractId());
+                storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
+                storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
+                storage.deleteContract(contract);
+                log.debug(String.format("Deleted contract: %s", contract));
+            } catch (StorageException e) {
+                throw new SystemErrorException(e);
+            }
+        }
 
         try {
             storage.updateApplicationVersion(versionBean);

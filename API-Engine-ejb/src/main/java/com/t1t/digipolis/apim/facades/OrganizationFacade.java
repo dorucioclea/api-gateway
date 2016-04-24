@@ -604,10 +604,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             List<ApplicationVersionSummaryBean> versions = query.getApplicationVersions(applicationBean.getOrganization().getId(), applicationBean.getId());
             // For each version, we will clean up the database and the gateway
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            versions.stream().forEach(version -> {
-                // We need to remove any existing contracts for this version
-                deleteAllContracts(version.getOrganizationId(), version.getId(), version.getVersion());
-
+            for(ApplicationVersionSummaryBean version:versions){
+                // Note that contract must be remove before deleting app - this is by using 'unregister' app in the action facade - but for some use cases, you can delete app while still having contract
+                List<ContractSummaryBean> contractBeans = query.getApplicationContracts(version.getOrganizationId(), version.getId(), version.getVersion());
+                // delete all contracts
+                for(ContractSummaryBean contractSumBean:contractBeans){
+                    ContractBean contract = null;
+                    try {
+                        contract = storage.getContract(contractSumBean.getContractId());
+                        storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
+                        storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
+                        storage.deleteContract(contract);
+                        log.debug(String.format("Deleted contract: %s", contract));
+                    } catch (StorageException e) {
+                        throw new SystemErrorException(e);
+                    }
+                }
                 // Verify the status: if Created, Ready or Registered we need to remove the consumer from Kong
                 ApplicationStatus status = version.getStatus();
                 if (status.equals(ApplicationStatus.Created) || status.equals(ApplicationStatus.Ready) || status.equals(ApplicationStatus.Registered)) {
@@ -621,7 +633,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         throw ExceptionFactory.actionException(Messages.i18n.format("UnregisterError"), e); //$NON-NLS-1$
                     }
                 }
-            });
+            }
             gateway.close();
             // Remove all application versions from API Engine
             versions.stream().forEach(version -> {
@@ -1270,7 +1282,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
             storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
-            log.debug(String.format("Deleted contract: %s", contract)); //$NON-NLS-1$
+            log.debug(String.format("Deleted contract: %s", contract));
             //verify if application still needs OAuth credentials?
             int oauthEnabledServices = 0;
             List<ContractSummaryBean> contracts = query.getApplicationContracts(organizationId, applicationId, version);
@@ -1859,6 +1871,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    public Set<ApplicationBean> listServiceConsumers(String orgId, String serviceId){
+        //get all service versions
+        final List<ServiceVersionSummaryBean> serviceVersions = listServiceVersions(orgId, serviceId);
+        Set<ApplicationBean> apps = new TreeSet<>();
+        for(ServiceVersionSummaryBean svb:serviceVersions){
+            try {
+                final List<ContractBean> serviceContracts = query.getServiceContracts(svb.getOrganizationId(), svb.getId(), svb.getVersion());
+                for(ContractBean contract:serviceContracts){
+                    //contract means: service published and application registeredf
+                    apps.add(contract.getApplication().getApplication());
+                }
+
+            } catch (StorageException e) {
+                throw new SystemErrorException(e);
+            }
+        }
+        return apps;
     }
 
     public PlanBean createPlan(String organizationId, NewPlanBean bean) {
