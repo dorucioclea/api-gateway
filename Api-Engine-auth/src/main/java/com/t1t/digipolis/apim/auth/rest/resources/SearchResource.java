@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
+import com.t1t.digipolis.apim.beans.apps.ApplicationBeanList;
 import com.t1t.digipolis.apim.beans.categories.CategorySearchBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
@@ -196,16 +197,18 @@ public class SearchResource {
     @ApiOperation(value = "List consumer apps for the specified service",
                   notes = "Use this endpoint to list all consumer apps using the specified service.")
     @ApiResponses({
-                          @ApiResponse(code = 200, responseContainer = "List", response = ApplicationBean.class, message = "A list of consumer applications.")
+                          @ApiResponse(code = 200, response = ApplicationBeanList.class, message = "A list of consumer applications.")
                   })
     @GET
     @Path("/organizations/{organizationId}/services/{serviceId}/consumers")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ApplicationBean> listServiceConsumers(@PathParam("organizationId") String organizationId,
-                                                     @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
+    public ApplicationBeanList listServiceConsumers(@PathParam("organizationId") String organizationId,
+                                                         @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        return orgFacade.listServiceConsumers(organizationId,serviceId);
+        ApplicationBeanList appList = new ApplicationBeanList();
+        appList.setApps(orgFacade.listServiceConsumers(organizationId,serviceId));
+        return appList;
     }
 
     @ApiOperation(value = "List Service Versions by marketplace scope",
