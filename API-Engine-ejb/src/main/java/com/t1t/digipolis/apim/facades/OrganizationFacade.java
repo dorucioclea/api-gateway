@@ -1823,6 +1823,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public Set<ApplicationBean> listServiceConsumers(String orgId, String serviceId){
+        //get all service versions
+        final List<ServiceVersionSummaryBean> serviceVersions = listServiceVersions(orgId, serviceId);
+        Set<ApplicationBean> apps = new TreeSet<>();
+        for(ServiceVersionSummaryBean svb:serviceVersions){
+            try {
+                final List<ContractBean> serviceContracts = query.getServiceContracts(svb.getOrganizationId(), svb.getId(), svb.getVersion());
+                for(ContractBean contract:serviceContracts){
+                    //contract means: service published and application registered
+                    apps.add(contract.getApplication().getApplication());
+                }
+
+            } catch (StorageException e) {
+                throw new SystemErrorException(e);
+            }
+        }
+        return apps;
+    }
+
     public PlanBean createPlan(String organizationId, NewPlanBean bean) {
         PlanBean newPlan = new PlanBean();
         newPlan.setName(bean.getName());

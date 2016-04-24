@@ -21,6 +21,8 @@ import com.t1t.digipolis.kong.model.KongPluginACL;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongInfo;
+import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
 import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
@@ -352,7 +354,7 @@ public class GatewayClient {
             KongApi existingAPI = httpClient.getApi(api.getName());
             if(existingAPI!=null&&!StringUtils.isEmpty(existingAPI.getId())){
                 //the API exists already - please override - this is restricted due to the naming convention
-                httpClient.deleteApi(api.getId());
+                httpClient.deleteApi(existingAPI.getId());
             }
         }catch (Exception ex){
             //start new client to comm with kong
@@ -741,14 +743,27 @@ public class GatewayClient {
     }
 
     /**
-     * Adds a consumer to a service's ACL
+     * Adds a consumer to a service's ACL.
+     * Recovers when the acl is already placed on the consumer. When that's the case, the ACL will
+     * be retrieved from the consumer's ACL list in order to return and update the ACL id.
      *
      * @param consumerId the consumer to add to an ACL
      * @param serviceVersionId the service ACL to which the consumer should be added
      * @return
      */
     public KongPluginACLResponse addConsumerToACL(String consumerId, String serviceVersionId) {
-        return httpClient.addConsumerToACL(consumerId, new KongPluginACLRequest().withGroup(serviceVersionId));
+        try{
+            return httpClient.addConsumerToACL(consumerId, new KongPluginACLRequest().withGroup(serviceVersionId));
+        }catch(RetrofitError rfe){
+            //it's possible that the group already exists - try to recover
+            List<KongPluginACLResponse> consumerACLs = httpClient.getConsumerACL(consumerId).getData();
+            KongPluginACLResponse aclResponse = null;
+            for(KongPluginACLResponse acl:consumerACLs){
+                if(acl.getGroup().equalsIgnoreCase(serviceVersionId))return acl;
+            }
+            //if not recovered throw error
+            throw rfe;
+        }
     }
 
     /**
