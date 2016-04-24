@@ -9,10 +9,7 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.NewServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
-import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.ServiceVersionSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.exceptions.*;
@@ -151,7 +148,7 @@ public class SearchResource {
                           @ApiResponse(code = 200, response = ServiceMarketInfo.class, message = "Service market information.")
                   })
     @GET
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/market/info")
+    @Path("/organizations/{organizationId}/services/{serviceId}/versions/{version}/market/info")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceMarketInfo getServiceMarketInfo(
             @PathParam("organizationId") String organizationId,
@@ -169,7 +166,7 @@ public class SearchResource {
                           @ApiResponse(code = 200, response = ServiceVersionBean.class, message = "A Service version.")
                   })
     @GET
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}")
+    @Path("/organizations/{organizationId}/services/{serviceId}/versions/{version}")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceVersionBean getServiceVersion(@PathParam("organizationId") String organizationId,
                                                 @PathParam("serviceId") String serviceId,
@@ -186,7 +183,7 @@ public class SearchResource {
                           @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionSummaryBean.class, message = "A list of Services.")
                   })
     @GET
-    @Path("/{organizationId}/services/{serviceId}/versions")
+    @Path("/organizations/{organizationId}/services/{serviceId}/versions")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceVersionSummaryBean> listServiceVersions(@PathParam("organizationId") String organizationId,
                                                                @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
@@ -195,16 +192,32 @@ public class SearchResource {
         return orgFacade.listServiceVersions(organizationId, serviceId);
     }
 
+    @ApiOperation(value = "List consumer apps for the specified service",
+                  notes = "Use this endpoint to list all consumer apps using the specified service.")
+    @ApiResponses({
+                          @ApiResponse(code = 200, responseContainer = "List", response = String.class, message = "A list of consumer applications.")
+                  })
+    @GET
+    @Path("/organizations/{organizationId}/services/{serviceId}/consumers")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ApplicationSummaryBean> listServiceConsumers(@PathParam("organizationId") String organizationId,
+                                                                    @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        return orgFacade.listServiceConsumers(organizationId,serviceId);
+    }
+
     @ApiOperation(value = "List Service Versions by marketplace scope",
             notes = "Use this endpoint to list all service versions belonging to a specific marketplace scope .")
     @ApiResponses({
             @ApiResponse(code = 200, responseContainer = "List", response = String.class, message = "A list of Services.")
     })
     @GET
-    @Path("/{availability}/services/versions")
+    @Path("/availabilities/{availability}/services/versions")
     @Produces(MediaType.APPLICATION_JSON)
     public List<String> listServiceVersionEndpointsForScope(@PathParam("availability") String availability) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(availability));
         return searchFacade.findServiceVersionEndpointsForScope(availability);
     }
+
 }

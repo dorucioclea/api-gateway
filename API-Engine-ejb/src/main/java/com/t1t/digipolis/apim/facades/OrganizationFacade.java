@@ -773,6 +773,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return doCreatePolicy(organizationId, serviceId, version, bean, PolicyType.Service);
     }
 
+    public List<ApplicationSummaryBean> listServiceConsumers(String orgId, String serviceId){
+        //TODO: implement
+        return new ArrayList<>();
+    }
+
     public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version) {
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);

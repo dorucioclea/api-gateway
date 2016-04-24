@@ -352,7 +352,7 @@ public class GatewayClient {
             KongApi existingAPI = httpClient.getApi(api.getName());
             if(existingAPI!=null&&!StringUtils.isEmpty(existingAPI.getId())){
                 //the API exists already - please override - this is restricted due to the naming convention
-                httpClient.deleteApi(api.getId());
+                httpClient.deleteApi(existingAPI.getId());
             }
         }catch (Exception ex){
             //start new client to comm with kong
