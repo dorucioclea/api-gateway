@@ -830,7 +830,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             updateServiceVersionEndpoint(svb);
         }
-        if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
+        if (svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         svb.setModifiedBy(securityContext.getCurrentUser());
