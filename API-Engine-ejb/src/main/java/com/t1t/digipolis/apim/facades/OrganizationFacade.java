@@ -3130,10 +3130,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void requestMembership(String orgId){
         //get organization
         OrganizationBean organizationBean = get(orgId);
-        List<MemberBean> members = listMembers(orgId);
         if (organizationBean.isOrganizationPrivate()) {
             throw ExceptionFactory.membershipRequestFailedException("Organization is private");
         }
+        List<MemberBean> members = listMembers(orgId);
         for(MemberBean member:members){
             member.getRoles().forEach(role -> {
                 if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){
