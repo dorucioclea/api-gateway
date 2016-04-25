@@ -372,4 +372,15 @@ public interface IGatewayLink {
      * @return
      */
     public KongConsumer updateOrCreateConsumer(KongConsumer consumer);
+
+    /**
+     * update an API's upstream URL
+     *
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @param upstreamURL
+     * @return KongApi
+     */
+    public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL);
 }

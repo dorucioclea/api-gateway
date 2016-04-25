@@ -808,12 +808,34 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
-        if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
+        EntityUpdatedData data = new EntityUpdatedData();
+        if ((svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) && AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
+            svb.setModifiedBy(securityContext.getCurrentUser());
+            svb.setModifiedOn(new Date());
+            data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
+            svb.setEndpoint(bean.getEndpoint());
+            if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
+                data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
+                svb.setEndpointType(bean.getEndpointType());
+            }
+            if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
+                if (svb.getEndpointProperties() == null) {
+                    svb.setEndpointProperties(new HashMap<String, String>());
+                } else {
+                    svb.getEndpointProperties().clear();
+                }
+                if (bean.getEndpointProperties() != null) {
+                    svb.getEndpointProperties().putAll(bean.getEndpointProperties());
+                }
+            }
+            updateServiceVersionEndpoint(svb);
+        }
+        if (svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         svb.setModifiedBy(securityContext.getCurrentUser());
         svb.setModifiedOn(new Date());
-        EntityUpdatedData data = new EntityUpdatedData();
+
         if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
             data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
             if (svb.getPlans() == null) {
@@ -881,26 +903,29 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 }
             }
         }
-        try {
-            if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
-                GatewaySummaryBean gateway = getSingularGateway();
-                if (gateway != null) {
-                    if (svb.getGateways() == null) {
-                        svb.setGateways(new HashSet<ServiceGatewayBean>());
-                        ServiceGatewayBean sgb = new ServiceGatewayBean();
-                        sgb.setGatewayId(gateway.getId());
-                        svb.getGateways().add(sgb);
+        if(svb.getStatus()!=ServiceStatus.Published){
+            try {
+                if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
+                    GatewaySummaryBean gateway = getSingularGateway();
+                    if (gateway != null) {
+                        if (svb.getGateways() == null) {
+                            svb.setGateways(new HashSet<ServiceGatewayBean>());
+                            ServiceGatewayBean sgb = new ServiceGatewayBean();
+                            sgb.setGatewayId(gateway.getId());
+                            svb.getGateways().add(sgb);
+                        }
                     }
                 }
+                if (serviceValidator.isReady(svb)) {
+                    svb.setStatus(ServiceStatus.Ready);
+                } else {
+                    svb.setStatus(ServiceStatus.Created);
+                }
+            } catch (Exception e) {
+                throw new SystemErrorException(e);
             }
-            if (serviceValidator.isReady(svb)) {
-                svb.setStatus(ServiceStatus.Ready);
-            } else {
-                svb.setStatus(ServiceStatus.Created);
-            }
-        } catch (Exception e) {
-            throw new SystemErrorException(e);
         }
+
         try {
             encryptEndpointProperties(svb);
             // Ensure all of the plans are in the right status (locked)
@@ -1064,6 +1089,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         storeServiceDefinition(organizationId, serviceId, version, newDefinitionType, data);
         log.debug(String.format("Updated service definition for %s", serviceId)); //$NON-NLS-1$
+    }
+
+    public void updateServiceVersionEndpoint(ServiceVersionBean svb) {
+        try {
+            if (svb.getStatus() == ServiceStatus.Retired) {
+                throw ExceptionFactory.invalidServiceStatusException();
+            }
+            svb.getGateways().forEach(svcGateway -> {
+                IGatewayLink gateway = createGatewayLink(svcGateway.getGatewayId());
+                gateway.updateApiUpstreamURL(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), svb.getEndpoint());
+            });
+            storage.updateServiceVersion(svb);
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
     }
 
     public List<PolicySummaryBean> listServicePolicies(String organizationId, String serviceId, String version) {
