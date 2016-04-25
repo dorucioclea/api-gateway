@@ -388,4 +388,8 @@ public final class ExceptionFactory {
     public static final InvalidPolicyException invalidPolicyException(String message) {
         return new InvalidPolicyException(message);
     }
+
+    public static final AvailabilityNotFoundException availabilityNotFoundException() {
+        return new AvailabilityNotFoundException();
+    }
 }

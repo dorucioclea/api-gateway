@@ -183,4 +183,10 @@ public final class ErrorCodes {
     public static final String NAME_INVALID_INFO            = null;
     public static final String VERSION_INVALID_INFO         = null;
 
+    //
+    // Scope errors
+    //
+
+    public static final int SCOPE_NOT_FOUND                 = 15002;
+
 }

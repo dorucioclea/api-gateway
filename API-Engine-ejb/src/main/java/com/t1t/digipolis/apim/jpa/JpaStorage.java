@@ -30,9 +30,11 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.SupportBean;
 import com.t1t.digipolis.apim.beans.support.SupportComment;
+import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import com.t1t.digipolis.util.ServiceScopeUtil;
@@ -1299,6 +1301,27 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return rval;
     }
 
+    public List<ContractBean> getServiceContracts(String organizationId, String serviceId, String version) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql =
+                "SELECT c from ContractBean c " +
+                        "  JOIN c.service svcv " +
+                        "  JOIN svcv.service svc " +
+                        "  JOIN c.application appv " +
+                        "  JOIN appv.application app " +
+                        "  JOIN svc.organization sorg" +
+                        "  JOIN app.organization aorg" +
+                        " WHERE svc.id = :serviceId " +
+                        "   AND sorg.id = :orgId " +
+                        "   AND svcv.version = :version " +
+                        " ORDER BY sorg.id, svc.id ASC"; //$NON-NLS-1$
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("orgId", organizationId); //$NON-NLS-1$
+        query.setParameter("serviceId", serviceId); //$NON-NLS-1$
+        query.setParameter("version", version); //$NON-NLS-1$
+        return (List<ContractBean>) query.getResultList();
+    }
+
     /**
      * @see IStorage#getApplicationVersion(String, String, String)
      */
@@ -1878,5 +1901,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT a FROM ApplicationVersionBean a";
         return em.createQuery(jpql).getResultList();
+    }
+
+    @Override
+    public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException {
+        List<ServiceVersionBean> returnValue = new ArrayList<>();
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceVersionBean s";
+        List<ServiceVersionBean> svbs = (List<ServiceVersionBean>) em.createQuery(jpql).getResultList();
+        svbs.forEach(sv -> {
+            sv.getVisibility().forEach(vis -> {
+                if (vis.getCode().equals(bean.getCode())) {
+                    returnValue.add(sv);
+                }
+            });
+        });
+        return returnValue;
     }
 }
