@@ -15,6 +15,7 @@ public class UpdateOrganizationBean implements Serializable {
 
     private String description;
     private String friendlyName;
+    private boolean organizationPrivate;
 
     /**
      * Constructor.
@@ -41,6 +42,21 @@ public class UpdateOrganizationBean implements Serializable {
      */
     public String getFriendlyName() {
         return friendlyName;
+    }
+
+
+    /**
+     * @return the organization privacy boolean
+     */
+    public boolean isOrganizationPrivate() {
+        return organizationPrivate;
+    }
+
+    /**
+     * @param organizationPrivate the organization privacy to set
+     */
+    public void setOrganizationPrivate(boolean organizationPrivate) {
+        this.organizationPrivate = organizationPrivate;
     }
 
     /**
