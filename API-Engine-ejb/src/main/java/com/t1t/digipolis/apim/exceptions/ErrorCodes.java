@@ -47,6 +47,7 @@ public final class ErrorCodes {
     //
     public static final int ORG_ALREADY_EXISTS              = 3001;
     public static final int ORG_NOT_FOUND                   = 3002;
+    public static final int ORG_IS_PRIVATE                  = 3003;
 
     public static final String ORG_ALREADY_EXISTS_INFO      = null;
     public static final String ORG_NOT_FOUND_INFO           = null;

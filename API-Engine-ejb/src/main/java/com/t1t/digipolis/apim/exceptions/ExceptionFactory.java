@@ -389,7 +389,19 @@ public final class ExceptionFactory {
         return new InvalidPolicyException(message);
     }
 
+    /**
+     * Creates an exception
+     * @return
+     */
     public static final AvailabilityNotFoundException availabilityNotFoundException() {
         return new AvailabilityNotFoundException();
+    }
+
+    /**
+     * Creates an exception
+     * @return
+     */
+    public static final MemberShipRequestFailedException membershipRequestFailedException(String message) {
+        return new MemberShipRequestFailedException(message);
     }
 }

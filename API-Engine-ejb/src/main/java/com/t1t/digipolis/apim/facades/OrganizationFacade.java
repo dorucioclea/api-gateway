@@ -247,6 +247,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 auditData.addChange("friendlyName", orgForUpdate.getFriendlyName(), bean.getFriendlyName());
                 orgForUpdate.setFriendlyName(bean.getFriendlyName());
             }
+            if (AuditUtils.valueChanged(orgForUpdate.isOrganizationPrivate(), bean.isOrganizationPrivate())) {
+                auditData.addChange("private", Boolean.toString(orgForUpdate.isOrganizationPrivate()), Boolean.toString(bean.isOrganizationPrivate()));
+                orgForUpdate.setOrganizationPrivate(bean.isOrganizationPrivate());
+            }
             storage.updateOrganization(orgForUpdate);
             storage.createAuditEntry(AuditUtils.organizationUpdated(orgForUpdate, auditData, securityContext));
 
@@ -3127,6 +3131,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //get organization
         OrganizationBean organizationBean = get(orgId);
         List<MemberBean> members = listMembers(orgId);
+        if (organizationBean.isOrganizationPrivate()) {
+            throw ExceptionFactory.membershipRequestFailedException("Organization is private");
+        }
         for(MemberBean member:members){
             member.getRoles().forEach(role -> {
                 if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){
