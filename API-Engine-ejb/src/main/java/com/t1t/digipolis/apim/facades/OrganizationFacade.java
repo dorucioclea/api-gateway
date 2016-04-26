@@ -2,6 +2,8 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.events.NewEventBean;
+import com.t1t.digipolis.apim.events.qualifiers.MembershipRequest;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
@@ -14,6 +16,9 @@ import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
+import com.t1t.digipolis.apim.beans.events.EventStatus;
+import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
@@ -58,7 +63,6 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
@@ -89,6 +93,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
+import javax.enterprise.event.Event;
 import javax.enterprise.inject.spi.DefinitionException;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -137,6 +142,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private AppConfig config;
     @Inject
     private MailProvider mailProvider;
+    @Inject
+    @MembershipRequest
+    private Event<NewEventBean> membershipRequest;
 
 
     @SuppressWarnings("nls")
@@ -2098,6 +2106,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         get(organizationId);
         userFacade.get(bean.getUserId());
         roleFacade.get(bean.getRoleId());
+        // If user had a pending membership request,
         MembershipData auditData = new MembershipData();
         auditData.setUserId(bean.getUserId());
         try {
@@ -3129,33 +3138,28 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public void requestMembership(String orgId){
-        //get organization
-        OrganizationBean organizationBean = get(orgId);
-        if (organizationBean.isOrganizationPrivate()) {
+        OrganizationBean org = get(orgId);
+        if (org == null) {
+            throw ExceptionFactory.organizationNotFoundException(orgId);
+        }
+        if (org.isOrganizationPrivate()) {
             throw ExceptionFactory.membershipRequestFailedException("Organization is private");
         }
-        List<MemberBean> members = listMembers(orgId);
-        for(MemberBean member:members){
-            member.getRoles().forEach(role -> {
-                if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){
-                    //send email
-                    try{
-                        if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
-                            RequestMembershipMailBean requestMembershipMailBean = new RequestMembershipMailBean();
-                            requestMembershipMailBean.setTo(member.getEmail());
-                            UserBean userBean = userFacade.get(securityContext.getCurrentUser());
-                            requestMembershipMailBean.setUserId(userBean.getUsername());
-                            requestMembershipMailBean.setUserMail(userBean.getEmail());
-                            requestMembershipMailBean.setOrgName(organizationBean.getName());
-                            requestMembershipMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                            mailProvider.sendRequestMembership(requestMembershipMailBean);
-                        }
-                    }catch(Exception e){
-                        log.error("Error sending mail:{}",e.getMessage());
-                    }
-                }
-            });
+        UserBean user = userFacade.get(securityContext.getCurrentUser());
+        try {
+            EventBean event = query.getEvent(user.getUsername(), org.getId(), EventType.Membership);
+            if (event != null && event.getStatus() == EventStatus.Pending) {
+                throw ExceptionFactory.membershipRequestFailedException("Membership already requested, still pending");
+            }
         }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+        NewEventBean newEvent = new NewEventBean();
+        newEvent.setRequestDestination(orgId);
+        newEvent.setType(EventType.Membership);
+        newEvent.setRequestOrigin(user.getUsername());
+        membershipRequest.fire(newEvent);
     }
 
     /**
