@@ -1050,6 +1050,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             summary.setFriendlyName(bean.getFriendlyName());
             summary.setName(bean.getName());
             summary.setDescription(bean.getDescription());
+            summary.setOrganizationPrivate(bean.isOrganizationPrivate());
             orgs.add(summary);
         }
         return orgs;

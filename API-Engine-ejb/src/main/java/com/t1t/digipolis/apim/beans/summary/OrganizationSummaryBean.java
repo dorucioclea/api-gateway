@@ -15,6 +15,7 @@ public class OrganizationSummaryBean implements Serializable {
     private String name;
     private String friendlyName;
     private String description;
+    private boolean organizationPrivate;
     private int numApps;
     private int numServices;
     private int numMembers;
@@ -110,6 +111,14 @@ public class OrganizationSummaryBean implements Serializable {
         this.friendlyName = friendlyName;
     }
 
+    public boolean isOrganizationPrivate() {
+        return organizationPrivate;
+    }
+
+    public void setOrganizationPrivate(boolean organizationPrivate) {
+        this.organizationPrivate = organizationPrivate;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -152,6 +161,7 @@ public class OrganizationSummaryBean implements Serializable {
                 ", name='" + name + '\'' +
                 ", friendlyName='" + friendlyName + '\'' +
                 ", description='" + description + '\'' +
+                ", organizationPrivate=" + organizationPrivate +
                 ", numApps=" + numApps +
                 ", numServices=" + numServices +
                 ", numMembers=" + numMembers +
