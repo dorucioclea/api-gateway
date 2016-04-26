@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.events.qualifiers.MembershipRequest;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import java.util.Date;
@@ -58,6 +60,10 @@ public class EventFacade {
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
+    }
+
+    public void onMembershipRequest(@Observes @MembershipRequest NewEventBean bean) {
+        createMembershipRequest(bean);
     }
 
     private EventBean createMembershipRequest(NewEventBean bean) {

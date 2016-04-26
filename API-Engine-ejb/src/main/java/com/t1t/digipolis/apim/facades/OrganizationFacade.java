@@ -3155,6 +3155,26 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
+        listMembers(orgId).forEach(member -> {
+            member.getRoles().forEach(role -> {
+                if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){
+                    //send email
+                    try{
+                        if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
+                            RequestMembershipMailBean requestMembershipMailBean = new RequestMembershipMailBean();
+                            requestMembershipMailBean.setTo(member.getEmail());
+                            requestMembershipMailBean.setUserId(user.getUsername());
+                            requestMembershipMailBean.setUserMail(user.getEmail());
+                            requestMembershipMailBean.setOrgName(org.getName());
+                            requestMembershipMailBean.setOrgFriendlyName(org.getFriendlyName());
+                            mailProvider.sendRequestMembership(requestMembershipMailBean);
+                        }
+                    }catch(Exception e){
+                        log.error("Error sending mail:{}",e.getMessage());
+                    }
+                }
+            });
+        });
         NewEventBean newEvent = new NewEventBean();
         newEvent.setRequestDestination(orgId);
         newEvent.setType(EventType.Membership);
