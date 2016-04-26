@@ -184,6 +184,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         orgBean.setCreatedBy(securityContext.getCurrentUser());
         orgBean.setModifiedOn(new Date());
         orgBean.setModifiedBy(securityContext.getCurrentUser());
+        orgBean.setOrganizationPrivate(true);
         if (bean.getFriendlyName() == null) {
             orgBean.setFriendlyName(bean.getName());
         }
