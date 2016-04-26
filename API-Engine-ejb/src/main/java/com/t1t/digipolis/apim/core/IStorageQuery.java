@@ -6,6 +6,8 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
+import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -439,4 +441,23 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException;
+
+    /**
+     * Returns an Event bean for a membership request made by a specific user to a specific organization
+     *
+     * @param origin
+     * @param destination
+     * @return
+     * @throws StorageException
+     */
+    public EventBean getEvent(String origin, String destination, EventType type) throws StorageException;
+
+    /**
+     * Returns a list of EventBeans of pending membership requests for a given organization
+     *
+     * @param organizationId
+     * @return
+     * @throws StorageException
+     */
+    public List<EventBean> getMembershipRequests(String organizationId) throws StorageException;
 }

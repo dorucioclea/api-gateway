@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -56,6 +57,7 @@ public interface IStorage {
     public void createAvailableMarket(AvailabilityBean availabilityBean)throws StorageException;
     public void createWhilelistRecord(WhitelistBean whitelistBean)throws StorageException;
     public void createBlacklistRecord(BlacklistBean blacklistBean)throws StorageException;
+    public void createEvent(EventBean eventBean) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -101,6 +103,7 @@ public interface IStorage {
     public void deleteAvailableMarket(AvailabilityBean availabilityBean)throws StorageException;
     public void deleteWhitelistRecord(WhitelistBean whitelistBean) throws StorageException;
     public void deleteBalcklistRecord(BlacklistBean blacklistBean) throws StorageException;
+    public void deleteEvent(EventBean eventBean) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
