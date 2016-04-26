@@ -438,6 +438,8 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponse.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponseList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongOAuthToken.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongOAuthTokenList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/MetricsUsage.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/MetricsUsageList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseStats.json</sourcePath>

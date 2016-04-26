@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "data": {
+      "id": "KongOAuthToken",
+      "type": "array",
+      "items": {
+        "$ref":"KongOAuthToken.json"
+      }
+    },
+    "total": {
+      "id": "total",
+      "type": "integer"
+    }
+  }
+}
