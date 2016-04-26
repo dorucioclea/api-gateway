@@ -26,7 +26,7 @@ CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, en
 
 CREATE TABLE memberships (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NULL, org_id VARCHAR(255) NULL, role_id VARCHAR(255) NULL, user_id VARCHAR(255) NULL);
 
-CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, friendly_name VARCHAR(255) NULL);
+CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, friendly_name VARCHAR(255) NULL, private BOOL DEFAULT TRUE);
 
 CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 
@@ -67,6 +67,10 @@ CREATE TABLE svc_visibility (service_version_id BIGINT NOT NULL, code VARCHAR(25
 CREATE TABLE users (username VARCHAR(255) NOT NULL, kong_username VARCHAR(255), email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on TIMESTAMP WITHOUT TIME ZONE NULL, admin BOOL DEFAULT FALSE,company VARCHAR(255),location VARCHAR(255),website VARCHAR(255),bio TEXT, pic OID );
 
 CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organization_id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL);
+
+CREATE TABLE events (request_origin VARCHAR(255) NOT NULL, request_destination VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE);
+
+ALTER TABLE events ADD PRIMARY KEY (request_origin, request_destination, type);
 
 ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_id,user_id);
 
