@@ -835,6 +835,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         svb.setModifiedBy(securityContext.getCurrentUser());
         svb.setModifiedOn(new Date());
+        if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
+            data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
+            svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
+        }
 
         if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
             data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
@@ -1024,6 +1028,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updatedService.setOnlinedoc(cloneSource.getOnlinedoc());
                 updatedService.setPlans(cloneSource.getPlans());
                 updatedService.setPublicService(cloneSource.isPublicService());
+                updatedService.setAutoAcceptContracts(cloneSource.getAutoAcceptContracts());
                 newVersion = updateServiceVersion(organizationId, serviceId, bean.getVersion(), updatedService);
                 // Clone the service definition document
                 try {
@@ -2704,6 +2709,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setModifiedOn(new Date());
         newVersion.setStatus(ServiceStatus.Created);
         newVersion.setService(service);
+        newVersion.setAutoAcceptContracts(true);
         if (gateway != null) {
             if (newVersion.getGateways() == null) {
                 newVersion.setGateways(new HashSet<ServiceGatewayBean>());
