@@ -404,4 +404,16 @@ public final class ExceptionFactory {
     public static final MemberShipRequestFailedException membershipRequestFailedException(String message) {
         return new MemberShipRequestFailedException(message);
     }
+
+    public static final InvalidEventException invalidEventException(String message) {
+        return new InvalidEventException(message);
+    }
+
+    public static final EventNotFoundException eventNotFoundException() {
+        return new EventNotFoundException();
+    }
+
+    public static final InvalidEventStatusException invalidEventStatusException(String message) {
+        return new InvalidEventStatusException(message);
+    }
 }

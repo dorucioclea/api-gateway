@@ -190,4 +190,11 @@ public final class ErrorCodes {
 
     public static final int SCOPE_NOT_FOUND                 = 15002;
 
+    //
+    // Event errors
+    //
+
+    public static final int EVENT_ERROR                     = 16001;
+    public static final int EVENT_NOT_FOUND_ERROR           = 16004;
+    public static final int EVENT_INVALID_STATUS_ERROR      = 16006;
 }
