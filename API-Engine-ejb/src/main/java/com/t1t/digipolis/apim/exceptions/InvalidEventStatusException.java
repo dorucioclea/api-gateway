@@ -7,8 +7,19 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-public class InvalidEventStatusException {
+public class InvalidEventStatusException extends AbstractInvalidInputException {
 
-    private static final Logger _LOG = LoggerFactory.getLogger(InvalidEventStatusException.class);
+    public InvalidEventStatusException(String message) {
+        super(message);
+    }
 
+    @Override
+    public int getErrorCode() {
+        return 0;
+    }
+
+    @Override
+    public String getMoreInfoUrl() {
+        return null;
+    }
 }

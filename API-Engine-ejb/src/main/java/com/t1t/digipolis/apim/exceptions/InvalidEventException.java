@@ -8,9 +8,14 @@ import org.slf4j.LoggerFactory;
  * @since 2016
  */
 public class InvalidEventException extends AbstractInvalidInputException {
+
+    public InvalidEventException(String message) {
+        super(message);
+    }
+
     @Override
     public int getErrorCode() {
-        return 0;
+        return ErrorCodes.EVENT_ERROR;
     }
 
     @Override
