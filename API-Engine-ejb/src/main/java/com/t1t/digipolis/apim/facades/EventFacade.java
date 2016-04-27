@@ -20,16 +20,10 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
-import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-
-import java.awt.*;
 import java.util.Date;
 import java.util.List;
-
-import static com.sun.tools.doclint.Entity.cap;
-import static com.sun.tools.doclint.Entity.or;
 
 /**
  * @author Guillaume Vandecasteele
