@@ -89,6 +89,8 @@ public class ServiceVersionBean implements Serializable {
     @MapKeyColumn(name="oauth_scopes")
     @Column(name="oauth_scopes_desc")
     private Map<String,String> oauthScopes;
+    @Column(name = "auto_accept_contracts")
+    private Boolean autoAcceptContracts;
 
     /**
      * Constructor.
@@ -381,6 +383,14 @@ public class ServiceVersionBean implements Serializable {
         this.deprecatedOn = deprecatedOn;
     }
 
+    public Boolean getAutoAcceptContracts() {
+        return autoAcceptContracts;
+    }
+
+    public void setAutoAcceptContracts(Boolean autoAcceptContracts) {
+        this.autoAcceptContracts = autoAcceptContracts;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -436,6 +446,7 @@ public class ServiceVersionBean implements Serializable {
                 ", provisionKey='" + provisionKey + '\'' +
                 ", onlinedoc='" + onlinedoc + '\'' +
                 ", oauthScopes=" + oauthScopes +
+                ", autoAcceptContracts=" + autoAcceptContracts +
                 '}';
     }
 }
