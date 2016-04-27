@@ -1935,6 +1935,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public EventBean getEvent(Long id) throws StorageException {
+        return super.get(id, EventBean.class);
+    }
+
+    @Override
     public EventBean getEvent(String origin, String destination, EventType type) throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT e FROM EventBean e WHERE e.origin = :origin AND e.destination = :destination AND e.type = :eventType";
@@ -1951,13 +1956,42 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public List<EventBean> getMembershipRequests(String organizationId) throws StorageException {
+    public List<EventBean> getAllOutgoingEventsForEntity(String origin) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.origin = :destination";
+        return em.createQuery(jpql)
+                .setParameter("destination", origin)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getOutgoingEventsForEntityByTypeAndStatus(String origin, EventType type, EventStatus status) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.origin = :origin AND e.type = :eventType AND e.status = :status";
+        return em.createQuery(jpql)
+                .setParameter("origin", origin)
+                .setParameter("eventType", type)
+                .setParameter("status", status)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getAllIncomingEventsForEntity(String destination) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.destination = :destination";
+        return em.createQuery(jpql)
+                .setParameter("destination", destination)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getIncomingEventsForEntityByTypeAndStatus(String destination, EventType type, EventStatus status) throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT e FROM EventBean e WHERE e.destination = :orgId AND e.type = :eventType AND e.status = :status";
         return em.createQuery(jpql)
-                .setParameter("orgId", organizationId)
-                .setParameter("eventType", EventType.Membership)
-                .setParameter("status", EventStatus.Pending)
+                .setParameter("orgId", destination)
+                .setParameter("eventType", type)
+                .setParameter("status", status)
                 .getResultList();
     }
 }

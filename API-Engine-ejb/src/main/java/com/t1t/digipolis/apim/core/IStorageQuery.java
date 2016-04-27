@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
+import com.t1t.digipolis.apim.beans.events.EventStatus;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
@@ -453,11 +454,39 @@ public interface IStorageQuery {
     public EventBean getEvent(String origin, String destination, EventType type) throws StorageException;
 
     /**
-     * Returns a list of EventBeans of pending membership requests for a given organization
-     *
-     * @param organizationId
+     * Returns a list of all event beans originating from a particular entity
+     * @param origin
      * @return
      * @throws StorageException
      */
-    public List<EventBean> getMembershipRequests(String organizationId) throws StorageException;
+    public List<EventBean> getAllOutgoingEventsForEntity(String origin) throws StorageException;
+
+    /**
+     * Returns a list of event beans originating from a particular entity and of a given type and status
+     *
+     * @param origin
+     * @param type
+     * @param status
+     * @return
+     * @throws StorageException
+     */
+    public List<EventBean> getOutgoingEventsForEntityByTypeAndStatus(String origin, EventType type, EventStatus status) throws StorageException;
+
+    /**
+     * Returns a list of incoming events for a given entity
+     * @param destination
+     * @return
+     * @throws StorageException
+     */
+    public List<EventBean> getAllIncomingEventsForEntity(String destination) throws StorageException;
+
+    /**
+     * Returns a list of event beans for a given entity and of a given type and status
+     * @param destination
+     * @param type
+     * @param status
+     * @return
+     * @throws StorageException
+     */
+    public List<EventBean> getIncomingEventsForEntityByTypeAndStatus(String destination, EventType type, EventStatus status) throws StorageException;
 }

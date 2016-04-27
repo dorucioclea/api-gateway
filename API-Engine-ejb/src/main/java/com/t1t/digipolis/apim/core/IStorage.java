@@ -130,6 +130,7 @@ public interface IStorage {
     public AvailabilityBean getAvailableMarket(String id) throws StorageException;
     public WhitelistBean getWhitelistRecord(String id) throws StorageException;
     public BlacklistBean getBlacklistRecord(String id) throws StorageException;
+    public EventBean getEvent(Long id) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!
