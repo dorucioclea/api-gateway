@@ -47,6 +47,8 @@ import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.events.qualifiers.MembershipRequestAccepted;
+import com.t1t.digipolis.apim.events.qualifiers.MembershipRequestRejected;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
@@ -95,6 +97,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.*;
 import javax.enterprise.event.Event;
 import javax.enterprise.inject.spi.DefinitionException;
+import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -143,8 +146,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     @Inject
     private MailProvider mailProvider;
     @Inject
-    @MembershipRequest
-    private Event<NewEventBean> membershipRequest;
+    private Event<NewEventBean> event;
 
 
     @SuppressWarnings("nls")
@@ -2127,6 +2129,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+        //Trigger new event for accepted membership request
+        NewEventBean newEvent = new NewEventBean(organizationId, bean.getUserId(), EventType.Membership);
+        event.select(new AnnotationLiteral<MembershipRequestAccepted>(){}).fire(newEvent);
         //send email
         try{
             final RoleBean roleBean = roleFacade.get(bean.getRoleId());
@@ -3145,9 +3150,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (org.isOrganizationPrivate()) {
             throw ExceptionFactory.membershipRequestFailedException("Organization is private");
         }
-        UserBean user = userFacade.get(securityContext.getCurrentUser());
+        if (securityContext.getCurrentUser() == null || securityContext.getCurrentUser().isEmpty()) {
+            throw ExceptionFactory.userNotFoundException(securityContext.getCurrentUser());
+        }
         try {
-            EventBean event = query.getEvent(user.getUsername(), org.getId(), EventType.Membership);
+            EventBean event = query.getEvent(securityContext.getCurrentUser(), org.getId(), EventType.Membership);
             if (event != null && event.getStatus() == EventStatus.Pending) {
                 throw ExceptionFactory.membershipRequestFailedException("Membership already requested, still pending");
             }
@@ -3163,8 +3170,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
                             RequestMembershipMailBean requestMembershipMailBean = new RequestMembershipMailBean();
                             requestMembershipMailBean.setTo(member.getEmail());
-                            requestMembershipMailBean.setUserId(user.getUsername());
-                            requestMembershipMailBean.setUserMail(user.getEmail());
+                            requestMembershipMailBean.setUserId(securityContext.getCurrentUser());
+                            requestMembershipMailBean.setUserMail(securityContext.getEmail());
                             requestMembershipMailBean.setOrgName(org.getName());
                             requestMembershipMailBean.setOrgFriendlyName(org.getFriendlyName());
                             mailProvider.sendRequestMembership(requestMembershipMailBean);
@@ -3175,11 +3182,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 }
             });
         });
-        NewEventBean newEvent = new NewEventBean();
-        newEvent.setDestination(orgId);
-        newEvent.setType(EventType.Membership);
-        newEvent.setOrigin(user.getUsername());
-        membershipRequest.fire(newEvent);
+        NewEventBean newEvent = new NewEventBean(securityContext.getCurrentUser(), org.getId(), EventType.Membership);
+        event.select(new AnnotationLiteral<MembershipRequest>(){}).fire(newEvent);
+    }
+
+    public void rejectMembershipRequest(String organizationId, String userId) {
+        OrganizationBean org = get(organizationId);
+        UserBean user = userFacade.get(userId);
+        NewEventBean newEvent = new NewEventBean(org.getId(), user.getUsername(), EventType.Membership);
+        event.select(new AnnotationLiteral<MembershipRequestRejected>() {}).fire(newEvent);
     }
 
     /**
