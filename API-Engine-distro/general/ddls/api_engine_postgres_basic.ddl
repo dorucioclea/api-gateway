@@ -68,9 +68,9 @@ CREATE TABLE users (username VARCHAR(255) NOT NULL, kong_username VARCHAR(255), 
 
 CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organization_id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL);
 
-CREATE TABLE events (origin VARCHAR(255) NOT NULL, destination VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE);
+CREATE TABLE events (id BIGINT NOT NULL, origin VARCHAR(255) NOT NULL, destination VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL);
 
-ALTER TABLE events ADD PRIMARY KEY (origin, destination, type);
+ALTER TABLE events ADD PRIMARY KEY (id);
 
 ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_id,user_id);
 
@@ -169,6 +169,8 @@ ALTER TABLE svc_plans ADD CONSTRAINT FK_t7uvfcsswopb9kh8wpa86blqr FOREIGN KEY (s
 ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
 
 ALTER TABLE plan_versions ADD CONSTRAINT FK_tonylvm2ypnq3efxqr1g0m9fs FOREIGN KEY (plan_id, plan_org_id) REFERENCES plans (id, organization_id);
+
+ALTER TABLE events ADD CONSTRAINT UK_events_1 UNIQUE (origin, destination, type, status);
 
 ALTER TABLE plugins ADD CONSTRAINT UK_plugins_1 UNIQUE (group_id, artifact_id);
 
