@@ -68,9 +68,9 @@ CREATE TABLE users (username VARCHAR(255) NOT NULL, kong_username VARCHAR(255), 
 
 CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organization_id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL);
 
-CREATE TABLE events (request_origin VARCHAR(255) NOT NULL, request_destination VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE);
+CREATE TABLE events (origin VARCHAR(255) NOT NULL, destination VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE);
 
-ALTER TABLE events ADD PRIMARY KEY (request_origin, request_destination, type);
+ALTER TABLE events ADD PRIMARY KEY (origin, destination, type);
 
 ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_id,user_id);
 

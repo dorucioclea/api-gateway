@@ -1,15 +1,11 @@
 package com.t1t.digipolis.apim.beans.events;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 
 import java.io.Serializable;
 import java.util.Date;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
 
 /**
  * @author Guillaume Vandecasteele
@@ -21,11 +17,11 @@ import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
 public class EventBean implements Serializable {
 
     @Id
-    @Column(name = "request_origin")
-    private String requestOrigin;
+    @Column(name = "origin")
+    private String origin;
     @Id
-    @Column(name = "request_destination")
-    private String requestDestination;
+    @Column(name = "destination")
+    private String destination;
     @Id
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
@@ -38,20 +34,20 @@ public class EventBean implements Serializable {
     @Column(name = "modified_on")
     private Date modifiedOn;
 
-    public String getRequestOrigin() {
-        return requestOrigin;
+    public String getOrigin() {
+        return origin;
     }
 
-    public void setRequestOrigin(String requestOrigin) {
-        this.requestOrigin = requestOrigin;
+    public void setOrigin(String requestOrigin) {
+        this.origin = requestOrigin;
     }
 
-    public String getRequestDestination() {
-        return requestDestination;
+    public String getDestination() {
+        return destination;
     }
 
-    public void setRequestDestination(String requestDestination) {
-        this.requestDestination = requestDestination;
+    public void setDestination(String requestDestination) {
+        this.destination = requestDestination;
     }
 
     public EventType getType() {
@@ -93,16 +89,16 @@ public class EventBean implements Serializable {
 
         EventBean eventBean = (EventBean) o;
 
-        if (!requestOrigin.equals(eventBean.requestOrigin)) return false;
-        if (!requestDestination.equals(eventBean.requestDestination)) return false;
+        if (!origin.equals(eventBean.origin)) return false;
+        if (!destination.equals(eventBean.destination)) return false;
         return type == eventBean.type;
 
     }
 
     @Override
     public int hashCode() {
-        int result = requestOrigin.hashCode();
-        result = 31 * result + requestDestination.hashCode();
+        int result = origin.hashCode();
+        result = 31 * result + destination.hashCode();
         result = 31 * result + type.hashCode();
         return result;
     }
@@ -110,8 +106,8 @@ public class EventBean implements Serializable {
     @Override
     public String toString() {
         return "EventBean{" +
-                "requestOrigin='" + requestOrigin + '\'' +
-                ", requestDestination='" + requestDestination + '\'' +
+                "requestOrigin='" + origin + '\'' +
+                ", requestDestination='" + destination + '\'' +
                 ", type=" + type +
                 ", status=" + status +
                 ", createdOn=" + createdOn +

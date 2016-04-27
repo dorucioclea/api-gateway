@@ -1,31 +1,28 @@
 package com.t1t.digipolis.apim.beans.events;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
  */
 public class NewEventBean {
-    private String requestOrigin;
-    private String requestDestination;
+    private String origin;
+    private String destination;
     private EventType type;
 
-    public String getRequestOrigin() {
-        return requestOrigin;
+    public String getOrigin() {
+        return origin;
     }
 
-    public void setRequestOrigin(String requestOrigin) {
-        this.requestOrigin = requestOrigin;
+    public void setOrigin(String origin) {
+        this.origin = origin;
     }
 
-    public String getRequestDestination() {
-        return requestDestination;
+    public String getDestination() {
+        return destination;
     }
 
-    public void setRequestDestination(String requestDestination) {
-        this.requestDestination = requestDestination;
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 
     public EventType getType() {
@@ -43,16 +40,16 @@ public class NewEventBean {
 
         NewEventBean that = (NewEventBean) o;
 
-        if (!requestOrigin.equals(that.requestOrigin)) return false;
-        if (!requestDestination.equals(that.requestDestination)) return false;
+        if (!origin.equals(that.origin)) return false;
+        if (!destination.equals(that.destination)) return false;
         return type == that.type;
 
     }
 
     @Override
     public int hashCode() {
-        int result = requestOrigin.hashCode();
-        result = 31 * result + requestDestination.hashCode();
+        int result = origin.hashCode();
+        result = 31 * result + destination.hashCode();
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }

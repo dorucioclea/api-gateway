@@ -3176,9 +3176,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             });
         });
         NewEventBean newEvent = new NewEventBean();
-        newEvent.setRequestDestination(orgId);
+        newEvent.setDestination(orgId);
         newEvent.setType(EventType.Membership);
-        newEvent.setRequestOrigin(user.getUsername());
+        newEvent.setOrigin(user.getUsername());
         membershipRequest.fire(newEvent);
     }
 

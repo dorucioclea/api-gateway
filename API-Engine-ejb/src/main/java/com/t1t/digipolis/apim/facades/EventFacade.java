@@ -62,8 +62,8 @@ public class EventFacade {
         }
     }
 
-    public void onMembershipRequest(@Observes @MembershipRequest NewEventBean bean) {
-        createMembershipRequest(bean);
+    public void onMemberShipRequest(@Observes @MembershipRequest NewEventBean bean) {
+        create(bean);
     }
 
     private EventBean createMembershipRequest(NewEventBean bean) {
@@ -71,13 +71,13 @@ public class EventFacade {
         EventBean newRequest = new EventBean();
         newRequest.setType(EventType.Membership);
         newRequest.setStatus(EventStatus.Pending);
-        newRequest.setRequestOrigin(bean.getRequestOrigin());
-        newRequest.setRequestDestination(bean.getRequestDestination());
+        newRequest.setOrigin(bean.getOrigin());
+        newRequest.setDestination(bean.getDestination());
         newRequest.setCreatedOn(new Date());
         newRequest.setModifiedOn(newRequest.getCreatedOn());
         try {
             //In case there still is an extant event marking the request as refused, delete it
-            EventBean event = query.getEvent(bean.getRequestOrigin(), bean.getRequestDestination(), bean.getType());
+            EventBean event = query.getEvent(bean.getOrigin(), bean.getDestination(), bean.getType());
             if (event != null && event.getStatus() == EventStatus.Refused) {
                 storage.deleteEvent(event);
             }

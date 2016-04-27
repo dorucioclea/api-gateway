@@ -1937,7 +1937,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public EventBean getEvent(String origin, String destination, EventType type) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT e FROM EventBean e WHERE e.requestOrigin = :origin AND e.requestDestination = :destination AND e.type = :eventType";
+        String jpql = "SELECT e FROM EventBean e WHERE e.origin = :origin AND e.destination = :destination AND e.type = :eventType";
         try {
             return (EventBean) em.createQuery(jpql)
                     .setParameter("origin", origin)
@@ -1953,7 +1953,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<EventBean> getMembershipRequests(String organizationId) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT e FROM EventBean e WHERE e.requestDestination = :orgId AND e.type = :eventType AND e.status = :status";
+        String jpql = "SELECT e FROM EventBean e WHERE e.destination = :orgId AND e.type = :eventType AND e.status = :status";
         return em.createQuery(jpql)
                 .setParameter("orgId", organizationId)
                 .setParameter("eventType", EventType.Membership)
