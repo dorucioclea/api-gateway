@@ -17,12 +17,13 @@ import java.util.Date;
 public class EventBean implements Serializable {
 
     @Id
+    @GeneratedValue
+    @Column(name = "id")
+    private Long id;
     @Column(name = "origin")
     private String origin;
-    @Id
     @Column(name = "destination")
     private String destination;
-    @Id
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private EventType type;
@@ -31,8 +32,14 @@ public class EventBean implements Serializable {
     private EventStatus status;
     @Column(name = "created_on")
     private Date createdOn;
-    @Column(name = "modified_on")
-    private Date modifiedOn;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getOrigin() {
         return origin;
@@ -74,14 +81,6 @@ public class EventBean implements Serializable {
         this.createdOn = createdOn;
     }
 
-    public Date getModifiedOn() {
-        return modifiedOn;
-    }
-
-    public void setModifiedOn(Date modifiedOn) {
-        this.modifiedOn = modifiedOn;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -111,7 +110,6 @@ public class EventBean implements Serializable {
                 ", type=" + type +
                 ", status=" + status +
                 ", createdOn=" + createdOn +
-                ", modifiedOn=" + modifiedOn +
                 '}';
     }
 }

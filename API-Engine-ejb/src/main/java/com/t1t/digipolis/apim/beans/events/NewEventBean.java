@@ -9,6 +9,15 @@ public class NewEventBean {
     private String destination;
     private EventType type;
 
+    public NewEventBean() {
+    }
+
+    public NewEventBean(String origin, String destination, EventType type) {
+        this.origin = origin;
+        this.destination = destination;
+        this.type = type;
+    }
+
     public String getOrigin() {
         return origin;
     }
