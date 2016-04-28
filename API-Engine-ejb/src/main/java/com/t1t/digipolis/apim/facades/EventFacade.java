@@ -1,16 +1,10 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.t1t.digipolis.apim.beans.events.EventBean;
-import com.t1t.digipolis.apim.beans.events.EventStatus;
-import com.t1t.digipolis.apim.beans.events.EventType;
-import com.t1t.digipolis.apim.beans.events.NewEventBean;
+import com.t1t.digipolis.apim.beans.events.*;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.events.qualifiers.MembershipRequest;
-import com.t1t.digipolis.apim.events.qualifiers.MembershipRequestAccepted;
-import com.t1t.digipolis.apim.events.qualifiers.MembershipRequestRejected;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -22,6 +16,7 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,11 +29,6 @@ import java.util.List;
 public class EventFacade {
 
     private static final Logger _LOG = LoggerFactory.getLogger(EventFacade.class);
-    private static final String MEMBERSHIP = "Membership";
-    private static final String CONTRACT = "Contract";
-    private static final String PENDING = "Pending";
-    private static final String ACCEPTED = "Accepted";
-    private static final String REJECTED = "Rejected";
 
     @Inject
     private IStorage storage;
@@ -47,135 +37,51 @@ public class EventFacade {
     @Inject
     private ISecurityContext securityContext;
 
-    public EventBean create(NewEventBean bean) {
-        switch (bean.getType()) {
-            case Membership:
-                return createMembershipRequest(bean);
-            default:
-                return null;
-        }
-    }
+
 
     public List<EventBean> getCurrentUserAllIncomingEvents() {
-        String userId = securityContext.getCurrentUser();
-        try {
-            return query.getAllIncomingEventsForEntity(userId);
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
+        return getIncomingEvents(securityContext.getCurrentUser());
     }
 
-    public List<EventBean> getCurrentUserIncomingEventsByTypeAndStatus(String type, String status) {
-        EventType eType = validateEventType(type);
-        EventStatus eStatus = validateEventStatus(status);
-        String userId = securityContext.getCurrentUser();
-        try {
-            return query.getIncomingEventsForEntityByTypeAndStatus(userId, eType, eStatus);
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
+    public List<EventBean> getCurrentUserIncomingEventsByType(String type) {
+        return getIncomingEventsByType(securityContext.getCurrentUser(), type);
     }
 
     public List<EventBean> getCurrentUserAllOutgoingEvents() {
-        String userId = securityContext.getCurrentUser();
-        try {
-            return query.getAllOutgoingEventsForEntity(userId);
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
+        return getOutgoingEvents(securityContext.getCurrentUser());
     }
 
-    public List<EventBean> getCurrentUserOutgoingEventsByTypeAndStatus(String type, String status) {
-        EventType eType = validateEventType(type);
-        EventStatus eStatus = validateEventStatus(status);
-        String userId = securityContext.getCurrentUser();
-        try {
-            return query.getOutgoingEventsForEntityByTypeAndStatus(userId, eType, eStatus);
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
+    public List<EventBean> getCurrentUserOutgoingEventsByType(String type) {
+        return getOutgoingEventsByType(securityContext.getCurrentUser(), type);
     }
 
     public List<EventBean> getOrganizationIncomingEvents(String organizationId) {
-        OrganizationBean org = getOrg(organizationId);
-        try {
-            return query.getAllIncomingEventsForEntity(org.getId());
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
-    }
-
-    public List<EventBean> getOrganizationIncomingEventsByTypeAndStatus(String organizationId, String type, String status) {
-        EventType eType = validateEventType(type);
-        EventStatus eStatus = validateEventStatus(status);
-        OrganizationBean org = getOrg(organizationId);
-        try {
-            return query.getIncomingEventsForEntityByTypeAndStatus(org.getId(), eType, eStatus);
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
+        return filterIncomingOrganizationResults(getIncomingEvents(validateOrgId(organizationId)), organizationId);
     }
 
     public List<EventBean> getOrganizationOutgoingEvents(String organizationId) {
-        OrganizationBean org = getOrg(organizationId);
-        try {
-            return query.getAllOutgoingEventsForEntity(org.getId());
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
+        return filterOutgoingOrganizationResults(getOutgoingEvents(validateOrgId(organizationId)), organizationId);
     }
 
-    public List<EventBean> getOrganizationOutgoingEventsByTypeAndStatus(String organizationId, String type, String status) {
-        EventType eType = validateEventType(type);
-        EventStatus eStatus = validateEventStatus(status);
-        OrganizationBean org = getOrg(organizationId);
-        try {
-            return query.getIncomingEventsForEntityByTypeAndStatus(org.getId(), eType, eStatus);
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
+    public List<EventBean> getOrganizationIncomingEventsByType(String organizationId, String type) {
+        return filterIncomingOrganizationResults(getIncomingEventsByType(validateOrgId(organizationId), type), organizationId);
     }
 
-    public void deleteCurrentUserEvent(Long id) {
-        String userId = securityContext.getCurrentUser();
+    public List<EventBean> getOrganizationOutgoingEventsByType(String organizationId, String type) {
+        return filterOutgoingOrganizationResults(getOutgoingEventsByType(validateOrgId(organizationId), type), organizationId);
+    }
+
+    public void deleteEvent(String destination, Long id) {
         try {
             EventBean event = storage.getEvent(id);
             if (event == null) {
                 throw ExceptionFactory.eventNotFoundException();
             }
-            if (!event.getDestination().equals(userId)) {
+            if (!event.getDestinationId().equals(destination)) {
                 throw ExceptionFactory.notAuthorizedException();
             }
-            if (event.getStatus() == EventStatus.Pending) {
-                throw ExceptionFactory.invalidEventStatusException(PENDING);
-            }
-            storage.deleteEvent(event);
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
-    }
-
-    public void deleteOrganizationEvent(String organizationId, Long id) {
-        OrganizationBean org = getOrg(organizationId);
-        try {
-            EventBean event = storage.getEvent(id);
-            if (event == null) {
-                throw ExceptionFactory.eventNotFoundException();
-            }
-            if (!event.getDestination().equals(org.getId())) {
-                throw ExceptionFactory.notAuthorizedException();
-            }
-            if (event.getStatus() == EventStatus.Pending) {
-                throw ExceptionFactory.invalidEventStatusException(PENDING);
+            if (event.getType() == EventType.MEMBERSHIP_PENDING || event.getType() == EventType.CONTRACT_PENDING) {
+                throw ExceptionFactory.invalidEventException(event.getType().toString());
             }
             storage.deleteEvent(event);
         }
@@ -188,112 +94,103 @@ public class EventFacade {
     /* Evenlisteners */
     /*****************/
 
-    public void onMemberShipRequest(@Observes @MembershipRequest NewEventBean bean) {
-        createMembershipRequest(bean);
-    }
-
-    public void onMembershipRequestRejected(@Observes @MembershipRequestRejected NewEventBean bean) {
-        rejectMembershipRequest(bean);
-    }
-
-    public void onMembershipRequestAccepted(@Observes @MembershipRequestAccepted NewEventBean bean) {
-        acceptMembershipRequest(bean);
+    public void onNewEventBean(@Observes NewEventBean bean) {
+        EventBean event = new EventBean();
+        event.setOriginId(bean.getOriginId());
+        event.setDestinationId(bean.getDestinationId());
+        event.setType(bean.getType());
+        event.setCreatedOn(new Date());
+        event.setBody(bean.getBody());
+        try {
+            switch (bean.getType()) {
+                case MEMBERSHIP_GRANTED:
+                    deletePendingMembershipRequest(event);
+                    break;
+                case MEMBERSHIP_PENDING:
+                    deleteMembershipRefusedEvent(event);
+                    break;
+                case MEMBERSHIP_REJECTED:
+                    deletePendingMembershipRequest(event);
+                    break;
+                case CONTRACT_ACCEPTED:
+                    break;
+                case CONTRACT_PENDING:
+                    break;
+                case CONTRACT_REJECTED:
+                    break;
+            }
+            storage.createEvent(event);
+            _LOG.debug("Event created:{}", event);
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
     }
 
     /*******************/
     /* Private Methods */
     /*******************/
 
-    private EventBean acceptMembershipRequest(NewEventBean bean) {
-        EventBean newEvent = new EventBean();
-        newEvent.setOrigin(bean.getOrigin());
-        newEvent.setDestination(bean.getDestination());
-        newEvent.setType(EventType.Membership);
-        newEvent.setStatus(EventStatus.Accepted);
-        newEvent.setCreatedOn(new Date());
+    private List<EventBean> getOutgoingEvents(String origin) {
         try {
-            EventBean pendingEvent = query.getEvent(bean.getDestination(), bean.getOrigin(), EventType.Membership);
-            if (pendingEvent != null) {
-                storage.deleteEvent(pendingEvent);
-            }
-            storage.createEvent(newEvent);
-            _LOG.debug("Pending request deleted, accepted event created:{}", newEvent);
-            return newEvent;
+            return query.getAllOutgoingEvents(origin);
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
 
-    private EventBean createMembershipRequest(NewEventBean bean) {
-        //Create a new EventBean for the current request
-        EventBean newRequest = new EventBean();
-        newRequest.setType(EventType.Membership);
-        newRequest.setStatus(EventStatus.Pending);
-        newRequest.setOrigin(bean.getOrigin());
-        newRequest.setDestination(bean.getDestination());
-        newRequest.setCreatedOn(new Date());
+    private List<EventBean> getIncomingEvents(String destination) {
         try {
-            //In case there still is an extant event marking the request as refused, delete it
-            //Here origin and destination are reversed, because rejection event is from organization to user
-            EventBean event = query.getEvent(bean.getDestination(), bean.getOrigin(), bean.getType());
-            if (event != null && event.getStatus() == EventStatus.Rejected) {
-                storage.deleteEvent(event);
-            }
-            storage.createEvent(newRequest);
-            _LOG.debug("new membershiprequest created:{}", newRequest);
-            return newRequest;
+            return query.getAllIncomingEvents(destination);
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
 
-    private void rejectMembershipRequest(NewEventBean bean) {
-        EventBean event = new EventBean();
-        event.setOrigin(bean.getOrigin());
-        event.setDestination(bean.getDestination());
-        event.setType(bean.getType());
-        event.setStatus(EventStatus.Rejected);
-        event.setCreatedOn(new Date());
+    private List<EventBean> getOutgoingEventsByType(String origin, String type) {
         try {
-            //delete the pending request
-            EventBean request = query.getEvent(bean.getDestination(), bean.getOrigin(), EventType.Membership);
-            storage.deleteEvent(request);
-            storage.createEvent(event);
-            _LOG.debug("Rejected membership request deleted, response created:{}", event);
+            return query.getOutgoingEventsByType(origin, getEventType(type));
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
 
-    private EventType validateEventType(String type) {
-        switch (capitalizeString(type)) {
-            case MEMBERSHIP:
-                return EventType.Membership;
-            case CONTRACT:
-                return EventType.Contract;
-            default:
-                throw ExceptionFactory.invalidEventException("Invalid event type");
+    private List<EventBean> getIncomingEventsByType(String destination, String type) {
+        try {
+            return query.getIncomingEventsByType(destination, getEventType(type));
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
         }
     }
 
-    private EventStatus validateEventStatus(String status) {
-        switch (capitalizeString(status)) {
-            case PENDING:
-                return EventStatus.Pending;
-            case ACCEPTED:
-                return EventStatus.Accepted;
-            case REJECTED:
-                return EventStatus.Rejected;
-            default:
-                throw ExceptionFactory.invalidEventStatusException("Invalid event status");
+    private void deleteMembershipRefusedEvent(EventBean bean) throws StorageException {
+        //In case there still is an extant event marking the request as refused, delete it
+        //Here origin and destination are reversed, because rejection event is from organization to user
+        EventBean event = query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), EventType.MEMBERSHIP_REJECTED);
+        if (event != null) {
+            storage.deleteEvent(event);
         }
     }
 
-    private String capitalizeString(String string) {
-        return string.substring(0,1).toUpperCase() + string.substring(1).toLowerCase();
+    private void deletePendingMembershipRequest(EventBean bean) throws StorageException {
+        EventBean pendingRequest = query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), EventType.MEMBERSHIP_PENDING);
+        if (pendingRequest == null) {
+            throw ExceptionFactory.membershipRequestFailedException("Membership was never requested");
+        }
+        storage.deleteEvent(pendingRequest);
+    }
+
+    private EventType getEventType(String type) {
+        try {
+            return EventType.valueOf(type.toUpperCase());
+        }
+        catch (IllegalArgumentException ex) {
+            throw ExceptionFactory.invalidEventException(type);
+        }
     }
 
     private OrganizationBean getOrg(String organizationId) {
@@ -308,4 +205,51 @@ public class EventFacade {
             throw new SystemErrorException(ex);
         }
     }
+
+    private String validateOrgId(String organizationId) {
+        return new StringBuilder(getOrg(organizationId).getId())
+                .append("%")
+                .toString();
+    }
+
+    private List<EventBean> filterIncomingOrganizationResults(List<EventBean> events, String organizationId) {
+        List<EventBean> filteredList = new ArrayList<>();
+        events.forEach(event -> {
+            if (event.getDestinationId().startsWith(new StringBuilder(organizationId).append(".").toString()) || event.getDestinationId().equals(organizationId)) {
+                filteredList.add(event);
+            }
+        });
+        return filteredList;
+    }
+
+    private List<EventBean> filterOutgoingOrganizationResults(List<EventBean> events, String organizationId) {
+        List<EventBean> filteredList = new ArrayList<>();
+        events.forEach(event -> {
+            if (event.getOriginId().startsWith(new StringBuilder(organizationId).append(".").toString()) || event.getOriginId().equals(organizationId)) {
+                filteredList.add(event);
+            }
+        });
+        return filteredList;
+    }
+    /*
+    private List<MembershipRequest> convertToMembershipRequests(List<EventBean> events) {
+        List<MembershipRequest> membershipRequests =  new ArrayList<>();
+        events.forEach(event -> {
+            MembershipRequest request = new MembershipRequest(event);
+            switch (event.getType()) {
+                case MEMBERSHIP_PENDING:
+                    request.setUserId(event.getOriginId());
+                    request.setOrganizationId(event.getDestinationId());
+                    break;
+                case MEMBERSHIP_GRANTED:
+                case MEMBERSHIP_REJECTED:
+                    request.setUserId(event.getDestinationId());
+                    request.setOrganizationId(event.getOriginId());
+                    break;
+            }
+            membershipRequests.add(request);
+        });
+        return membershipRequests;
+    }
+    */
 }

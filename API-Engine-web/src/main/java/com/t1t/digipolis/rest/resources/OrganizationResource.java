@@ -2003,25 +2003,6 @@ public class OrganizationResource implements IOrganizationResource {
     }
 
     @Override
-    @ApiOperation(value = "Get an organization's incoming events by type and status",
-            notes = "Call this endpoint to get an organization's incoming events by type (Membership, Contract) and status (Pending, Rejected, Accepted)")
-    @ApiResponses({
-            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of incoming events for {organizationId}")
-    })
-    @GET
-    @Path("/{organizationId}/notifications/incoming/{eventType}/{eventStatus}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<EventBean> getOrganizationIncomingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type, @PathParam("eventStatus") String status) throws NotAuthorizedException, InvalidEventException, InvalidApplicationStatusException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
-        Preconditions.checkArgument(!StringUtils.isEmpty(type));
-        Preconditions.checkArgument(!StringUtils.isEmpty(status));
-        return eventFacade.getOrganizationIncomingEventsByTypeAndStatus(organizationId, type, status);
-    }
-
-    @Override
     @ApiOperation(value = "Get all outgoing events for an organization",
             notes = "Call this endpoint to get all outgoing events for an organization")
     @ApiResponses({
@@ -2039,22 +2020,39 @@ public class OrganizationResource implements IOrganizationResource {
     }
 
     @Override
-    @ApiOperation(value = "Get an organization's outgoing events by type and status",
-            notes = "Call this endpoint to get an organization's outgoing events by type (Membership, Contract) and status (Pending, Rejected, Accepted)")
+    @ApiOperation(value = "Get an organization's incoming events by type",
+            notes = "Call this endpoint to get an organization's incoming events by type (MEMBERSHIP_PENDING, CONTRACT_PENDING, CONTRACT_ACCEPTED, CONTRACT_REJECTED)")
     @ApiResponses({
-            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of outgoing events for {organizationId}")
+            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of incoming events for {organizationId}")
     })
     @GET
-    @Path("/{organizationId}/notifications/outgoing/{eventType}/{eventStatus}")
+    @Path("/{organizationId}/notifications/incoming/{eventType}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<EventBean> getOrganizationOutgoingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type, @PathParam("eventStatus") String status) throws NotAuthorizedException, InvalidEventException, InvalidApplicationStatusException {
+    public List<EventBean> getOrganizationIncomingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
         Preconditions.checkArgument(!StringUtils.isEmpty(type));
-        Preconditions.checkArgument(!StringUtils.isEmpty(status));
-        return eventFacade.getOrganizationOutgoingEventsByTypeAndStatus(organizationId, type, status);
+        return eventFacade.getOrganizationIncomingEventsByType(organizationId, type);
+    }
+
+    @Override
+    @ApiOperation(value = "Get an organization's outgoing events by type",
+            notes = "Call this endpoint to get an organization's outgoing events by type ((MEMBERSHIP_GRANTED, MEMBERSHIP_REFUSED, CONTRACT_PENDING, CONTRACT_ACCEPTED, CONTRACT_REJECTED)")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of outgoing events for {organizationId}")
+    })
+    @GET
+    @Path("/{organizationId}/notifications/outgoing/{eventType}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<EventBean> getOrganizationOutgoingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(type));
+        return eventFacade.getOrganizationOutgoingEventsByType(organizationId, type);
     }
 
     @Override
@@ -2065,7 +2063,11 @@ public class OrganizationResource implements IOrganizationResource {
     })
     @DELETE
     @Path("/notifications/incoming/{notificationId}")
-    public void deleteEvent(String organizationId, Long id) throws NotAuthorizedException, InvalidEventStatusException, EventNotFoundException, EventNotFoundException {
-        eventFacade.deleteOrganizationEvent(organizationId, id);
+    public void deleteEvent(String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        eventFacade.deleteEvent(organizationId, id);
     }
 }

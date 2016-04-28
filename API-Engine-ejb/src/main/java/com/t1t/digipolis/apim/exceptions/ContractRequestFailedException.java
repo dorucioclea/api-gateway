@@ -7,15 +7,20 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-public class InvalidEventStatusException extends AbstractInvalidInputException {
+public class ContractRequestFailedException extends AbstractUserException {
 
-    public InvalidEventStatusException(String message) {
+    public ContractRequestFailedException(String message) {
         super(message);
     }
 
     @Override
+    public int getHttpCode() {
+        return ErrorCodes.HTTP_STATUS_CODE_ALREADY_EXISTS;
+    }
+
+    @Override
     public int getErrorCode() {
-        return 0;
+        return ErrorCodes.CONTRACT_ALREADY_REQUESTED;
     }
 
     @Override

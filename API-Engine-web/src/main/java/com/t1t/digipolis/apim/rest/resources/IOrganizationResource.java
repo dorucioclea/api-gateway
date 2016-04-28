@@ -1420,10 +1420,10 @@ public interface IOrganizationResource {
 
     public List<EventBean> getOrganizationAllOutgoingEvents(String organizationId) throws NotAuthorizedException;
 
-    public List<EventBean> getOrganizationOutgoingEventsByTypeAndStatus(String organizationId, String type, String status) throws NotAuthorizedException, InvalidEventException, InvalidApplicationStatusException;
+    public List<EventBean> getOrganizationOutgoingEventsByTypeAndStatus(String organizationId, String type) throws NotAuthorizedException, InvalidEventException;
 
-    public List<EventBean> getOrganizationIncomingEventsByTypeAndStatus(String organizationId, String type, String status) throws NotAuthorizedException, InvalidEventException, InvalidApplicationStatusException;
+    public List<EventBean> getOrganizationIncomingEventsByTypeAndStatus(String organizationId, String type) throws NotAuthorizedException, InvalidEventException;
 
-    public void deleteEvent(String organizationId, Long id) throws NotAuthorizedException, InvalidEventStatusException, EventNotFoundException;
+    public void deleteEvent(String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException;
 
 }

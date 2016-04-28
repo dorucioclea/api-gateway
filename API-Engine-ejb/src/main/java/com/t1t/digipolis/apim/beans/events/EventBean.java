@@ -20,18 +20,17 @@ public class EventBean implements Serializable {
     @GeneratedValue
     @Column(name = "id")
     private Long id;
-    @Column(name = "origin")
-    private String origin;
-    @Column(name = "destination")
-    private String destination;
+    @Column(name = "origin_id")
+    private String originId;
+    @Column(name = "destination_id")
+    private String destinationId;
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private EventType type;
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
-    private EventStatus status;
     @Column(name = "created_on")
     private Date createdOn;
+    @Column(name = "body")
+    private String body;
 
     public Long getId() {
         return id;
@@ -41,20 +40,20 @@ public class EventBean implements Serializable {
         this.id = id;
     }
 
-    public String getOrigin() {
-        return origin;
+    public String getOriginId() {
+        return originId;
     }
 
-    public void setOrigin(String requestOrigin) {
-        this.origin = requestOrigin;
+    public void setOriginId(String userId) {
+        this.originId = userId;
     }
 
-    public String getDestination() {
-        return destination;
+    public String getDestinationId() {
+        return destinationId;
     }
 
-    public void setDestination(String requestDestination) {
-        this.destination = requestDestination;
+    public void setDestinationId(String destinationVersion) {
+        this.destinationId = destinationVersion;
     }
 
     public EventType getType() {
@@ -65,20 +64,20 @@ public class EventBean implements Serializable {
         this.type = type;
     }
 
-    public EventStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(EventStatus status) {
-        this.status = status;
-    }
-
     public Date getCreatedOn() {
         return createdOn;
     }
 
     public void setCreatedOn(Date createdOn) {
         this.createdOn = createdOn;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 
     @Override
@@ -88,28 +87,24 @@ public class EventBean implements Serializable {
 
         EventBean eventBean = (EventBean) o;
 
-        if (!origin.equals(eventBean.origin)) return false;
-        if (!destination.equals(eventBean.destination)) return false;
-        return type == eventBean.type;
+        return id != null ? id.equals(eventBean.id) : eventBean.id == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result = origin.hashCode();
-        result = 31 * result + destination.hashCode();
-        result = 31 * result + type.hashCode();
-        return result;
+        return id != null ? id.hashCode() : 0;
     }
 
     @Override
     public String toString() {
         return "EventBean{" +
-                "requestOrigin='" + origin + '\'' +
-                ", requestDestination='" + destination + '\'' +
+                "id=" + id +
+                ", originId='" + originId + '\'' +
+                ", destinationId='" + destinationId + '\'' +
                 ", type=" + type +
-                ", status=" + status +
                 ", createdOn=" + createdOn +
+                ", body='" + body + '\'' +
                 '}';
     }
 }

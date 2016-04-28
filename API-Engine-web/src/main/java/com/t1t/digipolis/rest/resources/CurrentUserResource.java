@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.CurrentUserFacade;
 import com.t1t.digipolis.apim.facades.EventFacade;
 import com.t1t.digipolis.apim.rest.resources.ICurrentUserResource;
@@ -23,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -151,21 +151,6 @@ public class CurrentUserResource implements ICurrentUserResource {
     }
 
     @Override
-    @ApiOperation(value = "Get the current user's incoming event by type and status",
-            notes = "Call this endpoint to get the current user's incoming events by type (Membership) and status (Rejected, Accepted, Pending)")
-    @ApiResponses({
-            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of incoming events for current user")
-    })
-    @GET
-    @Path("/notifications/incoming/{eventType}/{eventStatus}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<EventBean> getCurrentUsersIncomingEventsByTypeAndStatus(@PathParam("eventType") String type, @PathParam("eventStatus") String status) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(type));
-        Preconditions.checkArgument(!StringUtils.isEmpty(status));
-        return eventFacade.getCurrentUserIncomingEventsByTypeAndStatus(type, status);
-    }
-
-    @Override
     @ApiOperation(value = "Get all outgoing events for current user",
             notes = "Call this endpoint to get all outgoing events for the current user")
     @ApiResponses({
@@ -179,17 +164,30 @@ public class CurrentUserResource implements ICurrentUserResource {
     }
 
     @Override
+    @ApiOperation(value = "Get the current user's incoming event by type and status",
+            notes = "Call this endpoint to get the current user's incoming events by type (MEMBERSHIP_GRANTED, MEMBERSHIP_REJECTED)")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of incoming events for current user")
+    })
+    @GET
+    @Path("/notifications/incoming/{eventType}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<EventBean> getCurrentUsersIncomingEventsByTypeAndStatus(@PathParam("eventType") String type) {
+        Preconditions.checkArgument(!StringUtils.isEmpty(type));
+        return eventFacade.getCurrentUserIncomingEventsByType(type);
+    }
+
+    @Override
     @ApiOperation(value = "Get the current user's outgoing events by type and status",
-            notes = "Call this endpoint to get the current user's outgoing events by type (Membership) and status (Rejected, Accepted, Pending)")
+            notes = "Call this endpoint to get the current user's outgoing events by type (MEMBERSHIP_PENDING)")
     @ApiResponses({
             @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of outgoing events for current user")
     })
     @GET
-    @Path("/notifications/outgoing/{eventType}/{eventStatus}")
-    public List<EventBean> getCurrentUserOutgoingEventsByTypeAndStatus(@PathParam("eventType") String type, @PathParam("eventStatus") String status) {
+    @Path("/notifications/outgoing/{eventType}")
+    public List<EventBean> getCurrentUserOutgoingEventsByTypeAndStatus(@PathParam("eventType") String type) {
         Preconditions.checkArgument(!StringUtils.isEmpty(type));
-        Preconditions.checkArgument(!StringUtils.isEmpty(status));
-        return eventFacade.getCurrentUserOutgoingEventsByTypeAndStatus(type, status);
+        return eventFacade.getCurrentUserOutgoingEventsByType(type);
     }
 
     @Override
@@ -200,7 +198,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     })
     @DELETE
     @Path("/notifications/incoming/{notificationId}")
-    public void deleteEvent(@PathParam("notificationId") Long id) throws com.t1t.digipolis.apim.exceptions.NotAuthorizedException, InvalidEventStatusException, EventNotFoundException {
-        eventFacade.deleteCurrentUserEvent(id);
+    public void deleteEvent(@PathParam("notificationId") Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
+        eventFacade.deleteEvent(securityContext.getCurrentUser(), id);
     }
 }

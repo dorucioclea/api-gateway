@@ -91,9 +91,9 @@ public interface ICurrentUserResource {
 
     public List<EventBean> getCurrentUserAllOutgoingEvents();
 
-    public List<EventBean> getCurrentUserOutgoingEventsByTypeAndStatus(String type, String status);
+    public List<EventBean> getCurrentUserOutgoingEventsByTypeAndStatus(String type);
 
-    public List<EventBean> getCurrentUsersIncomingEventsByTypeAndStatus(String type, String status);
+    public List<EventBean> getCurrentUsersIncomingEventsByTypeAndStatus(String type);
 
-    public void deleteEvent(Long id) throws com.t1t.digipolis.apim.exceptions.NotAuthorizedException, InvalidEventStatusException, EventNotFoundException;
+    public void deleteEvent(Long id) throws com.t1t.digipolis.apim.exceptions.NotAuthorizedException, InvalidEventException, EventNotFoundException;
 }

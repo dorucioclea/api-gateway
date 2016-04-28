@@ -2,9 +2,6 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.beans.events.NewEventBean;
-import com.t1t.digipolis.apim.events.qualifiers.ContractRequest;
-import com.t1t.digipolis.apim.events.qualifiers.MembershipRequest;
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
@@ -18,8 +15,8 @@ import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
-import com.t1t.digipolis.apim.beans.events.EventStatus;
 import com.t1t.digipolis.apim.beans.events.EventType;
+import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
@@ -48,8 +45,6 @@ import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.events.qualifiers.MembershipRequestAccepted;
-import com.t1t.digipolis.apim.events.qualifiers.MembershipRequestRejected;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
@@ -66,18 +61,7 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -92,14 +76,12 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.opensaml.xml.encryption.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
 import javax.enterprise.event.Event;
 import javax.enterprise.inject.spi.DefinitionException;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -196,7 +178,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         orgBean.setCreatedBy(securityContext.getCurrentUser());
         orgBean.setModifiedOn(new Date());
         orgBean.setModifiedBy(securityContext.getCurrentUser());
-        orgBean.setOrganizationPrivate(true);
+        orgBean.setOrganizationPrivate(bean.getOrganizationPrivate() == null ? true : bean.getOrganizationPrivate());
         if (bean.getFriendlyName() == null) {
             orgBean.setFriendlyName(bean.getName());
         }
@@ -444,16 +426,27 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public void requestContract(String organizationId, String applicationId, String version, NewContractBean bean) {
+
+    }
+
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
         try {
             //Check if service allows auto contract creation
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             ServiceVersionBean svb = storage.getServiceVersion(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
             if (!svb.getAutoAcceptContracts()) {
-                NewEventBean newEvent = new NewEventBean(ConsumerConventionUtil.createAppUniqueId(avb.getApplication().getOrganization().getId(), avb.getApplication().getId(), avb.getVersion()),
-                        ServiceConventionUtil.generateServiceUniqueName(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()),
-                        EventType.Contract);
-                event.select(new AnnotationLiteral<ContractRequest>(){}).fire(newEvent);
+                String appId = ConsumerConventionUtil.createAppUniqueId(avb);
+                String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
+                //Check if there is a pending contract request
+                if (query.getEventByOriginDestinationAndType(appId, svcId, EventType.CONTRACT_PENDING) != null) {
+                    throw ExceptionFactory.contractRequestFailedException("Pending request already exists");
+                }
+                NewEventBean newEvent = new NewEventBean()
+                        .withOriginId(appId)
+                        .withDestinationId(svcId)
+                        .withType(EventType.CONTRACT_PENDING);
+                event.fire(newEvent);
                 return null;
             }
             else {
@@ -2194,8 +2187,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
         //Trigger new event for accepted membership request
-        NewEventBean newEvent = new NewEventBean(organizationId, bean.getUserId(), EventType.Membership);
-        event.select(new AnnotationLiteral<MembershipRequestAccepted>(){}).fire(newEvent);
+        NewEventBean newEvent = new NewEventBean()
+                .withOriginId(organizationId)
+                .withDestinationId(bean.getUserId())
+                .withType(EventType.MEMBERSHIP_GRANTED);
+        event.fire(newEvent);
         //send email
         try{
             final RoleBean roleBean = roleFacade.get(bean.getRoleId());
@@ -2443,6 +2439,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    public boolean isMember(String userId, String organizationId) {
+        List<MemberBean> members = listMembers(organizationId);
+        for (MemberBean member : members) {
+            if (member.getUserId().equals(userId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /*********************************************UTILITIES**********************************************/
@@ -3218,9 +3224,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (securityContext.getCurrentUser() == null || securityContext.getCurrentUser().isEmpty()) {
             throw ExceptionFactory.userNotFoundException(securityContext.getCurrentUser());
         }
+        if (isMember(securityContext.getCurrentUser(), orgId)) {
+            throw ExceptionFactory.membershipRequestFailedException("Already a member");
+        }
         try {
-            EventBean event = query.getEvent(securityContext.getCurrentUser(), org.getId(), EventType.Membership);
-            if (event != null && event.getStatus() == EventStatus.Pending) {
+            EventBean event = query.getEventByOriginDestinationAndType(securityContext.getCurrentUser(), org.getId(), EventType.MEMBERSHIP_PENDING);
+            if (event != null) {
                 throw ExceptionFactory.membershipRequestFailedException("Membership already requested, still pending");
             }
         }
@@ -3247,15 +3256,21 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 }
             });
         });
-        NewEventBean newEvent = new NewEventBean(securityContext.getCurrentUser(), org.getId(), EventType.Membership);
-        event.select(new AnnotationLiteral<MembershipRequest>(){}).fire(newEvent);
+        NewEventBean newEvent = new NewEventBean()
+                .withOriginId(securityContext.getCurrentUser())
+                .withDestinationId(org.getId())
+                .withType(EventType.MEMBERSHIP_PENDING);
+        event.fire(newEvent);
     }
 
     public void rejectMembershipRequest(String organizationId, String userId) {
         OrganizationBean org = get(organizationId);
         UserBean user = userFacade.get(userId);
-        NewEventBean newEvent = new NewEventBean(org.getId(), user.getUsername(), EventType.Membership);
-        event.select(new AnnotationLiteral<MembershipRequestRejected>() {}).fire(newEvent);
+        NewEventBean newEvent = new NewEventBean()
+                .withOriginId(org.getId())
+                .withDestinationId(user.getUsername())
+                .withType(EventType.MEMBERSHIP_REJECTED);
+        event.fire(newEvent);
     }
 
     /**

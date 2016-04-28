@@ -68,7 +68,7 @@ CREATE TABLE users (username VARCHAR(255) NOT NULL, kong_username VARCHAR(255), 
 
 CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organization_id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL);
 
-CREATE TABLE events (id BIGINT NOT NULL, origin VARCHAR(255) NOT NULL, destination VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL);
+CREATE TABLE events (id BIGINT NOT NULL, origin_id VARCHAR(255) NOT NULL, destination_id VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, body VARCHAR(4096));
 
 ALTER TABLE events ADD PRIMARY KEY (id);
 
@@ -170,8 +170,6 @@ ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY 
 
 ALTER TABLE plan_versions ADD CONSTRAINT FK_tonylvm2ypnq3efxqr1g0m9fs FOREIGN KEY (plan_id, plan_org_id) REFERENCES plans (id, organization_id);
 
-ALTER TABLE events ADD CONSTRAINT UK_events_1 UNIQUE (origin, destination, type, status);
-
 ALTER TABLE plugins ADD CONSTRAINT UK_plugins_1 UNIQUE (group_id, artifact_id);
 
 ALTER TABLE memberships ADD CONSTRAINT UK_memberships_1 UNIQUE (user_id, role_id, org_id);
@@ -189,6 +187,8 @@ ALTER TABLE contracts ADD CONSTRAINT UK_contracts_1 UNIQUE (appv_id, svcv_id, pl
 ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
 
 ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id);
+
+ALTER TABLE events ADD CONSTRAINT UK_events_1 UNIQUE (origin_id, destination_id, type);
 
 CREATE INDEX IDX_auditlog_1 ON auditlog(who);
 

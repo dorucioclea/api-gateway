@@ -413,7 +413,7 @@ public final class ExceptionFactory {
         return new EventNotFoundException();
     }
 
-    public static final InvalidEventStatusException invalidEventStatusException(String message) {
-        return new InvalidEventStatusException(message);
+    public static final ContractRequestFailedException contractRequestFailedException(String message) {
+        return new ContractRequestFailedException(message);
     }
 }

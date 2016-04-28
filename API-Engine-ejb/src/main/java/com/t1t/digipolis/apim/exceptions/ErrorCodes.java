@@ -63,6 +63,7 @@ public final class ErrorCodes {
     public static final int CONTRACT_ALREADY_EXISTS         = 4005;
     public static final int APP_STATUS_ERROR                = 4006;
     public static final int APP_VERSION_ALREADY_EXISTS      = 4007;
+    public static final int CONTRACT_ALREADY_REQUESTED      = 4008;
 
     public static final String APP_ALREADY_EXISTS_INFO      = null;
     public static final String APP_NOT_FOUND_INFO           = null;
