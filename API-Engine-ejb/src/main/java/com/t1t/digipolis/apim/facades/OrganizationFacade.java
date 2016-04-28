@@ -64,6 +64,18 @@ import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -1700,7 +1712,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public KongPluginConfigList getServicePlugins(String organizationId, String serviceId, String version) {
         try {
-            KongPluginConfigList servicePlugins = null;
+            KongPluginConfigList servicePlugins;
+            servicePlugins = null;
             String serviceKongId = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
             try {
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
