@@ -7,6 +7,8 @@ import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
+import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.idm.*;
@@ -2069,5 +2071,28 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         }
         eventFacade.deleteEvent(organizationId, id);
+    }
+
+    @Override
+    @ApiOperation(value = "Request a Service Contract",
+            notes = "Use this endpoint to request a Contract between the Application and a Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Contract requested")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/request-contract")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void requestContract(@PathParam("organizationId") String organizationId,
+                                @PathParam("serviceId") String serviceId,
+                                @PathParam("version") String version,
+                                NewContractRequestBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
+            ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException, NotAuthorizedException {
+        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        orgFacade.requestContract(organizationId, serviceId, version, bean);
     }
 }

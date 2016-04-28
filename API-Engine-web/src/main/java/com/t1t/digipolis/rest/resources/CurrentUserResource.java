@@ -172,7 +172,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     @GET
     @Path("/notifications/incoming/{eventType}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<EventBean> getCurrentUsersIncomingEventsByTypeAndStatus(@PathParam("eventType") String type) {
+    public <T> List<T> getCurrentUsersIncomingEventsByTypeAndStatus(@PathParam("eventType") String type) {
         Preconditions.checkArgument(!StringUtils.isEmpty(type));
         return eventFacade.getCurrentUserIncomingEventsByType(type);
     }
@@ -185,7 +185,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     })
     @GET
     @Path("/notifications/outgoing/{eventType}")
-    public List<EventBean> getCurrentUserOutgoingEventsByTypeAndStatus(@PathParam("eventType") String type) {
+    public <T> List<T> getCurrentUserOutgoingEventsByTypeAndStatus(@PathParam("eventType") String type) {
         Preconditions.checkArgument(!StringUtils.isEmpty(type));
         return eventFacade.getCurrentUserOutgoingEventsByType(type);
     }

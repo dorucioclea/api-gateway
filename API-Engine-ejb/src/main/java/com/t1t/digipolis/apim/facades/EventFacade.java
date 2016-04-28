@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_ACCEPTED;
+import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_REJECTED;
 
 /**
  * @author Guillaume Vandecasteele
@@ -45,16 +46,29 @@ public class EventFacade {
         return getIncomingEvents(securityContext.getCurrentUser());
     }
 
-    public List<EventBean> getCurrentUserIncomingEventsByType(String type) {
-        return getIncomingEventsByType(securityContext.getCurrentUser(), type);
-    }
-
     public List<EventBean> getCurrentUserAllOutgoingEvents() {
         return getOutgoingEvents(securityContext.getCurrentUser());
     }
 
-    public List<EventBean> getCurrentUserOutgoingEventsByType(String type) {
-        return getOutgoingEventsByType(securityContext.getCurrentUser(), type);
+    public <T> List<T> getCurrentUserIncomingEventsByType(String type) {
+        List<EventBean> events = getIncomingEventsByType(securityContext.getCurrentUser(), type);
+        switch (getEventType(type)) {
+            case MEMBERSHIP_GRANTED:
+            case MEMBERSHIP_REJECTED:
+                return convertToMembershipRequests(events);
+            default:
+                return null;
+        }
+    }
+
+    public <T> List<T> getCurrentUserOutgoingEventsByType(String type) {
+        List<EventBean> events = getIncomingEventsByType(securityContext.getCurrentUser(), type);
+        switch (getEventType(type)) {
+            case CONTRACT_PENDING:
+                return convertToMembershipRequests(events);
+            default:
+                return null;
+        }
     }
 
     public List<EventBean> getOrganizationIncomingEvents(String organizationId) {
@@ -138,6 +152,7 @@ public class EventFacade {
                 case CONTRACT_ACCEPTED:
                     break;
                 case CONTRACT_PENDING:
+                    deleteContractRefusedEvent(event);
                     break;
                 case CONTRACT_REJECTED:
                     break;
@@ -190,6 +205,13 @@ public class EventFacade {
         }
     }
 
+    private void deleteContractRefusedEvent(EventBean bean) throws StorageException {
+        EventBean event = query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), CONTRACT_REJECTED);
+        if (event != null) {
+            storage.deleteEvent(event);
+        }
+    }
+
     private void deleteMembershipRefusedEvent(EventBean bean) throws StorageException {
         //In case there still is an extant event marking the request as refused, delete it
         //Here origin and destination are reversed, because rejection event is from organization to user
@@ -201,10 +223,9 @@ public class EventFacade {
 
     private void deletePendingMembershipRequest(EventBean bean) throws StorageException {
         EventBean pendingRequest = query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), EventType.MEMBERSHIP_PENDING);
-        if (pendingRequest == null) {
-            throw ExceptionFactory.membershipRequestFailedException("Membership was never requested");
+        if (pendingRequest != null) {
+            storage.deleteEvent(pendingRequest);
         }
-        storage.deleteEvent(pendingRequest);
     }
 
     private EventType getEventType(String type) {

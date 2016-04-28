@@ -14,6 +14,8 @@ import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
+import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;
@@ -426,15 +428,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void requestContract(String organizationId, String applicationId, String version, NewContractBean bean) {
-
-    }
-
-    public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
+    public void requestContract(String organizationId, String serviceId, String version, NewContractRequestBean bean) {
         try {
+            //verify if serviceversion and appversion exist
+            ApplicationVersionBean avb = getAppVersion(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion());
+            ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
             //Check if service allows auto contract creation
-            ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
-            ServiceVersionBean svb = storage.getServiceVersion(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
             if (!svb.getAutoAcceptContracts()) {
                 String appId = ConsumerConventionUtil.createAppUniqueId(avb);
                 String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
@@ -442,75 +441,78 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 if (query.getEventByOriginDestinationAndType(appId, svcId, EventType.CONTRACT_PENDING) != null) {
                     throw ExceptionFactory.contractRequestFailedException("Pending request already exists");
                 }
+                String servicePlanVersion = svb.getPlans().stream().filter(plan -> plan.getPlanId().equals(bean.getPlanId())).findFirst().get().getVersion();
+                PlanVersionBean pvb = getPlanVersion(organizationId, bean.getPlanId(), servicePlanVersion);
                 NewEventBean newEvent = new NewEventBean()
                         .withOriginId(appId)
                         .withDestinationId(svcId)
-                        .withType(EventType.CONTRACT_PENDING);
+                        .withType(EventType.CONTRACT_PENDING)
+                        .withBody(new Gson().toJson(pvb));
                 event.fire(newEvent);
-                return null;
-            }
-            else {
-                try {
-                    //add OAuth2 consumer default to the application
-                    ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
-                    log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
-                    //for contract add keyauth to application consumer
-
-                    //We create the new application version consumer
-                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                    if (contract != null) {
-                        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                        try {
-                            gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
-                        } catch (Exception e) {
-                            //apikey for consumer already exists
-                        }
-                        //Add ACL group membership by default on gateway
-                        KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
-                                ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
-                        //Persist the unique Kong plugin id in a new policy associated with the app.
-                        NewPolicyBean npb = new NewPolicyBean();
-                        KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
-                        npb.setDefinitionId(Policies.ACL.name());
-                        npb.setKongPluginId(response.getId());
-                        npb.setContractId(contract.getId());
-                        npb.setConfiguration(new Gson().toJson(conf));
-                        createAppPolicy(organizationId, applicationId, version, npb);
-                    }
-                    //verify if the contracting service has OAuth enabled
-                    List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
-                    for (PolicySummaryBean summaryBean : policySummaryBeans) {
-                        if (summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())) {
-                            avb = storage.getApplicationVersion(organizationId, applicationId, version);
-                            if (StringUtils.isEmpty(avb.getoAuthClientId())) {
-                                //create client_id and client_secret for the application - the same client_id/secret must be used for all services
-                                //upon publication the application credentials will be enabled for the current user.
-                                avb.setoAuthClientId(apiKeyGenerator.generate());
-                                avb.setOauthClientSecret(apiKeyGenerator.generate());
-                                avb.setOauthClientRedirect("");
-                            }
-                        }
-                    }
-                    return contract;
-                } catch (AbstractRestException e) {
-                    throw e;
-                } catch (Exception e) {
-                    // Up above we are optimistically creating the contract.  If it fails, check to see
-                    // if it failed because it was a duplicate.  If so, throw something sensible.  We
-                    // only do this on failure (we would get a FK contraint failure, for example) to
-                    // reduce overhead on the typical happy path.
-                    //we asume it already exists
-                    throw ExceptionFactory.contractAlreadyExistsException();
-/*            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
-                throw ExceptionFactory.contractAlreadyExistsException();
-            } else {
-                throw new SystemErrorException(e);
-            }*/
-                }
             }
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
+        }
+    }
+
+    public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
+        try {
+            //add OAuth2 consumer default to the application
+            ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
+            ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
+            log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
+            //for contract add keyauth to application consumer
+            //We create the new application version consumer
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            if (contract != null) {
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
+                try {
+                    gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+                } catch (Exception e) {
+                    //apikey for consumer already exists
+                }
+                //Add ACL group membership by default on gateway
+                KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
+                        ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
+                //Persist the unique Kong plugin id in a new policy associated with the app.
+                NewPolicyBean npb = new NewPolicyBean();
+                KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+                npb.setDefinitionId(Policies.ACL.name());
+                npb.setKongPluginId(response.getId());
+                npb.setContractId(contract.getId());
+                npb.setConfiguration(new Gson().toJson(conf));
+                createAppPolicy(organizationId, applicationId, version, npb);
+            }
+            //verify if the contracting service has OAuth enabled
+            List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+            for (PolicySummaryBean summaryBean : policySummaryBeans) {
+                if (summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())) {
+                    avb = storage.getApplicationVersion(organizationId, applicationId, version);
+                    if (StringUtils.isEmpty(avb.getoAuthClientId())) {
+                        //create client_id and client_secret for the application - the same client_id/secret must be used for all services
+                        //upon publication the application credentials will be enabled for the current user.
+                        avb.setoAuthClientId(apiKeyGenerator.generate());
+                        avb.setOauthClientSecret(apiKeyGenerator.generate());
+                        avb.setOauthClientRedirect("");
+                    }
+                }
+            }
+            return contract;
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            // Up above we are optimistically creating the contract.  If it fails, check to see
+            // if it failed because it was a duplicate.  If so, throw something sensible.  We
+            // only do this on failure (we would get a FK contraint failure, for example) to
+            // reduce overhead on the typical happy path.
+            //we asume it already exists
+            throw ExceptionFactory.contractAlreadyExistsException();
+/*            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
+        throw ExceptionFactory.contractAlreadyExistsException();
+    } else {
+        throw new SystemErrorException(e);
+    }*/
         }
     }
 
