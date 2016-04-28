@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_ACCEPTED;
+
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
@@ -63,12 +65,33 @@ public class EventFacade {
         return filterOutgoingOrganizationResults(getOutgoingEvents(validateOrgId(organizationId)), organizationId);
     }
 
-    public List<EventBean> getOrganizationIncomingEventsByType(String organizationId, String type) {
-        return filterIncomingOrganizationResults(getIncomingEventsByType(validateOrgId(organizationId), type), organizationId);
+    public <T> List<T> getOrganizationIncomingEventsByType(String organizationId, String type) {
+        List<EventBean> events = filterIncomingOrganizationResults(getIncomingEventsByType(validateOrgId(organizationId), type), organizationId);
+        switch (getEventType(type)) {
+            case MEMBERSHIP_PENDING:
+                return convertToMembershipRequests(events);
+            case CONTRACT_ACCEPTED:
+            case CONTRACT_PENDING:
+            case CONTRACT_REJECTED:
+                return convertToContractRequests(events);
+            default:
+                return null;
+        }
     }
 
-    public List<EventBean> getOrganizationOutgoingEventsByType(String organizationId, String type) {
-        return filterOutgoingOrganizationResults(getOutgoingEventsByType(validateOrgId(organizationId), type), organizationId);
+    public <T> List<T> getOrganizationOutgoingEventsByType(String organizationId, String type) {
+        List<EventBean> events = filterOutgoingOrganizationResults(getOutgoingEventsByType(validateOrgId(organizationId), type), organizationId);
+        switch (getEventType(type)) {
+            case MEMBERSHIP_GRANTED:
+            case MEMBERSHIP_REJECTED:
+                return convertToMembershipRequests(events);
+            case CONTRACT_ACCEPTED:
+            case CONTRACT_PENDING:
+            case CONTRACT_REJECTED:
+                return convertToContractRequests(events);
+            default:
+                return null;
+        }
     }
 
     public void deleteEvent(String destination, Long id) {
@@ -231,9 +254,9 @@ public class EventFacade {
         });
         return filteredList;
     }
-    /*
-    private List<MembershipRequest> convertToMembershipRequests(List<EventBean> events) {
-        List<MembershipRequest> membershipRequests =  new ArrayList<>();
+
+    private <T> List<T> convertToMembershipRequests(List<EventBean> events) {
+        List<T> membershipRequests =  new ArrayList<>();
         events.forEach(event -> {
             MembershipRequest request = new MembershipRequest(event);
             switch (event.getType()) {
@@ -247,9 +270,38 @@ public class EventFacade {
                     request.setOrganizationId(event.getOriginId());
                     break;
             }
-            membershipRequests.add(request);
+            membershipRequests.add((T) request);
         });
         return membershipRequests;
     }
-    */
+
+    private <T> List<T> convertToContractRequests(List<EventBean> events) {
+        List<T> contractRequests = new ArrayList<>();
+        events.forEach(event -> {
+            ContractRequest request = new ContractRequest(event);
+            switch (event.getType()) {
+                case CONTRACT_PENDING:
+                    contractRequests.add((T) setAppAndService(request, event.getOriginId(), event.getDestinationId()));
+                    break;
+                case CONTRACT_ACCEPTED:
+                case CONTRACT_REJECTED:
+                    contractRequests.add((T) setAppAndService(request, event.getDestinationId(), event.getOriginId()));
+                    break;
+            }
+        });
+        return contractRequests;
+    }
+
+    private ContractRequest setAppAndService(ContractRequest request, String appVersion, String svcVersion) {
+        String[] app = appVersion.split("\\.");
+        String[] svc = svcVersion.split("\\.");
+        request.setAppOrg(app[0]);
+        request.setAppId(app[1]);
+        request.setAppVersion(app[2]);
+        request.setServiceOrg(svc[0]);
+        request.setServiceId(svc[1]);
+        request.setServiceVersion(svc[2]);
+        return request;
+    }
+
 }
