@@ -70,9 +70,9 @@ CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organi
 
 CREATE TABLE events (id BIGINT NOT NULL, origin_id VARCHAR(255) NOT NULL, destination_id VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, body VARCHAR(4096));
 
-CREATE TABLE mail_templates (topic VARCHAR(255) NOT NULL,template TEXT NULL,org_id VARCHAR(255) NOT NULL,created_on TIMESTAMP NULL,updated_on TIMESTAMP NULL) WITHOUT OIDS;
+CREATE TABLE mail_templates (topic VARCHAR(255) NOT NULL,content TEXT NULL,subject TEXT NULL, created_on TIMESTAMP NULL,updated_on TIMESTAMP NULL) WITHOUT OIDS;
 
-ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic, org_id);
+ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic);
 
 ALTER TABLE events ADD PRIMARY KEY (id);
 

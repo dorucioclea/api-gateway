@@ -13,20 +13,17 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "mail_templates")
-@IdClass(OrganizationBasedCompositeId.class)
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class MailTemplateBean extends BaseEntity implements Serializable {
     @Id
     @Column(name="topic", nullable = false)
     private String id;
 
-    @Id
-    @ManyToOne
-    @JoinColumns({@JoinColumn(name = "org_id", referencedColumnName = "id")})
-    private OrganizationBean organization;
-
-    @Column(name = "template")
+    @Column(name = "content")
     private String template;
+
+    @Column(name = "subject")
+    private String subject;
 
     public String getId() {
         return id;
@@ -34,14 +31,6 @@ public class MailTemplateBean extends BaseEntity implements Serializable {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public OrganizationBean getOrganization() {
-        return organization;
-    }
-
-    public void setOrganization(OrganizationBean organization) {
-        this.organization = organization;
     }
 
     public String getTemplate() {
@@ -54,26 +43,24 @@ public class MailTemplateBean extends BaseEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         MailTemplateBean that = (MailTemplateBean) o;
 
-        return id.equals(that.id) && organization.equals(that.organization);
+        return id != null ? id.equals(that.id) : that.id == null;
+
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + organization.hashCode();
-        return result;
+        return id != null ? id.hashCode() : 0;
     }
 
     @Override
     public String toString() {
         return "MailTemplateBean{" +
-                "topic='" + id + '\'' +
-                ", organization=" + organization +
+                "id='" + id + '\'' +
                 ", template='" + template + '\'' +
                 '}';
     }

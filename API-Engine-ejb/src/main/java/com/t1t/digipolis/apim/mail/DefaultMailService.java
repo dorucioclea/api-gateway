@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.mail;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.mail.*;
+import com.t1t.digipolis.apim.core.IStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,7 @@ public class DefaultMailService implements MailService {
     private final static Logger _LOG = LoggerFactory.getLogger(DefaultMailService.class.getName());
     @Inject private AppConfig config;
     @Inject private MailProvider mailProvider;
+    @Inject private IStorage storage;
 
     public void sendTestMail() {
         BaseMailBean mailBean = new BaseMailBean();
