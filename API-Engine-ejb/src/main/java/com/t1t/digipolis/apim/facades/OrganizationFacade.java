@@ -15,6 +15,7 @@ import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;

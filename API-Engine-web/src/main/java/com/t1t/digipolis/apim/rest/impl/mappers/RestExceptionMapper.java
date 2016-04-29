@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.exceptions.AbstractRestException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.apache.commons.io.output.StringBuilderWriter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -40,7 +41,11 @@ public class RestExceptionMapper implements ExceptionMapper<AbstractRestExceptio
         error.setType(data.getClass().getSimpleName());
         error.setErrorCode(data.getErrorCode());
         error.setMessage(data.getMessage());
-        error.setMoreInfoUrl(data.getMoreInfoUrl());
+        if(StringUtils.isEmpty(data.getMoreInfoUrl())){
+            error.setMoreInfoUrl("not available");
+        }else{
+            error.setMoreInfoUrl(data.getMoreInfoUrl());
+        }
         error.setStacktrace(getStackTrace(data));
         ResponseBuilder builder = Response.status(data.getHttpCode()).header("X-ApiEngine-Error", "true"); //$NON-NLS-1$ //$NON-NLS-2$
         // If CORS is being used, make sure to add X-Apiman-Error to the exposed headers

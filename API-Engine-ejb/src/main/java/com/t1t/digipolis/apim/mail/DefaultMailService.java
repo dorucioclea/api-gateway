@@ -77,6 +77,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void approveRequestMembership(MembershipApproveMailBean membershipApproveMailBean) throws MailServiceException {
+        membershipApproveMailBean.setEnvironment(config.getEnvironment());
         try{
             MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_APPROVE);
             Map<String, String> keymap = BeanUtilsBean.getInstance().describe(membershipApproveMailBean);
@@ -89,6 +90,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void rejectRequestMembership(MembershipRejectMailBean membershipRejectMailBean) throws MailServiceException {
+        membershipRejectMailBean.setEnvironment(config.getEnvironment());
         try{
             MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_REJECT);
             Map<String, String> keymap = BeanUtilsBean.getInstance().describe(membershipRejectMailBean);
@@ -101,7 +103,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendUpdateMember(UpdateMemberMailBean updateMemberMailBean) throws MailServiceException {
-
+        updateMemberMailBean.setEnvironment(config.getEnvironment());
         switch (updateMemberMailBean.getMembershipAction()) {
             case NEW_MEMBERSHIP: {
                 sendMembershipNew(updateMemberMailBean);
@@ -124,6 +126,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendUpdateAdmin(UpdateAdminMailBean updateAdminMailBean) throws MailServiceException {
+        updateAdminMailBean.setEnvironment(config.getEnvironment());
         switch (updateAdminMailBean.getMembershipAction()) {
             case NEW_MEMBERSHIP: {
                 sendMembershipAdminNew(updateAdminMailBean);
@@ -138,6 +141,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendContractRequest(ContractRequestMailBean mailBean) throws MailServiceException {
+        mailBean.setEnvironment(config.getEnvironment());
         try{
             MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.CONTRACT_REQUEST);
             Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
@@ -150,6 +154,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void approveContractRequest(ContractApprovedMailBean mailBean) throws MailServiceException {
+        mailBean.setEnvironment(config.getEnvironment());
         try{
             MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.CONTRACT_APPROVE);
             Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
@@ -162,6 +167,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void rejectContractRequest(ContractRejectedMailBean mailBean) throws MailServiceException {
+        mailBean.setEnvironment(config.getEnvironment());
         try{
             MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.CONTRACT_REJECT);
             Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
@@ -183,6 +189,7 @@ public class DefaultMailService implements MailService {
         BaseMailBean mailBean = new BaseMailBean();
         mailBean.setSubject(sub.replace(mailTemplate.getSubject()));
         mailBean.setContent(sub.replace(mailTemplate.getTemplate()));
+        //mailBean.setContent(mailTemplate.getTemplate());
         mailBean.setTo(to);
         mailBean.setFooter(storage.getMailTemplate(MailTopic.FOOTER).getTemplate());
         mailProvider.sendMail(mailProvider.composeMessage(mailBean));

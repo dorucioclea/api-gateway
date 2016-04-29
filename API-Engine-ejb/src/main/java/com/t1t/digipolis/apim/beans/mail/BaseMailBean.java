@@ -8,6 +8,15 @@ public class BaseMailBean {
     private String subject;
     private String content;
     private String footer;
+    String environment;
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
 
     public String getTo() {
         return to;
