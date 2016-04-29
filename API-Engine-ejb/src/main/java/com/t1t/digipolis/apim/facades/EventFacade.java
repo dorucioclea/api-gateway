@@ -59,7 +59,7 @@ public class EventFacade {
     }
 
     public <T> List<T> getCurrentUserOutgoingEventsByType(String type) {
-        List<EventBean> events = getIncomingEventsByType(securityContext.getCurrentUser(), type);
+        List<EventBean> events = getOutgoingEventsByType(securityContext.getCurrentUser(), type);
         switch (getEventType(type)) {
             case CONTRACT_PENDING:
                 return convertToMembershipRequests(events);
