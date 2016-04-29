@@ -199,11 +199,35 @@ public class LoginResource implements ILoginResource {
     @Path("/idp/callback")
     @Produces(MediaType.TEXT_PLAIN)
     public Response executeSAML2Callback(@FormParam("SAMLResponse") String samlResponse, @FormParam("RelayState") String relayState) {
+        return samlCallback(samlResponse, relayState);
+    }
+
+    @ApiOperation(value = "The service provider for the SAML2 Authentication request (external markatplace).",
+                  notes = "This endpoint should be used by an IDP who's responding with a SAML2 Authentication response (external marketplace). The endpoint will provide an authorization token in return, towards the configured client URL (provided with the /idp/redirect request).")
+    @ApiResponses({
+                          @ApiResponse(code = 200, response = String.class, message = "SAML2 authentication request"),
+                          @ApiResponse(code = 500, response = String.class, message = "Server error generating the SAML2 request")
+                  })
+    @POST
+    @Path("/idp/callback/astad")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response executeSAML2CallbackAStad(@FormParam("SAMLResponse") String samlResponse, @FormParam("RelayState") String relayState) {
+        return samlCallback(samlResponse, relayState);
+    }
+
+    /**
+     * Callback endpoint for IDP. The IDP can have different Service providers, returning on a different callback.
+     * This method resolves the callbacks SP independantly.
+     *
+     * @param samlResponse
+     * @param relayState
+     * @return
+     */
+    private Response samlCallback(String samlResponse,String relayState){
         URI uri = null;
-        log.info("SAML Response - pure: {}",samlResponse);
+        log.debug("SAML Response - pure: {}",samlResponse);
         try {
             SAMLResponseRedirect response = userFacade.processSAML2Response(samlResponse,relayState);
-            //if returned null - we are operating in restricted mode - 401 should be returned
             String jwtToken = response.getToken();
             uri = new URL(response.getClientUrl() + "?jwt=" + jwtToken).toURI();
         } catch (URISyntaxException e) {
@@ -269,9 +293,23 @@ public class LoginResource implements ILoginResource {
     @Path("/idp/slo")
     @Produces(MediaType.TEXT_PLAIN)
     public Response singleIDPLogout() {
-        //don't do anything, logout triggered from client
-        //TODO change to the mkt page to login
-        String url = "https://google.com/";
+        return idpLogout();
+    }
+
+    @ApiOperation(value = "IDP single logout (external marketplace)",
+                  notes = "This endpoint can be used by an IDP to logout a user from the external marketplace.")
+    @ApiResponses({
+                          @ApiResponse(code = 200, response = String.class, message = "IDP single logout.")
+                  })
+    @POST
+    @Path("/idp/slo")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response singleIDPLogoutAStad() {
+        return idpLogout();
+    }
+
+    private Response idpLogout(){
+        String url = "https://google.com/";//some URI
         URI redirectURL = null;
         try {
             redirectURL = new URL(url).toURI();
