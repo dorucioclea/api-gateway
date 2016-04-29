@@ -53,10 +53,7 @@ import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
-import com.t1t.digipolis.apim.gateway.dto.Application;
-import com.t1t.digipolis.apim.gateway.dto.Policy;
-import com.t1t.digipolis.apim.gateway.dto.Service;
-import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
+import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
@@ -462,6 +459,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .withBody(new Gson().toJson(pvb));
                 event.fire(newEvent);
             }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
+    public void rejectContractRequest(String organizationId, String applicationId, String version, ContractRequest bean) {
+        try {
+            //Validate service and app version, and verify if request actually occurred
+            ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
+            ServiceVersionBean svb = storage.getServiceVersion(bean.getServiceOrg(), bean.getServiceId(), bean.getServiceVersion());
+            EventBean pendingEvent = query.getEventByOriginDestinationAndType(ConsumerConventionUtil.createAppUniqueId(avb),
+                    ServiceConventionUtil.generateServiceUniqueName(svb), EventType.CONTRACT_PENDING);
+            if (pendingEvent == null) {
+                throw ExceptionFactory.contractRequestFailedException("Contract never requested");
+            }
+            //TODO - The rest
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);

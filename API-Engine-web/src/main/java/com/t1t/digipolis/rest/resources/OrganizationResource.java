@@ -2075,7 +2075,7 @@ public class OrganizationResource implements IOrganizationResource {
 
     @Override
     @ApiOperation(value = "Request a Service Contract",
-            notes = "Use this endpoint to request a Contract between the Application and a Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
+            notes = "Use this endpoint to request a Contract between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Contract requested")
     })
@@ -2094,5 +2094,24 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.appEdit, bean.getApplicationOrg()))
             throw ExceptionFactory.notAuthorizedException();
         orgFacade.requestContract(organizationId, serviceId, version, bean);
+    }
+
+    @Override
+    @ApiOperation(value = "Reqject an Application's Contract Request",
+            notes = "Use this endpoint to reject a Contract request between the Application and a Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Contract rejected")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/request-contract")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void rejectContractRequest(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, ContractRequest request) throws NotAuthorizedException {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        orgFacade.rejectContractRequest(organizationId, applicationId, version, request);
     }
 }

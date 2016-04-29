@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.GrantRoleBean;
 import com.t1t.digipolis.apim.beans.idm.GrantRolesBean;
@@ -1432,5 +1433,7 @@ public interface IOrganizationResource {
                                 NewContractRequestBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
             ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException,
             NotAuthorizedException;
+
+    public void rejectContractRequest(String organizationId, String applicationId, String version, ContractRequest request) throws NotAuthorizedException;
 
 }
