@@ -206,8 +206,10 @@ public class EventFacade {
 
     private void deleteContractPending(EventBean bean) throws StorageException {
         EventBean pendingEvent =  query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), CONTRACT_PENDING);
-        if (pendingEvent == null && bean.getType() == EventType.CONTRACT_REJECTED) {
-            throw ExceptionFactory.contractRequestFailedException("Contract never requested");
+        if (pendingEvent == null) {
+            if (bean.getType() == EventType.CONTRACT_REJECTED) {
+                throw ExceptionFactory.contractRequestFailedException("Contract never requested");
+            }
         }
         else {
             storage.deleteEvent(pendingEvent);

@@ -446,17 +446,32 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
             //Check if service allows auto contract creation
             if (!svb.getAutoAcceptContracts()) {
+
                 //Check if there is a pending contract request
                 if (query.getEventByOriginDestinationAndType(appId, svcId, EventType.CONTRACT_PENDING) != null) {
                     throw ExceptionFactory.contractRequestFailedException("Pending request already exists");
                 }
-                String servicePlanVersion = svb.getPlans().stream().filter(plan -> plan.getPlanId().equals(bean.getPlanId())).findFirst().get().getVersion();
+                String servicePlanVersion = null;
+                for (ServicePlanBean spb : svb.getPlans()) {
+                    if (spb.getPlanId().equalsIgnoreCase(bean.getPlanId())) {
+                        servicePlanVersion = spb.getVersion();
+                        break;
+                    }
+                }
+                if (servicePlanVersion == null) {
+                    throw ExceptionFactory.planNotFoundException(bean.getPlanId());
+                }
                 PlanVersionBean pvb = getPlanVersion(organizationId, bean.getPlanId(), servicePlanVersion);
+                PlanVersionSummaryBean pvsb = new PlanVersionSummaryBean();
+                pvsb.setId(pvb.getPlan().getId());
+                pvsb.setName(pvb.getPlan().getName());
+                pvsb.setVersion(pvb.getVersion());
+
                 NewEventBean newEvent = new NewEventBean()
                         .withOriginId(appId)
                         .withDestinationId(svcId)
                         .withType(EventType.CONTRACT_PENDING)
-                        .withBody(new Gson().toJson(pvb));
+                        .withBody(new Gson().toJson(pvsb));
                 event.fire(newEvent);
                 return null;
             }
@@ -3272,7 +3287,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw ExceptionFactory.membershipRequestFailedException("Already a member");
         }
         try {
-            EventBean event = query.getEventByOriginDestinationAndType(securityContext.getCurrentUser(), org.getId(), EventType.MEMBERSHIP_PENDING);
+            EventBean event = query.getEventByOriginDestinationAndType(securityContext.getCurrentUser(), org.getId() , EventType.MEMBERSHIP_PENDING);
             if (event != null) {
                 throw ExceptionFactory.membershipRequestFailedException("Membership already requested, still pending");
             }

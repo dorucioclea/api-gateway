@@ -2070,8 +2070,8 @@ public class OrganizationResource implements IOrganizationResource {
             @ApiResponse(code = 204, message = "Notification deleted")
     })
     @DELETE
-    @Path("/notifications/incoming/{notificationId}")
-    public void deleteEvent(String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
+    @Path("/{organizationId}/notifications/incoming/{notificationId}")
+    public void deleteEvent(@PathParam("organizationId") String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
@@ -2088,6 +2088,7 @@ public class OrganizationResource implements IOrganizationResource {
     @POST
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/request")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public ContractBean requestContract(@PathParam("organizationId") String organizationId,
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("version") String version,
@@ -2130,6 +2131,7 @@ public class OrganizationResource implements IOrganizationResource {
     @POST
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/accept")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public ContractBean acceptContractRequest(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, NewContractBean response) throws NotAuthorizedException {
         Preconditions.checkNotNull(request);
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
