@@ -3,7 +3,7 @@ package com.t1t.digipolis.apim.beans.mail;
 /**
  * Created by michallispashidis on 10/04/16.
  */
-public class RequestMembershipMailBean extends AbstractMailBean{
+public class RequestMembershipMailBean extends BaseMailBean {
     private String orgName;
     private String orgFriendlyName;
     private String userId;

@@ -11,8 +11,6 @@ import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import com.t1t.digipolis.apim.beans.mail.MembershipAction;
 import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
-import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
-import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
@@ -31,7 +29,7 @@ import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.apim.mail.MailProvider;
+import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.saml2.ISAML2;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -125,7 +123,7 @@ public class UserFacade implements Serializable {
     @Inject
     private AppConfig config;
     @Inject
-    private MailProvider mailProvider;
+    private MailService mailService;
 
     public UserBean get(String userId) {
         try {
@@ -215,7 +213,7 @@ public class UserFacade implements Serializable {
                 UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
                 updateAdminMailBean.setTo(userBean.getEmail());
                 updateAdminMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
-                mailProvider.sendUpdateAdmin(updateAdminMailBean);
+                mailService.sendUpdateAdmin(updateAdminMailBean);
             }
         }catch(Exception e){
             log.error("Error sending mail:{}",e.getMessage());
@@ -242,7 +240,7 @@ public class UserFacade implements Serializable {
                 UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
                 updateAdminMailBean.setTo(userBean.getEmail());
                 updateAdminMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
-                mailProvider.sendUpdateAdmin(updateAdminMailBean);
+                mailService.sendUpdateAdmin(updateAdminMailBean);
             }
         }catch(Exception e){
             log.error("Error sending mail:{}",e.getMessage());

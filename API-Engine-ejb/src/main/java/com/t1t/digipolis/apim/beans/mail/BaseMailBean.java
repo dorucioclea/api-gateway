@@ -3,10 +3,11 @@ package com.t1t.digipolis.apim.beans.mail;
 /**
  * Created by michallispashidis on 10/04/16.
  */
-public abstract class AbstractMailBean {
+public class BaseMailBean {
     private String to;
     private String subject;
     private String content;
+    private String footer;
 
     public String getTo() {
         return to;
@@ -32,12 +33,13 @@ public abstract class AbstractMailBean {
         this.content = content;
     }
 
-    @Override
-    public String toString() {
-        return "AbstractMailBean{" +
-                "to='" + to + '\'' +
-                ", subject='" + subject + '\'' +
-                ", content='" + content + '\'' +
-                '}';
+    public String getFooter() {
+        return footer;
     }
+
+    public void setFooter(String footer) {
+        this.footer = footer;
+    }
+
+
 }
