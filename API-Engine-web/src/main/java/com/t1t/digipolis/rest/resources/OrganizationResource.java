@@ -2091,7 +2091,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+        if (!securityContext.hasPermission(PermissionType.appEdit, bean.getApplicationOrg()))
             throw ExceptionFactory.notAuthorizedException();
         orgFacade.requestContract(organizationId, serviceId, version, bean);
     }
