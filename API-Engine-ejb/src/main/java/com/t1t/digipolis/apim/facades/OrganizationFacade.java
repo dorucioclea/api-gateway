@@ -505,7 +505,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //Validate service and app version, and verify if request actually occurred
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         ServiceVersionBean svb = getServiceVersion(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
-        return createContract(organizationId, applicationId, version, bean);
+        ContractBean contract = createContract(organizationId, applicationId, version, bean);
+        NewEventBean newEvent = new NewEventBean()
+                .withOriginId(ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()))
+                .withDestinationId(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version))
+                .withType(EventType.CONTRACT_ACCEPTED);
+        event.fire(newEvent);
+        return contract;
     }
 
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
@@ -549,11 +555,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     }
                 }
             }
-            NewEventBean newEvent = new NewEventBean()
-                    .withOriginId(ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()))
-                    .withDestinationId(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version))
-                    .withType(EventType.CONTRACT_ACCEPTED);
-            event.fire(newEvent);
             return contract;
         } catch (AbstractRestException e) {
             throw e;
