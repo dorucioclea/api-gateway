@@ -19,6 +19,7 @@ public class OrganizationSummaryBean implements Serializable {
     private int numApps;
     private int numServices;
     private int numMembers;
+    private int numPlans;
 
     /**
      * Constructor.
@@ -117,6 +118,14 @@ public class OrganizationSummaryBean implements Serializable {
 
     public void setOrganizationPrivate(boolean organizationPrivate) {
         this.organizationPrivate = organizationPrivate;
+    }
+
+    public int getNumPlans() {
+        return numPlans;
+    }
+
+    public void setNumPlans(int numPlans) {
+        this.numPlans = numPlans;
     }
 
     /**
