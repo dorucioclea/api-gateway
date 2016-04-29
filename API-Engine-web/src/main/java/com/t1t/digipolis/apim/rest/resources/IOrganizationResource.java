@@ -276,35 +276,32 @@ public interface IOrganizationResource {
             String version,HistogramIntervalType interval, String fromDate,
              String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
-
-
-
-    /**
-     * Use this endpoint to create a Contract between the Application and a Service.  In order
-     * to create a Contract, the caller must specify the Organization, ID, and Version of the
-     * Service.  Additionally the caller must specify the ID of the Plan it wished to use for
-     * the Contract with the Service.
-     * @summary Create a Service Contract
-     * @param organizationId The Organization ID.
-     * @param applicationId The Application ID.
-     * @param version The Application version.
-     * @param bean Required information about the new Contract.
-     * @statuscode 200 If the Contract is successfully created.
-     * @statuscode 404 If the Application version does not exist.
-     * @return Full details about the newly created Contract.
-     * @throws OrganizationNotFoundException when trying to get, update, or remove an organization that does not exist
-     * @throws ApplicationNotFoundException when trying to get, update, or remove an application that does not exist
-     * @throws ServiceNotFoundException when trying to get, update, or remove an service that does not exist
-     * when trying to get, update, or remove an plan that does not exist
-     * @throws PlanNotFoundException when trying to get, update, or remove an plan that does not exist
-     * @throws ContractAlreadyExistsException when trying to create an Contract that already exists
-     * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
-     */
-    public ContractBean createContract(String organizationId,
-                                       String applicationId, String version,
-                                       NewContractBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
-            ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException,
-            NotAuthorizedException;
+//    /**
+//     * Use this endpoint to create a Contract between the Application and a Service.  In order
+//     * to create a Contract, the caller must specify the Organization, ID, and Version of the
+//     * Service.  Additionally the caller must specify the ID of the Plan it wished to use for
+//     * the Contract with the Service.
+//     * @summary Create a Service Contract
+//     * @param organizationId The Organization ID.
+//     * @param applicationId The Application ID.
+//     * @param version The Application version.
+//     * @param bean Required information about the new Contract.
+//     * @statuscode 200 If the Contract is successfully created.
+//     * @statuscode 404 If the Application version does not exist.
+//     * @return Full details about the newly created Contract.
+//     * @throws OrganizationNotFoundException when trying to get, update, or remove an organization that does not exist
+//     * @throws ApplicationNotFoundException when trying to get, update, or remove an application that does not exist
+//     * @throws ServiceNotFoundException when trying to get, update, or remove an service that does not exist
+//     * when trying to get, update, or remove an plan that does not exist
+//     * @throws PlanNotFoundException when trying to get, update, or remove an plan that does not exist
+//     * @throws ContractAlreadyExistsException when trying to create an Contract that already exists
+//     * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
+//     */
+//    public ContractBean createContract(String organizationId,
+//                                       String applicationId, String version,
+//                                       NewContractBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
+//            ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException,
+//            NotAuthorizedException;
 
     /**
      * Use this endpoint to retrieve detailed information about a single Service Contract
@@ -1420,6 +1417,7 @@ public interface IOrganizationResource {
      */
     public List<EventBean> getOrganizationAllIncomingEvents(String organizationId) throws NotAuthorizedException;
 
+    //TODO- Javadocs for new endpoints
     public List<EventBean> getOrganizationAllOutgoingEvents(String organizationId) throws NotAuthorizedException;
 
     public <T> List<T> getOrganizationOutgoingEventsByTypeAndStatus(String organizationId, String type) throws NotAuthorizedException, InvalidEventException;
@@ -1428,12 +1426,14 @@ public interface IOrganizationResource {
 
     public void deleteEvent(String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException;
 
-    public void requestContract(String organizationId,
+    public ContractBean requestContract(String organizationId,
                                 String applicationId, String version,
                                 NewContractRequestBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
             ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException,
             NotAuthorizedException;
 
-    public void rejectContractRequest(String organizationId, String applicationId, String version, ContractRequest request) throws NotAuthorizedException;
+    public void rejectContractRequest(String organizationId, String applicationId, String version, NewContractBean response) throws NotAuthorizedException;
+
+    public ContractBean acceptContractRequest(String organizationId, String applicationId, String version, NewContractBean response) throws NotAuthorizedException;
 
 }

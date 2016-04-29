@@ -33,6 +33,7 @@ import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.EventFacade;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.rest.impl.util.FieldValidator;
 import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
@@ -61,6 +62,8 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
+import static javafx.scene.input.KeyCode.R;
 
 /**
  * This is the rest endpoint implementation.
@@ -391,6 +394,9 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.listAppVersions(organizationId, applicationId);
     }
 
+    //Removed the create contract endpoint -> application owner can no longer create contract unilaterally, he needs to
+    // request a contract from the service owner.
+    /*
     @ApiOperation(value = "Create a Service Contract",
             notes = "Use this endpoint to create a Contract between the Application and a Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
@@ -412,7 +418,7 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.createContract(organizationId, applicationId, version, bean);
-    }
+    }*/
 
     @ApiOperation(value = "Get Service Contract",
             notes = "Use this endpoint to retrieve detailed information about a single Service Contract for an Application.")
@@ -2080,12 +2086,12 @@ public class OrganizationResource implements IOrganizationResource {
             @ApiResponse(code = 204, message = "Contract requested")
     })
     @POST
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/request-contract")
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/request")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void requestContract(@PathParam("organizationId") String organizationId,
-                                @PathParam("serviceId") String serviceId,
-                                @PathParam("version") String version,
-                                NewContractRequestBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
+    public ContractBean requestContract(@PathParam("organizationId") String organizationId,
+                                    @PathParam("serviceId") String serviceId,
+                                    @PathParam("version") String version,
+                                    NewContractRequestBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
             ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException, NotAuthorizedException {
         Preconditions.checkNotNull(bean);
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
@@ -2093,25 +2099,44 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         if (!securityContext.hasPermission(PermissionType.appEdit, bean.getApplicationOrg()))
             throw ExceptionFactory.notAuthorizedException();
-        orgFacade.requestContract(organizationId, serviceId, version, bean);
+        return orgFacade.requestContract(organizationId, serviceId, version, bean);
     }
 
     @Override
-    @ApiOperation(value = "Reqject an Application's Contract Request",
-            notes = "Use this endpoint to reject a Contract request between the Application and a Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
+    @ApiOperation(value = "Reject an Application's Contract Request",
+            notes = "Use this endpoint to reject a Contract request between an Application and the Service.  In order to reject a request, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Contract rejected")
     })
     @POST
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/request-contract")
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/reject")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void rejectContractRequest(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, ContractRequest request) throws NotAuthorizedException {
+    public void rejectContractRequest(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, NewContractBean response) throws NotAuthorizedException {
         Preconditions.checkNotNull(request);
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+        if (!securityContext.hasPermission(PermissionType.svcEdit, response.getServiceOrgId()))
             throw ExceptionFactory.notAuthorizedException();
-        orgFacade.rejectContractRequest(organizationId, applicationId, version, request);
+        orgFacade.rejectContractRequest(organizationId, applicationId, version, response);
+    }
+
+    @Override
+    @ApiOperation(value = "Accept an Application's Contract Request",
+            notes = "Use this endpoint to accpet a Contract request between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Contract rejected")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/accept")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public ContractBean acceptContractRequest(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, NewContractBean response) throws NotAuthorizedException {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, response.getServiceOrgId()))
+            throw ExceptionFactory.notAuthorizedException();
+        return orgFacade.acceptContractRequest(organizationId, applicationId, version, response);
     }
 }

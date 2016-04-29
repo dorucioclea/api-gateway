@@ -92,6 +92,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
 import javax.enterprise.event.Event;
+import javax.enterprise.inject.New;
 import javax.enterprise.inject.spi.DefinitionException;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -437,15 +438,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void requestContract(String organizationId, String serviceId, String version, NewContractRequestBean bean) {
+    public ContractBean requestContract(String organizationId, String serviceId, String version, NewContractRequestBean bean) {
         try {
             //verify if serviceversion and appversion exist
             ApplicationVersionBean avb = getAppVersion(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion());
             ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+            String appId = ConsumerConventionUtil.createAppUniqueId(avb);
+            String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
             //Check if service allows auto contract creation
             if (!svb.getAutoAcceptContracts()) {
-                String appId = ConsumerConventionUtil.createAppUniqueId(avb);
-                String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
                 //Check if there is a pending contract request
                 if (query.getEventByOriginDestinationAndType(appId, svcId, EventType.CONTRACT_PENDING) != null) {
                     throw ExceptionFactory.contractRequestFailedException("Pending request already exists");
@@ -458,6 +459,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .withType(EventType.CONTRACT_PENDING)
                         .withBody(new Gson().toJson(pvb));
                 event.fire(newEvent);
+                return null;
+            }
+            else {
+                //Service accepts all incoming contract requests so create and return new contract
+                NewContractBean ncb = new NewContractBean();
+                ncb.setServiceOrgId(organizationId);
+                ncb.setServiceId(serviceId);
+                ncb.setServiceVersion(version);
+                ncb.setPlanId(bean.getPlanId());
+                return createContract(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion(), ncb);
             }
         }
         catch (StorageException ex) {
@@ -465,28 +476,27 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void rejectContractRequest(String organizationId, String applicationId, String version, ContractRequest bean) {
-        try {
-            //Validate service and app version, and verify if request actually occurred
-            ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
-            ServiceVersionBean svb = storage.getServiceVersion(bean.getServiceOrg(), bean.getServiceId(), bean.getServiceVersion());
-            String appId = ConsumerConventionUtil.createAppUniqueId(avb);
-            String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
-            NewEventBean newEvent = new NewEventBean()
-                    .withOriginId(svcId)
-                    .withDestinationId(appId)
-                    .withType(EventType.CONTRACT_REJECTED);
-            event.fire(newEvent);
-        }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
-        }
+    public void rejectContractRequest(String organizationId, String applicationId, String version, NewContractBean bean) {
+        //Validate service and app version, and verify if request actually occurred
+        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
+        ServiceVersionBean svb = getServiceVersion(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+        NewEventBean newEvent = new NewEventBean()
+                .withOriginId(ServiceConventionUtil.generateServiceUniqueName(svb))
+                .withDestinationId(ConsumerConventionUtil.createAppUniqueId(avb))
+                .withType(EventType.CONTRACT_REJECTED);
+        event.fire(newEvent);
+    }
+
+    public ContractBean acceptContractRequest(String organizationId, String applicationId, String version, NewContractBean bean) {
+        //Validate service and app version, and verify if request actually occurred
+        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
+        ServiceVersionBean svb = getServiceVersion(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+        return createContract(organizationId, applicationId, version, bean);
     }
 
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
         try {
             //add OAuth2 consumer default to the application
-            ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             //for contract add keyauth to application consumer
@@ -515,7 +525,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
             for (PolicySummaryBean summaryBean : policySummaryBeans) {
                 if (summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())) {
-                    avb = storage.getApplicationVersion(organizationId, applicationId, version);
+                    ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
                     if (StringUtils.isEmpty(avb.getoAuthClientId())) {
                         //create client_id and client_secret for the application - the same client_id/secret must be used for all services
                         //upon publication the application credentials will be enabled for the current user.
@@ -525,6 +535,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     }
                 }
             }
+            NewEventBean newEvent = new NewEventBean()
+                    .withOriginId(ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()))
+                    .withDestinationId(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version))
+                    .withType(EventType.CONTRACT_ACCEPTED);
+            event.fire(newEvent);
             return contract;
         } catch (AbstractRestException e) {
             throw e;
