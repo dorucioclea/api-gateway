@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_ACCEPTED;
+import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_PENDING;
 import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_REJECTED;
 
 /**
@@ -151,6 +152,7 @@ public class EventFacade {
                     deleteContractRefusedEvent(event);
                     break;
                 case CONTRACT_REJECTED:
+                    deleteContractPending(event);
                     break;
             }
             storage.createEvent(event);
@@ -198,6 +200,16 @@ public class EventFacade {
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
+        }
+    }
+
+    private void deleteContractPending(EventBean bean) throws StorageException {
+        EventBean pendingEvent =  query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), CONTRACT_PENDING);
+        if (pendingEvent == null) {
+            throw ExceptionFactory.contractRequestFailedException("Contract never requested");
+        }
+        else {
+            storage.deleteEvent(pendingEvent);
         }
     }
 

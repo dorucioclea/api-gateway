@@ -470,12 +470,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //Validate service and app version, and verify if request actually occurred
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             ServiceVersionBean svb = storage.getServiceVersion(bean.getServiceOrg(), bean.getServiceId(), bean.getServiceVersion());
-            EventBean pendingEvent = query.getEventByOriginDestinationAndType(ConsumerConventionUtil.createAppUniqueId(avb),
-                    ServiceConventionUtil.generateServiceUniqueName(svb), EventType.CONTRACT_PENDING);
-            if (pendingEvent == null) {
-                throw ExceptionFactory.contractRequestFailedException("Contract never requested");
-            }
-            //TODO - The rest
+            String appId = ConsumerConventionUtil.createAppUniqueId(avb);
+            String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
+            NewEventBean newEvent = new NewEventBean()
+                    .withOriginId(svcId)
+                    .withDestinationId(appId)
+                    .withType(EventType.CONTRACT_REJECTED);
+            event.fire(newEvent);
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
