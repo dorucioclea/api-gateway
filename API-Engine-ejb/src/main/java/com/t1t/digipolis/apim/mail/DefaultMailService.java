@@ -1,21 +1,14 @@
 package com.t1t.digipolis.apim.mail;
+
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.events.ContractRequest;
-import com.t1t.digipolis.apim.beans.mail.RequestMembershipMailBean;
-import com.t1t.digipolis.apim.beans.mail.StatusMailBean;
-import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
-import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
+import com.t1t.digipolis.apim.beans.mail.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
-import javax.mail.*;
-import javax.annotation.Resource;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 /**
  * Simple mailprovider, no templating and no dynamic substitutions.
@@ -28,47 +21,42 @@ import javax.mail.internet.MimeMessage;
 @Default
 public class DefaultMailService implements MailService {
     private final static Logger _LOG = LoggerFactory.getLogger(DefaultMailService.class.getName());
-    //TODO should be a mail provider
-    @Resource(mappedName="java:jboss/mail/Default")
-    private Session mailSession;
     @Inject private AppConfig config;
+    @Inject private MailProvider mailProvider;
 
-    @PostConstruct
-    public void init(){
-        mailSession.setDebug(config.getNotificationsEnableDebug());
-    }
-
-    public void sendTestMail(){
-        sendMail(composeMessage(config.getNotificationStartupMail(),"API Engine server restart ("+config.getEnvironment()+")","This is a test message - no further action required."));
+    public void sendTestMail() {
+        BaseMailBean mailBean = new BaseMailBean();
+        mailBean.setSubject("API Engine server restart (" + config.getEnvironment() + ")");
+        mailBean.setContent("This is a test message - no further action required.");
+        mailBean.setTo(config.getNotificationStartupMail());
+        mailProvider.sendMail(mailProvider.composeMessage(mailBean));
     }
 
     @Override
     public void sendStatusMail(StatusMailBean statusMailBean) {
-        statusMailBean.setSubject("API Engine - status mail ("+config.getEnvironment()+")");
-        //TODO: templating
-        StringBuilder sContent = new StringBuilder("");
-        sContent.append("Not yet implemented");
-
-        //set content
-        statusMailBean.setContent(sContent.toString());
-        sendMail(composeMessage(statusMailBean.getTo(),statusMailBean.getSubject(),statusMailBean.getContent()));
+        BaseMailBean mailBean = new BaseMailBean();
+        mailBean.setSubject("API Engine - status mail (" + config.getEnvironment() + ")");
+        mailBean.setContent("Not yet implemented");
+        mailBean.setTo(statusMailBean.getTo());
+        mailProvider.sendMail(mailProvider.composeMessage(mailBean));
     }
 
     @Override
     public void sendRequestMembership(RequestMembershipMailBean requestMembershipMailBean) {
-        requestMembershipMailBean.setSubject("API Engine ("+config.getEnvironment()+") - request membership for "+requestMembershipMailBean.getOrgFriendlyName());
+        requestMembershipMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - request membership for " + requestMembershipMailBean.getOrgFriendlyName());
         //TODO: templating
         StringBuilder sContent = new StringBuilder("");
         sContent.append("The following user requests membership for your organization: ");
         sContent.append(requestMembershipMailBean.getOrgFriendlyName());
-        sContent.append("("+requestMembershipMailBean.getOrgName()+")");
-        sContent.append("\n- Username: "+ requestMembershipMailBean.getUserId());
+        sContent.append("(" + requestMembershipMailBean.getOrgName() + ")");
+        sContent.append("\n- Username: " + requestMembershipMailBean.getUserId());
         sContent.append("\n- Email   : " + requestMembershipMailBean.getUserMail());
         sContent.append("\n\nYou can add the user in the 'Members'-tab of your organization.");
         sContent.append(getMailSignature());
         //set content
         requestMembershipMailBean.setContent(sContent.toString());
-        sendMail(composeMessage(requestMembershipMailBean.getTo(),requestMembershipMailBean.getSubject(),requestMembershipMailBean.getContent()));
+        //TODO
+        mailProvider.sendMail(mailProvider.composeMessage(requestMembershipMailBean));
     }
 
     @Override
@@ -87,38 +75,39 @@ public class DefaultMailService implements MailService {
         StringBuilder sContent = new StringBuilder("");
         sContent.append("Your organization profile has been updated for organization: ");
         sContent.append(updateMemberMailBean.getOrgFriendlyName());
-        sContent.append(" ("+updateMemberMailBean.getOrgName()+")");
-        switch(updateMemberMailBean.getMembershipAction()){
-            case NEW_MEMBERSHIP:{
-                updateMemberMailBean.setSubject("API Engine ("+config.getEnvironment()+") - welcome to "+updateMemberMailBean.getOrgFriendlyName());
+        sContent.append(" (" + updateMemberMailBean.getOrgName() + ")");
+        switch (updateMemberMailBean.getMembershipAction()) {
+            case NEW_MEMBERSHIP: {
+                updateMemberMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - welcome to " + updateMemberMailBean.getOrgFriendlyName());
                 sContent.append("\nYou have been added as a new member for the organization.");
-                sContent.append("\nYou have been assigned with the role '"+updateMemberMailBean.getRole()+"'");
+                sContent.append("\nYou have been assigned with the role '" + updateMemberMailBean.getRole() + "'");
                 break;
             }
-            case TRANSFER:{
-                updateMemberMailBean.setSubject("API Engine ("+config.getEnvironment()+") - transfer ownership "+updateMemberMailBean.getOrgFriendlyName());
+            case TRANSFER: {
+                updateMemberMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - transfer ownership " + updateMemberMailBean.getOrgFriendlyName());
                 sContent.append("\nYou have been assigned as owner of the organization.");
                 break;
             }
-            case DELETE_MEMBERSHIP:{
-                updateMemberMailBean.setSubject("API Engine ("+config.getEnvironment()+") - membership deleted");
+            case DELETE_MEMBERSHIP: {
+                updateMemberMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - membership deleted");
                 sContent.append("\nYou have been removed from the organization.");
                 break;
             }
-            case UPDATE_ROLE:{
-                updateMemberMailBean.setSubject("API Engine ("+config.getEnvironment()+") - updated role");
-                sContent.append("\nYour role has been changed to '"+updateMemberMailBean.getRole()+"'.");
+            case UPDATE_ROLE: {
+                updateMemberMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - updated role");
+                sContent.append("\nYour role has been changed to '" + updateMemberMailBean.getRole() + "'.");
                 break;
             }
-            default:{
-                updateMemberMailBean.setSubject("API Engine ("+config.getEnvironment()+") - verify account");
+            default: {
+                updateMemberMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - verify account");
                 sContent.append("Verify your account.");
             }
         }
         sContent.append(getMailSignature());
         //set content
         updateMemberMailBean.setContent(sContent.toString());
-        sendMail(composeMessage(updateMemberMailBean.getTo(),updateMemberMailBean.getSubject(),updateMemberMailBean.getContent()));
+        //TODO
+        mailProvider.sendMail(mailProvider.composeMessage(updateMemberMailBean));
     }
 
     @Override
@@ -126,19 +115,19 @@ public class DefaultMailService implements MailService {
         //TODO: templating
         StringBuilder sContent = new StringBuilder("");
         sContent.append("Your admin profile has been updated: ");
-        switch(updateAdminMailBean.getMembershipAction()){
-            case NEW_MEMBERSHIP:{
-                updateAdminMailBean.setSubject("API Engine ("+config.getEnvironment()+") - admin rights assigned");
+        switch (updateAdminMailBean.getMembershipAction()) {
+            case NEW_MEMBERSHIP: {
+                updateAdminMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - admin rights assigned");
                 sContent.append("\nYou have been added as administrator for the API Engine.");
                 break;
             }
-            case DELETE_MEMBERSHIP:{
-                updateAdminMailBean.setSubject("API Engine ("+config.getEnvironment()+") - admin rights revoked");
+            case DELETE_MEMBERSHIP: {
+                updateAdminMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - admin rights revoked");
                 sContent.append("\nYou have been removed as administrator for the API Engine.");
                 break;
             }
-            default:{
-                updateAdminMailBean.setSubject("API Engine ("+config.getEnvironment()+") - verify account");
+            default: {
+                updateAdminMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - verify account");
                 sContent.append("Verify your account.");
             }
         }
@@ -146,7 +135,7 @@ public class DefaultMailService implements MailService {
 
         //set content
         updateAdminMailBean.setContent(sContent.toString());
-        sendMail(composeMessage(updateAdminMailBean.getTo(),updateAdminMailBean.getSubject(),updateAdminMailBean.getContent()));
+        mailProvider.sendMail(mailProvider.composeMessage(updateAdminMailBean));
     }
 
     @Override
@@ -164,47 +153,7 @@ public class DefaultMailService implements MailService {
 
     }
 
-    /**
-     * Utility method to compose the Mime message.
-     *
-     * @param toAddress
-     * @param subject
-     * @param content
-     * @return
-     */
-    private MimeMessage composeMessage(String toAddress, String subject, String content){
-        try{
-            MimeMessage m = new MimeMessage(mailSession);
-            Address from = new InternetAddress(config.getNotificationMailFrom());
-            Address[] to = new InternetAddress[] {new InternetAddress(toAddress) };
-            m.setFrom(from);
-            m.setRecipients(Message.RecipientType.TO, to);
-            m.setSubject(subject);
-            m.setSentDate(new java.util.Date());
-            m.setContent(content,"text/plain");
-            return m;
-        }catch(MessagingException e){
-            _LOG.error("Error sending email:{}",e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Utility method to send a composed mime message
-     * @param m
-     */
-    private void sendMail(MimeMessage m){
-        try{
-            if(m!=null){
-                Transport.send(m);
-                _LOG.debug("Mail sent: {}",m);
-            }
-        }catch(MessagingException e){
-            _LOG.error("Error sending email:{}",e.getMessage());
-        }
-    }
-
-    private String getMailSignature(){
+    private String getMailSignature() {
         StringBuilder sContent = new StringBuilder();
         sContent.append("\n\n\nGreetings from the APIe Team.");
         sContent.append("\n\n");
