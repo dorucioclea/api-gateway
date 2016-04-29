@@ -30,17 +30,13 @@ import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_REJECTED;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class EventFacade {
-
     private static final Logger _LOG = LoggerFactory.getLogger(EventFacade.class);
-
     @Inject
     private IStorage storage;
     @Inject
     private IStorageQuery query;
     @Inject
     private ISecurityContext securityContext;
-
-
 
     public List<EventBean> getCurrentUserAllIncomingEvents() {
         return getIncomingEvents(securityContext.getCurrentUser());

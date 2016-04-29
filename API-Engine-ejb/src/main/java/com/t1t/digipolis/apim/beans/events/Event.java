@@ -3,13 +3,14 @@ package com.t1t.digipolis.apim.beans.events;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-public abstract class Event {
+public abstract class Event implements Serializable {
     private Long id;
     private EventType type;
     private Date createdOn;

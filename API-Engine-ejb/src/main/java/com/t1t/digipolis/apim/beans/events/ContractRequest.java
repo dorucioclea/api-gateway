@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.beans.events;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.Serializable;
 
 /**
  * @author Guillaume Vandecasteele
@@ -65,5 +64,17 @@ public class ContractRequest extends Event {
 
     public void setAppVersion(String appVersion) {
         this.appVersion = appVersion;
+    }
+
+    @Override
+    public String toString() {
+        return "ContractRequest{" +
+                "serviceOrg='" + serviceOrg + '\'' +
+                ", serviceId='" + serviceId + '\'' +
+                ", serviceVersion='" + serviceVersion + '\'' +
+                ", appOrg='" + appOrg + '\'' +
+                ", appId='" + appId + '\'' +
+                ", appVersion='" + appVersion + '\'' +
+                '}';
     }
 }

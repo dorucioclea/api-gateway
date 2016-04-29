@@ -1,7 +1,5 @@
 package com.t1t.digipolis.apim.beans.events;
 
-import com.t1t.digipolis.apim.gateway.dto.Contract;
-
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
