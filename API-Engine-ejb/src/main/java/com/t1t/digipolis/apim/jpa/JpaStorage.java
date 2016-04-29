@@ -15,6 +15,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.mail.MailTemplateBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
@@ -37,6 +38,7 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.gateway.dto.Contract;
+import com.t1t.digipolis.apim.mail.MailTopic;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import com.t1t.digipolis.util.ServiceScopeUtil;
@@ -275,6 +277,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(commentBean);
     }
 
+    @Override
+    public void updateMailTemplate(MailTemplateBean mailTemplateBean) throws StorageException {
+        super.update(mailTemplateBean);
+    }
+
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -469,6 +476,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void deleteEvent(EventBean eventBean) throws StorageException {
         super.delete(eventBean);
+    }
+
+    @Override
+    public void deleteMailTemplate(MailTemplateBean mailTemplateBean) throws StorageException {
+        super.delete(mailTemplateBean);
     }
 
     /**
@@ -872,6 +884,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createEvent(EventBean eventBean) throws StorageException {
         super.create(eventBean);
+    }
+
+    @Override
+    public void createMailTemplate(MailTemplateBean mailTemplateBean) throws Exception {
+        super.create(mailTemplateBean);
     }
 
     /**
@@ -1936,6 +1953,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public EventBean getEvent(Long id) throws StorageException {
         return super.get(id, EventBean.class);
+    }
+
+    @Override
+    public MailTemplateBean getMailTemplate(MailTopic mailTopic) throws StorageException {
+        return super.get(mailTopic.getTopicName(),MailTemplateBean.class);
     }
 
     /*@Override

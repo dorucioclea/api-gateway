@@ -1,5 +1,33 @@
 package com.t1t.digipolis.apim.beans.policies;
 
+import com.t1t.digipolis.kong.model.KongApi;
+import com.t1t.digipolis.kong.model.KongApiList;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongInfo;
+import com.t1t.digipolis.kong.model.KongInstalledPlugins;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuth;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongPluginACLRequest;
+import com.t1t.digipolis.kong.model.KongPluginACL;
+import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
+import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongStatus;
 import com.t1t.digipolis.kong.model.*;
 
 /**
