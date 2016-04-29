@@ -1,10 +1,7 @@
 package com.t1t.digipolis.apim.mail;
 
 import com.t1t.digipolis.apim.beans.events.ContractRequest;
-import com.t1t.digipolis.apim.beans.mail.RequestMembershipMailBean;
-import com.t1t.digipolis.apim.beans.mail.StatusMailBean;
-import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
-import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
+import com.t1t.digipolis.apim.beans.mail.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.MailServiceException;
 
@@ -25,21 +22,21 @@ public interface MailService {
 
     /**
      * Send request membership information.
-     * @param requestMembershipMailBean
+     * @param membershipRequestMailBean
      */
-    void sendRequestMembership (RequestMembershipMailBean requestMembershipMailBean)throws MailServiceException;
+    void sendRequestMembership (MembershipRequestMailBean membershipRequestMailBean)throws MailServiceException;
 
     /**
      * Send approval for request membership.
-     * @param requestMembershipMailBean
+     * @param membershipApproveMailBean
      */
-    void approveRequestMembership(RequestMembershipMailBean requestMembershipMailBean)throws MailServiceException;
+    void approveRequestMembership(MembershipApproveMailBean membershipApproveMailBean)throws MailServiceException;
 
     /**
      * Send reject for request membership.
-     * @param requestMembershipMailBean
+     * @param membershipRejectMailBean
      */
-    void rejectRequestMembership(RequestMembershipMailBean requestMembershipMailBean)throws MailServiceException;
+    void rejectRequestMembership(MembershipRejectMailBean membershipRejectMailBean)throws MailServiceException;
 
     /**
      * Send update membership information.
@@ -55,20 +52,20 @@ public interface MailService {
 
     /**
      * Send contract request.
-     * @param request
+     * @param contractRequestMailBean
      */
-    void sendContractRequest(ContractRequest request)throws MailServiceException;
+    void sendContractRequest(ContractRequestMailBean contractRequestMailBean)throws MailServiceException;
 
     /**
      * Send mail for contract request approval.
-     * @param request
+     * @param contractApprovedMailBean
      */
-    void approveContractRequest(ContractRequest request)throws MailServiceException;
+    void approveContractRequest(ContractApprovedMailBean contractApprovedMailBean)throws MailServiceException;
 
     /**
      * Send reject for contract request.
-     * @param request
+     * @param contractRejectedMailBean
      */
-    void rejectContractRequest(ContractRequest request)throws MailServiceException;
+    void rejectContractRequest(ContractRejectedMailBean contractRejectedMailBean)throws MailServiceException;
 
 }

@@ -3,7 +3,7 @@ package com.t1t.digipolis.apim.beans.mail;
 /**
  * Created by michallispashidis on 10/04/16.
  */
-public class RequestMembershipMailBean extends BaseMailBean {
+public class MembershipRequestMailBean extends BaseMailBean {
     private String orgName;
     private String orgFriendlyName;
     private String userId;
@@ -39,5 +39,15 @@ public class RequestMembershipMailBean extends BaseMailBean {
 
     public void setUserMail(String userMail) {
         this.userMail = userMail;
+    }
+
+    @Override
+    public String toString() {
+        return "MembershipRequestMailBean{" +
+                "orgName='" + orgName + '\'' +
+                ", orgFriendlyName='" + orgFriendlyName + '\'' +
+                ", userId='" + userId + '\'' +
+                ", userMail='" + userMail + '\'' +
+                '}';
     }
 }

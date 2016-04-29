@@ -22,7 +22,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
 import com.t1t.digipolis.apim.beans.mail.MembershipAction;
-import com.t1t.digipolis.apim.beans.mail.RequestMembershipMailBean;
+import com.t1t.digipolis.apim.beans.mail.MembershipRequestMailBean;
 import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -3255,13 +3255,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     //send email
                     try{
                         if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
-                            RequestMembershipMailBean requestMembershipMailBean = new RequestMembershipMailBean();
-                            requestMembershipMailBean.setTo(member.getEmail());
-                            requestMembershipMailBean.setUserId(securityContext.getCurrentUser());
-                            requestMembershipMailBean.setUserMail(securityContext.getEmail());
-                            requestMembershipMailBean.setOrgName(org.getName());
-                            requestMembershipMailBean.setOrgFriendlyName(org.getFriendlyName());
-                            mailService.sendRequestMembership(requestMembershipMailBean);
+                            MembershipRequestMailBean membershipRequestMailBean = new MembershipRequestMailBean();
+                            membershipRequestMailBean.setTo(member.getEmail());
+                            membershipRequestMailBean.setUserId(securityContext.getCurrentUser());
+                            membershipRequestMailBean.setUserMail(securityContext.getEmail());
+                            membershipRequestMailBean.setOrgName(org.getName());
+                            membershipRequestMailBean.setOrgFriendlyName(org.getFriendlyName());
+                            mailService.sendRequestMembership(membershipRequestMailBean);
                         }
                     }catch(Exception e){
                         log.error("Error sending mail:{}",e.getMessage());

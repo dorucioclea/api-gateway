@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.mail;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.mail.BaseMailBean;
 import com.t1t.digipolis.apim.exceptions.MailProviderException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,9 @@ public class DefaultMailProvider implements MailProvider {
     public <K extends MimeMessage> K composeMessage(BaseMailBean mailContent) throws MailProviderException {
         String subject = mailContent.getSubject();
         String content = mailContent.getContent();
+        if(!StringUtils.isEmpty(mailContent.getFooter())){
+            content = content + "\n" + mailContent.getFooter();
+        }
         String toAddress = mailContent.getTo();
         try{
             MimeMessage m = new MimeMessage(mailSession);
