@@ -1,5 +1,6 @@
 package com.t1t.digipolis.util;
 
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 
 /**
@@ -24,5 +25,10 @@ public class ServiceConventionUtil {
                 .append(".")
                 .append(serviceVersionsId);
         return serviceGatewayName.toString().toLowerCase();
+    }
+
+    public static String generateServiceUniqueName(ServiceVersionBean svb) {
+        return generateServiceUniqueName(svb.getService().getOrganization().getId(),
+                svb.getService().getId(), svb.getVersion());
     }
 }

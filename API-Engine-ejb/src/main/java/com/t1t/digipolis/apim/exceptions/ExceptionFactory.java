@@ -389,7 +389,31 @@ public final class ExceptionFactory {
         return new InvalidPolicyException(message);
     }
 
+    /**
+     * Creates an exception
+     * @return
+     */
     public static final AvailabilityNotFoundException availabilityNotFoundException() {
         return new AvailabilityNotFoundException();
+    }
+
+    /**
+     * Creates an exception
+     * @return
+     */
+    public static final MemberShipRequestFailedException membershipRequestFailedException(String message) {
+        return new MemberShipRequestFailedException(message);
+    }
+
+    public static final InvalidEventException invalidEventException(String message) {
+        return new InvalidEventException(message);
+    }
+
+    public static final EventNotFoundException eventNotFoundException() {
+        return new EventNotFoundException();
+    }
+
+    public static final ContractRequestFailedException contractRequestFailedException(String message) {
+        return new ContractRequestFailedException(message);
     }
 }

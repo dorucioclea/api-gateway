@@ -4,6 +4,8 @@ import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
+import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.GrantRoleBean;
 import com.t1t.digipolis.apim.beans.idm.GrantRolesBean;
 import com.t1t.digipolis.apim.beans.idm.TransferOwnershipBean;
@@ -1382,6 +1384,14 @@ public interface IOrganizationResource {
      */
     public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) throws com.t1t.digipolis.apim.exceptions.NotAuthorizedException, InvalidMetricCriteriaException;
 
+    /**
+     * Reject a user's request for membership
+     * @param organizationId The organization's ID
+     * @param userId The user's id
+     * @throws NotAuthorizedException
+     */
+    public void rejectMembershipRequest(String organizationId, String userId) throws NotAuthorizedException;
+
     /** ANNOUNCEMENTS **/
     public ServiceBean addServiceFollower(String organizationId, String serviceId, String userId) throws ServiceNotFoundException, NotAuthorizedException;
     public ServiceBean removeServiceFollower(String organizationId, String serviceId, String userId) throws ServiceNotFoundException, NotAuthorizedException;
@@ -1400,5 +1410,27 @@ public interface IOrganizationResource {
     public void deleteServiceSupportComment(String supportId, String commentId)throws NotAuthorizedException;
     public SupportComment getServiceSupportComment(String supportId, String commentId)throws NotAuthorizedException;
     public List<SupportComment> listServiceSupportComments(String supportId)throws NotAuthorizedException;
+
+    /**
+     * Retrieve all events with a given organization as destination
+     * @param organizationId The organization's ID
+     * @return
+     * @throws NotAuthorizedException
+     */
+    public List<EventBean> getOrganizationAllIncomingEvents(String organizationId) throws NotAuthorizedException;
+
+    public List<EventBean> getOrganizationAllOutgoingEvents(String organizationId) throws NotAuthorizedException;
+
+    public <T> List<T> getOrganizationOutgoingEventsByTypeAndStatus(String organizationId, String type) throws NotAuthorizedException, InvalidEventException;
+
+    public <T> List<T> getOrganizationIncomingEventsByTypeAndStatus(String organizationId, String type) throws NotAuthorizedException, InvalidEventException;
+
+    public void deleteEvent(String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException;
+
+    public void requestContract(String organizationId,
+                                String applicationId, String version,
+                                NewContractRequestBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
+            ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException,
+            NotAuthorizedException;
 
 }

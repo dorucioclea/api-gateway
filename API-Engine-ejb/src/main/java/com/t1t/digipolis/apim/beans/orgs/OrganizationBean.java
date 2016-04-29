@@ -39,6 +39,8 @@ public class OrganizationBean implements Serializable {
     private Date modifiedOn;
     @Column(name = "friendly_name", updatable = true)
     private String friendlyName;
+    @Column(name = "private")
+    private boolean organizationPrivate;
 
     /**
      * Constructor.
@@ -157,6 +159,20 @@ public class OrganizationBean implements Serializable {
      */
     public void setFriendlyName(String friendlyName) {
         this.friendlyName = friendlyName;
+    }
+
+    /**
+     * @return the organization privacy boolean
+     */
+    public boolean isOrganizationPrivate() {
+        return organizationPrivate;
+    }
+
+    /**
+     * @param organizationPrivate the organization privacy to set
+     */
+    public void setOrganizationPrivate(boolean organizationPrivate) {
+        this.organizationPrivate = organizationPrivate;
     }
 
     /**

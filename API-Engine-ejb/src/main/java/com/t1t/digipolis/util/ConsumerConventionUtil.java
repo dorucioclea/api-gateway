@@ -1,6 +1,7 @@
 package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
+import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +39,11 @@ public class ConsumerConventionUtil {
                 .append(".")
                 .append(appVersionId);
         return uniqueName.toString().toLowerCase();
+    }
+
+    public static String createAppUniqueId(ApplicationVersionBean avb) {
+        return createAppUniqueId(avb.getApplication().getOrganization().getId(),
+                avb.getApplication().getId(), avb.getVersion());
     }
 
     public static String createAppVersionlessId(String orgId, String appId){

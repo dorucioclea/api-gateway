@@ -47,6 +47,7 @@ public final class ErrorCodes {
     //
     public static final int ORG_ALREADY_EXISTS              = 3001;
     public static final int ORG_NOT_FOUND                   = 3002;
+    public static final int ORG_IS_PRIVATE                  = 3003;
 
     public static final String ORG_ALREADY_EXISTS_INFO      = null;
     public static final String ORG_NOT_FOUND_INFO           = null;
@@ -62,6 +63,7 @@ public final class ErrorCodes {
     public static final int CONTRACT_ALREADY_EXISTS         = 4005;
     public static final int APP_STATUS_ERROR                = 4006;
     public static final int APP_VERSION_ALREADY_EXISTS      = 4007;
+    public static final int CONTRACT_ALREADY_REQUESTED      = 4008;
 
     public static final String APP_ALREADY_EXISTS_INFO      = null;
     public static final String APP_NOT_FOUND_INFO           = null;
@@ -189,4 +191,11 @@ public final class ErrorCodes {
 
     public static final int SCOPE_NOT_FOUND                 = 15002;
 
+    //
+    // Event errors
+    //
+
+    public static final int EVENT_ERROR                     = 16001;
+    public static final int EVENT_NOT_FOUND_ERROR           = 16004;
+    public static final int EVENT_INVALID_STATUS_ERROR      = 16006;
 }

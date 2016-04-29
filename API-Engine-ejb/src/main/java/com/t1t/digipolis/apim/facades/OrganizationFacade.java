@@ -14,6 +14,11 @@ import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
+import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.events.ContractRequest;
+import com.t1t.digipolis.apim.beans.events.EventBean;
+import com.t1t.digipolis.apim.beans.events.EventType;
+import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
@@ -59,18 +64,18 @@ import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -89,6 +94,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
+import javax.enterprise.event.Event;
 import javax.enterprise.inject.spi.DefinitionException;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -137,6 +143,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private AppConfig config;
     @Inject
     private MailProvider mailProvider;
+    @Inject
+    private Event<NewEventBean> event;
 
 
     @SuppressWarnings("nls")
@@ -184,6 +192,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         orgBean.setCreatedBy(securityContext.getCurrentUser());
         orgBean.setModifiedOn(new Date());
         orgBean.setModifiedBy(securityContext.getCurrentUser());
+        orgBean.setOrganizationPrivate(bean.getOrganizationPrivate() == null ? true : bean.getOrganizationPrivate());
         if (bean.getFriendlyName() == null) {
             orgBean.setFriendlyName(bean.getName());
         }
@@ -246,6 +255,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (AuditUtils.valueChanged(orgForUpdate.getFriendlyName(), bean.getFriendlyName())) {
                 auditData.addChange("friendlyName", orgForUpdate.getFriendlyName(), bean.getFriendlyName());
                 orgForUpdate.setFriendlyName(bean.getFriendlyName());
+            }
+            if (AuditUtils.valueChanged(orgForUpdate.isOrganizationPrivate(), bean.isOrganizationPrivate())) {
+                auditData.addChange("private", Boolean.toString(orgForUpdate.isOrganizationPrivate()), Boolean.toString(bean.isOrganizationPrivate()));
+                orgForUpdate.setOrganizationPrivate(bean.isOrganizationPrivate());
             }
             storage.updateOrganization(orgForUpdate);
             storage.createAuditEntry(AuditUtils.organizationUpdated(orgForUpdate, auditData, securityContext));
@@ -427,39 +440,66 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public void requestContract(String organizationId, String serviceId, String version, NewContractRequestBean bean) {
+        try {
+            //verify if serviceversion and appversion exist
+            ApplicationVersionBean avb = getAppVersion(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion());
+            ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+            //Check if service allows auto contract creation
+            if (!svb.getAutoAcceptContracts()) {
+                String appId = ConsumerConventionUtil.createAppUniqueId(avb);
+                String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
+                //Check if there is a pending contract request
+                if (query.getEventByOriginDestinationAndType(appId, svcId, EventType.CONTRACT_PENDING) != null) {
+                    throw ExceptionFactory.contractRequestFailedException("Pending request already exists");
+                }
+                String servicePlanVersion = svb.getPlans().stream().filter(plan -> plan.getPlanId().equals(bean.getPlanId())).findFirst().get().getVersion();
+                PlanVersionBean pvb = getPlanVersion(organizationId, bean.getPlanId(), servicePlanVersion);
+                NewEventBean newEvent = new NewEventBean()
+                        .withOriginId(appId)
+                        .withDestinationId(svcId)
+                        .withType(EventType.CONTRACT_PENDING)
+                        .withBody(new Gson().toJson(pvb));
+                event.fire(newEvent);
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
     public ContractBean createContract(String organizationId, String applicationId, String version, NewContractBean bean) {
         try {
             //add OAuth2 consumer default to the application
+            ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             //for contract add keyauth to application consumer
-
-                //We create the new application version consumer
-                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                if (contract != null) {
-                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                    try {
-                        gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
-                    } catch (Exception e) {
-                        //apikey for consumer already exists
-                    }
-                    //Add ACL group membership by default on gateway
-                    KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
-                            ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
-                    //Persist the unique Kong plugin id in a new policy associated with the app.
-                    NewPolicyBean npb = new NewPolicyBean();
-                    KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
-                    npb.setDefinitionId(Policies.ACL.name());
-                    npb.setKongPluginId(response.getId());
-                    npb.setContractId(contract.getId());
-                    npb.setConfiguration(new Gson().toJson(conf));
-                    createAppPolicy(organizationId, applicationId, version, npb);
+            //We create the new application version consumer
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            if (contract != null) {
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
+                try {
+                    gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+                } catch (Exception e) {
+                    //apikey for consumer already exists
                 }
+                //Add ACL group membership by default on gateway
+                KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
+                        ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
+                //Persist the unique Kong plugin id in a new policy associated with the app.
+                NewPolicyBean npb = new NewPolicyBean();
+                KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+                npb.setDefinitionId(Policies.ACL.name());
+                npb.setKongPluginId(response.getId());
+                npb.setContractId(contract.getId());
+                npb.setConfiguration(new Gson().toJson(conf));
+                createAppPolicy(organizationId, applicationId, version, npb);
+            }
             //verify if the contracting service has OAuth enabled
             List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
             for (PolicySummaryBean summaryBean : policySummaryBeans) {
                 if (summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())) {
-                    ApplicationVersionBean avb;
                     avb = storage.getApplicationVersion(organizationId, applicationId, version);
                     if (StringUtils.isEmpty(avb.getoAuthClientId())) {
                         //create client_id and client_secret for the application - the same client_id/secret must be used for all services
@@ -481,10 +521,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //we asume it already exists
             throw ExceptionFactory.contractAlreadyExistsException();
 /*            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
-                throw ExceptionFactory.contractAlreadyExistsException();
-            } else {
-                throw new SystemErrorException(e);
-            }*/
+        throw ExceptionFactory.contractAlreadyExistsException();
+    } else {
+        throw new SystemErrorException(e);
+    }*/
         }
     }
 
@@ -835,6 +875,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         svb.setModifiedBy(securityContext.getCurrentUser());
         svb.setModifiedOn(new Date());
+        if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
+            data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
+            svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
+        }
 
         if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
             data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
@@ -1024,6 +1068,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updatedService.setOnlinedoc(cloneSource.getOnlinedoc());
                 updatedService.setPlans(cloneSource.getPlans());
                 updatedService.setPublicService(cloneSource.isPublicService());
+                updatedService.setAutoAcceptContracts(cloneSource.getAutoAcceptContracts());
                 newVersion = updateServiceVersion(organizationId, serviceId, bean.getVersion(), updatedService);
                 // Clone the service definition document
                 try {
@@ -1667,7 +1712,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public KongPluginConfigList getServicePlugins(String organizationId, String serviceId, String version) {
         try {
-            KongPluginConfigList servicePlugins = null;
+            KongPluginConfigList servicePlugins;
+            servicePlugins = null;
             String serviceKongId = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
             try {
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
@@ -2134,6 +2180,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         get(organizationId);
         userFacade.get(bean.getUserId());
         roleFacade.get(bean.getRoleId());
+        // If user had a pending membership request,
         MembershipData auditData = new MembershipData();
         auditData.setUserId(bean.getUserId());
         try {
@@ -2154,6 +2201,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+        //Trigger new event for accepted membership request
+        NewEventBean newEvent = new NewEventBean()
+                .withOriginId(organizationId)
+                .withDestinationId(bean.getUserId())
+                .withType(EventType.MEMBERSHIP_GRANTED);
+        event.fire(newEvent);
         //send email
         try{
             final RoleBean roleBean = roleFacade.get(bean.getRoleId());
@@ -2401,6 +2454,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    public boolean isMember(String userId, String organizationId) {
+        List<MemberBean> members = listMembers(organizationId);
+        for (MemberBean member : members) {
+            if (member.getUserId().equals(userId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /*********************************************UTILITIES**********************************************/
@@ -2704,6 +2767,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setModifiedOn(new Date());
         newVersion.setStatus(ServiceStatus.Created);
         newVersion.setService(service);
+        newVersion.setAutoAcceptContracts(true);
         if (gateway != null) {
             if (newVersion.getGateways() == null) {
                 newVersion.setGateways(new HashSet<ServiceGatewayBean>());
@@ -3165,10 +3229,29 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public void requestMembership(String orgId){
-        //get organization
-        OrganizationBean organizationBean = get(orgId);
-        List<MemberBean> members = listMembers(orgId);
-        for(MemberBean member:members){
+        OrganizationBean org = get(orgId);
+        if (org == null) {
+            throw ExceptionFactory.organizationNotFoundException(orgId);
+        }
+        if (org.isOrganizationPrivate()) {
+            throw ExceptionFactory.membershipRequestFailedException("Organization is private");
+        }
+        if (securityContext.getCurrentUser() == null || securityContext.getCurrentUser().isEmpty()) {
+            throw ExceptionFactory.userNotFoundException(securityContext.getCurrentUser());
+        }
+        if (isMember(securityContext.getCurrentUser(), orgId)) {
+            throw ExceptionFactory.membershipRequestFailedException("Already a member");
+        }
+        try {
+            EventBean event = query.getEventByOriginDestinationAndType(securityContext.getCurrentUser(), org.getId(), EventType.MEMBERSHIP_PENDING);
+            if (event != null) {
+                throw ExceptionFactory.membershipRequestFailedException("Membership already requested, still pending");
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+        listMembers(orgId).forEach(member -> {
             member.getRoles().forEach(role -> {
                 if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){
                     //send email
@@ -3176,11 +3259,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
                             RequestMembershipMailBean requestMembershipMailBean = new RequestMembershipMailBean();
                             requestMembershipMailBean.setTo(member.getEmail());
-                            UserBean userBean = userFacade.get(securityContext.getCurrentUser());
-                            requestMembershipMailBean.setUserId(userBean.getUsername());
-                            requestMembershipMailBean.setUserMail(userBean.getEmail());
-                            requestMembershipMailBean.setOrgName(organizationBean.getName());
-                            requestMembershipMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
+                            requestMembershipMailBean.setUserId(securityContext.getCurrentUser());
+                            requestMembershipMailBean.setUserMail(securityContext.getEmail());
+                            requestMembershipMailBean.setOrgName(org.getName());
+                            requestMembershipMailBean.setOrgFriendlyName(org.getFriendlyName());
                             mailProvider.sendRequestMembership(requestMembershipMailBean);
                         }
                     }catch(Exception e){
@@ -3188,7 +3270,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     }
                 }
             });
-        }
+        });
+        NewEventBean newEvent = new NewEventBean()
+                .withOriginId(securityContext.getCurrentUser())
+                .withDestinationId(org.getId())
+                .withType(EventType.MEMBERSHIP_PENDING);
+        event.fire(newEvent);
+    }
+
+    public void rejectMembershipRequest(String organizationId, String userId) {
+        OrganizationBean org = get(organizationId);
+        UserBean user = userFacade.get(userId);
+        NewEventBean newEvent = new NewEventBean()
+                .withOriginId(org.getId())
+                .withDestinationId(user.getUsername())
+                .withType(EventType.MEMBERSHIP_REJECTED);
+        event.fire(newEvent);
     }
 
     /**

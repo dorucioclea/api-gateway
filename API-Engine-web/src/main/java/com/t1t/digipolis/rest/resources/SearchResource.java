@@ -61,7 +61,7 @@ public class SearchResource implements ISearchResource {
         return searchFacade.searchOrgs(criteria);
     }
 
-    @ApiOperation(value = "Search for Organizations",
+    @ApiOperation(value = "Search for Applications",
             notes = "Use this endpoint to search for applications.  The search criteria is provided in the body of the request, including filters, order-by, and paging information.")
     @ApiResponses({
             @ApiResponse(code = 200, response = SearchResultsBean.class, message = "The search results (a page of applications).")

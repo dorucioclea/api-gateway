@@ -6,6 +6,8 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
+import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -439,4 +441,14 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException;
+
+    public List<EventBean> getAllIncomingEvents(String destination) throws StorageException;
+
+    public List<EventBean> getAllOutgoingEvents(String origin) throws StorageException;
+
+    public List<EventBean> getIncomingEventsByType(String destination, EventType type) throws StorageException;
+
+    public List<EventBean> getOutgoingEventsByType(String origin, EventType type) throws StorageException;
+
+    public EventBean getEventByOriginDestinationAndType(String origin, String destination, EventType type) throws StorageException;
 }

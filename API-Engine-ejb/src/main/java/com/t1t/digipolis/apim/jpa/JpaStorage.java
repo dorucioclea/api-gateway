@@ -9,6 +9,8 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
+import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
@@ -464,6 +466,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.delete(blacklistBean);
     }
 
+    @Override
+    public void deleteEvent(EventBean eventBean) throws StorageException {
+        super.delete(eventBean);
+    }
+
     /**
      * @see IStorage#getOrganization(String)
      */
@@ -688,6 +695,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             osb.setFriendlyName(bean.getFriendlyName());
             osb.setName(bean.getName());
             osb.setDescription(bean.getDescription());
+            osb.setOrganizationPrivate(bean.isOrganizationPrivate());
             rval.getBeans().add(osb);
         }
         return rval;
@@ -859,6 +867,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createBlacklistRecord(BlacklistBean blacklistBean) throws StorageException {
         super.create(blacklistBean);
+    }
+
+    @Override
+    public void createEvent(EventBean eventBean) throws StorageException {
+        super.create(eventBean);
     }
 
     /**
@@ -1050,6 +1063,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             summary.setFriendlyName(bean.getFriendlyName());
             summary.setName(bean.getName());
             summary.setDescription(bean.getDescription());
+            summary.setOrganizationPrivate(bean.isOrganizationPrivate());
             orgs.add(summary);
         }
         return orgs;
@@ -1917,5 +1931,106 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             });
         });
         return returnValue;
+    }
+
+    @Override
+    public EventBean getEvent(Long id) throws StorageException {
+        return super.get(id, EventBean.class);
+    }
+
+    /*@Override
+
+
+    @Override
+    public List<EventBean> getAllOutgoingEventsForEntity(String origin) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE (e.origin = :origin OR e.originOrg = :origin)";
+        return em.createQuery(jpql)
+                .setParameter("origin", origin)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getOutgoingEventsForEntityByTypeAndStatus(String origin, EventType type, EventStatus status) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE (e.origin = :origin OR e.originOrg = :origin) AND e.type = :eventType AND e.status = :status";
+        return em.createQuery(jpql)
+                .setParameter("origin", origin)
+                .setParameter("eventType", type)
+                .setParameter("status", status)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getAllIncomingEventsForEntity(String destination) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE (e.destination = :destination OR e.destinationOrg = :destination)";
+        return em.createQuery(jpql)
+                .setParameter("destination", destination)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getIncomingEventsForEntityByTypeAndStatus(String destination, EventType type, EventStatus status) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE (e.destination = :destination OR e.destinationOrg = :destination) AND e.type = :eventType AND e.status = :status";
+        return em.createQuery(jpql)
+                .setParameter("destination", destination)
+                .setParameter("eventType", type)
+                .setParameter("status", status)
+                .getResultList();
+    }*/
+
+    public EventBean getEventByOriginDestinationAndType(String origin, String destination, EventType type) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.originId = :origin AND e.destinationId = :destination AND e.type = :eventType";
+        try {
+            return (EventBean) em.createQuery(jpql)
+                    .setParameter("origin", origin)
+                    .setParameter("destination", destination)
+                    .setParameter("eventType", type)
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
+    }
+
+    @Override
+    public List<EventBean> getAllIncomingEvents(String destination) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.destinationId LIKE :destination ORDER BY e.createdOn";
+        return em.createQuery(jpql)
+                .setParameter("destination", destination)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getAllOutgoingEvents(String origin) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.originId LIKE :origin ORDER BY e.createdOn";
+        return em.createQuery(jpql)
+                .setParameter("origin", origin)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getIncomingEventsByType(String destination, EventType type) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.destinationId LIKE :destination AND e.type = :eventType ORDER BY e.createdOn";
+        return em.createQuery(jpql)
+                .setParameter("destination", destination)
+                .setParameter("eventType", type)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getOutgoingEventsByType(String origin, EventType type) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.originId LIKE :origin AND e.type = :eventType ORDER BY e.createdOn";
+        return em.createQuery(jpql)
+                .setParameter("origin", origin)
+                .setParameter("eventType", type)
+                .getResultList();
     }
 }
