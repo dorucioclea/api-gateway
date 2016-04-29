@@ -8,3 +8,9 @@ CREATE TABLE events (id BIGINT NOT NULL, origin_id VARCHAR(255) NOT NULL, destin
 ALTER TABLE events ADD PRIMARY KEY (id);
 
 ALTER TABLE events ADD CONSTRAINT UK_events_1 UNIQUE (origin_id, destination_id, type);
+
+
+-- mail templates
+CREATE TABLE public.mail_templates (topic VARCHAR(255) NOT NULL,template TEXT NULL,org_id VARCHAR(255) NOT NULL,created_on TIMESTAMP NULL,updated_on TIMESTAMP NULL) WITHOUT OIDS;
+
+ALTER TABLE public.mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic, org_id);
