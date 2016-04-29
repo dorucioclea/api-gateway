@@ -1957,7 +1957,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public MailTemplateBean getMailTemplate(MailTopic mailTopic) throws StorageException {
-        return super.get(mailTopic.toString(),MailTemplateBean.class);
+        return super.get(mailTopic.getTopicName(),MailTemplateBean.class);
     }
 
     /*@Override

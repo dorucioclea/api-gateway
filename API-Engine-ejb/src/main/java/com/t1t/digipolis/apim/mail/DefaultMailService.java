@@ -4,12 +4,18 @@ import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.mail.*;
 import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.MailServiceException;
+import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 /**
  * Simple mailprovider, no templating and no dynamic substitutions.
@@ -23,19 +29,34 @@ import javax.inject.Inject;
 public class DefaultMailService implements MailService {
     private final static Logger _LOG = LoggerFactory.getLogger(DefaultMailService.class.getName());
     @Inject private AppConfig config;
-    @Inject private MailProvider mailProvider;
+    @Inject @Default private MailProvider mailProvider;
     @Inject private IStorage storage;
+    private static final String KEY_START = "{";
+    private static final String KEY_END = "}";
 
-    public void sendTestMail() {
-        BaseMailBean mailBean = new BaseMailBean();
-        mailBean.setSubject("API Engine server restart (" + config.getEnvironment() + ")");
-        mailBean.setContent("This is a test message - no further action required.");
-        mailBean.setTo(config.getNotificationStartupMail());
-        mailProvider.sendMail(mailProvider.composeMessage(mailBean));
+    public void sendTestMail() throws MailServiceException {
+        try{
+            //get the mail template
+            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.TEST);
+            //map
+            TestMailBean testMailBean = new TestMailBean();
+            testMailBean.setEnvironment(config.getEnvironment());
+
+            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(testMailBean);
+            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
+
+            BaseMailBean mailBean = new BaseMailBean();
+            mailBean.setSubject(sub.replace(mailTemplate.getSubject()));
+            mailBean.setContent(sub.replace(mailTemplate.getTemplate()));
+            mailBean.setTo(config.getNotificationStartupMail());
+            mailProvider.sendMail(mailProvider.composeMessage(mailBean));
+        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
+            throw new MailServiceException(ex.getMessage());
+        }
     }
 
     @Override
-    public void sendStatusMail(StatusMailBean statusMailBean) {
+    public void sendStatusMail(StatusMailBean statusMailBean) throws MailServiceException {
         BaseMailBean mailBean = new BaseMailBean();
         mailBean.setSubject("API Engine - status mail (" + config.getEnvironment() + ")");
         mailBean.setContent("Not yet implemented");
@@ -44,7 +65,7 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void sendRequestMembership(RequestMembershipMailBean requestMembershipMailBean) {
+    public void sendRequestMembership(RequestMembershipMailBean requestMembershipMailBean) throws MailServiceException {
         requestMembershipMailBean.setSubject("API Engine (" + config.getEnvironment() + ") - request membership for " + requestMembershipMailBean.getOrgFriendlyName());
         //TODO: templating
         StringBuilder sContent = new StringBuilder("");
@@ -62,17 +83,17 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void approveRequestMembership(RequestMembershipMailBean requestMembershipMailBean) {
+    public void approveRequestMembership(RequestMembershipMailBean requestMembershipMailBean) throws MailServiceException {
 
     }
 
     @Override
-    public void rejectRequestMembership(RequestMembershipMailBean requestMembershipMailBean) {
+    public void rejectRequestMembership(RequestMembershipMailBean requestMembershipMailBean) throws MailServiceException {
 
     }
 
     @Override
-    public void sendUpdateMember(UpdateMemberMailBean updateMemberMailBean) {
+    public void sendUpdateMember(UpdateMemberMailBean updateMemberMailBean) throws MailServiceException {
         //TODO: templating
         StringBuilder sContent = new StringBuilder("");
         sContent.append("Your organization profile has been updated for organization: ");
@@ -113,7 +134,7 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void sendUpdateAdmin(UpdateAdminMailBean updateAdminMailBean) {
+    public void sendUpdateAdmin(UpdateAdminMailBean updateAdminMailBean) throws MailServiceException {
         //TODO: templating
         StringBuilder sContent = new StringBuilder("");
         sContent.append("Your admin profile has been updated: ");
@@ -141,17 +162,17 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void sendContractRequest(ContractRequest request) {
+    public void sendContractRequest(ContractRequest request) throws MailServiceException {
 
     }
 
     @Override
-    public void approveContractRequest(ContractRequest request) {
+    public void approveContractRequest(ContractRequest request) throws MailServiceException {
 
     }
 
     @Override
-    public void rejectContractRequest(ContractRequest request) {
+    public void rejectContractRequest(ContractRequest request) throws MailServiceException {
 
     }
 

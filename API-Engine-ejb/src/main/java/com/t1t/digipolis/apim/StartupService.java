@@ -44,10 +44,10 @@ public class StartupService {
      */
     @PostConstruct
     public void initOAuthOnGateways() {
-        _LOG.debug("Send test mail");
-        mailService.sendTestMail();
-        _LOG.debug("Start init OAuthGateways");
         try{
+            _LOG.debug("Send test mail");
+            mailService.sendTestMail();
+            _LOG.debug("Start init OAuthGateways");
             List<GatewayBean> gatewayBeans = storageQuery.listGatewayBeans();
             gatewayBeans.forEach(gtw -> {
                 IGatewayLink iGatewayLink = gatewayLinkFactory.create(gtw);

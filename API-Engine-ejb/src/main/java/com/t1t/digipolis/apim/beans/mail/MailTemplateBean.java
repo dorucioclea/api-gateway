@@ -41,6 +41,14 @@ public class MailTemplateBean extends BaseEntity implements Serializable {
         this.template = template;
     }
 
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
