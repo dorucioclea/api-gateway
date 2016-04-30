@@ -1969,6 +1969,7 @@ public class OrganizationResource implements IOrganizationResource {
     })
     @POST
     @Path("/{organizationId}/request-membership")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void requestMembership(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
@@ -1984,6 +1985,7 @@ public class OrganizationResource implements IOrganizationResource {
     @POST
     @Path("/{organizationId}/membership-requests/{userId}/reject")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public void rejectMembershipRequest(@PathParam("organizationId") String organizationId, @PathParam("userId") String userId) throws NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(userId));
