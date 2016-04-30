@@ -147,6 +147,7 @@ public class EventFacade {
                     deletePendingMembershipRequest(event);
                     break;
                 case CONTRACT_ACCEPTED:
+                    deleteContractPending(event);
                     break;
                 case CONTRACT_PENDING:
                     deleteContractRefusedEvent(event);
@@ -206,7 +207,9 @@ public class EventFacade {
     private void deleteContractPending(EventBean bean) throws StorageException {
         EventBean pendingEvent =  query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), CONTRACT_PENDING);
         if (pendingEvent == null) {
-            throw ExceptionFactory.contractRequestFailedException("Contract never requested");
+            if (bean.getType() == EventType.CONTRACT_REJECTED) {
+                throw ExceptionFactory.contractRequestFailedException("Contract never requested");
+            }
         }
         else {
             storage.deleteEvent(pendingEvent);
