@@ -40,4 +40,14 @@ public class BaseMailBean {
     public void setContent(String content) {
         this.content = content;
     }
+
+    @Override
+    public String toString() {
+        return "BaseMailBean{" +
+                "to='" + to + '\'' +
+                ", subject='" + subject + '\'' +
+                ", content='" + content + '\'' +
+                ", environment='" + environment + '\'' +
+                '}';
+    }
 }

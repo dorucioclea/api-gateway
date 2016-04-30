@@ -65,6 +65,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendRequestMembership(MembershipRequestMailBean membershipRequestMailBean) throws MailServiceException {
+        membershipRequestMailBean.setEnvironment(config.getEnvironment());
         try{
             MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_REQUEST);
             Map<String, String> keymap = BeanUtilsBean.getInstance().describe(membershipRequestMailBean);
@@ -189,8 +190,8 @@ public class DefaultMailService implements MailService {
         BaseMailBean mailBean = new BaseMailBean();
         mailBean.setSubject(sub.replace(mailTemplate.getSubject()));
         mailBean.setContent(sub.replace(mailTemplate.getTemplate()));
-        //mailBean.setContent(mailTemplate.getTemplate());
         mailBean.setTo(to);
+        _LOG.debug("Sending mail: {}",mailBean);
         mailProvider.sendMail(mailProvider.composeMessage(mailBean));
     }
 
