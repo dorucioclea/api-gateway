@@ -1999,7 +1999,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public Integer getRegisteredApplicationCountForOrg(String orgId) throws StorageException {
+    public Integer getMemberCountForOrg(String orgId) throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT count(m.id) FROM RoleMembershipBean m WHERE m.organizationId = :orgId";
         Query query = em.createQuery(jpql);
@@ -2008,7 +2008,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public Integer getMemberCountForOrg(String orgId) throws StorageException {
+    public Integer getRegisteredApplicationCountForOrg(String orgId) throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT count(a.id) FROM ApplicationVersionBean a JOIN a.application v WHERE v.organization.id = :orgId AND a.status = :status";
         Query query = em.createQuery(jpql);

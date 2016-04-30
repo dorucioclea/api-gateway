@@ -191,7 +191,6 @@ public class DefaultMailService implements MailService {
         mailBean.setContent(sub.replace(mailTemplate.getTemplate()));
         //mailBean.setContent(mailTemplate.getTemplate());
         mailBean.setTo(to);
-        mailBean.setFooter(storage.getMailTemplate(MailTopic.FOOTER).getTemplate());
         mailProvider.sendMail(mailProvider.composeMessage(mailBean));
     }
 

@@ -48,9 +48,6 @@ public class DefaultMailProvider implements MailProvider {
     public <K extends MimeMessage> K composeMessage(BaseMailBean mailContent) throws MailProviderException {
         String subject = mailContent.getSubject();
         String content = mailContent.getContent();
-        if(!StringUtils.isEmpty(mailContent.getFooter())){
-            content = content + "\n" + mailContent.getFooter();
-        }
         String toAddress = mailContent.getTo();
         try{
             MimeMessage m = new MimeMessage(mailSession);
@@ -60,7 +57,7 @@ public class DefaultMailProvider implements MailProvider {
             m.setRecipients(Message.RecipientType.TO, to);
             m.setSubject(subject);
             m.setSentDate(new java.util.Date());
-            m.setContent(content,"text/plain");
+            m.setContent(content,"text/html; charset=utf-8");
             return (K)m;
         }catch(MessagingException e){
             _LOG.error("Error sending email:{}",e.getMessage());

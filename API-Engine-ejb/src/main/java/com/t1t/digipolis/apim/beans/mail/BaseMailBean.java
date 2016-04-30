@@ -7,7 +7,6 @@ public class BaseMailBean {
     private String to;
     private String subject;
     private String content;
-    private String footer;
     String environment;
 
     public String getEnvironment() {
@@ -41,14 +40,4 @@ public class BaseMailBean {
     public void setContent(String content) {
         this.content = content;
     }
-
-    public String getFooter() {
-        return footer;
-    }
-
-    public void setFooter(String footer) {
-        this.footer = footer;
-    }
-
-
 }

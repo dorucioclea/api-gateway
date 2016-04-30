@@ -22,8 +22,7 @@ public enum MailTopic {
     CONTRACT_APPROVE("CONTRACT_APPROVE"),
     CONTRACT_REJECT("CONTRACT_REJECT"),
     STATUS("STATUS"),
-    TEST("TEST"),
-    FOOTER("FOOTER");
+    TEST("TEST");
 
     private String topicName;
 
