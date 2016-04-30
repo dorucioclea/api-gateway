@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.jpa;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
+import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
@@ -20,6 +21,7 @@ import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
+import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.plugins.PluginBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
@@ -1960,49 +1962,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return super.get(mailTopic.getTopicName(),MailTemplateBean.class);
     }
 
-    /*@Override
-
-
     @Override
-    public List<EventBean> getAllOutgoingEventsForEntity(String origin) throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT e FROM EventBean e WHERE (e.origin = :origin OR e.originOrg = :origin)";
-        return em.createQuery(jpql)
-                .setParameter("origin", origin)
-                .getResultList();
-    }
-
-    @Override
-    public List<EventBean> getOutgoingEventsForEntityByTypeAndStatus(String origin, EventType type, EventStatus status) throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT e FROM EventBean e WHERE (e.origin = :origin OR e.originOrg = :origin) AND e.type = :eventType AND e.status = :status";
-        return em.createQuery(jpql)
-                .setParameter("origin", origin)
-                .setParameter("eventType", type)
-                .setParameter("status", status)
-                .getResultList();
-    }
-
-    @Override
-    public List<EventBean> getAllIncomingEventsForEntity(String destination) throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT e FROM EventBean e WHERE (e.destination = :destination OR e.destinationOrg = :destination)";
-        return em.createQuery(jpql)
-                .setParameter("destination", destination)
-                .getResultList();
-    }
-
-    @Override
-    public List<EventBean> getIncomingEventsForEntityByTypeAndStatus(String destination, EventType type, EventStatus status) throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT e FROM EventBean e WHERE (e.destination = :destination OR e.destinationOrg = :destination) AND e.type = :eventType AND e.status = :status";
-        return em.createQuery(jpql)
-                .setParameter("destination", destination)
-                .setParameter("eventType", type)
-                .setParameter("status", status)
-                .getResultList();
-    }*/
-
     public EventBean getEventByOriginDestinationAndType(String origin, String destination, EventType type) throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT e FROM EventBean e WHERE e.originId = :origin AND e.destinationId = :destination AND e.type = :eventType";
@@ -2016,6 +1976,54 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         catch (NoResultException ex) {
             return null;
         }
+    }
+
+    @Override
+    public Integer getPublishedServiceCountForOrg(String orgId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT count(s.id) FROM ServiceVersionBean s JOIN s.service v WHERE v.organization.id = :orgId AND s.status = :status";
+        Query query = em.createQuery(jpql);
+        query.setParameter("orgId", orgId);
+        query.setParameter("status", ServiceStatus.Published);
+        return (Integer) query.getSingleResult();
+    }
+
+    @Override
+    public Integer getLockedPlanCountForOrg(String orgId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT count(p.id) FROM PlanVersionBean p JOIN p.plan v WHERE v.organization.id = :orgId AND p.status = :status";
+        Query query = em.createQuery(jpql);
+        query.setParameter("orgId", orgId);
+        query.setParameter("status", PlanStatus.Locked);
+        return (Integer) query.getSingleResult();
+    }
+
+    @Override
+    public Integer getRegisteredApplicationCountForOrg(String orgId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT count(m.id) FROM RoleMembershipBean m WHERE m.organizationId = :orgId";
+        Query query = em.createQuery(jpql);
+        query.setParameter("orgId", orgId);
+        return (Integer) query.getSingleResult();
+    }
+
+    @Override
+    public Integer getMemberCountForOrg(String orgId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT count(a.id) FROM ApplicationVersionBean a JOIN a.application v WHERE v.organization.id = :orgId AND a.status = :status";
+        Query query = em.createQuery(jpql);
+        query.setParameter("orgId", orgId);
+        query.setParameter("status", ApplicationStatus.Registered);
+        return (Integer) query.getSingleResult();
+    }
+
+    @Override
+    public Integer getEventCountForOrg(String orgId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT count(e.id) FROM EventBean e WHERE e.destinationId = :orgId ";
+        Query query = em.createQuery(jpql);
+        query.setParameter("orgId", orgId);
+        return (Integer) query.getSingleResult();
     }
 
     @Override

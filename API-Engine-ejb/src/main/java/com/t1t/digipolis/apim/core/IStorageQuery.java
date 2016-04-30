@@ -442,13 +442,88 @@ public interface IStorageQuery {
      */
     public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException;
 
+    /**
+     * Returns all incoming events for given destination
+     * @param destination
+     * @return
+     * @throws StorageException
+     */
     public List<EventBean> getAllIncomingEvents(String destination) throws StorageException;
 
+    /**
+     * Returns all outgoing events for given origin
+     * @param origin
+     * @return
+     * @throws StorageException
+     */
     public List<EventBean> getAllOutgoingEvents(String origin) throws StorageException;
 
+    /**
+     * Returns incoming events by type
+     * @param destination
+     * @param type
+     * @return
+     * @throws StorageException
+     */
     public List<EventBean> getIncomingEventsByType(String destination, EventType type) throws StorageException;
 
+    /**
+     * Returns outgoing events by type
+     * @param origin
+     * @param type
+     * @return
+     * @throws StorageException
+     */
     public List<EventBean> getOutgoingEventsByType(String origin, EventType type) throws StorageException;
 
+    /**
+     * Returns event by given origin, destination and type.
+     * @param origin
+     * @param destination
+     * @param type
+     * @return
+     * @throws StorageException
+     */
     public EventBean getEventByOriginDestinationAndType(String origin, String destination, EventType type) throws StorageException;
+
+    /**
+     * Returns the count for published service for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getPublishedServiceCountForOrg(String orgId)throws StorageException;
+
+    /**
+     * Returns the count for locked plans for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getLockedPlanCountForOrg(String orgId)throws StorageException;
+
+    /**
+     * Returns the count for registered applications for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getRegisteredApplicationCountForOrg(String orgId)throws StorageException;
+
+    /**
+     * Return the count for member for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getMemberCountForOrg(String orgId)throws StorageException;
+
+    /**
+     * Return the event count for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getEventCountForOrg(String orgId) throws StorageException;
+
 }

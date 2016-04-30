@@ -20,6 +20,7 @@ public class OrganizationSummaryBean implements Serializable {
     private int numServices;
     private int numMembers;
     private int numPlans;
+    private int numEvents;
 
     /**
      * Constructor.
@@ -128,6 +129,14 @@ public class OrganizationSummaryBean implements Serializable {
         this.numPlans = numPlans;
     }
 
+    public int getNumEvents() {
+        return numEvents;
+    }
+
+    public void setNumEvents(int numEvents) {
+        this.numEvents = numEvents;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -173,6 +182,7 @@ public class OrganizationSummaryBean implements Serializable {
                 ", organizationPrivate=" + organizationPrivate +
                 ", numApps=" + numApps +
                 ", numServices=" + numServices +
+                ", numEvents=" + numEvents +
                 ", numMembers=" + numMembers +
                 '}';
     }

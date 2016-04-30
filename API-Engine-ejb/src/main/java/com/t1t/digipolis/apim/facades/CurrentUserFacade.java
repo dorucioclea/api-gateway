@@ -105,12 +105,12 @@ public class CurrentUserFacade {
     }
 
     public List<OrganizationSummaryBean> getAppOrganizations(){
-        log.info("Getting organizations");
+        log.debug("Getting organizations");
         String currentUser = securityContext.getCurrentUser();
         Set<String> permittedOrganizations = new TreeSet<>();
         try {
-            log.info("currentuser:{}",currentUser);
-            log.info("isadmin:{}",idmStorage.getUser(currentUser).getAdmin());
+            log.debug("currentuser:{}",currentUser);
+            log.debug("isadmin:{}",idmStorage.getUser(currentUser).getAdmin());
             if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
                 permittedOrganizations = storage.getAllOrganizations();
             }else{
@@ -120,8 +120,8 @@ public class CurrentUserFacade {
             throw ExceptionFactory.userNotFoundException(currentUser);
         }
         try {
-            log.info("Permitted organizations:"+permittedOrganizations);
-            return query.getOrgs(permittedOrganizations);
+            log.debug("Permitted organizations:"+permittedOrganizations);
+            return enrichOrgCounters(query.getOrgs(permittedOrganizations));
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
@@ -159,7 +159,7 @@ public class CurrentUserFacade {
             throw ExceptionFactory.userNotFoundException(currentUser);
         }
         try {
-            return query.getOrgs(permittedOrganizations);
+            return enrichOrgCounters(query.getOrgs(permittedOrganizations));
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
@@ -203,6 +203,35 @@ public class CurrentUserFacade {
         }
     }
 
-
+    /**
+     * Adds org counters for:
+     * <ul>
+     *     <li>member count</li>
+     *     <li>locked plan count</li>
+     *     <li>published services</li>
+     *     <li>registered apps</li>
+     *     <li>events destination org</li>
+     * </ul>
+     * @param organizationSummaryList
+     * @return
+     */
+    private List<OrganizationSummaryBean> enrichOrgCounters(List<OrganizationSummaryBean> organizationSummaryList) throws StorageException {
+        if(organizationSummaryList!=null&&organizationSummaryList.size()>0){
+            for(OrganizationSummaryBean orgSumBean:organizationSummaryList){
+                final Integer eventCountForOrg = query.getEventCountForOrg(orgSumBean.getId());
+                final Integer memberCountForOrg = query.getMemberCountForOrg(orgSumBean.getId());
+                final Integer lockedPlanCountForOrg = query.getLockedPlanCountForOrg(orgSumBean.getId());
+                final Integer publishedServiceCountForOrg = query.getPublishedServiceCountForOrg(orgSumBean.getId());
+                final Integer registeredApplicationCountForOrg = query.getRegisteredApplicationCountForOrg(orgSumBean.getId());
+                orgSumBean.setNumApps(registeredApplicationCountForOrg);
+                orgSumBean.setNumMembers(memberCountForOrg);
+                orgSumBean.setNumPlans(lockedPlanCountForOrg);
+                orgSumBean.setNumServices(publishedServiceCountForOrg);
+                orgSumBean.setNumEvents(eventCountForOrg);
+            }
+            return organizationSummaryList;
+        }
+        return organizationSummaryList;
+    }
 
 }
