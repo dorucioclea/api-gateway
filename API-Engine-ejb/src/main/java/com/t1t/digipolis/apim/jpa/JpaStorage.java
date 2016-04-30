@@ -1985,7 +1985,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         Query query = em.createQuery(jpql);
         query.setParameter("orgId", orgId);
         query.setParameter("status", ServiceStatus.Published);
-        return (Integer) query.getSingleResult();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
@@ -1995,7 +1995,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         Query query = em.createQuery(jpql);
         query.setParameter("orgId", orgId);
         query.setParameter("status", PlanStatus.Locked);
-        return (Integer) query.getSingleResult();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
@@ -2004,7 +2004,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         String jpql = "SELECT count(m.id) FROM RoleMembershipBean m WHERE m.organizationId = :orgId";
         Query query = em.createQuery(jpql);
         query.setParameter("orgId", orgId);
-        return (Integer) query.getSingleResult();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
@@ -2014,7 +2014,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         Query query = em.createQuery(jpql);
         query.setParameter("orgId", orgId);
         query.setParameter("status", ApplicationStatus.Registered);
-        return (Integer) query.getSingleResult();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
@@ -2023,7 +2023,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         String jpql = "SELECT count(e.id) FROM EventBean e WHERE e.destinationId = :orgId ";
         Query query = em.createQuery(jpql);
         query.setParameter("orgId", orgId);
-        return (Integer) query.getSingleResult();
+        return ((Long) query.getSingleResult()).intValue();
     }
 
     @Override
