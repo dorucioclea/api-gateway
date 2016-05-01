@@ -2020,9 +2020,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public Integer getEventCountForOrg(String orgId) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT count(e.id) FROM EventBean e WHERE e.destinationId = :orgId ";
+        String jpql = "SELECT count(e.id) FROM EventBean e WHERE e.destinationId LIKE :orgId AND (e.type = :eventContractRQPending OR e.type = :eventMemberRQPending)";
         Query query = em.createQuery(jpql);
-        query.setParameter("orgId", orgId);
+        query.setParameter("orgId", "%"+orgId+".%");//orgid ends with '.'
+        query.setParameter("eventContractRQPending", EventType.CONTRACT_PENDING);
+        query.setParameter("eventMemberRQPending", EventType.MEMBERSHIP_PENDING);
+        //query.setParameter("eventTypeList", Arrays.asList(EventType.MEMBERSHIP_PENDING,EventType.CONTRACT_PENDING));
         return ((Long) query.getSingleResult()).intValue();
     }
 

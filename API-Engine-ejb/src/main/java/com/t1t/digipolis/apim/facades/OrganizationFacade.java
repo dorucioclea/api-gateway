@@ -22,6 +22,7 @@ import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
+import com.t1t.digipolis.apim.beans.mail.ContractRequestMailBean;
 import com.t1t.digipolis.apim.beans.mail.MembershipAction;
 import com.t1t.digipolis.apim.beans.mail.MembershipRequestMailBean;
 import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
@@ -473,6 +474,32 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .withType(EventType.CONTRACT_PENDING)
                         .withBody(new Gson().toJson(pvsb));
                 event.fire(newEvent);
+                //send notification to org owners for
+                listMembers(organizationId).forEach(member -> {
+                    member.getRoles().forEach(role -> {
+                        if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){//only owners
+                            try{
+                                if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
+                                    ContractRequestMailBean contractRequestMailBean = new ContractRequestMailBean();
+                                    contractRequestMailBean.setTo(member.getEmail());
+                                    contractRequestMailBean.setUserId(securityContext.getCurrentUser());
+                                    contractRequestMailBean.setUserMail(securityContext.getEmail());
+                                    contractRequestMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
+                                    contractRequestMailBean.setAppName(avb.getApplication().getName());
+                                    contractRequestMailBean.setAppVersion(avb.getVersion());
+                                    contractRequestMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
+                                    contractRequestMailBean.setServiceName(svb.getService().getName());
+                                    contractRequestMailBean.setServiceVersion(svb.getVersion());
+                                    contractRequestMailBean.setPlanName(pvsb.getName());
+                                    contractRequestMailBean.setPlanVersion(pvsb.getVersion());
+                                    mailService.sendContractRequest(contractRequestMailBean);
+                                }
+                            }catch(Exception e){
+                                log.error("Error sending mail:{}",e.getMessage());
+                            }
+                        }
+                    });
+                });
                 return null;
             }
             else {

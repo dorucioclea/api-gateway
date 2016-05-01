@@ -7,8 +7,6 @@ import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
-import com.t1t.digipolis.apim.core.IIdmStorage;
-import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.CurrentUserFacade;
@@ -34,14 +32,10 @@ import java.util.List;
 @Path("/currentuser")
 @ApplicationScoped
 public class CurrentUserResource implements ICurrentUserResource {
-
-    @Inject
-    private IIdmStorage idmStorage;
-    @Inject
-    private IStorageQuery query;
     @Inject
     private ISecurityContext securityContext;
-    @Inject private CurrentUserFacade currentUserFacade;
+    @Inject
+    private CurrentUserFacade currentUserFacade;
     @Inject
     private EventFacade eventFacade;
 

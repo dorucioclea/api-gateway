@@ -227,7 +227,7 @@ public class EventFacade {
     }
 
     private void deleteMembershipRefusedEvent(EventBean bean) throws StorageException {
-        //In case there still is an extant event marking the request as refused, delete it
+        //In case there still is an existant event marking the request as refused, delete it
         //Here origin and destination are reversed, because rejection event is from organization to user
         EventBean event = query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), EventType.MEMBERSHIP_REJECTED);
         if (event != null) {
