@@ -2035,15 +2035,20 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public EventBean getUniqueEvent(EventBean bean) throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT e FROM EventBean e WHERE e.destinationId = :destination AND e.originId = :origin AND e.type = :eventType";
-        Object res = em.createQuery(jpql)
-                .setParameter("destination",bean.getDestinationId())
-                .setParameter("origin",bean.getOriginId())
-                .setParameter("eventType",bean.getType())
-                .getSingleResult();
-        if(res!=null && res instanceof EventBean ) return (EventBean)res;
-        else return null;
+        try{
+            EntityManager em = getActiveEntityManager();
+            String jpql = "SELECT e FROM EventBean e WHERE e.destinationId = :destination AND e.originId = :origin AND e.type = :eventType";
+            Object res = em.createQuery(jpql)
+                    .setParameter("destination",bean.getDestinationId())
+                    .setParameter("origin",bean.getOriginId())
+                    .setParameter("eventType",bean.getType())
+                    .getSingleResult();
+            if(res!=null && res instanceof EventBean ) return (EventBean)res;
+            else return null;
+        }catch(NoResultException nre){
+            //ignore
+            return null;
+        }
     }
 
     @Override
