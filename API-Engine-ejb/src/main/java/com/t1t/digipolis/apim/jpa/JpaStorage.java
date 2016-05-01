@@ -284,6 +284,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(mailTemplateBean);
     }
 
+    @Override
+    public void updateEvent(EventBean event) throws StorageException {
+        super.update(event);
+    }
+
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -2026,6 +2031,19 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         query.setParameter("eventContractRQPending", EventType.CONTRACT_PENDING);
         query.setParameter("eventMemberRQPending", EventType.MEMBERSHIP_PENDING);
         return ((Long) query.getSingleResult()).intValue();
+    }
+
+    @Override
+    public EventBean getUniqueEvent(EventBean bean) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.destinationId = :destination AND e.originId = :origin AND e.type = :eventType";
+        Object res = em.createQuery(jpql)
+                .setParameter("destination",bean.getDestinationId())
+                .setParameter("origin",bean.getOriginId())
+                .setParameter("eventType",bean.getType())
+                .getSingleResult();
+        if(res!=null && res instanceof EventBean ) return (EventBean)res;
+        else return null;
     }
 
     @Override

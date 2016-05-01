@@ -159,12 +159,26 @@ public class EventFacade {
                     deleteContractPending(event);
                     break;
             }
-            storage.createEvent(event);
+            //storage.createEvent(event);//not save - what if event exists already?
+            verifyAndCreate(event);
             _LOG.debug("Event created:{}", event);
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
+    }
+
+    /**
+     * Verifies if event already exists (origin, destination, type), and safely updates existing events.
+     *
+     * @param event
+     */
+    public void verifyAndCreate(EventBean event) throws StorageException {
+        final EventBean uniqueEvent = query.getUniqueEvent(event);
+        if(uniqueEvent!=null){
+            event.setId(uniqueEvent.getId());
+            storage.updateEvent(event);
+        }else storage.createEvent(event);
     }
 
     /*******************/

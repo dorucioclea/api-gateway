@@ -82,6 +82,7 @@ public interface IStorage {
     public void updateServiceSupport(SupportBean supportBean) throws StorageException;
     public void updateServiceSupportComment(SupportComment commentBean) throws StorageException;
     public void updateMailTemplate(MailTemplateBean mailTemplateBean)throws StorageException;
+    public void updateEvent(EventBean event)throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.

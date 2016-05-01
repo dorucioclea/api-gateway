@@ -443,6 +443,14 @@ public interface IStorageQuery {
     public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException;
 
     /**
+     * Returns a unique event by origin, destination and type - ignoring the id
+     * As unique key is applied on this triplet.
+     * @param eventBean
+     * @return
+     * @throws StorageException
+     */
+    public EventBean getUniqueEvent(EventBean eventBean) throws StorageException;
+    /**
      * Returns all incoming events for given destination
      * @param destination
      * @return
