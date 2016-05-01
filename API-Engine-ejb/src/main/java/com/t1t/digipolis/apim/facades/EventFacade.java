@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,8 @@ public class EventFacade {
     private IStorageQuery query;
     @Inject
     private ISecurityContext securityContext;
+    @Inject
+    private MailService mailService;
 
     public List<EventBean> getCurrentUserAllIncomingEvents() {
         return getIncomingEvents(securityContext.getCurrentUser());
@@ -127,7 +130,7 @@ public class EventFacade {
     /*****************/
     /* Evenlisteners */
     /*****************/
-
+    //TODO provide mail service methods here insteaf of in facades - as result of an event (instead of implicitly in the facade)
     public void onNewEventBean(@Observes NewEventBean bean) {
         EventBean event = new EventBean();
         event.setOriginId(bean.getOriginId());
