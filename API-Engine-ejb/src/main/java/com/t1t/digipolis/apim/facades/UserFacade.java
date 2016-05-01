@@ -806,7 +806,12 @@ public class UserFacade implements Serializable {
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
             jwtRequestBean.setSurname(identityAttributes.getFamilyName());
             jwtRequestBean.setSubject(identityAttributes.getId());
-            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);
+            final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+            Integer jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
+            if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
+                jwtExpirationTime = gatewayBean.getJWTExpTime();
+            }
+            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret, jwtExpirationTime);
             //close gateway
             gatewayLink.close();
         } catch (PublishingException e) {
@@ -903,7 +908,7 @@ public class UserFacade implements Serializable {
         JwtClaims jwtClaims = jwtContext.getJwtClaims();
         //get gateway default expiration time for JWT
         final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
-        Integer jwtExpirationTime = 60;//default 10min.
+        Integer jwtExpirationTime = 60;//default 60min.
         if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
             jwtExpirationTime = gatewayBean.getJWTExpTime();
         }else{
@@ -912,7 +917,7 @@ public class UserFacade implements Serializable {
         //get secret based on iss/username - cached
         String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
         JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret,jwtExpirationTime));
+        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime));
         return jwtRefreshResponseBean;
     }
 

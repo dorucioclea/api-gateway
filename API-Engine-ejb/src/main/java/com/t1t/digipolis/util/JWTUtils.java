@@ -127,6 +127,7 @@ public class JWTUtils {
     public static String refreshJWT(JWTRefreshRequestBean jwtRefreshRequestBean, JwtClaims jwtClaims ,String secret,Integer jwtExpirationTime)throws JoseException, UnsupportedEncodingException{
         //add optional claims
         jwtClaims.setExpirationTimeMinutesInTheFuture(jwtExpirationTime); // time when the token will expire (10 minutes from now)
+        jwtClaims.setNotBeforeMinutesInThePast(180);//TODO fix this issue on the gateway
         addOptionalClaims(jwtClaims,jwtRefreshRequestBean.getOptionalClaims());
         return composeJWT(secret, jwtClaims);
     }
@@ -148,7 +149,7 @@ public class JWTUtils {
         return issuedJwt;
     }
 
-    public static String composeJWT(JWTRequestBean jwtRequestBean, String secret) throws JoseException, UnsupportedEncodingException {
+    public static String composeJWT(JWTRequestBean jwtRequestBean, String secret, Integer jwtExpTime) throws JoseException, UnsupportedEncodingException {
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
         //add optional claims
@@ -158,10 +159,11 @@ public class JWTUtils {
         //It's important to set the optional claims before, otherwise fix claims can be overriden
         claims.setIssuer(jwtRequestBean.getIssuer());  // who creates the token and signs it
         claims.setAudience(jwtRequestBean.getAudience()); // to whom the token is intended to be sent
-        claims.setExpirationTimeMinutesInTheFuture(60); // time when the token will expire (10 minutes from now)
+        claims.setExpirationTimeMinutesInTheFuture(jwtExpTime); // time when the token will expire (60 minutes from now by default)
         claims.setGeneratedJwtId(); // a unique identifier for the token
         claims.setIssuedAtToNow();  // when the token was issued/created (now)
-        claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
+        //TODO fix this issue on the gateway
+        claims.setNotBeforeMinutesInThePast(180); // time before which the token is not yet valid (2 minutes ago)
         //Custom fields
         claims.setSubject(jwtRequestBean.getSubject()); // the subject/principal is whom the token is about
         claims.setClaim(IJWT.NAME, jwtRequestBean.getName());//unique username

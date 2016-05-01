@@ -95,7 +95,7 @@ public class JWTClaimTest {
         jwtRequestBean.setSubject("ex02393");
         String jwt = null;
         try {
-            jwt = JWTUtils.composeJWT(jwtRequestBean,JWT_SECRET);
+            jwt = JWTUtils.composeJWT(jwtRequestBean,JWT_SECRET,60);
         } catch (JoseException e) {
             fail();
         }
