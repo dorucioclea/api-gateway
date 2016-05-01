@@ -15,14 +15,13 @@ import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
-import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
-import com.t1t.digipolis.apim.beans.mail.ContractRequestMailBean;
+import com.t1t.digipolis.apim.beans.mail.ContractMailBean;
 import com.t1t.digipolis.apim.beans.mail.MembershipAction;
 import com.t1t.digipolis.apim.beans.mail.MembershipRequestMailBean;
 import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
@@ -92,7 +91,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
 import javax.enterprise.event.Event;
-import javax.enterprise.inject.New;
 import javax.enterprise.inject.spi.DefinitionException;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -480,19 +478,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){//only owners
                             try{
                                 if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
-                                    ContractRequestMailBean contractRequestMailBean = new ContractRequestMailBean();
-                                    contractRequestMailBean.setTo(member.getEmail());
-                                    contractRequestMailBean.setUserId(securityContext.getCurrentUser());
-                                    contractRequestMailBean.setUserMail(securityContext.getEmail());
-                                    contractRequestMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
-                                    contractRequestMailBean.setAppName(avb.getApplication().getName());
-                                    contractRequestMailBean.setAppVersion(avb.getVersion());
-                                    contractRequestMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
-                                    contractRequestMailBean.setServiceName(svb.getService().getName());
-                                    contractRequestMailBean.setServiceVersion(svb.getVersion());
-                                    contractRequestMailBean.setPlanName(pvsb.getName());
-                                    contractRequestMailBean.setPlanVersion(pvsb.getVersion());
-                                    mailService.sendContractRequest(contractRequestMailBean);
+                                    ContractMailBean contractMailBean = new ContractMailBean();
+                                    contractMailBean.setTo(member.getEmail());
+                                    contractMailBean.setUserId(securityContext.getCurrentUser());
+                                    contractMailBean.setUserMail(securityContext.getEmail());
+                                    contractMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
+                                    contractMailBean.setAppName(avb.getApplication().getName());
+                                    contractMailBean.setAppVersion(avb.getVersion());
+                                    contractMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
+                                    contractMailBean.setServiceName(svb.getService().getName());
+                                    contractMailBean.setServiceVersion(svb.getVersion());
+                                    contractMailBean.setPlanName(pvsb.getName());
+                                    contractMailBean.setPlanVersion(pvsb.getVersion());
+                                    mailService.sendContractRequest(contractMailBean);
                                 }
                             }catch(Exception e){
                                 log.error("Error sending mail:{}",e.getMessage());
@@ -526,6 +524,31 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 .withDestinationId(ConsumerConventionUtil.createAppUniqueId(avb))
                 .withType(EventType.CONTRACT_REJECTED);
         event.fire(newEvent);
+        //send notification to app org owners
+        listMembers(organizationId).forEach(member -> {
+            member.getRoles().forEach(role -> {
+                if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){//only owners
+                    try{
+                        if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
+                            ContractMailBean contractMailBean = new ContractMailBean();
+                            contractMailBean.setTo(member.getEmail());
+                            contractMailBean.setUserId(securityContext.getCurrentUser());
+                            contractMailBean.setUserMail(securityContext.getEmail());
+                            contractMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
+                            contractMailBean.setAppName(avb.getApplication().getName());
+                            contractMailBean.setAppVersion(avb.getVersion());
+                            contractMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
+                            contractMailBean.setServiceName(svb.getService().getName());
+                            contractMailBean.setServiceVersion(svb.getVersion());
+                            contractMailBean.setPlanName(bean.getPlanId());
+                            mailService.rejectContractRequest(contractMailBean);
+                        }
+                    }catch(Exception e){
+                        log.error("Error sending mail:{}",e.getMessage());
+                    }
+                }
+            });
+        });
     }
 
     public ContractBean acceptContractRequest(String organizationId, String applicationId, String version, NewContractBean bean) {
@@ -538,6 +561,31 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 .withDestinationId(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version))
                 .withType(EventType.CONTRACT_ACCEPTED);
         event.fire(newEvent);
+        //send notification to app org owners
+        listMembers(organizationId).forEach(member -> {
+            member.getRoles().forEach(role -> {
+                if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){//only owners
+                    try{
+                        if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
+                            ContractMailBean contractMailBean = new ContractMailBean();
+                            contractMailBean.setTo(member.getEmail());
+                            contractMailBean.setUserId(securityContext.getCurrentUser());
+                            contractMailBean.setUserMail(securityContext.getEmail());
+                            contractMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
+                            contractMailBean.setAppName(avb.getApplication().getName());
+                            contractMailBean.setAppVersion(avb.getVersion());
+                            contractMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
+                            contractMailBean.setServiceName(svb.getService().getName());
+                            contractMailBean.setServiceVersion(svb.getVersion());
+                            contractMailBean.setPlanName(bean.getPlanId());
+                            mailService.approveContractRequest(contractMailBean);
+                        }
+                    }catch(Exception e){
+                        log.error("Error sending mail:{}",e.getMessage());
+                    }
+                }
+            });
+        });
         return contract;
     }
 

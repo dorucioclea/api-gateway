@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.mail;
 
-import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.mail.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.MailServiceException;
@@ -52,20 +51,20 @@ public interface MailService {
 
     /**
      * Send contract request.
-     * @param contractRequestMailBean
+     * @param contractMailBean
      */
-    void sendContractRequest(ContractRequestMailBean contractRequestMailBean)throws MailServiceException;
+    void sendContractRequest(ContractMailBean contractMailBean)throws MailServiceException;
 
     /**
      * Send mail for contract request approval.
-     * @param contractApprovedMailBean
+     * @param contractMailBean
      */
-    void approveContractRequest(ContractApprovedMailBean contractApprovedMailBean)throws MailServiceException;
+    void approveContractRequest(ContractMailBean contractMailBean)throws MailServiceException;
 
     /**
      * Send reject for contract request.
-     * @param contractRejectedMailBean
+     * @param contractMailBean
      */
-    void rejectContractRequest(ContractRejectedMailBean contractRejectedMailBean)throws MailServiceException;
+    void rejectContractRequest(ContractMailBean contractMailBean)throws MailServiceException;
 
 }

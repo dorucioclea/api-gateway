@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.mail;
 
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.mail.*;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -141,7 +140,7 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void sendContractRequest(ContractRequestMailBean mailBean) throws MailServiceException {
+    public void sendContractRequest(ContractMailBean mailBean) throws MailServiceException {
         mailBean.setEnvironment(config.getEnvironment());
         try{
             MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.CONTRACT_REQUEST);
@@ -154,7 +153,7 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void approveContractRequest(ContractApprovedMailBean mailBean) throws MailServiceException {
+    public void approveContractRequest(ContractMailBean mailBean) throws MailServiceException {
         mailBean.setEnvironment(config.getEnvironment());
         try{
             MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.CONTRACT_APPROVE);
@@ -167,7 +166,7 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void rejectContractRequest(ContractRejectedMailBean mailBean) throws MailServiceException {
+    public void rejectContractRequest(ContractMailBean mailBean) throws MailServiceException {
         mailBean.setEnvironment(config.getEnvironment());
         try{
             MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.CONTRACT_REJECT);

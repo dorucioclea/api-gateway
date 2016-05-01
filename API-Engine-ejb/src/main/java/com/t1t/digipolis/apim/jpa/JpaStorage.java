@@ -2025,7 +2025,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         query.setParameter("orgId", "%"+orgId+".%");//orgid ends with '.'
         query.setParameter("eventContractRQPending", EventType.CONTRACT_PENDING);
         query.setParameter("eventMemberRQPending", EventType.MEMBERSHIP_PENDING);
-        //query.setParameter("eventTypeList", Arrays.asList(EventType.MEMBERSHIP_PENDING,EventType.CONTRACT_PENDING));
         return ((Long) query.getSingleResult()).intValue();
     }
 
