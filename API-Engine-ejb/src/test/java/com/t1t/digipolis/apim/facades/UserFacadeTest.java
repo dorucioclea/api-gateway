@@ -19,6 +19,7 @@ import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.apim.security.IdentityAttributes;
 import com.t1t.digipolis.util.CacheUtil;
 import junit.framework.TestCase;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
@@ -33,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 import static org.mockito.Mockito.*;
@@ -80,6 +83,15 @@ public class UserFacadeTest extends TestCase {
     OrganizationFacade orgFacade;
     @Mock
     DefaultBootstrap defaultBootstrap;
+
+    public void testURIUtilForRelayState() throws URISyntaxException {
+        String uriA = "https://someurl.com/?token=my&type=nothingspecial";
+        String uriB = "https://someurl.com/endpoint/test";
+        URI A = new URI(uriA);
+        URI B = new URI(uriB);
+        System.out.println(A.getHost());
+        System.out.println(B.getHost());
+    }
 
     public void testGet() throws Exception {
         UserBean ub = new UserBean();

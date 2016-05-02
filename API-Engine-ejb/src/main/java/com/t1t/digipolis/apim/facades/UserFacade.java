@@ -84,6 +84,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.DateFormat;
@@ -320,10 +322,14 @@ public class UserFacade implements Serializable {
         log.info("Initate SAML2 request for {}", samlRequest.getIdpUrl());
         try {
             //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://", "").replaceAll("http://", "");
+            URI clientAppRedirectURI = new URI(samlRequest.getClientAppRedirect());
+            if (clientAppRedirectURI==null)throw new URISyntaxException(samlRequest.getClientAppRedirect(),"Invalid callback URI");
+            String condensedUri = clientAppRedirectURI.getHost();
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri, "UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest, urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?" + SAML2_KEY_REQUEST + encodedRequestMessage + "&" + SAML2_KEY_RELAY_STATE + urlEncodedClientUrl;
+        } catch(URISyntaxException uris){
+            throw new SAMLAuthException("The callback URL is not a valid URI: "+ uris.getMessage());
         } catch (MarshallingException | IOException | ConfigurationException |StorageException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
         }
