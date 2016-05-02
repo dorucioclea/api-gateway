@@ -534,4 +534,9 @@ public interface IStorageQuery {
      */
     public Integer getEventCountForOrg(String orgId) throws StorageException;
 
+    public List<EventBean> getAllIncomingNonActionEvents(String destination) throws StorageException;
+
+    public List<EventBean> getAllIncomingActionEvents(String destination) throws StorageException;
+
+    public void deleteAllEventsForEntity(String entityId) throws StorageException;
 }

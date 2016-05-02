@@ -1,6 +1,7 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
@@ -179,6 +180,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     })
     @GET
     @Path("/notifications/outgoing/{eventType}")
+    @Produces(MediaType.APPLICATION_JSON)
     public <T> List<T> getCurrentUserOutgoingEventsByTypeAndStatus(@PathParam("eventType") String type) {
         Preconditions.checkArgument(!StringUtils.isEmpty(type));
         return eventFacade.getCurrentUserOutgoingEventsByType(type);
@@ -194,5 +196,31 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Path("/notifications/incoming/{notificationId}")
     public void deleteEvent(@PathParam("notificationId") Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
         eventFacade.deleteEvent(securityContext.getCurrentUser(), id);
+    }
+
+    @Override
+    @ApiOperation(value = "Get current user's organization notifications",
+            notes = "Call this endpoint to get all of the current user's incoming notifications that do not require action, including those meant for organizations the current user has owner rights to")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = EventAggregateBean.class, message = "List of incoming events for current user")
+    })
+    @GET
+    @Path("/notifications")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<EventAggregateBean> getAllNonActionEvents() {
+        return eventFacade.getAllNonActionEvents(currentUserFacade.getInfo());
+    }
+
+    @Override
+    @ApiOperation(value = "Get current user's pending organization notifications",
+            notes = "Call this endpoint to get all of the current user's incoming notifications that require action, including those meant for organizations the current user has owner rights to")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = EventAggregateBean.class, message = "List of incoming events for current user")
+    })
+    @GET
+    @Path("/notifications/pending")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<EventAggregateBean> getAllActionEvents() {
+        return eventFacade.getAllIncomingActionEvents(currentUserFacade.getInfo());
     }
 }

@@ -189,10 +189,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         orgBean.setModifiedOn(new Date());
         orgBean.setModifiedBy(securityContext.getCurrentUser());
         orgBean.setOrganizationPrivate(bean.getOrganizationPrivate() == null ? true : bean.getOrganizationPrivate());
-        if (bean.getFriendlyName() == null) {
-            orgBean.setFriendlyName(bean.getName());
-        }
-        else {
+        if (bean.getFriendlyName() != null) {
+            if (!securityContext.isAdmin()) {
+                throw ExceptionFactory.notAuthorizedException();
+            }
             orgBean.setFriendlyName(bean.getFriendlyName());
         }
         try {
@@ -809,6 +809,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     throw new SystemErrorException(e);
                 }
             });
+            // Delete related application events
+            String eventId = new StringBuilder(applicationBean.getOrganization().getId())
+                    .append(applicationId)
+                    .append(".%")
+                    .toString();
+            query.deleteAllEventsForEntity(eventId);
             // Finally, delete the application from API Engine
             storage.deleteApplication(applicationBean);
         } catch (AbstractRestException e) {
@@ -1711,6 +1717,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             announcements.stream().forEach(announcement -> {
                 deleteServiceAnnouncement(organizationId, serviceId, announcement.getId());
             });
+            // Delete related events
+            String eventId = new StringBuilder(serviceBean.getOrganization().getId())
+                    .append(serviceId)
+                    .append(".%")
+                    .toString();
+            query.deleteAllEventsForEntity(eventId);
             // Finally, delete the Service from API Engine
             storage.deleteService(serviceBean);
         } catch (AbstractRestException e) {

@@ -163,6 +163,8 @@ public class UserFacade implements Serializable {
         for(RoleMembershipBean role: userMemberships){
             if(role.getRoleId().equalsIgnoreCase("owner"))throw ExceptionFactory.userCannotDeleteException(userId);
         }
+        //Delete related events
+        query.deleteAllEventsForEntity(userId);
         //if exception has not been thrown, delete user
         idmStorage.deleteUser(userId);
     }

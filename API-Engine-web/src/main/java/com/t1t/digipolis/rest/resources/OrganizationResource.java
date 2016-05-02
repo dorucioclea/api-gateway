@@ -2143,4 +2143,6 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.acceptContractRequest(organizationId, applicationId, version, response);
     }
+
+
 }

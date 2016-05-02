@@ -62,6 +62,8 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.bouncycastle.asn1.x509.X509ObjectIdentifiers.organization;
+
 /**
  * A JPA implementation of the storage interface.
  */
@@ -2088,5 +2090,35 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("origin", origin)
                 .setParameter("eventType", type)
                 .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getAllIncomingNonActionEvents(String destination) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.destinationId LIKE :destination AND e.type <> :contrPending AND e.type <> :membershipPending ORDER BY e.createdOn";
+        return em.createQuery(jpql)
+                .setParameter("destination", destination)
+                .setParameter("contrPending", EventType.CONTRACT_PENDING)
+                .setParameter("membershipPending", EventType.MEMBERSHIP_PENDING)
+                .getResultList();
+    }
+
+    @Override
+    public List<EventBean> getAllIncomingActionEvents(String destination) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.destinationId LIKE :destination AND (e.type = :contrPending OR e.type = :membershipPending) ORDER BY e.createdOn";
+        return em.createQuery(jpql)
+                .setParameter("destination", destination)
+                .setParameter("contrPending", EventType.CONTRACT_PENDING)
+                .setParameter("membershipPending", EventType.MEMBERSHIP_PENDING)
+                .getResultList();
+    }
+
+    @Override
+    public void deleteAllEventsForEntity(String entityId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "DELETE FROM EventBean e WHERE e.destinationId LIKE :eId OR e.originId LIKE :eId";
+        em.createQuery(jpql)
+                .setParameter("eId", entityId).executeUpdate();
     }
 }

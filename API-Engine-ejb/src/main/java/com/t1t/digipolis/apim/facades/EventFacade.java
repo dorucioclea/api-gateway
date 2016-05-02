@@ -1,7 +1,13 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.google.gson.Gson;
+import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.events.*;
+import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.summary.PlanVersionSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -21,9 +27,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_ACCEPTED;
 import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_PENDING;
 import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_REJECTED;
+import static com.t1t.digipolis.apim.beans.events.EventType.MEMBERSHIP_PENDING;
 
 /**
  * @author Guillaume Vandecasteele
@@ -41,6 +47,10 @@ public class EventFacade {
     private ISecurityContext securityContext;
     @Inject
     private MailService mailService;
+    @Inject
+    private UserFacade userFacade;
+    @Inject
+    private OrganizationFacade orgFacade;
 
     public List<EventBean> getCurrentUserAllIncomingEvents() {
         return getIncomingEvents(securityContext.getCurrentUser());
@@ -117,7 +127,7 @@ public class EventFacade {
             if (!event.getDestinationId().equals(destination)) {
                 throw ExceptionFactory.notAuthorizedException();
             }
-            if (event.getType() == EventType.MEMBERSHIP_PENDING || event.getType() == EventType.CONTRACT_PENDING) {
+            if (event.getType() == MEMBERSHIP_PENDING || event.getType() == EventType.CONTRACT_PENDING) {
                 throw ExceptionFactory.invalidEventException(event.getType().toString());
             }
             storage.deleteEvent(event);
@@ -125,6 +135,50 @@ public class EventFacade {
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
+    }
+
+    public List<EventAggregateBean> getAllNonActionEvents(CurrentUserBean currentUser) {
+        List<String> orgIds = new ArrayList<>();
+        currentUser.getPermissions().forEach(permissionBean -> {
+            if (permissionBean.getName() == PermissionType.orgAdmin) {
+                orgIds.add(permissionBean.getOrganizationId());
+            }
+        });
+        try {
+
+            List<EventBean> events = query.getAllIncomingNonActionEvents(currentUser.getUsername());
+            orgIds.forEach(orgId -> {
+                try {
+                    events.addAll(filterIncomingOrganizationResults(query.getAllIncomingNonActionEvents(validateOrgId(orgId)), orgId));
+                }
+                catch (StorageException ex) {
+                    throw new SystemErrorException(ex);
+                }
+            });
+            return convertToAggregateBeans(events);
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
+    public List<EventAggregateBean> getAllIncomingActionEvents(CurrentUserBean currentUser) {
+        List<String> orgIds = new ArrayList<>();
+        currentUser.getPermissions().forEach(permissionBean -> {
+            if (permissionBean.getName() == PermissionType.orgAdmin) {
+                orgIds.add(permissionBean.getOrganizationId());
+            }
+        });
+        List<EventBean> events = new ArrayList<>();
+        orgIds.forEach(orgId -> {
+            try {
+                events.addAll(filterIncomingOrganizationResults(query.getAllIncomingActionEvents(validateOrgId(orgId)), orgId));
+            }
+            catch (StorageException ex) {
+                throw new SystemErrorException(ex);
+            }
+        });
+        return convertToAggregateBeans(events);
     }
 
     /*****************/
@@ -250,7 +304,7 @@ public class EventFacade {
     }
 
     private void deletePendingMembershipRequest(EventBean bean) throws StorageException {
-        EventBean pendingRequest = query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), EventType.MEMBERSHIP_PENDING);
+        EventBean pendingRequest = query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), MEMBERSHIP_PENDING);
         if (pendingRequest != null) {
             storage.deleteEvent(pendingRequest);
         }
@@ -351,6 +405,105 @@ public class EventFacade {
         request.setServiceId(svc[1]);
         request.setServiceVersion(svc[2]);
         return request;
+    }
+
+    private List<EventAggregateBean> convertToAggregateBeans(List<EventBean> events) {
+        List<EventAggregateBean> eabs =  new ArrayList<>();
+        Gson gson = new Gson();
+        events.forEach(event -> {
+            EventAggregateBean eab = new EventAggregateBean();
+            eab.setId(event.getId());
+            eab.setCreatedOn(event.getCreatedOn());
+            eab.setType(event.getType());
+            eab.setBody(event.getBody());
+            switch (event.getType()) {
+                case MEMBERSHIP_GRANTED:
+                case MEMBERSHIP_REJECTED:
+                    eab.setUserId(event.getDestinationId());
+                    OrganizationBean org = getOrg(event.getOriginId());
+                    eab.setOrganizationName(org.getName());
+                    eab.setFriendlyName(org.getFriendlyName());
+                    eab.setOrgnanizationId(org.getId());
+
+                    eabs.add(eab);
+                    break;
+                case CONTRACT_ACCEPTED:
+                case CONTRACT_REJECTED:
+                    String[] app = event.getDestinationId().split("\\.");
+                    String[] svc = event.getOriginId().split("\\.");
+
+                    ApplicationVersionBean avb = null;
+                    ServiceVersionBean svb = null;
+                    try {
+                        avb = storage.getApplicationVersion(app[0], app[1], app[2]);
+                        svb = storage.getServiceVersion(svc[0], svc[1], svc[2]);
+                        if (avb == null || svb == null) {
+                            storage.deleteEvent(event);
+                        }
+                        else {
+                            eabs.add(finishEventAggregateBeanCreation(eab, avb, svb));
+                        }
+                    }
+                    catch (StorageException ex) {
+                        throw new SystemErrorException(ex);
+                    }
+                    break;
+                case CONTRACT_PENDING:
+                    app = event.getOriginId().split("\\.");
+                    svc = event.getDestinationId().split("\\.");
+
+                    avb = null;
+                    svb = null;
+                    try {
+                        avb = storage.getApplicationVersion(app[0], app[1], app[2]);
+                        svb = storage.getServiceVersion(svc[0], svc[1], svc[2]);
+                        if (avb == null || svb == null) {
+                            storage.deleteEvent(event);
+                        }
+                        else {
+                            PlanVersionSummaryBean pvsb = gson.fromJson(eab.getBody(), PlanVersionSummaryBean.class);
+                            eab.setPlanId(pvsb.getId());
+                            eab.setPlanName(pvsb.getName());
+                            eab.setPlanVersion(pvsb.getVersion());
+
+                            eabs.add(finishEventAggregateBeanCreation(eab, avb, svb));
+                        }
+                    }
+                    catch (StorageException ex) {
+                        throw new SystemErrorException(ex);
+                    }
+                    break;
+                case MEMBERSHIP_PENDING:
+                    eab.setUserId(event.getOriginId());
+                    org = getOrg(event.getDestinationId());
+                    eab.setOrganizationName(org.getName());
+                    eab.setFriendlyName(org.getFriendlyName());
+                    eab.setOrgnanizationId(org.getId());
+
+                    eabs.add(eab);
+                    break;
+            }
+        });
+        return eabs;
+    }
+
+    private EventAggregateBean finishEventAggregateBeanCreation(EventAggregateBean eab, ApplicationVersionBean avb, ServiceVersionBean svb) {
+
+        eab.setApplicationOrgId(avb.getApplication().getOrganization().getId());
+        eab.setApplicationOrgName(avb.getApplication().getOrganization().getName());
+        eab.setApplicationOrgFriendlyName(avb.getApplication().getOrganization().getFriendlyName());
+        eab.setApplicationId(avb.getApplication().getId());
+        eab.setApplicationName(avb.getApplication().getName());
+        eab.setApplicationVersion(avb.getVersion());
+
+        eab.setServiceOrgId(svb.getService().getOrganization().getId());
+        eab.setServiceOrgName(svb.getService().getOrganization().getName());
+        eab.setServiceOrgFriendlyName(svb.getService().getOrganization().getFriendlyName());
+        eab.setServiceId(svb.getService().getId());
+        eab.setServiceName(svb.getService().getName());
+        eab.setServiceVersion(svb.getVersion());
+
+        return eab;
     }
 
 }
