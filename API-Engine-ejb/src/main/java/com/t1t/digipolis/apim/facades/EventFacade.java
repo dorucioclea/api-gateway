@@ -123,9 +123,9 @@ public class EventFacade {
             if (event == null) {
                 throw ExceptionFactory.eventNotFoundException();
             }
-            if (!event.getDestinationId().equals(destination)) {
+/*            if (!event.getDestinationId().equals(destination)) {
                 throw ExceptionFactory.notAuthorizedException();
-            }
+            }*/
             if (event.getType() == MEMBERSHIP_PENDING || event.getType() == EventType.CONTRACT_PENDING) {
                 throw ExceptionFactory.invalidEventException(event.getType().toString());
             }
