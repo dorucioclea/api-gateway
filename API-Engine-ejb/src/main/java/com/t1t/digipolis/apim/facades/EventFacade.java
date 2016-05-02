@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.events.*;
 import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.PlanVersionSummaryBean;
@@ -45,8 +46,6 @@ public class EventFacade {
     private IStorageQuery query;
     @Inject
     private ISecurityContext securityContext;
-    @Inject
-    private MailService mailService;
     @Inject
     private UserFacade userFacade;
     @Inject
@@ -419,7 +418,9 @@ public class EventFacade {
             switch (event.getType()) {
                 case MEMBERSHIP_GRANTED:
                 case MEMBERSHIP_REJECTED:
+                    UserBean user = userFacade.get(event.getDestinationId());
                     eab.setUserId(event.getDestinationId());
+                    eab.setFullName(user.getFullName());
                     OrganizationBean org = getOrg(event.getOriginId());
                     eab.setOrganizationName(org.getName());
                     eab.setFriendlyName(org.getFriendlyName());
@@ -474,7 +475,9 @@ public class EventFacade {
                     }
                     break;
                 case MEMBERSHIP_PENDING:
+                    user = userFacade.get(event.getOriginId());
                     eab.setUserId(event.getOriginId());
+                    eab.setFullName(user.getFullName());
                     org = getOrg(event.getDestinationId());
                     eab.setOrganizationName(org.getName());
                     eab.setFriendlyName(org.getFriendlyName());
