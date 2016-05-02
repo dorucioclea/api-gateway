@@ -249,6 +249,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 orgForUpdate.setDescription(bean.getDescription());
             }
             if (AuditUtils.valueChanged(orgForUpdate.getFriendlyName(), bean.getFriendlyName())) {
+                if (!userFacade.get(securityContext.getCurrentUser()).getAdmin()) {
+                    throw ExceptionFactory.notAuthorizedException();
+                }
                 auditData.addChange("friendlyName", orgForUpdate.getFriendlyName(), bean.getFriendlyName());
                 orgForUpdate.setFriendlyName(bean.getFriendlyName());
             }
