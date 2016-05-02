@@ -68,7 +68,7 @@ curl -i -X POST \
   --url http://accapim.t1t.be:8001/apis/ \
   --data 'request_path=/acc/apiengineauth/v1' \
   --data 'name=acc.apiengineauth.v1' \
-  --data 'upstream_url=http://devapi.t1t.be/API-Engine-auth/v1/' \
+  --data 'upstream_url=http://accapi.t1t.be/API-Engine-auth/v1/' \
   --data 'strip_request_path=true'
 
 #enable CORS
