@@ -424,7 +424,7 @@ public class EventFacade {
                     OrganizationBean org = getOrg(event.getOriginId());
                     eab.setOrganizationName(org.getName());
                     eab.setFriendlyName(org.getFriendlyName());
-                    eab.setOrgnanizationId(org.getId());
+                    eab.setOrganizationId(org.getId());
 
                     eabs.add(eab);
                     break;
@@ -481,7 +481,7 @@ public class EventFacade {
                     org = getOrg(event.getDestinationId());
                     eab.setOrganizationName(org.getName());
                     eab.setFriendlyName(org.getFriendlyName());
-                    eab.setOrgnanizationId(org.getId());
+                    eab.setOrganizationId(org.getId());
 
                     eabs.add(eab);
                     break;

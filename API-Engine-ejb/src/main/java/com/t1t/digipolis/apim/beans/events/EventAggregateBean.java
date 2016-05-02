@@ -12,7 +12,7 @@ public class EventAggregateBean implements Serializable {
     private Long id;
     private String userId;
     private String fullName;
-    private String orgnanizationId;
+    private String organizationId;
     private String organizationName;
     private String friendlyName;
     private String applicationOrgId;
@@ -56,14 +56,6 @@ public class EventAggregateBean implements Serializable {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    public String getOrgnanizationId() {
-        return orgnanizationId;
-    }
-
-    public void setOrgnanizationId(String orgnanizationId) {
-        this.orgnanizationId = orgnanizationId;
     }
 
     public String getOrganizationName() {
@@ -202,6 +194,14 @@ public class EventAggregateBean implements Serializable {
         this.body = body;
     }
 
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
+    }
+
     public String getFriendlyName() {
         return friendlyName;
     }
@@ -248,7 +248,6 @@ public class EventAggregateBean implements Serializable {
                 "id=" + id +
                 ", userId='" + userId + '\'' +
                 ", fullName='" + fullName + '\'' +
-                ", orgnanizationId='" + orgnanizationId + '\'' +
                 ", organizationName='" + organizationName + '\'' +
                 ", friendlyName='" + friendlyName + '\'' +
                 ", applicationOrgId='" + applicationOrgId + '\'' +
