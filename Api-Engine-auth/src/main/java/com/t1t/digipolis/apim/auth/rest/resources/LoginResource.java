@@ -229,7 +229,12 @@ public class LoginResource implements ILoginResource {
         try {
             SAMLResponseRedirect response = userFacade.processSAML2Response(samlResponse,relayState);
             String jwtToken = response.getToken();
-            uri = new URL(response.getClientUrl() + "?jwt=" + jwtToken).toURI();
+            URI clientUrl = new URI(response.getClientUrl());
+            if(clientUrl.getQuery()!=null){
+                uri = new URL(response.getClientUrl() + "&jwt=" + jwtToken).toURI();
+            }else{
+                uri = new URL(response.getClientUrl() + "?jwt=" + jwtToken).toURI();
+            }
         } catch (URISyntaxException e) {
             e.printStackTrace();
         } catch (MalformedURLException e) {

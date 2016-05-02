@@ -89,8 +89,19 @@ public class UserFacadeTest extends TestCase {
         String uriB = "https://someurl.com/endpoint/test";
         URI A = new URI(uriA);
         URI B = new URI(uriB);
-        System.out.println(A.getHost());
-        System.out.println(B.getHost());
+        assertEquals("someurl.com",A.getHost());
+        assertEquals("someurl.com",B.getHost());
+    }
+
+    public void testURIUtilForQueryString() throws URISyntaxException {
+        String uriA = "https://someurl.com/?token=my&type=nothingspecial";
+        String uriB = "https://someurl.com/endpoint/test";
+        URI A = new URI(uriA);
+        URI B = new URI(uriB);
+        System.out.println("Query:"+A.getQuery());
+        System.out.println("Raw query:"+A.getRawQuery());
+        System.out.println("Query:"+B.getQuery());
+        System.out.println("Raw query:"+B.getRawQuery());
     }
 
     public void testGet() throws Exception {

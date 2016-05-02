@@ -562,7 +562,7 @@ public class UserFacade implements Serializable {
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
         responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs, webClientCacheBean));
         clientUrl.append(webClientCacheBean.getClientAppRedirect());
-        if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
+        //if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
         //for logout, we should keep the SessionIndex in cache with the username
         if (assertion != null && assertion.getAuthnStatements().size() > 0) {
