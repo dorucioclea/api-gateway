@@ -530,6 +530,12 @@
             </properties>
         </profile>
         <profile>
+            <id>t1t-acc</id>
+            <properties>
+                <appconfig.file>application-t1t-acc</appconfig.file>
+            </properties>
+        </profile>
+        <profile>
             <id>t1t-prd</id>
             <properties>
                 <appconfig.file>application-t1t-prd</appconfig.file>
