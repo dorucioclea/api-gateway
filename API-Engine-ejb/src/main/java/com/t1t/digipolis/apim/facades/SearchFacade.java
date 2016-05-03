@@ -1,7 +1,9 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
+import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
+import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
@@ -63,7 +65,12 @@ public class SearchFacade {
         try {
             //we store records in sorted set, otherwise we'll have duplicates
             Set<ServiceSummaryBean> resultServices = new TreeSet<>();
-            List<ServiceVersionBean> serviceByStatus = query.findServiceByStatus(ServiceStatus.Published);
+            List<ServiceVersionBean> serviceByStatus = new ArrayList<>();
+            for (SearchCriteriaFilterBean filter : criteria.getFilters()) {
+                if (filter.getName().equalsIgnoreCase("name")) {
+                    serviceByStatus.addAll(query.findPublishedServiceVersionsByServiceName(filter.getValue().toLowerCase()));
+                }
+            }
             serviceByStatus.forEach(serviceVersionBean -> {
                 ServiceSummaryBean summBean = new ServiceSummaryBean();
                 summBean.setCreatedOn(serviceVersionBean.getService().getCreatedOn());
