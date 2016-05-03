@@ -150,7 +150,6 @@ public class OrganizationBean implements Serializable {
      * @return the user-friendly name
      */
     public String getFriendlyName() {
-        if(StringUtils.isEmpty(friendlyName))return name;
         return friendlyName;
     }
 
