@@ -81,6 +81,8 @@ public interface IStorageQuery {
      */
     public SearchResultsBean<ServiceSummaryBean> findServices(SearchCriteriaBean criteria) throws StorageException;
 
+    public List<ServiceVersionBean> findPublishedServiceVersionsByServiceName(String name) throws StorageException;
+
     /**
      * Find services in given status.
      * @param status

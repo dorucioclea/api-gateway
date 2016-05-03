@@ -82,7 +82,7 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
         if(service.getVisibility() == null || service.getVisibility().isEmpty()){
             ready = false;
         }
-        if (!service.getAutoAcceptContracts() && service.getOnlinedoc().isEmpty()) {
+        if (!service.getAutoAcceptContracts() && StringUtils.isEmpty(service.getOnlinedoc())) {
             ready = false;
         }
         return ready;
