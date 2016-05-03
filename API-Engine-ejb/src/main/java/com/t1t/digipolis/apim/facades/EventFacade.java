@@ -482,7 +482,6 @@ public class EventFacade {
                     eab.setOrganizationName(org.getName());
                     eab.setFriendlyName(org.getFriendlyName());
                     eab.setOrganizationId(org.getId());
-
                     eabs.add(eab);
                     break;
             }
