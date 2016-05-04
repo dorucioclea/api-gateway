@@ -69,7 +69,7 @@ public class RoleFacadeTest {
         RoleBean roleBean = roleFacade.create(newRoleBean);
         _LOG.info("Rolebean:{}", roleBean);
         assertNotNull(roleBean);
-        assertThat(roleBean.getId(), equalTo(newRoleBean.getName()));
+        assertThat(roleBean.getId().toLowerCase(), equalTo(newRoleBean.getName().toLowerCase()));
         assertThat(roleBean.getName(), equalTo(newRoleBean.getName()));
         assertThat(roleBean.getDescription(), equalTo(newRoleBean.getDescription()));
         assertThat(roleBean.getCreatedBy(), equalTo("admin"));

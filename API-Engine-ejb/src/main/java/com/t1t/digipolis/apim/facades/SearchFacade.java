@@ -15,6 +15,7 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,7 @@ public class SearchFacade {
     }
 
     public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria) {
-        //TODO: temporary solution - Service contians no visibility option, thus we return modified service versions
+        //TODO: temporary solution - Service contains no visibility option, thus we return modified service versions
         try {
             //we store records in sorted set, otherwise we'll have duplicates
             Set<ServiceSummaryBean> resultServices = new TreeSet<>();
