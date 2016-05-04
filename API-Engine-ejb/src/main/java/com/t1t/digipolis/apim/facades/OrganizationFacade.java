@@ -620,7 +620,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 npb.setKongPluginId(response.getId());
                 npb.setContractId(contract.getId());
                 npb.setConfiguration(new Gson().toJson(conf));
-                createAppPolicy(organizationId, applicationId, version, npb);
+                doCreatePolicy(organizationId, applicationId, version, npb, PolicyType.Application);
             }
             //verify if the contracting service has OAuth enabled
             List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
@@ -2703,7 +2703,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             contract.setApikey(apiKeyGenerator.generate());
         }
         // Validate the state of the application.
-        if (applicationValidator.isReady(avb, true)) {
+        if (avb.getStatus() != ApplicationStatus.Registered && applicationValidator.isReady(avb, true)) {
             avb.setStatus(ApplicationStatus.Ready);
         }
         storage.createContract(contract);
