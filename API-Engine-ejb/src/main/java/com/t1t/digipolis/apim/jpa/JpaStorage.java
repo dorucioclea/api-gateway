@@ -782,10 +782,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public List<ServiceVersionBean> findPublishedServiceVersionsByServiceName(String name) throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT s FROM ServiceVersionBean s WHERE LOWER(s.service.name) LIKE :name AND s.status = :status";
-        return em.createQuery(jpql)
+        return  ServiceScopeUtil.resolveSVBScope((List<ServiceVersionBean>) em.createQuery(jpql)
                 .setParameter("name", name)
                 .setParameter("status", ServiceStatus.Published)
-                .getResultList();
+                .getResultList(), appContext.getApplicationScope());
     }
 
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException {
