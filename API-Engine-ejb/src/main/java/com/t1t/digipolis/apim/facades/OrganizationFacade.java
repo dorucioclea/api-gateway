@@ -443,6 +443,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             //verify if serviceversion and appversion exist
             ApplicationVersionBean avb = getAppVersion(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion());
+            if (avb.getStatus() == ApplicationStatus.Registered) {
+                throw ExceptionFactory.invalidApplicationStatusException();
+            }
             ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
             String appId = ConsumerConventionUtil.createAppUniqueId(avb);
             String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
@@ -2657,7 +2660,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (avb == null) {
             throw ExceptionFactory.applicationNotFoundException(applicationId);
         }
-        if (avb.getStatus() == ApplicationStatus.Registered || avb.getStatus() == ApplicationStatus.Retired) {
+        if (avb.getStatus() == ApplicationStatus.Retired) {
             throw ExceptionFactory.invalidApplicationStatusException();
         }
         ServiceVersionBean svb = storage.getServiceVersion(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
