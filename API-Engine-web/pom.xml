@@ -21,7 +21,7 @@
     <parent>
       <artifactId>API-Engine</artifactId>
       <groupId>com.t1t.digipolis</groupId>
-      <version>0.7.1-SNAPSHOT</version>
+      <version>0.7.0</version>
    </parent>
 
    <artifactId>API-Engine-web</artifactId>
