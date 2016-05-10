@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.NewServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -101,7 +102,7 @@ public class SearchResource {
     @Path("/services/{status}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ServiceVersionBean> searchServicesByLifecycle(@PathParam("status") ServiceStatus status) {
+    public List<ServiceVersionWithMarketInfoBean> searchServicesByLifecycle(@PathParam("status") ServiceStatus status) {
         Preconditions.checkNotNull(status);
         return searchFacade.searchServicesByStatus(status);
     }

@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -60,7 +61,7 @@ public class MigrationFacade {
     public MigrationFacade() {}
 
     public void migrateToAcl() {
-        List<ServiceVersionBean> publishedServices = searchFacade.searchServicesByStatus(ServiceStatus.Published);
+        List<ServiceVersionWithMarketInfoBean> publishedServices = searchFacade.searchServicesByStatus(ServiceStatus.Published);
         enableAclOnPublishedServices(publishedServices);
         enableAclOnApplications();
         _LOG.info("Migration ACL finished");
@@ -87,7 +88,7 @@ public class MigrationFacade {
      * Enables ACL plugin on every published service
      */
     @SuppressWarnings("Duplicates")
-    private void enableAclOnPublishedServices (List<ServiceVersionBean> publishedServices) {
+    private void enableAclOnPublishedServices (List<ServiceVersionWithMarketInfoBean> publishedServices) {
         try {
             IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
             List<ManagedApplicationBean> managedApps = query.getManagedApps();

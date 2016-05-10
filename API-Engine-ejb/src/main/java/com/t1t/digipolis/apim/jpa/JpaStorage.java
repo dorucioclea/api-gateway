@@ -798,6 +798,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return ServiceScopeUtil.resolveSVBScope(allServicesForCat,appContext.getApplicationScope());
     }
 
+    public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException {
+        return ServiceScopeUtil.resolveSVBScope(findLatestPublishedServiceVersionsInCategory(categories), appContext.getApplicationScope());
+    }
+
     public Set<String> findAllUniqueCategories() throws StorageException {
         List<ServiceBean> services = new ArrayList<>();
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
@@ -2126,5 +2130,24 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         String jpql = "DELETE FROM EventBean e WHERE e.destinationId LIKE :eId OR e.originId LIKE :eId";
         em.createQuery(jpql)
                 .setParameter("eId", entityId).executeUpdate();
+    }
+
+    @Override
+    public List<ServiceVersionBean> findLatestServiceVersionByStatus(ServiceStatus status) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.status = :status GROUP BY s2.service)";
+        return ServiceScopeUtil.resolveSVBScope(em.createQuery(jpql)
+                .setParameter("status", status)
+                .getResultList(), appContext.getApplicationScope());
+    }
+
+    @Override
+    public List<ServiceVersionBean> findLatestServiceVersionByStatusAndServiceName(String serviceId, ServiceStatus status) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.status = :status AND LOWER(s2.service.id) LIKE :serviceId GROUP BY s2.service)";
+        return ServiceScopeUtil.resolveSVBScope(em.createQuery(jpql)
+                .setParameter("status", status)
+                .setParameter("serviceId", serviceId.toLowerCase())
+                .getResultList(), appContext.getApplicationScope());
     }
 }

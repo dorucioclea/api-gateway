@@ -7,13 +7,16 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
+import com.t1t.digipolis.apim.core.IMetricsAccessor;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -27,6 +30,8 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.*;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -44,6 +49,11 @@ public class SearchFacade {
     private IStorage storage;
     @Inject
     private IStorageQuery query;
+    @Inject
+    private IMetricsAccessor metrics;
+
+    private static final String NAME = "name";
+    private static final String STATUS = "status";
 
     public SearchResultsBean<OrganizationSummaryBean> searchOrgs(SearchCriteriaBean criteria) {
         try {
@@ -93,13 +103,14 @@ public class SearchFacade {
         }
     }
 
-    public List<ServiceVersionBean> searchServicesByStatus(ServiceStatus status){
+    public List<ServiceVersionWithMarketInfoBean> searchServicesByStatus(ServiceStatus status){
         try {
-            return query.findServiceByStatus(status);
+            return enrichServiceVersionsWithMarketInfo(query.findServiceByStatus(status));
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
     }
+
 
     public Set<String> searchCategories(){
         try {
@@ -149,5 +160,68 @@ public class SearchFacade {
             throw new SystemErrorException(ex);
         }
         return returnValue;
+    }
+
+    public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria) {
+        //TODO - paging
+        //TODO - take operator into account. Right now we assume that searches on name use "like" and on status use "eq"
+        SearchResultsBean<ServiceVersionWithMarketInfoBean> rval = new SearchResultsBean<>();
+        String name = null;
+        ServiceStatus status = null;
+        for (SearchCriteriaFilterBean filter : criteria.getFilters()) {
+            switch(filter.getName()) {
+                case NAME:
+                    name = filter.getValue();
+                    break;
+                case STATUS:
+                    try {
+                        status = ServiceStatus.valueOf(filter.getValue());
+                    }
+                    catch (IllegalArgumentException ex) {
+                        throw ExceptionFactory.invalidServiceStatusException();
+                    }
+                    break;
+                default:
+                    throw ExceptionFactory.invalidSearchCriteriaException(filter.getName());
+            }
+        }
+        List<ServiceVersionWithMarketInfoBean> svmibs = new ArrayList<>();
+        try {
+            if (status != null) {
+                if (name != null) {
+                    svmibs.addAll(
+                            enrichServiceVersionsWithMarketInfo(query.findLatestServiceVersionByStatusAndServiceName(name, status)));
+                }
+                else {
+                    svmibs.addAll(
+                            enrichServiceVersionsWithMarketInfo(query.findLatestServiceVersionByStatus(status)));
+                }
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+        rval.setBeans(svmibs);
+        rval.setTotalSize(svmibs.size());
+        return rval;
+    }
+
+    public List<ServiceVersionWithMarketInfoBean> searchLatestPublishedServiceVersionsInCategory(List<String> category) {
+        try {
+            return enrichServiceVersionsWithMarketInfo(query.findLatestServicesWithCategory(category));
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
+    private List<ServiceVersionWithMarketInfoBean> enrichServiceVersionsWithMarketInfo(List<ServiceVersionBean> svbs) {
+        List<ServiceVersionWithMarketInfoBean> svmibs = new ArrayList<>();
+        svbs.forEach(svb -> {
+            ServiceVersionWithMarketInfoBean svmib = new ServiceVersionWithMarketInfoBean(svb);
+            svmib.setMarketInfo(metrics.getServiceMarketInfo(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()));
+            svmibs.add(svmib);
+        });
+        return svmibs;
     }
 }
