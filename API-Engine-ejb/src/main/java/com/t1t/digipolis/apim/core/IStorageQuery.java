@@ -541,4 +541,10 @@ public interface IStorageQuery {
     public List<EventBean> getAllIncomingActionEvents(String destination) throws StorageException;
 
     public void deleteAllEventsForEntity(String entityId) throws StorageException;
+
+    public List<ServiceVersionBean> findLatestServiceVersionByStatus(ServiceStatus status) throws StorageException;
+
+    public List<ServiceVersionBean> findLatestServiceVersionByStatusAndServiceName(String serviceName, ServiceStatus status) throws StorageException;
+
+    public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException;
 }

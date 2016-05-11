@@ -416,4 +416,8 @@ public final class ExceptionFactory {
     public static final ContractRequestFailedException contractRequestFailedException(String message) {
         return new ContractRequestFailedException(message);
     }
+
+    public static final InvalidSearchCriteriaException invalidSearchCriteriaException(String message) {
+        return new InvalidSearchCriteriaException(message);
+    }
 }

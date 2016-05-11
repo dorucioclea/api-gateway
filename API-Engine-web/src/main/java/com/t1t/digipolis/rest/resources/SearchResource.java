@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
@@ -99,7 +100,7 @@ public class SearchResource implements ISearchResource {
     @Path("/services/{status}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ServiceVersionBean> searchServicesByLifecycle(@PathParam("status") ServiceStatus status) {
+    public List<ServiceVersionWithMarketInfoBean> searchServicesByLifecycle(@PathParam("status") ServiceStatus status) {
         Preconditions.checkNotNull(status);
         return searchFacade.searchServicesByStatus(status);
     }
@@ -143,5 +144,31 @@ public class SearchResource implements ISearchResource {
         return searchFacade.searchServicesPublishedInCategories(catSearch.getCategories());
     }
 
+    @Override
+    @ApiOperation(value = "Search for latest Service versions within given category list",
+            notes = "Use this endpoint to search for the latest PUBLISHED service versions, having a category defined in the given category list.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionWithMarketInfoBean.class, message = "If the search is successful.")
+    })
+    @POST
+    @Path("/services/versions/latest/categories")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceVersionWithMarketInfoBean> searchLatestServiceVersionForCategories(CategorySearchBean searchBean) {
+        return searchFacade.searchLatestPublishedServiceVersionsInCategory(searchBean.getCategories());
+    }
 
+    @ApiOperation(value = "Search through the latest service versions",
+            notes = "Use this endpoint to search for service versions with the latest creation date")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = SearchResultsBean.class, message = "If the search is successful.")
+    })
+    @POST
+    @Path("/services/versions/latest")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria) throws OrganizationNotFoundException, InvalidSearchCriteriaException {
+        return searchFacade.searchLatestServiceVersions(criteria);
+    }
 }
