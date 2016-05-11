@@ -41,6 +41,7 @@ import java.util.UUID;
 
 import static com.t1t.digipolis.apim.beans.policies.Policies.BASICAUTHENTICATION;
 import static com.t1t.digipolis.apim.beans.policies.Policies.CORS;
+import static org.jgroups.Version.description;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -132,7 +133,16 @@ public class GatewayValidation {
                 responseScopes.add(scope);
             }
         }
-        if (responseScopes.isEmpty()) throw ExceptionFactory.invalidPolicyException("Scopes/scopes description must be provided in order to apply OAuth2");
+        //Allow empty scopes if scopes aren't mandatory
+        if (responseScopes.isEmpty()) {
+            if (oauthValue.getMandatoryScope()) {
+                throw ExceptionFactory.invalidPolicyException("If \"Mandatory Scopes\" is checked, at least one scope/scope description must be provided in order to apply OAuth2");
+            }
+            else {
+                //Add empty scope to avoid error when converting to/from JSON
+                responseScopes.add(new KongPluginOAuthScope().withScope("").withScopeDesc(""));
+            }
+        }
         //create custom provisionkey - explicitly
         oauthValue.setScopes(responseScopes);
         oauthValue.setProvisionKey(UUID.randomUUID().toString());

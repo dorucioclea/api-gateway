@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
@@ -448,6 +449,7 @@ public class GatewayClient {
                 if(api!=null&&!StringUtils.isEmpty(api.getId())){
                     httpClient.deleteApi(api.getId());
                 }
+                throw new SystemErrorException(e);
             }
         }
         //Apply ACL plugin by default. ACL group names are a convention, so they don't need to be persisted
@@ -482,7 +484,12 @@ public class GatewayClient {
             Gson gson = new Gson();
             //retrieve scope info from policy json
             KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);//original request - we need this for the scope descriptions
-            KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(config.getConfig().toString(),KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
+            //TODO Temp quick fix: kong response oauth plugin returns empty scopes as {} object, while it returns filled in scope as array []
+            String conf = config.getConfig().toString();
+            if (conf.contains("\"scopes\":{}")) {
+                conf = conf.replace("\"scopes\":{}", "\"scopes\":[]");
+            }
+            KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(conf,KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
             log.info("Response after applying oauth on API:{}",enhancedOAuthValue);
             ServiceVersionBean svb = storage.getServiceVersion(service.getOrganizationId(), service.getServiceId(), service.getVersion());
             svb.setProvisionKey(enhancedOAuthValue.getProvisionKey());
