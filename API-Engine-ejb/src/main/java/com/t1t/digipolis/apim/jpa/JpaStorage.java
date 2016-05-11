@@ -1953,8 +1953,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException {
         List<ServiceVersionBean> returnValue = new ArrayList<>();
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT s FROM ServiceVersionBean s";
-        List<ServiceVersionBean> svbs = (List<ServiceVersionBean>) em.createQuery(jpql).getResultList();
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.status = :status";
+        List<ServiceVersionBean> svbs = (List<ServiceVersionBean>) em.createQuery(jpql)
+                .setParameter("status", ServiceStatus.Published)
+                .getResultList();
         svbs.forEach(sv -> {
             sv.getVisibility().forEach(vis -> {
                 if (vis.getCode().equals(bean.getCode())) {
