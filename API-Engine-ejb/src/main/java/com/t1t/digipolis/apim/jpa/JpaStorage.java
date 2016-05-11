@@ -1957,8 +1957,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException {
         List<ServiceVersionBean> returnValue = new ArrayList<>();
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT s FROM ServiceVersionBean s";
-        List<ServiceVersionBean> svbs = (List<ServiceVersionBean>) em.createQuery(jpql).getResultList();
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.status = :status";
+        List<ServiceVersionBean> svbs = (List<ServiceVersionBean>) em.createQuery(jpql)
+                .setParameter("status", ServiceStatus.Published)
+                .getResultList();
         svbs.forEach(sv -> {
             sv.getVisibility().forEach(vis -> {
                 if (vis.getCode().equals(bean.getCode())) {
@@ -2142,12 +2144,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public List<ServiceVersionBean> findLatestServiceVersionByStatusAndServiceName(String serviceId, ServiceStatus status) throws StorageException {
+    public List<ServiceVersionBean> findLatestServiceVersionByStatusAndServiceName(String serviceName, ServiceStatus status) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.status = :status AND LOWER(s2.service.id) LIKE :serviceId GROUP BY s2.service)";
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.status = :status AND LOWER(s2.service.name) LIKE :name GROUP BY s2.service)";
         return ServiceScopeUtil.resolveSVBScope(em.createQuery(jpql)
                 .setParameter("status", status)
-                .setParameter("serviceId", serviceId.toLowerCase())
+                .setParameter("name", serviceName.toLowerCase())
                 .getResultList(), appContext.getApplicationScope());
     }
 }
