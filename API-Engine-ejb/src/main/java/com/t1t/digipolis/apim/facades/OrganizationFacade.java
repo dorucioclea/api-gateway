@@ -1928,7 +1928,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) {
         // Make sure the service exists
-        getServiceVersion(organizationId, serviceId, version);
+        ServiceStatus svs = getServiceVersion(organizationId, serviceId, version).getStatus();
+        if (svs == ServiceStatus.Published || svs == ServiceStatus.Deprecated) {
+            throw ExceptionFactory.invalidServiceStatusException();
+        }
         try {
             PolicyBean policy = storage.getPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
             if (policy == null) {
@@ -1936,7 +1939,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             // TODO capture specific change values when auditing policy updates
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,serviceId,version)).getPolicyJsonConfig());
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,serviceId,version)).getPolicyJsonConfig());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());

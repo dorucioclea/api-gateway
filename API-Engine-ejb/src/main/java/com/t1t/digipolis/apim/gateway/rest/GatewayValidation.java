@@ -134,14 +134,8 @@ public class GatewayValidation {
             }
         }
         //Allow empty scopes if scopes aren't mandatory
-        if (responseScopes.isEmpty()) {
-            if (oauthValue.getMandatoryScope()) {
-                throw ExceptionFactory.invalidPolicyException("If \"Mandatory Scopes\" is checked, at least one scope/scope description must be provided in order to apply OAuth2");
-            }
-            else {
-                //Add empty scope to avoid error when converting to/from JSON
-                responseScopes.add(new KongPluginOAuthScope().withScope("").withScopeDesc(""));
-            }
+        if (responseScopes.isEmpty() && oauthValue.getMandatoryScope()) {
+            throw ExceptionFactory.invalidPolicyException("If \"Mandatory Scopes\" is checked, at least one scope/scope description must be provided in order to apply OAuth2");
         }
         //create custom provisionkey - explicitly
         oauthValue.setScopes(responseScopes);
