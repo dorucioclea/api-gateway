@@ -102,6 +102,20 @@ update service_versions SET service_org_id=lower(service_org_id);
 update services SET organization_id=lower(organization_id);
 update support SET organization_id=lower(organization_id);
 
+DELETE FROM organizations WHERE id like 'testorg%';
+DELETE FROM applications WHERE organization_id like 'testorg%';
+DELETE FROM application_versions WHERE app_org_id like 'testorg%';
+DELETE FROM categories WHERE servicebean_organization_id like 'testorg%';
+DELETE FROM auditlog WHERE organization_id like 'testorg%';
+DELETE FROM followers WHERE servicebean_organization_id like 'testorg%';
+DELETE FROM memberships WHERE org_id like 'testorg%';
+DELETE FROM plan_versions WHERE plan_org_id like 'testorg%';
+DELETE FROM plans WHERE organization_id like 'testorg%';
+DELETE FROM policies WHERE organization_id like 'testorg%';
+DELETE FROM service_versions WHERE service_org_id like 'testorg%';
+DELETE FROM services WHERE organization_id like 'testorg%';
+DELETE FROM support WHERE organization_id like 'testorg%';
+
 
 ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic);
 ALTER TABLE events ADD PRIMARY KEY (id);
