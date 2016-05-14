@@ -820,6 +820,7 @@ public class UserFacade implements Serializable {
                 jwtExpirationTime = gatewayBean.getJWTExpTime();
             }
             issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret, jwtExpirationTime);
+            log.debug("==>JWT:{}",issuedJWT);
             //close gateway
             gatewayLink.close();
         } catch (PublishingException e) {
