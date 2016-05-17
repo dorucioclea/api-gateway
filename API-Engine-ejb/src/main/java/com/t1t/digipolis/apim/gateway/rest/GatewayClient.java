@@ -48,6 +48,7 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
 import com.t1t.digipolis.kong.model.Method;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
+import com.t1t.digipolis.util.JWTUtils;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -685,6 +686,10 @@ public class GatewayClient {
     }
 
     public KongPluginJWTResponse createConsumerJWT(String id){
+        //default the JWT request supported should be a HS256
+        KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest();
+        jwtRequest.setAlgorithm(JWTUtils.JWT_HS256);
+        //TODO support RS356
         return httpClient.createConsumerJWTCredentials(id, new KongPluginJWTRequest());
     }
 
