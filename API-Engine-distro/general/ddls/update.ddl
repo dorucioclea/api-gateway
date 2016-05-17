@@ -115,6 +115,9 @@ DELETE FROM policies WHERE organization_id like 'testorg%';
 DELETE FROM service_versions WHERE service_org_id like 'testorg%';
 DELETE FROM services WHERE organization_id like 'testorg%';
 DELETE FROM support WHERE organization_id like 'testorg%';
+-- Delete orphaned contracts
+DELETE FROM contracts WHERE appv_id NOT IN (SELECT id FROM application_versions);
+DELETE FROM contracts WHERE svcv_id NOT IN (SELECT id FROM service_versions);
 
 
 ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic);
