@@ -342,7 +342,7 @@ public class GatewayClient {
             KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
             KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString()
                             //Temp fix for weird Kong behaviour
-                            .replace("scopes={}", "scopes=[]"),
+                            .replace("={}", "=[]"),
                     KongPluginOAuthEnhanced.class);
             //get oauth scopes from api
             final KongPluginConfigList apiPluginConfigList = httpClient.getKongPluginConfig(api.getId(),Policies.OAUTH2.getKongIdentifier());
@@ -351,7 +351,7 @@ public class GatewayClient {
                 KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(
                         apiPluginConfig.getConfig().toString()
                         //Temp fix for weird Kong behaviour
-                        .replace("scope={}", "scope=[]"),
+                        .replace("={}", "=[]"),
                         KongPluginOAuthEnhanced.class);
                 if (!apiOAuthValue.getScopes().isEmpty()) {
                     Set<String> gtwScopes = objectListToStringSet(gtwOAuthValue.getScopes());
