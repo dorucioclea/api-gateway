@@ -2152,4 +2152,18 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("name", serviceName.toLowerCase())
                 .getResultList(), appContext.getApplicationScope());
     }
+
+    @Override
+    public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.apiKey = :apiKey";
+        try {
+            return (ManagedApplicationBean) em.createQuery(jpql)
+                    .setParameter("apiKey", apiKey)
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
+    }
 }
