@@ -989,7 +989,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         EntityUpdatedData data = new EntityUpdatedData();
-        if ((svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) && AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
+        if ((svb.getStatus() != ServiceStatus.Retired) && AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
             svb.setModifiedBy(securityContext.getCurrentUser());
             svb.setModifiedOn(new Date());
             data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
@@ -998,19 +998,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
                 svb.setEndpointType(bean.getEndpointType());
             }
-            if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
-                if (svb.getEndpointProperties() == null) {
-                    svb.setEndpointProperties(new HashMap<String, String>());
-                } else {
-                    svb.getEndpointProperties().clear();
-                }
-                if (bean.getEndpointProperties() != null) {
-                    svb.getEndpointProperties().putAll(bean.getEndpointProperties());
-                }
-            }
             updateServiceVersionEndpoint(svb);
         }
-        if (svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
+        if (svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         svb.setModifiedBy(securityContext.getCurrentUser());
@@ -1037,10 +1027,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             svb.getGateways().clear();
             svb.getGateways().addAll(bean.getGateways());
-        }
-        if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
-            data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
-            svb.setEndpoint(bean.getEndpoint());
         }
         if (AuditUtils.valueChanged(svb.getOnlinedoc(), bean.getOnlinedoc())) {
             data.addChange("online doc", svb.getOnlinedoc(), bean.getOnlinedoc());
