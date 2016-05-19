@@ -2006,7 +2006,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<EventBean> getOrganizationAllIncomingEvents(@PathParam("organizationId") String organizationId) throws NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+        if (!securityContext.hasPermission(PermissionType.orgView, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
         return eventFacade.getOrganizationIncomingEvents(organizationId);
@@ -2023,7 +2023,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<EventBean> getOrganizationAllOutgoingEvents(@PathParam("organizationId") String organizationId) throws NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+        if (!securityContext.hasPermission(PermissionType.orgView, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
         return eventFacade.getOrganizationOutgoingEvents(organizationId);
@@ -2040,7 +2040,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public <T> List<T> getOrganizationIncomingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+        if (!securityContext.hasPermission(PermissionType.orgView, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
         Preconditions.checkArgument(!StringUtils.isEmpty(type));
@@ -2058,7 +2058,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public <T> List<T> getOrganizationOutgoingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+        if (!securityContext.hasPermission(PermissionType.orgView, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
         Preconditions.checkArgument(!StringUtils.isEmpty(type));
