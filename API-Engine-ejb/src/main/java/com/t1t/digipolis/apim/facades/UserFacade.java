@@ -893,7 +893,13 @@ public class UserFacade implements Serializable {
      * @return
      */
     private String getSecretFromTokenCache(String key, String userName) {
-        String secret = cacheUtil.getToken(key);
+        String secret;
+        try {
+            secret = cacheUtil.getToken(key);
+        }
+        catch (Exception e) {
+            throw ExceptionFactory.tokenExpiredException(e.getMessage());
+        }
         if (StringUtils.isEmpty(secret)) {
             //retrieve from Kong
             String gatewayId = null;
@@ -905,7 +911,7 @@ public class UserFacade implements Serializable {
                     secret = data.get(0).getSecret();
                 } else throw new StorageException("Refresh JWT - somehow the user is not known");
             } catch (StorageException e) {
-                new GatewayException("Error connection to gateway:{}" + e.getMessage());
+                throw new GatewayException("Error connection to gateway:{}" + e.getMessage());
             }
         }
         return secret;

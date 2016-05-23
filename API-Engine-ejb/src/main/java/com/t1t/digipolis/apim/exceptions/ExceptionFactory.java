@@ -420,4 +420,8 @@ public final class ExceptionFactory {
     public static final InvalidSearchCriteriaException invalidSearchCriteriaException(String message) {
         return new InvalidSearchCriteriaException(message);
     }
+
+    public static final CachingException cachingException(String message) {
+        return new CachingException(message);
+    }
 }

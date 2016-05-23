@@ -198,4 +198,10 @@ public final class ErrorCodes {
     public static final int EVENT_ERROR                     = 16001;
     public static final int EVENT_NOT_FOUND_ERROR           = 16004;
     public static final int EVENT_INVALID_STATUS_ERROR      = 16006;
+
+    //
+    // Cache related
+    //
+
+    public static final int CACHING_ERROR             = 17001;
 }
