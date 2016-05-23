@@ -20,7 +20,7 @@ public class CachingException extends AbstractSystemException {
 
     @Override
     public int getErrorCode() {
-        return ErrorCodes.TOKEN_EXPIRED_ERROR;
+        return ErrorCodes.CACHING_ERROR;
     }
 
     @Override

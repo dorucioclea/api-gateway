@@ -61,6 +61,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 
 import static javafx.scene.input.KeyCode.R;
@@ -2007,7 +2008,8 @@ public class OrganizationResource implements IOrganizationResource {
     public List<EventBean> getOrganizationAllIncomingEvents(@PathParam("organizationId") String organizationId) throws NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
-            throw ExceptionFactory.notAuthorizedException();
+            //If user doesn't have correct permission, don't throw unauthorized, but return empty list
+            return Collections.emptyList();
         }
         return eventFacade.getOrganizationIncomingEvents(organizationId);
     }
@@ -2024,7 +2026,8 @@ public class OrganizationResource implements IOrganizationResource {
     public List<EventBean> getOrganizationAllOutgoingEvents(@PathParam("organizationId") String organizationId) throws NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
-            throw ExceptionFactory.notAuthorizedException();
+            //If user doesn't have correct permission, don't throw unauthorized, but return empty list
+            return Collections.emptyList();
         }
         return eventFacade.getOrganizationOutgoingEvents(organizationId);
     }
@@ -2041,7 +2044,8 @@ public class OrganizationResource implements IOrganizationResource {
     public <T> List<T> getOrganizationIncomingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
-            throw ExceptionFactory.notAuthorizedException();
+            //If user doesn't have correct permission, don't throw unauthorized, but return empty list
+            return Collections.emptyList();
         }
         Preconditions.checkArgument(!StringUtils.isEmpty(type));
         return eventFacade.getOrganizationIncomingEventsByType(organizationId, type);
@@ -2059,7 +2063,8 @@ public class OrganizationResource implements IOrganizationResource {
     public <T> List<T> getOrganizationOutgoingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
-            throw ExceptionFactory.notAuthorizedException();
+            //If user doesn't have correct permission, don't throw unauthorized, but return empty list
+            return Collections.emptyList();
         }
         Preconditions.checkArgument(!StringUtils.isEmpty(type));
         return eventFacade.getOrganizationOutgoingEventsByType(organizationId, type);
