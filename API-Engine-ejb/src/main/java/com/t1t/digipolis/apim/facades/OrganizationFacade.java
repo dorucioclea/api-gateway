@@ -1267,10 +1267,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (svb.getStatus() == ServiceStatus.Retired) {
                 throw ExceptionFactory.invalidServiceStatusException();
             }
-            svb.getGateways().forEach(svcGateway -> {
-                IGatewayLink gateway = createGatewayLink(svcGateway.getGatewayId());
-                gateway.updateApiUpstreamURL(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), svb.getEndpoint());
-            });
+            if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) {
+                svb.getGateways().forEach(svcGateway -> {
+                    IGatewayLink gateway = createGatewayLink(svcGateway.getGatewayId());
+                    gateway.updateApiUpstreamURL(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), svb.getEndpoint());
+                });
+            }
             storage.updateServiceVersion(svb);
         }
         catch (StorageException ex) {
