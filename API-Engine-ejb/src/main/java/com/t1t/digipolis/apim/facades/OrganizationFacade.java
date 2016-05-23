@@ -998,129 +998,131 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
                 svb.setEndpointType(bean.getEndpointType());
             }
-            updateServiceVersionEndpoint(svb);
+            return updateServiceVersionEndpoint(svb);
         }
-        if (svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) {
-            throw ExceptionFactory.invalidServiceStatusException();
-        }
-        svb.setModifiedBy(securityContext.getCurrentUser());
-        svb.setModifiedOn(new Date());
-        if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
-            data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
-            svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
-        }
+        else if (svb.getStatus() != ServiceStatus.Retired || svb.getStatus() != ServiceStatus.Deprecated || svb.getStatus() != ServiceStatus.Published) {
+            svb.setModifiedBy(securityContext.getCurrentUser());
+            svb.setModifiedOn(new Date());
+            if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
+                data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
+                svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
+            }
 
-        if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
-            data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
-            if (svb.getPlans() == null) {
-                svb.setPlans(new HashSet<ServicePlanBean>());
-            }
-            svb.getPlans().clear();
-            if (bean.getPlans() != null) {
-                svb.getPlans().addAll(bean.getPlans());
-            }
-        }
-        if (AuditUtils.valueChanged(svb.getGateways(), bean.getGateways())) {
-            data.addChange("gateways", AuditUtils.asString_ServiceGatewayBeans(svb.getGateways()), AuditUtils.asString_ServiceGatewayBeans(bean.getGateways())); //$NON-NLS-1$
-            if (svb.getGateways() == null) {
-                svb.setGateways(new HashSet<ServiceGatewayBean>());
-            }
-            svb.getGateways().clear();
-            svb.getGateways().addAll(bean.getGateways());
-        }
-        if (AuditUtils.valueChanged(svb.getOnlinedoc(), bean.getOnlinedoc())) {
-            data.addChange("online doc", svb.getOnlinedoc(), bean.getOnlinedoc());
-            svb.setOnlinedoc(bean.getOnlinedoc());
-        }
-        if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
-            data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
-            svb.setEndpointType(bean.getEndpointType());
-        }
-        if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
-            if (svb.getEndpointProperties() == null) {
-                svb.setEndpointProperties(new HashMap<String, String>());
-            } else {
-                svb.getEndpointProperties().clear();
-            }
-            if (bean.getEndpointProperties() != null) {
-                svb.getEndpointProperties().putAll(bean.getEndpointProperties());
-            }
-        }
-        if (AuditUtils.valueChanged(svb.isPublicService(), bean.getPublicService())) {
-            data.addChange("publicService", String.valueOf(svb.isPublicService()), String.valueOf(bean.getPublicService())); //$NON-NLS-1$
-            svb.setPublicService(bean.getPublicService());
-        }
-        if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
-            data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
-            svb.setVisibility(bean.getVisibility());
-            //add implicitly the IP Restriction when: External available and hide = false
-            KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(IPRestrictionFlavor.WHITELIST, query.listWhitelistRecords());
-            boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
-            if(defaultIPRestriction !=null && enableIPR){
-                Gson gson = new Gson();
-                NewPolicyBean npb = new NewPolicyBean();
-                npb.setDefinitionId("IPRestriction");//TODO == definition id in the DB - should not be hardcoded -> but addes to the Policies class
-                npb.setConfiguration(gson.toJson(defaultIPRestriction));
-                try{
-                    createServicePolicy(organizationId,serviceId,version,npb);
-                }catch(PolicyDefinitionAlreadyExistsException pdex){;}//ignore if policy already exists
-            }else{
-                //remove eventual policies already added
-                List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
-                for(PolicySummaryBean psb:policies){
-                    psb.getPolicyDefinitionId().equalsIgnoreCase("IPRestriction");
-                    deleteServicePolicy(organizationId,serviceId,version,psb.getId());
+            if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
+                data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
+                if (svb.getPlans() == null) {
+                    svb.setPlans(new HashSet<ServicePlanBean>());
+                }
+                svb.getPlans().clear();
+                if (bean.getPlans() != null) {
+                    svb.getPlans().addAll(bean.getPlans());
                 }
             }
-        }
-        if(svb.getStatus()!=ServiceStatus.Published){
+            if (AuditUtils.valueChanged(svb.getGateways(), bean.getGateways())) {
+                data.addChange("gateways", AuditUtils.asString_ServiceGatewayBeans(svb.getGateways()), AuditUtils.asString_ServiceGatewayBeans(bean.getGateways())); //$NON-NLS-1$
+                if (svb.getGateways() == null) {
+                    svb.setGateways(new HashSet<ServiceGatewayBean>());
+                }
+                svb.getGateways().clear();
+                svb.getGateways().addAll(bean.getGateways());
+            }
+            if (AuditUtils.valueChanged(svb.getOnlinedoc(), bean.getOnlinedoc())) {
+                data.addChange("online doc", svb.getOnlinedoc(), bean.getOnlinedoc());
+                svb.setOnlinedoc(bean.getOnlinedoc());
+            }
+            if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
+                data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
+                svb.setEndpointType(bean.getEndpointType());
+            }
+            if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
+                if (svb.getEndpointProperties() == null) {
+                    svb.setEndpointProperties(new HashMap<String, String>());
+                } else {
+                    svb.getEndpointProperties().clear();
+                }
+                if (bean.getEndpointProperties() != null) {
+                    svb.getEndpointProperties().putAll(bean.getEndpointProperties());
+                }
+            }
+            if (AuditUtils.valueChanged(svb.isPublicService(), bean.getPublicService())) {
+                data.addChange("publicService", String.valueOf(svb.isPublicService()), String.valueOf(bean.getPublicService())); //$NON-NLS-1$
+                svb.setPublicService(bean.getPublicService());
+            }
+            if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
+                data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
+                svb.setVisibility(bean.getVisibility());
+                //add implicitly the IP Restriction when: External available and hide = false
+                KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(IPRestrictionFlavor.WHITELIST, query.listWhitelistRecords());
+                boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
+                if(defaultIPRestriction !=null && enableIPR){
+                    Gson gson = new Gson();
+                    NewPolicyBean npb = new NewPolicyBean();
+                    npb.setDefinitionId("IPRestriction");//TODO == definition id in the DB - should not be hardcoded -> but addes to the Policies class
+                    npb.setConfiguration(gson.toJson(defaultIPRestriction));
+                    try{
+                        createServicePolicy(organizationId,serviceId,version,npb);
+                    }catch(PolicyDefinitionAlreadyExistsException pdex){;}//ignore if policy already exists
+                }else{
+                    //remove eventual policies already added
+                    List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
+                    for(PolicySummaryBean psb:policies){
+                        psb.getPolicyDefinitionId().equalsIgnoreCase("IPRestriction");
+                        deleteServicePolicy(organizationId,serviceId,version,psb.getId());
+                    }
+                }
+            }
+            if(svb.getStatus()!=ServiceStatus.Published){
+                try {
+                    if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
+                        GatewaySummaryBean gateway = getSingularGateway();
+                        if (gateway != null) {
+                            if (svb.getGateways() == null) {
+                                svb.setGateways(new HashSet<ServiceGatewayBean>());
+                                ServiceGatewayBean sgb = new ServiceGatewayBean();
+                                sgb.setGatewayId(gateway.getId());
+                                svb.getGateways().add(sgb);
+                            }
+                        }
+                    }
+                    if (serviceValidator.isReady(svb)) {
+                        svb.setStatus(ServiceStatus.Ready);
+                    } else {
+                        svb.setStatus(ServiceStatus.Created);
+                    }
+                } catch (Exception e) {
+                    throw new SystemErrorException(e);
+                }
+            }
+
             try {
-                if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
-                    GatewaySummaryBean gateway = getSingularGateway();
-                    if (gateway != null) {
-                        if (svb.getGateways() == null) {
-                            svb.setGateways(new HashSet<ServiceGatewayBean>());
-                            ServiceGatewayBean sgb = new ServiceGatewayBean();
-                            sgb.setGatewayId(gateway.getId());
-                            svb.getGateways().add(sgb);
+                encryptEndpointProperties(svb);
+                // Ensure all of the plans are in the right status (locked)
+                Set<ServicePlanBean> plans = svb.getPlans();
+                if (plans != null) {
+                    for (ServicePlanBean splanBean : plans) {
+                        String orgId = svb.getService().getOrganization().getId();
+                        PlanVersionBean pvb = storage.getPlanVersion(orgId, splanBean.getPlanId(), splanBean.getVersion());
+                        if (pvb == null) {
+                            throw new StorageException(Messages.i18n.format("PlanVersionDoesNotExist", splanBean.getPlanId(), splanBean.getVersion())); //$NON-NLS-1$
+                        }
+                        if (pvb.getStatus() != PlanStatus.Locked) {
+                            throw new StorageException(Messages.i18n.format("PlanNotLocked", splanBean.getPlanId(), splanBean.getVersion())); //$NON-NLS-1$
                         }
                     }
                 }
-                if (serviceValidator.isReady(svb)) {
-                    svb.setStatus(ServiceStatus.Ready);
-                } else {
-                    svb.setStatus(ServiceStatus.Created);
-                }
+                storage.updateServiceVersion(svb);
+                storage.createAuditEntry(AuditUtils.serviceVersionUpdated(svb, data, securityContext));
+                log.debug(String.format("Successfully updated Service Version: %s", svb)); //$NON-NLS-1$
+                decryptEndpointProperties(svb);
+                return svb;
+            } catch (AbstractRestException e) {
+                throw e;
             } catch (Exception e) {
                 throw new SystemErrorException(e);
             }
         }
-
-        try {
-            encryptEndpointProperties(svb);
-            // Ensure all of the plans are in the right status (locked)
-            Set<ServicePlanBean> plans = svb.getPlans();
-            if (plans != null) {
-                for (ServicePlanBean splanBean : plans) {
-                    String orgId = svb.getService().getOrganization().getId();
-                    PlanVersionBean pvb = storage.getPlanVersion(orgId, splanBean.getPlanId(), splanBean.getVersion());
-                    if (pvb == null) {
-                        throw new StorageException(Messages.i18n.format("PlanVersionDoesNotExist", splanBean.getPlanId(), splanBean.getVersion())); //$NON-NLS-1$
-                    }
-                    if (pvb.getStatus() != PlanStatus.Locked) {
-                        throw new StorageException(Messages.i18n.format("PlanNotLocked", splanBean.getPlanId(), splanBean.getVersion())); //$NON-NLS-1$
-                    }
-                }
-            }
-            storage.updateServiceVersion(svb);
-            storage.createAuditEntry(AuditUtils.serviceVersionUpdated(svb, data, securityContext));
-            log.debug(String.format("Successfully updated Service Version: %s", svb)); //$NON-NLS-1$
-            decryptEndpointProperties(svb);
-            return svb;
-        } catch (AbstractRestException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new SystemErrorException(e);
+        else {
+            throw ExceptionFactory.invalidServiceStatusException();
         }
     }
 
@@ -1262,7 +1264,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         log.debug(String.format("Updated service definition for %s", serviceId)); //$NON-NLS-1$
     }
 
-    public void updateServiceVersionEndpoint(ServiceVersionBean svb) {
+    public ServiceVersionBean updateServiceVersionEndpoint(ServiceVersionBean svb) {
         try {
             if (svb.getStatus() == ServiceStatus.Retired) {
                 throw ExceptionFactory.invalidServiceStatusException();
@@ -1274,6 +1276,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 });
             }
             storage.updateServiceVersion(svb);
+            return svb;
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
