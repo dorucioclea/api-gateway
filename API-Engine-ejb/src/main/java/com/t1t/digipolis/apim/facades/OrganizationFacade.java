@@ -60,18 +60,7 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -155,6 +144,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             "EEE, dd MMM yyyy HH:mm:ss",
             "EEE, dd MMM yyyy"
     };
+    private static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
 
     private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
     private static final long ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000;
@@ -603,6 +593,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //for contract add keyauth to application consumer
             //We create the new application version consumer
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            Gson gson = new Gson();
             if (contract != null) {
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                 try {
@@ -619,7 +610,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 npb.setDefinitionId(Policies.ACL.name());
                 npb.setKongPluginId(response.getId());
                 npb.setContractId(contract.getId());
-                npb.setConfiguration(new Gson().toJson(conf));
+                npb.setConfiguration(gson.toJson(conf));
                 doCreatePolicy(organizationId, applicationId, version, npb, PolicyType.Application);
             }
             //verify if the contracting service has OAuth enabled
@@ -627,12 +618,29 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             for (PolicySummaryBean summaryBean : policySummaryBeans) {
                 if (summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())) {
                     ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
+                    boolean changed = false;
                     if (StringUtils.isEmpty(avb.getoAuthClientId())) {
                         //create client_id and client_secret for the application - the same client_id/secret must be used for all services
                         //upon publication the application credentials will be enabled for the current user.
                         avb.setoAuthClientId(apiKeyGenerator.generate());
                         avb.setOauthClientSecret(apiKeyGenerator.generate());
-                        avb.setOauthClientRedirect("");
+                        changed = true;
+                    }
+                    //Check if client credentials is enabled, and if so, already enable oauth on gateway
+                    PolicyBean pb = storage.getPolicy(PolicyType.Service, bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion(), summaryBean.getId());
+                    KongPluginOAuth oAuthValue = gson.fromJson(pb.getConfiguration(), KongPluginOAuth.class);
+                    if (oAuthValue.getEnableClientCredentials()) {
+                        avb.setOauthClientRedirect(PLACEHOLDER_CALLBACK_URI);
+                        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
+                        OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
+                        requestBean.setUniqueUserName(appConsumerName);
+                        requestBean.setAppOAuthId(avb.getoAuthClientId());
+                        requestBean.setAppOAuthSecret(avb.getOauthClientSecret());
+                        enableOAuthForConsumer(requestBean);
+                        changed = true;
+                    }
+                    if (changed) {
+                        storage.updateApplicationVersion(avb);
                     }
                 }
             }
@@ -981,7 +989,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         EntityUpdatedData data = new EntityUpdatedData();
-        if ((svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) && AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
+        if ((svb.getStatus() != ServiceStatus.Retired) && AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
             svb.setModifiedBy(securityContext.getCurrentUser());
             svb.setModifiedOn(new Date());
             data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
@@ -990,19 +998,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
                 svb.setEndpointType(bean.getEndpointType());
             }
-            if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
-                if (svb.getEndpointProperties() == null) {
-                    svb.setEndpointProperties(new HashMap<String, String>());
-                } else {
-                    svb.getEndpointProperties().clear();
-                }
-                if (bean.getEndpointProperties() != null) {
-                    svb.getEndpointProperties().putAll(bean.getEndpointProperties());
-                }
-            }
             updateServiceVersionEndpoint(svb);
         }
-        if (svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
+        if (svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         svb.setModifiedBy(securityContext.getCurrentUser());
@@ -1029,10 +1027,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             svb.getGateways().clear();
             svb.getGateways().addAll(bean.getGateways());
-        }
-        if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
-            data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
-            svb.setEndpoint(bean.getEndpoint());
         }
         if (AuditUtils.valueChanged(svb.getOnlinedoc(), bean.getOnlinedoc())) {
             data.addChange("online doc", svb.getOnlinedoc(), bean.getOnlinedoc());
@@ -1928,7 +1922,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) {
         // Make sure the service exists
-        getServiceVersion(organizationId, serviceId, version);
+        ServiceStatus svs = getServiceVersion(organizationId, serviceId, version).getStatus();
+        if (svs == ServiceStatus.Published || svs == ServiceStatus.Deprecated) {
+            throw ExceptionFactory.invalidServiceStatusException();
+        }
         try {
             PolicyBean policy = storage.getPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
             if (policy == null) {
@@ -1936,7 +1933,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             // TODO capture specific change values when auditing policy updates
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,serviceId,version)).getPolicyJsonConfig());
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,serviceId,version)).getPolicyJsonConfig());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());

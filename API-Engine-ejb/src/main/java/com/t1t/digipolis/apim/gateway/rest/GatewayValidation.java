@@ -41,6 +41,7 @@ import java.util.UUID;
 
 import static com.t1t.digipolis.apim.beans.policies.Policies.BASICAUTHENTICATION;
 import static com.t1t.digipolis.apim.beans.policies.Policies.CORS;
+import static org.jgroups.Version.description;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -127,12 +128,15 @@ public class GatewayValidation {
         for (KongPluginOAuthScope scope : scopes) {
             if (!StringUtils.isEmpty(scope.getScope())) {
                 //add prefix
-                if(!StringUtils.isEmpty(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope());
+                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope());
                 if (StringUtils.isEmpty(scope.getScopeDesc())) scope.setScopeDesc(scope.getScope());
                 responseScopes.add(scope);
             }
         }
-        if (responseScopes.isEmpty()) throw ExceptionFactory.invalidPolicyException("Scopes/scopes description must be provided in order to apply OAuth2");
+        //Allow empty scopes if scopes aren't mandatory
+        if (responseScopes.isEmpty() && oauthValue.getMandatoryScope()) {
+            throw ExceptionFactory.invalidPolicyException("If \"Mandatory Scopes\" is checked, at least one scope/scope description must be provided in order to apply OAuth2");
+        }
         //create custom provisionkey - explicitly
         oauthValue.setScopes(responseScopes);
         oauthValue.setProvisionKey(UUID.randomUUID().toString());

@@ -547,4 +547,6 @@ public interface IStorageQuery {
     public List<ServiceVersionBean> findLatestServiceVersionByStatusAndServiceName(String serviceName, ServiceStatus status) throws StorageException;
 
     public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException;
+
+    public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException;
 }

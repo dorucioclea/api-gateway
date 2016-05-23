@@ -1,6 +1,9 @@
 package com.t1t.digipolis.apim.rest.resources.filter;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
@@ -19,6 +22,8 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by michallispashidis on 20/09/15.
@@ -33,6 +38,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     private static final String HEADER_CONSUMER_USERNAME = "x-consumer-username";//considerred to be an application consumer - we use this to setup an application context
     private static final String HEADER_CONSUMER_ID = "x-consumer-id";
     private static final String HEADER_USER_AUTHORIZATION = "Authorization"; // will contain the JWT user token
+    private static final String HEADER_API_KEY = "apikey";
     //exclusions
     private static final String REDIRECT_PATH = "/users/idp/redirect";
     private static final String IDP_CALLBACK = "/users/idp/callback";
@@ -45,6 +51,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     @Inject private ISecurityContext securityContext;
     @Inject private ISecurityAppContext securityAppContext;
     @Inject private AppConfig config;
+    @Inject private IStorageQuery query;
 
 
     @Override
@@ -70,6 +77,11 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             //Get apikey - app context - SHOULD BE ALWAYS PROVIDED
             String appId = containerRequestContext.getHeaderString(HEADER_CONSUMER_USERNAME);
             try {
+                if (appId == null) {
+                    String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
+                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
+                    appId = mab == null ? "" : ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
+                }
                 securityAppContext.setCurrentApplication(appId);
             } catch (StorageException e) {
                 throw new IOException(e);
