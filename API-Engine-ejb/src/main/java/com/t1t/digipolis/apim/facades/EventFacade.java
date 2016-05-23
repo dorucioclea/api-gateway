@@ -139,7 +139,7 @@ public class EventFacade {
     public List<EventAggregateBean> getAllNonActionEvents(CurrentUserBean currentUser) {
         List<String> orgIds = new ArrayList<>();
         currentUser.getPermissions().forEach(permissionBean -> {
-            if (permissionBean.getName() == PermissionType.orgAdmin) {
+            if (permissionBean.getName() == PermissionType.orgEdit) {
                 orgIds.add(permissionBean.getOrganizationId());
             }
         });
@@ -164,7 +164,7 @@ public class EventFacade {
     public List<EventAggregateBean> getAllIncomingActionEvents(CurrentUserBean currentUser) {
         List<String> orgIds = new ArrayList<>();
         currentUser.getPermissions().forEach(permissionBean -> {
-            if (permissionBean.getName() == PermissionType.orgAdmin) {
+            if (permissionBean.getName() == PermissionType.orgEdit) {
                 orgIds.add(permissionBean.getOrganizationId());
             }
         });

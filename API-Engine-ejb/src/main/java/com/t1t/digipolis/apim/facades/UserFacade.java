@@ -898,7 +898,7 @@ public class UserFacade implements Serializable {
             secret = cacheUtil.getToken(key);
         }
         catch (Exception e) {
-            throw ExceptionFactory.tokenExpiredException(e.getMessage());
+            throw ExceptionFactory.cachingException(e.getMessage());
         }
         if (StringUtils.isEmpty(secret)) {
             //retrieve from Kong
