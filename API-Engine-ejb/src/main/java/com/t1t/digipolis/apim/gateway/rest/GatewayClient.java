@@ -450,7 +450,7 @@ public class GatewayClient {
                     switch(policies){
                         //all policies can be available here
                         case BASICAUTHENTICATION: createServicePolicy(api, policy, Policies.BASICAUTHENTICATION.getKongIdentifier(),Policies.BASICAUTHENTICATION.getClazz());break;
-                        case CORS: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.CORS.getClazz());customCorsFlag=true;break;
+                        case CORS: createCorsServicePolicy(api, policy);customCorsFlag=true;break;
                         case FILELOG: createServicePolicy(api, policy, Policies.FILELOG.getKongIdentifier(),Policies.FILELOG.getClazz());break;
                         case HTTPLOG: createServicePolicy(api,policy, Policies.HTTPLOG.getKongIdentifier(),Policies.HTTPLOG.getClazz());customHttp=true;break;
                         case UDPLOG: createServicePolicy(api, policy, Policies.UDPLOG.getKongIdentifier(),Policies.UDPLOG.getClazz());break;
@@ -834,6 +834,18 @@ public class GatewayClient {
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         config = httpClient.createPluginConfig(api.getId(),config);
         return config;
+    }
+
+    private KongPluginConfig createCorsServicePolicy(KongApi api, Policy policy) throws PublishingException {
+        //Add the default headers to the custom headers in the policy
+        Set<String> customHeaders = new HashSet<>(Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY, "Authorization"));
+        KongPluginCors plugin = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginCors.class);
+        customHeaders.addAll(plugin.getHeaders());
+        plugin.setHeaders(new ArrayList<>(customHeaders));
+        KongPluginConfig config = new KongPluginConfig()
+                .withName(Policies.CORS.getKongIdentifier())
+                .withConfig(plugin);
+        return httpClient.createPluginConfig(api.getId(), config);
     }
 
     /**
