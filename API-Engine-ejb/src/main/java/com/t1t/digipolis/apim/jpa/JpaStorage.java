@@ -2166,4 +2166,15 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return null;
         }
     }
+
+    @Override
+    public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException {
+        Set<OrganizationBean> returnValue = new HashSet<>();
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT o FROM OrganizationBean o WHERE o IN (SELECT a.application.organization FROM ApplicationVersionBean a WHERE a IN (SELECT c.application FROM ContractBean c WHERE c.service.service = :service))";
+        returnValue.addAll(em.createQuery(jpql)
+                .setParameter("service", service)
+                .getResultList());
+        return returnValue;
+    }
 }

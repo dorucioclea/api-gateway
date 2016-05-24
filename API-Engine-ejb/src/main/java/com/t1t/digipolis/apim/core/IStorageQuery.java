@@ -12,11 +12,13 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.*;
@@ -549,4 +551,6 @@ public interface IStorageQuery {
     public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException;
 
     public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException;
+
+    public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException;
 }
