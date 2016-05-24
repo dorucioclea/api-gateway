@@ -719,8 +719,8 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getServiceAnnouncements(organizationId, serviceId);
     }
 
-    @ApiOperation(value = "Remove Service Policy",
-            notes = "Use this endpoint to remove a Policy from the Service.")
+    @ApiOperation(value = "Remove Service Announcement",
+            notes = "Use this endpoint to remove an Announcement from the Service.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
     })
