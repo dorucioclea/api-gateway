@@ -1,12 +1,15 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.events.*;
 import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
+import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
+import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.PlanVersionSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
@@ -14,6 +17,7 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.slf4j.Logger;
@@ -24,13 +28,11 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_PENDING;
-import static com.t1t.digipolis.apim.beans.events.EventType.CONTRACT_REJECTED;
-import static com.t1t.digipolis.apim.beans.events.EventType.MEMBERSHIP_PENDING;
+import static com.t1t.digipolis.apim.beans.events.EventType.*;
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.member;
 
 /**
  * @author Guillaume Vandecasteele
@@ -234,9 +236,50 @@ public class EventFacade {
         }else storage.createEvent(event);
     }
 
+    public void onNewAnnouncement(@Observes AnnouncementBean announcement) {
+        //Workaround for WELD-2019 issue
+        handleNewAnnouncement(announcement);
+    }
+
     /*******************/
     /* Private Methods */
     /*******************/
+
+    private void handleNewAnnouncement(AnnouncementBean announcement) {
+        try {
+            ServiceBean service = storage.getService(announcement.getOrganizationId(), announcement.getServiceId());
+            Set<OrganizationBean> contractHolders = query.getServiceContractHolders(service);
+            Set<String> members = new HashSet<>();
+            //Get members for each organization and add them to the set.
+            contractHolders.forEach(org -> members.addAll(orgFacade.listMembers(org.getId()).stream().map(MemberBean::getUserId).collect(Collectors.toList())));
+            //Add all of the service followers to the list, and remove the user that created the announcement from that list (if present)
+            members.addAll(service.getFollowers());
+            members.remove(announcement.getCreatedBy());
+            _LOG.debug("listOfMembers:{}", members);
+            //For each member in the list, create a new event
+            members.forEach(member -> {
+                EventBean event = new EventBean();
+                event.setOriginId(new StringBuilder(service.getOrganization().getId())
+                        .append(".")
+                        .append(service.getId())
+                        .toString());
+                event.setDestinationId(member);
+                event.setBody(announcement.getDescription());
+                event.setCreatedOn(new Date());
+                event.setType(ANNOUNCEMENT_NEW);
+                //Check if there still is a previous announcement from that service to that user, and delete it if necessary
+                try {
+                    verifyAndCreate(event);
+                }
+                catch (StorageException ex) {
+                    throw new SystemErrorException(ex);
+                }
+            });
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
 
     private List<EventBean> getOutgoingEvents(String origin) {
         try {
