@@ -32,8 +32,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.t1t.digipolis.apim.beans.events.EventType.*;
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.member;
-
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
@@ -52,6 +50,21 @@ public class EventFacade {
     private UserFacade userFacade;
     @Inject
     private OrganizationFacade orgFacade;
+
+    public EventBean get(Long id) {
+        try {
+            EventBean event = storage.getEvent(id);
+            if (event != null) {
+                return event;
+            }
+            else {
+                throw ExceptionFactory.eventNotFoundException();
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
 
     public List<EventBean> getCurrentUserAllIncomingEvents() {
         return getIncomingEvents(securityContext.getCurrentUser());
@@ -119,17 +132,34 @@ public class EventFacade {
         }
     }
 
-    public void deleteEvent(String destination, Long id) {
+    public void deleteUserEvent(Long id) {
+        EventBean event = get(id);
+        if (!event.getDestinationId().equals(securityContext.getCurrentUser())) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        deleteEventInternal(event);
+    }
+
+    public void deleteOrgEvent(String orgId, Long id) {
+        EventBean event = get(id);
+        //The only notifications an organization gets is of type CONTRACT_ACCEPTED or REJECTED, so we check if that's the type.
+        //If it is, we can safely assume the destination follows org.serv.version convention
+        if (event.getType() != CONTRACT_ACCEPTED || event.getType() != CONTRACT_REJECTED) {
+            throw ExceptionFactory.invalidEventException(event.getType().toString());
+        }
+        String destinationOrg = event.getDestinationId().split(".", 2)[0];
+        if (!orgId.equals(destinationOrg)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        deleteEventInternal(event);
+    }
+
+    //In order to prevent users from deleting organization-wide event notifications, we'll need to check if the user is
+    //the intended destination
+    public void deleteEventInternal(EventBean event) {
         try {
-            EventBean event = storage.getEvent(id);
-            if (event == null) {
-                throw ExceptionFactory.eventNotFoundException();
-            }
-/*            if (!event.getDestinationId().equals(destination)) {
-                throw ExceptionFactory.notAuthorizedException();
-            }*/
             if (event.getType() == MEMBERSHIP_PENDING || event.getType() == EventType.CONTRACT_PENDING) {
-                throw ExceptionFactory.invalidEventException(event.getType().toString());
+                throw ExceptionFactory.invalidEventException("Pending events cannot be deleted");
             }
             storage.deleteEvent(event);
         }
@@ -550,5 +580,4 @@ public class EventFacade {
 
         return eab;
     }
-
 }

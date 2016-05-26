@@ -3313,7 +3313,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ann.setServiceId(bean.getId());
             storage.createServiceAnnouncement(ann);
             //Fire off new event in order to notify those that need to be notified
-            announcement.fire(ann);
+            //announcement.fire(ann);
             return ann;
         } catch (AbstractRestException e) {
             throw e;

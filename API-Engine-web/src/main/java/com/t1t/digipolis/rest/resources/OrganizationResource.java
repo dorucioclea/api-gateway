@@ -8,7 +8,6 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
-import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.idm.*;
@@ -33,7 +32,6 @@ import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.EventFacade;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
-import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.rest.impl.util.FieldValidator;
 import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
@@ -63,8 +61,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
-
-import static javafx.scene.input.KeyCode.R;
 
 /**
  * This is the rest endpoint implementation.
@@ -2080,10 +2076,10 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/notifications/incoming/{notificationId}")
     public void deleteEvent(@PathParam("organizationId") String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        eventFacade.deleteEvent(organizationId, id);
+        eventFacade.deleteOrgEvent(organizationId, id);
     }
 
     @Override
@@ -2124,7 +2120,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        if (!securityContext.hasPermission(PermissionType.svcEdit, response.getServiceOrgId()))
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, response.getServiceOrgId()))
             throw ExceptionFactory.notAuthorizedException();
         orgFacade.rejectContractRequest(organizationId, applicationId, version, response);
     }
@@ -2144,7 +2140,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        if (!securityContext.hasPermission(PermissionType.svcEdit, response.getServiceOrgId()))
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, response.getServiceOrgId()))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.acceptContractRequest(organizationId, applicationId, version, response);
     }
