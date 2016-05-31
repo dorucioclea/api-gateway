@@ -195,7 +195,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     @DELETE
     @Path("/notifications/incoming/{notificationId}")
     public void deleteEvent(@PathParam("notificationId") Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
-        eventFacade.deleteEvent(securityContext.getCurrentUser(), id);
+        eventFacade.deleteUserEvent(id);
     }
 
     @Override

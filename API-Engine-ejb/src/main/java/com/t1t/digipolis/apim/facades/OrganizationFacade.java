@@ -130,6 +130,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private MailService mailService;
     @Inject
     private Event<NewEventBean> event;
+    @Inject
+    private Event<AnnouncementBean> announcement;
 
 
     @SuppressWarnings("nls")
@@ -3310,6 +3312,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ann.setOrganizationId(bean.getOrganization().getId());
             ann.setServiceId(bean.getId());
             storage.createServiceAnnouncement(ann);
+            //Fire off new event in order to notify those that need to be notified
+            //announcement.fire(ann);
             return ann;
         } catch (AbstractRestException e) {
             throw e;

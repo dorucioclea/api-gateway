@@ -114,7 +114,7 @@ public class CurrentUserFacade {
             if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
                 permittedOrganizations = storage.getAllOrganizations();
             }else{
-                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appEdit);
+                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appView);
             }
         } catch (StorageException e) {
             throw ExceptionFactory.userNotFoundException(currentUser);
@@ -134,7 +134,7 @@ public class CurrentUserFacade {
             if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
                 permittedOrganizations = storage.getAllOrganizations();
             }else{
-                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.planEdit);
+                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.planView);
             }
         } catch (StorageException e) {
             throw ExceptionFactory.userNotFoundException(currentUser);
@@ -153,7 +153,7 @@ public class CurrentUserFacade {
             if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
                 permittedOrganizations = storage.getAllOrganizations();
             }else{
-                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcEdit);
+                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcView);
             }
         } catch (StorageException e) {
             throw ExceptionFactory.userNotFoundException(currentUser);
