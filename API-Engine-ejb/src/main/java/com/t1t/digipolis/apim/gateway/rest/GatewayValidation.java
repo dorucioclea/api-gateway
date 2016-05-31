@@ -276,6 +276,10 @@ public class GatewayValidation {
         req.getExposedHeaders().stream().forEach(val -> {if (!StringUtils.isEmpty(val)) res.getExposedHeaders().add(val);});
         req.getHeaders().stream().forEach(val->{if(!StringUtils.isEmpty(val))res.getHeaders().add(val);});
         req.getMethods().stream().forEach(val->{if(val!=null)res.getMethods().add(val);});
+        res.setCredentials(req.getCredentials());
+        res.setMaxAge(req.getMaxAge() == 0 ? 3600 : req.getMaxAge());
+        res.setPreflightContinue(req.getPreflightContinue());
+        res.setOrigin(req.getOrigin());
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
