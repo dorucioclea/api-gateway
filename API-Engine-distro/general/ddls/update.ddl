@@ -177,6 +177,63 @@ ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (S
 
 -- Fix announcements
 ALTER TABLE announcements ALTER COLUMN status DROP NOT NULL;
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "CORS",
+  "properties": {
+    "methods": {
+      "type": "array",
+      "items": {
+        "title": "Methods",
+        "type": "string",
+        "pattern": "^POST$|^GET$|^HEAD$|^PUT$|^PATCH$|^DELETE$",
+        "validationMessage": "Should be one of: GET,HEAD,PUT,PATCH,POST,DELETE",
+        "description": "Value for the Access-Control-Allow-Methods header, expects a string (e.g. GET or POST). Defaults to the values GET,HEAD,PUT,PATCH,POST,DELETE."
+      }
+    },
+    "credentials": {
+      "title": "Credentials",
+      "description": "Flag to determine whether the Access-Control-Allow-Credentials header should be sent with true as the value.",
+      "type": "boolean",
+      "default": false
+    },
+      "headers": {
+        "type": "array",
+        "items": {
+          "title": "Headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Allow-Headers header (e.g. Origin, Authorization). Defaults to the value of the Access-Control-Request-Headers header."
+        }
+    },
+    "exposed_headers": {
+                "type": "array",
+        "items": {
+          "title": "Exposed headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Expose-Headers header (e.g. Origin, Authorization). If not specified, no custom headers are exposed."
+        }
+    },
+    "origin": {
+      "title": "Origin",
+      "type": "string",
+      "default": "*",
+      "description": "Value for the Access-Control-Allow-Origin header, expects a String. Defaults to *."
+    },
+    "max_age": {
+      "title": "Max age",
+      "type": "number",
+      "description": "Indicated how long the results of the preflight request can be cached, in seconds.",
+      "default": 3600,
+      "minimum": 1
+    },
+    "preflight_continue": {
+      "title": "Preflight continue",
+      "type": "boolean",
+      "description": "A boolean value that instructs the plugin to proxy the OPTIONS preflight request to the upstream API. Defaults to false.",
+      "default": false
+    }
+  }
+}' WHERE id = 'CORS';
 
 
 
