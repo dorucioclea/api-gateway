@@ -672,7 +672,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public AnnouncementBean createServiceAnnouncement(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, NewAnnouncementBean announcementBean) throws ServiceNotFoundException, NotAuthorizedException{
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkNotNull(announcementBean);
