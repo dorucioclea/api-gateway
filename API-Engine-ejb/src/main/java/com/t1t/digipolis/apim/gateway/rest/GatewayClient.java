@@ -91,11 +91,15 @@ public class GatewayClient {
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {
-        Object kongInfo = httpClient.getInfo();
+        KongExtraInfo kongInfo = httpClient.getInfo();
         KongInfo kongInformation = httpClient.getParsedInfo();
         Object kongStatus = httpClient.getStatus();
         Object kongCluster = httpClient.getCluster();
         Gson gson = new Gson();
+        //Remove NginX Config & SSL Cert/Key path from KongInfo
+        kongInfo.getConfiguration().setSslCertPath(null);
+        kongInfo.getConfiguration().setSslKeyPath(null);
+        kongInfo.getConfiguration().setNginx(null);
         SystemStatus systemStatus = new SystemStatus();
         systemStatus.setDescription(kongInformation.getTagline());
         systemStatus.setVersion(kongInformation.getVersion());

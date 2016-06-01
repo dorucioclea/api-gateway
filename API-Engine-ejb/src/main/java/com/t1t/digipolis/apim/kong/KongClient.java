@@ -36,7 +36,7 @@ import retrofit.http.*;
 public interface KongClient {
     /*********************   GENERAL   *******************/
     @GET("/")
-    Object getInfo();
+    KongExtraInfo getInfo();
     @GET("/")
     KongInfo getParsedInfo();
     @GET("/status")
