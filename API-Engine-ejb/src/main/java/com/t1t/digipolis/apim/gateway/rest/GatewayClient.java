@@ -258,7 +258,8 @@ public class GatewayClient {
             KongPluginConfig updatedConfig = new KongPluginConfig()
                     .withId(gtwPluginConfig.getId())
                     .withName(Policies.OAUTH2.getKongIdentifier())
-                    .withConfig(gtwPluginConfig.getConfig());
+                    .withConfig(gtwPluginConfig.getConfig())
+                    .withCreatedAt(gtwPluginConfig.getCreatedAt());
             httpClient.updateOrCreatePluginConfig(gtw.getId().toLowerCase(),updatedConfig);
         }
     }
