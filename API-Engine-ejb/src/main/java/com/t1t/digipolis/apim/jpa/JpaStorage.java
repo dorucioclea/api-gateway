@@ -2029,10 +2029,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public Integer getRegisteredApplicationCountForOrg(String orgId) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT count(a.id) FROM ApplicationVersionBean a JOIN a.application v WHERE v.organization.id = :orgId AND a.status = :status";
+        String jpql = "SELECT count(a.id) FROM ApplicationVersionBean a JOIN a.application v WHERE v.organization.id = :orgId AND a.status = :status AND v.context = :appContext";
         Query query = em.createQuery(jpql);
         query.setParameter("orgId", orgId);
         query.setParameter("status", ApplicationStatus.Registered);
+        query.setParameter("appContext", appContext.getApplicationScope());
         return ((Long) query.getSingleResult()).intValue();
     }
 
@@ -2137,7 +2138,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ServiceVersionBean> findLatestServiceVersionByStatus(ServiceStatus status) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.status = :status GROUP BY s2.service)";
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.status = :status GROUP BY s2.service) ORDER BY s.service.name";
         return ServiceScopeUtil.resolveSVBScope(em.createQuery(jpql)
                 .setParameter("status", status)
                 .getResultList(), appContext.getApplicationScope());
@@ -2146,7 +2147,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ServiceVersionBean> findLatestServiceVersionByStatusAndServiceName(String serviceName, ServiceStatus status) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.status = :status AND LOWER(s2.service.name) LIKE :name GROUP BY s2.service)";
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.status = :status AND LOWER(s2.service.name) LIKE :name GROUP BY s2.service) ORDER BY s.service.name";
         return ServiceScopeUtil.resolveSVBScope(em.createQuery(jpql)
                 .setParameter("status", status)
                 .setParameter("name", serviceName.toLowerCase())
@@ -2176,5 +2177,19 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("service", service)
                 .getResultList());
         return returnValue;
+    }
+
+    public ServiceBean getServiceByBasepath(String organizationId, String basepath) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceBean s WHERE s.basepath = :bpath AND s.organization.id = :orgId";
+        try {
+            return (ServiceBean) em.createQuery(jpql)
+                    .setParameter("bpath", basepath)
+                    .setParameter("orgId", organizationId)
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
     }
 }

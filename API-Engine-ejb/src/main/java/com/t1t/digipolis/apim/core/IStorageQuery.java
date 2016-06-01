@@ -553,4 +553,6 @@ public interface IStorageQuery {
     public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException;
 
     public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException;
+
+    public ServiceBean getServiceByBasepath(String organizationId, String basepath) throws StorageException;
 }

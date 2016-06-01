@@ -424,4 +424,8 @@ public final class ExceptionFactory {
     public static final CachingException cachingException(String message) {
         return new CachingException(message);
     }
+
+    public static final ServiceBasepathAlreadyInUseException serviceBasepathAlreadyInUseException(String organizationName, String basepath) {
+        return new ServiceBasepathAlreadyInUseException(Messages.i18n.format("ServiceBasePathAlreadyInUse", organizationName, basepath));
+    }
 }

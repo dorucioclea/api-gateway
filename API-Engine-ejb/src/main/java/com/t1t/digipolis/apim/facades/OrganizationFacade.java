@@ -1147,6 +1147,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (storage.getService(orgBean.getId(), newService.getId()) != null) {
                 throw ExceptionFactory.serviceAlreadyExistsException(bean.getName());
             }
+            if (query.getServiceByBasepath(organizationId, bean.getBasepath()) != null) {
+                throw ExceptionFactory.serviceBasepathAlreadyInUseException(orgBean.getName(), bean.getBasepath().substring(1));
+            }
             newService.setOrganization(orgBean);
             // Store/persist the new service
             storage.createService(newService);
