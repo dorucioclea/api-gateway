@@ -411,7 +411,7 @@ public class GatewayValidation {
         return list!=null && list.size()>0;
     }
 
-    private static boolean isValidIp(String ip) {
+    private static synchronized boolean isValidIp(String ip) {
         return Pattern.compile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$").matcher(ip).find();
     }
 }
