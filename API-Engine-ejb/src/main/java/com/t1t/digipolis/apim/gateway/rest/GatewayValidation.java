@@ -35,9 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.regex.Pattern;
 
 import static com.t1t.digipolis.apim.beans.policies.Policies.BASICAUTHENTICATION;
 import static com.t1t.digipolis.apim.beans.policies.Policies.CORS;
@@ -322,15 +321,19 @@ public class GatewayValidation {
     public static synchronized Policy validateIPRestriction(Policy policy){
         Gson gson = new Gson();
         KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginIPRestriction.class);
+        //Validate lists prior to checking if empty
+        req.setBlacklist(validateIPList(req.getBlacklist()));
+        req.setWhitelist(validateIPList(req.getWhitelist()));
         //if lists empty -> error
         if(isEmptyList(req.getBlacklist())&&isEmptyList(req.getWhitelist()))throw new PolicyDefinitionInvalidException("At least one value should be provided.");
         if(isNotEmptyList(req.getBlacklist())&& isNotEmptyList(req.getWhitelist()))throw new PolicyDefinitionInvalidException("You cannot provide both blacklist and whitelist values.");
         // check for duplicate values
-        req.getBlacklist().stream().forEach(blackVal -> req.getWhitelist().stream().forEach(whiteVal -> {
+        // Don't need to check for conflicting whitelist/blacklist values because plugin only accepts one list
+        /*req.getBlacklist().stream().forEach(blackVal -> req.getWhitelist().stream().forEach(whiteVal -> {
             if (blackVal.equals(whiteVal)) {
                 throw new PolicyDefinitionInvalidException("Conflicting white/blacklist values: A value cannot be both on the whitelist and the blacklist");
             }
-        }));
+        }));*/
         KongPluginIPRestriction res = new KongPluginIPRestriction();
         res.setBlacklist(new ArrayList<>());
         res.setWhitelist(new ArrayList<>());
@@ -341,6 +344,14 @@ public class GatewayValidation {
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
         _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
+    }
+
+    private static synchronized List<String> validateIPList(List<String> list) {
+        Set<String> uniqueValues = new HashSet<>();
+        list.forEach(ip -> {
+            if (!StringUtils.isEmpty(ip) && isValidIp(ip)) uniqueValues.add(ip);
+        });
+        return new ArrayList<>(uniqueValues);
     }
 
     public static synchronized Policy validateKeyAuth(Policy policy){
@@ -398,5 +409,9 @@ public class GatewayValidation {
 
     private static boolean isNotEmptyList(List list){
         return list!=null && list.size()>0;
+    }
+
+    private static boolean isValidIp(String ip) {
+        return Pattern.compile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$").matcher(ip).find();
     }
 }
