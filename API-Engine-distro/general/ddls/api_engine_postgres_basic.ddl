@@ -389,7 +389,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "title": "Max age",
       "type": "number",
       "description": "Indicated how long the results of the preflight request can be cached, in seconds.",
-      "default": 3600
+      "default": 3600,
+      "minimum": 1
     },
     "preflight_continue": {
       "title": "Preflight continue",
@@ -486,7 +487,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "title": "Token expiration",
       "type": "number",
       "default": 7200,
-      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration."
+      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration.",
+      "minimum": 0
     },
     "enable_authorization_code": {
       "title": "Enable Authorization Code Grant",
