@@ -824,7 +824,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         for(ServiceVersionBean svb:allServicesFiltered){
             services.add(svb.getService());
         }
-        Set<String> catSet = new TreeSet<>();
+        Set<String> catSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         for (ServiceBean service : services) {
             catSet.addAll(service.getCategories());
         }

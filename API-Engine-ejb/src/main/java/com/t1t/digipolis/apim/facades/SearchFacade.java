@@ -122,7 +122,6 @@ public class SearchFacade {
 
     public Set<String> searchPublishedCategories(){
         try {
-            //TODO take into account int/ext or scopes in general
             return query.findAllUniquePublishedCategories();
         } catch (StorageException e) {
             throw new SystemErrorException();

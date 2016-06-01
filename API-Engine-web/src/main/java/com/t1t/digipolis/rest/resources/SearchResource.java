@@ -118,8 +118,8 @@ public class SearchResource implements ISearchResource {
         return searchFacade.searchCategories();
     }
 
-    @ApiOperation(value = "Search for all used service categories",
-            notes = "Use this endpoint to search for all service categories. All categories are returned, also for unpublished service versions.")
+    @ApiOperation(value = "Search for all published service categories",
+            notes = "Use this endpoint to search for published service categories. Only categories containing published services are returned.")
     @ApiResponses({
             @ApiResponse(code = 200, responseContainer = "List", response = String.class, message = "If the search is successful.")
     })
