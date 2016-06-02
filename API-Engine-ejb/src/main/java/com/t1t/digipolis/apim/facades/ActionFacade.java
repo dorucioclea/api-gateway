@@ -230,8 +230,20 @@ public class ActionFacade {
      * @param action
      */
     private void retireService(ActionBean action) throws ActionException {
-        ServiceVersionBean versionBean = getAndValidateServiceVersionBeanForStatusChange(action);
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, action.getOrganizationId()))
+            throw ExceptionFactory.notAuthorizedException();
 
+        ServiceVersionBean versionBean = null;
+        try {
+            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
+        } catch (ServiceVersionNotFoundException e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
+        }
+
+        // Validate that it's ok to perform this action - service must be Ready.
+        if (!(versionBean.getStatus() == ServiceStatus.Published || versionBean.getStatus() == ServiceStatus.Deprecated)) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("InvalidServiceStatus")); //$NON-NLS-1$
+        }
         Service gatewaySvc = new Service();
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
         gatewaySvc.setServiceId(versionBean.getService().getId());
@@ -279,19 +291,6 @@ public class ActionFacade {
     }
 
     private void deprecateService(ActionBean action) {
-        ServiceVersionBean svb = getAndValidateServiceVersionBeanForStatusChange(action);
-            svb.setStatus(ServiceStatus.Deprecated);
-            svb.setDeprecatedOn(new Date());
-        try {
-            storage.updateServiceVersion(svb);
-            storage.createAuditEntry(AuditUtils.serviceRetired(svb, securityContext));
-        }
-        catch (StorageException ex) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("DeprecateError"), ex); //$NON-NLS-1$
-        }
-    }
-
-    private ServiceVersionBean getAndValidateServiceVersionBeanForStatusChange(ActionBean action) {
         if (!securityContext.hasPermission(PermissionType.svcAdmin, action.getOrganizationId()))
             throw ExceptionFactory.notAuthorizedException();
 
@@ -306,7 +305,15 @@ public class ActionFacade {
         if (versionBean.getStatus() != ServiceStatus.Published) {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidServiceStatus")); //$NON-NLS-1$
         }
-        return versionBean;
+            versionBean.setStatus(ServiceStatus.Deprecated);
+            versionBean.setDeprecatedOn(new Date());
+        try {
+            storage.updateServiceVersion(versionBean);
+            storage.createAuditEntry(AuditUtils.serviceRetired(versionBean, securityContext));
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("DeprecateError"), ex); //$NON-NLS-1$
+        }
     }
 
     /**
