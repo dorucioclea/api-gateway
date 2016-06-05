@@ -40,6 +40,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.KeyUtils;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
@@ -325,7 +326,7 @@ public class ActionFacade {
         if (!securityContext.hasPermission(PermissionType.appAdmin, action.getOrganizationId()))
             throw ExceptionFactory.notAuthorizedException();
 
-        //TODO validate if consumer wit given consumer name exists
+        //TODO validate if consumer wit given consumer name exists?
 
         ApplicationVersionBean versionBean = null;
         List<ContractSummaryBean> contractBeans = null;
@@ -334,6 +335,7 @@ public class ActionFacade {
         } catch (ApplicationVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ApplicationNotFound")); //$NON-NLS-1$
         }
+
         try {
             contractBeans = query.getApplicationContracts(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (StorageException e) {
@@ -348,6 +350,12 @@ public class ActionFacade {
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidApplicationStatus"), e); //$NON-NLS-1$
         }
+
+        // Validate that all apikeys are equal for the scope of one application
+        if(!KeyUtils.validateKeySet(contractBeans)) throw ExceptionFactory.actionException(Messages.i18n.format("ApikeyInconsistency"));
+
+        // Validate that the application has a key-auth apikey available on the gateway - fallback scenario
+
 
         Application application = new Application();
         application.setOrganizationId(versionBean.getApplication().getOrganization().getId());
