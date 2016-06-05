@@ -1456,17 +1456,26 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!contract.getApplication().getVersion().equals(version)) {
                 throw ExceptionFactory.contractNotFoundException(contractId);
             }
-            //TODO remove key-auth credentials for application consumer when no more contracts
+
+            //get all application contracts in order to verify if other contracts are present
+            List<ContractSummaryBean> contractBeans = null;
             try {
-                //We create the new application version consumer
+                contractBeans = query.getApplicationContracts(organizationId, applicationId, version);
+            } catch (StorageException e) {
+                throw ExceptionFactory.actionException(Messages.i18n.format("ApplicationNotFound"), e); //$NON-NLS-1$
+            }
+
+            try {
+                //We delete only the key-auth when no other contracts with the application - pending contracts must not be taken into consideration
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                if (!avb.getStatus().equals(ApplicationStatus.Retired)) {
+                if (contractBeans.size()==1) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                     gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());//this can only be done when no other contracts exist
                 }
             } catch (StorageException e) {
                 throw new ApplicationNotFoundException(e.getMessage());
             }
+
             //Revoke application's ACL membership
             try {
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
@@ -1482,6 +1491,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             //remove contract
             storage.deleteContract(contract);
+
             //validate application state
             // Validate the state of the application.
             if (!applicationValidator.isReady(avb)) {
