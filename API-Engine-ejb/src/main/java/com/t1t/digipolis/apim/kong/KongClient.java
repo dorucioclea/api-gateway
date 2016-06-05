@@ -5,6 +5,7 @@ import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongExtraInfo;
 import com.t1t.digipolis.kong.model.KongInfo;
 import com.t1t.digipolis.kong.model.KongInstalledPlugins;
 import com.t1t.digipolis.kong.model.KongOAuthTokenList;
@@ -19,15 +20,11 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginACLRequest;
-import com.t1t.digipolis.kong.model.KongPluginACL;
 import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
-import com.t1t.digipolis.kong.model.KongConsumerList;
-import com.t1t.digipolis.kong.model.KongStatus;
 import retrofit.http.*;
 
 /**

@@ -354,8 +354,13 @@ public class ActionFacade {
         // Validate that all apikeys are equal for the scope of one application
         if(!KeyUtils.validateKeySet(contractBeans)) throw ExceptionFactory.actionException(Messages.i18n.format("ApikeyInconsistency"));
 
-        // Validate that the application has a key-auth apikey available on the gateway - fallback scenario
-
+        //application should have contracts when accessed directly from api.
+        String appApiKey;
+        if(contractBeans==null||contractBeans.size()==0)throw ExceptionFactory.actionException(Messages.i18n.format("InvalidContractCount"));
+        else{
+            //we are sure the contracts are not empty and that all apikeys must be equal.
+            appApiKey = contractBeans.get(0).getApikey();
+        }
 
         Application application = new Application();
         application.setOrganizationId(versionBean.getApplication().getOrganization().getId());
@@ -395,6 +400,13 @@ public class ActionFacade {
                 }
             }
             for (IGatewayLink gatewayLink : links.values()) {
+                // Validate that the application has a key-auth apikey available on the gateway - fallback scenario
+                try {
+                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
+                    gatewayLink.addConsumerKeyAuth(appConsumerName, appApiKey);
+                } catch (Exception e) {
+                    //apikey for consumer already exists
+                }
                 gatewayLink.registerApplication(application);
                 gatewayLink.close();
             }

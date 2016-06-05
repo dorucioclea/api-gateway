@@ -61,35 +61,15 @@ import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
-import com.t1t.digipolis.kong.model.KongApi;
-import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongConsumerList;
-import com.t1t.digipolis.kong.model.KongInfo;
-import com.t1t.digipolis.kong.model.KongInstalledPlugins;
-import com.t1t.digipolis.kong.model.KongOAuthTokenList;
-import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
-import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
-import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
-import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
-import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
-import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.KongPluginACLRequest;
-import com.t1t.digipolis.kong.model.KongPluginACL;
-import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
-import com.t1t.digipolis.kong.model.KongConsumerList;
-import com.t1t.digipolis.kong.model.KongStatus;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
@@ -687,7 +667,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             // if it failed because it was a duplicate.  If so, throw something sensible.  We
             // only do this on failure (we would get a FK contraint failure, for example) to
             // reduce overhead on the typical happy path.
-            //we asume it already exists
+            // we asume it already exists
             throw ExceptionFactory.contractAlreadyExistsException();
 /*            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
         throw ExceptionFactory.contractAlreadyExistsException();
