@@ -40,6 +40,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.KeyUtils;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
@@ -325,7 +326,7 @@ public class ActionFacade {
         if (!securityContext.hasPermission(PermissionType.appAdmin, action.getOrganizationId()))
             throw ExceptionFactory.notAuthorizedException();
 
-        //TODO validate if consumer wit given consumer name exists
+        //TODO validate if consumer wit given consumer name exists?
 
         ApplicationVersionBean versionBean = null;
         List<ContractSummaryBean> contractBeans = null;
@@ -334,6 +335,7 @@ public class ActionFacade {
         } catch (ApplicationVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ApplicationNotFound")); //$NON-NLS-1$
         }
+
         try {
             contractBeans = query.getApplicationContracts(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (StorageException e) {
@@ -347,6 +349,17 @@ public class ActionFacade {
             }
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidApplicationStatus"), e); //$NON-NLS-1$
+        }
+
+        // Validate that all apikeys are equal for the scope of one application
+        if(!KeyUtils.validateKeySet(contractBeans)) throw ExceptionFactory.actionException(Messages.i18n.format("ApikeyInconsistency"));
+
+        //application should have contracts when accessed directly from api.
+        String appApiKey;
+        if(contractBeans==null||contractBeans.size()==0)throw ExceptionFactory.actionException(Messages.i18n.format("InvalidContractCount"));
+        else{
+            //we are sure the contracts are not empty and that all apikeys must be equal.
+            appApiKey = contractBeans.get(0).getApikey();
         }
 
         Application application = new Application();
@@ -387,6 +400,13 @@ public class ActionFacade {
                 }
             }
             for (IGatewayLink gatewayLink : links.values()) {
+                // Validate that the application has a key-auth apikey available on the gateway - fallback scenario
+                try {
+                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
+                    gatewayLink.addConsumerKeyAuth(appConsumerName, appApiKey);
+                } catch (Exception e) {
+                    //apikey for consumer already exists
+                }
                 gatewayLink.registerApplication(application);
                 gatewayLink.close();
             }

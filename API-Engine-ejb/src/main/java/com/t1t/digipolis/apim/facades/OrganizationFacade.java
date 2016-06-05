@@ -61,6 +61,19 @@ import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.KongPluginOAuth;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -654,7 +667,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             // if it failed because it was a duplicate.  If so, throw something sensible.  We
             // only do this on failure (we would get a FK contraint failure, for example) to
             // reduce overhead on the typical happy path.
-            //we asume it already exists
+            // we asume it already exists
             throw ExceptionFactory.contractAlreadyExistsException();
 /*            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
         throw ExceptionFactory.contractAlreadyExistsException();
@@ -1443,17 +1456,26 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!contract.getApplication().getVersion().equals(version)) {
                 throw ExceptionFactory.contractNotFoundException(contractId);
             }
-            //TODO remove key-auth credentials for application consumer when no more contracts
+
+            //get all application contracts in order to verify if other contracts are present
+            List<ContractSummaryBean> contractBeans = null;
             try {
-                //We create the new application version consumer
+                contractBeans = query.getApplicationContracts(organizationId, applicationId, version);
+            } catch (StorageException e) {
+                throw ExceptionFactory.actionException(Messages.i18n.format("ApplicationNotFound"), e); //$NON-NLS-1$
+            }
+
+            try {
+                //We delete only the key-auth when no other contracts with the application - pending contracts must not be taken into consideration
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                if (!avb.getStatus().equals(ApplicationStatus.Retired)) {
+                if (contractBeans.size()==1) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                     gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());//this can only be done when no other contracts exist
                 }
             } catch (StorageException e) {
                 throw new ApplicationNotFoundException(e.getMessage());
             }
+
             //Revoke application's ACL membership
             try {
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
@@ -1469,6 +1491,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             //remove contract
             storage.deleteContract(contract);
+
             //validate application state
             // Validate the state of the application.
             if (!applicationValidator.isReady(avb)) {
