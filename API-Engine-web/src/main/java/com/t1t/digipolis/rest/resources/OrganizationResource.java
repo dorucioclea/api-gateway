@@ -2095,8 +2095,7 @@ public class OrganizationResource implements IOrganizationResource {
     public ContractBean requestContract(@PathParam("organizationId") String organizationId,
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("version") String version,
-                                    NewContractRequestBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
-            ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException, NotAuthorizedException {
+                                    NewContractRequestBean bean) throws AbstractRestException {
         Preconditions.checkNotNull(bean);
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));

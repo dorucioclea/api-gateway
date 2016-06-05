@@ -977,7 +977,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             return serviceVersion;
         } catch (AbstractRestException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
     }
@@ -1416,6 +1416,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    /**
+     * Deletes a contract from an application with a service:
+     * <ul>
+     *     <li>Status Created/Ready:</li>
+     * </ul>
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @param contractId
+     */
     public void deleteContract(String organizationId, String applicationId, String version, Long contractId) {
         try {
             ContractBean contract = storage.getContract(contractId);
@@ -1433,13 +1443,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!contract.getApplication().getVersion().equals(version)) {
                 throw ExceptionFactory.contractNotFoundException(contractId);
             }
-            //remove keyauth credentials for application consumer
+            //TODO remove key-auth credentials for application consumer when no more contracts
             try {
                 //We create the new application version consumer
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                 if (!avb.getStatus().equals(ApplicationStatus.Retired)) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                    gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());
+                    gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());//this can only be done when no other contracts exist
                 }
             } catch (StorageException e) {
                 throw new ApplicationNotFoundException(e.getMessage());
