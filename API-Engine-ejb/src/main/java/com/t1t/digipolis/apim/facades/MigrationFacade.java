@@ -8,17 +8,20 @@ import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
+import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
+import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -27,6 +30,7 @@ import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.omg.CORBA.SystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +38,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author Guillaume Vandecasteele
@@ -158,7 +162,7 @@ public class MigrationFacade {
         }
     }
 
-    private IGatewayLink createGatewayLink(String gatewayId) throws PublishingException {
+    private IGatewayLink createGatewayLink(String gatewayId) throws AbstractRestException {
         try {
             GatewayBean gateway = storage.getGateway(gatewayId);
             if (gateway == null) {
@@ -170,6 +174,63 @@ public class MigrationFacade {
             throw e;
         } catch (Exception e) {
             throw new PublishingException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * TODO this first implementation will sync all apikeys for all applications.
+     */
+    public void syncBusinessModel() throws AbstractRestException {
+        //Sync Services
+        //Sync Applications
+        //Sync apikeys
+        try {
+            final List<ApplicationVersionBean> applicationVersions = query.findAllApplicationVersions();
+            _LOG.info("=== SYNC::Applications Apikeys("+applicationVersions.size()+")");
+            for(ApplicationVersionBean avb:applicationVersions){
+                //Keep track of service gateways
+                Map<String, IGatewayLink> links = new HashMap<>();
+                //Get contracts
+                final List<ContractSummaryBean> applicationContracts = query.getApplicationContracts(avb.getApplication().getOrganization().getId(), avb.getApplication().getId(), avb.getVersion());
+                String appApiKey = null;
+                for(ContractSummaryBean contractSummaryBean:applicationContracts){
+                    //all apikeys should be the same
+                    if(StringUtils.isEmpty(appApiKey)&&StringUtils.isNotEmpty(contractSummaryBean.getApikey())){
+                        appApiKey = contractSummaryBean.getApikey();
+                    }
+                    //get all gateways where application should be registered
+                    ServiceVersionBean svb = storage.getServiceVersion(contractSummaryBean.getServiceOrganizationId(), contractSummaryBean.getServiceId(), contractSummaryBean.getServiceVersion());
+                    Set<ServiceGatewayBean> gateways = svb.getGateways();
+                    for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                        if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
+                            IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                            links.put(serviceGatewayBean.getGatewayId(), gatewayLink);
+                        }
+                    }
+                }
+                //log info
+                _LOG.info("Sync application orgId:"+avb.getApplication().getOrganization().getId());
+                _LOG.info("Sync application appId:"+avb.getApplication().getId());
+                _LOG.info("Sync application version:"+avb.getVersion());
+                _LOG.info("===> apikey:"+appApiKey);
+                _LOG.info("===> gateways:"+links);
+                //sync apikey
+                if(StringUtils.isNotEmpty(appApiKey)){
+                    for (IGatewayLink gatewayLink : links.values()) {
+                        // Validate that the application has a key-auth apikey available on the gateway - fallback scenario
+                        try {
+                            String appConsumerName = ConsumerConventionUtil.createAppUniqueId(avb.getApplication().getOrganization().getId(), avb.getApplication().getId(), avb.getVersion());
+                            gatewayLink.addConsumerKeyAuth(appConsumerName, appApiKey);
+                        } catch (Exception e) {
+                            //apikey for consumer already exists
+                        }
+                        gatewayLink.close();
+                    }
+                }
+            }
+            _LOG.info("=== FINISHED SYNC::Applications Apikeys("+applicationVersions.size()+")");
+        } catch (StorageException e) {
+            throw new SystemErrorException("Error accessing datastore");
         }
     }
 }

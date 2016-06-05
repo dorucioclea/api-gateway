@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.AbstractRestException;
 import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
@@ -19,6 +20,15 @@ public interface IMigrationResource {
     /**
      * Use this endpoint to change applications' versionless customId's to match their usernames
      */
-    public void updateConsumersCustomId();
+    public void updateConsumersCustomId() throws AbstractRestException;
+
+    /**
+     * Sync the local db with the Kong gateway in case of:
+     * <ul>
+     *     <li>In case of inconsistency force sync DB->gateways</li>
+     *     <li>Zero Downtime Deployment</li>
+     * </ul>
+     */
+    public void syncGateways() throws AbstractRestException;
 }
 

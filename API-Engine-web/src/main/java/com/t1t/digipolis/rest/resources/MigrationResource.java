@@ -1,6 +1,7 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.AbstractRestException;
 import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
@@ -52,7 +53,17 @@ public class MigrationResource implements IMigrationResource {
     @ApiResponses({@ApiResponse(code = 204, message = "Rename complete")})
     @POST
     @Path("applications/rename")
-    public void updateConsumersCustomId() {
+    public void updateConsumersCustomId() throws AbstractRestException {
         migrationFacade.renameApplicationCustomIds();
+    }
+
+    @Override
+    @ApiOperation(value =  "Synchronize business model with Kong gateways",
+                  notes = "Use this endpoint to synchronize the business model with one or more gateways. This endpoint can be used for zero downtime deployment or in case of forced synchronization.")
+    @ApiResponses({@ApiResponse(code = 204, message = "Rename complete")})
+    @POST
+    @Path("sync/apikeys")
+    public void syncGateways() throws AbstractRestException{
+        migrationFacade.syncBusinessModel();
     }
 }
