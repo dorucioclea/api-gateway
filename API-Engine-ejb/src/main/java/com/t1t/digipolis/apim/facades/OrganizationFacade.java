@@ -1018,16 +1018,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (svb.getStatus() != ServiceStatus.Retired || svb.getStatus() != ServiceStatus.Deprecated || svb.getStatus() != ServiceStatus.Published) {
                 svb.setModifiedBy(securityContext.getCurrentUser());
                 svb.setModifiedOn(new Date());
-                log.debug("autoAcceptBefore:{}",svb.getAutoAcceptContracts());
                 if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
                     data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
                     svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
-                    log.debug("autoAcceptAfter:{}", svb.getAutoAcceptContracts());
                 }
-                log.debug("plansBefore:{}", svb.getPlans());
-                log.debug("plansBeforeUpdate:{}", bean.getPlans());
-                log.debug("planAsStringsOld:{}", AuditUtils.asString_ServicePlanBeans(svb.getPlans()));
-                log.debug("planAsStringsNew:{}", AuditUtils.asString_ServicePlanBeans(bean.getPlans()));
                 if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
                     data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
                     if (svb.getPlans() == null) {
@@ -1037,9 +1031,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     if (bean.getPlans() != null) {
                         svb.getPlans().addAll(bean.getPlans());
                     }
-                    log.debug("plansAfter:{}", svb.getPlans());
                 }
-                log.debug("gatewaysBefore:{}", svb.getGateways());
                 if (AuditUtils.valueChanged(svb.getGateways(), bean.getGateways())) {
                     data.addChange("gateways", AuditUtils.asString_ServiceGatewayBeans(svb.getGateways()), AuditUtils.asString_ServiceGatewayBeans(bean.getGateways())); //$NON-NLS-1$
                     if (svb.getGateways() == null) {
@@ -1048,14 +1040,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     svb.getGateways().clear();
                     svb.getGateways().addAll(bean.getGateways());
                 }
-                log.debug("gatewaysAfter:{}", svb.getGateways());
-                log.debug("onlineDocBefore:{}", svb.getOnlinedoc());
                 if (AuditUtils.valueChanged(svb.getOnlinedoc(), bean.getOnlinedoc())) {
                     data.addChange("online doc", svb.getOnlinedoc(), bean.getOnlinedoc());
                     svb.setOnlinedoc(bean.getOnlinedoc());
                 }
-                log.debug("onlineDocAfter:{}", svb.getOnlinedoc());
-                log.debug("endpointPropsBefore:{}", svb.getEndpointProperties());
                 if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
                     if (svb.getEndpointProperties() == null) {
                         svb.setEndpointProperties(new HashMap<String, String>());
@@ -1066,14 +1054,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         svb.getEndpointProperties().putAll(bean.getEndpointProperties());
                     }
                 }
-                log.debug("endpointPropsAfter:{}", svb.getEndpointProperties());
-                log.debug("publicServiceBefore:{}", svb.isPublicService());
                 if (AuditUtils.valueChanged(svb.isPublicService(), bean.getPublicService())) {
                     data.addChange("publicService", String.valueOf(svb.isPublicService()), String.valueOf(bean.getPublicService())); //$NON-NLS-1$
                     svb.setPublicService(bean.getPublicService());
                 }
-                log.debug("publicServiceAfter:{}", svb.isPublicService());
-                log.debug("visibilityBefore:{}", svb.getVisibility());
                 if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
                     data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
                     svb.setVisibility(bean.getVisibility());
@@ -1096,7 +1080,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                             deleteServicePolicy(organizationId,serviceId,version,psb.getId());
                         }
                     }
-                    log.debug("visibilityAfter:{}", svb.getVisibility());
                 }
             }
             else {
