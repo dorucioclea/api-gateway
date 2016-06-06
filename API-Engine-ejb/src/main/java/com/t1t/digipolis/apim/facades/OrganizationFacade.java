@@ -1023,6 +1023,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
                 }
                 if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
+                    String extPlans = AuditUtils.asString_ServicePlanBeans(svb.getPlans());
+                    String newPlans = AuditUtils.asString_ServicePlanBeans(bean.getPlans());
                     data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
                     if (svb.getPlans() == null) {
                         svb.setPlans(new HashSet<ServicePlanBean>());
@@ -1240,7 +1242,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             } catch (Exception e) {
                 // TODO it's ok if the clone fails - we did our best
                 // TODO We could try a little harder
-                throw new SystemErrorException(e);
+                //throw new SystemErrorException(e);
                 /*if (e != null) {
                     Throwable t = e;
                     e = (Exception) t;
