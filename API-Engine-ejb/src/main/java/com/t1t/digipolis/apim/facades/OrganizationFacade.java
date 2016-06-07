@@ -1221,15 +1221,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updatedService.setPublicService(cloneSource.isPublicService());
                 updatedService.setAutoAcceptContracts(cloneSource.getAutoAcceptContracts());
                 updatedService.setPlans(cloneSource.getPlans());
-                //clone the visibility beans because of weird hibernate behaviour
-                Set<VisibilityBean> visSet = new HashSet<>();
-                cloneSource.getVisibility().forEach(visibilityBean -> {
-                    VisibilityBean visBean = new VisibilityBean();
-                    visBean.setCode(visibilityBean.getCode());
-                    visBean.setName(visibilityBean.getName());
-                    visBean.setShow(visibilityBean.getShow());
-                    visSet.add(visBean);
-                });
+                updatedService.setVisibility(cloneSource.getVisibility());
 
                 // Clone the service definition document
                 try {
