@@ -1010,6 +1010,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 svb.setModifiedOn(new Date());
                 data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
                 svb.setEndpoint(bean.getEndpoint());
+                //If the service is already published, update the upstream URL's on the gateways the service is published on
+                updateServiceVersionEndpoint(svb);
             }
             if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
                 data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
@@ -1288,22 +1290,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         log.debug(String.format("Updated service definition for %s", serviceId)); //$NON-NLS-1$
     }
 
-    public ServiceVersionBean updateServiceVersionEndpoint(ServiceVersionBean svb) {
-        try {
-            if (svb.getStatus() == ServiceStatus.Retired) {
-                throw ExceptionFactory.invalidServiceStatusException();
-            }
-            if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) {
-                svb.getGateways().forEach(svcGateway -> {
-                    IGatewayLink gateway = createGatewayLink(svcGateway.getGatewayId());
-                    gateway.updateApiUpstreamURL(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), svb.getEndpoint());
-                });
-            }
-            storage.updateServiceVersion(svb);
-            return svb;
+    private void updateServiceVersionEndpoint(ServiceVersionBean svb) {
+        if (svb.getStatus() == ServiceStatus.Retired) {
+            throw ExceptionFactory.invalidServiceStatusException();
         }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
+        if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) {
+            svb.getGateways().forEach(svcGateway -> {
+                IGatewayLink gateway = createGatewayLink(svcGateway.getGatewayId());
+                gateway.updateApiUpstreamURL(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), svb.getEndpoint());
+            });
         }
     }
 
