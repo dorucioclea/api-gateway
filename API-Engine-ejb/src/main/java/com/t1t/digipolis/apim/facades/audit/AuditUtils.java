@@ -859,7 +859,7 @@ public class AuditUtils {
                 return p1.compareTo(p2);
             }
         });
-        sortedPlans.addAll(plans == null ? Collections.emptySet() : plans);
+        sortedPlans.addAll(plans);
 
         StringBuilder builder = new StringBuilder();
         boolean first = true;

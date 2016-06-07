@@ -1064,6 +1064,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
                     svb.setVisibility(bean.getVisibility());
                     //add implicitly the IP Restriction when: External available and hide = false
+                    //TODO - remove this code if it does turn out to be redundant
                     KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(IPRestrictionFlavor.WHITELIST, query.listWhitelistRecords());
                     boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
                     if(defaultIPRestriction !=null && enableIPR){
@@ -1220,7 +1221,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updatedService.setPublicService(cloneSource.isPublicService());
                 updatedService.setAutoAcceptContracts(cloneSource.getAutoAcceptContracts());
                 updatedService.setPlans(cloneSource.getPlans());
-                updatedService.setVisibility(cloneSource.getVisibility());
+                //clone the visibility beans because of weird hibernate behaviour
+                Set<VisibilityBean> visSet = new HashSet<>();
+                cloneSource.getVisibility().forEach(visibilityBean -> {
+                    VisibilityBean visBean = new VisibilityBean();
+                    visBean.setCode(visibilityBean.getCode());
+                    visBean.setName(visibilityBean.getName());
+                    visBean.setShow(visibilityBean.getShow());
+                    visSet.add(visBean);
+                });
+
                 // Clone the service definition document
                 try {
                     InputStream definition = getServiceDefinition(organizationId, serviceId, bean.getCloneVersion());
@@ -1243,10 +1253,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 // TODO it's ok if the clone fails - we did our best
                 // TODO We could try a little harder
                 //throw new SystemErrorException(e);
-                /*if (e != null) {
+                if (e != null) {
                     Throwable t = e;
                     e = (Exception) t;
-                }*/
+                }
             }
         }
         return newVersion;
