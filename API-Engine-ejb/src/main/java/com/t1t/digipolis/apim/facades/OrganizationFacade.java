@@ -1645,6 +1645,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public void deletePlan(String organizationId, String planId){
+        if(!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))throw ExceptionFactory.notAuthorizedException();
+        try{
+            //Get Plan info
+            PlanBean plan = storage.getPlan(organizationId, planId);
+
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void deleteService(String organizationId, String serviceId) {
         if (!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2121,6 +2132,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         return apps;
     }
+
 
     public PlanBean createPlan(String organizationId, NewPlanBean bean) {
         PlanBean newPlan = new PlanBean();
