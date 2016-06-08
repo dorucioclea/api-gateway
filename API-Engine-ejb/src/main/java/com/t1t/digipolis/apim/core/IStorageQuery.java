@@ -317,6 +317,15 @@ public interface IStorageQuery {
     public List<ContractBean> getServiceContracts(String organizationId, String serviceId, String version) throws StorageException;
 
     /**
+     * Gets a list of contracts for the given plan version. This is not paged.
+     *
+     * @param planVersionId
+     * @return
+     * @throws StorageException
+     */
+    public List<ContractBean> getPlanVersionContracts(Long planVersionId) throws StorageException;
+
+    /**
      * Returns the largest order index value for the policies assigned to the
      * given entity.
      * @param organizationId the organization id

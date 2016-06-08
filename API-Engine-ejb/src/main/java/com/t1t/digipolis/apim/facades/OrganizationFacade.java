@@ -1649,19 +1649,21 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void deletePlan(String organizationId, String planId){
         if(!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))throw ExceptionFactory.notAuthorizedException();
         try{
-            //if services registered, delete not possible
-            List<ServiceSummaryBean> servicesInOrg = query.getServicesInOrg(organizationId);
-            if(servicesInOrg.size()>0)throw ExceptionFactory.planCannotBeDeleted("Plan still has services linked");
             //Get Plan info
             PlanBean plan = storage.getPlan(organizationId, planId);
-            //Get if plan has still plan versions
-            List<PlanBean> orgPlans = query.findAllPlans(organizationId);
-            //Get all planversions
-            Map<PlanBean,List<PlanVersionBean>> planVerionsMap = new HashedMap();
-            for(PlanBean pb:orgPlans){
-                List<PlanVersionBean> allPlanVersionBeans = query.findAllPlanVersionBeans(organizationId, pb.getId());
-                planVerionsMap.put(pb,allPlanVersionBeans);
+            //Get all plan versions
+            List<PlanVersionBean> allPlanVersionBeans = query.findAllPlanVersionBeans(organizationId, plan.getId());
+            //verify if planverions have running contracts
+            for(PlanVersionBean pvb: allPlanVersionBeans){
+                List<ContractBean> planVersionContracts = query.getPlanVersionContracts(pvb.getId());
+                //for existing contract throw exception
+                if(planVersionContracts!=null&&planVersionContracts.size()>0)throw ExceptionFactory.planCannotBeDeleted("Plan still has contracts linked");
             }
+            //If no contracts we delete the planversions and plan
+            for(PlanVersionBean pvb:allPlanVersionBeans){
+                storage.deletePlanVersion(pvb);
+            }
+            storage.deletePlan(plan);
         } catch (StorageException e) {
             e.printStackTrace();
         }
