@@ -1650,7 +1650,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try{
             //Get Plan info
             PlanBean plan = storage.getPlan(organizationId, planId);
-
+            //Verify if plan has still plan versions
+            query.findPlans(organizationId,)
         } catch (StorageException e) {
             e.printStackTrace();
         }
