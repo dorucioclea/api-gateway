@@ -1651,6 +1651,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try{
             //Get Plan info
             PlanBean plan = storage.getPlan(organizationId, planId);
+            if(plan==null)throw ExceptionFactory.planNotFoundException(planId);
             //Get all plan versions
             List<PlanVersionBean> allPlanVersionBeans = query.findAllPlanVersionBeans(organizationId, plan.getId());
             //verify if planverions have running contracts
