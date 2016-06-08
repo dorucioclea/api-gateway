@@ -762,6 +762,20 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getService(organizationId, serviceId);
     }
 
+    @ApiOperation(value = "Delete Plan ID")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 412, message = "preconditions not met")
+    })
+    @DELETE
+    @Path("/{organizationId}/plans/{planId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deletePlan(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId) throws ServiceNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
+        orgFacade.deletePlan(organizationId, planId);
+    }
+
     @ApiOperation(value = "Delete Service By ID")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content"),

@@ -1375,7 +1375,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ContractBean> getPlanVersionContracts(Long planVersionId) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT c from ContractBean c JOIN c.planv_id pvs WHERE pvs.id = :planvId";
+        String jpql = "SELECT c from ContractBean c JOIN c.plan pvs WHERE pvs.id = :planvId";
         Query query = entityManager.createQuery(jpql);
         query.setParameter("planvId",planVersionId);
         return (List<ContractBean>) query.getResultList();

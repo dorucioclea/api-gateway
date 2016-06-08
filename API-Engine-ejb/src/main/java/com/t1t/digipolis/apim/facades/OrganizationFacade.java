@@ -1647,7 +1647,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public void deletePlan(String organizationId, String planId){
-        if(!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))throw ExceptionFactory.notAuthorizedException();
+        if(!securityContext.hasPermission(PermissionType.planAdmin, organizationId))throw ExceptionFactory.notAuthorizedException();
         try{
             //Get Plan info
             PlanBean plan = storage.getPlan(organizationId, planId);
