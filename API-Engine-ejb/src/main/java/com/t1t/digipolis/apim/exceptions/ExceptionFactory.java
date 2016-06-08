@@ -428,4 +428,12 @@ public final class ExceptionFactory {
     public static final ServiceBasepathAlreadyInUseException serviceBasepathAlreadyInUseException(String organizationName, String basepath) {
         return new ServiceBasepathAlreadyInUseException(Messages.i18n.format("ServiceBasePathAlreadyInUse", organizationName, basepath));
     }
+
+    public static final OrganizationCannotBeDeletedException orgCannotBeDeleted(String message){
+        return new OrganizationCannotBeDeletedException(message);
+    }
+
+    public static final PlanCannotBeDeletedException planCannotBeDeleted(String message){
+        return new PlanCannotBeDeletedException(message);
+    }
 }

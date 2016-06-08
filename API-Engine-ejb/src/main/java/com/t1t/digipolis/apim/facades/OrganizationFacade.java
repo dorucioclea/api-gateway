@@ -79,6 +79,7 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
@@ -1648,10 +1649,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void deletePlan(String organizationId, String planId){
         if(!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))throw ExceptionFactory.notAuthorizedException();
         try{
+            //if services registered, delete not possible
+            List<ServiceSummaryBean> servicesInOrg = query.getServicesInOrg(organizationId);
+            if(servicesInOrg.size()>0)throw ExceptionFactory.planCannotBeDeleted("Plan still has services linked");
             //Get Plan info
             PlanBean plan = storage.getPlan(organizationId, planId);
-            //Verify if plan has still plan versions
-            query.findPlans(organizationId,)
+            //Get if plan has still plan versions
+            List<PlanBean> orgPlans = query.findAllPlans(organizationId);
+            //Get all planversions
+            Map<PlanBean,List<PlanVersionBean>> planVerionsMap = new HashedMap();
+            for(PlanBean pb:orgPlans){
+                List<PlanVersionBean> allPlanVersionBeans = query.findAllPlanVersionBeans(organizationId, pb.getId());
+                planVerionsMap.put(pb,allPlanVersionBeans);
+            }
         } catch (StorageException e) {
             e.printStackTrace();
         }
