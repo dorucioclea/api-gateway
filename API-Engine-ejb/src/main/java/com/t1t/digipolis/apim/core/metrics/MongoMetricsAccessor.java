@@ -174,7 +174,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
     }
 
     @Override
-    public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) throws MetricsUnavailableException {
+    public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) {
         //distinct active users
         MetricsServiceConsumerList conList = new MetricsServiceConsumersFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase()).execute();
         if (conList == null) {

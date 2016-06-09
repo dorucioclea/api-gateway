@@ -1352,8 +1352,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (consumer != null && !StringUtils.isEmpty(consumer.getCustomId())) {
                 String consumerId = consumer.getId();
                 for (ContractSummaryBean app : appContracts) {
-                    data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()),
-                            metrics.getAppUsageForService(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion(), interval, from, to, consumerId));
+                    MetricsConsumerUsageList usageList = metrics.getAppUsageForService(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion(), interval, from, to, consumerId);
+                    if (usageList != null) {
+                        data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()), usageList);
+                    }
+                    else {
+                        throw ExceptionFactory.metricsUnavailableException();
+                    }
+
                 }
             }
         } catch (StorageException e) {
@@ -1371,11 +1377,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         validateMetricRange(from, to);
         validateTimeSeriesMetric(from, to, interval);
-        return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
+        MetricsUsageList usageList = metrics.getUsage(organizationId, serviceId, version, interval, from, to);
+        if (usageList != null) {
+            return usageList;
+        }
+        else {
+            throw ExceptionFactory.metricsUnavailableException();
+        }
+
     }
 
     public ServiceMarketInfo getMarketInfo(String organizationId, String serviceId, String version) {
-        return metrics.getServiceMarketInfo(organizationId, serviceId, version);
+        ServiceMarketInfo marketInfo = metrics.getServiceMarketInfo(organizationId, serviceId, version);
+        if (marketInfo != null) {
+            return marketInfo;
+        }
+        else {
+            throw ExceptionFactory.metricsUnavailableException();
+        }
+
     }
 
     public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
@@ -1386,14 +1406,28 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         validateMetricRange(from, to);
         validateTimeSeriesMetric(from, to, interval);
-        return metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
+        MetricsResponseStatsList statsList = metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
+        if (statsList != null) {
+            return statsList;
+        }
+        else {
+            throw ExceptionFactory.metricsUnavailableException();
+        }
+
     }
 
     public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
-        return metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
+        MetricsResponseSummaryList summList = metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
+        if (summList != null) {
+            return summList;
+        }
+        else {
+            throw ExceptionFactory.metricsUnavailableException();
+        }
+
     }
 
     public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId) {

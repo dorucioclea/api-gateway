@@ -24,7 +24,7 @@ public class MetricsUnavailableException extends AbstractSystemException {
 
     @Override
     public int getHttpCode() {
-        return 200;
+        return ErrorCodes.HTTP_STATUS_CODE_UNAVAILABLE;
     }
 
     @Override

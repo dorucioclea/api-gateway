@@ -428,4 +428,8 @@ public final class ExceptionFactory {
     public static final ServiceBasepathAlreadyInUseException serviceBasepathAlreadyInUseException(String organizationName, String basepath) {
         return new ServiceBasepathAlreadyInUseException(Messages.i18n.format("ServiceBasePathAlreadyInUse", organizationName, basepath));
     }
+
+    public static final MetricsUnavailableException metricsUnavailableException() {
+        return new MetricsUnavailableException();
+    }
 }

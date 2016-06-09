@@ -19,7 +19,7 @@ public class MetricsServiceConsumersFailSilent extends HystrixCommand<MetricsSer
 
 
     public MetricsServiceConsumersFailSilent(MetricsClient client, String organizationId, String serviceId, String version) {
-        super(HystrixCommandGroupKey.Factory.asKey("MetricsMarketInfo"), 2000);
+        super(HystrixCommandGroupKey.Factory.asKey("MetricsMarketInfo"), 200);
         this.client = client;
 
         this.organizationId = organizationId;
