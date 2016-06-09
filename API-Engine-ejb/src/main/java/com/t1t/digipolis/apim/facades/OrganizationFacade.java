@@ -3667,29 +3667,30 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    /* Test utilities */
-    public boolean deleteOrganization(String orgId) {
+    /**
+     * This implementation deletes an organization only when no services or applications are present,
+     * All plans must be removed as well.
+     * The method will remove the organization and the existing memberships from users.
+     *
+     * TODO implement method that cleansup an organization when no contracts are present.
+     *
+     * @param orgId
+     */
+    public void deleteOrganization(String orgId) {
+        //if services throw exceptions
+        //if applications throw exceptions
+        //if plans throw exceptions
+        //remove memberships
+        //leave audit and add closure
+        //remove organization
+
         try {
             OrganizationBean organization = storage.getOrganization(orgId);
             deleteOrganization(orgId);
         } catch (StorageException e) {
             e.printStackTrace();
         }
-        //get all services
-        //get all service versions
-        //get all applications
-        //get all application versions
-        //get all contracts
-        //remove all contracts
-        //get all oauth apps
-        //get all plans
-        //get all plan versions
-        //get all plan policies
-        //remove all plan policies
-        //remove all plans versions
-        //remove all plans
 
-        return true;
     }
 
 }

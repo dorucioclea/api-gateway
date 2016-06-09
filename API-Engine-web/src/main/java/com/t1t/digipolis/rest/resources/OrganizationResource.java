@@ -1959,11 +1959,11 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.listMembers(organizationId);
     }
 
-    @ApiOperation(value = "Test endpoint: Clean organization",
-            notes = "Remove a complete organization. This endpoint is meant for testing purpose.")
+    @ApiOperation(value = "Delete Organization",notes = "Delete a complete organization, when plans and services are already deleted up-front.")
     @ApiResponses({
-            @ApiResponse(code = 200, responseContainer = "List", response = MemberBean.class, message = "List of members.")
-    })
+                          @ApiResponse(code = 204, message = "successful, no content"),
+                          @ApiResponse(code = 412, message = "preconditions not met")
+                  })
     @DELETE
     @Path("/{organizationId}")
     @Produces(MediaType.APPLICATION_JSON)
