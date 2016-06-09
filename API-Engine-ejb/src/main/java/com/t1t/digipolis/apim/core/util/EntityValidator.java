@@ -69,7 +69,7 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
             ready = false;
         }
         if (StringUtils.isEmpty(service.getOnlinedoc())) {
-            ready = false;
+            //ready = false;
         }
         if (service.getEndpointType() == null) {
             ready = false;

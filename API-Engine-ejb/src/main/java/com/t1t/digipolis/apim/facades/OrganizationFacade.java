@@ -1012,10 +1012,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 svb.setEndpoint(bean.getEndpoint());
                 //If the service is already published, update the upstream URL's on the gateways the service is published on
                 updateServiceVersionEndpoint(svb);
+                log.debug("BEAN ENDPOINT UPDATED");
             }
             if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
                 data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
                 svb.setEndpointType(bean.getEndpointType());
+                log.debug("BEAN ENDPOINT TYPE UPDATED");
             }
             if (svb.getStatus() != ServiceStatus.Retired || svb.getStatus() != ServiceStatus.Deprecated || svb.getStatus() != ServiceStatus.Published) {
                 svb.setModifiedBy(securityContext.getCurrentUser());
@@ -1023,6 +1025,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
                     data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
                     svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
+                    log.debug("BEAN AUTOACCEPT CONTRACTS UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
                     data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
@@ -1033,6 +1036,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     if (bean.getPlans() != null) {
                         svb.getPlans().addAll(bean.getPlans());
                     }
+                    log.debug("BEAN PLANS UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getGateways(), bean.getGateways())) {
                     data.addChange("gateways", AuditUtils.asString_ServiceGatewayBeans(svb.getGateways()), AuditUtils.asString_ServiceGatewayBeans(bean.getGateways())); //$NON-NLS-1$
@@ -1041,10 +1045,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     }
                     svb.getGateways().clear();
                     svb.getGateways().addAll(bean.getGateways());
+                    log.debug("BEAN GATEWAYS UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getOnlinedoc(), bean.getOnlinedoc())) {
                     data.addChange("online doc", svb.getOnlinedoc(), bean.getOnlinedoc());
                     svb.setOnlinedoc(bean.getOnlinedoc());
+                    log.debug("BEAN ONLINE DOCS UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
                     if (svb.getEndpointProperties() == null) {
@@ -1055,10 +1061,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     if (bean.getEndpointProperties() != null) {
                         svb.getEndpointProperties().putAll(bean.getEndpointProperties());
                     }
+                    log.debug("BEAN ENDPOINT PROPERTIES UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.isPublicService(), bean.getPublicService())) {
                     data.addChange("publicService", String.valueOf(svb.isPublicService()), String.valueOf(bean.getPublicService())); //$NON-NLS-1$
                     svb.setPublicService(bean.getPublicService());
+                    log.debug("BEAN PUBLICITY UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
                     data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
@@ -1083,6 +1091,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                             deleteServicePolicy(organizationId,serviceId,version,psb.getId());
                         }
                     }
+                    log.debug("BEAN VISIBILITY UPDATED");
                 }
             }
             else {
@@ -1100,6 +1109,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                                 svb.getGateways().add(sgb);
                             }
                         }
+                        log.debug("BEAN GATEWAYS FILLED IN IF EMPTY");
                     }
                     if (serviceValidator.isReady(svb)) {
                         log.debug("validService:{}", true);
