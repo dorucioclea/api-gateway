@@ -1,10 +1,11 @@
 package com.t1t.digipolis.apim.core.metrics;
 
-import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
 import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.MetricsUnavailableException;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsage;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
@@ -21,13 +22,9 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
-import javax.ejb.Stateless;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -84,7 +81,10 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
 
     @Override
     public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        MetricsUsageList originList = httpClient.getServiceUsageFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        MetricsUsageList originList = new MetricsServiceUsageFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis()).execute();
+        if (originList == null) {
+            return null;
+        }
         //will contain the final results
         MetricsUsageList resultUsageList = new MetricsUsageList();
         //we create a epoch map in order to add specific values at random and sort the key values
@@ -109,7 +109,10 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
 
     @Override
     public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        MetricsResponseStatsList originList = httpClient.getServiceResponseStatisticsFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
+        MetricsResponseStatsList originList = new MetricsResponseStatisticsFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis()).execute();
+        if (originList == null) {
+            return null;
+        }
         MetricsResponseStatsList resultUsageList = new MetricsResponseStatsList();
         //we create a epoch map in order to add specific values at random and sort the key values
         Map<Long, MetricsResponseStats> processingMap = new TreeMap<>();
@@ -138,12 +141,16 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
     @Override
     public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
         //here we only have on set of results, we don't need to add date records in order to prepare the data for a front end application
-        return httpClient.getServiceResponseSummaryFromTo(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis());
+        return new MetricsResponseSummaryFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis()).execute();
+
     }
 
     @Override
     public MetricsConsumerUsageList getAppUsageForService(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
-        MetricsConsumerUsageList originList = httpClient.getServiceConsumerUsageFromToInterval(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId);
+        MetricsConsumerUsageList originList = new MetricsConsumerUsageFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId).execute();
+        if (originList == null) {
+            return null;
+        }
         MetricsConsumerUsageList resultUsageList = new MetricsConsumerUsageList();
         //we create a epoch map in order to add specific values at random and sort the key values
         Map<Long, com.t1t.digipolis.kong.model.MetricsConsumerUsage> processingMap = new TreeMap<>();
@@ -167,20 +174,28 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
     }
 
     @Override
-    public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) {
+    public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) throws MetricsUnavailableException {
         //distinct active users
-        int distinctUsers = httpClient.getServiceConsumers(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase()).getData().size();
+        MetricsServiceConsumerList conList = new MetricsServiceConsumersFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase()).execute();
+        if (conList == null) {
+            return null;
+        }
+        int distinctUsers = conList.getData().size();
         //uptime - conventionally last month/by week
         DateTime to = new DateTime();
         DateTime from = to.minusMonths(1);
-        MetricsResponseSummaryList summList = httpClient.getServiceResponseSummaryFromTo(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis());
+        MetricsResponseSummaryList summList = new MetricsResponseSummaryFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis()).execute();
+        if (summList == null) {
+            return null;
+        }
         List<MetricsResponseSummary> res = summList.getData();
         int uptime = 100;
         if (res != null && res.size() > 0) {
             double req_count = res.get(0).getRequestsCount();
             double res_wrong = res.get(0).getResponseWrong();
             //if res_wrong = 0 no mean to calculate
-            if (req_count > res_wrong && res_wrong > 0) uptime = ((Double) (100 - ((res_wrong / req_count) * 100))).intValue();
+            if (req_count > res_wrong && res_wrong > 0)
+                uptime = ((Double) (100 - ((res_wrong / req_count) * 100))).intValue();
             else uptime = 100;
         }
 
