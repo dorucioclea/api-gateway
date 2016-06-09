@@ -2,8 +2,6 @@ package com.t1t.digipolis.apim.core.metrics;
 
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
-import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsServiceConsumerList;
 
 /**
