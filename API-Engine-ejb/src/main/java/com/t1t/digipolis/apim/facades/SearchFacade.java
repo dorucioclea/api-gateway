@@ -218,7 +218,8 @@ public class SearchFacade {
         List<ServiceVersionWithMarketInfoBean> svmibs = new ArrayList<>();
         svbs.forEach(svb -> {
             ServiceVersionWithMarketInfoBean svmib = new ServiceVersionWithMarketInfoBean(svb);
-            svmib.setMarketInfo(metrics.getServiceMarketInfo(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()));
+            //TODO - Implement fail silent
+            svmib.setMarketInfo(null);
             svmibs.add(svmib);
         });
         return svmibs;
