@@ -48,9 +48,12 @@ public final class ErrorCodes {
     public static final int ORG_ALREADY_EXISTS              = 3001;
     public static final int ORG_NOT_FOUND                   = 3002;
     public static final int ORG_IS_PRIVATE                  = 3003;
+    public static final int ORG_CANNOT_BE_DELETED           = 3004;
 
     public static final String ORG_ALREADY_EXISTS_INFO      = null;
     public static final String ORG_NOT_FOUND_INFO           = null;
+    public static final String ORG_IS_PRIVATE_INFO          = null;
+    public static final String ORG_CANNOT_BE_DELETED_INFO   = null;
 
 
     //
@@ -101,11 +104,13 @@ public final class ErrorCodes {
     public static final int PLAN_NOT_FOUND                   = 6002;
     public static final int PLAN_VERSION_NOT_FOUND           = 6003;
     public static final int PLAN_VERSION_ALREADY_EXISTS      = 6004;
+    public static final int PLAN_CANNOT_BE_DELETED           = 6005;
 
     public static final String PLAN_ALREADY_EXISTS_INFO      = null;
     public static final String PLAN_NOT_FOUND_INFO           = null;
     public static final String PLAN_VERSION_NOT_FOUND_INFO   = null;
     public static final String PLAN_VERSION_ALREADY_EXISTS_INFO = null;
+    public static final String PLAN_CANNOT_BE_DELETED_INFO   = null;
 
     //
     // Member API related

@@ -46,7 +46,8 @@ public class RestExceptionMapper implements ExceptionMapper<AbstractRestExceptio
         }else{
             error.setMoreInfoUrl(data.getMoreInfoUrl());
         }
-        error.setStacktrace(getStackTrace(data));
+        //error.setStacktrace(getStackTrace(data));
+        error.setStacktrace("");
         ResponseBuilder builder = Response.status(data.getHttpCode()).header("X-ApiEngine-Error", "true"); //$NON-NLS-1$ //$NON-NLS-2$
         // If CORS is being used, make sure to add X-Apiman-Error to the exposed headers
 /*        if (origin != null) {

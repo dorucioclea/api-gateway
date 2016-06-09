@@ -79,6 +79,7 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
@@ -1655,6 +1656,30 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public void deletePlan(String organizationId, String planId){
+        if(!securityContext.hasPermission(PermissionType.planAdmin, organizationId))throw ExceptionFactory.notAuthorizedException();
+        try{
+            //Get Plan info
+            PlanBean plan = storage.getPlan(organizationId, planId);
+            if(plan==null)throw ExceptionFactory.planNotFoundException(planId);
+            //Get all plan versions
+            List<PlanVersionBean> allPlanVersionBeans = query.findAllPlanVersionBeans(organizationId, plan.getId());
+            //verify if planverions have running contracts
+            for(PlanVersionBean pvb: allPlanVersionBeans){
+                List<ContractBean> planVersionContracts = query.getPlanVersionContracts(pvb.getId());
+                //for existing contract throw exception
+                if(planVersionContracts!=null&&planVersionContracts.size()>0)throw ExceptionFactory.planCannotBeDeleted("Plan still has contracts linked");
+            }
+            //If no contracts we delete the planversions and plan
+            for(PlanVersionBean pvb:allPlanVersionBeans){
+                storage.deletePlanVersion(pvb);
+            }
+            storage.deletePlan(plan);
+        } catch (StorageException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void deleteService(String organizationId, String serviceId) {
         if (!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
@@ -2131,6 +2156,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         return apps;
     }
+
 
     public PlanBean createPlan(String organizationId, NewPlanBean bean) {
         PlanBean newPlan = new PlanBean();

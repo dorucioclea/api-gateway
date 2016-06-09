@@ -13,6 +13,8 @@ import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
+import com.t1t.digipolis.apim.beans.plans.PlanBean;
+import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
@@ -315,6 +317,15 @@ public interface IStorageQuery {
     public List<ContractBean> getServiceContracts(String organizationId, String serviceId, String version) throws StorageException;
 
     /**
+     * Gets a list of contracts for the given plan version. This is not paged.
+     *
+     * @param planVersionId
+     * @return
+     * @throws StorageException
+     */
+    public List<ContractBean> getPlanVersionContracts(Long planVersionId) throws StorageException;
+
+    /**
      * Returns the largest order index value for the policies assigned to the
      * given entity.
      * @param organizationId the organization id
@@ -436,6 +447,26 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<ApplicationVersionBean> findAllApplicationVersions() throws StorageException;
+
+    /**
+     * Returns all plans (plan version containers) for a given organization.
+     *
+     * @param organizationId
+     * @return
+     * @throws StorageException
+     */
+    public List<PlanBean> findAllPlans(String organizationId) throws StorageException;
+
+    /**
+     * Returns all planversions for a given organization and given plan.
+     * A plan is a collections of planversion objects.
+     *
+     * @param organizationId
+     * @param planId
+     * @return
+     * @throws StorageException
+     */
+    public List<PlanVersionBean> findAllPlanVersionBeans(String organizationId, String planId)throws StorageException;
 
     /**
      * Returns service version beans for a specific availability

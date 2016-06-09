@@ -1372,6 +1372,15 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return (List<ContractBean>) query.getResultList();
     }
 
+    @Override
+    public List<ContractBean> getPlanVersionContracts(Long planVersionId) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT c from ContractBean c JOIN c.plan pvs WHERE pvs.id = :planvId";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("planvId",planVersionId);
+        return (List<ContractBean>) query.getResultList();
+    }
+
     /**
      * @see IStorage#getApplicationVersion(String, String, String)
      */
@@ -1951,6 +1960,25 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT a FROM ApplicationVersionBean a";
         return em.createQuery(jpql).getResultList();
+    }
+
+    @Override
+    public List<PlanBean> findAllPlans(String organizationId) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT p FROM PlanBean p WHERE organization = :orgId";
+        return (List<PlanBean>) em.createQuery(jpql)
+                .setParameter("orgId",organizationId)
+                .getResultList();
+    }
+
+    @Override
+    public List<PlanVersionBean> findAllPlanVersionBeans(String organizationId, String planId) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT p FROM PlanVersionBean p WHERE plan_id = :planId AND plan_org_id = :orgId";
+        return (List<PlanVersionBean>) em.createQuery(jpql)
+                .setParameter("orgId",organizationId)
+                .setParameter("planId",planId)
+                .getResultList();
     }
 
     @Override
