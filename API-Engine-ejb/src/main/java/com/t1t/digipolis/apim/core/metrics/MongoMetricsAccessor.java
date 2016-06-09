@@ -43,6 +43,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
     private static RestMetricsBuilder restMetricsBuilder;
     private static Config config;
     private static Properties properties;
+    private static Integer timeout;
 
     //interval values
     private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
@@ -76,12 +77,13 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
             //create metrics client instance
             restMetricsBuilder = new RestMetricsBuilder();
             httpClient = restMetricsBuilder.getService(metricsURI, MetricsClient.class);
+            config.getInt(IConfig.HYSTRIX_METRICS_TIMEOUT_VALUE);
         }else throw new RuntimeException("MongoMetricsAccessor - Metrics are not initialized");
     }
 
     @Override
     public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        MetricsUsageList originList = new MetricsServiceUsageFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis()).execute();
+        MetricsUsageList originList = new MetricsServiceUsageFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), timeout).execute();
         if (originList == null) {
             return null;
         }
@@ -109,7 +111,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
 
     @Override
     public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        MetricsResponseStatsList originList = new MetricsResponseStatisticsFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis()).execute();
+        MetricsResponseStatsList originList = new MetricsResponseStatisticsFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), timeout).execute();
         if (originList == null) {
             return null;
         }
@@ -141,13 +143,13 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
     @Override
     public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
         //here we only have on set of results, we don't need to add date records in order to prepare the data for a front end application
-        return new MetricsResponseSummaryFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis()).execute();
+        return new MetricsResponseSummaryFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis(), timeout).execute();
 
     }
 
     @Override
     public MetricsConsumerUsageList getAppUsageForService(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
-        MetricsConsumerUsageList originList = new MetricsConsumerUsageFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId).execute();
+        MetricsConsumerUsageList originList = new MetricsConsumerUsageFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId, timeout).execute();
         if (originList == null) {
             return null;
         }
@@ -176,7 +178,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
     @Override
     public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) {
         //distinct active users
-        MetricsServiceConsumerList conList = new MetricsServiceConsumersFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase()).execute();
+        MetricsServiceConsumerList conList = new MetricsServiceConsumersFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), timeout).execute();
         if (conList == null) {
             return null;
         }
@@ -184,7 +186,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
         //uptime - conventionally last month/by week
         DateTime to = new DateTime();
         DateTime from = to.minusMonths(1);
-        MetricsResponseSummaryList summList = new MetricsResponseSummaryFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis()).execute();
+        MetricsResponseSummaryList summList = new MetricsResponseSummaryFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis(), timeout).execute();
         if (summList == null) {
             return null;
         }

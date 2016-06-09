@@ -21,8 +21,8 @@ public class MetricsResponseStatisticsFailSilent extends HystrixCommand<MetricsR
     private final String to;
 
 
-    public MetricsResponseStatisticsFailSilent(MetricsClient client, String organizationId, String serviceId, String version, String interval, String from, String to) {
-        super(HystrixCommandGroupKey.Factory.asKey("MetricsResponseStatistics"), 200);
+    public MetricsResponseStatisticsFailSilent(MetricsClient client, String organizationId, String serviceId, String version, String interval, String from, String to, Integer timeout) {
+        super(HystrixCommandGroupKey.Factory.asKey("MetricsResponseStatistics"), timeout != null ? timeout : 200);
         this.client = client;
 
         this.organizationId = organizationId;
