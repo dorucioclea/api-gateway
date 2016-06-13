@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.auth.rest.resources;
+package com.t1t.digipolis.rest.resources;
 
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.AbstractRestException;
@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
 import com.t1t.digipolis.apim.facades.MigrationFacade;
+import com.t1t.digipolis.apim.rest.resources.IMigrationResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -29,6 +30,17 @@ public class MigrationResource implements IMigrationResource {
     private static final Logger _LOG = LoggerFactory.getLogger(MigrationResource.class);
 
     @Inject private MigrationFacade migrationFacade;
+
+    @Override
+    @ApiOperation(value = "Rebuild Gateway",
+                  notes = "Rebuild Gateway when empty")
+    @ApiResponses({@ApiResponse(code = 204, message = "Rebuild registered")})
+    @POST
+    @Path("/gtw/rebuild")
+    public void rebuild() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
+        migrationFacade.rebuildGtw();
+    }
+
 
     @Override
     @ApiOperation(value = "Migrate ACL",

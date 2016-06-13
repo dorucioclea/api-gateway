@@ -233,4 +233,9 @@ public class MigrationFacade {
             throw new SystemErrorException("Error accessing datastore");
         }
     }
+
+
+    public void rebuildGtw() {
+
+    }
 }

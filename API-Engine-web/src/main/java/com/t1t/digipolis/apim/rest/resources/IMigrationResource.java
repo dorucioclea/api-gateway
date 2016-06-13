@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.auth.rest.resources;
+package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.AbstractRestException;
@@ -30,5 +30,15 @@ public interface IMigrationResource {
      * </ul>
      */
     public void syncGateways() throws AbstractRestException;
+
+    /**
+     * Rebuild and populate a gateway when empty.
+     *
+     * @throws ServiceVersionNotFoundException
+     * @throws InvalidServiceStatusException
+     * @throws GatewayNotFoundException
+     * @throws StorageException
+     */
+    public void rebuild() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException;
 }
 
