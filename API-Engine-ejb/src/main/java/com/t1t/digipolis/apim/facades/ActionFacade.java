@@ -146,14 +146,12 @@ public class ActionFacade {
         gatewaySvc.setBasepath(versionBean.getService().getBasepath());
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
-        boolean hasTx = false;
         try {
             //we don't restrict the application of service policies for only the public services
             /*if (versionBean.isPublicService()) {*/
             List<Policy> policiesToPublish = new ArrayList<>();
             List<PolicySummaryBean> servicePolicies = query.getPolicies(action.getOrganizationId(),
                     action.getEntityId(), action.getEntityVersion(), PolicyType.Service);
-            hasTx = true;
             for (PolicySummaryBean policySummaryBean : servicePolicies) {
                 PolicyBean servicePolicy = storage.getPolicy(PolicyType.Service, action.getOrganizationId(),
                         action.getEntityId(), action.getEntityVersion(), policySummaryBean.getId());

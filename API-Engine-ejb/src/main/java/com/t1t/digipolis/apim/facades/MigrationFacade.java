@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
@@ -16,15 +17,18 @@ import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Contract;
+import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -249,10 +253,12 @@ public class MigrationFacade {
     //TODO: impact service request events?
     public void rebuildGtw() {
         _LOG.info("====MIGRATION-START====");
-        syncUsers();
-        //republishServices();
+        //syncUsers();
+
+        republishServices();
         //initUnregisteredApps();
         //registerApps();
+        //syncACLs();
         _LOG.info("====MIGRATION-END======");
     }
 
@@ -305,6 +311,79 @@ public class MigrationFacade {
      */
     private void republishServices() {
         _LOG.info("Publish Services::START");
+        try{
+            //get all published services
+            final List<ServiceVersionBean> publishedServices = query.findLatestServiceVersionByStatus(ServiceStatus.Published);
+            for(ServiceVersionBean svb:publishedServices){
+                _LOG.info("-->sync org:{} service:{} version:{} ...",
+                        svb.getService().getOrganization().getId(),
+                        svb.getService().getId(),
+                        svb.getVersion());
+                //prepare service object for gateway
+                Service gatewaySvc = new Service();
+                gatewaySvc.setEndpoint(svb.getEndpoint());
+                gatewaySvc.setEndpointType(svb.getEndpointType().toString());
+                gatewaySvc.setEndpointProperties(svb.getEndpointProperties());
+                gatewaySvc.setOrganizationId(svb.getService().getOrganization().getId());
+                gatewaySvc.setServiceId(svb.getService().getId());
+                gatewaySvc.setBasepath(svb.getService().getBasepath());
+                gatewaySvc.setVersion(svb.getVersion());
+                gatewaySvc.setPublicService(svb.isPublicService());
+
+                //enrich with policies to publish
+                List<Policy> policiesToPublish = new ArrayList<>();
+                List<PolicySummaryBean> servicePolicies = query.getPolicies(
+                        svb.getService().getOrganization().getId(),
+                        svb.getService().getId(),
+                        svb.getVersion(),
+                        PolicyType.Service);
+                for (PolicySummaryBean policySummaryBean : servicePolicies) {
+                    PolicyBean servicePolicy = storage.getPolicy(PolicyType.Service,
+                            svb.getService().getOrganization().getId(),
+                            svb.getService().getId(),
+                            svb.getVersion(),
+                            policySummaryBean.getId());
+                    Policy policyToPublish = new Policy();
+                    policyToPublish.setPolicyJsonConfig(servicePolicy.getConfiguration());
+                    policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getId());
+                    policiesToPublish.add(policyToPublish);
+                }
+                gatewaySvc.setServicePolicies(policiesToPublish);
+
+                // Publish the service to all relevant gateways
+                Set<ServiceGatewayBean> gateways = svb.getGateways();
+                if (gateways != null) {
+                    List<ManagedApplicationBean> marketplaces = query.getManagedApps();
+                    for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                        try {
+                            IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                            try {
+                                gatewayLink.publishService(gatewaySvc);
+                            } catch (GatewayAuthenticationException e) {
+                                continue;//next loop cycle
+                            }
+                            //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
+                            for (ManagedApplicationBean marketplace : marketplaces) {
+                                KongPluginACLResponse response = gatewayLink.addConsumerToACL(
+                                        ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace),
+                                        ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
+                            }
+                            gatewayLink.close();
+                        }catch (RetrofitError rte){
+                            _LOG.error("-->no sync executed for org:{} service:{} version:{} ...",
+                                    svb.getService().getOrganization().getId(),
+                                    svb.getService().getId(),
+                                    svb.getVersion());
+                            continue;
+                        }
+                    }
+                }
+                _LOG.info("-->sync end");
+            }
+        } catch (StorageException e) {
+            _LOG.error("Synchronize Users failed due to:"+e.getMessage());
+            e.printStackTrace();
+        }
         _LOG.info("Publish Services::END");
     }
 
@@ -326,5 +405,10 @@ public class MigrationFacade {
     private void registerApps() {
         _LOG.info("Register Consumers::START");
         _LOG.info("Register Consumers::END");
+    }
+
+    //get all policy beans and when ACL => go to Kong and update the plugin ID -- distinguish using PolicyType (only service, marketplace, consent, application
+    private void syncACLs() {
+
     }
 }
