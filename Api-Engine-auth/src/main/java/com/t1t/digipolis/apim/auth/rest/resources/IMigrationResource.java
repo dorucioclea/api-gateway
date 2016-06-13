@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.rest.resources;
+package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.AbstractRestException;

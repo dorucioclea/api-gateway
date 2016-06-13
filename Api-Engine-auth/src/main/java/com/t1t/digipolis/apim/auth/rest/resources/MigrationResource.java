@@ -1,4 +1,4 @@
-package com.t1t.digipolis.rest.resources;
+package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.AbstractRestException;
@@ -6,7 +6,6 @@ import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
 import com.t1t.digipolis.apim.facades.MigrationFacade;
-import com.t1t.digipolis.apim.rest.resources.IMigrationResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -16,14 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import static javafx.scene.input.KeyCode.M;
 
 /**
  * @author Guillaume Vandecasteele
