@@ -126,6 +126,10 @@ public class RestGatewayLink implements IGatewayLink {
         return getClient().createConsumer(userId, customId);
     }
 
+    public KongConsumer createConsumerWithKongId(String kongId, String customId) throws ConsumerAlreadyExistsException{
+        return getClient().createConsumerWithKongID(kongId, customId);
+    }
+
     @Override
     public KongConsumer createConsumerWithCustomId(String customId) throws ConsumerAlreadyExistsException {
         return getClient().createConsumerWithCustomID(customId);

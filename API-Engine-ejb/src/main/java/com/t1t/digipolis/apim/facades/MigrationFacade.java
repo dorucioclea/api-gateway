@@ -1,9 +1,11 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
@@ -14,6 +16,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
+import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -33,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.omg.CORBA.SystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import retrofit.RetrofitError;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
@@ -53,6 +57,8 @@ public class MigrationFacade {
     private IStorage storage;
     @Inject
     private IStorageQuery query;
+    @Inject
+    private IIdmStorage idmStorage;
     @Inject
     private GatewayFacade gatewayFacade;
     @Inject
@@ -244,9 +250,9 @@ public class MigrationFacade {
     public void rebuildGtw() {
         _LOG.info("====MIGRATION-START====");
         syncUsers();
-        republishServices();
-        initUnregisteredApps();
-        registerApps();
+        //republishServices();
+        //initUnregisteredApps();
+        //registerApps();
         _LOG.info("====MIGRATION-END======");
     }
 
@@ -257,6 +263,36 @@ public class MigrationFacade {
      */
     private void syncUsers() {
         _LOG.info("Synchronize Users::START");
+        try {
+            //get all users
+            final List<UserBean> allUsers = idmStorage.getAllUsers();
+
+            //create gateway
+            String gatewayId = gatewayFacade.getDefaultGateway().getId();
+            Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
+            IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
+
+            for(UserBean user:allUsers){
+                _LOG.info("->sync user with kong id {} and username {}...",user.getKongUsername(),user.getUsername());
+                //verify a kong user id exists - if not we don't need to create it on Kong, this will happen upon next login (user init)
+                if(!StringUtils.isEmpty(user.getKongUsername())){
+                    try{
+                        //create user on gateway using existing kong_username
+                        gatewayLink.createConsumerWithKongId(user.getKongUsername(),ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+                        Thread.sleep(100);
+                        //create jwt token
+                        gatewayLink.addConsumerJWT(user.getKongUsername());
+                    }catch(RetrofitError rte){
+                        _LOG.error("-->no sync executed for kong id {} and username {}",user.getKongUsername(),user.getUsername());
+                        continue;
+                    }
+                }else _LOG.info("no sync needed - kong username missing in db");
+                _LOG.info("-->sync end");
+            }
+        } catch (InterruptedException|StorageException e) {
+            _LOG.error("Synchronize Users failed due to:"+e.getMessage());
+            e.printStackTrace();
+        }
         _LOG.info("Synchronize Users::END");
     }
 
