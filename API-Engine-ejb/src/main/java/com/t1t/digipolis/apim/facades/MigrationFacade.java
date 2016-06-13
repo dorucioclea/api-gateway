@@ -235,7 +235,60 @@ public class MigrationFacade {
     }
 
 
+    //TODO: execute init script
+    //sync users
+    //republish services
+    //initialize unregistered consumer
+    //register consumers
+    //TODO: impact service request events?
     public void rebuildGtw() {
+        _LOG.info("====MIGRATION-START====");
+        syncUsers();
+        republishServices();
+        initUnregisteredApps();
+        registerApps();
+        _LOG.info("====MIGRATION-END======");
+    }
 
+    /**
+     * Synchronizes existing users from db to gateway.
+     * No plugins are applied on users
+     * All users must have JWT credentials generated.
+     */
+    private void syncUsers() {
+        _LOG.info("Synchronize Users::START");
+        _LOG.info("Synchronize Users::END");
+    }
+
+    /**
+     * All published services must be provisioned to the gateway, we reuse the action facade for all know
+     * services with state published.
+     * We pay attention to:
+     * - existing provisionkey for oauth plugin
+     * - verification of default policies
+     */
+    private void republishServices() {
+        _LOG.info("Publish Services::START");
+        _LOG.info("Publish Services::END");
+    }
+
+    /**
+     * Unregisterd applications are initialized with:
+     * - applicable apikey (from contract)
+     * - correct acl's (based on contracted services)
+     * - jwt credentials (future jwt-up)
+     * - oauth credentials + callback url (+ oauth name)
+     */
+    private void initUnregisteredApps() {
+        _LOG.info("Initialize Unregistered Consumers::START");
+        _LOG.info("Initialize Unregistered Consumers::END");
+    }
+
+    /**
+     * Register application through actionfacade.
+     */
+    private void registerApps() {
+        _LOG.info("Register Consumers::START");
+        _LOG.info("Register Consumers::END");
     }
 }
