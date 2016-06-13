@@ -176,6 +176,7 @@ public final class ErrorCodes {
     // Metrics related
     //
     public static final int METRIC_CRITERIA_INVALID            = 13001;
+    public static final int METRIC_UNAVAILABLE                 = 13003;
 
     public static final String METRIC_CRITERIA_INVALID_INFO    = null;
 
