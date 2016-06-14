@@ -159,7 +159,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             "EEE, dd MMM yyyy HH:mm:ss",
             "EEE, dd MMM yyyy"
     };
-    private static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
+    public static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
 
     private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
     private static final long ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000;

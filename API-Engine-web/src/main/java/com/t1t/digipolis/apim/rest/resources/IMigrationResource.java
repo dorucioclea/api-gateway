@@ -30,5 +30,15 @@ public interface IMigrationResource {
      * </ul>
      */
     public void syncGateways() throws AbstractRestException;
+
+    /**
+     * Rebuild and populate a gateway when empty.
+     *
+     * @throws ServiceVersionNotFoundException
+     * @throws InvalidServiceStatusException
+     * @throws GatewayNotFoundException
+     * @throws StorageException
+     */
+    public void rebuild() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException;
 }
 
