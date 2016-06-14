@@ -311,7 +311,7 @@ public class MigrationFacade {
         _LOG.info("Publish Services::START");
         try {
             //get all published services
-            final List<ServiceVersionBean> publishedServices = query.findLatestServiceVersionByStatus(ServiceStatus.Published);
+            final List<ServiceVersionBean> publishedServices = query.findServiceByStatus(ServiceStatus.Published);
             for (ServiceVersionBean svb : publishedServices) {
                 _LOG.info("-->sync org:{} service:{} version:{} ...",
                         svb.getService().getOrganization().getId(),
