@@ -2220,4 +2220,31 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return null;
         }
     }
+
+    @Override
+    public ApplicationVersionSummaryBean resolveApplicationVersionByAPIKey(String apiKey) throws StorageException {
+        ApplicationVersionSummaryBean rval = null;
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT a FROM ApplicationVersionBean a WHERE a IN (SELECT c.application FROM ContractBean c WHERE c.apikey = :apiKey)";
+        ApplicationVersionBean result = null;
+        try {
+            result = (ApplicationVersionBean) em.createQuery(jpql)
+                    .setParameter("apiKey", apiKey)
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            //Do nothing
+        }
+        if (result != null) {
+            rval = new ApplicationVersionSummaryBean();
+            rval.setOrganizationId(result.getApplication().getOrganization().getId());
+            rval.setOrganizationName(result.getApplication().getOrganization().getName());
+            rval.setId(result.getApplication().getId());
+            rval.setName(result.getApplication().getName());
+            rval.setDescription(result.getApplication().getDescription());
+            rval.setVersion(result.getVersion());
+            rval.setStatus(result.getStatus());
+        }
+        return rval;
+    }
 }
