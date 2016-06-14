@@ -685,6 +685,10 @@ public class GatewayClient {
         return httpClient.createConsumer(new KongConsumer().withUsername(userUniqueId).withCustomId(customId));
     }
 
+    public KongConsumer createConsumerWithKongID(String kongId, String customId){
+        return httpClient.createConsumer(new KongConsumer().withId(kongId).withCustomId(customId));
+    }
+
     public KongPluginKeyAuthResponseList getConsumerKeyAuth(String id){
         return httpClient.getConsumerKeyAuthCredentials(id);
     }

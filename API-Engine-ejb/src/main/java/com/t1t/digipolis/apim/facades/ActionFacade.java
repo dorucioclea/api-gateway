@@ -146,14 +146,12 @@ public class ActionFacade {
         gatewaySvc.setBasepath(versionBean.getService().getBasepath());
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
-        boolean hasTx = false;
         try {
             //we don't restrict the application of service policies for only the public services
             /*if (versionBean.isPublicService()) {*/
             List<Policy> policiesToPublish = new ArrayList<>();
             List<PolicySummaryBean> servicePolicies = query.getPolicies(action.getOrganizationId(),
                     action.getEntityId(), action.getEntityVersion(), PolicyType.Service);
-            hasTx = true;
             for (PolicySummaryBean policySummaryBean : servicePolicies) {
                 PolicyBean servicePolicy = storage.getPolicy(PolicyType.Service, action.getOrganizationId(),
                         action.getEntityId(), action.getEntityVersion(), policySummaryBean.getId());
@@ -326,7 +324,7 @@ public class ActionFacade {
         if (!securityContext.hasPermission(PermissionType.appAdmin, action.getOrganizationId()))
             throw ExceptionFactory.notAuthorizedException();
 
-        //TODO validate if consumer wit given consumer name exists?
+        //TODO validate if consumer with given consumer name exists?
 
         ApplicationVersionBean versionBean = null;
         List<ContractSummaryBean> contractBeans = null;
