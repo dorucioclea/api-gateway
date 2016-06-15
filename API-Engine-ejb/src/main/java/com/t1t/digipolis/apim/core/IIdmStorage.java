@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -29,6 +30,13 @@ public interface IIdmStorage {
      * @throws StorageException if an exception occurs during storage attempt
      */
     public void createUser(UserBean user) throws StorageException;
+
+    /**
+     * Deletes a user from the IDM system.
+     * @param userId
+     * @throws StorageException
+     */
+    public void deleteUser(String userId) throws StorageException;
 
     /**
      * Gets a user by id.
@@ -120,6 +128,14 @@ public interface IIdmStorage {
     public void deleteMembership(String userId, String roleId, String organizationId) throws StorageException;
 
     /**
+     * Retrieve a user based on his email.
+     *
+     * @param mail
+     * @throws StorageException
+     */
+    public UserBean getUserByMail(String mail) throws StorageException;
+
+    /**
      * Deletes all role memberships for a user in a given organization.
      * @param userId the user's id
      * @param organizationId the organization's id
@@ -160,5 +176,28 @@ public interface IIdmStorage {
      * @throws StorageException if an exception occurs during storage attempt
      */
     public Set<PermissionBean> getPermissions(String userId) throws StorageException;
+
+    /**
+     * Returns all permission in case of an admin to have access right to everything - GOD-mode
+     * @return
+     * @throws StorageException
+     */
+    public Set<PermissionBean> getAllPermissions() throws StorageException;
+
+    /**
+     * Return ALL users. Not taken into consideration 'paging'.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<UserBean> getAllUsers()throws StorageException;
+
+    /**
+     * Returns all users with admin priviledges.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<UserBean> getAdminUsers()throws StorageException;
 
 }

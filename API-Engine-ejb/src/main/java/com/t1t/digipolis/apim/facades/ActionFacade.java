@@ -1,14 +1,20 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.google.common.io.Resources;
+import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
 import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
+import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
@@ -32,6 +38,10 @@ import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.KeyUtils;
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +88,9 @@ public class ActionFacade {
             case lockPlan:
                 lockPlan(action);
                 return;
+            case deprecateService:
+                deprecateService(action);
+                return;
             default:
                 throw ExceptionFactory.actionException("Action type not supported: " + action.getType().toString()); //$NON-NLS-1$
         }
@@ -108,7 +121,6 @@ public class ActionFacade {
     private void publishService(ActionBean action) throws ActionException {
         if (!securityContext.hasPermission(PermissionType.svcAdmin, action.getOrganizationId()))
             throw ExceptionFactory.notAuthorizedException();
-
         ServiceVersionBean versionBean = null;
         try {
             versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
@@ -134,14 +146,12 @@ public class ActionFacade {
         gatewaySvc.setBasepath(versionBean.getService().getBasepath());
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
-        boolean hasTx = false;
         try {
             //we don't restrict the application of service policies for only the public services
             /*if (versionBean.isPublicService()) {*/
             List<Policy> policiesToPublish = new ArrayList<>();
             List<PolicySummaryBean> servicePolicies = query.getPolicies(action.getOrganizationId(),
                     action.getEntityId(), action.getEntityVersion(), PolicyType.Service);
-            hasTx = true;
             for (PolicySummaryBean policySummaryBean : servicePolicies) {
                 PolicyBean servicePolicy = storage.getPolicy(PolicyType.Service, action.getOrganizationId(),
                         action.getEntityId(), action.getEntityVersion(), policySummaryBean.getId());
@@ -162,15 +172,26 @@ public class ActionFacade {
             if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
+            List<ManagedApplicationBean> marketplaces = query.getManagedApps();
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                 gatewayLink.publishService(gatewaySvc);
+                //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
+                for (ManagedApplicationBean marketplace : marketplaces) {
+                    KongPluginACLResponse response = gatewayLink.addConsumerToACL(
+                            ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace),
+                            ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
+                    NewPolicyBean npb = new NewPolicyBean();
+                    npb.setDefinitionId(Policies.ACL.name());
+                    npb.setConfiguration(new Gson().toJson(response));
+                    npb.setKongPluginId(response.getId());
+                    orgFacade.createManagedApplicationPolicy(marketplace, npb);
+                }
                 gatewayLink.close();
             }
 
             versionBean.setStatus(ServiceStatus.Published);
             versionBean.setPublishedOn(new Date());
-
             storage.updateServiceVersion(versionBean);
             storage.createAuditEntry(AuditUtils.servicePublished(versionBean, securityContext));
         } catch (PublishingException e) {
@@ -178,7 +199,6 @@ public class ActionFacade {
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
         }
-
         log.debug(String.format("Successfully published Service %s on specified gateways: %s", //$NON-NLS-1$
                 versionBean.getService().getName(), versionBean.getService()));
     }
@@ -220,14 +240,22 @@ public class ActionFacade {
         }
 
         // Validate that it's ok to perform this action - service must be Ready.
-        if (versionBean.getStatus() != ServiceStatus.Published) {
+        if (!(versionBean.getStatus() == ServiceStatus.Published || versionBean.getStatus() == ServiceStatus.Deprecated)) {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidServiceStatus")); //$NON-NLS-1$
         }
-
         Service gatewaySvc = new Service();
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
         gatewaySvc.setServiceId(versionBean.getService().getId());
         gatewaySvc.setVersion(versionBean.getVersion());
+        //Checks if service still has contracts
+        try {
+            if (!query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 1000).isEmpty()) {
+                throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
 
         // Retire the service from all relevant gateways
         try {
@@ -238,6 +266,12 @@ public class ActionFacade {
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                 gatewayLink.retireService(gatewaySvc);
+                //Revoke marketplace ACL memberships
+                List<PolicyBean> aclPolicies = query.getManagedAppACLPolicies(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion());
+                for (PolicyBean policy : aclPolicies) {
+                    gatewayLink.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
+                    storage.deletePolicy(policy);
+                }
                 gatewayLink.close();
             }
 
@@ -251,9 +285,34 @@ public class ActionFacade {
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
         }
-
         log.debug(String.format("Successfully retired Service %s on specified gateways: %s", //$NON-NLS-1$
                 versionBean.getService().getName(), versionBean.getService()));
+    }
+
+    private void deprecateService(ActionBean action) {
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, action.getOrganizationId()))
+            throw ExceptionFactory.notAuthorizedException();
+
+        ServiceVersionBean versionBean = null;
+        try {
+            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
+        } catch (ServiceVersionNotFoundException e) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
+        }
+
+        // Validate that it's ok to perform this action - service must be Ready.
+        if (versionBean.getStatus() != ServiceStatus.Published) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("InvalidServiceStatus")); //$NON-NLS-1$
+        }
+            versionBean.setStatus(ServiceStatus.Deprecated);
+            versionBean.setDeprecatedOn(new Date());
+        try {
+            storage.updateServiceVersion(versionBean);
+            storage.createAuditEntry(AuditUtils.serviceRetired(versionBean, securityContext));
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.actionException(Messages.i18n.format("DeprecateError"), ex); //$NON-NLS-1$
+        }
     }
 
     /**
@@ -265,7 +324,7 @@ public class ActionFacade {
         if (!securityContext.hasPermission(PermissionType.appAdmin, action.getOrganizationId()))
             throw ExceptionFactory.notAuthorizedException();
 
-        //TODO validate if consumer wit given consumer name exists
+        //TODO validate if consumer with given consumer name exists?
 
         ApplicationVersionBean versionBean = null;
         List<ContractSummaryBean> contractBeans = null;
@@ -274,6 +333,7 @@ public class ActionFacade {
         } catch (ApplicationVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ApplicationNotFound")); //$NON-NLS-1$
         }
+
         try {
             contractBeans = query.getApplicationContracts(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (StorageException e) {
@@ -287,6 +347,17 @@ public class ActionFacade {
             }
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidApplicationStatus"), e); //$NON-NLS-1$
+        }
+
+        // Validate that all apikeys are equal for the scope of one application
+        if(!KeyUtils.validateKeySet(contractBeans)) throw ExceptionFactory.actionException(Messages.i18n.format("ApikeyInconsistency"));
+
+        //application should have contracts when accessed directly from api.
+        String appApiKey;
+        if(contractBeans==null||contractBeans.size()==0)throw ExceptionFactory.actionException(Messages.i18n.format("InvalidContractCount"));
+        else{
+            //we are sure the contracts are not empty and that all apikeys must be equal.
+            appApiKey = contractBeans.get(0).getApikey();
         }
 
         Application application = new Application();
@@ -327,6 +398,13 @@ public class ActionFacade {
                 }
             }
             for (IGatewayLink gatewayLink : links.values()) {
+                // Validate that the application has a key-auth apikey available on the gateway - fallback scenario
+                try {
+                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
+                    gatewayLink.addConsumerKeyAuth(appConsumerName, appApiKey);
+                } catch (Exception e) {
+                    //apikey for consumer already exists
+                }
                 gatewayLink.registerApplication(application);
                 gatewayLink.close();
             }
@@ -428,7 +506,7 @@ public class ActionFacade {
             throw ExceptionFactory.actionException(Messages.i18n.format("ApplicationNotFound"), e); //$NON-NLS-1$
         }
 
-        // Validate that it's ok to perform this action - application must be Ready.
+        // Validate that it's ok to perform this action - application must be Registered.
         if (versionBean.getStatus() != ApplicationStatus.Registered) {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidApplicationStatus")); //$NON-NLS-1$
         }
@@ -467,6 +545,20 @@ public class ActionFacade {
 
         versionBean.setStatus(ApplicationStatus.Retired);
         versionBean.setRetiredOn(new Date());
+
+        // delete all contracts
+        for(ContractSummaryBean contractSumBean:contractBeans){
+            ContractBean contract = null;
+            try {
+                contract = storage.getContract(contractSumBean.getContractId());
+                storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
+                storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
+                storage.deleteContract(contract);
+                log.debug(String.format("Deleted contract: %s", contract));
+            } catch (StorageException e) {
+                throw new SystemErrorException(e);
+            }
+        }
 
         try {
             storage.updateApplicationVersion(versionBean);
@@ -512,5 +604,4 @@ public class ActionFacade {
         log.debug(String.format("Successfully locked Plan %s: %s", //$NON-NLS-1$
                 versionBean.getPlan().getName(), versionBean.getPlan()));
     }
-
 }

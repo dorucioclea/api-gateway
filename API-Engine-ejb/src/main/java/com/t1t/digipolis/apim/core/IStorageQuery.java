@@ -4,10 +4,23 @@ import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
+import com.t1t.digipolis.apim.beans.events.EventType;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
+import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
+import com.t1t.digipolis.apim.beans.plans.PlanBean;
+import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
+import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.*;
@@ -16,6 +29,7 @@ import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -40,6 +54,14 @@ public interface IStorageQuery {
     public List<GatewaySummaryBean> listGateways() throws StorageException;
 
     /**
+     * List all the gatewaybeans with all available information.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<GatewayBean> listGatewayBeans() throws StorageException;
+
+    /**
      * Finds organizations by the provided criteria.
      * @param criteria search criteria search criteria
      * @return found orgs
@@ -62,6 +84,8 @@ public interface IStorageQuery {
      * @throws StorageException if a storage problem occurs while storing a bean.
      */
     public SearchResultsBean<ServiceSummaryBean> findServices(SearchCriteriaBean criteria) throws StorageException;
+
+    public List<ServiceVersionBean> findPublishedServiceVersionsByServiceName(String name) throws StorageException;
 
     /**
      * Find services in given status.
@@ -283,6 +307,25 @@ public interface IStorageQuery {
     public List<ContractSummaryBean> getServiceContracts(String organizationId, String serviceId, String version, int page, int pageSize) throws StorageException;
 
     /**
+     * Gets a list of contracts for the given service.  This is not paged.
+     * @param organizationId the organization id
+     * @param serviceId the service id
+     * @param version the version
+     * @return list of service contracts
+     * @throws StorageException if a storage problem occurs while storing a bean.
+     */
+    public List<ContractBean> getServiceContracts(String organizationId, String serviceId, String version) throws StorageException;
+
+    /**
+     * Gets a list of contracts for the given plan version. This is not paged.
+     *
+     * @param planVersionId
+     * @return
+     * @throws StorageException
+     */
+    public List<ContractBean> getPlanVersionContracts(Long planVersionId) throws StorageException;
+
+    /**
      * Returns the largest order index value for the policies assigned to the
      * given entity.
      * @param organizationId the organization id
@@ -341,4 +384,208 @@ public interface IStorageQuery {
      */
     public List<SupportComment> listServiceSupportComment(Long supportBeanId)throws StorageException;
 
+    /**
+     * List all available marketplaces for this environment.
+     * The list is needed in the publisher to set the Service version's visibility throughout supported marketplaces.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public Map<String,AvailabilityBean> listAvailableMarkets() throws StorageException;
+
+    /**
+     * Returns the default whitelist records. This can be used for an implicit IP Restriction policy.
+     * This is the case for example when exposing services, that are not visible in the API marketplace, but should
+     * be exposed to the outside world with IP restrictions.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<WhitelistBean> listWhitelistRecords()throws StorageException;
+
+    /**
+     * Returns the default blacklist records. This can be used for an implicit IP Restriction policy.
+     * This is the case for example when exposing services, that are not visible in the API marketplace, but should
+     * be exposed to the outside world with IP restrictions.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<BlacklistBean> listBlacklistRecords()throws StorageException;
+
+    /**
+     * Returns an ACL policybean for a given application
+     *
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @return
+     * @throws StorageException
+     */
+    public PolicyBean getApplicationACLPolicy(String organizationId, String applicationId, String version, Long contractId) throws StorageException;
+
+    /**
+     * Returns a list of all ManagedApplications of Marketplace type
+     *
+     * @return List of ManagedApplicationBeans
+     * @throws StorageException
+     */
+    public List<ManagedApplicationBean> getManagedApps() throws StorageException;
+
+    /**
+     * Returns a List of ACL Policies associated with marketplaces
+     *
+     * @return List of Policies
+     * @throws StorageException
+     */
+    public List<PolicyBean> getManagedAppACLPolicies(String organizationId, String serviceId, String version) throws StorageException;
+
+    /**
+     * Returns all applications
+     *
+     * @return List of ApplicationVersionBeans
+     * @throws StorageException
+     */
+    public List<ApplicationVersionBean> findAllApplicationVersions() throws StorageException;
+
+    /**
+     * Returns all plans (plan version containers) for a given organization.
+     *
+     * @param organizationId
+     * @return
+     * @throws StorageException
+     */
+    public List<PlanBean> findAllPlans(String organizationId) throws StorageException;
+
+    /**
+     * Returns all planversions for a given organization and given plan.
+     * A plan is a collections of planversion objects.
+     *
+     * @param organizationId
+     * @param planId
+     * @return
+     * @throws StorageException
+     */
+    public List<PlanVersionBean> findAllPlanVersionBeans(String organizationId, String planId)throws StorageException;
+
+    /**
+     * Returns service version beans for a specific availability
+     *
+     * @param bean
+     * @return
+     * @throws StorageException
+     */
+    public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException;
+
+    /**
+     * Returns a unique event by origin, destination and type - ignoring the id
+     * As unique key is applied on this triplet.
+     * @param eventBean
+     * @return
+     * @throws StorageException
+     */
+    public EventBean getUniqueEvent(EventBean eventBean) throws StorageException;
+    /**
+     * Returns all incoming events for given destination
+     * @param destination
+     * @return
+     * @throws StorageException
+     */
+    public List<EventBean> getAllIncomingEvents(String destination) throws StorageException;
+
+    /**
+     * Returns all outgoing events for given origin
+     * @param origin
+     * @return
+     * @throws StorageException
+     */
+    public List<EventBean> getAllOutgoingEvents(String origin) throws StorageException;
+
+    /**
+     * Returns incoming events by type
+     * @param destination
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public List<EventBean> getIncomingEventsByType(String destination, EventType type) throws StorageException;
+
+    /**
+     * Returns outgoing events by type
+     * @param origin
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public List<EventBean> getOutgoingEventsByType(String origin, EventType type) throws StorageException;
+
+    /**
+     * Returns event by given origin, destination and type.
+     * @param origin
+     * @param destination
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public EventBean getEventByOriginDestinationAndType(String origin, String destination, EventType type) throws StorageException;
+
+    /**
+     * Returns the count for published service for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getPublishedServiceCountForOrg(String orgId)throws StorageException;
+
+    /**
+     * Returns the count for locked plans for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getLockedPlanCountForOrg(String orgId)throws StorageException;
+
+    /**
+     * Returns the count for registered applications for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getRegisteredApplicationCountForOrg(String orgId)throws StorageException;
+
+    /**
+     * Return the count for member for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getMemberCountForOrg(String orgId)throws StorageException;
+
+    /**
+     * Return the event count for a given organization.
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public Integer getEventCountForOrg(String orgId) throws StorageException;
+
+    public List<EventBean> getAllIncomingNonActionEvents(String destination) throws StorageException;
+
+    public List<EventBean> getAllIncomingActionEvents(String destination) throws StorageException;
+
+    public void deleteAllEventsForEntity(String entityId) throws StorageException;
+
+    public List<ServiceVersionBean> findLatestServiceVersionByStatus(ServiceStatus status) throws StorageException;
+
+    public List<ServiceVersionBean> findLatestServiceVersionByStatusAndServiceName(String serviceName, ServiceStatus status) throws StorageException;
+
+    public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException;
+
+    public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException;
+
+    public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException;
+
+    public ServiceBean getServiceByBasepath(String organizationId, String basepath) throws StorageException;
+
+    public ApplicationVersionSummaryBean resolveApplicationVersionByAPIKey(String apiKey) throws StorageException;
 }

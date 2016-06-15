@@ -5,8 +5,10 @@ import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongExtraInfo;
 import com.t1t.digipolis.kong.model.KongInfo;
 import com.t1t.digipolis.kong.model.KongInstalledPlugins;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
@@ -18,10 +20,11 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.KongStatus;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongPluginACLRequest;
+import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
 import retrofit.http.*;
 
 /**
@@ -30,9 +33,15 @@ import retrofit.http.*;
 public interface KongClient {
     /*********************   GENERAL   *******************/
     @GET("/")
-    KongInfo getInfo();
+    KongExtraInfo getInfo();
+    @GET("/")
+    KongInfo getParsedInfo();
     @GET("/status")
-    KongStatus getStatus();
+    Object getStatus();
+    @GET("/cluster")
+    Object getCluster();
+    @GET("/oauth2_tokens")
+    Object getOAuth2Tokens();
 
     /*********************   API   ***********************/
     @POST("/apis") KongApi addApi(@Body KongApi api);
@@ -66,20 +75,31 @@ public interface KongClient {
     KongPluginJWTResponse createConsumerJWTCredentials(@Path("id") String id, @Body KongPluginJWTRequest kongPluginJWTRequest);
     @GET("/consumers/{id}/jwt")
     KongPluginJWTResponseList getConsumerJWTCredentials(@Path("id")String id);
+    @POST("/consumers/{id}/acls")
+    KongPluginACLResponse addConsumerToACL(@Path("id") String id, @Body  KongPluginACLRequest request);
+    @GET("/consumers/{id}/acls")
+    KongPluginACLResponseList getConsumerACL(@Path("id") String id);
+    @DELETE("/consumers/{id}/acls/{pluginId}")
+    Object deleteConsumerACLEntry(@Path("id") String id, @Path("pluginId") String pluginId);
 
     /*********************   PLUGINS   *******************/
     @GET("/plugins/enabled")KongInstalledPlugins getInstalledPlugins();
     /*@GET("/plugins/{pluginname}/schema")KongPluginSchema getPluginSchema(@Path("pluginname") String pluginName);*/
     @POST("/apis/{apinameorid}/plugins/")KongPluginConfig createPluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
     @GET("/apis/{apinameorid}/plugins/")KongPluginConfigList getKongPluginConfigList(@Path("apinameorid")String apiNameOrId);
+    @GET("/apis/{apinameorid}/plugins/")KongPluginConfigList getKongPluginConfig(@Path("apinameorid")String apiNameOrId,@Query("name") String pluginId);
+    @PUT("/apis/{apinameorid}/plugins/") Object updateKongPluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig config);
     @GET("/plugins/")KongPluginConfigList getAllPlugins();
     /*@PATCH("/apis/{apinameorid}/plugins/{id}")KongPluginConfig updatePlugin(@Path("apinameorid")String apiNameOrId,@Path("id")String pluginId,@Body KongPluginConfig pluginConfig);*/
     @PUT("/apis/{apinameorid}/plugins/")KongPluginConfig updateOrCreatePluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
     @DELETE("/apis/{apinameorid}/plugins/{id}")Object deletePlugin(@Path("apinameorid")String apiNameOrId, @Path("id") String pluginId);
 
     /*********************   OAUTH   *******************/
-    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path("consumerId")String consumerId,@Query("name") String name, @Query("client_id")String clientId, @Query("client_secret")String clientSecret,@Query("redirect_uri")String redirectURL);
-    @GET("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(@Path("consumerId")String consumerId);
+    @FormUrlEncoded
+    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path(value = "consumerId", encode = false)String consumerId,@Field("name") String name, @Field("client_id")String clientId, @Field("client_secret")String clientSecret,@Field("redirect_uri")String redirectURL);
+    @GET("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(@Path(value = "consumerId", encode = false)String consumerId);
     @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(@Query("client_id")String clientId);
-    @DELETE("/consumers/{consumerId}/oauth2/{pluginId}")Object deleteOAuth2Credential(@Path("consumerId")String consumerId, @Path("pluginId")String pluginId);
+    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens();
+    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens(@Query("client_id")String clientId);
+    @DELETE("/consumers/{consumerId}/oauth2/{pluginId}")Object deleteOAuth2Credential(@Path(value = "consumerId", encode = false)String consumerId, @Path("pluginId")String pluginId);
 }

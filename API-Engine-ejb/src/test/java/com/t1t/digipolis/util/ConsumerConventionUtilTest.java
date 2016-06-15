@@ -3,6 +3,9 @@ package com.t1t.digipolis.util;
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
@@ -50,29 +53,37 @@ public class ConsumerConventionUtilTest {
 
     @Test
     public void testParseApplicationIdentifier() throws Exception {
-        String tobeParsed = "org.name.version";
+        String tobeParsed = "int.name.version";
         AppIdentifier appExpectedId = new AppIdentifier();
-        appExpectedId.setOrgId("org");
+        appExpectedId.setScope("int");
         appExpectedId.setAppId("name");
         appExpectedId.setVersion("version");
+        List<String> availableScopes = new ArrayList<>();
+        availableScopes.add("int");
         AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(tobeParsed);
         assertEquals(appExpectedId,appIdentifier);
     }
 
     @Test
     public void testParseApplicationIdentifierNullValue() throws Exception {
+        List<String> availableScopes = new ArrayList<>();
+        availableScopes.add("int");
         AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(null);
         assertNull(appIdentifier);
     }
 
     @Test
     public void testParseApplicationIdentifierEmptyValue() throws Exception {
+        List<String> availableScopes = new ArrayList<>();
+        availableScopes.add("int");
         AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("");
         assertNull(appIdentifier);
     }
 
     @Test
     public void testParseApplicationIdentifierWrongFormatValue() throws Exception {
+        List<String> availableScopes = new ArrayList<>();
+        availableScopes.add("int");
         AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier("org.org.app.app.v.v");
         assertNull(appIdentifier);
     }

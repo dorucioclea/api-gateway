@@ -1,17 +1,27 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
+import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
+import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
+import com.t1t.digipolis.apim.core.IMetricsAccessor;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import org.opensaml.xml.encryption.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +31,9 @@ import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -40,6 +51,11 @@ public class SearchFacade {
     private IStorage storage;
     @Inject
     private IStorageQuery query;
+    @Inject
+    private IMetricsAccessor metrics;
+
+    private static final String NAME = "name";
+    private static final String STATUS = "status";
 
     public SearchResultsBean<OrganizationSummaryBean> searchOrgs(SearchCriteriaBean criteria) {
         try {
@@ -58,20 +74,45 @@ public class SearchFacade {
     }
 
     public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria) {
+        //TODO: temporary solution - Service contains no visibility option, thus we return modified service versions
         try {
-            return query.findServices(criteria);
+            //we store records in sorted set, otherwise we'll have duplicates
+            Set<ServiceSummaryBean> resultServices = new TreeSet<>();
+            List<ServiceVersionBean> serviceByStatus = new ArrayList<>();
+            for (SearchCriteriaFilterBean filter : criteria.getFilters()) {
+                if (filter.getName().equalsIgnoreCase("name")) {
+                    serviceByStatus.addAll(query.findPublishedServiceVersionsByServiceName(filter.getValue().toLowerCase()));
+                }
+            }
+            serviceByStatus.forEach(serviceVersionBean -> {
+                ServiceSummaryBean summBean = new ServiceSummaryBean();
+                summBean.setCreatedOn(serviceVersionBean.getService().getCreatedOn());
+                summBean.setDescription(serviceVersionBean.getService().getDescription());
+                summBean.setId(serviceVersionBean.getService().getId());
+                summBean.setName(serviceVersionBean.getService().getName());
+                summBean.setOrganizationId(serviceVersionBean.getService().getOrganization().getId());
+                summBean.setOrganizationName(serviceVersionBean.getService().getOrganization().getName());
+                resultServices.add(summBean);
+            });
+            SearchResultsBean<ServiceSummaryBean> searchResult = new SearchResultsBean<>();
+            List<ServiceSummaryBean> uniqueServiceList = new ArrayList<>();
+            uniqueServiceList.addAll(resultServices);
+            searchResult.setBeans(uniqueServiceList);
+            searchResult.setTotalSize(resultServices.size());
+            return searchResult;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
     }
 
-    public List<ServiceVersionBean> searchServicesByStatus(ServiceStatus status){
+    public List<ServiceVersionWithMarketInfoBean> searchServicesByStatus(ServiceStatus status){
         try {
-            return query.findServiceByStatus(status);
+            return enrichServiceVersionsWithMarketInfo(query.findServiceByStatus(status));
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
     }
+
 
     public Set<String> searchCategories(){
         try {
@@ -94,6 +135,103 @@ public class SearchFacade {
             return query.findAllServicesWithCategory(categories);
         } catch (StorageException e) {
             throw new SystemErrorException();
+        }
+    }
+
+    public List<String> findServiceVersionEndpointsForScope(String availability) {
+        List<String> returnValue = new ArrayList<>();
+        try {
+            AvailabilityBean ab = storage.getAvailableMarket(availability);
+            if (ab == null) {
+                throw ExceptionFactory.availabilityNotFoundException();
+            }
+            List<ServiceVersionBean> svbs = query.findServiceVersionsByAvailability(ab);
+            svbs.forEach(sv -> {
+                returnValue.add(new StringBuilder("/")
+                        .append(sv.getService().getOrganization().getId().toLowerCase())
+                        .append("/")
+                        .append(sv.getService().getId().toLowerCase())
+                        .append("/")
+                        .append(sv.getVersion().toLowerCase())
+                        .append("/")
+                        .toString());
+            });
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+        return returnValue;
+    }
+
+    public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria) {
+        //TODO - paging
+        //TODO - take operator into account. Right now we assume that searches on name use "like" and on status use "eq"
+        SearchResultsBean<ServiceVersionWithMarketInfoBean> rval = new SearchResultsBean<>();
+        String name = null;
+        ServiceStatus status = null;
+        for (SearchCriteriaFilterBean filter : criteria.getFilters()) {
+            switch(filter.getName()) {
+                case NAME:
+                    name = filter.getValue();
+                    break;
+                case STATUS:
+                    try {
+                        status = ServiceStatus.valueOf(filter.getValue());
+                    }
+                    catch (IllegalArgumentException ex) {
+                        throw ExceptionFactory.invalidServiceStatusException();
+                    }
+                    break;
+                default:
+                    throw ExceptionFactory.invalidSearchCriteriaException(filter.getName());
+            }
+        }
+        List<ServiceVersionWithMarketInfoBean> svmibs = new ArrayList<>();
+        try {
+            if (status != null) {
+                if (name != null) {
+                    svmibs.addAll(
+                            enrichServiceVersionsWithMarketInfo(query.findLatestServiceVersionByStatusAndServiceName(name, status)));
+                }
+                else {
+                    svmibs.addAll(
+                            enrichServiceVersionsWithMarketInfo(query.findLatestServiceVersionByStatus(status)));
+                }
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+        rval.setBeans(svmibs);
+        rval.setTotalSize(svmibs.size());
+        return rval;
+    }
+
+    public List<ServiceVersionWithMarketInfoBean> searchLatestPublishedServiceVersionsInCategory(List<String> category) {
+        try {
+            return enrichServiceVersionsWithMarketInfo(query.findLatestServicesWithCategory(category));
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
+    private List<ServiceVersionWithMarketInfoBean> enrichServiceVersionsWithMarketInfo(List<ServiceVersionBean> svbs) {
+        List<ServiceVersionWithMarketInfoBean> svmibs = new ArrayList<>();
+        svbs.forEach(svb -> {
+            ServiceVersionWithMarketInfoBean svmib = new ServiceVersionWithMarketInfoBean(svb);
+            svmib.setMarketInfo(metrics.getServiceMarketInfo(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()));
+            svmibs.add(svmib);
+        });
+        return svmibs;
+    }
+
+    public ApplicationVersionSummaryBean resolveApiKey(String apikey) {
+        try {
+            return query.resolveApplicationVersionByAPIKey(apikey);
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
         }
     }
 }

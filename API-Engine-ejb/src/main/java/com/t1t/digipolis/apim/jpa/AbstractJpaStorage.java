@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.jpa;
 
+import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.*;
@@ -7,6 +8,8 @@ import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
+import org.opensaml.xml.encryption.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +32,7 @@ import java.util.Set;
 public abstract class AbstractJpaStorage {
     private static Logger log = LoggerFactory.getLogger(AbstractJpaStorage.class.getName());
 
-    @PersistenceContext
-    protected EntityManager em;
+    @PersistenceContext protected EntityManager em;
 
     /**
      * Constructor.
@@ -78,7 +80,7 @@ public abstract class AbstractJpaStorage {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <T> void delete(T bean) throws StorageException {
-        log.debug("delete:" + bean.toString());
+        log.debug("delete:" + bean);
         em.remove(em.merge(bean));
     }
 
@@ -92,7 +94,7 @@ public abstract class AbstractJpaStorage {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <T> T get(Long id, Class<T> type) throws StorageException {
-        log.debug("get(long:id):" + id.toString());
+        log.debug("get(long:id):" + id);
         T rval = null;
         rval = em.find(type, id);
         return rval;
@@ -107,7 +109,7 @@ public abstract class AbstractJpaStorage {
      * @throws StorageException if a storage problem occurs while storing a bean
      */
     public <T> T get(String id, Class<T> type) throws StorageException {
-        log.debug("get(string:id):" + id.toString());
+        log.debug("get(string:id):" + id);
         T rval = null;
         rval = em.find(type, id);
         return rval;
@@ -123,7 +125,7 @@ public abstract class AbstractJpaStorage {
      * @throws StorageException if a storage problem occurs while storing a bean
      */
     public <T> T get(String organizationId, String id, Class<T> type) throws StorageException {
-        log.debug("getOrganzationComposite(id):" + id.toString());
+        log.debug("getOrganzationComposite(id):" + id);
         T rval = null;
         OrganizationBean orgBean = em.find(OrganizationBean.class, organizationId);
         Object key = new OrganizationBasedCompositeId(orgBean, id);
@@ -199,8 +201,24 @@ public abstract class AbstractJpaStorage {
             }
         }
         //get all service verisons with parent id
-        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.service IN :services AND e.status LIKE :status").setParameter("services",filteredServices).setParameter("status",ServiceStatus.Published);
+        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.service IN :services AND e.status = :status").setParameter("services",filteredServices).setParameter("status",ServiceStatus.Published);
         return (List<ServiceVersionBean>) query.getResultList();
+    }
+
+    protected List<ServiceVersionBean> findLatestPublishedServiceVersionsInCategory(List<String> categories) throws StorageException {
+        List<ServiceBean> services = findAllServiceDefinitions();
+        List<ServiceBean> filteredServices = new ArrayList<>();
+        for (ServiceBean service : services) {
+            for (String cat : categories) {
+                if (service.getCategories().contains(cat)) {
+                    filteredServices.add(service);
+                }
+            }
+        }
+        return em.createQuery("SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.service IN :services AND s2.status = :status GROUP BY s2.service)")
+                .setParameter("services", filteredServices)
+                .setParameter("status", ServiceStatus.Published)
+                .getResultList();
     }
 
     /**

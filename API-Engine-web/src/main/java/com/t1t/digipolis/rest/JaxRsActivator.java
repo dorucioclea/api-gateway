@@ -13,17 +13,6 @@ import java.util.Set;
  */
 @ApplicationPath("/v1")
 public class JaxRsActivator extends Application {
-    public static boolean securedMode;
-
-    static {
-        /**
-         * Start server in secured mode -> requiring API key and secret.
-         * When the server needs to be tested, you can set the boolean value to false, thus the filter driver
-         * will not be loaded and REST communication can be done unsecure.
-         */
-        securedMode = true;
-    }
-
     public JaxRsActivator() {
     }
 
@@ -57,6 +46,8 @@ public class JaxRsActivator extends Application {
         resources.add(SearchResource.class);
         resources.add(UserResource.class);
         resources.add(OrganizationResource.class);
+        resources.add(SecurityResource.class);
+        resources.add(MigrationResource.class);
         resources.add(RestExceptionMapper.class);
         //resources.add(CORSRequestFilter.class);//CORS Request filter
         //resources.add(CORSResponseFilter.class);//CORS Response filter

@@ -68,6 +68,9 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
         if (service.getEndpoint() == null || service.getEndpoint().trim().length() == 0) {
             ready = false;
         }
+        if (StringUtils.isEmpty(service.getOnlinedoc())) {
+            //ready = false;
+        }
         if (service.getEndpointType() == null) {
             ready = false;
         }
@@ -78,6 +81,13 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
         }
         if (service.getGateways() == null || service.getGateways().isEmpty()) {
             ready = false;
+        }
+        if(service.getVisibility() == null || service.getVisibility().isEmpty()){
+            ready = false;
+        }
+        //TODO - Re-enable check once terms update endpoint checks if service versions for service are ready
+        if (!service.getAutoAcceptContracts() && StringUtils.isEmpty(service.getService().getTerms())) {
+            //ready = false;
         }
         return ready;
     }

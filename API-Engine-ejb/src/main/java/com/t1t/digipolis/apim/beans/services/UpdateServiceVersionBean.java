@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.beans.services;
 
+import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.io.Serializable;
@@ -24,6 +25,8 @@ public class UpdateServiceVersionBean implements Serializable {
     private Boolean publicService;
     private String onlinedoc;
     private Set<ServicePlanBean> plans;
+    private Set<VisibilityBean> visibility;
+    private Boolean autoAcceptContracts;
 
     /**
      * Constructor.
@@ -116,11 +119,27 @@ public class UpdateServiceVersionBean implements Serializable {
         this.onlinedoc = onlinedoc;
     }
 
+    public Set<VisibilityBean> getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Set<VisibilityBean> visibility) {
+        this.visibility = visibility;
+    }
+
     /**
      * @param endpointProperties the endpointProperties to set
      */
     public void setEndpointProperties(Map<String, String> endpointProperties) {
         this.endpointProperties = endpointProperties;
+    }
+
+    public Boolean getAutoAcceptContracts() {
+        return autoAcceptContracts;
+    }
+
+    public void setAutoAcceptContracts(Boolean autoAcceptContracts) {
+        this.autoAcceptContracts = autoAcceptContracts;
     }
 
     @Override
@@ -133,6 +152,8 @@ public class UpdateServiceVersionBean implements Serializable {
                 ", publicService=" + publicService +
                 ", onlinedoc='" + onlinedoc + '\'' +
                 ", plans=" + plans +
+                ", visibility=" + visibility +
+                ", autoAcceptContracts=" + autoAcceptContracts +
                 '}';
     }
 

@@ -16,8 +16,10 @@ import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.apim.security.IdentityAttributes;
 import com.t1t.digipolis.util.CacheUtil;
 import junit.framework.TestCase;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
@@ -32,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 import static org.mockito.Mockito.*;
@@ -79,6 +83,26 @@ public class UserFacadeTest extends TestCase {
     OrganizationFacade orgFacade;
     @Mock
     DefaultBootstrap defaultBootstrap;
+
+    public void testURIUtilForRelayState() throws URISyntaxException {
+        String uriA = "https://someurl.com/?token=my&type=nothingspecial";
+        String uriB = "https://someurl.com/endpoint/test";
+        URI A = new URI(uriA);
+        URI B = new URI(uriB);
+        assertEquals("someurl.com",A.getHost());
+        assertEquals("someurl.com",B.getHost());
+    }
+
+    public void testURIUtilForQueryString() throws URISyntaxException {
+        String uriA = "https://someurl.com/?token=my&type=nothingspecial";
+        String uriB = "https://someurl.com/endpoint/test";
+        URI A = new URI(uriA);
+        URI B = new URI(uriB);
+        System.out.println("Query:"+A.getQuery());
+        System.out.println("Raw query:"+A.getRawQuery());
+        System.out.println("Query:"+B.getQuery());
+        System.out.println("Raw query:"+B.getRawQuery());
+    }
 
     public void testGet() throws Exception {
         UserBean ub = new UserBean();
@@ -265,5 +289,14 @@ public class UserFacadeTest extends TestCase {
 
     public void testGetDecryptedAssertion() throws Exception {
 
+    }
+
+    public void testInitNewUser()throws Exception{
+        NewUserBean newUserBean = new NewUserBean();
+        newUserBean.setAdmin(true);
+        newUserBean.setUsername("michallis@trust1team.com");
+        userFacade.initNewUser(newUserBean);
+        verify(idmStorage).createUser(anyObject());
+        verifyNoMoreInteractions(idmStorage);
     }
 }

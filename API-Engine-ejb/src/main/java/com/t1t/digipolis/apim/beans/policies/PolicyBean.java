@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.beans.policies;
 
-import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.annotations.Type;
 
@@ -53,6 +52,11 @@ public class PolicyBean implements Serializable {
     private PolicyDefinitionBean definition;
     @Column(name = "order_index", updatable=true, nullable=false)
     private int orderIndex;
+    @Column(name = "kong_plugin_id", updatable = true, nullable = true)
+    private String kongPluginId;
+    @Column(name = "contract_id", updatable = true, nullable = true)
+    private Long contractId;
+
 
     /**
      * Constructor.
@@ -257,6 +261,30 @@ public class PolicyBean implements Serializable {
     }
 
     /**
+     *
+     * @return the policyId
+     */
+    public String getKongPluginId() {
+        return kongPluginId;
+    }
+
+    /**
+     *
+     * @param policyId the policyId to set
+     */
+    public void setKongPluginId(String policyId) {
+        this.kongPluginId = policyId;
+    }
+
+    public Long getContractId() {
+        return contractId;
+    }
+
+    public void setContractId(Long contractId) {
+        this.contractId = contractId;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -287,17 +315,24 @@ public class PolicyBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "PolicyBean [id=" + id + ", type=" + type + ", organizationId=" + organizationId
-                + ", entityId=" + entityId + ", entityVersion=" + entityVersion + ", name=" + name
-                + ", description=" + description + ", configuration=***, createdBy="
-                + createdBy + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy + ", modifiedOn="
-                + modifiedOn + ", definition=" + definition + ", orderIndex=" + orderIndex + "]";
+        return "PolicyBean{" +
+                "id=" + id +
+                ", type=" + type +
+                ", organizationId='" + organizationId + '\'' +
+                ", entityId='" + entityId + '\'' +
+                ", entityVersion='" + entityVersion + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", configuration='" + configuration + '\'' +
+                ", createdBy='" + createdBy + '\'' +
+                ", createdOn=" + createdOn +
+                ", modifiedBy='" + modifiedBy + '\'' +
+                ", modifiedOn=" + modifiedOn +
+                ", orderIndex=" + orderIndex +
+                ", kongPluginId='" + kongPluginId + '\'' +
+                ", contractId=" + contractId +
+                '}';
     }
-
 }

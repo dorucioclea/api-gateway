@@ -49,7 +49,7 @@ public class OAuthResource implements IOAuth2Authorization {
     }
 
     @ApiOperation(value = "Retrieve Application OAuth2 information for targeted service.",
-            notes = "Retrive the Application OAuth2 information in order to inform the user through a consent page for a specific service.")
+            notes = "Retrieve the Application OAuth2 information in order to inform the user through a consent page for a specific service.")
     @ApiResponses({
             @ApiResponse(code = 200, response = OAuthApplicationResponse.class, message = "The result unique username and generated KeyAuth token."),
             @ApiResponse(code = 409, response = String.class, message = "Conflict error.")

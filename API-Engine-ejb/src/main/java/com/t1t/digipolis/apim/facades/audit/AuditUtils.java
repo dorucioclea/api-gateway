@@ -517,15 +517,20 @@ public class AuditUtils {
         entry.setEntityId(bean.getEntityId());
         entry.setEntityVersion(bean.getEntityVersion());
         switch (type) {
-        case Application:
-            entry.setEntityType(AuditEntityType.Application);
-            break;
-        case Plan:
-            entry.setEntityType(AuditEntityType.Plan);
-            break;
-        case Service:
-            entry.setEntityType(AuditEntityType.Service);
-            break;
+            case Application:
+                entry.setEntityType(AuditEntityType.Application);
+                break;
+            case Plan:
+                entry.setEntityType(AuditEntityType.Plan);
+                break;
+            case Service:
+                entry.setEntityType(AuditEntityType.Service);
+                break;
+            case Marketplace:
+                entry.setEntityType(AuditEntityType.Marketplace);
+                break;
+            case Consent:
+                entry.setEntityType(AuditEntityType.Consent);
         }
         PolicyData data = new PolicyData();
         data.setPolicyDefId(bean.getDefinition().getId());
@@ -704,6 +709,14 @@ public class AuditUtils {
         entry.setEntityId(bean.getService().getId());
         entry.setEntityVersion(bean.getVersion());
         entry.setWhat(AuditEntryType.Retire);
+        return entry;
+    }
+
+    public static AuditEntryBean serviceDeprecated(ServiceVersionBean bean, ISecurityContext securityContext) {
+        AuditEntryBean entry = newEntry(bean.getService().getOrganization().getId(), AuditEntityType.Service, securityContext);
+        entry.setEntityId(bean.getService().getId());
+        entry.setEntityVersion(bean.getVersion());
+        entry.setWhat(AuditEntryType.Deprecate);
         return entry;
     }
 

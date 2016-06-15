@@ -19,15 +19,17 @@ public interface IConfig {
     String IDP_OAUTH_CLIENT_ID = "apiapp.idp.client_id";
     String IDP_OAUTH_CLIENT_SECRET = "apiapp.idp.client_secret";
     String IDP_SCIM_ACTIVATE = "apiapp.idp.enable_scim";
-    String IDP_PUBLIC_KEY_FILE = "apiapp.idp.public_key_file";
     String METRICS_SCHEME = "apiapp.metrics.scheme";
     String METRICS_DNS = "apiapp.metrics.url";
     String METRICS_PORT = "apiapp.metrics.ports.default";
     String CONSENT_URI = "apiapp.oauth.consent_uri";
+    String OAUTH_ENABLE_GTW_ENDPOINTS = "apiapp.oauth.enable_shared_endpoints";
     String DEFAULT_USER_ORGANIZATION = "apiapp.defaults.orgId";
     String DEFAULT_USER_ROLES_FOR_DEFAULT_ORG = "apiapp.defaults.roles";
-    String SECURITY_REST_RESORUCES = "rest_resources";
-    String SECURITY_REST_AUTH_RESOURCES = "rest_auth_resources";
+    String SECURITY_REST_RESORUCES = "apiapp.security.rest_resources";
+    String SECURITY_REST_AUTH_RESOURCES = "apiapp.security.rest_auth_resources";
+    String SECURITY_RESTRICTED_MODE = "apiapp.security.only_admin_mode";
+    String SECURITY_RESTRICTION_APPLIED = "apiapp.security.applied_restriction";
     String PROP_FILE_DATE = "date";
     String PROP_FILE_VERSION = "version";
     String PROP_FILE_CONFIG_FILE = "configuration.file";
@@ -41,5 +43,9 @@ public interface IConfig {
     String ANALYTICS_MAX_SENDING_QUEUE = "apiapp.metrics.galileo.max_sending_queue_size";
     String ANALYTICS_HOST = "apiapp.metrics.galileo.host";
     String ANALYTICS_PORT = "apiapp.metrics.galileo.port";
-
+    String MARKETS_FILTER = "apiapp.marketplaces.filter";
+    String NOTIFICATION_ENABLE_DEBUG = "apiapp.notifications.enable_debug";
+    String NOTIFICATION_STARTUP_MAIL = "apiapp.notifications.startup_mail";
+    String NOTIFICATION_MAIL_FROM = "apiapp.notifications.mail_from";
+    String HYSTRIX_METRICS_TIMEOUT_VALUE = "apiapp.hystrix.metrics";
 }

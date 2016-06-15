@@ -10,6 +10,8 @@ import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -21,7 +23,7 @@ public class KongCleanup {
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
-    private static final String KONG_UNDER_TEST_URL = "http://acc.apim.t1t.be:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_URL = "http://rasu076.rte.antwerpen.local:8001";//should point to the admin url:port
     //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
@@ -47,15 +49,18 @@ public class KongCleanup {
 
     public void cleanAll() throws Exception {
         //remove all consumers
-        KongConsumerList consumers = kongClient.getConsumers();
+/*        KongConsumerList consumers = kongClient.getConsumers();
         for (KongConsumer cons : consumers.getData()) {
             kongClient.deleteConsumer(cons.getId());
-        }
+        }*/
 
         //remove all apis
         KongApiList apilist = kongClient.listApis();
-        for (KongApi api : apilist.getData()) {
-            kongClient.deleteApi(api.getId());
+        List<KongApi> apis = apilist.getData();
+        for(KongApi api:apis){
+            if(api.getName().startsWith("testorg")){
+                kongClient.deleteApi(api.getId());
+            }
         }
     }
 }

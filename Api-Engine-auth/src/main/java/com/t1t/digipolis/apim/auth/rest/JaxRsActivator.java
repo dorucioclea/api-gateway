@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.auth.rest;
 import com.t1t.digipolis.apim.auth.rest.impl.mappers.RestExceptionMapper;
 import com.t1t.digipolis.apim.auth.rest.resources.LoginResource;
 import com.t1t.digipolis.apim.auth.rest.resources.OAuthResource;
+import com.t1t.digipolis.apim.auth.rest.resources.SearchResource;
 import com.t1t.digipolis.apim.auth.rest.resources.filter.RequestAUTHFilter;
 
 import javax.ws.rs.ApplicationPath;
@@ -14,18 +15,6 @@ import java.util.Set;
  */
 @ApplicationPath("/v1")
 public class JaxRsActivator extends Application {
-    public static boolean securedMode;
-
-    static {
-        /**
-         * Start server in secured mode -> requiring API key and secret.
-         * When the server needs to be tested, you can set the boolean value to false, thus the filter driver
-         * will not be loaded and REST communication can be
-         * done unsecure.
-         */
-        securedMode = false;
-    }
-
     public JaxRsActivator() {
     }
 
@@ -52,6 +41,7 @@ public class JaxRsActivator extends Application {
         //resources.add(BasicAuthorizationResource.class); TODO enable?
         resources.add(LoginResource.class);
         resources.add(OAuthResource.class);
+        resources.add(SearchResource.class);
         resources.add(RestExceptionMapper.class);
     }
 }

@@ -12,6 +12,7 @@ public class UpdateGatewayBean implements Serializable {
     private static final long serialVersionUID = 4301970694825472031L;
 
     private String description;
+    private Integer jwtExpTime;
     private GatewayType type;
     private String configuration;
 
@@ -63,13 +64,21 @@ public class UpdateGatewayBean implements Serializable {
         this.configuration = configuration;
     }
 
+    public Integer getJwtExpTime() {
+        return jwtExpTime;
+    }
+
+    public void setJwtExpTime(Integer jwtExpTime) {
+        this.jwtExpTime = jwtExpTime;
+    }
+
     /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {
-        return "UpdateGatewayBean [description=" + description + ", type=" + type + ", configuration=***]";
+        return "UpdateGatewayBean [description=" + description+ ",jwtexptime="+ jwtExpTime + ", type=" + type + ", configuration=***]";
     }
 
 }

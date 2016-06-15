@@ -2,12 +2,15 @@ package com.t1t.digipolis.apim.beans.apps;
 
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
+import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * Models an application.
@@ -17,7 +20,7 @@ import java.util.Date;
 @Table(name = "applications")
 @IdClass(OrganizationBasedCompositeId.class)
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class ApplicationBean implements Serializable {
+public class ApplicationBean implements Comparable<ApplicationBean>,Serializable {
 
     private static final long serialVersionUID = -197129444021040365L;
 
@@ -34,6 +37,7 @@ public class ApplicationBean implements Serializable {
     private String name;
     @Column(updatable=true, nullable=true, length=512)
     private String description;
+    private String context;
     @Column(name = "created_by", updatable=false, nullable=false)
     private String createdBy;
     @Column(name = "created_on", updatable=false, nullable=false)
@@ -120,6 +124,14 @@ public class ApplicationBean implements Serializable {
         return createdBy;
     }
 
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
+    }
+
     /**
      * @param createdBy the createdBy to set
      */
@@ -135,17 +147,40 @@ public class ApplicationBean implements Serializable {
         this.base64logo = Base64.decodeBase64(base64logo.getBytes());
     }
 
-
-
-    /* (non-Javadoc)
-         * @see java.lang.Object#toString()
-         */
     @Override
-    @SuppressWarnings("nls")
-    public String toString() {
-        return "ApplicationBean [organization=" + organization + ", id=" + id + ", name=" + name
-                + ", description=" + description + ", createdBy=" + createdBy + ", createdOn=" + createdOn
-                + "]";
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ApplicationBean)) return false;
+
+        ApplicationBean that = (ApplicationBean) o;
+
+        if (!organization.equals(that.organization)) return false;
+        return id.equals(that.id);
+
     }
 
+    @Override
+    public int hashCode() {
+        int result = organization.hashCode();
+        result = 31 * result + id.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "ApplicationBean{" +
+                "organization=" + organization +
+                ", id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", context='" + context + '\'' +
+                ", createdBy='" + createdBy + '\'' +
+                ", createdOn=" + createdOn +
+                '}';
+    }
+
+    @Override
+    public int compareTo(ApplicationBean o) {
+        return this.getId().compareTo(o.getId());
+    }
 }

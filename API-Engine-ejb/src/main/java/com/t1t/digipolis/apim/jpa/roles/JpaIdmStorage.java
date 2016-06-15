@@ -1,8 +1,10 @@
 package com.t1t.digipolis.apim.jpa.roles;
 
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.jpa.AbstractJpaStorage;
@@ -45,6 +47,12 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
     public void createUser(UserBean user) throws StorageException {
         user.setJoinedOn(new Date());
         super.create(user);
+    }
+
+    @Override
+    public void deleteUser(String userId) throws StorageException {
+        final UserBean user = getUser(userId);
+        super.delete(user);
     }
 
     /**
@@ -103,6 +111,15 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
 
         // Then delete the role itself.
         super.delete(prole);
+    }
+
+    @Override
+    public UserBean getUserByMail(String mail) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        Query query = entityManager.createQuery("SELECT u from UserBean u WHERE u.email = :mail").setParameter("mail", mail);
+        final List<UserBean> resultList = query.getResultList();
+        if(resultList.size()>0) return resultList.get(0);
+        else return null;
     }
 
     /**
@@ -235,7 +252,7 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<RoleMembershipBean> criteriaQuery = builder.createQuery(RoleMembershipBean.class);
         Root<RoleMembershipBean> from = criteriaQuery.from(RoleMembershipBean.class);
-        criteriaQuery.where(builder.equal(from.get("userId"), userId)); //$NON-NLS-1$
+        criteriaQuery.where(builder.equal(from.get("userId"), userId));
         TypedQuery<RoleMembershipBean> typedQuery = entityManager.createQuery(criteriaQuery);
         typedQuery.setMaxResults(500);
         List<RoleMembershipBean> resultList = typedQuery.getResultList();
@@ -250,6 +267,36 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
             }
         }
         return permissions;
+    }
+
+    @Override
+    public Set<PermissionBean> getAllPermissions() throws StorageException {
+        Set<PermissionBean> permissions = new HashSet<>();
+        EntityManager em = getActiveEntityManager();
+        Query query = em.createQuery("SELECT o FROM OrganizationBean o");
+        List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
+        for(OrganizationBean org:orgs){
+            PermissionType[] ptypes = PermissionType.values();
+            for(PermissionType ptunit:ptypes){
+                PermissionBean p = new PermissionBean();
+                p.setName(ptunit);
+                p.setOrganizationId(org.getId());
+                permissions.add(p);
+            }
+        }
+        return permissions;
+    }
+
+    public List<UserBean> getAllUsers() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        Query query = em.createQuery("SELECT u FROM UserBean u");
+        return (List<UserBean>)query.getResultList();
+    }
+
+    public List<UserBean> getAdminUsers() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        Query query = em.createQuery("SELECT u FROM UserBean u WHERE u.admin = true");
+        return (List<UserBean>)query.getResultList();
     }
 
     /**

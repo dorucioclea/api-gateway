@@ -7,6 +7,8 @@ import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
+import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -24,8 +26,10 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.core.*;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
+import com.t1t.digipolis.apim.facades.EventFacade;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.rest.impl.util.FieldValidator;
@@ -33,6 +37,8 @@ import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
@@ -53,6 +59,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -83,6 +90,8 @@ public class OrganizationResource implements IOrganizationResource {
     IMetricsAccessor metrics;
     @Inject
     private OrganizationFacade orgFacade;
+    @Inject
+    private EventFacade eventFacade;
 
     @Inject
     IApplicationValidator applicationValidator;
@@ -176,7 +185,7 @@ public class OrganizationResource implements IOrganizationResource {
      * APPLICATIONS
      **************/
     @ApiOperation(value = "Create Application",
-            notes = "Use this endpoint to create a new Application.  Note that it is important to also create an initial version of the Application (e.g. v1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Application Version\".  If the former is done, then a first Application version will be created automatically by this endpoint. When providing a logo, the logo can not be greater than 10k")
+            notes = "Use this endpoint to create a new Application.  Note that it is important to also create an initial version of the Application (e.g. v1.0).  This can either be done by including the 'initialVersion' property in the request, or by immediately following up with a call to \"Create Application Version\".  If the former is done, then a first Application version will be created automatically by this endpoint. When providing a logo, the logo can not be greater than 100k")
     @ApiResponses({
             @ApiResponse(code = 200, response = ApplicationBean.class, message = "Full details about the newly created Application.")
     })
@@ -187,7 +196,7 @@ public class OrganizationResource implements IOrganizationResource {
     public ApplicationBean createApp(@PathParam("organizationId") String organizationId, NewApplicationBean bean) throws OrganizationNotFoundException, ApplicationAlreadyExistsException, NotAuthorizedException, InvalidNameException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkNotNull(bean);
-        Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 15000, "Logo should not be greater than 10k");
+        Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createApp(organizationId, bean);
     }
@@ -382,6 +391,9 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.listAppVersions(organizationId, applicationId);
     }
 
+    //Removed the create contract endpoint -> application owner can no longer create contract unilaterally, he needs to
+    // request a contract from the service owner.
+    /*
     @ApiOperation(value = "Create a Service Contract",
             notes = "Use this endpoint to create a Contract between the Application and a Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
@@ -403,7 +415,7 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.createContract(organizationId, applicationId, version, bean);
-    }
+    }*/
 
     @ApiOperation(value = "Get Service Contract",
             notes = "Use this endpoint to retrieve detailed information about a single Service Contract for an Application.")
@@ -645,7 +657,7 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkNotNull(bean);
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 15000, "Logo should not be greater than 10k");
+        Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createService(organizationId, bean);
     }
@@ -679,7 +691,6 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public AnnouncementBean getServiceAnnouncement(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("announcementId")String announcementId) throws ServiceNotFoundException, NotAuthorizedException{
-        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(announcementId));
@@ -697,14 +708,14 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public List<AnnouncementBean> getServiceAnnouncements(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException{
-        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        if (!securityContext.hasPermission(PermissionType.svcView, organizationId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         return orgFacade.getServiceAnnouncements(organizationId, serviceId);
     }
 
-    @ApiOperation(value = "Remove Service Policy",
-            notes = "Use this endpoint to remove a Policy from the Service.")
+    @ApiOperation(value = "Remove Service Announcement",
+            notes = "Use this endpoint to remove an Announcement from the Service.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
     })
@@ -713,7 +724,7 @@ public class OrganizationResource implements IOrganizationResource {
     public void deleteServiceAnnouncement(@PathParam("organizationId") String organizationId,
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("announcementId") String announcementId) throws OrganizationNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        if (!securityContext.hasPermission(PermissionType.svcView, organizationId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(announcementId));
@@ -751,9 +762,24 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getService(organizationId, serviceId);
     }
 
+    @ApiOperation(value = "Delete Plan ID")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 412, message = "preconditions not met")
+    })
+    @DELETE
+    @Path("/{organizationId}/plans/{planId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deletePlan(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId) throws ServiceNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
+        orgFacade.deletePlan(organizationId, planId);
+    }
+
     @ApiOperation(value = "Delete Service By ID")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "successful, no content")
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 409, message = "service has contracts")
     })
     @DELETE
     @Path("/{organizationId}/services/{serviceId}")
@@ -871,6 +897,7 @@ public class OrganizationResource implements IOrganizationResource {
         try {
             ServiceVersionBean serviceVersion = getServiceVersion(organizationId, serviceId, version);
             InputStream definition = orgFacade.getServiceDefinition(organizationId, serviceId, version);
+            if (definition == null) return null;
             ResponseBuilder builder = Response.ok().entity(definition);
             if (serviceVersion.getDefinitionType() == ServiceDefinitionType.SwaggerJSON) {
                 builder.type(MediaType.APPLICATION_JSON);
@@ -881,12 +908,10 @@ public class OrganizationResource implements IOrganizationResource {
             } else {
                 throw new Exception("Service definition type not supported: " + serviceVersion.getDefinitionType()); //$NON-NLS-1$
             }
-
             return builder.build();
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
-
             throw new SystemErrorException(e);
         }
     }
@@ -907,6 +932,70 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         return orgFacade.getServiceVersionEndpointInfo(organizationId, serviceId, version);
+    }
+
+    @ApiOperation(value = "Get Service Availabilities",
+                  notes = "Use this endpoint to get information about the available marketplaces that are defined on the API.")
+    @ApiResponses({@ApiResponse(code = 200, response = ServiceVersionVisibilityBean.class, message = "Available API marketplaces information.")})
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/availability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceVersionVisibilityBean getServiceVersionAvailabilityInfo(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
+                                                                           @PathParam("version") String version) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        ServiceVersionVisibilityBean svab = new ServiceVersionVisibilityBean();
+        //TODO do this for a service
+        svab.setAvailableMarketplaces(orgFacade.getServiceVersionAvailabilityInfo(organizationId, serviceId, version));
+        return svab;
+    }
+
+    @ApiOperation(value = "Get Service Plugins",
+                  notes = "Use this endpoint to get information about the plugins that are applied on this service.")
+    @ApiResponses({@ApiResponse(code = 200, response = KongPluginConfigList.class, message = "Available API plugin information.")})
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/plugins")
+    @Produces(MediaType.APPLICATION_JSON)
+    public KongPluginConfigList getServiceVersionPluginInfo(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
+                                                                          @PathParam("version") String version) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        KongPluginConfigList servicePlugins = orgFacade.getServicePlugins(organizationId, serviceId, version);
+        return servicePlugins;
+    }
+
+    @ApiOperation(value = "Enable Service Plugins",
+                  notes = "Use this endpoint to enable an existing plugin for a service.")
+    @ApiResponses({@ApiResponse(code = 200, response = KongPluginConfig.class, message = "Enabled plugin for a service.")})
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/plugins/{pluginId}/enable")
+    @Produces(MediaType.APPLICATION_JSON)
+    public KongPluginConfig enableServicePlugin(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
+                                                            @PathParam("version") String version, @PathParam("pluginId") String pluginId) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(pluginId));
+        KongPluginConfig servicePlugin = orgFacade.changeEnabledStateServicePlugin(organizationId, serviceId, version, pluginId,true);
+        return servicePlugin;
+    }
+
+    @ApiOperation(value = "Disable Service Plugins",
+                  notes = "Use this endpoint to disable an existing plugin for a service.")
+    @ApiResponses({@ApiResponse(code = 200, response = KongPluginConfig.class, message = "Disabled plugin for a service.")})
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/plugins/{pluginId}/disable")
+    @Produces(MediaType.APPLICATION_JSON)
+    public KongPluginConfig disableServicePlugin(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
+                                                @PathParam("version") String version, @PathParam("pluginId") String pluginId) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(pluginId));
+        KongPluginConfig servicePlugin = orgFacade.changeEnabledStateServicePlugin(organizationId, serviceId, version, pluginId,false);
+        return servicePlugin;
     }
 
     @ApiOperation(value = "Get Service Version Activity",
@@ -938,7 +1027,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceVersionBean updateServiceVersion(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version,
-                                                   UpdateServiceVersionBean bean) throws ServiceVersionNotFoundException, NotAuthorizedException {
+                                                   UpdateServiceVersionBean bean) throws ServiceVersionNotFoundException, NotAuthorizedException, StorageException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
@@ -1193,9 +1282,7 @@ public class OrganizationResource implements IOrganizationResource {
     public ServiceMarketInfo getServiceMarketInfo(
             @PathParam("organizationId") String organizationId,
             @PathParam("serviceId") String serviceId,
-            @PathParam("version") String version) throws NotAuthorizedException, InvalidMetricCriteriaException {
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
+            @PathParam("version") String version) throws InvalidMetricCriteriaException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
@@ -1884,4 +1971,191 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         orgFacade.deleteOrganization(organizationId);
     }
+
+    @ApiOperation(value = "Request membership for organization",
+            notes = "This action will result in a mail sent to the organization owners, in order for them to manually add the user to the organization.")
+    @ApiResponses({
+            @ApiResponse(code = 204, response = MemberBean.class, message = "Request sent.")
+    })
+    @POST
+    @Path("/{organizationId}/request-membership")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void requestMembership(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        orgFacade.requestMembership(organizationId);
+    }
+
+    @Override
+    @ApiOperation(value = "Reject a user's membership request",
+            notes = "Call this endpoint to reject a user's membership requests to your organization")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Request rejected")
+    })
+    @POST
+    @Path("/{organizationId}/membership-requests/{userId}/reject")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void rejectMembershipRequest(@PathParam("organizationId") String organizationId, @PathParam("userId") String userId) throws NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        orgFacade.rejectMembershipRequest(organizationId, userId);
+    }
+
+    @Override
+    @ApiOperation(value = "Get all incoming events for organization",
+            notes = "Call this endpoint to get an organization's incoming events (only users with owner rights can call this endpoint)")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of incoming events for {organizationId}")
+    })
+    @GET
+    @Path("/{organizationId}/notifications/incoming")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<EventBean> getOrganizationAllIncomingEvents(@PathParam("organizationId") String organizationId) throws NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
+            //If user doesn't have correct permission, don't throw unauthorized, but return empty list
+            return Collections.emptyList();
+        }
+        return eventFacade.getOrganizationIncomingEvents(organizationId);
+    }
+
+    @Override
+    @ApiOperation(value = "Get all outgoing events for an organization",
+            notes = "Call this endpoint to get all outgoing events for an organization")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of outgoing events for {organizationId}")
+    })
+    @GET
+    @Path("/{organizationId}/notifications/outgoing")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<EventBean> getOrganizationAllOutgoingEvents(@PathParam("organizationId") String organizationId) throws NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
+            //If user doesn't have correct permission, don't throw unauthorized, but return empty list
+            return Collections.emptyList();
+        }
+        return eventFacade.getOrganizationOutgoingEvents(organizationId);
+    }
+
+    @Override
+    @ApiOperation(value = "Get an organization's incoming events by type",
+            notes = "Call this endpoint to get an organization's incoming events by type (MEMBERSHIP_PENDING, CONTRACT_PENDING, CONTRACT_ACCEPTED, CONTRACT_REJECTED)")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of incoming events for {organizationId}")
+    })
+    @GET
+    @Path("/{organizationId}/notifications/incoming/{eventType}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public <T> List<T> getOrganizationIncomingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
+            //If user doesn't have correct permission, don't throw unauthorized, but return empty list
+            return Collections.emptyList();
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(type));
+        return eventFacade.getOrganizationIncomingEventsByType(organizationId, type);
+    }
+
+    @Override
+    @ApiOperation(value = "Get an organization's outgoing events by type",
+            notes = "Call this endpoint to get an organization's outgoing events by type ((MEMBERSHIP_GRANTED, MEMBERSHIP_REFUSED, CONTRACT_PENDING, CONTRACT_ACCEPTED, CONTRACT_REJECTED)")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = EventBean.class, message = "List of outgoing events for {organizationId}")
+    })
+    @GET
+    @Path("/{organizationId}/notifications/outgoing/{eventType}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public <T> List<T> getOrganizationOutgoingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
+            //If user doesn't have correct permission, don't throw unauthorized, but return empty list
+            return Collections.emptyList();
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(type));
+        return eventFacade.getOrganizationOutgoingEventsByType(organizationId, type);
+    }
+
+    @Override
+    @ApiOperation(value = "Clear an incoming notification",
+            notes = "Call this endpoint to delete a notification addressed to the organization. Notifications with a \"Pending\" status cannot be deleted")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Notification deleted")
+    })
+    @DELETE
+    @Path("/{organizationId}/notifications/incoming/{notificationId}")
+    public void deleteEvent(@PathParam("organizationId") String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        eventFacade.deleteOrgEvent(organizationId, id);
+    }
+
+    @Override
+    @ApiOperation(value = "Request a Service Contract",
+            notes = "Use this endpoint to request a Contract between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Contract requested")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/request")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ContractBean requestContract(@PathParam("organizationId") String organizationId,
+                                    @PathParam("serviceId") String serviceId,
+                                    @PathParam("version") String version,
+                                    NewContractRequestBean bean) throws AbstractRestException {
+        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.appEdit, bean.getApplicationOrg()))
+            throw ExceptionFactory.notAuthorizedException();
+        return orgFacade.requestContract(organizationId, serviceId, version, bean);
+    }
+
+    @Override
+    @ApiOperation(value = "Reject an Application's Contract Request",
+            notes = "Use this endpoint to reject a Contract request between an Application and the Service.  In order to reject a request, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Contract rejected")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/reject")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void rejectContractRequest(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, NewContractBean response) throws NotAuthorizedException {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, response.getServiceOrgId()))
+            throw ExceptionFactory.notAuthorizedException();
+        orgFacade.rejectContractRequest(organizationId, applicationId, version, response);
+    }
+
+    @Override
+    @ApiOperation(value = "Accept an Application's Contract Request",
+            notes = "Use this endpoint to accpet a Contract request between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Contract rejected")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/accept")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ContractBean acceptContractRequest(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, NewContractBean response) throws NotAuthorizedException {
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.svcAdmin, response.getServiceOrgId()))
+            throw ExceptionFactory.notAuthorizedException();
+        return orgFacade.acceptContractRequest(organizationId, applicationId, version, response);
+    }
+
+
 }

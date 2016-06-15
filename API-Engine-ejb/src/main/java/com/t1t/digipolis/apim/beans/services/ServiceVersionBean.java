@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.beans.services;
 
+import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.URL;
 
@@ -9,6 +10,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
 
 /**
  * Models a single version of a service "impl".  Every service in
@@ -55,6 +58,9 @@ public class ServiceVersionBean implements Serializable {
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name="svc_plans", joinColumns=@JoinColumn(name="service_version_id"))
     private Set<ServicePlanBean> plans;
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name="svc_visibility", joinColumns=@JoinColumn(name="service_version_id"))
+    private Set<VisibilityBean> visibility;
     @Column(updatable=false)
     private String version;
     @Column(name = "created_by", updatable=false, nullable=false)
@@ -69,6 +75,8 @@ public class ServiceVersionBean implements Serializable {
     private Date publishedOn;
     @Column(name = "retired_on")
     private Date retiredOn;
+    @Column(name = "deprecated_on")
+    private Date deprecatedOn;
     @Column(name = "definition_type")
     @Enumerated(EnumType.STRING)
     private ServiceDefinitionType definitionType;
@@ -81,6 +89,8 @@ public class ServiceVersionBean implements Serializable {
     @MapKeyColumn(name="oauth_scopes")
     @Column(name="oauth_scopes_desc")
     private Map<String,String> oauthScopes;
+    @Column(name = "auto_accept_contracts")
+    private Boolean autoAcceptContracts;
 
     /**
      * Constructor.
@@ -319,6 +329,14 @@ public class ServiceVersionBean implements Serializable {
         this.definitionType = definitionType;
     }
 
+    public Set<VisibilityBean> getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Set<VisibilityBean> visibility) {
+        this.visibility = visibility;
+    }
+
     /**
      * @return the endpointProperties
      */
@@ -357,6 +375,22 @@ public class ServiceVersionBean implements Serializable {
         this.onlinedoc = onlinedoc;
     }
 
+    public Date getDeprecatedOn() {
+        return deprecatedOn;
+    }
+
+    public void setDeprecatedOn(Date deprecatedOn) {
+        this.deprecatedOn = deprecatedOn;
+    }
+
+    public Boolean getAutoAcceptContracts() {
+        return autoAcceptContracts;
+    }
+
+    public void setAutoAcceptContracts(Boolean autoAcceptContracts) {
+        this.autoAcceptContracts = autoAcceptContracts;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -388,18 +422,31 @@ public class ServiceVersionBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "ServiceVersionBean [id=" + id + ", service=" + service + ", status=" + status + ", endpoint="
-                + endpoint + ", endpointType=" + endpointType + ", gateways=" + gateways + ", publicService="
-                + publicService + ", plans=" + plans + ", version=" + version + ", createdBy=" + createdBy
-                + ", onlinedoc=" + onlinedoc
-                + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy + ", modifiedOn=" + modifiedOn
-                + ", publishedOn=" + publishedOn + ", retiredOn=" + retiredOn + ", definitionType="
-                + definitionType + "]";
+        return "ServiceVersionBean{" +
+                "id=" + id +
+                ", service=" + service +
+                ", status=" + status +
+                ", endpoint='" + endpoint + '\'' +
+                ", endpointType=" + endpointType +
+                ", endpointProperties=" + endpointProperties +
+                ", gateways=" + gateways +
+                ", publicService=" + publicService +
+                ", plans=" + plans +
+                ", visibility=" + visibility +
+                ", version='" + version + '\'' +
+                ", createdBy='" + createdBy + '\'' +
+                ", createdOn=" + createdOn +
+                ", modifiedBy='" + modifiedBy + '\'' +
+                ", modifiedOn=" + modifiedOn +
+                ", publishedOn=" + publishedOn +
+                ", retiredOn=" + retiredOn +
+                ", definitionType=" + definitionType +
+                ", provisionKey='" + provisionKey + '\'' +
+                ", onlinedoc='" + onlinedoc + '\'' +
+                ", oauthScopes=" + oauthScopes +
+                ", autoAcceptContracts=" + autoAcceptContracts +
+                '}';
     }
 }

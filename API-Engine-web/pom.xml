@@ -21,7 +21,7 @@
     <parent>
       <artifactId>API-Engine</artifactId>
       <groupId>com.t1t.digipolis</groupId>
-      <version>0.5.2-SNAPSHOT</version>
+      <version>0.7.2-SNAPSHOT</version>
    </parent>
 
    <artifactId>API-Engine-web</artifactId>
@@ -138,6 +138,12 @@
                    <artifactId>slf4j-api</artifactId>
                </exclusion>
            </exclusions>
+       </dependency>
+       <!-- Test Scope Dependencies -->
+       <dependency>
+           <groupId>junit</groupId>
+           <artifactId>junit</artifactId>
+           <scope>test</scope>
        </dependency>
    </dependencies>
 

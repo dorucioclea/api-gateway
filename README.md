@@ -2,10 +2,14 @@ API-Engine: API Management Services based on Mashape's KONG gateway
 ===================================================================
 Author: Michallis Pashidis
 Level: Intermediate
-Technologies: EAR, JPA, Java EE
-Summary: API Engine Services
-Target Project: Digipolis API Manager
-Source: <https://bitbucket.org/Trust1T/api-engine-javaee>
+Technologies: EAR, JPA, Java EE, CDI
+Summary: API Engine
+Target Project: Digipolis API Engine
+Source: <https://bitbucket.org/Trust1T/digi-api-engine-javaee>
+
+Kong version
+------------
+Kong 0.7.0
 
 Build
 -----
@@ -18,6 +22,294 @@ Example build for dev - skipping tests can be done:
 You can customize the artifact name adding a 'targetenv' property for building:
 `clean install -Pdefault -DskipTests=true -Dtargetenv=t1t`
 
+You can customize artifact and define profile at the same time, for example:
+`clean install -DskipTests=true -Dtargetenv=dev -Pdigi-dev`
+
+Build and prepare a docker container
+`clean install -DskipTests=true -Pdocker`
+
+If you want to build an API-Engine with specific profile, but prepare it for a docker container, you can combine profiles:
+`clean install -DskipTests=true -Pt1t-dev,docker`
+
+Docker - Demo
+-------------
+TODO provision docker through repository
+TODO docker compose for demo setup
+
+Docker - Development environment
+--------------------------------
+In the target folder of API-Engine-distro you can find 2 artifacts:
+- docker
+- docker-postgres
+
+Off course first you should provide a postgres container, a kong container, and after that run an api-engine container linked to the postgres container.
+### Prerequisites
+Install docker on your machine
+
+* [Mac OSX](https://docs.docker.com/engine/installation/mac/)
+* [Windows](https://docs.docker.com/engine/installation/windows/)
+
+### Create a new docker-machine (virtual image)
+```sh
+$ docker-machine create --driver virtualbox apiengine
+```
+### Login to your docker-machine
+```sh
+$ docker-machine ls
+$ docker-machine env apiengine
+$ eval $(docker-machine env apiengine)
+```
+
+### More information
+More information, related to docker, can be found in the README.md file of the API-Engine-disto module.
+
+### Pull a Cassandra container
+```sh
+$ docker pull cassandra:2.2.4
+``` 
+
+### Pull a Kong container
+```sh
+$ docker pull mashape/kong
+```
+
+### Start Cassandra
+```sh
+$ docker run -p 9042:9042 -d --name cassandra cassandra:2.2.4
+```
+
+### Start and link Kong to Cassandra
+```sh
+$ docker run -d --name kong \
+            --link cassandra:cassandra \
+            -p 8000:8000 \
+            -p 8443:8443 \
+            -p 8001:8001 \
+            -p 7946:7946 \
+            -p 7946:7946/udp \
+            mashape/kong
+```
+```sh
+$ docker run -d --name kong --link cassandra:cassandra -p 8000:8000 -p 8443:8443 -p 8001:8001 -p 7946:7946 -p 7946:7946/udp mashape/kong
+```
+
+### Build docker container
+In the API-Engine-distro target folder, go to the docker-postgres folder and execute:
+```sh
+$ docker build -t api-db .
+``` 
+
+### See images
+Verify the images has been created
+```sh
+$ docker images
+```
+Remark: You'll see an image for api-db and for postgres (where it depends on)
+
+### Run docker container
+Run the Postgres container:
+```sh
+$ docker run -p 5432:5432 --name api-engine-db -t api-db
+``` 
+If you have already a container with this name you can easily remove it with:
+```sh
+$ docker rm api-engine-db
+```
+or inspect more info
+```sh
+$ docker inspect api-engine-db
+```
+
+### Verify running docker containers
+```sh
+$ docker ps
+```
+
+### Build Apiengine in target folder
+In the API-Engine-distro target folder, go to the docker folder and execute:
+```sh
+$ docker build -t api-engine .
+```
+
+### Run and connect API Engine to the running postgres instance
+```sh
+$ docker run -p 8080:8080 -p 9990:9990  --name api-engine-inst1 --link api-engine-db:postgres --link kong:kong -d api-engine
+```
+
+### Verify your ip of the running machine
+```sh
+$ docker-machine ip apiengine
+```
+By default the management console is enabled.
+Management console on IP:9990 username:admin password:admin123!
+Web API on IP:8080/API-Engine-web
+Auth API on IP:8080/API-Engine-auth
+
+### remove a running container and its image
+```sh
+$ docker stop api-engine-inst1
+$ docker rm api-engine-inst1
+$ docker rmi api-engine
+```
+Using the API Marketplace
+-------------------------
+Start your Kong container by adding your localhost IP:
+```sh
+$ docker run --add-host=localhost:84.198.85.191 -d --name konglocal --link cassandra:cassandra -p 8000:8000 -p 8443:8443 -p 8001:8001 -p 7946:7946 -p 7946:7946/udp mashape/kong 
+```
+
+See [Docker-info](https://docs.docker.com/engine/reference/commandline/run/#add-entries-to-container-hosts-file-add-host)
+
+Release Notes - APIe - Version API/SDK engine 0.6.3
+---------------------------------------------------
+
+## Sub-task
+
+*   [[APIE-425](https://jira.antwerpen.be/browse/APIE-425)] - Nagaan indien SCIM nog steeds werkt over de IDP broker
+*   [[APIE-426](https://jira.antwerpen.be/browse/APIE-426)] - Enable signed SAML response on IS
+*   [[APIE-574](https://jira.antwerpen.be/browse/APIE-574)] - Userfacade add admin
+*   [[APIE-575](https://jira.antwerpen.be/browse/APIE-575)] - Update IDMStorage
+*   [[APIE-576](https://jira.antwerpen.be/browse/APIE-576)] - Update Userbean model
+*   [[APIE-577](https://jira.antwerpen.be/browse/APIE-577)] - Update Request filter
+*   [[APIE-578](https://jira.antwerpen.be/browse/APIE-578)] - Update User context
+*   [[APIE-579](https://jira.antwerpen.be/browse/APIE-579)] - Update IDMstorage implementation
+*   [[APIE-580](https://jira.antwerpen.be/browse/APIE-580)] - Fallback for consumer creation
+*   [[APIE-581](https://jira.antwerpen.be/browse/APIE-581)] - Update web resources
+*   [[APIE-582](https://jira.antwerpen.be/browse/APIE-582)] - Update auth resources
+*   [[APIE-584](https://jira.antwerpen.be/browse/APIE-584)] - Differentiate scope in views
+*   [[APIE-585](https://jira.antwerpen.be/browse/APIE-585)] - update ngHide/ngShow for publisher screens
+*   [[APIE-633](https://jira.antwerpen.be/browse/APIE-633)] - Kong 0.7.0 upgrade and migrate in PROD
+*   [[APIE-635](https://jira.antwerpen.be/browse/APIE-635)] - Friendly names voorzien in ACC
+
+## Bug
+
+*   [[APIE-416](https://jira.antwerpen.be/browse/APIE-416)] - IP Restriction policy accepts same IP's for both White and Black list.
+*   [[APIE-417](https://jira.antwerpen.be/browse/APIE-417)] - Error: Could not create Service Policy[TCP log policy & UDP policy] : unexpected error.
+*   [[APIE-445](https://jira.antwerpen.be/browse/APIE-445)] - Uploaden van een ongeldige Swagger file geeft geen error
+*   [[APIE-476](https://jira.antwerpen.be/browse/APIE-476)] - JWT token is not expiring after 60mins
+*   [[APIE-495](https://jira.antwerpen.be/browse/APIE-495)] - Incorrect API URL is shown
+*   [[APIE-526](https://jira.antwerpen.be/browse/APIE-526)] - login fails for publisher (identity server)
+*   [[APIE-532](https://jira.antwerpen.be/browse/APIE-532)] - No JWT token is sent - Grant error is shown on Publisher and marketplace.
+*   [[APIE-537](https://jira.antwerpen.be/browse/APIE-537)] - Callback not working - DNS problem
+*   [[APIE-546](https://jira.antwerpen.be/browse/APIE-546)] - SAML authentication exception error
+*   [[APIE-555](https://jira.antwerpen.be/browse/APIE-555)] - Multilanguage engine calls do not work in acceptance environment
+*   [[APIE-588](https://jira.antwerpen.be/browse/APIE-588)] - Meerdere API keys voor een application als er meerdere service contracten zijn (1 per service)
+*   [[APIE-595](https://jira.antwerpen.be/browse/APIE-595)] - Not possible to add a new IP restriction policy
+*   [[APIE-617](https://jira.antwerpen.be/browse/APIE-617)] - Not all API's are visible on Marketplace
+*   [[APIE-636](https://jira.antwerpen.be/browse/APIE-636)] - Issue when using 'oauth' in application or service name
+*   [[APIE-681](https://jira.antwerpen.be/browse/APIE-681)] - Toevoegen van een Jwt policy aan een service wordt niet opgenomen in Kong (in ieder geval niet zichtbaar in Kong-Dashboard) (bv DEV : acpaas - outputgenerator - v2)
+*   [[APIE-738](https://jira.antwerpen.be/browse/APIE-738)] - In Plans "Add Policy" button is always enabled.
+
+## Story
+
+*   [[APIE-4](https://jira.antwerpen.be/browse/APIE-4)] - Ontwikkeling API engine
+*   [[APIE-7](https://jira.antwerpen.be/browse/APIE-7)] - Overdracht & acceptatie - API/SDK engine
+*   [[APIE-132](https://jira.antwerpen.be/browse/APIE-132)] - API Mgr gebruikt Identity Server als beveiligingssysteem
+*   [[APIE-272](https://jira.antwerpen.be/browse/APIE-272)] - Geautomatiseerde installatie van de API Mgr in de verschillende omgevingen
+*   [[APIE-278](https://jira.antwerpen.be/browse/APIE-278)] - Identity server heeft meerdere identiteit bronnen
+*   [[APIE-288](https://jira.antwerpen.be/browse/APIE-288)] - Werken met OAuth scopes
+*   [[APIE-352](https://jira.antwerpen.be/browse/APIE-352)] - Conventie omtrent het groeperen van services en apps in organizatie groepen
+*   [[APIE-405](https://jira.antwerpen.be/browse/APIE-405)] - Externe marketplace beschikbaar
+*   [[APIE-411](https://jira.antwerpen.be/browse/APIE-411)] - versie onafhankelijke application consumer naam
+*   [[APIE-412](https://jira.antwerpen.be/browse/APIE-412)] - Als ontwikkelaar wil ik de ACL policy impliciet activeren op de services
+*   [[APIE-456](https://jira.antwerpen.be/browse/APIE-456)] - API Engine in PROD voor extern gebruik
+*   [[APIE-569](https://jira.antwerpen.be/browse/APIE-569)] - Admin rol in de API engine
+*   [[APIE-570](https://jira.antwerpen.be/browse/APIE-570)] - Te herformatteren : User geen default org : Based on application environment - update user access
+*   [[APIE-571](https://jira.antwerpen.be/browse/APIE-571)] - Te herformatteren : Rework the consumer creation on Kong for JWT access
+*   [[APIE-572](https://jira.antwerpen.be/browse/APIE-572)] - API Manager REST endpoints aanpassen voor admin rol
+*   [[APIE-573](https://jira.antwerpen.be/browse/APIE-573)] - API manager UI's (Publisher / Store) aanpassen met admin rol functionaliteiten
+*   [[APIE-586](https://jira.antwerpen.be/browse/APIE-586)] - User registratie : email adres verplicht
+*   [[APIE-587](https://jira.antwerpen.be/browse/APIE-587)] - URL Branding (Friendly name) voorzien cfr 352
+*   [[APIE-592](https://jira.antwerpen.be/browse/APIE-592)] - Deprecated status voor een service/engine
+*   [[APIE-693](https://jira.antwerpen.be/browse/APIE-693)] - Integration Notification Engine
+*   [[APIE-708](https://jira.antwerpen.be/browse/APIE-708)] - Proxy for API-GW for external access
+*   [[APIE-745](https://jira.antwerpen.be/browse/APIE-745)] - CORS - default values are not provided anymore by Kong
+*   [[APIE-750](https://jira.antwerpen.be/browse/APIE-750)] - Change session storage keys for different API Engine consumers
+*   [[APIE-751](https://jira.antwerpen.be/browse/APIE-751)] - Provide an GET querystring based variant for idp login request
+
+## Task
+
+*   [[APIE-506](https://jira.antwerpen.be/browse/APIE-506)] - JWT token not sent and internal error is shown when Relaystate:https%3A%2F%2Fapi-pub-a.antwerpen.be
+
+Release Notes - APIe - Version API/SDK engine 0.6.0
+---------------------------------------------------
+
+## Sub-task
+
+*   [[APIE-425](https://jira.antwerpen.be/browse/APIE-425)] - Nagaan indien SCIM nog steeds werkt over de IDP broker
+*   [[APIE-426](https://jira.antwerpen.be/browse/APIE-426)] - Enable signed SAML response on IS
+*   [[APIE-574](https://jira.antwerpen.be/browse/APIE-574)] - Userfacade add admin
+*   [[APIE-575](https://jira.antwerpen.be/browse/APIE-575)] - Update IDMStorage
+*   [[APIE-576](https://jira.antwerpen.be/browse/APIE-576)] - Update Userbean model
+*   [[APIE-577](https://jira.antwerpen.be/browse/APIE-577)] - Update Request filter
+*   [[APIE-578](https://jira.antwerpen.be/browse/APIE-578)] - Update User context
+*   [[APIE-579](https://jira.antwerpen.be/browse/APIE-579)] - Update IDMstorage implementation
+*   [[APIE-580](https://jira.antwerpen.be/browse/APIE-580)] - Fallback for consumer creation
+*   [[APIE-581](https://jira.antwerpen.be/browse/APIE-581)] - Update web resources
+*   [[APIE-582](https://jira.antwerpen.be/browse/APIE-582)] - Update auth resources
+*   [[APIE-584](https://jira.antwerpen.be/browse/APIE-584)] - Differentiate scope in views
+*   [[APIE-585](https://jira.antwerpen.be/browse/APIE-585)] - update ngHide/ngShow for publisher screens
+*   [[APIE-633](https://jira.antwerpen.be/browse/APIE-633)] - Kong 0.7.0 upgrade and migrate in PROD
+*   [[APIE-635](https://jira.antwerpen.be/browse/APIE-635)] - Friendly names voorzien in ACC
+
+## Bug
+
+*   [[APIE-416](https://jira.antwerpen.be/browse/APIE-416)] - IP Restriction policy accepts same IP's for both White and Black list.
+*   [[APIE-417](https://jira.antwerpen.be/browse/APIE-417)] - Error: Could not create Service Policy[TCP log policy & UDP policy] : unexpected error.
+*   [[APIE-445](https://jira.antwerpen.be/browse/APIE-445)] - Uploaden van een ongeldige Swagger file geeft geen error
+*   [[APIE-495](https://jira.antwerpen.be/browse/APIE-495)] - Incorrect API URL is shown
+*   [[APIE-526](https://jira.antwerpen.be/browse/APIE-526)] - login fails for publisher (identity server)
+*   [[APIE-527](https://jira.antwerpen.be/browse/APIE-527)] - Application deleted but still the Api key is available for testing in marketplace.
+*   [[APIE-588](https://jira.antwerpen.be/browse/APIE-588)] - Meerdere API keys voor een application als er meerdere service contracten zijn (1 per service)
+*   [[APIE-617](https://jira.antwerpen.be/browse/APIE-617)] - Not all API's are visible on Marketplace
+
+## Story
+
+*   [[APIE-4](https://jira.antwerpen.be/browse/APIE-4)] - Ontwikkeling API engine
+*   [[APIE-7](https://jira.antwerpen.be/browse/APIE-7)] - Overdracht & acceptatie - API/SDK engine
+*   [[APIE-132](https://jira.antwerpen.be/browse/APIE-132)] - API Mgr gebruikt Identity Server als beveiligingssysteem
+*   [[APIE-278](https://jira.antwerpen.be/browse/APIE-278)] - Identity server heeft meerdere identiteit bronnen
+*   [[APIE-288](https://jira.antwerpen.be/browse/APIE-288)] - Werken met OAuth scopes
+*   [[APIE-352](https://jira.antwerpen.be/browse/APIE-352)] - Conventie omtrent het groeperen van services en apps in organizatie groepen
+*   [[APIE-405](https://jira.antwerpen.be/browse/APIE-405)] - Externe marketplace beschikbaar
+*   [[APIE-411](https://jira.antwerpen.be/browse/APIE-411)] - versie onafhankelijke application consumer naam
+*   [[APIE-456](https://jira.antwerpen.be/browse/APIE-456)] - API Engine in PROD voor extern gebruik
+*   [[APIE-569](https://jira.antwerpen.be/browse/APIE-569)] - Admin rol in de API engine
+*   [[APIE-570](https://jira.antwerpen.be/browse/APIE-570)] - Te herformatteren : User geen default org : Based on application environment - update user access
+*   [[APIE-571](https://jira.antwerpen.be/browse/APIE-571)] - Te herformatteren : Rework the consumer creation on Kong for JWT access
+*   [[APIE-572](https://jira.antwerpen.be/browse/APIE-572)] - API Manager REST endpoints aanpassen voor admin rol
+*   [[APIE-573](https://jira.antwerpen.be/browse/APIE-573)] - API manager UI's (Publisher / Store) aanpassen met admin rol functionaliteiten
+
+## Task
+
+*   [[APIE-506](https://jira.antwerpen.be/browse/APIE-506)] - JWT token not sent and internal error is shown when Relaystate:https%3A%2F%2Fapi-pub-a.antwerpen.be
+
+Release Notes - Digipolis-APIM - Version APIM-v0.5.2
+----------------------------------------------------
+
+## Sub-task
+
+*   [[APIE-425](https://jira.antwerpen.be/browse/APIE-425)] - SCIM IDP protocol
+*   [[APIE-426](https://jira.antwerpen.be/browse/APIE-426)] - Enable signed SAML response on IS
+
+## Bug
+
+*   [[APIE-414](https://jira.antwerpen.be/browse/APIE-414)] - Add Policy - CORS allows incorrect values in form.
+*   [[APIE-415](https://jira.antwerpen.be/browse/APIE-415)] - OAuth2 policy form accepts negative "Token Expiration" values.
+*   [[APIE-416](https://jira.antwerpen.be/browse/APIE-416)] - IP Restriction policy accepts same IP's for both White and Black list.
+*   [[APIE-417](https://jira.antwerpen.be/browse/APIE-417)] - Error: Could not create Service Policy[TCP log policy & UDP policy] : unexpected error.
+*   [[APIE-418](https://jira.antwerpen.be/browse/APIE-418)] - New Announcement fails to create an announcement and an Unexpected error is thrown.
+*   [[APIE-421](https://jira.antwerpen.be/browse/APIE-421)] - Deleting Applications/Service does not always work correctly
+*   [[APIE-423](https://jira.antwerpen.be/browse/APIE-423)] - Creation of Tickets with redundant names possible.
+*   [[APIE-445](https://jira.antwerpen.be/browse/APIE-445)] - Uploaden van een ongeldige Swagger file geeft geen error
+
+## Story
+
+*   [[APIE-4](https://jira.antwerpen.be/browse/APIE-4)] - Ontwikkeling API engine
+*   [[APIE-7](https://jira.antwerpen.be/browse/APIE-7)] - Overdracht & acceptatie - API/SDK engine
+*   [[APIE-132](https://jira.antwerpen.be/browse/APIE-132)] - API Mgr gebruikt Identity Server als beveiligingssysteem
+*   [[APIE-272](https://jira.antwerpen.be/browse/APIE-272)] - Geautomatiseerde installatie van de API Mgr in de verschillende omgevingen
+*   [[APIE-278](https://jira.antwerpen.be/browse/APIE-278)] - Identity server heeft meerdere identiteit bronnen
 
 Release Notes - Digipolis-APIM - Version APIM-v0.5.1
 ----------------------------------------------------
@@ -33,6 +325,53 @@ Release Notes - Digipolis-APIM - Version APIM-v0.5.1
 ## Story
 
 *   [[APIE-475](https://jira.antwerpen.be/browse/APIE-475)] - Wijzigingen in IDP config en user attributen
+
+Release Notes - Digipolis-APIM - Version APIM-v0.5.0
+----------------------------------------------------
+
+## Bug
+
+*   [[DPAPIM-258](https://trust1t.atlassian.net/browse/DPAPIM-258)] - Cannot upload a Swagger definition if it does not contain an externaldocs section ==> NPE on BE
+*   [[DPAPIM-260](https://trust1t.atlassian.net/browse/DPAPIM-260)] - Cannot retrieve market info for APIs that are published by organizations the user is not a member of
+
+## Story
+
+*   [[DPAPIM-15](https://trust1t.atlassian.net/browse/DPAPIM-15)] - As a developer I would like to have a Java tutorial upon how to create/generate an API
+*   [[DPAPIM-97](https://trust1t.atlassian.net/browse/DPAPIM-97)] - As an API consumer I want to be able to subscribe on an API service in order be notified when changes occur
+*   [[DPAPIM-172](https://trust1t.atlassian.net/browse/DPAPIM-172)] - As an system administrator I want the user updates to be synchronized - both ways - with the IDP using SCIM v1.1 protocol
+*   [[DPAPIM-205](https://trust1t.atlassian.net/browse/DPAPIM-205)] - As a User I want to manage my authorization credentials provisions by the API gateway
+*   [[DPAPIM-224](https://trust1t.atlassian.net/browse/DPAPIM-224)] - As a developer publishing services I want to add JWT policy to a service
+*   [[DPAPIM-225](https://trust1t.atlassian.net/browse/DPAPIM-225)] - As a consumer for the API Marketplace I want to have an overview of my different credentials and manage them
+*   [[DPAPIM-231](https://trust1t.atlassian.net/browse/DPAPIM-231)] - As a developer for the API Engine I want to retrieve consumer information from the IDP - at least the user email for notification purposes
+*   [[DPAPIM-235](https://trust1t.atlassian.net/browse/DPAPIM-235)] - Migration Kong 0.5.0
+*   [[DPAPIM-245](https://trust1t.atlassian.net/browse/DPAPIM-245)] - As a integration developer I want to have example code available for API integration
+*   [[DPAPIM-250](https://trust1t.atlassian.net/browse/DPAPIM-250)] - As a Digipolis develop I want to enable explicitly a service to be exposed on the marketplace view scoped for external users
+*   [[DPAPIM-264](https://trust1t.atlassian.net/browse/DPAPIM-264)] - As a developer of the publisher i want an alternative validation for my swagger file, in order to be less restrictive
+*   [[DPAPIM-265](https://trust1t.atlassian.net/browse/DPAPIM-265)] - As an integrator I want to integrate a first Engine
+*   [[DPAPIM-266](https://trust1t.atlassian.net/browse/DPAPIM-266)] - As a developer I want to integrate my API on the API Engine
+*   [[DPAPIM-268](https://trust1t.atlassian.net/browse/DPAPIM-268)] - Double login causes error
+
+Release Notes - Digipolis-APIM - Version APIM-v0.0.2
+----------------------------------------------------
+
+## Bug
+
+*   [[DPAPIM-218](https://trust1t.atlassian.net/browse/DPAPIM-218)] - Market Documentation needs to be testable for OAuth2 enabled Services even if application is not yet published
+*   [[DPAPIM-220](https://trust1t.atlassian.net/browse/DPAPIM-220)] - BE returns Error 500 when trying to retrieve a Service's definition if none exists
+*   [[DPAPIM-221](https://trust1t.atlassian.net/browse/DPAPIM-221)] - Code cleanup
+*   [[DPAPIM-234](https://trust1t.atlassian.net/browse/DPAPIM-234)] - Metrics page when resizing you seem to loose information
+
+## Story
+
+*   [[DPAPIM-228](https://trust1t.atlassian.net/browse/DPAPIM-228)] - As a user from a 3rd Party application using OAuth2 I only want to see applicable scopes - withing my role - and not all available scopes
+*   [[DPAPIM-242](https://trust1t.atlassian.net/browse/DPAPIM-242)] - As a developer I want to see a page that i'm succesfully loggedout without being redirected to the login page.
+*   [[DPAPIM-248](https://trust1t.atlassian.net/browse/DPAPIM-248)] - As a developer I want to have a crud support functionality in both front-end applications
+
+## Task
+
+*   [[DPAPIM-253](https://trust1t.atlassian.net/browse/DPAPIM-253)] - As a tester I want to test functionalities from the API publisher/marketplace
+*   [[DPAPIM-254](https://trust1t.atlassian.net/browse/DPAPIM-254)] - As an developer I want to integrate the ME service using an existing client application
+*   [[DPAPIM-255](https://trust1t.atlassian.net/browse/DPAPIM-255)] - As a developer I want to support the integration of an authentication/authorization application
 
 Release Notes - Digipolis-APIM - Version APIM-v0.5.0
 ----------------------------------------------------
