@@ -366,6 +366,11 @@ public class MigrationFacade {
                                     KongPluginACLResponse response = gatewayLink.addConsumerToACL(
                                             ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace),
                                             ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
+                                    NewPolicyBean npb = new NewPolicyBean();
+                                    npb.setDefinitionId(Policies.ACL.name());
+                                    npb.setConfiguration(new Gson().toJson(response));
+                                    npb.setKongPluginId(response.getId());
+                                    orgFacade.createManagedApplicationPolicy(marketplace, npb);
                                 }
                                 gatewayLink.close();
                             } catch (RetrofitError rte) {
