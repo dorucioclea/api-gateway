@@ -24,6 +24,7 @@ import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.plugins.PluginBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
@@ -2191,5 +2192,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         catch (NoResultException ex) {
             return null;
         }
+    }
+
+    @Override
+    public void deleteAclPolicies() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "DELETE FROM PolicyBean p WHERE p.definition.id = :polDefId";
+        em.createQuery(jpql)
+                .setParameter("polDefId", Policies.ACL.getKongIdentifier())
+                .executeUpdate();
     }
 }
