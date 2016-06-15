@@ -2838,7 +2838,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @throws NotAuthorizedException
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    protected PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion, NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
+    public PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion, NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
         if (bean.getDefinitionId() == null) {
             ExceptionFactory.policyDefNotFoundException("null"); //$NON-NLS-1$
         }
