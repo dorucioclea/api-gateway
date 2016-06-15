@@ -255,6 +255,7 @@ public class MigrationFacade {
         _LOG.info("====MIGRATION-START====");
         syncUsers();
         republishServices();
+        removeAppACLsFromDB();
         syncApplications();
         migrateToAcl();
         _LOG.info("====MIGRATION-END======");
@@ -366,6 +367,11 @@ public class MigrationFacade {
                                     KongPluginACLResponse response = gatewayLink.addConsumerToACL(
                                             ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace),
                                             ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
+                                    NewPolicyBean npb = new NewPolicyBean();
+                                    npb.setDefinitionId(Policies.ACL.name());
+                                    npb.setConfiguration(new Gson().toJson(response));
+                                    npb.setKongPluginId(response.getId());
+                                    orgFacade.createManagedApplicationPolicy(marketplace, npb);
                                 }
                                 gatewayLink.close();
                             } catch (RetrofitError rte) {
@@ -387,6 +393,17 @@ public class MigrationFacade {
             e.printStackTrace();
         }
         _LOG.info("Publish Services::END");
+    }
+
+    private void removeAppACLsFromDB() {
+        _LOG.info("Remove DB ACLs::END");
+        try {
+            query.deleteAclPolicies();
+        } catch (StorageException e) {
+            _LOG.error("Delete ACL policies failed:" + e.getMessage());
+            e.printStackTrace();
+        }
+        _LOG.info("Remove DB ACL::END");
     }
 
     /**
@@ -456,6 +473,31 @@ public class MigrationFacade {
                                 avb.getVersion());
                         //continue;
                     }
+
+                    if (avb.getStatus() != ApplicationStatus.Retired) {
+                        IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                        for (ContractSummaryBean contractBean : avbContracts) {
+                            Gson gson = new Gson();
+                            String serviceVersionId = ServiceConventionUtil.generateServiceUniqueName(
+                                    contractBean.getServiceOrganizationId(),
+                                    contractBean.getServiceId(),
+                                    contractBean.getServiceVersion());
+                            //Add ACL group membership by default on gateway
+                            KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName, serviceVersionId);
+                            //Persist the unique Kong plugin id in a new policy associated with the app.
+                            NewPolicyBean npb = new NewPolicyBean();
+                            KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+                            npb.setDefinitionId(Policies.ACL.name());
+                            npb.setKongPluginId(response.getId());
+                            npb.setContractId(contractBean.getContractId());
+                            npb.setConfiguration(gson.toJson(conf));
+                            orgFacade.doCreatePolicy(
+                                    avb.getApplication().getOrganization().getId(),
+                                    avb.getApplication().getId(),
+                                    avb.getVersion(), npb, PolicyType.Application);
+                        }
+                    }
+
                     //apply additional policies for registered applications
                     if (avb.getStatus() == ApplicationStatus.Registered) {
                         Application application = new Application();
@@ -463,6 +505,8 @@ public class MigrationFacade {
                         application.setApplicationId(avb.getApplication().getId());
                         application.setVersion(avb.getVersion());
                         application.setApplicationName(avb.getApplication().getName());
+
+                        IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
 
                         Set<Contract> contracts = new HashSet<>();
                         for (ContractSummaryBean contractBean : avbContracts) {
@@ -476,25 +520,11 @@ public class MigrationFacade {
                             contracts.add(contract);
                         }
                         application.setContracts(contracts);
-                        Map<String, IGatewayLink> links = new HashMap<>();
-                        for (Contract contract : application.getContracts()) {
-                            ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
-                            Set<ServiceGatewayBean> gateways = svb.getGateways();
-                            if (gateways != null) {
-                                for (ServiceGatewayBean serviceGatewayBean : gateways) {
-                                    if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
-                                        IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
-                                        links.put(serviceGatewayBean.getGatewayId(), gatewayLink);
-                                    }
-                                }
-                            }
-                        }
-                        try{
-                            for (IGatewayLink gatewayLink : links.values()) {
-                                gatewayLink.registerApplication(application);
-                                gatewayLink.close();
-                            }
-                        }catch(Exception e){
+
+                        try {
+                            gateway.registerApplication(application);
+                            gateway.close();
+                        } catch (Exception e) {
                             _LOG.error("-->no sync for additional policies applied for org:{} app:{} version:{} ...",
                                     avb.getApplication().getOrganization().getId(),
                                     avb.getApplication().getId(),
