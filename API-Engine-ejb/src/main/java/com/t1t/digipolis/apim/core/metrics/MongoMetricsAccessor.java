@@ -77,7 +77,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
             //create metrics client instance
             restMetricsBuilder = new RestMetricsBuilder();
             httpClient = restMetricsBuilder.getService(metricsURI, MetricsClient.class);
-            config.getInt(IConfig.HYSTRIX_METRICS_TIMEOUT_VALUE);
+            timeout = config.getInt(IConfig.HYSTRIX_METRICS_TIMEOUT_VALUE);
         }else throw new RuntimeException("MongoMetricsAccessor - Metrics are not initialized");
     }
 
