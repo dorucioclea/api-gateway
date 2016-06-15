@@ -225,4 +225,19 @@ public class SearchResource {
         return searchFacade.findServiceVersionEndpointsForScope(availability);
     }
 
+    @ApiOperation(value = "Search through the latest service versions",
+            notes = "Use this endpoint to search for service versions with the latest creation date")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = SearchResultsBean.class, message = "If the search is successful.")
+    })
+    @POST
+    @Path("/services/versions/latest")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria) throws OrganizationNotFoundException, InvalidSearchCriteriaException {
+        return searchFacade.searchLatestServiceVersions(criteria);
+    }
+
+
+
 }

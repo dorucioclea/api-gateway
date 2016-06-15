@@ -167,8 +167,8 @@ public class LoginResource implements ILoginResource {
         throw  new SystemErrorException("Error in redirect");
     }
 
-    @ApiOperation(value = "Refresh an existing valid JWT. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter.",
-            notes = "Use this endpoint to refresh and prolong your JWT expiration time. If 0 is provided as expiration configruation, the JWT will be infinitly valid. The consuming application can provide at this moment optionally a custom claim map.")
+    @ApiOperation(value = "Refresh an existing valid JWT",
+            notes = "Use this endpoint to refresh and prolong your JWT expiration time. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter. If 0 is provided as expiration configuration, the JWT will be indefinitely valid. The consuming application can at that point optionally provide a custom claim map.")
     @ApiResponses({
             @ApiResponse(code = 200, response = JWTRefreshResponseBean.class, message = "Refreshed JWT."),
             @ApiResponse(code = 500, response = String.class, message = "Server error while refreshing token")
