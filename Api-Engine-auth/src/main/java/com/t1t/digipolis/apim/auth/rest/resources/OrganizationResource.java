@@ -200,4 +200,19 @@ public class OrganizationResource {
         svab.setAvailableMarketplaces(orgFacade.getServiceVersionAvailabilityInfo(organizationId, serviceId, version));
         return svab;
     }
+
+    @ApiOperation(value = "Retrieve a list of all support tickets for a service.",
+            notes = "Use this endpoint to retrieve a list of all support tickets for a service.")
+    @ApiResponses({
+            @ApiResponse(code = 200,responseContainer = "List", response = SupportBean.class, message = "Service support tickets")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/support")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public List<SupportBean> listServiceSupportTickets(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        return orgFacade.listServiceSupportTickets(organizationId, serviceId);
+    }
 }
