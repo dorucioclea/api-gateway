@@ -178,7 +178,7 @@ public class SearchResource implements ISearchResource {
     }
 
     @ApiOperation(value = "Search for an application by API key",
-                 notes = "Use this endpoint to search for an application version that make use of a specified API key. You need administrator priviledges to consult this endpoint")
+                 notes = "Use this endpoint to search for an application version that makes use of a specified API key. You need administrator priviledges to consult this endpoint")
     @ApiResponses({
             @ApiResponse(code = 200, response = ApplicationVersionSummaryBean.class, message = "If the search is successful.")
     })
