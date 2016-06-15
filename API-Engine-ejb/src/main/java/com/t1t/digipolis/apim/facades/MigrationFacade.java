@@ -255,6 +255,7 @@ public class MigrationFacade {
         _LOG.info("====MIGRATION-START====");
         syncUsers();
         republishServices();
+        removeAppACLsFromDB();
         syncApplications();
         migrateToAcl();
         _LOG.info("====MIGRATION-END======");
@@ -392,6 +393,10 @@ public class MigrationFacade {
             e.printStackTrace();
         }
         _LOG.info("Publish Services::END");
+    }
+
+    private void removeAppACLsFromDB() {
+        
     }
 
     /**
