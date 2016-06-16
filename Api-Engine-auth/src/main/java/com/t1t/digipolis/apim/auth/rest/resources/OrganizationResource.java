@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServicePlanSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceVersionEndpointSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceVersionVisibilityBean;
+import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
@@ -25,6 +26,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -131,6 +135,77 @@ public class OrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         return orgFacade.getServiceVersionContracts(organizationId, serviceId, version, page, pageSize);
+    }
+
+    @ApiOperation(value = "Get Service Policy",
+            notes = "Use this endpoint to get information about a single Policy in the Service version.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full information about the Policy.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PolicyBean getServicePolicy(@PathParam("organizationId") String organizationId,
+                                       @PathParam("serviceId") String serviceId,
+                                       @PathParam("version") String version,
+                                       @PathParam("policyId") long policyId)
+            throws OrganizationNotFoundException, ServiceVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.getServicePolicy(organizationId, serviceId, version, policyId);
+    }
+
+    @ApiOperation(value = "List All Service Policies",
+            notes = "Use this endpoint to list all of the Policies configured for the Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = PolicySummaryBean.class, message = "A List of Policies.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<PolicySummaryBean> listServicePolicies(@PathParam("organizationId") String organizationId,
+                                                       @PathParam("serviceId") String serviceId,
+                                                       @PathParam("version") String version)
+            throws OrganizationNotFoundException, ServiceVersionNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.listServicePolicies(organizationId, serviceId, version);
+    }
+
+    @ApiOperation(value = "Get Service Definition",
+            notes = "Use this endpoint to retrieve the Service's definition document.  A service definition document can be several different types, depending on the Service type and technology used to define the service.  For example, this endpoint might return a WSDL document, or a Swagger JSON document.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = Response.class, message = "The Service Definition document (e.g. a Swagger JSON file).")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/definition")
+    @Produces({MediaType.APPLICATION_JSON, "application/wsdl+xml", "application/x-yaml"})
+    public Response getServiceDefinition(@PathParam("organizationId") String organizationId,
+                                         @PathParam("serviceId") String serviceId,
+                                         @PathParam("version") String version)
+            throws ServiceVersionNotFoundException, NotAuthorizedException {
+        try {
+            ServiceVersionBean serviceVersion = getServiceVersion(organizationId, serviceId, version);
+            InputStream definition = orgFacade.getServiceDefinition(organizationId, serviceId, version);
+            if (definition == null) return null;
+            ResponseBuilder builder = Response.ok().entity(definition);
+            if (serviceVersion.getDefinitionType() == ServiceDefinitionType.SwaggerJSON) {
+                builder.type(MediaType.APPLICATION_JSON);
+            } else if (serviceVersion.getDefinitionType() == ServiceDefinitionType.SwaggerYAML) {
+                builder.type("application/x-yaml"); //$NON-NLS-1$
+/*            } else if (serviceVersion.getDefinitionType() == ServiceDefinitionType.WSDL) {
+                builder.type("application/wsdl+xml"); //$NON-NLS-1$*/
+            } else {
+                throw new Exception("Service definition type not supported: " + serviceVersion.getDefinitionType()); //$NON-NLS-1$
+            }
+            return builder.build();
+        } catch (AbstractRestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SystemErrorException(e);
+        }
     }
 
     @ApiOperation(value = "Get Plan Policy",
