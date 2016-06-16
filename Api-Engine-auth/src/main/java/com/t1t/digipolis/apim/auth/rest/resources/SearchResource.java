@@ -238,6 +238,16 @@ public class SearchResource {
         return searchFacade.searchLatestServiceVersions(criteria);
     }
 
-
-
+    @ApiOperation(value = "Search for latest Service versions within given category list",
+            notes = "Use this endpoint to search for the latest PUBLISHED service versions, having a category defined in the given category list.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionWithMarketInfoBean.class, message = "If the search is successful.")
+    })
+    @POST
+    @Path("/services/versions/latest/categories")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceVersionWithMarketInfoBean> searchLatestServiceVersionForCategories(CategorySearchBean searchBean) {
+        return searchFacade.searchLatestPublishedServiceVersionsInCategory(searchBean.getCategories());
+    }
 }
