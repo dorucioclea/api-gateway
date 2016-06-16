@@ -2252,7 +2252,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager em = getActiveEntityManager();
         String jpql = "DELETE FROM PolicyBean p WHERE p.definition.id = :polDefId";
         em.createQuery(jpql)
-                .setParameter("polDefId", Policies.ACL.getKongIdentifier())
+                .setParameter("polDefId", Policies.ACL.name())
                 .executeUpdate();
     }
 }
