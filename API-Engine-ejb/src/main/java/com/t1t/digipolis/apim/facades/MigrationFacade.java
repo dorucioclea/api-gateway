@@ -253,9 +253,9 @@ public class MigrationFacade {
     //TODO: impact service request events?
     public void rebuildGtw() {
         _LOG.info("====MIGRATION-START====");
+        removeAppACLsFromDB();
         syncUsers();
         republishServices();
-        removeAppACLsFromDB();
         syncApplications();
         //MigrateToAcl is not a sync endpoint. Do not use unless you're migrating a gateway that doesn't have acl policies to a version of the API Engine that does
         //migrateToAcl();
