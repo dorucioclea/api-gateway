@@ -2087,7 +2087,7 @@ public class OrganizationResource implements IOrganizationResource {
     })
     @DELETE
     @Path("/{organizationId}/notifications/incoming/{notificationId}")
-    public void deleteEvent(@PathParam("organizationId") String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
+    public void deleteEvent(@PathParam("organizationId") String organizationId, @PathParam("notificationId") Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
