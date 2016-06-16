@@ -368,12 +368,11 @@ public class MigrationFacade {
                                         KongPluginACLResponse response = gatewayLink.addConsumerToACL(
                                                 ConsumerConventionUtil.createManagedApplicationConsumerName(managedApp),
                                                 ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
-                                        _LOG.info("Marketplace ACL:{}", response);
                                         NewPolicyBean npb = new NewPolicyBean();
                                         npb.setDefinitionId(Policies.ACL.name());
                                         npb.setConfiguration(new Gson().toJson(response));
                                         npb.setKongPluginId(response.getId());
-                                        _LOG.info("Marketplace policy:{}", orgFacade.createManagedApplicationPolicy(managedApp, npb));
+                                        orgFacade.createManagedApplicationPolicy(managedApp, npb);
                                     } catch (Exception ex) {
                                         //ignore
                                     }
