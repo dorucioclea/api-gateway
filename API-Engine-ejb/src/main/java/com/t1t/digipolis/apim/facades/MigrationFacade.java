@@ -132,7 +132,7 @@ public class MigrationFacade {
                         npb.setKongPluginId(response.getId());
                         _LOG.info("Marketplace policy:{}", orgFacade.createManagedApplicationPolicy(managedApp, npb));
                     } catch (Exception ex) {
-                        ;//ignore
+                        //ignore
                     }
                 }
             }
@@ -364,15 +364,19 @@ public class MigrationFacade {
                                     continue;//next loop cycle
                                 }
                                 //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
-                                for (ManagedApplicationBean marketplace : marketplaces) {
-                                    KongPluginACLResponse response = gatewayLink.addConsumerToACL(
-                                            ConsumerConventionUtil.createManagedApplicationConsumerName(marketplace),
-                                            ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
-                                    NewPolicyBean npb = new NewPolicyBean();
-                                    npb.setDefinitionId(Policies.ACL.name());
-                                    npb.setConfiguration(new Gson().toJson(response));
-                                    npb.setKongPluginId(response.getId());
-                                    orgFacade.createManagedApplicationPolicy(marketplace, npb);
+                                for (ManagedApplicationBean managedApp : marketplaces) {
+                                    try {
+                                        KongPluginACLResponse response = gatewayLink.addConsumerToACL(
+                                                ConsumerConventionUtil.createManagedApplicationConsumerName(managedApp),
+                                                ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
+                                        NewPolicyBean npb = new NewPolicyBean();
+                                        npb.setDefinitionId(Policies.ACL.name());
+                                        npb.setConfiguration(new Gson().toJson(response));
+                                        npb.setKongPluginId(response.getId());
+                                        orgFacade.createManagedApplicationPolicy(managedApp, npb);
+                                    } catch (Exception ex) {
+                                        //ignore
+                                    }
                                 }
                                 gatewayLink.close();
                             } catch (RetrofitError rte) {
