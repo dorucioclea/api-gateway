@@ -14,8 +14,9 @@ public interface IMigrationResource {
 
     /**
      * Use this endpoint to migrate a version of the API Engine to 0.6.3
+     * Obsolete for later versions
      */
-    public void migrateToAcl() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException;
+    //public void migrateToAcl() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException;
 
     /**
      * Use this endpoint to change applications' versionless customId's to match their usernames
