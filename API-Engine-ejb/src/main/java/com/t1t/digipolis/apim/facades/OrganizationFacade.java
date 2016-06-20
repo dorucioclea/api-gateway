@@ -3754,6 +3754,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         contract.setApikey(newApiKey);
                         storage.updateContract(contract);
                     }
+                    try {
+                        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                        gateway.addConsumerKeyAuth(ConsumerConventionUtil.createAppUniqueId(appVersion), newApiKey);
+                    }
+                    catch (Exception ex) {
+                        throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
+                    }
                     return new NewApiKeyBean(revokedKey, newApiKey);
                 }
                 else {

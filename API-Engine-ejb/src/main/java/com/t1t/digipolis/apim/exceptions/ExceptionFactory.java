@@ -445,4 +445,8 @@ public final class ExceptionFactory {
     public static final ContractNotFoundException contractNotFoundException() {
         return new ContractNotFoundException();
     }
+
+    public static final APIKeyAlreadyExistsException apiKeyAlreadyExistsException(String apiKey) {
+        return new APIKeyAlreadyExistsException(apiKey);
+    }
 }
