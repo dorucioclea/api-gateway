@@ -279,6 +279,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public void updateContract(ContractBean contractBean) throws StorageException {
+        super.update(contractBean);
+    }
+
+    @Override
     public void updateMailTemplate(MailTemplateBean mailTemplateBean) throws StorageException {
         super.update(mailTemplateBean);
     }

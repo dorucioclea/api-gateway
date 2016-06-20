@@ -81,6 +81,7 @@ public interface IStorage {
     public void updateServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
     public void updateServiceSupport(SupportBean supportBean) throws StorageException;
     public void updateServiceSupportComment(SupportComment commentBean) throws StorageException;
+    public void updateContract(ContractBean contractBean) throws StorageException;
     public void updateMailTemplate(MailTemplateBean mailTemplateBean)throws StorageException;
     public void updateEvent(EventBean event)throws StorageException;
 
