@@ -708,17 +708,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         rval.setTotalSize(orgs.getTotalSize());
         List<OrganizationBean> beans = orgs.getBeans();
         for (OrganizationBean bean : beans) {
-            //TODO - take search criteria into account
-            //Return only the public organizations
-            if (!bean.isOrganizationPrivate()) {
-                OrganizationSummaryBean osb = new OrganizationSummaryBean();
-                osb.setId(bean.getId());
-                osb.setFriendlyName(bean.getFriendlyName());
-                osb.setName(bean.getName());
-                osb.setDescription(bean.getDescription());
-                osb.setOrganizationPrivate(bean.isOrganizationPrivate());
-                rval.getBeans().add(osb);
-            }
+            OrganizationSummaryBean osb = new OrganizationSummaryBean();
+            osb.setId(bean.getId());
+            osb.setFriendlyName(bean.getFriendlyName());
+            osb.setName(bean.getName());
+            osb.setDescription(bean.getDescription());
+            osb.setOrganizationPrivate(bean.isOrganizationPrivate());
+            rval.getBeans().add(osb);
         }
         return rval;
     }
