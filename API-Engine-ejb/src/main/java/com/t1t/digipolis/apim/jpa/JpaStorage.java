@@ -708,13 +708,17 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         rval.setTotalSize(orgs.getTotalSize());
         List<OrganizationBean> beans = orgs.getBeans();
         for (OrganizationBean bean : beans) {
-            OrganizationSummaryBean osb = new OrganizationSummaryBean();
-            osb.setId(bean.getId());
-            osb.setFriendlyName(bean.getFriendlyName());
-            osb.setName(bean.getName());
-            osb.setDescription(bean.getDescription());
-            osb.setOrganizationPrivate(bean.isOrganizationPrivate());
-            rval.getBeans().add(osb);
+            //TODO - take search criteria into account
+            //Return only the public organizations
+            if (!bean.isOrganizationPrivate()) {
+                OrganizationSummaryBean osb = new OrganizationSummaryBean();
+                osb.setId(bean.getId());
+                osb.setFriendlyName(bean.getFriendlyName());
+                osb.setName(bean.getName());
+                osb.setDescription(bean.getDescription());
+                osb.setOrganizationPrivate(bean.isOrganizationPrivate());
+                rval.getBeans().add(osb);
+            }
         }
         return rval;
     }
@@ -1966,7 +1970,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<PlanBean> findAllPlans(String organizationId) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT p FROM PlanBean p WHERE organization = :orgId";
+        String jpql = "SELECT p FROM PlanBean p WHERE p.organization.id = :orgId";
         return (List<PlanBean>) em.createQuery(jpql)
                 .setParameter("orgId",organizationId)
                 .getResultList();
@@ -1975,7 +1979,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<PlanVersionBean> findAllPlanVersionBeans(String organizationId, String planId) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT p FROM PlanVersionBean p WHERE plan_id = :planId AND plan_org_id = :orgId";
+        String jpql = "SELECT p FROM PlanVersionBean p WHERE p.plan.id = :planId AND p.plan.organization.id = :orgId";
         return (List<PlanVersionBean>) em.createQuery(jpql)
                 .setParameter("orgId",organizationId)
                 .setParameter("planId",planId)
