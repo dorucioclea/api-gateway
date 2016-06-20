@@ -2260,4 +2260,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("polDefId", Policies.ACL.name())
                 .executeUpdate();
     }
+
+    @Override
+    public void updateApplicationVersionApiKey(ApplicationVersionBean avb, String apiKey) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "UPDATE ContractBean c SET c.apikey = :newKey WHERE c.application = :avb";
+        em.createQuery(jpql)
+                .setParameter("newKey", apiKey)
+                .setParameter("avb", avb)
+                .executeUpdate();
+    }
 }

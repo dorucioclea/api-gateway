@@ -3749,11 +3749,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
                     //Is the old API key still needed for revocation purposes?
                     String revokedKey = contractSummaries.get(0).getApikey();
-                    for (ContractSummaryBean contractSummary : contractSummaries) {
-                        ContractBean contract = storage.getContract(contractSummary.getContractId());
-                        contract.setApikey(newApiKey);
-                        storage.updateContract(contract);
-                    }
+                    query.updateApplicationVersionApiKey(appVersion, newApiKey);
                     //If the application is registered, change the API key on all relevant gateways
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
                     if (appVersion.getStatus() == ApplicationStatus.Registered) {
