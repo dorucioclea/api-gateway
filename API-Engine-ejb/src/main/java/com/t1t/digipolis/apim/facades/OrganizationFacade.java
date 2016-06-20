@@ -3755,6 +3755,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         storage.updateContract(contract);
                     }
                     //If the application is registered, change the API key on all relevant gateways
+                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
                     if (appVersion.getStatus() == ApplicationStatus.Registered) {
                         try {
                             Map<String, IGatewayLink> links = new HashMap<>();
@@ -3770,8 +3771,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                             }
                             for (IGatewayLink gatewayLink : links.values()) {
                                 try {
-                                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
-                                    gatewayLink.addConsumerKeyAuth(appConsumerName, newApiKey);
+                                    gatewayLink.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
                                 } catch (Exception e) {
                                     throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
                                 }
@@ -3786,7 +3786,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         if (appVersion.getStatus() != ApplicationStatus.Retired) {
                             try {
                                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                                gateway.addConsumerKeyAuth(ConsumerConventionUtil.createAppUniqueId(appVersion), newApiKey);
+                                gateway.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
                             }
                             catch (Exception ex) {
                                 throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
@@ -3844,7 +3844,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         }
                         for (IGatewayLink gatewayLink : links.values()) {
                             try {
-                                gatewayLink.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(appVersion), oAuthConsumerRequest);
+                                gatewayLink.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(appVersion), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
                             } catch (Exception e) {
                                 throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
                             }
@@ -3858,7 +3858,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     if (appVersion.getStatus() != ApplicationStatus.Retired) {
                         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                         try {
-                            gateway.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(appVersion), oAuthConsumerRequest);
+                            gateway.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(appVersion), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
                         }
                         catch (Exception e) {
                             throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
@@ -3878,52 +3878,4 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(ex);
         }
     }
-
-    //Essentially a copy of enableOAuthForConsumer() except that it executes a PUT-request instead of POST
-    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(OAuthConsumerRequestBean request) throws StorageException {
-        UserBean user = idmStorage.getUser(request.getUniqueUserName());
-        KongPluginOAuthConsumerRequest oauthRequest = new KongPluginOAuthConsumerRequest()
-                .withClientId(request.getAppOAuthId())
-                .withClientSecret(request.getAppOAuthSecret());
-        KongPluginOAuthConsumerResponse response = null;
-        //retrieve application name and redirect URI.
-        try {
-            ApplicationVersionBean avb = query.getApplicationForOAuth(request.getAppOAuthId(), request.getAppOAuthSecret());
-            if (avb == null)
-                throw new ApplicationNotFoundException("Application not found with given OAuth2 clientId and clientSecret.");
-            oauthRequest.setName(avb.getApplication().getName());
-            if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
-                throw new OAuthException("The application must provide an OAuth2 redirect URL");
-            oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
-            String defaultGateway = query.listGateways().get(0).getId();
-            if (!StringUtils.isEmpty(defaultGateway)) {
-                try {
-                    IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
-                    log.info("Update consumer:{} OAuth credentials with values: {}", user.getKongUsername(), oauthRequest);
-                    response = gatewayLink.updateConsumerOAuthCredentials(user.getKongUsername(), oauthRequest);
-                } catch (Exception e) {
-                    log.debug("Error updating credentials for oauth:{}", e.getStackTrace());
-                    //don't do anything
-                }
-                if (response == null) {
-                    log.debug("Update OAuth credentials for consumer - response empty");
-                    //try to recover existing user
-                    try {
-                        IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
-                        KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(user.getKongUsername());
-                        for (KongPluginOAuthConsumerResponse cred : credentials.getData()) {
-                            if (cred.getClientId().equals(request.getAppOAuthId())) response = cred;
-                        }
-                    } catch (Exception e) {
-                        //now throw an error if that's not working too.
-                        throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
-                    }
-                }
-            } else throw new GatewayException("No default gateway found!");
-        } catch (StorageException e) {
-            e.printStackTrace();
-        }
-        return response;
-    }
-
 }

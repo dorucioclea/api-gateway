@@ -305,13 +305,23 @@ public interface IGatewayLink {
     public com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId,KongPluginOAuthConsumerRequest request);
 
     /**
+     * Update a consumer's key auth credentials
+     *
+     * @param consumerId
+     * @param oldApiKey
+     * @param newApiKey
+     * @return
+     */
+    public KongPluginKeyAuthResponse updateConsumerKeyAuthCredentials(String consumerId, String oldApiKey, String newApiKey);
+
+    /**
      * Update OAuth credentials for consumer
      *
      * @param consumerId
      * @param request
      * @return
      */
-    public com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId,KongPluginOAuthConsumerRequest request);
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request);
 
     /**
      * Get application specific information for OAuth.

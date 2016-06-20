@@ -763,9 +763,31 @@ public class GatewayClient {
         return httpClient.enableOAuthForConsumer(consumerId,request.getName(),request.getClientId(),request.getClientSecret(),request.getRedirectUri());
     }
 
-    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, KongPluginOAuthConsumerRequest request) {
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request) {
+        KongPluginOAuthConsumerResponse rval = null;
         if(!request.getRedirectUri().endsWith("/"))request.setRedirectUri(request.getRedirectUri() + "/");
-        return httpClient.updateOAuthForConsumer(consumerId,request.getName(),request.getClientId(),request.getClientSecret(),request.getRedirectUri());
+        KongPluginOAuthConsumerResponseList plugins = httpClient.getConsumerOAuthCredentials(consumerId);
+        //Delete the plugin with the old credentials
+        for (KongPluginOAuthConsumerResponse credentials : plugins.getData()) {
+            if (credentials.getClientId().equals(oldClientId) && credentials.getClientSecret().equals(oldClientSecret)) {
+                httpClient.deleteOAuth2Credential(consumerId, credentials.getId());
+                //create the new plugin
+                 rval = httpClient.enableOAuthForConsumer(consumerId, request.getName(), request.getClientId(), request.getClientSecret(), request.getRedirectUri());
+            }
+        }
+        return rval;
+    }
+
+    public KongPluginKeyAuthResponse updateConsumerKeyAuthCredentials(String consumerId, String oldApiKey, String newApiKey) {
+        KongPluginKeyAuthResponse rval = null;
+        KongPluginKeyAuthResponseList plugins = httpClient.getConsumerKeyAuthCredentials(consumerId);
+        for (KongPluginKeyAuthResponse credentials : plugins.getData()) {
+            if (credentials.getKey().equals(oldApiKey)) {
+                httpClient.deleteConsumerKeyAuthCredential(consumerId, credentials.getId());
+                rval = createConsumerKeyAuth(consumerId, newApiKey);
+            }
+        }
+        return rval;
     }
 
     public KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(String clientId){
