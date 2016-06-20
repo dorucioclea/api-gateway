@@ -315,22 +315,37 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
     }
 
-    @ApiOperation(value = "Renew Contracts API Keys And Application OAuth Credentials",
-            notes = "Use this endpoint to renew the application OAuth credentials as well as any associated contracts' API keys")
+    @ApiOperation(value = "Revoke Application version's API key",
+            notes = "Use this endpoint to revoke the application version's API key and assign a new one")
     @ApiResponses({
-            @ApiResponse(code = 200, response = ApplicationVersionBean.class, message = "Keys and/or OAuth credentials renewed")
+            @ApiResponse(code = 200, response = NewApiKeyBean.class, message = "API key revoked")
     })
     @POST
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/renew")
     @Produces(MediaType.APPLICATION_JSON)
-    public ApplicationVersionBean renewAppVersionCredentials(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
+    public NewApiKeyBean revokeAppVersionApiKey(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
         if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.renewApplicationCredentials(orgId, appId, version);
+        return orgFacade.revokeApplicationVersionApiKey(orgId, appId, version);
     }
 
+    @ApiOperation(value = "Revoke Application version's OAuth credentials",
+            notes = "Use this endpoint to revoke the application version's current OAuth credentials and assign new credentials")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApplicationVersionBean.class, message = "OAuth credentials revoked")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/renew")
+    @Produces(MediaType.APPLICATION_JSON)
+    public NewOAuthCredentialsBean revokeAppVersionOAuthCredentials(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
+        if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(appId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.revokeApplicationVersionOAuthCredentials(orgId, appId, version);
+    }
 
     @ApiOperation(value = "Get Application Version",
             notes = "Use this endpoint to get detailed information about a single version of an Application.")

@@ -441,4 +441,8 @@ public final class ExceptionFactory {
     public static final MetricsUnavailableException metricsUnavailableException() {
         return new MetricsUnavailableException();
     }
+
+    public static final ContractNotFoundException contractNotFoundException() {
+        return new ContractNotFoundException();
+    }
 }

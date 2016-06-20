@@ -3736,7 +3736,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return true;
     }
 
-    public ApplicationVersionBean renewApplicationCredentials(String organizationId, String applicationId, String version) {
+    public NewApiKeyBean revokeApplicationVersionApiKey(String organizationId, String applicationId, String version) {
         try {
             ApplicationVersionBean appVersion = storage.getApplicationVersion(organizationId, applicationId, version);
             if (appVersion != null) {
@@ -3748,30 +3748,51 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     String newApiKey = apiKeyGenerator.generate();
 
                     //Is the old API key still needed for revocation purposes?
-                    //String oldApiKey = contractSummaries.get(0).getApikey();
+                    String revokedKey = contractSummaries.get(0).getApikey();
                     for (ContractSummaryBean contractSummary : contractSummaries) {
                         ContractBean contract = storage.getContract(contractSummary.getContractId());
                         contract.setApikey(newApiKey);
                         storage.updateContract(contract);
                     }
+                    return new NewApiKeyBean(revokedKey, newApiKey);
                 }
+                else {
+                    throw ExceptionFactory.contractNotFoundException();
+                }
+            }
+            else {
+                throw ExceptionFactory.applicationVersionNotFoundException(applicationId, version);
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
+    public NewOAuthCredentialsBean revokeApplicationVersionOAuthCredentials(String organizationId, String applicationId, String version) {
+        try {
+            NewOAuthCredentialsBean rval = new NewOAuthCredentialsBean();
+            ApplicationVersionBean appVersion = storage.getApplicationVersion(organizationId, applicationId, version);
+            if (appVersion != null) {
+                rval.setRevokedClientId(appVersion.getoAuthClientId());
+                rval.setRevokedClientSecret(appVersion.getOauthClientSecret());
                 appVersion.setoAuthClientId(apiKeyGenerator.generate());
                 appVersion.setOauthClientSecret(apiKeyGenerator.generate());
                 storage.updateApplicationVersion(appVersion);
-                String uniqueUserId = securityContext.getCurrentUser();
+                rval.setNewClientId(appVersion.getoAuthClientId());
+                rval.setNewClientSecret(appVersion.getOauthClientSecret());
                 OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
-                requestBean.setUniqueUserName(uniqueUserId);
+                requestBean.setUniqueUserName(ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version));
                 requestBean.setAppOAuthId(appVersion.getoAuthClientId());
                 requestBean.setAppOAuthSecret(appVersion.getOauthClientSecret());
                 updateConsumerOAuthCredentials(requestBean);
-                return appVersion;
+                return rval;
             }
             else {
                 throw ExceptionFactory.applicationNotFoundException("Application does not exist");
             }
         }
         catch (StorageException ex) {
-            ex.printStackTrace();
             throw new SystemErrorException(ex);
         }
     }
