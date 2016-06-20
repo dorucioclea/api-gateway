@@ -321,7 +321,7 @@ public class OrganizationResource implements IOrganizationResource {
             @ApiResponse(code = 200, response = NewApiKeyBean.class, message = "API key revoked")
     })
     @POST
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/renew")
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/api-key/revoke")
     @Produces(MediaType.APPLICATION_JSON)
     public NewApiKeyBean revokeAppVersionApiKey(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
         if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
@@ -334,10 +334,10 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Revoke Application version's OAuth credentials",
             notes = "Use this endpoint to revoke the application version's current OAuth credentials and assign new credentials")
     @ApiResponses({
-            @ApiResponse(code = 200, response = ApplicationVersionBean.class, message = "OAuth credentials revoked")
+            @ApiResponse(code = 200, response = NewOAuthCredentialsBean.class, message = "OAuth credentials revoked")
     })
     @POST
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/renew")
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth/revoke")
     @Produces(MediaType.APPLICATION_JSON)
     public NewOAuthCredentialsBean revokeAppVersionOAuthCredentials(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
         if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
