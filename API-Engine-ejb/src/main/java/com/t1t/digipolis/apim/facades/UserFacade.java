@@ -4,10 +4,13 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
+import com.t1t.digipolis.apim.beans.mail.MembershipAction;
+import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
@@ -26,6 +29,7 @@ import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.saml2.ISAML2;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -80,6 +84,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.DateFormat;
@@ -118,6 +124,8 @@ public class UserFacade implements Serializable {
     private IUserExternalInfoService userExternalInfoService;
     @Inject
     private AppConfig config;
+    @Inject
+    private MailService mailService;
 
     public UserBean get(String userId) {
         try {
@@ -155,6 +163,8 @@ public class UserFacade implements Serializable {
         for(RoleMembershipBean role: userMemberships){
             if(role.getRoleId().equalsIgnoreCase("owner"))throw ExceptionFactory.userCannotDeleteException(userId);
         }
+        //Delete related events
+        query.deleteAllEventsForEntity(userId);
         //if exception has not been thrown, delete user
         idmStorage.deleteUser(userId);
     }
@@ -200,6 +210,18 @@ public class UserFacade implements Serializable {
         if(user==null)throw new UserNotFoundException("User unknow in the application: " + userId);
         user.setAdmin(false);
         idmStorage.updateUser(user);
+        //send email
+        try{
+            final UserBean userBean = get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
+                updateAdminMailBean.setTo(userBean.getEmail());
+                updateAdminMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
+                mailService.sendUpdateAdmin(updateAdminMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
+        }
     }
 
     public void addAdminPriviledges(String userId)throws StorageException{
@@ -214,6 +236,18 @@ public class UserFacade implements Serializable {
         }else{
             user.setAdmin(true);
             idmStorage.updateUser(user);
+        }
+        //send email
+        try{
+            final UserBean userBean = get(userId);
+            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
+                updateAdminMailBean.setTo(userBean.getEmail());
+                updateAdminMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
+                mailService.sendUpdateAdmin(updateAdminMailBean);
+            }
+        }catch(Exception e){
+            log.error("Error sending mail:{}",e.getMessage());
         }
     }
 
@@ -290,24 +324,33 @@ public class UserFacade implements Serializable {
         log.info("Initate SAML2 request for {}", samlRequest.getIdpUrl());
         try {
             //we need to send the clienUrl as a relaystate - should be URL encoded
-            String condensedUri = samlRequest.getClientAppRedirect().replaceAll("https://", "").replaceAll("http://", "");
+            URI clientAppRedirectURI = new URI(samlRequest.getClientAppRedirect());
+            if (clientAppRedirectURI==null)throw new URISyntaxException(samlRequest.getClientAppRedirect(),"Invalid callback URI");
+            String condensedUri = clientAppRedirectURI.getHost();
             String urlEncodedClientUrl = URLEncoder.encode(condensedUri, "UTF-8");
             String encodedRequestMessage = getSamlRequestEncoded(samlRequest, urlEncodedClientUrl);
             return samlRequest.getIdpUrl() + "?" + SAML2_KEY_REQUEST + encodedRequestMessage + "&" + SAML2_KEY_RELAY_STATE + urlEncodedClientUrl;
-        } catch (MarshallingException | IOException | ConfigurationException ex) {
+        } catch(URISyntaxException uris){
+            throw new SAMLAuthException("The callback URL is not a valid URI: "+ uris.getMessage());
+        } catch (MarshallingException | IOException | ConfigurationException |StorageException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Auth Request: " + ex.getMessage());
         }
     }
 
-    private String getSamlRequestEncoded(SAMLRequest samlRequest, String urlEncodedClientUrl) throws IOException, MarshallingException, ConfigurationException {
+    private String getSamlRequestEncoded(SAMLRequest samlRequest, String urlEncodedClientUrl) throws IOException, MarshallingException, ConfigurationException, StorageException {
         //Bootstrap OpenSAML
         DefaultBootstrap.bootstrap();
+        final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
         //Generate the request
         AuthnRequest authnRequest = buildAuthnRequestObject(samlRequest.getSpUrl(), samlRequest.getSpName(), samlRequest.getClientAppRedirect());
         WebClientCacheBean webCache = new WebClientCacheBean();
         webCache.setToken(samlRequest.getToken());
         webCache.setClientAppRedirect(samlRequest.getClientAppRedirect());
-        webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+        if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
+            webCache.setTokenExpirationTimeMinutes(gatewayBean.getJWTExpTime());
+        }else{
+            webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+        }
         webCache.setOptionalClaimset(samlRequest.getOptionalClaimMap());
         webCache.setAppRequester(securityAppContext.getApplicationIdentifier());
         //set client application name and callback in the cache
@@ -482,18 +525,22 @@ public class UserFacade implements Serializable {
      * If in restricted mode, the resolved user is not an admin, then null is returned
      * in order for the rest layer to send the appropriate error to the UI.
      *
-     * @param response
+     * @param samlResponse
+     * @param relaystate
+     *
      * @return
      */
-    public SAMLResponseRedirect processSAML2Response(String response) throws Exception {
-        String relayState = response.split("&")[1].replaceFirst(SAML2_KEY_RELAY_STATE, "").trim();//the relaystate contains the correlation id for the calling web client == callbackurl
+    public SAMLResponseRedirect processSAML2Response(String samlResponse, String relaystate) throws Exception {
+
+        String relayState = relaystate;
         StringBuffer clientUrl = new StringBuffer("");
         Assertion assertion = null;
         IdentityAttributes idAttribs;
         utilPrintCache();
-        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(relayState.trim());
+        String urlEncodedRelaystate = URLEncoder.encode(relayState, "UTF-8");
+        WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(urlEncodedRelaystate.trim());
         try {
-            assertion = processSSOResponse(response.split("&")[0]);
+            assertion = processSSOResponse(samlResponse);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());
@@ -517,7 +564,7 @@ public class UserFacade implements Serializable {
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
         responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs, webClientCacheBean));
         clientUrl.append(webClientCacheBean.getClientAppRedirect());
-        if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
+        //if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
         //for logout, we should keep the SessionIndex in cache with the username
         if (assertion != null && assertion.getAuthnStatements().size() > 0) {
@@ -619,10 +666,8 @@ public class UserFacade implements Serializable {
      */
     private Assertion processSSOResponse(String samlResp) throws SAXException, ParserConfigurationException, ConfigurationException, IOException, UnmarshallingException {
         DefaultBootstrap.bootstrap();
-        //remove other query params
-        String base64EncodedResponse = samlResp.replaceFirst("SAMLResponse=", "").trim();
-        String base64URLDecodedResponse = URLDecoder.decode(base64EncodedResponse, "UTF-8");
-        byte[] base64DecodedResponse = Base64.decode(base64URLDecodedResponse);
+        //String base64URLDecodedResponse = URLDecoder.decode(samlResp, "UTF-8");
+        byte[] base64DecodedResponse = Base64.decode(samlResp);
         String samlResponseString = new String(base64DecodedResponse);
         log.info("Decoded SAML response:{}", samlResponseString);
 
@@ -769,7 +814,13 @@ public class UserFacade implements Serializable {
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
             jwtRequestBean.setSurname(identityAttributes.getFamilyName());
             jwtRequestBean.setSubject(identityAttributes.getId());
-            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret);
+            final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+            Integer jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
+            if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
+                jwtExpirationTime = gatewayBean.getJWTExpTime();
+            }
+            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret, jwtExpirationTime);
+            log.debug("==>JWT:{}",issuedJWT);
             //close gateway
             gatewayLink.close();
         } catch (PublishingException e) {
@@ -788,16 +839,22 @@ public class UserFacade implements Serializable {
      * @param email
      * @return
      */
-    public ExternalUserBean getUserByEmail(String email) throws StorageException {
-        UserBean userByMail = idmStorage.getUserByMail(email);
-        ExternalUserBean extUser = new ExternalUserBean();
-        extUser.setAccountId(userByMail.getUsername());
-        extUser.setUsername(userByMail.getUsername());
-        List<String> emails = new ArrayList<>();
-        emails.add(userByMail.getEmail());
-        extUser.setEmails(emails);
-        extUser.setName(userByMail.getFullName());
-        return extUser;
+    public ExternalUserBean getUserByEmail(String email) {
+        try{
+            UserBean userByMail = idmStorage.getUserByMail(email);
+            if(userByMail==null)throw new StorageException();
+            log.debug("User found by mail ({}): {}",email, userByMail);
+            ExternalUserBean extUser = new ExternalUserBean();
+            extUser.setAccountId(userByMail.getUsername());
+            extUser.setUsername(userByMail.getUsername());
+            List<String> emails = new ArrayList<>();
+            emails.add(userByMail.getEmail());
+            extUser.setEmails(emails);
+            extUser.setName(userByMail.getFullName());
+            return extUser;
+        }catch (StorageException e) {
+            throw new UserNotFoundException("Email unknow to the application: " + email);
+        }
     }
 
     public ExternalUserBean getUserByUsername(String username) {
@@ -805,7 +862,8 @@ public class UserFacade implements Serializable {
         ExternalUserBean extUser = null;
         try {
             UserBean user = idmStorage.getUser(username);
-            log.info("User: {}", user);
+            if(user==null)throw new StorageException();
+            log.debug("User found by id ({}): {}",username, user);
             extUser = new ExternalUserBean();
             extUser.setUsername(user.getUsername());
             extUser.setAccountId(user.getUsername());
@@ -813,7 +871,7 @@ public class UserFacade implements Serializable {
             extUser.setLastModified(df.format(user.getJoinedOn()));
             extUser.setGivenname(user.getFullName());
         } catch (StorageException e) {
-            throw new UserNotFoundException("User unknow in the application: " + username);
+            throw new UserNotFoundException("User unknow to the application: " + username);
         }
         return extUser;
     }
@@ -835,7 +893,13 @@ public class UserFacade implements Serializable {
      * @return
      */
     private String getSecretFromTokenCache(String key, String userName) {
-        String secret = cacheUtil.getToken(key);
+        String secret;
+        try {
+            secret = cacheUtil.getToken(key);
+        }
+        catch (Exception e) {
+            throw ExceptionFactory.cachingException(e.getMessage());
+        }
         if (StringUtils.isEmpty(secret)) {
             //retrieve from Kong
             String gatewayId = null;
@@ -847,20 +911,28 @@ public class UserFacade implements Serializable {
                     secret = data.get(0).getSecret();
                 } else throw new StorageException("Refresh JWT - somehow the user is not known");
             } catch (StorageException e) {
-                new GatewayException("Error connection to gateway:{}" + e.getMessage());
+                throw new GatewayException("Error connection to gateway:{}" + e.getMessage());
             }
         }
         return secret;
     }
 
-    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JoseException {
+    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JoseException, StorageException {
         //get body
         JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
         JwtClaims jwtClaims = jwtContext.getJwtClaims();
+        //get gateway default expiration time for JWT
+        final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+        Integer jwtExpirationTime = 60;//default 60min.
+        if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
+            jwtExpirationTime = gatewayBean.getJWTExpTime();
+        }else{
+            jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
+        }
         //get secret based on iss/username - cached
         String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
         JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret));
+        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime));
         return jwtRefreshResponseBean;
     }
 

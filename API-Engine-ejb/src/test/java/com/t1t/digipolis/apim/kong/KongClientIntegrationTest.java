@@ -1,5 +1,8 @@
 package com.t1t.digipolis.apim.kong;
 
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.oauth.OAuth20Service;
+import com.github.scribejava.core.oauth.OAuthService;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.kong.model.*;
@@ -20,15 +23,14 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.Plugins;
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -49,10 +51,14 @@ public class KongClientIntegrationTest {
     private static Gson gson;
     //TODO make configurable in maven test profile
     private static final String KONG_UNDER_TEST_URL = "http://devapim.t1t.be:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_CONSUMER_URL = "http://devapim.t1t.be";
     //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
     private static final String API_URL = "http://domain.com/app/rest/v1";
+    private static final String API_URL_OAUTH_A = "http://servicea.com/endpoint";
+    private static final String API_URL_OAUTH_B = "http://serviceb.com/endpoint";
+    private static final String API_URL_OAUTH_ORG= "http://dummyhost";
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -365,7 +371,7 @@ public class KongClientIntegrationTest {
 
     @Test
     public void testCreateOrUpdatePlugin() throws Exception {
-        //create plugin config; read init value; update value and re-read to verify
+        //create plugin config; read initConfig value; update value and re-read to verify
         KongApi apif = createDummyApi("apif", "/apif", API_URL);
         KongConsumer consumer = createDummyConsumer("123f", "apifuser");
         apif = kongClient.addApi(apif);
@@ -475,8 +481,84 @@ public class KongClientIntegrationTest {
         kongClient.deleteApi(apioauth.getId());
         //verify the provision key is not null!
         assertNotNull(enhancedOAuthValue);
-        assertTrue(!StringUtils.isEmpty(enhancedOAuthValue.getProvisionKey()));
-        assertTrue(enhancedOAuthValue.getScopes().size()==3);
+        //assertTrue(!StringUtils.isEmpty(enhancedOAuthValue.getProvisionKey()));//is not automatically generated in some versions
+        assertTrue(enhancedOAuthValue.getEnableAuthorizationCode());
+        assertTrue(enhancedOAuthValue.getEnableClientCredentials());
+        assertTrue(enhancedOAuthValue.getEnableImplicitGrant());
+        assertTrue(enhancedOAuthValue.getEnablePasswordGrant());
+        assertTrue(enhancedOAuthValue.getMandatoryScope());
+    }
+
+    @Test
+    public void registerOAuthCentralService()throws Exception{
+        //create service identifiers
+        String serviceAId = "orgA.serviceA.v1";
+        String serviceBId = "orgA.serviceB.v1";
+
+        //create 2 services for the same organization
+        KongApi apiServiceA = createDummyApi(serviceAId,"/orga/servicea/v1",API_URL_OAUTH_A);
+        KongApi apiServiceB = createDummyApi(serviceBId,"/orga/serviceb/v1",API_URL_OAUTH_B);
+        KongApi apiOrgAuthEndpoint = createDummyApi("orgA","/orga",API_URL_OAUTH_B);
+        apiServiceA = kongClient.addApi(apiServiceA);
+        apiServiceB = kongClient.addApi(apiServiceB);
+
+        //create organization oauth endpoint
+        apiOrgAuthEndpoint = kongClient.addApi(apiOrgAuthEndpoint);
+
+        //add oauth policy to services
+        KongPluginConfig pluginConfigA = createTestOAuthPluginPrefixedSet("someprovisionkeyA",serviceAId);
+        pluginConfigA = kongClient.createPluginConfig(apiServiceA.getId(),pluginConfigA);
+        KongPluginConfig pluginConfigB = createTestOAuthPluginPrefixedSet("someprovisionkeyB",serviceBId);
+        pluginConfigB = kongClient.createPluginConfig(apiServiceB.getId(),pluginConfigB);
+
+        //create org oauth policy with consolidated scopes
+        KongPluginConfig pluginConfigOrg = createTestOAuthPluginConsolidatedScopes(new ArrayList<>(Arrays.asList(serviceAId,serviceBId)));
+        pluginConfigOrg = kongClient.createPluginConfig(apiOrgAuthEndpoint.getId(),pluginConfigOrg);
+
+        //get provision keys
+        KongPluginOAuthEnhanced enhancedOAuthSA = gson.fromJson(pluginConfigA.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        String provKeyServiceA = enhancedOAuthSA.getProvisionKey();
+        KongPluginOAuthEnhanced enhancedOAuthSB = gson.fromJson(pluginConfigB.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        String provKeyServiceB = enhancedOAuthSB.getProvisionKey();
+        KongPluginOAuthEnhanced enhancedOAuthOrg = gson.fromJson(pluginConfigOrg.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        String provKeyServiceOrg = enhancedOAuthOrg.getProvisionKey();
+
+        //register consumer
+        KongConsumer oauthConsumer = createDummyConsumer("someoauthapp","apimultiuserscope");
+        oauthConsumer = kongClient.createConsumer(oauthConsumer);
+        assertNotNull(oauthConsumer.getId());
+
+        //create application to use oauth2 for service A and B
+        KongPluginOAuthConsumerResponse kongPluginOAuthConsumerResponse = kongClient.enableOAuthForConsumer(oauthConsumer.getId(), oauthConsumer.getId(), "", "", "http://localhost:5000");
+
+        //keys should be generated
+        String client_id = kongPluginOAuthConsumerResponse.getClientId();
+        assertNotNull(client_id);
+        String client_secret = kongPluginOAuthConsumerResponse.getClientSecret();
+        assertNotNull(client_secret);
+
+        kongClient.deleteConsumer(oauthConsumer.getId());
+        kongClient.deleteApi(apiServiceA.getId());
+        kongClient.deleteApi(apiServiceB.getId());
+        kongClient.deleteApi(apiOrgAuthEndpoint.getId());
+    }
+
+    @Test
+    public void registerOAuthServiceWithManyScopes()throws Exception{
+        KongApi apioauth = createDummyApi("apioatx","/apioatx",API_URL);
+        KongConsumer oauthConsumer = createDummyConsumer("123456789x","apiuseroauthx");
+        apioauth = kongClient.addApi(apioauth);
+        oauthConsumer = kongClient.createConsumer(oauthConsumer);
+        //create an oauth config
+        KongPluginConfig pluginConfig = createTestOAuthPluginWithManyScopes();
+        pluginConfig = kongClient.createPluginConfig(apioauth.getId(),pluginConfig);
+        KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(pluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        String provisionKey = enhancedOAuthValue.getProvisionKey();
+        kongClient.deleteConsumer(oauthConsumer.getId());
+        kongClient.deleteApi(apioauth.getId());
+        //verify the provision key is not null!
+        assertNotNull(enhancedOAuthValue);
+        //assertTrue(!StringUtils.isEmpty(enhancedOAuthValue.getProvisionKey()));//is not automatically generated in some versions
         assertTrue(enhancedOAuthValue.getEnableAuthorizationCode());
         assertTrue(enhancedOAuthValue.getEnableClientCredentials());
         assertTrue(enhancedOAuthValue.getEnableImplicitGrant());
@@ -491,6 +573,47 @@ public class KongClientIntegrationTest {
         KongPluginOAuthConsumerResponse response = kongClient.enableOAuthForConsumer(consumer.getId(),"TestApplication","ABCCLIENTID","ABCCLIENTSECRET","http://localhost:4000/");
         assertTrue(response!=null);
         kongClient.deleteConsumer(consumer.getId());
+    }
+
+    @Test
+    public void testACLPluginLifecycle() throws Exception {
+        //Create API you'll add ACL plugin to and consumer you'll add to group
+        KongApi api = createDummyApi(API_NAME, API_PATH, API_URL);
+        KongConsumer consumer = new KongConsumer().withUsername("aclconsumer");
+        api = kongClient.addApi(api);
+        consumer = kongClient.createConsumer(consumer);
+        //Create plugin
+        KongPluginConfig config = kongClient.createPluginConfig(api.getId(), createTestACLPlugin());
+        //Apply to consumer
+        KongPluginACLResponse response = kongClient.addConsumerToACL(consumer.getId(), new KongPluginACLRequest()
+                .withGroup("org.serv.version"));
+        //Delete consumer plugin
+        Object deleteConsumerPluginResponse = kongClient.deleteConsumerACLEntry(consumer.getId(), response.getId());
+        //Delete API plugin
+        Object deleteAPIPluginResponse = kongClient.deletePlugin(api.getId(), config.getId());
+        //Clean up
+        kongClient.deleteConsumer(consumer.getId());
+        kongClient.deleteApi(api.getId());
+        //Assertions
+        assertNotNull(config);
+        assertNotNull(response);
+        assertNull(deleteConsumerPluginResponse);
+        assertNull(deleteAPIPluginResponse);
+    }
+
+    @Test
+    public void addConsumerTo1000ACLs() {
+        KongConsumer consumer = new KongConsumer().withUsername("misterpopular");
+        consumer = kongClient.createConsumer(consumer);
+        String acl = "orgid.archid.v%d";
+        List<KongPluginACLResponse> responses = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            responses.add(kongClient.addConsumerToACL(consumer.getId(), new KongPluginACLRequest().withGroup(String.format(acl, i))));
+        }
+        kongClient.deleteConsumer(consumer.getId());
+        for (KongPluginACLResponse response : responses) {
+            assertNotNull(response);
+        }
     }
 
     @Test(expected = RetrofitError.class)
@@ -552,6 +675,16 @@ public class KongClientIntegrationTest {
         return pluginConfig;
     }
 
+    private KongPluginConfig createTestACLPlugin() {
+        KongPluginACL kongPluginACL = new KongPluginACL()
+                .withWhitelist(Arrays.asList("orgid.serv.version"));
+        KongPluginConfig config = new KongPluginConfig()
+                .withName("acl")
+                .withConfig(kongPluginACL);
+        print(config);
+        return config;
+    }
+
     private KongPluginConfig createTestOAuthPlugin(){
         List<Object> scopes = new ArrayList<>(Arrays.asList("basic","extended","full"));
         KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
@@ -568,6 +701,64 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         return pluginConfig;
     }
+
+    private KongPluginConfig createTestOAuthPluginWithManyScopes(){
+        String[] randomScopes = generateRandomWords(10000);
+        List<Object> scopes = new ArrayList<>(Arrays.asList(randomScopes));
+        KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
+                .withEnableAuthorizationCode(true)
+                .withEnableClientCredentials(true)
+                .withEnableImplicitGrant(true)
+                .withEnablePasswordGrant(true)
+                .withHideCredentials(false)
+                .withMandatoryScope(true)
+                .withScopes(scopes);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("oauth2")//as an example
+                .withConfig(oAuthEnhancedConfig);
+        print(pluginConfig);
+        return pluginConfig;
+    }
+
+    private KongPluginConfig createTestOAuthPluginPrefixedSet(String provisionkey, String serviceprefix){
+        List<Object> scopes = new ArrayList<>(Arrays.asList(serviceprefix+".basic",serviceprefix+".extended",serviceprefix+".full"));
+        KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
+                .withEnableAuthorizationCode(true)
+                .withEnableClientCredentials(true)
+                .withEnableImplicitGrant(true)
+                .withEnablePasswordGrant(true)
+                .withHideCredentials(false)
+                .withMandatoryScope(true)
+                .withScopes(scopes);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("oauth2")//as an example
+                .withConfig(oAuthEnhancedConfig);
+        print(pluginConfig);
+        return pluginConfig;
+    }
+
+    private KongPluginConfig createTestOAuthPluginConsolidatedScopes(List<String> prefixList){
+        List<Object> scopes = new ArrayList<>();
+        prefixList.stream().forEach(prefix -> {
+            scopes.add(prefix+".basic");
+            scopes.add(prefix+".extended");
+            scopes.add(prefix+".full");
+        });
+        KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
+                .withEnableAuthorizationCode(true)
+                .withEnableClientCredentials(true)
+                .withEnableImplicitGrant(true)
+                .withEnablePasswordGrant(true)
+                .withHideCredentials(false)
+                .withMandatoryScope(true)
+                .withScopes(scopes);
+        KongPluginConfig pluginConfig = new KongPluginConfig()
+                .withName("oauth2")//as an example
+                .withConfig(oAuthEnhancedConfig);
+        print(pluginConfig);
+        return pluginConfig;
+    }
+
 
     @Test
     public void testCreateIPRestrictionPluginWL() throws Exception {
@@ -649,6 +840,21 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         kongClient.createPluginConfig(apiipr.getId(), pluginConfig);
         kongClient.deleteApi(apiipr.getId());
+    }
+
+    public static String[] generateRandomWords(int numberOfWords) {
+        String[] randomStrings = new String[numberOfWords];
+        Random random = new Random();
+        for(int i = 0; i < numberOfWords; i++)
+        {
+            char[] word = new char[random.nextInt(8)+3]; // words of length 3 through 10. (1 and 2 letter words are boring.)
+            for(int j = 0; j < word.length; j++)
+            {
+                word[j] = (char)('a' + random.nextInt(26));
+            }
+            randomStrings[i] = new String(word);
+        }
+        return randomStrings;
     }
 
     private void print(Object obj){log.info(gson.toJson(obj));};

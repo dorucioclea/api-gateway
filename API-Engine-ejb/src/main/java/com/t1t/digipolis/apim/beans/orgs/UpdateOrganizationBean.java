@@ -14,6 +14,8 @@ public class UpdateOrganizationBean implements Serializable {
     private static final long serialVersionUID = 2687797041244565943L;
 
     private String description;
+    private String friendlyName;
+    private Boolean organizationPrivate;
 
     /**
      * Constructor.
@@ -35,9 +37,38 @@ public class UpdateOrganizationBean implements Serializable {
         this.description = description;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
+    /**
+     * @return the user-friendly name
      */
+    public String getFriendlyName() {
+        return friendlyName;
+    }
+
+
+    /**
+     * @return the organization privacy boolean
+     */
+    public Boolean isOrganizationPrivate() {
+        return organizationPrivate;
+    }
+
+    /**
+     * @param organizationPrivate the organization privacy to set
+     */
+    public void setOrganizationPrivate(Boolean organizationPrivate) {
+        this.organizationPrivate = organizationPrivate;
+    }
+
+    /**
+     * @param friendlyName the user-friendly name to set
+     */
+    public void setFriendlyName(String friendlyName) {
+        this.friendlyName = friendlyName;
+    }
+
+    /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {

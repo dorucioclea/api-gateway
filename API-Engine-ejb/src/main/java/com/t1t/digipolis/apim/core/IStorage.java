@@ -7,9 +7,11 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.mail.MailTemplateBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -22,6 +24,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.support.SupportBean;
 import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.mail.MailTopic;
 
 import java.io.InputStream;
 import java.util.List;
@@ -56,6 +59,8 @@ public interface IStorage {
     public void createAvailableMarket(AvailabilityBean availabilityBean)throws StorageException;
     public void createWhilelistRecord(WhitelistBean whitelistBean)throws StorageException;
     public void createBlacklistRecord(BlacklistBean blacklistBean)throws StorageException;
+    public void createEvent(EventBean eventBean) throws StorageException;
+    public void createMailTemplate(MailTemplateBean mailTemplateBean) throws Exception;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -76,7 +81,8 @@ public interface IStorage {
     public void updateServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
     public void updateServiceSupport(SupportBean supportBean) throws StorageException;
     public void updateServiceSupportComment(SupportComment commentBean) throws StorageException;
-    public void updateContract(ContractBean contractBean) throws StorageException;
+    public void updateMailTemplate(MailTemplateBean mailTemplateBean)throws StorageException;
+    public void updateEvent(EventBean event)throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
@@ -102,6 +108,8 @@ public interface IStorage {
     public void deleteAvailableMarket(AvailabilityBean availabilityBean)throws StorageException;
     public void deleteWhitelistRecord(WhitelistBean whitelistBean) throws StorageException;
     public void deleteBalcklistRecord(BlacklistBean blacklistBean) throws StorageException;
+    public void deleteEvent(EventBean eventBean) throws StorageException;
+    public void deleteMailTemplate (MailTemplateBean mailTemplateBean) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -128,6 +136,8 @@ public interface IStorage {
     public AvailabilityBean getAvailableMarket(String id) throws StorageException;
     public WhitelistBean getWhitelistRecord(String id) throws StorageException;
     public BlacklistBean getBlacklistRecord(String id) throws StorageException;
+    public EventBean getEvent(Long id) throws StorageException;
+    public MailTemplateBean getMailTemplate (MailTopic mailTopic) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

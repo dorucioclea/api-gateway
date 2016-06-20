@@ -64,11 +64,10 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     public String setCurrentApplication(String currentApplication) throws StorageException {
         this.currentApplication = currentApplication;
         this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication);
-        LOG.info("AppId: {}",appIdentifier);
-        LOG.info("Filtered Mkt: {}",config.getFilteredMarketplaces());
+        LOG.debug("Filtered Mkt: {}",config.getFilteredMarketplaces());
         if(appIdentifier!=null && appIdentifier.getScope()!=null){
             List<String> filteredList = config.getFilteredMarketplaces().stream().filter(mkt -> mkt.trim().equalsIgnoreCase(appIdentifier.getScope())).collect(Collectors.toList());
-            LOG.info("Filtered list: {}",filteredList);
+            LOG.debug("Filtered list: {}",filteredList);
             if(filteredList.size()==0) appIdentifier.setScope("");
         }
         LOG.debug("Application definitive scope:{}", appIdentifier);

@@ -47,9 +47,13 @@ public final class ErrorCodes {
     //
     public static final int ORG_ALREADY_EXISTS              = 3001;
     public static final int ORG_NOT_FOUND                   = 3002;
+    public static final int ORG_IS_PRIVATE                  = 3003;
+    public static final int ORG_CANNOT_BE_DELETED           = 3004;
 
     public static final String ORG_ALREADY_EXISTS_INFO      = null;
     public static final String ORG_NOT_FOUND_INFO           = null;
+    public static final String ORG_IS_PRIVATE_INFO          = null;
+    public static final String ORG_CANNOT_BE_DELETED_INFO   = null;
 
 
     //
@@ -62,6 +66,7 @@ public final class ErrorCodes {
     public static final int CONTRACT_ALREADY_EXISTS         = 4005;
     public static final int APP_STATUS_ERROR                = 4006;
     public static final int APP_VERSION_ALREADY_EXISTS      = 4007;
+    public static final int CONTRACT_ALREADY_REQUESTED      = 4008;
 
     public static final String APP_ALREADY_EXISTS_INFO      = null;
     public static final String APP_NOT_FOUND_INFO           = null;
@@ -81,6 +86,8 @@ public final class ErrorCodes {
     public static final int SERVICE_STATUS_ERROR                = 5004;
     public static final int SERVICE_DEFINITION_NOT_FOUND        = 5005;
     public static final int SERVICE_VERSION_ALREADY_EXISTS      = 5006;
+    public static final int SERVICE_STILL_HAS_CONTRACTS         = 5009;
+    public static final int SERVICE_BASEPATH_ALREADY_EXISTS     = 5010;
 
     public static final String SERVICE_ALREADY_EXISTS_INFO      = null;
     public static final String SERVICE_NOT_FOUND_INFO           = null;
@@ -97,11 +104,13 @@ public final class ErrorCodes {
     public static final int PLAN_NOT_FOUND                   = 6002;
     public static final int PLAN_VERSION_NOT_FOUND           = 6003;
     public static final int PLAN_VERSION_ALREADY_EXISTS      = 6004;
+    public static final int PLAN_CANNOT_BE_DELETED           = 6005;
 
     public static final String PLAN_ALREADY_EXISTS_INFO      = null;
     public static final String PLAN_NOT_FOUND_INFO           = null;
     public static final String PLAN_VERSION_NOT_FOUND_INFO   = null;
     public static final String PLAN_VERSION_ALREADY_EXISTS_INFO = null;
+    public static final String PLAN_CANNOT_BE_DELETED_INFO   = null;
 
     //
     // Member API related
@@ -123,6 +132,7 @@ public final class ErrorCodes {
     //
     // Policy related
     //
+    public static final int POLICY_INVALID                    = 9000;
     public static final int POLICY_NOT_FOUND                  = 9001;
 
     public static final String POLICY_NOT_FOUND_INFO          = null;
@@ -166,6 +176,7 @@ public final class ErrorCodes {
     // Metrics related
     //
     public static final int METRIC_CRITERIA_INVALID            = 13001;
+    public static final int METRIC_UNAVAILABLE                 = 13003;
 
     public static final String METRIC_CRITERIA_INVALID_INFO    = null;
 
@@ -181,4 +192,23 @@ public final class ErrorCodes {
     public static final String NAME_INVALID_INFO            = null;
     public static final String VERSION_INVALID_INFO         = null;
 
+    //
+    // Scope errors
+    //
+
+    public static final int SCOPE_NOT_FOUND                 = 15002;
+
+    //
+    // Event errors
+    //
+
+    public static final int EVENT_ERROR                     = 16001;
+    public static final int EVENT_NOT_FOUND_ERROR           = 16004;
+    public static final int EVENT_INVALID_STATUS_ERROR      = 16006;
+
+    //
+    // Cache related
+    //
+
+    public static final int CACHING_ERROR             = 17001;
 }

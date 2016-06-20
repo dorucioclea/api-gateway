@@ -6,6 +6,6 @@ package com.t1t.digipolis.apim.beans.policies;
  */
 public enum PolicyType {
 
-    Application, Plan, Service
+    Application, Plan, Service, Marketplace, Consent
     
 }

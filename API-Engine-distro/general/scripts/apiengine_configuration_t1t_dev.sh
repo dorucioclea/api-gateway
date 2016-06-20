@@ -28,19 +28,23 @@ curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins \
 
 #create marketplace consumer, username should be unique
 curl -X POST http://devapim.t1t.be:8001/consumers \
-    --data "username=marketplace.v1"
+    --data "username=all.marketplace.v1"
 curl -X POST http://devapim.t1t.be:8001/consumers \
     --data "username=int.marketplace.v1"
 curl -X POST http://devapim.t1t.be:8001/consumers \
     --data "username=ext.marketplace.v1"
+curl -X POST http://devapim.t1t.be:8001/consumers \
+    --data "username=acpaas.consent_app_nodejs.v1"
 
 #enable keyauth for marketplace and return API key, result should be captured and is the API key for the given consumer
-curl -X POST http://devapim.t1t.be:8001/consumers/marketplace.v1/key-auth \
+curl -X POST http://devapim.t1t.be:8001/consumers/all.marketplace.v1/key-auth \
     --data "key=6b8406cc81fe4ca3cc9cd4a0abfb97c2"
 curl -X POST http://devapim.t1t.be:8001/consumers/int.marketplace.v1/key-auth \
     --data "key=***REMOVED***"
 curl -X POST http://devapim.t1t.be:8001/consumers/ext.marketplace.v1/key-auth \
     --data "key=***REMOVED***"
+curl -X POST http://devapim.t1t.be:8001/consumers/acpaas.consent_app_nodejs.v1/key-auth \
+    --data "key=229e2ea08ba94919c9d221cdf3be1124"
 
 #create publisher consumer
 curl -X POST http://devapim.t1t.be:8001/consumers \

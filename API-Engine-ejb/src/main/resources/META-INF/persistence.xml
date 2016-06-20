@@ -48,6 +48,8 @@
         <class>com.t1t.digipolis.apim.beans.availability.AvailabilityBean</class>
         <class>com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean</class>
         <class>com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean</class>
+        <class>com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean</class>
+        <class>com.t1t.digipolis.apim.beans.events.EventBean</class>
         <properties>
             <!-- Properties for Hibernate -->
             <property name="hibernate.hbm2ddl.auto" value="validate"/> <!--validate | update | create | create-drop-->

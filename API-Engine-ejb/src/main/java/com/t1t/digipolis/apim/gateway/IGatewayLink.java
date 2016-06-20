@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.gateway;
 
+import com.t1t.digipolis.apim.beans.gateways.Gateway;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.gateway.dto.Application;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
@@ -9,6 +11,8 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
@@ -23,7 +27,10 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import org.elasticsearch.gateway.GatewayException;
 
+import java.util.List;
 import java.util.function.Consumer;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
 
 /**
  * Links the design time API with a Gateway.  This allows the design time API
@@ -40,12 +47,63 @@ public interface IGatewayLink {
     public SystemStatus getStatus() throws GatewayAuthenticationException;
 
     /**
+     * Sets the OAuth2 expiration time for tokens issues on the gateway's central oauth endpoints.
+     *
+     * @param exirationTimeInSeconds
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+    public void updateCentralOAuthTokenExpirationTime(Integer exirationTimeInSeconds) throws PublishingException, GatewayAuthenticationException;
+
+    /**
+     * Creates an ACL plugin for given service.
+     *
+     * @param service
+     * @return
+     */
+    public KongPluginConfig createACLPlugin(Service service);
+
+    /**
+     * Returns the central OAuth expiration time value.
+     *
+     * @return
+     * @throws GatewayAuthenticationException
+     */
+    public Integer getCentralOAuthTokenExpirationTime() throws GatewayAuthenticationException;
+
+    /**
      * Publishes a new {@link Service}.
      * @param service the service being published
      * @throws PublishingException when unable to publish service
      * @throws GatewayAuthenticationException when unable to authenticate with gateway  
      */
     public void publishService(Service service) throws PublishingException, GatewayAuthenticationException;
+
+    /**
+     * Published a centralized OAuth authorization and token endpoint for a gateway.
+     *
+     * @param gateway
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+    public void publishGatewayOAuthEndpoint(Gateway gateway)throws PublishingException, GatewayAuthenticationException;
+
+    /**
+     * Add the OAuth scopes enabled on the api to the centralized OAuth endpoints.
+     *
+     * @param serviceId
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+    public void addGatewayOAuthScopes(String serviceId)throws PublishingException, GatewayAuthenticationException;
+
+    /**
+     * Removes the OAuth scopes from the given api (oauth policies) on the central oauth api
+     * @param serviceId
+     * @throws PublishingException
+     * @throws GatewayAuthenticationException
+     */
+    public void removeGatewayOAuthscopes(String serviceId) throws PublishingException, GatewayAuthenticationException;
 
     /**
      * Retires (removes) a {@link Service} from the registry.
@@ -155,6 +213,16 @@ public interface IGatewayLink {
      * @throws ConsumerAlreadyExistsException
      */
     public KongConsumer createConsumer(String userId, String customId) throws ConsumerAlreadyExistsException;
+
+    /**
+     * Create a new consumer, with given Kong id (Kong will not generate Id; you must be sure that the id is unique.
+     *
+     * @param kongId
+     * @param customId
+     * @return
+     * @throws ConsumerAlreadyExistsException
+     */
+    public KongConsumer createConsumerWithKongId(String kongId, String customId) throws ConsumerAlreadyExistsException;
 
     /**
      * Adds key auth to a consumer, generating a new API Key.
@@ -284,7 +352,7 @@ public interface IGatewayLink {
      * @param pluginId
      * @return
      */
-    public KongPluginConfig getServicePlugin(String serviceId, String pluginId);
+    public KongPluginConfigList getServicePlugin(String serviceId, String pluginId);
 
     /**
      * Updates a given plugin for a service.
@@ -294,5 +362,44 @@ public interface IGatewayLink {
      * @return
      */
     public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config);
-    
+
+    /**
+     * Adds a consumer to a service ACL
+     *
+     * @param consumerId
+     * @param serviceId
+     * @return
+     */
+    public KongPluginACLResponse addConsumerToACL(String consumerId, String serviceId);
+
+    /**
+     * Remove a consumer from a service's ACL
+     * @param consumerId
+     * @param pluginId
+     */
+    public void deleteConsumerACLPlugin(String consumerId, String pluginId);
+
+    /**
+     * Get a list of consumers
+     * @return KongConsumerList
+     */
+    public KongConsumerList getConsumers();
+
+    /**
+     * Update or create a consumer
+     * @param consumer
+     * @return
+     */
+    public KongConsumer updateOrCreateConsumer(KongConsumer consumer);
+
+    /**
+     * update an API's upstream URL
+     *
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @param upstreamURL
+     * @return KongApi
+     */
+    public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL);
 }

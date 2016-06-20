@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
@@ -64,6 +65,9 @@ public interface ISearchResource {
     public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria)
             throws OrganizationNotFoundException, InvalidSearchCriteriaException;
 
+    public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria)
+            throws OrganizationNotFoundException, InvalidSearchCriteriaException;
+
     /**
      * Use this endpoint to search for all services with given status.
      *
@@ -71,7 +75,7 @@ public interface ISearchResource {
      * @return The list of services with the given status.
      * @summary Search for Services with a specific status
      */
-    public List<ServiceVersionBean> searchServicesByLifecycle(ServiceStatus status);
+    public List<ServiceVersionWithMarketInfoBean> searchServicesByLifecycle(ServiceStatus status);
 
     /**
      * Use this endpoint to search for all service categories. All categories are returned, also for unpublished service versions.
@@ -88,4 +92,5 @@ public interface ISearchResource {
      */
     public List<ServiceVersionBean> searchServiceVersionForCategories(CategorySearchBean searchBean);
 
+    public List<ServiceVersionWithMarketInfoBean> searchLatestServiceVersionForCategories(CategorySearchBean searchBean);
 }

@@ -1,10 +1,14 @@
 package com.t1t.digipolis.apim.rest.resources;
 
+import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
+import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -85,4 +89,19 @@ public interface ICurrentUserResource {
      */
     public List<ServiceSummaryBean> getServices();
 
+    public List<EventBean> getCurrentUserAllIncomingEvents();
+
+    public List<EventBean> getCurrentUserAllOutgoingEvents();
+
+    public <T> List<T> getCurrentUserOutgoingEventsByTypeAndStatus(String type);
+
+    public <T> List<T> getCurrentUsersIncomingEventsByTypeAndStatus(String type);
+
+    public void deleteEvent(Long id) throws com.t1t.digipolis.apim.exceptions.NotAuthorizedException, InvalidEventException, EventNotFoundException;
+
+    public List<EventAggregateBean> getAllNonActionEvents();
+
+    public List<EventAggregateBean> getAllActionEvents();
+
+    public void deleteAll();
 }

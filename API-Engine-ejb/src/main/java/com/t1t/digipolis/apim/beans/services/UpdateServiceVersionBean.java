@@ -26,6 +26,7 @@ public class UpdateServiceVersionBean implements Serializable {
     private String onlinedoc;
     private Set<ServicePlanBean> plans;
     private Set<VisibilityBean> visibility;
+    private Boolean autoAcceptContracts;
 
     /**
      * Constructor.
@@ -133,6 +134,14 @@ public class UpdateServiceVersionBean implements Serializable {
         this.endpointProperties = endpointProperties;
     }
 
+    public Boolean getAutoAcceptContracts() {
+        return autoAcceptContracts;
+    }
+
+    public void setAutoAcceptContracts(Boolean autoAcceptContracts) {
+        this.autoAcceptContracts = autoAcceptContracts;
+    }
+
     @Override
     public String toString() {
         return "UpdateServiceVersionBean{" +
@@ -144,6 +153,7 @@ public class UpdateServiceVersionBean implements Serializable {
                 ", onlinedoc='" + onlinedoc + '\'' +
                 ", plans=" + plans +
                 ", visibility=" + visibility +
+                ", autoAcceptContracts=" + autoAcceptContracts +
                 '}';
     }
 

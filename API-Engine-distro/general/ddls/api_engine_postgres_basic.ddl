@@ -12,7 +12,7 @@ CREATE TABLE applications (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT
 
 CREATE TABLE auditlog (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, data TEXT NULL, entity_id VARCHAR(255) NULL, entity_type VARCHAR(255) NOT NULL, entity_version VARCHAR(255) NULL, organization_id VARCHAR(255) NOT NULL, what VARCHAR(255) NOT NULL, who VARCHAR(255) NOT NULL);
 
-CREATE TABLE announcements (id BIGINT NOT NULL,organization_id VARCHAR(255) NOT NULL, service_id VARCHAR(255) NOT NULL, title VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, description TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL);
+CREATE TABLE announcements (id BIGINT NOT NULL,organization_id VARCHAR(255) NOT NULL, service_id VARCHAR(255) NOT NULL, title VARCHAR(255) NOT NULL, status VARCHAR(255), description TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL);
 
 CREATE TABLE support (id BIGINT NOT NULL,organization_id VARCHAR(255) NOT NULL, service_id VARCHAR(255) NOT NULL, title VARCHAR(255) NOT NULL,status VARCHAR(255) NOT NULL, description TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL, total_comments INT);
 
@@ -22,19 +22,21 @@ CREATE TABLE contracts (id BIGINT NOT NULL, apikey VARCHAR(255) NOT NULL, create
 
 CREATE TABLE endpoint_properties (service_version_id BIGINT NOT NULL, value VARCHAR(255) NULL, name VARCHAR(255) NOT NULL);
 
-CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL);
+CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, oauth_token VARCHAR(255) NULL,oauth_authorize VARCHAR(255) NULL, oauth_context VARCHAR(255) NULL, jwt_exp_time INT NULL DEFAULT 7200);
 
 CREATE TABLE memberships (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NULL, org_id VARCHAR(255) NULL, role_id VARCHAR(255) NULL, user_id VARCHAR(255) NULL);
 
-CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL);
+CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, friendly_name VARCHAR(255) NULL, private BOOL DEFAULT TRUE);
 
 CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 
-CREATE TABLE availabilities (code VARCHAR(3) NOT NULL, name VARCHAR(255) NOT NULL);
+CREATE TABLE availabilities (code VARCHAR(25) NOT NULL, name VARCHAR(255) NOT NULL);
 
 CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
 
 CREATE TABLE black_ip_restriction (netw_value VARCHAR(255));
+
+CREATE TABLE managed_applications (id BIGINT NOT NULL, name VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, gateway_id VARCHAR(255) NULL, type VARCHAR(255) NULL, availability VARCHAR(255) NULL, gateway_username VARCHAR(255) NULL, api_key VARCHAR(255) NULL);
 
 CREATE TABLE plan_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, locked_on TIMESTAMP WITHOUT TIME ZONE NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, plan_id VARCHAR(255) NULL, plan_org_id VARCHAR(255) NULL);
 
@@ -42,7 +44,7 @@ CREATE TABLE plans (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, 
 
 CREATE TABLE plugins (id BIGINT NOT NULL, artifact_id VARCHAR(255) NOT NULL, classifier VARCHAR(255) NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, group_id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NULL, version VARCHAR(255) NOT NULL);
 
-CREATE TABLE policies (id BIGINT NOT NULL, configuration TEXT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, entity_id VARCHAR(255) NOT NULL, entity_version VARCHAR(255) NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, order_index INT NOT NULL, organization_id VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, definition_id VARCHAR(255) NOT NULL);
+CREATE TABLE policies (id BIGINT NOT NULL, configuration TEXT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, entity_id VARCHAR(255) NOT NULL, entity_version VARCHAR(255) NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, order_index INT NOT NULL, organization_id VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, definition_id VARCHAR(255) NOT NULL, kong_plugin_id VARCHAR(255) NULL, contract_id BIGINT NULL);
 
 CREATE TABLE oauth_apps (id BIGINT NOT NULL, oauth_svc_orgid VARCHAR(255) NOT NULL, oauth_svc_id VARCHAR(255) NOT NULL,oauth_svc_version VARCHAR(255) NOT NULL,oauth_client_id VARCHAR(255) NOT NULL,oauth_client_secret VARCHAR(255) NOT NULL,oauth_client_redirect VARCHAR(255),app_id BIGINT NOT NULL);
 
@@ -52,7 +54,7 @@ CREATE TABLE roles (id VARCHAR(255) NOT NULL, auto_grant BOOLEAN NULL, created_b
 
 CREATE TABLE service_defs (id BIGINT NOT NULL, data OID, service_version_id BIGINT NULL);
 
-CREATE TABLE service_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, definition_type VARCHAR(255) NULL, endpoint VARCHAR(255) NULL, endpoint_type VARCHAR(255) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, public_service BOOLEAN NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NULL, service_id VARCHAR(255) NULL, service_org_id VARCHAR(255) NULL, provision_key VARCHAR(255), onlinedoc VARCHAR(255));
+CREATE TABLE service_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, definition_type VARCHAR(255) NULL, endpoint VARCHAR(255) NULL, endpoint_type VARCHAR(255) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, public_service BOOLEAN NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, deprecated_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NULL, service_id VARCHAR(255) NULL, service_org_id VARCHAR(255) NULL, provision_key VARCHAR(255), onlinedoc VARCHAR(255), auto_accept_contracts BOOL DEFAULT TRUE);
 
 CREATE TABLE services (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, name VARCHAR(255) NOT NULL, basepath VARCHAR(255) NOT NULL, organization_id VARCHAR(255) NOT NULL,terms TEXT , logo OID);
 
@@ -65,6 +67,14 @@ CREATE TABLE svc_visibility (service_version_id BIGINT NOT NULL, code VARCHAR(25
 CREATE TABLE users (username VARCHAR(255) NOT NULL, kong_username VARCHAR(255), email VARCHAR(255) NULL, full_name VARCHAR(255) NULL, joined_on TIMESTAMP WITHOUT TIME ZONE NULL, admin BOOL DEFAULT FALSE,company VARCHAR(255),location VARCHAR(255),website VARCHAR(255),bio TEXT, pic OID );
 
 CREATE TABLE followers (ServiceBean_id VARCHAR(255) NOT NULL, ServiceBean_organization_id VARCHAR(255) NOT NULL, user_id VARCHAR(255) NOT NULL);
+
+CREATE TABLE events (id BIGINT NOT NULL, origin_id VARCHAR(255) NOT NULL, destination_id VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, body VARCHAR(4096));
+
+CREATE TABLE mail_templates (topic VARCHAR(255) NOT NULL,content TEXT NULL,subject TEXT NULL, created_on TIMESTAMP NULL,updated_on TIMESTAMP NULL) WITHOUT OIDS;
+
+ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic);
+
+ALTER TABLE events ADD PRIMARY KEY (id);
 
 ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_id,user_id);
 
@@ -124,39 +134,47 @@ ALTER TABLE support ADD PRIMARY KEY (id);
 
 ALTER TABLE support_comments ADD PRIMARY KEY (id);
 
-ALTER TABLE services ADD CONSTRAINT FK_31hj3xmhp1wedxjh5bklnlg15 FOREIGN KEY (organization_id) REFERENCES organizations (id);
+ALTER TABLE managed_applications ADD PRIMARY KEY (id);
 
-ALTER TABLE contracts ADD CONSTRAINT FK_6h06sgs4dudh1wehmk0us973g FOREIGN KEY (appv_id) REFERENCES application_versions (id);
+ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk5 FOREIGN KEY (gateway_id) REFERENCES gateways (id) ON UPDATE CASCADE;
 
-ALTER TABLE service_defs ADD CONSTRAINT FK_81fuw1n8afmvpw4buk7l4tyxk FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk6 FOREIGN KEY (availability) REFERENCES availabilities (code) ON UPDATE CASCADE;
 
-ALTER TABLE application_versions ADD CONSTRAINT FK_8epnoby31bt7xakegakigpikp FOREIGN KEY (app_id, app_org_id) REFERENCES applications (id, organization_id);
+ALTER TABLE services ADD CONSTRAINT FK_31hj3xmhp1wedxjh5bklnlg15 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 
-ALTER TABLE contracts ADD CONSTRAINT FK_8o6t1f3kg96rxy5uv51f6k9fy FOREIGN KEY (svcv_id) REFERENCES service_versions (id);
+ALTER TABLE contracts ADD CONSTRAINT FK_6h06sgs4dudh1wehmk0us973g FOREIGN KEY (appv_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE service_versions ADD CONSTRAINT FK_92erjg9k1lni97gd87nt6tq37 FOREIGN KEY (service_id, service_org_id) REFERENCES services (id, organization_id);
+ALTER TABLE service_defs ADD CONSTRAINT FK_81fuw1n8afmvpw4buk7l4tyxk FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE endpoint_properties ADD CONSTRAINT FK_gn0ydqur10sxuvpyw2jvv4xxb FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+ALTER TABLE application_versions ADD CONSTRAINT FK_8epnoby31bt7xakegakigpikp FOREIGN KEY (app_id, app_org_id) REFERENCES applications (id, organization_id) ON UPDATE CASCADE;
 
-ALTER TABLE applications ADD CONSTRAINT FK_jenpu34rtuncsgvtw0sfo8qq9 FOREIGN KEY (organization_id) REFERENCES organizations (id);
+ALTER TABLE contracts ADD CONSTRAINT FK_8o6t1f3kg96rxy5uv51f6k9fy FOREIGN KEY (svcv_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE policies ADD CONSTRAINT FK_l4q6we1bos1yl9unmogei6aja FOREIGN KEY (definition_id) REFERENCES policydefs (id);
+ALTER TABLE service_versions ADD CONSTRAINT FK_92erjg9k1lni97gd87nt6tq37 FOREIGN KEY (service_id, service_org_id) REFERENCES services (id, organization_id) ON UPDATE CASCADE;
 
-ALTER TABLE oauth_apps ADD CONSTRAINT FK_l5q6we1bos1yl98nmogei7aja FOREIGN KEY (app_id) REFERENCES application_versions (id);
+ALTER TABLE endpoint_properties ADD CONSTRAINT FK_gn0ydqur10sxuvpyw2jvv4xxb FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE plans ADD CONSTRAINT FK_lwhc7xrdbsun1ak2uvfu0prj8 FOREIGN KEY (organization_id) REFERENCES organizations (id);
+ALTER TABLE applications ADD CONSTRAINT FK_jenpu34rtuncsgvtw0sfo8qq9 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 
-ALTER TABLE contracts ADD CONSTRAINT FK_nyw8xu6m8cx4rwwbtrxbjneui FOREIGN KEY (planv_id) REFERENCES plan_versions (id);
+ALTER TABLE policies ADD CONSTRAINT FK_l4q6we1bos1yl9unmogei6aja FOREIGN KEY (definition_id) REFERENCES policydefs (id) ON UPDATE CASCADE;
 
-ALTER TABLE svc_gateways ADD CONSTRAINT FK_p5dm3cngljt6yrsnvc7uc6a75 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+ALTER TABLE oauth_apps ADD CONSTRAINT FK_l5q6we1bos1yl98nmogei7aja FOREIGN KEY (app_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE permissions ADD CONSTRAINT FK_sq51ihfrapwdr98uufenhcocg FOREIGN KEY (role_id) REFERENCES roles (id);
+ALTER TABLE plans ADD CONSTRAINT FK_lwhc7xrdbsun1ak2uvfu0prj8 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 
-ALTER TABLE svc_plans ADD CONSTRAINT FK_t7uvfcsswopb9kh8wpa86blqr FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+ALTER TABLE contracts ADD CONSTRAINT FK_nyw8xu6m8cx4rwwbtrxbjneui FOREIGN KEY (planv_id) REFERENCES plan_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+ALTER TABLE svc_gateways ADD CONSTRAINT FK_p5dm3cngljt6yrsnvc7uc6a75 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE plan_versions ADD CONSTRAINT FK_tonylvm2ypnq3efxqr1g0m9fs FOREIGN KEY (plan_id, plan_org_id) REFERENCES plans (id, organization_id);
+ALTER TABLE permissions ADD CONSTRAINT FK_sq51ihfrapwdr98uufenhcocg FOREIGN KEY (role_id) REFERENCES roles (id) ON UPDATE CASCADE;
+
+ALTER TABLE svc_plans ADD CONSTRAINT FK_t7uvfcsswopb9kh8wpa86blqr FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+
+ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+
+ALTER TABLE plan_versions ADD CONSTRAINT FK_tonylvm2ypnq3efxqr1g0m9fs FOREIGN KEY (plan_id, plan_org_id) REFERENCES plans (id, organization_id) ON UPDATE CASCADE;
+
+ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id) ON UPDATE CASCADE;
 
 ALTER TABLE plugins ADD CONSTRAINT UK_plugins_1 UNIQUE (group_id, artifact_id);
 
@@ -172,7 +190,9 @@ ALTER TABLE service_defs ADD CONSTRAINT UK_service_defs_1 UNIQUE (service_versio
 
 ALTER TABLE contracts ADD CONSTRAINT UK_contracts_1 UNIQUE (appv_id, svcv_id, planv_id);
 
-ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id);
+ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
+
+ALTER TABLE events ADD CONSTRAINT UK_events_1 UNIQUE (origin_id, destination_id, type);
 
 CREATE INDEX IDX_auditlog_1 ON auditlog(who);
 
@@ -369,7 +389,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "title": "Max age",
       "type": "number",
       "description": "Indicated how long the results of the preflight request can be cached, in seconds.",
-      "default": 3600
+      "default": 3600,
+      "minimum": 1
     },
     "preflight_continue": {
       "title": "Preflight continue",
@@ -466,7 +487,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "title": "Token expiration",
       "type": "number",
       "default": 7200,
-      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration."
+      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration.",
+      "minimum": 0
     },
     "enable_authorization_code": {
       "title": "Enable Authorization Code Grant",
@@ -805,3 +827,19 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "claims_to_verify"
   ]
 }', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
+  "type": "object",
+  "title": "ACL",
+  "properties": {
+    "group": {
+      "title": "ACL group name",
+      "description":"Name of the ACL group belonging to the service",
+      "type": "string",
+      "required": true
+    }
+  },
+  "required": [
+    "group"
+  ]
+}', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );

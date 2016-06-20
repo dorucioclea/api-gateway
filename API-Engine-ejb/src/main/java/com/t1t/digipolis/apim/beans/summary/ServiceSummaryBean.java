@@ -11,7 +11,7 @@ import java.util.Date;
  *
  */
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class ServiceSummaryBean implements Serializable {
+public class ServiceSummaryBean implements Serializable, Comparable<ServiceSummaryBean> {
 
     private static final long serialVersionUID = -4213543715123177461L;
 
@@ -160,4 +160,18 @@ public class ServiceSummaryBean implements Serializable {
                 + ", createdOn=" + createdOn + "]";
     }
 
+    @Override
+    public int compareTo(ServiceSummaryBean o) {
+        int returnValue = 0;
+        if (this.equals(o)) returnValue = 0;
+        if (this.getId() != null && o.getId() != null) {
+            returnValue = this.getId().compareTo(o.getId());
+        }
+        else {
+            if (this.getOrganizationId() != null && o.getOrganizationId() != null) {
+                returnValue = this.getOrganizationId().compareTo(o.getOrganizationId());
+            }
+        }
+        return returnValue;
+    }
 }

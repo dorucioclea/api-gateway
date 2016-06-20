@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
+import org.opensaml.xml.encryption.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,8 +201,24 @@ public abstract class AbstractJpaStorage {
             }
         }
         //get all service verisons with parent id
-        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.service IN :services AND e.status LIKE :status").setParameter("services",filteredServices).setParameter("status",ServiceStatus.Published);
+        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.service IN :services AND e.status = :status").setParameter("services",filteredServices).setParameter("status",ServiceStatus.Published);
         return (List<ServiceVersionBean>) query.getResultList();
+    }
+
+    protected List<ServiceVersionBean> findLatestPublishedServiceVersionsInCategory(List<String> categories) throws StorageException {
+        List<ServiceBean> services = findAllServiceDefinitions();
+        List<ServiceBean> filteredServices = new ArrayList<>();
+        for (ServiceBean service : services) {
+            for (String cat : categories) {
+                if (service.getCategories().contains(cat)) {
+                    filteredServices.add(service);
+                }
+            }
+        }
+        return em.createQuery("SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.service IN :services AND s2.status = :status GROUP BY s2.service)")
+                .setParameter("services", filteredServices)
+                .setParameter("status", ServiceStatus.Published)
+                .getResultList();
     }
 
     /**

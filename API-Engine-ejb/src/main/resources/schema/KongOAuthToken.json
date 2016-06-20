@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "scope": {
+      "id": "scope",
+      "type": "string"
+    },
+    "access_token": {
+      "id": "access_token",
+      "type": "string"
+    },
+    "authenticated_userid": {
+      "id": "authenticated_userid",
+      "type": "string"
+    },
+    "id": {
+      "id": "id",
+      "type": "string"
+    },
+    "token_type": {
+      "id": "token_type",
+      "type": "string"
+    },
+    "credential_id": {
+      "id": "credential_id",
+      "type": "string"
+    },
+    "created_at": {
+      "id": "created_at",
+      "type": "integer"
+    },
+    "expires_in": {
+      "id": "expires_in",
+      "type": "integer"
+    }
+  }
+}

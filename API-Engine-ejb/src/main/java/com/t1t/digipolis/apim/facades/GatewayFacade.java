@@ -131,7 +131,6 @@ public class GatewayFacade {
     public void update(String gatewayId, UpdateGatewayBean bean){
         try {
             Date now = new Date();
-
             GatewayBean gbean = storage.getGateway(gatewayId);
             if (gbean == null) {
                 throw ExceptionFactory.gatewayNotFoundException(gatewayId);
@@ -144,6 +143,8 @@ public class GatewayFacade {
                 gbean.setType(bean.getType());
             if (bean.getConfiguration() != null)
                 gbean.setConfiguration(bean.getConfiguration());
+            if (bean.getJwtExpTime() != null)
+                gbean.setJWTExpTime(bean.getJwtExpTime());
             //encryptPasswords(gbean);
             storage.updateGateway(gbean);
             log.debug(String.format("Successfully updated gateway %s: %s", gbean.getName(), gbean)); //$NON-NLS-1$
@@ -214,7 +215,9 @@ public class GatewayFacade {
      * @throws StorageException
      */
     public GatewaySummaryBean getDefaultGateway() throws StorageException {
-        return query.listGateways().get(0);
+        final List<GatewaySummaryBean> gatewaySummaryBeen = query.listGateways();
+        if(gatewaySummaryBeen!=null&&gatewaySummaryBeen.size()>0)return query.listGateways().get(0);
+        else return null;
     }
 
     /**

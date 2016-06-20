@@ -22,7 +22,7 @@
     <parent>
         <artifactId>API-Engine</artifactId>
         <groupId>com.t1t.digipolis</groupId>
-        <version>0.6.1-SNAPSHOT</version>
+        <version>0.7.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>API-Engine-ejb</artifactId>
@@ -74,7 +74,11 @@
             <artifactId>hibernate-entitymanager</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        <!--Mail API-->
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>javax.mail-api</artifactId>
+        </dependency>
         <!-- Test scope dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -307,6 +311,12 @@
             <version>${version.commons-codec}</version>
         </dependency>
 
+        <!--OAuth2 client-->
+        <dependency>
+            <groupId>com.github.scribejava</groupId>
+            <artifactId>scribejava-apis</artifactId>
+        </dependency>
+
         <!-- Arquillian allows you to test enterprise code such as EJBs and Transactional(JTA) JPA from JUnit/TestNG -->
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>
@@ -341,6 +351,17 @@
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-core</artifactId>
+        </dependency>
+
+        <!--Apache commons-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${version.org.apache.commons.commons-lang3}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
         </dependency>
 
     </dependencies>
@@ -393,6 +414,10 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongConsumerList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongInfo.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongInstalledPlugins.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginACL.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginACLRequest.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginACLResponse.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginACLResponseList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuth.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginConfig.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginConfigList.json</sourcePath>
@@ -424,6 +449,8 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponse.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponseList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongOAuthToken.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongOAuthTokenList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/MetricsUsage.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/MetricsUsageList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseStats.json</sourcePath>
@@ -442,6 +469,7 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWT.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUser.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUserList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongExtraInfo.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>
@@ -500,6 +528,12 @@
             <id>t1t-dev</id>
             <properties>
                 <appconfig.file>application-t1t-dev</appconfig.file>
+            </properties>
+        </profile>
+        <profile>
+            <id>t1t-acc</id>
+            <properties>
+                <appconfig.file>application-t1t-acc</appconfig.file>
             </properties>
         </profile>
         <profile>

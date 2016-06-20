@@ -13,10 +13,14 @@ public class OrganizationSummaryBean implements Serializable {
 
     private String id;
     private String name;
+    private String friendlyName;
     private String description;
+    private boolean organizationPrivate;
     private int numApps;
     private int numServices;
     private int numMembers;
+    private int numPlans;
+    private int numEvents;
 
     /**
      * Constructor.
@@ -101,11 +105,36 @@ public class OrganizationSummaryBean implements Serializable {
         return numMembers;
     }
 
-    /**
-     * @param numMembers the numMembers to set
-     */
-    public void setNumMembers(int numMembers) {
-        this.numMembers = numMembers;
+    public String getFriendlyName() {
+        return friendlyName;
+    }
+
+    public void setFriendlyName(String friendlyName) {
+        this.friendlyName = friendlyName;
+    }
+
+    public boolean isOrganizationPrivate() {
+        return organizationPrivate;
+    }
+
+    public void setOrganizationPrivate(boolean organizationPrivate) {
+        this.organizationPrivate = organizationPrivate;
+    }
+
+    public int getNumPlans() {
+        return numPlans;
+    }
+
+    public void setNumPlans(int numPlans) {
+        this.numPlans = numPlans;
+    }
+
+    public int getNumEvents() {
+        return numEvents;
+    }
+
+    public void setNumEvents(int numEvents) {
+        this.numEvents = numEvents;
     }
 
     /**
@@ -139,15 +168,22 @@ public class OrganizationSummaryBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    @SuppressWarnings("nls")
-    public String toString() {
-        return "OrganizationSummaryBean [id=" + id + ", name=" + name + ", description=" + description
-                + ", numApps=" + numApps + ", numServices=" + numServices + ", numMembers=" + numMembers
-                + "]";
+    public void setNumMembers(int numMembers) {
+        this.numMembers = numMembers;
     }
 
+    @Override
+    public String toString() {
+        return "OrganizationSummaryBean{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", friendlyName='" + friendlyName + '\'' +
+                ", description='" + description + '\'' +
+                ", organizationPrivate=" + organizationPrivate +
+                ", numApps=" + numApps +
+                ", numServices=" + numServices +
+                ", numEvents=" + numEvents +
+                ", numMembers=" + numMembers +
+                '}';
+    }
 }

@@ -5,7 +5,5 @@ package com.t1t.digipolis.apim.beans.gateways;
  *
  */
 public enum GatewayType {
-
     REST
-    
 }

@@ -6,16 +6,20 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.OrganizationNotFoundException;
 import com.t1t.digipolis.apim.facades.SearchFacade;
 import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
 import com.t1t.digipolis.apim.rest.resources.ISearchResource;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -39,6 +43,8 @@ public class SearchResource implements ISearchResource {
     IStorageQuery query;
     @Inject
     private SearchFacade searchFacade;
+    @Inject
+    private ISecurityContext securityContext;
 
     /**
      * Constructor.
@@ -61,7 +67,7 @@ public class SearchResource implements ISearchResource {
         return searchFacade.searchOrgs(criteria);
     }
 
-    @ApiOperation(value = "Search for Organizations",
+    @ApiOperation(value = "Search for Applications",
             notes = "Use this endpoint to search for applications.  The search criteria is provided in the body of the request, including filters, order-by, and paging information.")
     @ApiResponses({
             @ApiResponse(code = 200, response = SearchResultsBean.class, message = "The search results (a page of applications).")
@@ -99,7 +105,7 @@ public class SearchResource implements ISearchResource {
     @Path("/services/{status}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ServiceVersionBean> searchServicesByLifecycle(@PathParam("status") ServiceStatus status) {
+    public List<ServiceVersionWithMarketInfoBean> searchServicesByLifecycle(@PathParam("status") ServiceStatus status) {
         Preconditions.checkNotNull(status);
         return searchFacade.searchServicesByStatus(status);
     }
@@ -117,8 +123,8 @@ public class SearchResource implements ISearchResource {
         return searchFacade.searchCategories();
     }
 
-    @ApiOperation(value = "Search for all used service categories",
-            notes = "Use this endpoint to search for all service categories. All categories are returned, also for unpublished service versions.")
+    @ApiOperation(value = "Search for all published service categories",
+            notes = "Use this endpoint to search for published service categories. Only categories containing published services are returned.")
     @ApiResponses({
             @ApiResponse(code = 200, responseContainer = "List", response = String.class, message = "If the search is successful.")
     })
@@ -143,5 +149,46 @@ public class SearchResource implements ISearchResource {
         return searchFacade.searchServicesPublishedInCategories(catSearch.getCategories());
     }
 
+    @Override
+    @ApiOperation(value = "Search for latest Service versions within given category list",
+            notes = "Use this endpoint to search for the latest PUBLISHED service versions, having a category defined in the given category list.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionWithMarketInfoBean.class, message = "If the search is successful.")
+    })
+    @POST
+    @Path("/services/versions/latest/categories")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceVersionWithMarketInfoBean> searchLatestServiceVersionForCategories(CategorySearchBean searchBean) {
+        return searchFacade.searchLatestPublishedServiceVersionsInCategory(searchBean.getCategories());
+    }
 
+    @ApiOperation(value = "Search through the latest service versions",
+            notes = "Use this endpoint to search for service versions with the latest creation date")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = SearchResultsBean.class, message = "If the search is successful.")
+    })
+    @POST
+    @Path("/services/versions/latest")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria) throws OrganizationNotFoundException, InvalidSearchCriteriaException {
+        return searchFacade.searchLatestServiceVersions(criteria);
+    }
+
+    @ApiOperation(value = "Search for an application by API key",
+                 notes = "Use this endpoint to search for an application version that makes use of a specified API key. You need administrator priviledges to consult this endpoint")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApplicationVersionSummaryBean.class, message = "If the search is successful.")
+    })
+    @GET
+    @Path("/applications/{apiKey}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApplicationVersionSummaryBean resolveApiKey(@PathParam("apiKey") String apikey) {
+        if (!securityContext.isAdmin()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        return searchFacade.resolveApiKey(apikey);
+    }
 }

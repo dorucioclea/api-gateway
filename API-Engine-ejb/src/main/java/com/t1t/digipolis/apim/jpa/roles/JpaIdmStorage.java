@@ -116,8 +116,10 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
     @Override
     public UserBean getUserByMail(String mail) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        Query query = entityManager.createQuery("SELECT from UserBean u WHERE u.email = :mail").setParameter("mail", mail);
-        return (UserBean) query.getResultList();
+        Query query = entityManager.createQuery("SELECT u from UserBean u WHERE u.email = :mail").setParameter("mail", mail);
+        final List<UserBean> resultList = query.getResultList();
+        if(resultList.size()>0) return resultList.get(0);
+        else return null;
     }
 
     /**

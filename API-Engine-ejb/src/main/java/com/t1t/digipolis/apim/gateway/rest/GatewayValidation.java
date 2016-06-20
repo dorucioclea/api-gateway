@@ -4,9 +4,12 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
+import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginJWT;
@@ -26,14 +29,18 @@ import com.t1t.digipolis.kong.model.KongPluginResponseTransformerAdd;
 import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
 import com.t1t.digipolis.kong.model.KongPluginTcpLog;
 import com.t1t.digipolis.kong.model.KongPluginUdpLog;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import static com.t1t.digipolis.apim.beans.policies.Policies.BASICAUTHENTICATION;
+import static com.t1t.digipolis.apim.beans.policies.Policies.CORS;
+import static org.jgroups.Version.description;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -41,8 +48,8 @@ import java.util.UUID;
 public class GatewayValidation {
     private static Logger _LOG = LoggerFactory.getLogger(GatewayValidation.class.getName());
     private static String environment;
-    @Inject
-    private AppConfig config;
+    private static final String OAUTH_SCOPE_CONCAT = ".";
+    @Inject private AppConfig config;
     {
         environment = "";
         if(config!=null){
@@ -50,7 +57,7 @@ public class GatewayValidation {
         }
     }
 
-    public static Policy validate(Policy policy) throws PolicyViolationException{
+   public static Policy validate(Policy policy, String... optionalPrefixId) throws PolicyViolationException{
         _LOG.debug("Valdiate policy:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
@@ -64,7 +71,9 @@ public class GatewayValidation {
             case TCPLOG: return validateTCPLog(policy);
             case IPRESTRICTION: return validateIPRestriction(policy);
             case KEYAUTHENTICATION: return validateKeyAuth(policy);
-            case OAUTH2: return validateOAuth(policy);
+            case OAUTH2:
+                Policy pol = validateOAuth(policy,(optionalPrefixId.length>0?optionalPrefixId[0]:null));
+                return pol;
             case RATELIMITING: return validateRateLimiting(policy);
             case REQUESTSIZELIMITING: return validateRequestSizeLimiting(policy);
             case REQUESTTRANSFORMER: return validateRequestTransformer(policy);
@@ -72,8 +81,18 @@ public class GatewayValidation {
             case SSL: return validateSSL(policy);
             case ANALYTICS: return validateAnalytics(policy);
             case JWT: return validateJWT(policy);
+            case ACL: return validateACL(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
+    }
+
+    private static Policy validateACL(Policy policy) {
+        Gson gson = new Gson();
+        String group = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginACLResponse.class).getGroup();
+        Policy pol = new Policy();
+        pol.setPolicyImpl(policy.getPolicyImpl());
+        pol.setPolicyJsonConfig(gson.toJson(new KongPluginACLResponse().withGroup(group)));
+        return pol;
     }
 
     private static Policy validateJWT(Policy policy) {
@@ -95,18 +114,35 @@ public class GatewayValidation {
 
     /**
      * OAuth is a special case, we want to keep the scopes until the gateway applies the policy.
+     * Gateway supports a central oauth context path, in order to distinguish oauth scopes, a prefix is added implicitly
      *
      * @param policy
      * @return
      */
-    public static synchronized Policy validateOAuth(Policy policy){
+    public static synchronized Policy validateOAuth(Policy policy, String optionalPrefixId){
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
-        if(oauthValue.getScopes().size()==0)throw new PolicyViolationException("Scopes/scopes description must be provided in order to apply OAuth2");
+        List<KongPluginOAuthScope> scopes = oauthValue.getScopes();
+        List<KongPluginOAuthScope> responseScopes = new ArrayList<>();
+        for (KongPluginOAuthScope scope : scopes) {
+            if (!StringUtils.isEmpty(scope.getScope())) {
+                //add prefix
+                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope());
+                if (StringUtils.isEmpty(scope.getScopeDesc())) scope.setScopeDesc(scope.getScope());
+                responseScopes.add(scope);
+            }
+        }
+        //Allow empty scopes if scopes aren't mandatory
+        if (responseScopes.isEmpty() && oauthValue.getMandatoryScope()) {
+            throw ExceptionFactory.invalidPolicyException("If \"Mandatory Scopes\" is checked, at least one scope/scope description must be provided in order to apply OAuth2");
+        }
         //create custom provisionkey - explicitly
+        oauthValue.setScopes(responseScopes);
         oauthValue.setProvisionKey(UUID.randomUUID().toString());
-        _LOG.debug("Modified policy:{}",policy);
-        return policy;
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(oauthValue,KongPluginOAuth.class));
+        return responsePolicy;
     }
 
     /**
@@ -138,7 +174,6 @@ public class GatewayValidation {
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
-        _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }
 
@@ -240,6 +275,10 @@ public class GatewayValidation {
         req.getExposedHeaders().stream().forEach(val -> {if (!StringUtils.isEmpty(val)) res.getExposedHeaders().add(val);});
         req.getHeaders().stream().forEach(val->{if(!StringUtils.isEmpty(val))res.getHeaders().add(val);});
         req.getMethods().stream().forEach(val->{if(val!=null)res.getMethods().add(val);});
+        res.setCredentials(req.getCredentials());
+        res.setMaxAge(req.getMaxAge() == 0 ? 3600 : req.getMaxAge());
+        res.setPreflightContinue(req.getPreflightContinue());
+        res.setOrigin(req.getOrigin());
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
@@ -282,15 +321,19 @@ public class GatewayValidation {
     public static synchronized Policy validateIPRestriction(Policy policy){
         Gson gson = new Gson();
         KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginIPRestriction.class);
+        //Validate lists prior to checking if empty
+        req.setBlacklist(validateIPList(req.getBlacklist()));
+        req.setWhitelist(validateIPList(req.getWhitelist()));
         //if lists empty -> error
         if(isEmptyList(req.getBlacklist())&&isEmptyList(req.getWhitelist()))throw new PolicyDefinitionInvalidException("At least one value should be provided.");
         if(isNotEmptyList(req.getBlacklist())&& isNotEmptyList(req.getWhitelist()))throw new PolicyDefinitionInvalidException("You cannot provide both blacklist and whitelist values.");
         // check for duplicate values
-        req.getBlacklist().stream().forEach(blackVal -> req.getWhitelist().stream().forEach(whiteVal -> {
+        // Don't need to check for conflicting whitelist/blacklist values because plugin only accepts one list
+        /*req.getBlacklist().stream().forEach(blackVal -> req.getWhitelist().stream().forEach(whiteVal -> {
             if (blackVal.equals(whiteVal)) {
                 throw new PolicyDefinitionInvalidException("Conflicting white/blacklist values: A value cannot be both on the whitelist and the blacklist");
             }
-        }));
+        }));*/
         KongPluginIPRestriction res = new KongPluginIPRestriction();
         res.setBlacklist(new ArrayList<>());
         res.setWhitelist(new ArrayList<>());
@@ -301,6 +344,14 @@ public class GatewayValidation {
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
         _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
+    }
+
+    private static synchronized List<String> validateIPList(List<String> list) {
+        Set<String> uniqueValues = new HashSet<>();
+        list.forEach(ip -> {
+            if (!StringUtils.isEmpty(ip) && isValidIp(ip)) uniqueValues.add(ip);
+        });
+        return new ArrayList<>(uniqueValues);
     }
 
     public static synchronized Policy validateKeyAuth(Policy policy){
@@ -358,5 +409,9 @@ public class GatewayValidation {
 
     private static boolean isNotEmptyList(List list){
         return list!=null && list.size()>0;
+    }
+
+    private static synchronized boolean isValidIp(String ip) {
+        return Pattern.compile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$").matcher(ip).find();
     }
 }

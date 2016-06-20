@@ -7,6 +7,14 @@
       "id": "key",
       "type": "string"
     },
+    "algorithm": {
+      "id": "algorithm",
+      "type": "string"
+    },
+    "rsa_public_key": {
+      "id": "rsa_public_key",
+      "type": "string"
+    },
     "secret": {
       "id": "secret",
       "type": "string"

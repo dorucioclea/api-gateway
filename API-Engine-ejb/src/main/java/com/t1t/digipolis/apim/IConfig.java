@@ -23,6 +23,7 @@ public interface IConfig {
     String METRICS_DNS = "apiapp.metrics.url";
     String METRICS_PORT = "apiapp.metrics.ports.default";
     String CONSENT_URI = "apiapp.oauth.consent_uri";
+    String OAUTH_ENABLE_GTW_ENDPOINTS = "apiapp.oauth.enable_shared_endpoints";
     String DEFAULT_USER_ORGANIZATION = "apiapp.defaults.orgId";
     String DEFAULT_USER_ROLES_FOR_DEFAULT_ORG = "apiapp.defaults.roles";
     String SECURITY_REST_RESORUCES = "apiapp.security.rest_resources";
@@ -43,4 +44,8 @@ public interface IConfig {
     String ANALYTICS_HOST = "apiapp.metrics.galileo.host";
     String ANALYTICS_PORT = "apiapp.metrics.galileo.port";
     String MARKETS_FILTER = "apiapp.marketplaces.filter";
+    String NOTIFICATION_ENABLE_DEBUG = "apiapp.notifications.enable_debug";
+    String NOTIFICATION_STARTUP_MAIL = "apiapp.notifications.startup_mail";
+    String NOTIFICATION_MAIL_FROM = "apiapp.notifications.mail_from";
+    String HYSTRIX_METRICS_TIMEOUT_VALUE = "apiapp.hystrix.metrics";
 }

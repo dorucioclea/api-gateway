@@ -371,4 +371,74 @@ public final class ExceptionFactory {
         return new InvalidVersionException(message);
     }
 
+    /**
+     * Creates an exception.
+     * @param message
+     * @return
+     */
+    public static final ServiceCannotDeleteException serviceCannotDeleteException(String message) {
+        return new ServiceCannotDeleteException(message);
+    }
+
+    /**
+     * Creates an exception.
+     * @param message
+     * @return
+     */
+    public static final InvalidPolicyException invalidPolicyException(String message) {
+        return new InvalidPolicyException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @return
+     */
+    public static final AvailabilityNotFoundException availabilityNotFoundException() {
+        return new AvailabilityNotFoundException();
+    }
+
+    /**
+     * Creates an exception
+     * @return
+     */
+    public static final MemberShipRequestFailedException membershipRequestFailedException(String message) {
+        return new MemberShipRequestFailedException(message);
+    }
+
+    public static final InvalidEventException invalidEventException(String message) {
+        return new InvalidEventException(message);
+    }
+
+    public static final EventNotFoundException eventNotFoundException() {
+        return new EventNotFoundException();
+    }
+
+    public static final ContractRequestFailedException contractRequestFailedException(String message) {
+        return new ContractRequestFailedException(message);
+    }
+
+    public static final InvalidSearchCriteriaException invalidSearchCriteriaException(String message) {
+        return new InvalidSearchCriteriaException(message);
+    }
+
+    public static final CachingException cachingException(String message) {
+        return new CachingException(message);
+    }
+
+    public static final ServiceBasepathAlreadyInUseException serviceBasepathAlreadyInUseException(String organizationName, String basepath) {
+        return new ServiceBasepathAlreadyInUseException(Messages.i18n.format("ServiceBasePathAlreadyInUse", organizationName, basepath));
+    }
+
+
+    public static final OrganizationCannotBeDeletedException orgCannotBeDeleted(String message){
+        return new OrganizationCannotBeDeletedException(message);
+    }
+
+    public static final PlanCannotBeDeletedException planCannotBeDeleted(String message){
+        return new PlanCannotBeDeletedException(message);
+    }
+
+    public static final MetricsUnavailableException metricsUnavailableException() {
+        return new MetricsUnavailableException();
+    }
 }

@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.auth.rest;
 import com.t1t.digipolis.apim.auth.rest.impl.mappers.RestExceptionMapper;
 import com.t1t.digipolis.apim.auth.rest.resources.LoginResource;
 import com.t1t.digipolis.apim.auth.rest.resources.OAuthResource;
+import com.t1t.digipolis.apim.auth.rest.resources.SearchResource;
 import com.t1t.digipolis.apim.auth.rest.resources.filter.RequestAUTHFilter;
 
 import javax.ws.rs.ApplicationPath;
@@ -40,6 +41,7 @@ public class JaxRsActivator extends Application {
         //resources.add(BasicAuthorizationResource.class); TODO enable?
         resources.add(LoginResource.class);
         resources.add(OAuthResource.class);
+        resources.add(SearchResource.class);
         resources.add(RestExceptionMapper.class);
     }
 }

@@ -36,6 +36,7 @@ public class SystemFacade {
     @Inject private IStorageQuery query;
     @Inject private AppConfig config;
     @Inject private GatewayFacade gatewayFacade;
+    @Inject private MigrationFacade migrationFacade;
 
     public Map<String, AvailabilityBean> getAvailableMarketplaces() throws StorageException {
         return query.listAvailableMarkets();

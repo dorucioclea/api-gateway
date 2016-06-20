@@ -13,7 +13,7 @@ public class BeanUtils {
      * @return the id
      */
     public static final String idFromName(String name) {
-        return name.replaceAll("[^\\w-\\.]", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        return name.replaceAll("[^\\w-\\.]", "").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     /**

@@ -20,7 +20,7 @@ import java.util.Set;
 @Table(name = "applications")
 @IdClass(OrganizationBasedCompositeId.class)
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class ApplicationBean implements Serializable {
+public class ApplicationBean implements Comparable<ApplicationBean>,Serializable {
 
     private static final long serialVersionUID = -197129444021040365L;
 
@@ -147,6 +147,24 @@ public class ApplicationBean implements Serializable {
         this.base64logo = Base64.decodeBase64(base64logo.getBytes());
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ApplicationBean)) return false;
+
+        ApplicationBean that = (ApplicationBean) o;
+
+        if (!organization.equals(that.organization)) return false;
+        return id.equals(that.id);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = organization.hashCode();
+        result = 31 * result + id.hashCode();
+        return result;
+    }
 
     @Override
     public String toString() {
@@ -159,5 +177,10 @@ public class ApplicationBean implements Serializable {
                 ", createdBy='" + createdBy + '\'' +
                 ", createdOn=" + createdOn +
                 '}';
+    }
+
+    @Override
+    public int compareTo(ApplicationBean o) {
+        return this.getId().compareTo(o.getId());
     }
 }
