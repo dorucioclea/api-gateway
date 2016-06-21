@@ -312,6 +312,9 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         Preconditions.checkNotNull(updateAppUri);
+        if (!ValidationUtils.isValidURL(updateAppUri.getUri())) {
+            throw new IllegalArgumentException();
+        }
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
     }
 

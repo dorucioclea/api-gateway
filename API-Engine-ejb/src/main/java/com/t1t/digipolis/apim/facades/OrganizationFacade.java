@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.audit.AuditEntryType;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
@@ -381,6 +382,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             log.debug("Enter updateAppversionURI:{}", uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if (avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
+            String previousURI = avb.getOauthClientRedirect();
             avb.setOauthClientRedirect(uri.getUri());
             storage.updateApplicationVersion(avb);
             //register application credentials for OAuth2
@@ -409,6 +411,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     }
                 }
             }
+            EntityUpdatedData data = new EntityUpdatedData();
+            data.addChange("OAuth2 Callback URI", previousURI, avb.getOauthClientRedirect());
+            storage.createAuditEntry(AuditUtils.applicationVersionUpdated(avb, data, securityContext));
             return avb;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -3801,10 +3806,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         throw ExceptionFactory.invalidApplicationStatusException();
                     }
                 }
+                EntityUpdatedData data = new EntityUpdatedData();
+                data.addChange("apikey", revokedKey, newApiKey);
+                storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.KeyAuthReissued, securityContext));
                 return new NewApiKeyBean(organizationId, applicationId, version, revokedKey, newApiKey);
             }
             else {
-                throw ExceptionFactory.contractNotFoundException();
+                //Application has no contracts, so return null
+                return null;
             }
         }
         catch (StorageException ex) {
@@ -3818,6 +3827,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public NewOAuthCredentialsBean reissueApplicationVersionOAuthCredentials(ApplicationVersionBean avb) {
         try {
+            //Check if the app version has Oauthcredentials
+            if (avb.getoAuthClientId() == null || avb.getOauthClientSecret() == null) {
+               return null;
+            }
+            //Check if the app has a callback uri, if it doesn't it isn't a consumer on the gateway(s), but we still want to
+            //reissue the OAuth2 credentials
             NewOAuthCredentialsBean rval = new NewOAuthCredentialsBean();
             rval.setOrganizationId(avb.getApplication().getOrganization().getId());
             rval.setApplicationId(avb.getApplication().getId());
@@ -3829,40 +3844,46 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             storage.updateApplicationVersion(avb);
             rval.setNewClientId(avb.getoAuthClientId());
             rval.setNewClientSecret(avb.getOauthClientSecret());
-            KongPluginOAuthConsumerRequest oAuthConsumerRequest = new KongPluginOAuthConsumerRequest()
-                    .withClientId(avb.getoAuthClientId())
-                    .withClientSecret(avb.getOauthClientSecret())
-                    .withRedirectUri(avb.getOauthClientRedirect())
-                    .withName(avb.getApplication().getName());
-            if (avb.getStatus() == ApplicationStatus.Registered) {
-                try {
-                    List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(rval.getOrganizationId(), rval.getApplicationId(), rval.getVersion());
-                    for (IGatewayLink gatewayLink : getApplicationGatewayLinks(contractSummaries).values()) {
-                        try {
-                            gatewayLink.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
-                        } catch (Exception e) {
-                            throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
-                        }
-                        gatewayLink.close();
-                    }
-                } catch (Exception e) {
-                    throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
-                }
-            }
-            else {
-                if (avb.getStatus() != ApplicationStatus.Retired) {
-                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            if (ValidationUtils.isValidURL(avb.getOauthClientRedirect())) {
+                KongPluginOAuthConsumerRequest oAuthConsumerRequest = new KongPluginOAuthConsumerRequest()
+                        .withClientId(avb.getoAuthClientId())
+                        .withClientSecret(avb.getOauthClientSecret())
+                        .withRedirectUri(avb.getOauthClientRedirect())
+                        .withName(avb.getApplication().getName());
+                if (avb.getStatus() == ApplicationStatus.Registered) {
                     try {
-                        gateway.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
-                    }
-                    catch (Exception e) {
-                        throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                        List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(rval.getOrganizationId(), rval.getApplicationId(), rval.getVersion());
+                        for (IGatewayLink gatewayLink : getApplicationGatewayLinks(contractSummaries).values()) {
+                            try {
+                                gatewayLink.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
+                            } catch (Exception e) {
+                                throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                            }
+                            gatewayLink.close();
+                        }
+                    } catch (Exception e) {
+                        throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
                     }
                 }
                 else {
-                    throw ExceptionFactory.invalidApplicationStatusException();
+                    if (avb.getStatus() != ApplicationStatus.Retired) {
+                        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                        try {
+                            gateway.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
+                        }
+                        catch (Exception e) {
+                            throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                        }
+                    }
+                    else {
+                        throw ExceptionFactory.invalidApplicationStatusException();
+                    }
                 }
             }
+            EntityUpdatedData data = new EntityUpdatedData();
+            data.addChange("OAuth2 Client ID", rval.getRevokedClientId(), rval.getNewClientId());
+            data.addChange("OAuth2 Client Secret", rval.getRevokedClientSecret(), rval.getNewClientSecret());
+            storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.OAuth2Reissued, securityContext));
             return rval;
         }
         catch (StorageException ex) {

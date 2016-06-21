@@ -102,7 +102,10 @@ public class SecurityFacade {
     public Set<NewApiKeyBean> reissueAllApiKeys() {
         Set<NewApiKeyBean> rval = new HashSet<>();
         for (ApplicationVersionBean avb : getAllNonRetiredApplicationVersions()) {
-            rval.add(orgFacade.reissueApplicationVersionApiKey(avb));
+            NewApiKeyBean nakb = orgFacade.reissueApplicationVersionApiKey(avb);
+            if (nakb != null) {
+                rval.add(nakb);
+            }
         }
         return rval;
     }
@@ -110,7 +113,10 @@ public class SecurityFacade {
     public Set<NewOAuthCredentialsBean> reissueAllOAuthCredentials() {
         Set<NewOAuthCredentialsBean> rval = new HashSet<>();
         for (ApplicationVersionBean avb : getAllNonRetiredApplicationVersions()) {
-            orgFacade.reissueApplicationVersionOAuthCredentials(avb);
+            NewOAuthCredentialsBean nocb = orgFacade.reissueApplicationVersionOAuthCredentials(avb);
+            if (nocb != null) {
+                rval.add(nocb);
+            }
         }
         return rval;
     }
