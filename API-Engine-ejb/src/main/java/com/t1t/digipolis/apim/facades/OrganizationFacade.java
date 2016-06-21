@@ -3751,6 +3751,125 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return true;
     }
 
+    public NewApiKeyBean reissueApplicationVersionApiKey(String organizationId, String applicationId, String version) {
+        return reissueApplicationVersionApiKey(getAppVersion(organizationId, applicationId, version));
+    }
+
+    public NewApiKeyBean reissueApplicationVersionApiKey(ApplicationVersionBean avb) {
+        try {
+            String organizationId = avb.getApplication().getOrganization().getId();
+            String applicationId = avb.getApplication().getId();
+            String version = avb.getVersion();
+            //Get list of contracts associated with application
+            List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(organizationId, applicationId, version);
+            if (contractSummaries != null && !contractSummaries.isEmpty()) {
+
+                //Generate new API key for contracts
+                String newApiKey = apiKeyGenerator.generate();
+
+                //Is the old API key still needed for revocation purposes?
+                String revokedKey = contractSummaries.get(0).getApikey();
+                query.updateApplicationVersionApiKey(avb, newApiKey);
+                //If the application is registered, change the API key on all relevant gateways
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
+                if (avb.getStatus() == ApplicationStatus.Registered) {
+                    try {
+                        for (IGatewayLink gatewayLink : getApplicationGatewayLinks(contractSummaries).values()) {
+                            try {
+                                gatewayLink.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
+                            } catch (Exception e) {
+                                throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
+                            }
+                            gatewayLink.close();
+                        }
+                    } catch (Exception e) {
+                        throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
+                    }
+                }
+                else {
+                    //If the application isn't retired, it exists only on the default gateway
+                    if (avb.getStatus() != ApplicationStatus.Retired) {
+                        try {
+                            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                            gateway.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
+                        }
+                        catch (Exception ex) {
+                            throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
+                        }
+                    }
+                    else {
+                        throw ExceptionFactory.invalidApplicationStatusException();
+                    }
+                }
+                return new NewApiKeyBean(organizationId, applicationId, version, revokedKey, newApiKey);
+            }
+            else {
+                throw ExceptionFactory.contractNotFoundException();
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
+    public NewOAuthCredentialsBean reissueApplicationVersionOAuthCredentials(String organizationId, String applicationId, String version) {
+        return reissueApplicationVersionOAuthCredentials(getAppVersion(organizationId, applicationId, version));
+    }
+
+    public NewOAuthCredentialsBean reissueApplicationVersionOAuthCredentials(ApplicationVersionBean avb) {
+        try {
+            NewOAuthCredentialsBean rval = new NewOAuthCredentialsBean();
+            rval.setOrganizationId(avb.getApplication().getOrganization().getId());
+            rval.setApplicationId(avb.getApplication().getId());
+            rval.setVersion(avb.getVersion());
+            rval.setRevokedClientId(avb.getoAuthClientId());
+            rval.setRevokedClientSecret(avb.getOauthClientSecret());
+            avb.setoAuthClientId(apiKeyGenerator.generate());
+            avb.setOauthClientSecret(apiKeyGenerator.generate());
+            storage.updateApplicationVersion(avb);
+            rval.setNewClientId(avb.getoAuthClientId());
+            rval.setNewClientSecret(avb.getOauthClientSecret());
+            KongPluginOAuthConsumerRequest oAuthConsumerRequest = new KongPluginOAuthConsumerRequest()
+                    .withClientId(avb.getoAuthClientId())
+                    .withClientSecret(avb.getOauthClientSecret())
+                    .withRedirectUri(avb.getOauthClientRedirect())
+                    .withName(avb.getApplication().getName());
+            if (avb.getStatus() == ApplicationStatus.Registered) {
+                try {
+                    List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(rval.getOrganizationId(), rval.getApplicationId(), rval.getVersion());
+                    for (IGatewayLink gatewayLink : getApplicationGatewayLinks(contractSummaries).values()) {
+                        try {
+                            gatewayLink.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
+                        } catch (Exception e) {
+                            throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                        }
+                        gatewayLink.close();
+                    }
+                } catch (Exception e) {
+                    throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
+                }
+            }
+            else {
+                if (avb.getStatus() != ApplicationStatus.Retired) {
+                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                    try {
+                        gateway.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
+                    }
+                    catch (Exception e) {
+                        throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                    }
+                }
+                else {
+                    throw ExceptionFactory.invalidApplicationStatusException();
+                }
+            }
+            return rval;
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
     private Map<String, IGatewayLink> getApplicationGatewayLinks(List<ContractSummaryBean> contractSummaries) {
         try {
             Map<String, IGatewayLink> links = new HashMap<>();
@@ -3767,7 +3886,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             return links;
         }
         catch (StorageException ex) {
-            throw new SystemErrorException(ex);
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 }
