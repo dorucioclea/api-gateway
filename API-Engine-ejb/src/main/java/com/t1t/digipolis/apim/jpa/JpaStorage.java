@@ -24,6 +24,7 @@ import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.plugins.PluginBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
@@ -1965,7 +1966,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<PlanBean> findAllPlans(String organizationId) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT p FROM PlanBean p WHERE organization = :orgId";
+        String jpql = "SELECT p FROM PlanBean p WHERE p.organization.id = :orgId";
         return (List<PlanBean>) em.createQuery(jpql)
                 .setParameter("orgId",organizationId)
                 .getResultList();
@@ -1974,7 +1975,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<PlanVersionBean> findAllPlanVersionBeans(String organizationId, String planId) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT p FROM PlanVersionBean p WHERE plan_id = :planId AND plan_org_id = :orgId";
+        String jpql = "SELECT p FROM PlanVersionBean p WHERE p.plan.id = :planId AND p.plan.organization.id = :orgId";
         return (List<PlanVersionBean>) em.createQuery(jpql)
                 .setParameter("orgId",organizationId)
                 .setParameter("planId",planId)
@@ -2231,8 +2232,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             result = (ApplicationVersionBean) em.createQuery(jpql)
                     .setParameter("apiKey", apiKey)
                     .getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             //Do nothing
         }
         if (result != null) {
@@ -2246,5 +2246,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             rval.setStatus(result.getStatus());
         }
         return rval;
+    }
+
+    public void deleteAclPolicies() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "DELETE FROM PolicyBean p WHERE p.definition.id = :polDefId";
+        em.createQuery(jpql)
+                .setParameter("polDefId", Policies.ACL.name())
+                .executeUpdate();
     }
 }

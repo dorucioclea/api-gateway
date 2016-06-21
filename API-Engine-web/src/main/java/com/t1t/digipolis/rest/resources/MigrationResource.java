@@ -42,7 +42,8 @@ public class MigrationResource implements IMigrationResource {
     }
 
 
-    @Override
+    //Obsolete should not be used past version 0.6.3
+    /*@Override
     @ApiOperation(value = "Migrate ACL",
             notes = "Migrate ACL endpoint")
     @ApiResponses({@ApiResponse(code = 204, message = "Migration complete?")})
@@ -50,7 +51,7 @@ public class MigrationResource implements IMigrationResource {
     @Path("/acl/migrate")
     public void migrateToAcl() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
         migrationFacade.migrateToAcl();
-    }
+    }*/
 
     @Override
     @ApiOperation(value =  "Rename Application CustomId",

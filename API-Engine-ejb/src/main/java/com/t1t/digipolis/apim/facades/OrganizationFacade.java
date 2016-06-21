@@ -388,11 +388,26 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
                 //String uniqueUserId = securityContext.getCurrentUser();
-                OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
-                requestBean.setUniqueUserName(appConsumerName);
-                requestBean.setAppOAuthId(avb.getoAuthClientId());
-                requestBean.setAppOAuthSecret(avb.getOauthClientSecret());
-                enableOAuthForConsumer(requestBean);
+                KongPluginOAuthConsumerRequest OAuthRequest = new KongPluginOAuthConsumerRequest()
+                        .withClientId(avb.getoAuthClientId())
+                        .withClientSecret(avb.getOauthClientSecret())
+                        .withName(avb.getApplication().getName())
+                        .withRedirectUri(avb.getOauthClientRedirect());
+                if (avb.getStatus() == ApplicationStatus.Registered) {
+                    List<ContractSummaryBean> csb = query.getApplicationContracts(organizationId, applicationId, version);
+                    for (IGatewayLink gateway : getApplicationGatewayLinks(csb).values()) {
+                        gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
+                    }
+                }
+                else {
+                    if (avb.getStatus() != ApplicationStatus.Retired) {
+                        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                        gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
+                    }
+                    else {
+                        throw ExceptionFactory.invalidApplicationStatusException();
+                    }
+                }
             }
             return avb;
         } catch (StorageException e) {
@@ -2908,7 +2923,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @throws NotAuthorizedException
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    protected PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion, NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
+    public PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion, NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
         if (bean.getDefinitionId() == null) {
             ExceptionFactory.policyDefNotFoundException("null"); //$NON-NLS-1$
         }
@@ -3736,4 +3751,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return true;
     }
 
+    private Map<String, IGatewayLink> getApplicationGatewayLinks(List<ContractSummaryBean> contractSummaries) {
+        try {
+            Map<String, IGatewayLink> links = new HashMap<>();
+            for (ContractSummaryBean contract : contractSummaries) {
+                ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion());
+                Set<ServiceGatewayBean> gateways = svb.getGateways();
+                for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                    if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
+                        IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                        links.put(serviceGatewayBean.getGatewayId(), gatewayLink);
+                    }
+                }
+            }
+            return links;
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
 }
