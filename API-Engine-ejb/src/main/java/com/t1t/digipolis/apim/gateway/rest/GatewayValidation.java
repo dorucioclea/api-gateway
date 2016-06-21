@@ -187,23 +187,23 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginRequestTransformer req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRequestTransformer.class);
         //if all lists are empty -> error
-        if(isEmptyList(req.getAdd().getForm())&&isEmptyList(req.getAdd().getHeaders())&&isEmptyList(req.getAdd().getQuerystring())
-                &&isEmptyList(req.getRemove().getForm())&&isEmptyList(req.getRemove().getHeaders())&&isEmptyList(req.getRemove().getQuerystring()))
+        if(isEmptyList(req.getAdd().getBody())&&isEmptyList(req.getAdd().getHeaders())&&isEmptyList(req.getAdd().getQuerystring())
+                &&isEmptyList(req.getRemove().getBody())&&isEmptyList(req.getRemove().getHeaders())&&isEmptyList(req.getRemove().getQuerystring()))
             throw new PolicyViolationException("At least one value should be provided.");
         KongPluginRequestTransformer res = new KongPluginRequestTransformer();
         KongPluginRequestTransformerAdd addStatement = new KongPluginRequestTransformerAdd();
-        addStatement.setForm(new ArrayList<>());
+        addStatement.setBody(new ArrayList<>());
         addStatement.setHeaders(new ArrayList<>());
         addStatement.setQuerystring(new ArrayList<>());
         com.t1t.digipolis.kong.model.KongPluginRequestTransformerRemove remStatement = new KongPluginRequestTransformerRemove();
-        remStatement.setForm(new ArrayList<>());
+        remStatement.setBody(new ArrayList<>());
         remStatement.setHeaders(new ArrayList<>());
         remStatement.setQuerystring(new ArrayList<>());
         res.setAdd(addStatement);
         res.setRemove(remStatement);
         //remove null values
-        req.getAdd().getForm().stream().forEach((val) -> {
-            if (val != null) res.getAdd().getForm().add(val);
+        req.getAdd().getBody().stream().forEach((val) -> {
+            if (val != null) res.getAdd().getBody().add(val);
         });
         req.getAdd().getHeaders().stream().forEach((val) -> {
             if (val != null) res.getAdd().getHeaders().add(val);
@@ -211,14 +211,14 @@ public class GatewayValidation {
         req.getAdd().getQuerystring().stream().forEach((val) -> {
             if (val != null) res.getAdd().getQuerystring().add(val);
         });
-        req.getRemove().getForm().stream().forEach((val) -> {if(val!=null)res.getRemove().getForm().add(val);});
+        req.getRemove().getBody().stream().forEach((val) -> {if(val!=null)res.getRemove().getBody().add(val);});
         req.getRemove().getHeaders().stream().forEach((val) -> {if(val!=null)res.getRemove().getHeaders().add(val);});
         req.getRemove().getQuerystring().stream().forEach((val) -> {if(val!=null)res.getRemove().getQuerystring().add(val);});
         //remove empty lists
-        if(res.getAdd().getForm().size()==0)res.getAdd().setForm(null);
+        if(res.getAdd().getBody().size()==0)res.getAdd().setBody(null);
         if(res.getAdd().getHeaders().size()==0)res.getAdd().setHeaders(null);
         if(res.getAdd().getQuerystring().size()==0)res.getAdd().setQuerystring(null);
-        if(res.getRemove().getForm().size()==0)res.getRemove().setForm(null);
+        if(res.getRemove().getBody().size()==0)res.getRemove().setBody(null);
         if(res.getRemove().getHeaders().size()==0)res.getRemove().setHeaders(null);
         if(res.getRemove().getQuerystring().size()==0)res.getRemove().setQuerystring(null);
         Policy requestPolicy = new Policy();
