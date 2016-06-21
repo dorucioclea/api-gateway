@@ -2270,4 +2270,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("avb", avb)
                 .executeUpdate();
     }
+
+    @Override
+    public List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT a FROM ApplicationVersionBean a WHERE a.status <> :status";
+        return em.createQuery(jpql)
+                .setParameter("status", ApplicationStatus.Retired)
+                .getResultList();
+    }
 }

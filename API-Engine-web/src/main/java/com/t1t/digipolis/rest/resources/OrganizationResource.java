@@ -315,36 +315,38 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
     }
 
-    @ApiOperation(value = "Revoke Application version's API key",
-            notes = "Use this endpoint to revoke the application version's API key and assign a new one")
+    @Override
+    @ApiOperation(value = "Reissue Application version's API key",
+            notes = "Use this endpoint to revoke the application version's current API key and assign a new one")
     @ApiResponses({
-            @ApiResponse(code = 200, response = NewApiKeyBean.class, message = "API key revoked")
+            @ApiResponse(code = 200, response = NewApiKeyBean.class, message = "API key reissued")
     })
     @POST
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/api-key/revoke")
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/key-auth/reissue")
     @Produces(MediaType.APPLICATION_JSON)
-    public NewApiKeyBean revokeAppVersionApiKey(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
+    public NewApiKeyBean reissueAppVersionApiKey(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
         if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.revokeApplicationVersionApiKey(orgId, appId, version);
+        return orgFacade.reissueApplicationVersionApiKey(orgId, appId, version);
     }
 
-    @ApiOperation(value = "Revoke Application version's OAuth credentials",
-            notes = "Use this endpoint to revoke the application version's current OAuth credentials and assign new credentials")
+    @Override
+    @ApiOperation(value = "Reissue Application version's OAuth2 credentials",
+            notes = "Use this endpoint to revoke the application version's current OAuth2 credentials and assign new credentials")
     @ApiResponses({
-            @ApiResponse(code = 200, response = NewOAuthCredentialsBean.class, message = "OAuth credentials revoked")
+            @ApiResponse(code = 200, response = NewOAuthCredentialsBean.class, message = "OAuth2 credentials reissued")
     })
     @POST
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth/revoke")
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth2/reissue")
     @Produces(MediaType.APPLICATION_JSON)
-    public NewOAuthCredentialsBean revokeAppVersionOAuthCredentials(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
+    public NewOAuthCredentialsBean reissueAppVersionOAuthCredentials(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
         if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.revokeApplicationVersionOAuthCredentials(orgId, appId, version);
+        return orgFacade.reissueApplicationVersionOAuthCredentials(orgId, appId, version);
     }
 
     @ApiOperation(value = "Get Application Version",
@@ -2188,6 +2190,4 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.acceptContractRequest(organizationId, applicationId, version, response);
     }
-
-
 }

@@ -593,4 +593,6 @@ public interface IStorageQuery {
 
     public void updateApplicationVersionApiKey(ApplicationVersionBean avb, String apiKey) throws StorageException;
 
+    public List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() throws StorageException;
+
 }
