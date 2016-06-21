@@ -388,11 +388,26 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
                 //String uniqueUserId = securityContext.getCurrentUser();
-                OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
-                requestBean.setUniqueUserName(appConsumerName);
-                requestBean.setAppOAuthId(avb.getoAuthClientId());
-                requestBean.setAppOAuthSecret(avb.getOauthClientSecret());
-                enableOAuthForConsumer(requestBean);
+                KongPluginOAuthConsumerRequest OAuthRequest = new KongPluginOAuthConsumerRequest()
+                        .withClientId(avb.getoAuthClientId())
+                        .withClientSecret(avb.getOauthClientSecret())
+                        .withName(avb.getApplication().getName())
+                        .withRedirectUri(avb.getOauthClientRedirect());
+                if (avb.getStatus() == ApplicationStatus.Registered) {
+                    List<ContractSummaryBean> csb = query.getApplicationContracts(organizationId, applicationId, version);
+                    for (IGatewayLink gateway : getApplicationGatewayLinks(csb).values()) {
+                        gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
+                    }
+                }
+                else {
+                    if (avb.getStatus() != ApplicationStatus.Retired) {
+                        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                        gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
+                    }
+                    else {
+                        throw ExceptionFactory.invalidApplicationStatusException();
+                    }
+                }
             }
             return avb;
         } catch (StorageException e) {
