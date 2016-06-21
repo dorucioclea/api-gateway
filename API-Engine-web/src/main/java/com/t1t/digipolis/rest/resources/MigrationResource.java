@@ -16,14 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import static javafx.scene.input.KeyCode.M;
 
 /**
  * @author Guillaume Vandecasteele
@@ -38,6 +32,18 @@ public class MigrationResource implements IMigrationResource {
     @Inject private MigrationFacade migrationFacade;
 
     @Override
+    @ApiOperation(value = "Rebuild Gateway",
+                  notes = "Rebuild Gateway when empty")
+    @ApiResponses({@ApiResponse(code = 204, message = "Rebuild registered")})
+    @POST
+    @Path("/gtw/rebuild")
+    public void rebuild() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
+        migrationFacade.rebuildGtw();
+    }
+
+
+    //Obsolete should not be used past version 0.6.3
+    /*@Override
     @ApiOperation(value = "Migrate ACL",
             notes = "Migrate ACL endpoint")
     @ApiResponses({@ApiResponse(code = 204, message = "Migration complete?")})
@@ -45,7 +51,7 @@ public class MigrationResource implements IMigrationResource {
     @Path("/acl/migrate")
     public void migrateToAcl() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
         migrationFacade.migrateToAcl();
-    }
+    }*/
 
     @Override
     @ApiOperation(value =  "Rename Application CustomId",

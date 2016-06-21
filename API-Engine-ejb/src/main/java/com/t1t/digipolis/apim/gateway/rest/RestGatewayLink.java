@@ -126,6 +126,10 @@ public class RestGatewayLink implements IGatewayLink {
         return getClient().createConsumer(userId, customId);
     }
 
+    public KongConsumer createConsumerWithKongId(String kongId, String customId) throws ConsumerAlreadyExistsException{
+        return getClient().createConsumerWithKongID(kongId, customId);
+    }
+
     @Override
     public KongConsumer createConsumerWithCustomId(String customId) throws ConsumerAlreadyExistsException {
         return getClient().createConsumerWithCustomID(customId);
@@ -175,6 +179,16 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId, KongPluginOAuthConsumerRequest request) {
         return getClient().enableConsumerForOAuth(consumerId, request);
+    }
+
+    @Override
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request) {
+        return getClient().updateConsumerOAuthCredentials(consumerId, oldClientId, oldClientSecret, request);
+    }
+
+    @Override
+    public KongPluginKeyAuthResponse updateConsumerKeyAuthCredentials(String consumerId, String oldApiKey, String newApiKey) {
+        return getClient().updateConsumerKeyAuthCredentials(consumerId, oldApiKey, newApiKey);
     }
 
     @Override

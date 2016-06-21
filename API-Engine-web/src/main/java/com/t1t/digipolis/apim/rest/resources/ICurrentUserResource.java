@@ -102,4 +102,6 @@ public interface ICurrentUserResource {
     public List<EventAggregateBean> getAllNonActionEvents();
 
     public List<EventAggregateBean> getAllActionEvents();
+
+    public void deleteAll();
 }

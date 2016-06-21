@@ -160,7 +160,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             "EEE, dd MMM yyyy HH:mm:ss",
             "EEE, dd MMM yyyy"
     };
-    private static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
+    public static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
 
     private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
     private static final long ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000;
@@ -388,11 +388,26 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
                 //String uniqueUserId = securityContext.getCurrentUser();
-                OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
-                requestBean.setUniqueUserName(appConsumerName);
-                requestBean.setAppOAuthId(avb.getoAuthClientId());
-                requestBean.setAppOAuthSecret(avb.getOauthClientSecret());
-                enableOAuthForConsumer(requestBean);
+                KongPluginOAuthConsumerRequest OAuthRequest = new KongPluginOAuthConsumerRequest()
+                        .withClientId(avb.getoAuthClientId())
+                        .withClientSecret(avb.getOauthClientSecret())
+                        .withName(avb.getApplication().getName())
+                        .withRedirectUri(avb.getOauthClientRedirect());
+                if (avb.getStatus() == ApplicationStatus.Registered) {
+                    List<ContractSummaryBean> csb = query.getApplicationContracts(organizationId, applicationId, version);
+                    for (IGatewayLink gateway : getApplicationGatewayLinks(csb).values()) {
+                        gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
+                    }
+                }
+                else {
+                    if (avb.getStatus() != ApplicationStatus.Retired) {
+                        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                        gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
+                    }
+                    else {
+                        throw ExceptionFactory.invalidApplicationStatusException();
+                    }
+                }
             }
             return avb;
         } catch (StorageException e) {
@@ -1013,10 +1028,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 svb.setEndpoint(bean.getEndpoint());
                 //If the service is already published, update the upstream URL's on the gateways the service is published on
                 updateServiceVersionEndpoint(svb);
+                log.debug("BEAN ENDPOINT UPDATED");
             }
             if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
                 data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
                 svb.setEndpointType(bean.getEndpointType());
+                log.debug("BEAN ENDPOINT TYPE UPDATED");
             }
             if (svb.getStatus() != ServiceStatus.Retired || svb.getStatus() != ServiceStatus.Deprecated || svb.getStatus() != ServiceStatus.Published) {
                 svb.setModifiedBy(securityContext.getCurrentUser());
@@ -1024,6 +1041,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
                     data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
                     svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
+                    log.debug("BEAN AUTOACCEPT CONTRACTS UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
                     data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
@@ -1034,6 +1052,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     if (bean.getPlans() != null) {
                         svb.getPlans().addAll(bean.getPlans());
                     }
+                    log.debug("BEAN PLANS UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getGateways(), bean.getGateways())) {
                     data.addChange("gateways", AuditUtils.asString_ServiceGatewayBeans(svb.getGateways()), AuditUtils.asString_ServiceGatewayBeans(bean.getGateways())); //$NON-NLS-1$
@@ -1042,10 +1061,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     }
                     svb.getGateways().clear();
                     svb.getGateways().addAll(bean.getGateways());
+                    log.debug("BEAN GATEWAYS UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getOnlinedoc(), bean.getOnlinedoc())) {
                     data.addChange("online doc", svb.getOnlinedoc(), bean.getOnlinedoc());
                     svb.setOnlinedoc(bean.getOnlinedoc());
+                    log.debug("BEAN ONLINE DOCS UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
                     if (svb.getEndpointProperties() == null) {
@@ -1056,10 +1077,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     if (bean.getEndpointProperties() != null) {
                         svb.getEndpointProperties().putAll(bean.getEndpointProperties());
                     }
+                    log.debug("BEAN ENDPOINT PROPERTIES UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.isPublicService(), bean.getPublicService())) {
                     data.addChange("publicService", String.valueOf(svb.isPublicService()), String.valueOf(bean.getPublicService())); //$NON-NLS-1$
                     svb.setPublicService(bean.getPublicService());
+                    log.debug("BEAN PUBLICITY UPDATED");
                 }
                 if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
                     data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
@@ -1084,6 +1107,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                             deleteServicePolicy(organizationId,serviceId,version,psb.getId());
                         }
                     }
+                    log.debug("BEAN VISIBILITY UPDATED");
                 }
             }
             else {
@@ -1101,6 +1125,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                                 svb.getGateways().add(sgb);
                             }
                         }
+                        log.debug("BEAN GATEWAYS FILLED IN IF EMPTY");
                     }
                     if (serviceValidator.isReady(svb)) {
                         log.debug("validService:{}", true);
@@ -1353,8 +1378,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (consumer != null && !StringUtils.isEmpty(consumer.getCustomId())) {
                 String consumerId = consumer.getId();
                 for (ContractSummaryBean app : appContracts) {
-                    data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()),
-                            metrics.getAppUsageForService(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion(), interval, from, to, consumerId));
+                    MetricsConsumerUsageList usageList = metrics.getAppUsageForService(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion(), interval, from, to, consumerId);
+                    if (usageList != null) {
+                        data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()), usageList);
+                    }
+                    else {
+                        throw ExceptionFactory.metricsUnavailableException();
+                    }
+
                 }
             }
         } catch (StorageException e) {
@@ -1372,11 +1403,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         validateMetricRange(from, to);
         validateTimeSeriesMetric(from, to, interval);
-        return metrics.getUsage(organizationId, serviceId, version, interval, from, to);
+        MetricsUsageList usageList = metrics.getUsage(organizationId, serviceId, version, interval, from, to);
+        if (usageList != null) {
+            return usageList;
+        }
+        else {
+            throw ExceptionFactory.metricsUnavailableException();
+        }
+
     }
 
     public ServiceMarketInfo getMarketInfo(String organizationId, String serviceId, String version) {
-        return metrics.getServiceMarketInfo(organizationId, serviceId, version);
+        ServiceMarketInfo marketInfo = metrics.getServiceMarketInfo(organizationId, serviceId, version);
+        if (marketInfo != null) {
+            return marketInfo;
+        }
+        else {
+            throw ExceptionFactory.metricsUnavailableException();
+        }
+
     }
 
     public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
@@ -1387,14 +1432,28 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         validateMetricRange(from, to);
         validateTimeSeriesMetric(from, to, interval);
-        return metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
+        MetricsResponseStatsList statsList = metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
+        if (statsList != null) {
+            return statsList;
+        }
+        else {
+            throw ExceptionFactory.metricsUnavailableException();
+        }
+
     }
 
     public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
-        return metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
+        MetricsResponseSummaryList summList = metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
+        if (summList != null) {
+            return summList;
+        }
+        else {
+            throw ExceptionFactory.metricsUnavailableException();
+        }
+
     }
 
     public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId) {
@@ -2864,7 +2923,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @throws NotAuthorizedException
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    protected PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion, NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
+    public PolicyBean doCreatePolicy(String organizationId, String entityId, String entityVersion, NewPolicyBean bean, PolicyType type) throws PolicyDefinitionNotFoundException {
         if (bean.getDefinitionId() == null) {
             ExceptionFactory.policyDefNotFoundException("null"); //$NON-NLS-1$
         }
@@ -3693,4 +3752,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     }
 
+    private Map<String, IGatewayLink> getApplicationGatewayLinks(List<ContractSummaryBean> contractSummaries) {
+        try {
+            Map<String, IGatewayLink> links = new HashMap<>();
+            for (ContractSummaryBean contract : contractSummaries) {
+                ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion());
+                Set<ServiceGatewayBean> gateways = svb.getGateways();
+                for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                    if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
+                        IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                        links.put(serviceGatewayBean.getGatewayId(), gatewayLink);
+                    }
+                }
+            }
+            return links;
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
 }

@@ -212,6 +212,32 @@ public class EventFacade {
         return convertToAggregateBeans(events);
     }
 
+    public void deleteAllEvents(CurrentUserBean currentUser) {
+        List<String> orgIds = new ArrayList<>();
+        currentUser.getPermissions().forEach(permissionBean -> {
+            if (permissionBean.getName() == PermissionType.orgAdmin) {
+                orgIds.add(permissionBean.getOrganizationId());
+            }
+        });
+        try {
+            List<EventBean> events = query.getAllIncomingNonActionEvents(currentUser.getUsername());
+            orgIds.forEach(orgId -> {
+                try {
+                    events.addAll(filterIncomingOrganizationResults(query.getAllIncomingNonActionEvents(validateOrgId(orgId)), orgId));
+                }
+                catch (StorageException ex) {
+                    throw new SystemErrorException(ex);
+                }
+            });
+            for (EventBean event : events) {
+                deleteEventInternal(event);
+            }
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
     /*****************/
     /* Evenlisteners */
     /*****************/

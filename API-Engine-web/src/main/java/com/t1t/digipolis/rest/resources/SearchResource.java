@@ -8,15 +8,18 @@ import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.OrganizationNotFoundException;
 import com.t1t.digipolis.apim.facades.SearchFacade;
 import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
 import com.t1t.digipolis.apim.rest.resources.ISearchResource;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -40,6 +43,8 @@ public class SearchResource implements ISearchResource {
     IStorageQuery query;
     @Inject
     private SearchFacade searchFacade;
+    @Inject
+    private ISecurityContext securityContext;
 
     /**
      * Constructor.
@@ -170,5 +175,20 @@ public class SearchResource implements ISearchResource {
     @Override
     public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria) throws OrganizationNotFoundException, InvalidSearchCriteriaException {
         return searchFacade.searchLatestServiceVersions(criteria);
+    }
+
+    @ApiOperation(value = "Search for an application by API key",
+                 notes = "Use this endpoint to search for an application version that makes use of a specified API key. You need administrator priviledges to consult this endpoint")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApplicationVersionSummaryBean.class, message = "If the search is successful.")
+    })
+    @GET
+    @Path("/applications/{apiKey}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ApplicationVersionSummaryBean resolveApiKey(@PathParam("apiKey") String apikey) {
+        if (!securityContext.isAdmin()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        return searchFacade.resolveApiKey(apikey);
     }
 }

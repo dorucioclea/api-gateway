@@ -228,4 +228,16 @@ public class CurrentUserResource implements ICurrentUserResource {
     public List<EventAggregateBean> getAllActionEvents() {
         return eventFacade.getAllIncomingActionEvents(currentUserFacade.getInfo());
     }
+
+    @Override
+    @ApiOperation(value = "Clear all incoming notification",
+            notes = "Call this endpoint to delete all informative notifications addressed to the current user")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Notifications deleted")
+    })
+    @DELETE
+    @Path("/notifications/incoming/")
+    public void deleteAll() {
+        eventFacade.deleteAllEvents(currentUserFacade.getInfo());
+    }
 }

@@ -215,6 +215,16 @@ public interface IGatewayLink {
     public KongConsumer createConsumer(String userId, String customId) throws ConsumerAlreadyExistsException;
 
     /**
+     * Create a new consumer, with given Kong id (Kong will not generate Id; you must be sure that the id is unique.
+     *
+     * @param kongId
+     * @param customId
+     * @return
+     * @throws ConsumerAlreadyExistsException
+     */
+    public KongConsumer createConsumerWithKongId(String kongId, String customId) throws ConsumerAlreadyExistsException;
+
+    /**
      * Adds key auth to a consumer, generating a new API Key.
      * @param id
      * @return
@@ -293,6 +303,25 @@ public interface IGatewayLink {
      * @return
      */
     public com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId,KongPluginOAuthConsumerRequest request);
+
+    /**
+     * Update a consumer's key auth credentials
+     *
+     * @param consumerId
+     * @param oldApiKey
+     * @param newApiKey
+     * @return
+     */
+    public KongPluginKeyAuthResponse updateConsumerKeyAuthCredentials(String consumerId, String oldApiKey, String newApiKey);
+
+    /**
+     * Update OAuth credentials for consumer
+     *
+     * @param consumerId
+     * @param request
+     * @return
+     */
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request);
 
     /**
      * Get application specific information for OAuth.

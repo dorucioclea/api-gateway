@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
@@ -20,6 +21,7 @@ import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import org.opensaml.xml.encryption.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,9 +220,19 @@ public class SearchFacade {
         List<ServiceVersionWithMarketInfoBean> svmibs = new ArrayList<>();
         svbs.forEach(svb -> {
             ServiceVersionWithMarketInfoBean svmib = new ServiceVersionWithMarketInfoBean(svb);
-            svmib.setMarketInfo(metrics.getServiceMarketInfo(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()));
+            //TODO - Implement fail silent
+            svmib.setMarketInfo(null);
             svmibs.add(svmib);
         });
         return svmibs;
+    }
+
+    public ApplicationVersionSummaryBean resolveApiKey(String apikey) {
+        try {
+            return query.resolveApplicationVersionByAPIKey(apikey);
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
     }
 }

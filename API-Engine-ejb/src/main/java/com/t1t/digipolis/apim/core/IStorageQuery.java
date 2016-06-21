@@ -586,4 +586,9 @@ public interface IStorageQuery {
     public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException;
 
     public ServiceBean getServiceByBasepath(String organizationId, String basepath) throws StorageException;
+
+    public ApplicationVersionSummaryBean resolveApplicationVersionByAPIKey(String apiKey) throws StorageException;
+
+    public void deleteAclPolicies() throws StorageException;
+
 }

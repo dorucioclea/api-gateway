@@ -50,7 +50,7 @@ public class SearchResource {
     }
 
     @ApiOperation(value = "Search for Organizations",
-            notes = "Use this endpoint to search for organizations.  The search criteria is provided in the body of the request, including filters, order-by, and paging information. Possible values are: publishService, retireService, registerApplication, unregisterApplciation, lockPlan")
+            notes = "Use this endpoint to search for organizations.  The search criteria is provided in the body of the request, including filters, order-by, and paging information.")
     @ApiResponses({
             @ApiResponse(code = 200, response = SearchResultsBean.class, message = "The search results (a page of organizations)")
     })
@@ -225,4 +225,29 @@ public class SearchResource {
         return searchFacade.findServiceVersionEndpointsForScope(availability);
     }
 
+    @ApiOperation(value = "Search through the latest service versions",
+            notes = "Use this endpoint to search for service versions with the latest creation date")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = SearchResultsBean.class, message = "If the search is successful.")
+    })
+    @POST
+    @Path("/services/versions/latest")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria) throws OrganizationNotFoundException, InvalidSearchCriteriaException {
+        return searchFacade.searchLatestServiceVersions(criteria);
+    }
+
+    @ApiOperation(value = "Search for latest Service versions within given category list",
+            notes = "Use this endpoint to search for the latest PUBLISHED service versions, having a category defined in the given category list.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionWithMarketInfoBean.class, message = "If the search is successful.")
+    })
+    @POST
+    @Path("/services/versions/latest/categories")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceVersionWithMarketInfoBean> searchLatestServiceVersionForCategories(CategorySearchBean searchBean) {
+        return searchFacade.searchLatestPublishedServiceVersionsInCategory(searchBean.getCategories());
+    }
 }
