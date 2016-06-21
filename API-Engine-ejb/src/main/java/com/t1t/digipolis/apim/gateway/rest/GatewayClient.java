@@ -771,23 +771,19 @@ public class GatewayClient {
         for (KongPluginOAuthConsumerResponse credentials : plugins.getData()) {
             if (credentials.getClientId().equals(oldClientId) && credentials.getClientSecret().equals(oldClientSecret)) {
                 httpClient.deleteOAuth2Credential(consumerId, credentials.getId());
-                //create the new plugin
-                 rval = httpClient.enableOAuthForConsumer(consumerId, request.getName(), request.getClientId(), request.getClientSecret(), request.getRedirectUri());
             }
         }
-        return rval;
+        return httpClient.enableOAuthForConsumer(consumerId, request.getName(), request.getClientId(), request.getClientSecret(), request.getRedirectUri());
     }
 
     public KongPluginKeyAuthResponse updateConsumerKeyAuthCredentials(String consumerId, String oldApiKey, String newApiKey) {
-        KongPluginKeyAuthResponse rval = null;
         KongPluginKeyAuthResponseList plugins = httpClient.getConsumerKeyAuthCredentials(consumerId);
         for (KongPluginKeyAuthResponse credentials : plugins.getData()) {
             if (credentials.getKey().equals(oldApiKey)) {
                 httpClient.deleteConsumerKeyAuthCredential(consumerId, credentials.getId());
-                rval = createConsumerKeyAuth(consumerId, newApiKey);
             }
         }
-        return rval;
+        return createConsumerKeyAuth(consumerId, newApiKey);
     }
 
     public KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(String clientId){
