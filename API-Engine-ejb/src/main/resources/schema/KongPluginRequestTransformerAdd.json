@@ -8,8 +8,8 @@
       "type": "array",
       "items": {"type": "string"}
     },
-    "form": {
-      "id":"form",
+    "body": {
+      "id":"body",
       "type": "array",
       "items": {"type": "string"}
     },
