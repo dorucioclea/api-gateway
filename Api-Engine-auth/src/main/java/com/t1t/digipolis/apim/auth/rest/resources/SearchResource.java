@@ -50,7 +50,7 @@ public class SearchResource {
     }
 
     @ApiOperation(value = "Search for Organizations",
-            notes = "Use this endpoint to search for organizations.  The search criteria is provided in the body of the request, including filters, order-by, and paging information. Possible values are: publishService, retireService, registerApplication, unregisterApplciation, lockPlan")
+            notes = "Use this endpoint to search for organizations.  The search criteria is provided in the body of the request, including filters, order-by, and paging information.")
     @ApiResponses({
             @ApiResponse(code = 200, response = SearchResultsBean.class, message = "The search results (a page of organizations)")
     })
