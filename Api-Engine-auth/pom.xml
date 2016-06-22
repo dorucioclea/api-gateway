@@ -8,10 +8,10 @@
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>Api-Engine-auth</artifactId>
+    <artifactId>API-Engine-auth</artifactId>
     <packaging>war</packaging>
 
-    <name>Api-Engine-auth</name>
+    <name>API-Engine-auth</name>
 
     <url>http://wildfly.org</url>
     <licenses>
