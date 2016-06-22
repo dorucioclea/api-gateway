@@ -19,15 +19,15 @@
    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-      <artifactId>API-Engine</artifactId>
+      <artifactId>api-gateway</artifactId>
       <groupId>com.t1t.digipolis</groupId>
       <version>0.7.2-SNAPSHOT</version>
    </parent>
 
-   <artifactId>API-Engine-web</artifactId>
+   <artifactId>api-gateway-web</artifactId>
    <packaging>war</packaging>
 
-   <name>API-Engine-web</name>
+   <name>api-gateway-web</name>
 
    <url>http://wildfly.org</url>
    <licenses>

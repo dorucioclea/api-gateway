@@ -20,15 +20,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>API-Engine</artifactId>
+        <artifactId>api-gateway</artifactId>
         <groupId>com.t1t.digipolis</groupId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>API-Engine-ejb</artifactId>
+    <artifactId>api-gateway-ejb</artifactId>
     <packaging>ejb</packaging>
 
-    <name>API-Engine-ejb</name>
+    <name>api-gateway-ejb</name>
 
     <url>http://wildfly.org</url>
     <licenses>

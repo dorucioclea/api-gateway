@@ -20,15 +20,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>API-Engine</artifactId>
+        <artifactId>api-gateway</artifactId>
         <groupId>com.t1t.digipolis</groupId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>API-Engine-distro</artifactId>
+    <artifactId>api-gateway-distro</artifactId>
     <packaging>pom</packaging>
 
-    <name>API-Engine-distro</name>
+    <name>api-gateway-distro</name>
 
     <url>http://wildfly.org</url>
     <licenses>

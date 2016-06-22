@@ -20,15 +20,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>API-Engine</artifactId>
+        <artifactId>api-gateway</artifactId>
         <groupId>com.t1t.digipolis</groupId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>API-Engine-ear</artifactId>
+    <artifactId>api-gateway-ear</artifactId>
     <packaging>ear</packaging>
 
-    <name>API-Engine-ear</name>
+    <name>api-gateway-ear</name>
 
     <url>http://wildfly.org</url>
     <licenses>

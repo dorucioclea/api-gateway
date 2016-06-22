@@ -3,15 +3,15 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>API-Engine</artifactId>
+        <artifactId>api-gateway</artifactId>
         <groupId>com.t1t.digipolis</groupId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>API-Engine-auth</artifactId>
+    <artifactId>api-gateway-auth</artifactId>
     <packaging>war</packaging>
 
-    <name>API-Engine-auth</name>
+    <name>api-gateway-auth</name>
 
     <url>http://wildfly.org</url>
     <licenses>
