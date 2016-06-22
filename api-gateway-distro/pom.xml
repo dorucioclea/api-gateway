@@ -47,7 +47,7 @@
         <!-- Depend on the ejb module and war so that we can package them -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>API-Engine-ear</artifactId>
+            <artifactId>api-gateway-ear</artifactId>
             <version>${project.version}</version>
             <type>ear</type>
         </dependency>
