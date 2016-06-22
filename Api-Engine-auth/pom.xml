@@ -5,13 +5,13 @@
     <parent>
         <artifactId>API-Engine</artifactId>
         <groupId>com.t1t.digipolis</groupId>
-        <version>0.7.0</version>
+        <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>API-Engine-auth</artifactId>
+    <artifactId>Api-Engine-auth</artifactId>
     <packaging>war</packaging>
 
-    <name>api-engine-auth</name>
+    <name>Api-Engine-auth</name>
 
     <url>http://wildfly.org</url>
     <licenses>
@@ -135,6 +135,14 @@
         <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${version.deploy.plugin}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>${version.war.plugin}</version>
                 <configuration>
@@ -145,6 +153,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+                <version>${version.bundle.plugin}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>

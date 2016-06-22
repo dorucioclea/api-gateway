@@ -22,13 +22,13 @@
     <parent>
         <artifactId>API-Engine</artifactId>
         <groupId>com.t1t.digipolis</groupId>
-        <version>0.7.0</version>
+        <version>0.7.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>API-Engine-distro</artifactId>
     <packaging>pom</packaging>
 
-    <name>api-engine-distro</name>
+    <name>API-Engine-distro</name>
 
     <url>http://wildfly.org</url>
     <licenses>
@@ -70,6 +70,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+                <version>${version.deploy.plugin}</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
@@ -77,6 +78,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <version>${version.dependency.plugin}</version>
                 <executions>
                     <execution>
                         <id>unpack</id>
@@ -101,6 +103,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>${version.assembly.plugin}</version>
                 <executions>
                     <execution>
                         <id>overlay</id>

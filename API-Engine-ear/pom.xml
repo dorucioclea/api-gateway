@@ -22,13 +22,13 @@
     <parent>
         <artifactId>API-Engine</artifactId>
         <groupId>com.t1t.digipolis</groupId>
-        <version>0.7.0</version>
+        <version>0.7.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>API-Engine-ear</artifactId>
     <packaging>ear</packaging>
 
-    <name>api-engine-ear</name>
+    <name>API-Engine-ear</name>
 
     <url>http://wildfly.org</url>
     <licenses>
@@ -69,6 +69,14 @@
         <!--<finalName>${project.artifactId}-${targetenv}-${version}</finalName>-->
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${version.deploy.plugin}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-ear-plugin</artifactId>
