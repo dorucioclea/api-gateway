@@ -24,4 +24,4 @@ branches:
     - develop
     - master
 
-install: mvn clean install
+install: mvn clean install -DskipTests=true -Darguments=-DskipTests
