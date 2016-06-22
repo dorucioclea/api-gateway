@@ -1,4 +1,7 @@
 language: java
+jdk:
+  - oraclejdk8
+  - openjdk8
 
 notifications:
   hipchat: fcb7c0fab84ac9494e1aa893ef6028@T1T-Build
