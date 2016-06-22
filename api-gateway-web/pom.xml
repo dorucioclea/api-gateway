@@ -47,7 +47,8 @@
       <!-- Dependency on the EJB module so we can use it's services if needed -->
       <dependency>
          <groupId>com.t1t.digipolis</groupId>
-         <artifactId>API-Engine-ejb</artifactId>
+         <artifactId>api-gateway-ejb</artifactId>
+          <version>${project.version}</version>
          <type>ejb</type>
          <scope>provided</scope>
       </dependency>
