@@ -19,6 +19,7 @@ import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.apim.security.JWTExpTimeResponse;
 import com.t1t.digipolis.apim.security.OAuthExpTimeResponse;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,9 +103,15 @@ public class SecurityFacade {
     public Set<NewApiKeyBean> reissueAllApiKeys() {
         Set<NewApiKeyBean> rval = new HashSet<>();
         for (ApplicationVersionBean avb : getAllNonRetiredApplicationVersions()) {
-            NewApiKeyBean nakb = orgFacade.reissueApplicationVersionApiKey(avb);
-            if (nakb != null) {
-                rval.add(nakb);
+            try {
+                NewApiKeyBean nakb = orgFacade.reissueApplicationVersionApiKey(avb);
+                if (nakb != null) {
+                    rval.add(nakb);
+                }
+            }
+            catch (Exception ex) {
+                //Log the error, but continue the reissuance process
+                _LOG.error("Key Auth Reissuance FAILED for {}, caused by:{}", ConsumerConventionUtil.createAppUniqueId(avb), ex);
             }
         }
         return rval;
@@ -113,9 +120,15 @@ public class SecurityFacade {
     public Set<NewOAuthCredentialsBean> reissueAllOAuthCredentials() {
         Set<NewOAuthCredentialsBean> rval = new HashSet<>();
         for (ApplicationVersionBean avb : getAllNonRetiredApplicationVersions()) {
-            NewOAuthCredentialsBean nocb = orgFacade.reissueApplicationVersionOAuthCredentials(avb);
-            if (nocb != null) {
-                rval.add(nocb);
+            try {
+                NewOAuthCredentialsBean nocb = orgFacade.reissueApplicationVersionOAuthCredentials(avb);
+                if (nocb != null) {
+                    rval.add(nocb);
+                }
+            }
+            catch (Exception ex) {
+                //Log the error, but continue the reissuance process
+                _LOG.error("OAuth2 Credentials Reissuance FAILED for {}, caused by:{}", ConsumerConventionUtil.createAppUniqueId(avb), ex);
             }
         }
         return rval;

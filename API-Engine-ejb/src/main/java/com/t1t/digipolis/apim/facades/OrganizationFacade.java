@@ -61,7 +61,6 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
@@ -80,7 +79,6 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
@@ -384,7 +382,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
             String previousURI = avb.getOauthClientRedirect();
             avb.setOauthClientRedirect(uri.getUri());
-            storage.updateApplicationVersion(avb);
             //register application credentials for OAuth2
             //create OAuth2 application credentials on the application consumer - should only been done once for this application
             if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
@@ -413,6 +410,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             EntityUpdatedData data = new EntityUpdatedData();
             data.addChange("OAuth2 Callback URI", previousURI, avb.getOauthClientRedirect());
+            storage.updateApplicationVersion(avb);
             storage.createAuditEntry(AuditUtils.applicationVersionUpdated(avb, data, securityContext));
             return avb;
         } catch (StorageException e) {
@@ -3760,6 +3758,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return reissueApplicationVersionApiKey(getAppVersion(organizationId, applicationId, version));
     }
 
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public NewApiKeyBean reissueApplicationVersionApiKey(ApplicationVersionBean avb) {
         try {
             String organizationId = avb.getApplication().getOrganization().getId();
@@ -3772,9 +3771,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 //Generate new API key for contracts
                 String newApiKey = apiKeyGenerator.generate();
 
-                //Is the old API key still needed for revocation purposes?
+                //Keep old API key for auditing purposes and retrieve & delete correct plugin on gateway
                 String revokedKey = contractSummaries.get(0).getApikey();
-                query.updateApplicationVersionApiKey(avb, newApiKey);
                 //If the application is registered, change the API key on all relevant gateways
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                 if (avb.getStatus() == ApplicationStatus.Registered) {
@@ -3808,7 +3806,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 }
                 EntityUpdatedData data = new EntityUpdatedData();
                 data.addChange("apikey", revokedKey, newApiKey);
-                storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.KeyAuthReissued, securityContext));
+                query.updateApplicationVersionApiKey(avb, newApiKey);
+                storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.KeyAuthReissuance, securityContext));
                 return new NewApiKeyBean(organizationId, applicationId, version, revokedKey, newApiKey);
             }
             else {
@@ -3825,6 +3824,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return reissueApplicationVersionOAuthCredentials(getAppVersion(organizationId, applicationId, version));
     }
 
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public NewOAuthCredentialsBean reissueApplicationVersionOAuthCredentials(ApplicationVersionBean avb) {
         try {
             //Check if the app version has Oauthcredentials
@@ -3841,7 +3841,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             rval.setRevokedClientSecret(avb.getOauthClientSecret());
             avb.setoAuthClientId(apiKeyGenerator.generate());
             avb.setOauthClientSecret(apiKeyGenerator.generate());
-            storage.updateApplicationVersion(avb);
             rval.setNewClientId(avb.getoAuthClientId());
             rval.setNewClientSecret(avb.getOauthClientSecret());
             if (ValidationUtils.isValidURL(avb.getOauthClientRedirect())) {
@@ -3883,7 +3882,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             EntityUpdatedData data = new EntityUpdatedData();
             data.addChange("OAuth2 Client ID", rval.getRevokedClientId(), rval.getNewClientId());
             data.addChange("OAuth2 Client Secret", rval.getRevokedClientSecret(), rval.getNewClientSecret());
-            storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.OAuth2Reissued, securityContext));
+            storage.updateApplicationVersion(avb);
+            storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.OAuth2Reissuance, securityContext));
             return rval;
         }
         catch (StorageException ex) {

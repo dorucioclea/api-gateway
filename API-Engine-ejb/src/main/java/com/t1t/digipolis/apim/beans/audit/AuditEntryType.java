@@ -17,5 +17,5 @@ public enum AuditEntryType {
     Lock,
     UpdateDefinition, DeleteDefinition, Deprecate,
     //Other
-    OAuth2Reissued, KeyAuthReissued
+    OAuth2Reissuance, KeyAuthReissuance
 }
