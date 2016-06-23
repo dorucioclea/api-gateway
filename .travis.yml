@@ -1,0 +1,23 @@
+language: java
+jdk:
+  - oraclejdk8
+
+notifications:
+  hipchat: fcb7c0fab84ac9494e1aa893ef6028@T1T-Build
+
+cache:
+  directories:
+  - ~/.m2
+
+addons:
+  code_climate:
+    repo_token: 8ab91d5f9ca6881a3ab17f4fca149e6dfefba2b4
+
+os:
+  - linux
+
+branches:
+  only:
+    - develop
+
+install: mvn clean install -DskipTests=true -Darguments=-DskipTests

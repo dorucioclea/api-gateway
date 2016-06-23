@@ -27,7 +27,7 @@
    <artifactId>API-Engine-web</artifactId>
    <packaging>war</packaging>
 
-   <name>api-engine-rest</name>
+   <name>API-Engine-web</name>
 
    <url>http://wildfly.org</url>
    <licenses>
@@ -48,6 +48,7 @@
       <dependency>
          <groupId>com.t1t.digipolis</groupId>
          <artifactId>API-Engine-ejb</artifactId>
+          <version>${project.version}</version>
          <type>ejb</type>
          <scope>provided</scope>
       </dependency>
@@ -150,6 +151,23 @@
    <build>
       <finalName>${project.artifactId}</finalName>
       <plugins>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-deploy-plugin</artifactId>
+              <version>${version.deploy.plugin}</version>
+              <configuration>
+                  <skip>true</skip>
+              </configuration>
+          </plugin>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <version>${version.compiler.plugin}</version>
+              <configuration>
+                  <source>1.8</source>
+                  <target>1.8</target>
+              </configuration>
+          </plugin>
          <plugin>
             <artifactId>maven-war-plugin</artifactId>
             <version>${version.war.plugin}</version>
@@ -161,6 +179,7 @@
           <plugin>
               <groupId>org.apache.felix</groupId>
               <artifactId>maven-bundle-plugin</artifactId>
+              <version>${version.bundle.plugin}</version>
               <extensions>true</extensions>
               <configuration>
                   <instructions>

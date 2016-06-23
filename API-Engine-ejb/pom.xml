@@ -28,7 +28,7 @@
     <artifactId>API-Engine-ejb</artifactId>
     <packaging>ejb</packaging>
 
-    <name>api-engine-ejb</name>
+    <name>API-Engine-ejb</name>
 
     <url>http://wildfly.org</url>
     <licenses>
@@ -100,25 +100,6 @@
             <artifactId>powermock-module-junit4</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- Optional, but highly recommended -->
-        <!-- Arquillian allows you to test enterprise code such as EJBs and 
-            Transactional(JTA) JPA from JUnit/TestNG -->
-        <dependency>
-            <groupId>org.jboss.arquillian.junit</groupId>
-            <artifactId>arquillian-junit-container</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.arquillian.protocol</groupId>
-            <artifactId>arquillian-protocol-servlet</artifactId>
-            <scope>test</scope>
-        </dependency>
 
         <!--jsonschema dependencies-->
         <dependency>
@@ -184,11 +165,6 @@
             <artifactId>jackson-mapper-asl</artifactId>
             <!--<version>1.9.13</version>-->
             <!--<scope>provided</scope>-->
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <!--<version>1.10</version>-->
         </dependency>
 
         <!--API Config dependencies-->
@@ -308,7 +284,6 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>${version.commons-codec}</version>
         </dependency>
 
         <!--OAuth2 client-->
@@ -347,12 +322,6 @@
             <artifactId>hystrix-core</artifactId>
         </dependency>
 
-        <!--Infinspan-->
-        <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-core</artifactId>
-        </dependency>
-
         <!--Apache commons-->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -385,6 +354,23 @@
         </resources>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${version.deploy.plugin}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${version.compiler.plugin}</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-ejb-plugin</artifactId>
                 <version>${version.ejb.plugin}</version>
                 <configuration>
@@ -413,6 +399,7 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongConsumer.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongConsumerList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongInfo.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongExtraInfo.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongInstalledPlugins.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginACL.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginACLRequest.json</sourcePath>
@@ -469,7 +456,6 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWT.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUser.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUserList.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongExtraInfo.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>

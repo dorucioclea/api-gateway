@@ -23,6 +23,12 @@ public class Application implements Serializable {
     public Application() {
     }
 
+    public Application(String organizationId, String applicationId, String version) {
+        this.organizationId = organizationId;
+        this.applicationId = applicationId;
+        this.version = version;
+    }
+
     /**
      * @return the organizationId
      */

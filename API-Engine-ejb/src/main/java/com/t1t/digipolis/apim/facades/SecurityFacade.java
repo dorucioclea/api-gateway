@@ -1,12 +1,16 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
+import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.UpdateGatewayBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.JWTException;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
@@ -15,6 +19,7 @@ import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.apim.security.JWTExpTimeResponse;
 import com.t1t.digipolis.apim.security.OAuthExpTimeResponse;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +27,9 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by michallispashidis on 10/04/16.
@@ -36,6 +44,7 @@ public class SecurityFacade {
     @Inject private IStorageQuery query;
     @Inject private AppConfig config;
     @Inject private GatewayFacade gatewayFacade;
+    @Inject private OrganizationFacade orgFacade;
 
     public void setOAuthExpTime(Integer expTime){
         if(!config.getOAuthEnableGatewayEnpoints())throw new OAuthException("Central OAuth2 endpoints are deactivate, this method cannot be used in the current configruation.");
@@ -88,6 +97,49 @@ public class SecurityFacade {
             return response;
         } catch (StorageException e) {
             throw new JWTException("Could not return the JWT expiration time:"+e.getMessage());
+        }
+    }
+
+    public Set<NewApiKeyBean> reissueAllApiKeys() {
+        Set<NewApiKeyBean> rval = new HashSet<>();
+        for (ApplicationVersionBean avb : getAllNonRetiredApplicationVersions()) {
+            try {
+                NewApiKeyBean nakb = orgFacade.reissueApplicationVersionApiKey(avb);
+                if (nakb != null) {
+                    rval.add(nakb);
+                }
+            }
+            catch (Exception ex) {
+                //Log the error, but continue the reissuance process
+                _LOG.error("Key Auth Reissuance FAILED for {}, caused by:{}", ConsumerConventionUtil.createAppUniqueId(avb), ex);
+            }
+        }
+        return rval;
+    }
+
+    public Set<NewOAuthCredentialsBean> reissueAllOAuthCredentials() {
+        Set<NewOAuthCredentialsBean> rval = new HashSet<>();
+        for (ApplicationVersionBean avb : getAllNonRetiredApplicationVersions()) {
+            try {
+                NewOAuthCredentialsBean nocb = orgFacade.reissueApplicationVersionOAuthCredentials(avb);
+                if (nocb != null) {
+                    rval.add(nocb);
+                }
+            }
+            catch (Exception ex) {
+                //Log the error, but continue the reissuance process
+                _LOG.error("OAuth2 Credentials Reissuance FAILED for {}, caused by:{}", ConsumerConventionUtil.createAppUniqueId(avb), ex);
+            }
+        }
+        return rval;
+    }
+
+    private List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() {
+        try {
+            return query.getAllNonRetiredApplicationVersions();
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 }

@@ -155,6 +155,7 @@ public final class ErrorCodes {
     //
     public static final int GATEWAY_ALREADY_EXISTS              = 11001;
     public static final int GATEWAY_NOT_FOUND                   = 11002;
+    public static final int GATEWAY_API_KEY_ALREADY_EXISTS      = 11003;
 
     public static final String GATEWAY_ALREADY_EXISTS_INFO      = null;
     public static final String GATEWAY_NOT_FOUND_INFO           = null;

@@ -437,6 +437,22 @@ public class AuditUtils {
     }
 
     /**
+     * Creates an audit entry for the 'application version updated' event.
+     * @param bean the bean
+     * @param data the updated data
+     * @param securityContext the security context
+     * @return the audit entry
+     */
+    public static AuditEntryBean credentialsReissue(ApplicationVersionBean bean, EntityUpdatedData data, AuditEntryType entryType, ISecurityContext securityContext) {
+        AuditEntryBean entry = newEntry(bean.getApplication().getOrganization().getId(), AuditEntityType.Application, securityContext);
+        entry.setEntityId(bean.getApplication().getId());
+        entry.setEntityVersion(bean.getVersion());
+        entry.setWhat(entryType);
+        entry.setData(toJSON(data));
+        return entry;
+    }
+
+    /**
      * Creates an audit entry for the 'contract created' event.
      * @param bean the bean
      * @param securityContext the security context
