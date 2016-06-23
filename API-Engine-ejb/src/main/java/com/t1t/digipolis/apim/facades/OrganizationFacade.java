@@ -810,62 +810,65 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             // Get Application versions
             List<ApplicationVersionSummaryBean> versions = query.getApplicationVersions(applicationBean.getOrganization().getId(), applicationBean.getId());
-            // For each version, we will clean up the database and the gateway
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            for(ApplicationVersionSummaryBean version:versions){
-                // Note that contract must be remove before deleting app - this is by using 'unregister' app in the action facade - but for some use cases, you can delete app while still having contract
-                List<ContractSummaryBean> contractBeans = query.getApplicationContracts(version.getOrganizationId(), version.getId(), version.getVersion());
-                // delete all contracts
-                for(ContractSummaryBean contractSumBean:contractBeans){
-                    ContractBean contract = null;
-                    try {
-                        contract = storage.getContract(contractSumBean.getContractId());
-                        storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
-                        storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
-                        storage.deleteContract(contract);
-                        log.debug(String.format("Deleted contract: %s", contract));
-                    } catch (StorageException e) {
-                        throw new SystemErrorException(e);
-                    }
-                }
-                // Verify the status: if Created, Ready or Registered we need to remove the consumer from Kong
-                ApplicationStatus status = version.getStatus();
-                if (status.equals(ApplicationStatus.Created) || status.equals(ApplicationStatus.Ready) || status.equals(ApplicationStatus.Registered)) {
-                    Application application = new Application();
-                    application.setOrganizationId(version.getOrganizationId());
-                    application.setApplicationId(version.getId());
-                    application.setVersion(version.getVersion());
-                    try {
-                        gateway.unregisterApplication(application);
-                    } catch (Exception e) {
-                        throw ExceptionFactory.actionException(Messages.i18n.format("UnregisterError"), e); //$NON-NLS-1$
-                    }
-                }
+            for (ApplicationVersionSummaryBean appVersion : versions) {
+                deleteAppVersion(appVersion.getOrganizationId(), appVersion.getId(), appVersion.getVersion());
             }
-            gateway.close();
-            // Remove all application versions from API Engine
-            versions.stream().forEach(version -> {
-                try {
-                    ApplicationVersionBean appVersion = storage.getApplicationVersion(version.getOrganizationId(), version.getId(), version.getVersion());
-                    storage.deleteApplicationVersion(appVersion);
-                } catch (AbstractRestException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new SystemErrorException(e);
-                }
-            });
-            // Delete related application events
-            String eventId = new StringBuilder(applicationBean.getOrganization().getId())
-                    .append(applicationId)
-                    .append(".%")
-                    .toString();
-            query.deleteAllEventsForEntity(eventId);
             // Finally, delete the application from API Engine
             storage.deleteApplication(applicationBean);
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteAppVersion(String organizationId, String applicationId, String version) {
+        ApplicationVersionBean avb =  getAppVersion(organizationId, applicationId, version);
+        try {
+            List<ContractSummaryBean> summaries = query.getApplicationContracts(organizationId, applicationId, version);
+            for(ContractSummaryBean contractSumBean : summaries){
+                ContractBean contract = null;
+                try {
+                    contract = storage.getContract(contractSumBean.getContractId());
+                    storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
+                    storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
+                    storage.deleteContract(contract);
+                    log.debug(String.format("Deleted contract: %s", contract));
+                } catch (StorageException e) {
+                    throw new SystemErrorException(e);
+                }
+            }
+            Application application = new Application(organizationId, applicationId, version);
+            if (avb.getStatus() == ApplicationStatus.Registered) {
+                for (IGatewayLink gateway : getApplicationGatewayLinks(summaries).values()) {
+                    try {
+                        gateway.unregisterApplication(application);
+                        gateway.close();
+                    }
+                    catch (GatewayAuthenticationException ex) {
+                        throw ExceptionFactory.systemErrorException(ex);
+                    }
+                }
+            }
+            else {
+                if (avb.getStatus() != ApplicationStatus.Retired) {
+                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                    try {
+                        gateway.unregisterApplication(application);
+                        gateway.close();
+                    }
+                    catch (GatewayAuthenticationException ex) {
+                        throw ExceptionFactory.systemErrorException(ex);
+                    }
+                }
+            }
+            // Delete related application events
+            query.deleteAllEventsForEntity(ConsumerConventionUtil.createAppUniqueId(avb));
+            // Finally delete the application
+            storage.deleteApplicationVersion(avb);
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 

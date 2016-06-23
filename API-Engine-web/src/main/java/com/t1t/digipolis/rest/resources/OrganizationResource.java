@@ -231,6 +231,27 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.deleteApp(organizationId, applicationId);
     }
 
+    @ApiOperation(value = "Delete Application Version")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteAppVersion(@PathParam("organizationId") String organizationId,
+                                 @PathParam("applicationId") String applicationId,
+                                 @PathParam("version") String version)
+            throws ApplicationNotFoundException, NotAuthorizedException {
+        if (securityContext.hasPermission(PermissionType.appAdmin, organizationId))
+            Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        orgFacade.deleteAppVersion(organizationId, applicationId, version);
+    }
+
     @ApiOperation(value = "Get Application Activity",
             notes = "This endpoint returns audit activity information about the Application.")
     @ApiResponses({
