@@ -3748,14 +3748,36 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //remove memberships
         //leave audit and add closure
         //remove organization
-
+        OrganizationBean org = get(orgId);
         try {
-            OrganizationBean organization = storage.getOrganization(orgId);
-            deleteOrganization(orgId);
-        } catch (StorageException e) {
-            e.printStackTrace();
+            if (!query.getServicesInOrg(orgId).isEmpty() || !query.getPlansInOrg(org.getId()).isEmpty()) {
+                //TODO - Provide implementation once organizations are split across marketplaces/publisher
+                throw ExceptionFactory.orgCannotBeDeleted("Organization has services");
+            }
+            //We can safely assume that if an organization has no plans if it doesn't have services
+            else {
+                List<ApplicationSummaryBean> apps = query.getApplicationsInOrg(orgId);
+                if (!apps.isEmpty()) {
+                    for (ApplicationSummaryBean appSumm : apps) {
+                        deleteApp(orgId, appSumm.getId());
+                    }
+                }
+            }
+            deleteOrganizationInternal(org);
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
 
+    }
+
+    private void deleteOrganizationInternal(OrganizationBean org) throws StorageException {
+        //This assumes the preliminary work of deleting services, plans and applications has already been done
+        //in the methods calling this method
+        for (RoleMembershipBean member : idmStorage.getOrgMemberships(org.getId())) {
+            idmStorage.deleteMemberships(member.getUserId(), org.getId());
+        }
+        storage.deleteOrganization(org);
     }
 
     public NewApiKeyBean reissueApplicationVersionApiKey(String organizationId, String applicationId, String version) {

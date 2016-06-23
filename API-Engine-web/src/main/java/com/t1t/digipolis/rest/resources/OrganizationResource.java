@@ -242,8 +242,6 @@ public class OrganizationResource implements IOrganizationResource {
                                  @PathParam("applicationId") String applicationId,
                                  @PathParam("version") String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
-        if (securityContext.hasPermission(PermissionType.appAdmin, organizationId))
-            Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
@@ -2026,6 +2024,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteOrganization(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
         orgFacade.deleteOrganization(organizationId);
     }
 
