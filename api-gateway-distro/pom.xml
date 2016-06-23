@@ -20,15 +20,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>API-Engine</artifactId>
+        <artifactId>api-gateway</artifactId>
         <groupId>com.t1t.digipolis</groupId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>API-Engine-distro</artifactId>
+    <artifactId>api-gateway-distro</artifactId>
     <packaging>pom</packaging>
 
-    <name>api-engine-distro</name>
+    <name>api-gateway-distro</name>
 
     <url>http://wildfly.org</url>
     <licenses>
@@ -47,7 +47,7 @@
         <!-- Depend on the ejb module and war so that we can package them -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>API-Engine-ear</artifactId>
+            <artifactId>api-gateway-ear</artifactId>
             <version>${project.version}</version>
             <type>ear</type>
         </dependency>
@@ -70,13 +70,24 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+                <version>${version.deploy.plugin}</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${version.compiler.plugin}</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <version>${version.dependency.plugin}</version>
                 <executions>
                     <execution>
                         <id>unpack</id>
@@ -101,6 +112,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>${version.assembly.plugin}</version>
                 <executions>
                     <execution>
                         <id>overlay</id>

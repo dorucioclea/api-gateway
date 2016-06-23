@@ -20,15 +20,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>API-Engine</artifactId>
+        <artifactId>api-gateway</artifactId>
         <groupId>com.t1t.digipolis</groupId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>API-Engine-ear</artifactId>
+    <artifactId>api-gateway-ear</artifactId>
     <packaging>ear</packaging>
 
-    <name>api-engine-ear</name>
+    <name>api-gateway-ear</name>
 
     <url>http://wildfly.org</url>
     <licenses>
@@ -47,19 +47,19 @@
         <!-- Depend on the ejb module and war so that we can package them -->
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
-            <artifactId>API-Engine-auth</artifactId>
+            <artifactId>api-gateway-auth</artifactId>
             <version>${project.version}</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
-            <artifactId>API-Engine-web</artifactId>
+            <artifactId>api-gateway-web</artifactId>
             <version>${project.version}</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
-            <artifactId>API-Engine-ejb</artifactId>
+            <artifactId>api-gateway-ejb</artifactId>
             <version>${project.version}</version>
             <type>ejb</type>
         </dependency>
@@ -69,6 +69,23 @@
         <!--<finalName>${project.artifactId}-${targetenv}-${version}</finalName>-->
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${version.deploy.plugin}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${version.compiler.plugin}</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-ear-plugin</artifactId>

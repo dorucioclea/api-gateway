@@ -3,15 +3,15 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>API-Engine</artifactId>
+        <artifactId>api-gateway</artifactId>
         <groupId>com.t1t.digipolis</groupId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>API-Engine-auth</artifactId>
+    <artifactId>api-gateway-auth</artifactId>
     <packaging>war</packaging>
 
-    <name>api-engine-auth</name>
+    <name>api-gateway-auth</name>
 
     <url>http://wildfly.org</url>
     <licenses>
@@ -31,7 +31,8 @@
         <!-- Dependency on the EJB module so we can use it's services if needed -->
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
-            <artifactId>API-Engine-ejb</artifactId>
+            <artifactId>api-gateway-ejb</artifactId>
+            <version>${project.version}</version>
             <type>ejb</type>
             <scope>provided</scope>
         </dependency>
@@ -135,6 +136,23 @@
         <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${version.deploy.plugin}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${version.compiler.plugin}</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>${version.war.plugin}</version>
                 <configuration>
@@ -145,6 +163,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+                <version>${version.bundle.plugin}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
