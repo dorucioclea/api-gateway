@@ -19,15 +19,15 @@
    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-      <artifactId>api-gateway</artifactId>
+      <artifactId>API-Engine</artifactId>
       <groupId>com.t1t.digipolis</groupId>
       <version>0.7.2-SNAPSHOT</version>
    </parent>
 
-   <artifactId>api-gateway-web</artifactId>
+   <artifactId>API-Engine-web</artifactId>
    <packaging>war</packaging>
 
-   <name>api-gateway-web</name>
+   <name>API-Engine-web</name>
 
    <url>http://wildfly.org</url>
    <licenses>
@@ -47,7 +47,7 @@
       <!-- Dependency on the EJB module so we can use it's services if needed -->
       <dependency>
          <groupId>com.t1t.digipolis</groupId>
-         <artifactId>api-gateway-ejb</artifactId>
+         <artifactId>API-Engine-ejb</artifactId>
           <version>${project.version}</version>
          <type>ejb</type>
          <scope>provided</scope>

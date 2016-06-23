@@ -20,15 +20,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>api-gateway</artifactId>
+        <artifactId>API-Engine</artifactId>
         <groupId>com.t1t.digipolis</groupId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>api-gateway-ear</artifactId>
+    <artifactId>API-Engine-ear</artifactId>
     <packaging>ear</packaging>
 
-    <name>api-gateway-ear</name>
+    <name>API-Engine-ear</name>
 
     <url>http://wildfly.org</url>
     <licenses>
@@ -47,19 +47,19 @@
         <!-- Depend on the ejb module and war so that we can package them -->
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
-            <artifactId>api-gateway-auth</artifactId>
+            <artifactId>API-Engine-auth</artifactId>
             <version>${project.version}</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
-            <artifactId>api-gateway-web</artifactId>
+            <artifactId>API-Engine-web</artifactId>
             <version>${project.version}</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>com.t1t.digipolis</groupId>
-            <artifactId>api-gateway-ejb</artifactId>
+            <artifactId>API-Engine-ejb</artifactId>
             <version>${project.version}</version>
             <type>ejb</type>
         </dependency>
