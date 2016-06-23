@@ -2279,4 +2279,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("status", ApplicationStatus.Retired)
                 .getResultList();
     }
+
+    @Override
+    public List<EventBean> getAllEventsRelatedToOrganization(String orgId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT e FROM EventBean e WHERE e.destinationId = :orgId OR e.destinationId LIKE :orgLike OR e.originId = :orgId OR e.originId LIKE :orgLike";
+        return em.createQuery(jpql)
+                .setParameter("orgId", orgId)
+                .setParameter("orgLike", orgId + ".%")
+                .getResultList();
+    }
 }

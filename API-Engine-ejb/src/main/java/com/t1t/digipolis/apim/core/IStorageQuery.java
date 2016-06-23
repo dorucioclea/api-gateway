@@ -595,4 +595,5 @@ public interface IStorageQuery {
 
     public List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() throws StorageException;
 
+    public List<EventBean> getAllEventsRelatedToOrganization(String orgId) throws StorageException;
 }

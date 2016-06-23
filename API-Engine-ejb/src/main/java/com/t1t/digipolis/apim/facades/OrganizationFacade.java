@@ -3777,6 +3777,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         for (RoleMembershipBean member : idmStorage.getOrgMemberships(org.getId())) {
             idmStorage.deleteMemberships(member.getUserId(), org.getId());
         }
+        //Delete all related events
+        for (EventBean event : query.getAllEventsRelatedToOrganization(org.getId())) {
+            storage.deleteEvent(event);
+        }
         storage.deleteOrganization(org);
     }
 
