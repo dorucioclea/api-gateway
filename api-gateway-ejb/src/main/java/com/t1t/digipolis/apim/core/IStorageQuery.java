@@ -591,4 +591,8 @@ public interface IStorageQuery {
 
     public void deleteAclPolicies() throws StorageException;
 
+    public void updateApplicationVersionApiKey(ApplicationVersionBean avb, String apiKey) throws StorageException;
+
+    public List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() throws StorageException;
+
 }

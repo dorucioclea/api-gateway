@@ -30,6 +30,7 @@ import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -1436,4 +1437,7 @@ public interface IOrganizationResource {
 
     public ContractBean acceptContractRequest(String organizationId, String applicationId, String version, NewContractBean response) throws NotAuthorizedException;
 
+    public NewOAuthCredentialsBean reissueAppVersionOAuthCredentials(String orgId, String appId, String version);
+
+    public NewApiKeyBean reissueAppVersionApiKey(String orgId, String appId, String version);
 }

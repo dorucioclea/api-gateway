@@ -279,6 +279,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public void updateContract(ContractBean contractBean) throws StorageException {
+        super.update(contractBean);
+    }
+
+    @Override
     public void updateMailTemplate(MailTemplateBean mailTemplateBean) throws StorageException {
         super.update(mailTemplateBean);
     }
@@ -2254,5 +2259,24 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         em.createQuery(jpql)
                 .setParameter("polDefId", Policies.ACL.name())
                 .executeUpdate();
+    }
+
+    @Override
+    public void updateApplicationVersionApiKey(ApplicationVersionBean avb, String apiKey) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "UPDATE ContractBean c SET c.apikey = :newKey WHERE c.application = :avb";
+        em.createQuery(jpql)
+                .setParameter("newKey", apiKey)
+                .setParameter("avb", avb)
+                .executeUpdate();
+    }
+
+    @Override
+    public List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT a FROM ApplicationVersionBean a WHERE a.status <> :status";
+        return em.createQuery(jpql)
+                .setParameter("status", ApplicationStatus.Retired)
+                .getResultList();
     }
 }

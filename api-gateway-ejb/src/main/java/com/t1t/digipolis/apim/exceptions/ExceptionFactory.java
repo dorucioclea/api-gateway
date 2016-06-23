@@ -441,4 +441,16 @@ public final class ExceptionFactory {
     public static final MetricsUnavailableException metricsUnavailableException() {
         return new MetricsUnavailableException();
     }
+
+    public static final ContractNotFoundException contractNotFoundException() {
+        return new ContractNotFoundException();
+    }
+
+    public static final APIKeyAlreadyExistsException apiKeyAlreadyExistsException(String apiKey) {
+        return new APIKeyAlreadyExistsException(apiKey);
+    }
+
+    public static final SystemErrorException systemErrorException(Throwable throwable) {
+        return new SystemErrorException(throwable);
+    }
 }

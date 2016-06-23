@@ -2,6 +2,8 @@ package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
+import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -32,6 +34,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Implementation of the System API.
@@ -107,5 +110,35 @@ public class SecurityResource implements ISecurityResource {
         //only admin can perform this action
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         return securityFacade.getJWTExpTime();
+    }
+
+    @Override
+    @ApiOperation(value = "Reissue all API keys", notes = "Use this endpoint to revoke all current API keys and issue new ones")
+    @ApiResponses({
+            @ApiResponse(code = 204, responseContainer = "List", response = NewApiKeyBean.class, message = "API keys reissued")
+    })
+    @POST
+    @Path("/key-auth/reissue")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<NewApiKeyBean> reissueAllApiKeys() throws NotAuthorizedException {
+        if (!securityContext.isAdmin()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        return securityFacade.reissueAllApiKeys();
+    }
+
+    @Override
+    @ApiOperation(value = "Reissue all OAuth2 credentials", notes = "Use this endpoint to revoke all current OAuth2 credentials and issue new ones")
+    @ApiResponses({
+            @ApiResponse(code = 204, responseContainer = "List", response = NewOAuthCredentialsBean.class, message = "OAuth2 credentials reissued")
+    })
+    @POST
+    @Path("/oauth2/reissue")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<NewOAuthCredentialsBean> reissueAllOAuth2Credentials() throws NotAuthorizedException {
+        if (!securityContext.isAdmin()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        return securityFacade.reissueAllOAuthCredentials();
     }
 }
