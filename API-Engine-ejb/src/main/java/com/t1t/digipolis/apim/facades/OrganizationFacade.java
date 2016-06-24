@@ -185,6 +185,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable"));
             }
         }
+
         OrganizationBean orgBean = new OrganizationBean();
         orgBean.setName(bean.getName());
         orgBean.setDescription(bean.getDescription());
