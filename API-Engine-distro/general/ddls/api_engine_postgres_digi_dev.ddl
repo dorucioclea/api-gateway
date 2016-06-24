@@ -22,9 +22,9 @@ INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VA
 INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('ex02394@digant.antwerpen.local', '','maarten.somers@digipolis.be', 'Maarten Somers', CURRENT_DATE, TRUE);
 INSERT INTO users(username, kong_username, email, full_name, joined_on, admin)VALUES ('ex02607@digant.antwerpen.local', '','guillaume.vandecasteele@digipolis.be', 'Guillaume Vandecasteele', CURRENT_DATE, TRUE);
 
-INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES (901, 'marketplace', 'v1', 'Marketplace', 'ext', '229e2ea08ba94919c9d221cdf3be1f73');
-INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES (902, 'marketplace', 'v1', 'Marketplace', 'int', '229e2ea08ba94919c9d221cdf3be1f71');
-INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES (903, 'dev.publisher', 'v1', 'Publisher', NULL, '***REMOVED***');
+INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES (901, 'Internal Marketplace', 'v1', 'Marketplace', 'ext', '229e2ea08ba94919c9d221cdf3be1f73');
+INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES (902, 'External Marketplace', 'v1', 'Marketplace', 'int', '229e2ea08ba94919c9d221cdf3be1f71');
+INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES (903, 'dev.publisher', 'v1', 'Publisher', 'pub', '***REMOVED***');
 INSERT INTO managed_applications (id, name, version, type, availability, api_key) VALUES (904, 'consent_app_nodejs', 'v1', 'Consent', 'acpaas', '229e2ea08ba94919c9d221cdf3be1124');
 
 -- INSERT default templates
