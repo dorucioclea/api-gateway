@@ -811,7 +811,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             // Get Application versions
             List<ApplicationVersionSummaryBean> versions = query.getApplicationVersions(applicationBean.getOrganization().getId(), applicationBean.getId());
             for (ApplicationVersionSummaryBean appVersion : versions) {
-                deleteAppVersion(appVersion.getOrganizationId(), appVersion.getId(), appVersion.getVersion());
+                deleteAppVersionInternal(appVersion.getOrganizationId(), appVersion.getId(), appVersion.getVersion());
             }
             // Finally, delete the application from API Engine
             storage.deleteApplication(applicationBean);
@@ -823,6 +823,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public void deleteAppVersion(String organizationId, String applicationId, String version) {
+        try {
+            List<ApplicationVersionSummaryBean> versions = query.getApplicationVersions(organizationId, applicationId);
+            //If there's only one version left, delete the entire application...
+            if (versions.size() == 1) {
+                deleteApp(organizationId, applicationId);
+            }
+            else {
+                deleteAppVersionInternal(organizationId, applicationId, version);
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+
+    }
+
+    private void deleteAppVersionInternal(String organizationId, String applicationId, String version) {
         ApplicationVersionBean avb =  getAppVersion(organizationId, applicationId, version);
         try {
             List<ContractSummaryBean> summaries = query.getApplicationContracts(organizationId, applicationId, version);
