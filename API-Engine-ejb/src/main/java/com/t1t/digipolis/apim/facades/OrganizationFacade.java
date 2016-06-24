@@ -2475,7 +2475,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         auditData.setUserId(bean.getUserId());
         try {
             if (!idmStorage.getUserMemberships(bean.getUserId(), organizationId).isEmpty()) {
-                throw ExceptionFactory.membershipAlreadyExists(user.getFullName() + "is already a member of " + org.getName());
+                throw ExceptionFactory.membershipAlreadyExists(user.getFullName() + " is already a member of " + org.getName());
             }
             RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), bean.getRoleId(), organizationId);
             membership.setCreatedOn(new Date());
