@@ -1981,6 +1981,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public List<ApplicationBean> findAllApplications() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT a FROM ApplicationBean a";
+        return em.createQuery(jpql).getResultList();
+    }
+
+    @Override
     public List<PlanBean> findAllPlans(String organizationId) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
         String jpql = "SELECT p FROM PlanBean p WHERE p.organization.id = :orgId";

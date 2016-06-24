@@ -2,12 +2,14 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
@@ -593,8 +595,14 @@ public class MigrationFacade {
         }
     }
 
-    public void splitOrgs() {
+    public void splitOrgs() throws StorageException {
+        //get all applications
+        List<ApplicationBean> allApplications = query.findAllApplications();
+        for(ApplicationBean app:allApplications){
+            OrganizationBean organization = app.getOrganization();
+            ManagedApplicationBean marketplaceManagedApp = query.getMarketplaceManagedApp(storage.getAvailableMarket(app.getContext()));
 
+        }
 
     }
 }

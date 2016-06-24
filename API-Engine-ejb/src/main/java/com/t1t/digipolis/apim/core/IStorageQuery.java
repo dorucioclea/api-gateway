@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.core;
 
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
+import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
@@ -451,12 +452,20 @@ public interface IStorageQuery {
     public List<PolicyBean> getManagedAppACLPolicies(String organizationId, String serviceId, String version) throws StorageException;
 
     /**
-     * Returns all applications
+     * Returns all application versions
      *
      * @return List of ApplicationVersionBeans
      * @throws StorageException
      */
     public List<ApplicationVersionBean> findAllApplicationVersions() throws StorageException;
+
+    /**
+     * Returns all applications
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<ApplicationBean> findAllApplications() throws StorageException;
 
     /**
      * Returns all plans (plan version containers) for a given organization.
