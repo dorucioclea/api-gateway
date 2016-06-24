@@ -3742,25 +3742,39 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @param orgId
      */
     public void deleteOrganization(String orgId) {
-        //if services throw exceptions
-        //if applications throw exceptions
-        //if plans throw exceptions
         //remove memberships
         //leave audit and add closure
         //remove organization
         OrganizationBean org = get(orgId);
         try {
-            if (!query.getServicesInOrg(orgId).isEmpty() || !query.getPlansInOrg(org.getId()).isEmpty()) {
-                //TODO - Provide implementation once organizations are split across marketplaces/publisher
-                throw ExceptionFactory.orgCannotBeDeleted("Organization has services");
-            }
-            //We can safely assume that if an organization has no plans if it doesn't have services
-            else {
-                List<ApplicationSummaryBean> apps = query.getApplicationsInOrg(orgId);
-                if (!apps.isEmpty()) {
-                    for (ApplicationSummaryBean appSumm : apps) {
-                        deleteApp(orgId, appSumm.getId());
+            List<ServiceSummaryBean> services = query.getServicesInOrg(orgId);
+            if (!services.isEmpty()) {
+                if (!query.getServiceVersionsInOrgByStatus(orgId, ServiceStatus.Published).isEmpty() || !query.getServiceVersionsInOrgByStatus(orgId, ServiceStatus.Deprecated).isEmpty()) {
+                    for (ServiceSummaryBean svcSummary : services) {
+                        ServiceBean service = getService(svcSummary.getOrganizationId(), svcSummary.getId());
+                        if (!query.getServiceContracts(service).isEmpty()) {
+                            throw ExceptionFactory.orgCannotBeDeleted("The organization's services still have contracts");
+                        }
                     }
+                    //TODO - delete the services that don't have any contracts
+                    throw ExceptionFactory.orgCannotBeDeleted("The organization still has published and/or deprecated service versions");
+                }
+                //If the organization doesn't have any published or deprecated services, those services should be safe to delete
+                else {
+                    //TODO - delete all unpublished services in one go
+                    throw ExceptionFactory.orgCannotBeDeleted("The organization still has services");
+                }
+            }
+            //If the organization doesn't have services, check if it has plans
+            if (!query.getPlansInOrg(org.getId()).isEmpty()) {
+                //TODO - Delete all plans if the org doesn't have services
+                throw ExceptionFactory.orgCannotBeDeleted("The organization still has plans");
+            }
+            //By now we can assume that either an exception has been thrown or the organization doesnt't have any services left
+            List<ApplicationSummaryBean> apps = query.getApplicationsInOrg(orgId);
+            if (!apps.isEmpty()) {
+                for (ApplicationSummaryBean appSumm : apps) {
+                    deleteApp(orgId, appSumm.getId());
                 }
             }
             deleteOrganizationInternal(org);

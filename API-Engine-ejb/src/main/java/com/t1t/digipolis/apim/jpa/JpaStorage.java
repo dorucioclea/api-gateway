@@ -1971,7 +1971,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<PlanBean> findAllPlans(String organizationId) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT p FROM PlanBean p WHERE p.organization.id = :orgId";
+        String jpql = "SELECT p FROM PlanBean p WHERE organization = :orgId";
         return (List<PlanBean>) em.createQuery(jpql)
                 .setParameter("orgId",organizationId)
                 .getResultList();
@@ -1980,7 +1980,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<PlanVersionBean> findAllPlanVersionBeans(String organizationId, String planId) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT p FROM PlanVersionBean p WHERE p.plan.id = :planId AND p.plan.organization.id = :orgId";
+        String jpql = "SELECT p FROM PlanVersionBean p WHERE plan_id = :planId AND plan_org_id = :orgId";
         return (List<PlanVersionBean>) em.createQuery(jpql)
                 .setParameter("orgId",organizationId)
                 .setParameter("planId",planId)
@@ -2287,6 +2287,25 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return em.createQuery(jpql)
                 .setParameter("orgId", orgId)
                 .setParameter("orgLike", orgId + ".%")
+                .getResultList();
+    }
+
+    @Override
+    public List<ContractBean> getServiceContracts(ServiceBean service) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT c FROM ContractBean c WHERE c.service.service = :svc";
+        return em.createQuery(jpql)
+                .setParameter("svc", service)
+                .getResultList();
+    }
+
+    @Override
+    public List<ServiceVersionBean> getServiceVersionsInOrgByStatus(String organizationId, ServiceStatus status) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.service.organization.id = :orgId AND s.status = :status";
+        return em.createQuery(jpql)
+                .setParameter("orgId", organizationId)
+                .setParameter("status", status)
                 .getResultList();
     }
 }
