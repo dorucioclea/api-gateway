@@ -467,9 +467,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             //verify if serviceversion and appversion exist
             ApplicationVersionBean avb = getAppVersion(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion());
-            if (avb.getStatus() == ApplicationStatus.Registered) {
-                throw ExceptionFactory.invalidApplicationStatusException();
-            }
             ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
             String appId = ConsumerConventionUtil.createAppUniqueId(avb);
             String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
@@ -625,33 +622,24 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             //for contract add keyauth to application consumer
-            //We create the new application version consumer
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            Gson gson = new Gson();
-            if (contract != null) {
-                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                try {
-                    gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
-                } catch (Exception e) {
-                    //apikey for consumer already exists
+            String serviceOrgId = contract.getService().getService().getOrganization().getId();
+            String serviceId = contract.getService().getService().getId();
+            String svcVersion = contract.getService().getVersion();
+            if (contract.getApplication().getStatus() == ApplicationStatus.Registered) {
+                Application app = getApplicationForNewContractRegistration(contract);
+                for (IGatewayLink gateway : getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version)).values()) {
+                    enableContractonGateway(contract, gateway);
+                    gateway.registerApplication(app);
                 }
-                //Add ACL group membership by default on gateway
-                KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
-                        ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
-                //Persist the unique Kong plugin id in a new policy associated with the app.
-                NewPolicyBean npb = new NewPolicyBean();
-                KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
-                npb.setDefinitionId(Policies.ACL.name());
-                npb.setKongPluginId(response.getId());
-                npb.setContractId(contract.getId());
-                npb.setConfiguration(gson.toJson(conf));
-                doCreatePolicy(organizationId, applicationId, version, npb, PolicyType.Application);
+            } else {
+                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                enableContractonGateway(contract, gateway);
             }
             //verify if the contracting service has OAuth enabled
-            List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+            List<PolicySummaryBean> policySummaryBeans = listServicePolicies(serviceOrgId, serviceId, svcVersion);
             for (PolicySummaryBean summaryBean : policySummaryBeans) {
                 if (summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())) {
-                    ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
+                    ApplicationVersionBean avb = contract.getApplication();
                     boolean changed = false;
                     if (StringUtils.isEmpty(avb.getoAuthClientId())) {
                         //create client_id and client_secret for the application - the same client_id/secret must be used for all services
@@ -661,11 +649,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         changed = true;
                     }
                     //Check if client credentials is enabled, and if so, already enable oauth on gateway
-                    PolicyBean pb = storage.getPolicy(PolicyType.Service, bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion(), summaryBean.getId());
-                    KongPluginOAuth oAuthValue = gson.fromJson(pb.getConfiguration(), KongPluginOAuth.class);
-                    if (oAuthValue.getEnableClientCredentials()) {
+                    PolicyBean pb = storage.getPolicy(PolicyType.Service, serviceOrgId, serviceId, svcVersion, summaryBean.getId());
+                    KongPluginOAuth oAuthValue = new Gson().fromJson(pb.getConfiguration(), KongPluginOAuth.class);
+                    if (oAuthValue.getEnableClientCredentials() && avb.getOauthClientRedirect() == null) {
                         avb.setOauthClientRedirect(PLACEHOLDER_CALLBACK_URI);
-                        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
+                        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(avb);
                         OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
                         requestBean.setUniqueUserName(appConsumerName);
                         requestBean.setAppOAuthId(avb.getoAuthClientId());
@@ -694,6 +682,53 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         throw new SystemErrorException(e);
     }*/
         }
+    }
+
+    private void enableContractonGateway(ContractBean contract, IGatewayLink gateway) throws StorageException {
+        String applicationOrgId = contract.getApplication().getApplication().getOrganization().getId();
+        String applicationId = contract.getApplication().getApplication().getId();
+        String appVersion = contract.getApplication().getVersion();
+        if (contract != null) {
+            String appConsumerName = ConsumerConventionUtil.createAppUniqueId(contract.getApplication());
+            try {
+                gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+            } catch (Exception e) {
+                //apikey for consumer already exists
+            }
+            //Add ACL group membership by default on gateway
+            KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
+                    ServiceConventionUtil.generateServiceUniqueName(contract.getService()));
+            //Persist the unique Kong plugin id in a new policy associated with the app.
+            NewPolicyBean npb = new NewPolicyBean();
+            KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+            npb.setDefinitionId(Policies.ACL.name());
+            npb.setKongPluginId(response.getId());
+            npb.setContractId(contract.getId());
+            npb.setConfiguration(new Gson().toJson(conf));
+            doCreatePolicy(applicationOrgId, applicationId, appVersion, npb, PolicyType.Application);
+        }
+    }
+
+    private Application getApplicationForNewContractRegistration(ContractBean cb) throws StorageException {
+        Application app = new Application();
+        Contract contract = new Contract(cb);
+        List<Policy> contractPolicies = new ArrayList<>();
+        for (PolicyBean policy : getServicePlanPoliciesForContract(cb)) {
+            contractPolicies.add(new Policy(policy.getDefinition().getId(), policy.getConfiguration()));
+        }
+        contract.setPolicies(contractPolicies);
+        app.setContracts(new HashSet<>());
+        app.getContracts().add(contract);
+        return app;
+    }
+
+    private List<PolicyBean> getServicePlanPoliciesForContract(ContractBean contract) throws StorageException {
+        List<PolicyBean> rval = new ArrayList<>();
+        List<PolicySummaryBean> summs = query.getPolicies(contract.getService().getService().getOrganization().getId(), contract.getService().getService().getId(), contract.getService().getVersion(), PolicyType.Plan);
+        for (PolicySummaryBean sum : summs) {
+            rval.add(getPlanPolicy(contract.getPlan().getPlan().getOrganization().getId(), contract.getPlan().getPlan().getId(), contract.getPlan().getVersion(), contract.getPlan().getId()));
+        }
+        return rval;
     }
 
     public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) throws StorageException {

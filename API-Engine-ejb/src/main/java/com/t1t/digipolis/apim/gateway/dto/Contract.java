@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.gateway.dto;
 
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,14 @@ public class Contract implements Serializable {
      * Constructor.
      */
     public Contract() {
+    }
+
+    public Contract(ContractBean contract) {
+        this.apiKey = contract.getApikey();
+        this.serviceOrgId = contract.getService().getService().getOrganization().getId();
+        this.serviceId = contract.getService().getService().getId();
+        this.serviceVersion = contract.getService().getVersion();
+        this.plan = contract.getPlan().getPlan().getId();
     }
 
     /**
