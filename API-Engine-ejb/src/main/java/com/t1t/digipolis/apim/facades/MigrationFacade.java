@@ -592,4 +592,9 @@ public class MigrationFacade {
             throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getApikey()), e);
         }
     }
+
+    public void splitOrgs() {
+
+
+    }
 }
