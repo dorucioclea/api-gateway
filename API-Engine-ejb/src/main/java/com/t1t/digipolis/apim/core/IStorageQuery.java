@@ -433,6 +433,16 @@ public interface IStorageQuery {
     public List<ManagedApplicationBean> getManagedApps() throws StorageException;
 
     /**
+     * Returns a managed application bean for a given scope. The scope is used as a prefix code,
+     * in order to trace from which managed applciation a request has been made.
+     *
+     * @param avb
+     * @return
+     * @throws StorageException
+     */
+    public ManagedApplicationBean getMarketplaceManagedApp(AvailabilityBean avb) throws StorageException;
+
+    /**
      * Returns a List of ACL Policies associated with marketplaces
      *
      * @return List of Policies

@@ -1948,6 +1948,18 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public ManagedApplicationBean getMarketplaceManagedApp(AvailabilityBean scope) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :appType AND m.availability = :scope";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("appType", ManagedApplicationTypes.Marketplace);
+        query.setParameter("scope", scope);
+        List<ManagedApplicationBean> rows = query.getResultList();
+        if(rows.size()>0)return rows.get(0);
+        else return null;
+    }
+
+    @Override
     public List<PolicyBean> getManagedAppACLPolicies(String organizationId, String serviceId, String version) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
         String content = new StringBuilder().append("%")

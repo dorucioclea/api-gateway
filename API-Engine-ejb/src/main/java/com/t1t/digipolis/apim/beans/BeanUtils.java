@@ -1,11 +1,14 @@
 package com.t1t.digipolis.apim.beans;
 
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
+
+import javax.inject.Inject;
+
 /**
  * Some simple bean utils.
  *
  */
 public class BeanUtils {
-
     /**
      * Creates a bean id from the given bean name.  This essentially removes any
      * non "word" characters from the name.
@@ -16,7 +19,7 @@ public class BeanUtils {
      * @return the id
      */
     public static final String idFromName(String name) {
-        name.replace("-","");
+        //contextualize
         return name.replaceAll("[^\\w-\\.]", "").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
     }
 

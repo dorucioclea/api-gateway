@@ -168,7 +168,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
     //craete organization
-    public OrganizationBean create(NewOrganizationBean bean) {
+    public OrganizationBean create(NewOrganizationBean bean) throws StorageException {
+        final String MARKET_SEPARATOR = "-";
         List<RoleBean> autoGrantedRoles = null;
         SearchCriteriaBean criteria = new SearchCriteriaBean();
         criteria.setPage(1);
@@ -185,11 +186,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable"));
             }
         }
+        //determine org id
+        String orgUniqueId = bean.getName();
+        orgUniqueId = orgUniqueId.replaceAll(MARKET_SEPARATOR,"");
+        orgUniqueId=BeanUtils.idFromName(orgUniqueId);
+
+        //verify if organization is created in marketplace
+        ManagedApplicationBean managedApp = query.getMarketplaceManagedApp(storage.getAvailableMarket(appContext.getApplicationScope()));
+        if(managedApp!=null){
+            //the request comes from a marketplace => prefix the org
+            orgUniqueId = managedApp.getAvailability().getCode() + MARKET_SEPARATOR + orgUniqueId;
+        }
 
         OrganizationBean orgBean = new OrganizationBean();
         orgBean.setName(bean.getName());
+        orgBean.setContext(appContext.getApplicationScope());
         orgBean.setDescription(bean.getDescription());
-        orgBean.setId(BeanUtils.idFromName(bean.getName()));
+        orgBean.setId(orgUniqueId);
         orgBean.setCreatedOn(new Date());
         orgBean.setCreatedBy(securityContext.getCurrentUser());
         orgBean.setModifiedOn(new Date());
