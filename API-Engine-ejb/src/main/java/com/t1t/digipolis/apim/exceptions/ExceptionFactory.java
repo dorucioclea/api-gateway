@@ -454,7 +454,7 @@ public final class ExceptionFactory {
         return new SystemErrorException(throwable);
     }
 
-    public static final MemberShipAlreadyExistsException membershipAlreadyExists() {
-        return new MemberShipAlreadyExistsException();
+    public static final MemberShipAlreadyExistsException membershipAlreadyExists(String message) {
+        return new MemberShipAlreadyExistsException(message);
     }
 }

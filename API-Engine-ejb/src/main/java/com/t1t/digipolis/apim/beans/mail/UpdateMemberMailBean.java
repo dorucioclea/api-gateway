@@ -26,7 +26,7 @@ public class UpdateMemberMailBean extends BaseMailBean {
     }
 
     public String getOrgFriendlyName() {
-        return orgFriendlyName;
+        return orgFriendlyName == null || orgFriendlyName.trim().isEmpty() ? orgName : orgFriendlyName;
     }
 
     public void setOrgFriendlyName(String orgFriendlyName) {

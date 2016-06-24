@@ -12,6 +12,14 @@ import org.slf4j.LoggerFactory;
  */
 public class MemberShipAlreadyExistsException extends AbstractAlreadyExistsException {
 
+    public MemberShipAlreadyExistsException(String message) {
+        super(message);
+    }
+
+    public MemberShipAlreadyExistsException() {
+        super();
+    }
+
     @Override
     public int getErrorCode() {
         return ErrorCodes.USER_ALREADY_A_MEMBER;
