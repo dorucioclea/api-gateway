@@ -47,7 +47,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     /**
      * We consult the filter for marketplaces in order to provide a scope.
      * The scope is the context of the API Marketplace.
-     * A scope must be available in the config file AND must be available in the DB. The DB info provides the necessary infor for the API publisher, while the config file
+     * A scope must be available in the config file AND must be available in the DB. The DB info provides the necessary info for the API publisher, while the config file
      * triggers the activation of a specific scope.
      * A scope is retrieved by the prefix of the API Engine consumer. Be sure that the consumer uses the conventional dotted-notation for a consumer name, aka:
      * - prefix.name.version
@@ -68,7 +68,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
         if(appIdentifier!=null && appIdentifier.getScope()!=null){
             List<String> filteredList = config.getFilteredMarketplaces().stream().filter(mkt -> mkt.trim().equalsIgnoreCase(appIdentifier.getScope())).collect(Collectors.toList());
             LOG.debug("Filtered list: {}",filteredList);
-            if(filteredList.size()==0) appIdentifier.setScope("");
+            if(filteredList.size()==0) appIdentifier.setScope("pub");//pub is the default context -> publisher context
         }
         LOG.debug("Application definitive scope:{}", appIdentifier);
         return getApplication();
