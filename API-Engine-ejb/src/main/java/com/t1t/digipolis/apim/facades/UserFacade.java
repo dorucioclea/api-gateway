@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -545,7 +546,9 @@ public class UserFacade implements Serializable {
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());
             //preempt if restricted mode and user is not admin; be carefull to scope the application, non api-engine applications uses this endpoint as well.
-            if (config.getRestrictedMode() && webClientCacheBean.getAppRequester() != null && config.getAppliedRestrictions().contains(webClientCacheBean.getAppRequester().getAppId())) {
+            //TODO should be, if appId of webclientcache == reconstruct managed app => verify if
+            final AppIdentifier appRequester = webClientCacheBean.getAppRequester();//requesting application
+            if (webClientCacheBean.getAppRequester() != null && config.getAppliedRestrictions().contains(webClientCacheBean.getAppRequester().getAppId())) {
                 final UserBean user = idmStorage.getUser(userId);
                 if (user == null || !user.getAdmin()) {
                     SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();

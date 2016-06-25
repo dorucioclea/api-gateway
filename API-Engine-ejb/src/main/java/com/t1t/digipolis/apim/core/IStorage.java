@@ -12,6 +12,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.mail.MailTemplateBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -139,6 +140,7 @@ public interface IStorage {
     public BlacklistBean getBlacklistRecord(String id) throws StorageException;
     public EventBean getEvent(Long id) throws StorageException;
     public MailTemplateBean getMailTemplate (MailTopic mailTopic) throws StorageException;
+    public ManagedApplicationBean getManagedApplicationBean (String prefix, String appId, String version) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

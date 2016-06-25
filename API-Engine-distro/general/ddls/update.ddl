@@ -27,14 +27,17 @@ ALTER TABLE public.managed_applications RENAME availability TO prefix;
 ALTER TABLE public.managed_applications ALTER COLUMN prefix TYPE VARCHAR(255);
 ALTER TABLE public.managed_applications ALTER COLUMN prefix SET NOT NULL;
 
-/* PostgreSQL does not support adding a column with a default value in a single command line. */
+-- add activated
 ALTER TABLE public.managed_applications ADD COLUMN activated BOOL;
 UPDATE public.managed_applications SET activated = true;
 ALTER TABLE public.managed_applications ALTER COLUMN activated SET DEFAULT true;
 ALTER TABLE public.managed_applications ALTER COLUMN activated SET NOT NULL;
 
-/* PostgreSQL does not support adding a column with a default value in a single command line. */
+-- add restricted
 ALTER TABLE public.managed_applications ADD COLUMN restricted BOOL;
 UPDATE public.managed_applications SET restricted = false;
 ALTER TABLE public.managed_applications ALTER COLUMN restricted SET DEFAULT false;
 ALTER TABLE public.managed_applications ALTER COLUMN restricted SET NOT NULL;
+
+-- add app_id to managed application bean
+ALTER TABLE public.managed_applications ADD COLUMN app_id VARCHAR;

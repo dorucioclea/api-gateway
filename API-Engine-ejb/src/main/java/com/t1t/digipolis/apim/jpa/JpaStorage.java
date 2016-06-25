@@ -2039,6 +2039,20 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public ManagedApplicationBean getManagedApplicationBean(String prefix, String appId, String version) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE (m.type = :appType OR m.type = :appType1 OR m.type = :appType2) AND m.availability = :scope";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("appType", ManagedApplicationTypes.ExternalMarketplace);
+        query.setParameter("appType1", ManagedApplicationTypes.InternalMarketplace);
+        query.setParameter("appType2", ManagedApplicationTypes.Marketplace);
+        query.setParameter("scope", scope);
+        List<ManagedApplicationBean> rows = query.getResultList();
+        if(rows.size()>0)return rows.get(0);
+        else return null;
+    }
+
+    @Override
     public EventBean getEventByOriginDestinationAndType(String origin, String destination, EventType type) throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT e FROM EventBean e WHERE e.originId = :origin AND e.destinationId = :destination AND e.type = :eventType";

@@ -29,6 +29,8 @@ public class ManagedApplicationBean implements Serializable {
     private ManagedApplicationTypes type;
     @Column(name = "gateway_id")
     private String gatewayId;
+    @Column(name = "app_id")
+    private String appId;
     @ManyToOne()
     @JoinColumn(name = "availability")
     private String prefix;
@@ -40,6 +42,10 @@ public class ManagedApplicationBean implements Serializable {
     private String gatewayUsername;
     @Column(name = "api_key")
     private String apiKey;
+    @Column(name = "restricted")
+    private Boolean restricted;
+    @Column(name = "activated")
+    private Boolean activated;
 
     public ManagedApplicationBean() {}
 
@@ -103,35 +109,53 @@ public class ManagedApplicationBean implements Serializable {
         this.version = version;
     }
 
+    public String getAppId() {return appId;}
+
+    public void setAppId(String appId) {this.appId = appId;}
+
+    public Boolean getRestricted() {return restricted;}
+
+    public void setRestricted(Boolean restricted) {this.restricted = restricted;}
+
+    public Boolean getActivated() {return activated;}
+
+    public void setActivated(Boolean activated) {this.activated = activated;}
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof ManagedApplicationBean)) return false;
 
         ManagedApplicationBean that = (ManagedApplicationBean) o;
 
         if (!id.equals(that.id)) return false;
         if (type != that.type) return false;
         if (gatewayId != null ? !gatewayId.equals(that.gatewayId) : that.gatewayId != null) return false;
-        if (prefix != null ? !prefix.equals(that.prefix) : that.prefix != null) return false;
+        if (!appId.equals(that.appId)) return false;
+        if (!prefix.equals(that.prefix)) return false;
         if (!name.equals(that.name)) return false;
         if (!version.equals(that.version)) return false;
         if (gatewayUsername != null ? !gatewayUsername.equals(that.gatewayUsername) : that.gatewayUsername != null)
             return false;
-        return apiKey != null ? apiKey.equals(that.apiKey) : that.apiKey == null;
+        if (!apiKey.equals(that.apiKey)) return false;
+        if (!restricted.equals(that.restricted)) return false;
+        return activated.equals(that.activated);
 
     }
 
     @Override
     public int hashCode() {
         int result = id.hashCode();
-        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + type.hashCode();
         result = 31 * result + (gatewayId != null ? gatewayId.hashCode() : 0);
-        result = 31 * result + (prefix != null ? prefix.hashCode() : 0);
+        result = 31 * result + appId.hashCode();
+        result = 31 * result + prefix.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + version.hashCode();
         result = 31 * result + (gatewayUsername != null ? gatewayUsername.hashCode() : 0);
-        result = 31 * result + (apiKey != null ? apiKey.hashCode() : 0);
+        result = 31 * result + apiKey.hashCode();
+        result = 31 * result + restricted.hashCode();
+        result = 31 * result + activated.hashCode();
         return result;
     }
 
@@ -141,11 +165,14 @@ public class ManagedApplicationBean implements Serializable {
                 "id=" + id +
                 ", type=" + type +
                 ", gatewayId='" + gatewayId + '\'' +
+                ", appId='" + appId + '\'' +
                 ", prefix='" + prefix + '\'' +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
                 ", gatewayUsername='" + gatewayUsername + '\'' +
                 ", apiKey='" + apiKey + '\'' +
+                ", restricted=" + restricted +
+                ", activated=" + activated +
                 '}';
     }
 }
