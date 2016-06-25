@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.core;
 
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
+import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
@@ -140,7 +141,7 @@ public interface IStorage {
     public BlacklistBean getBlacklistRecord(String id) throws StorageException;
     public EventBean getEvent(Long id) throws StorageException;
     public MailTemplateBean getMailTemplate (MailTopic mailTopic) throws StorageException;
-    public ManagedApplicationBean getManagedApplicationBean (String prefix, String appId, String version) throws StorageException;
+    public ManagedApplicationBean getManagedApplicationBean (AppIdentifier app) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

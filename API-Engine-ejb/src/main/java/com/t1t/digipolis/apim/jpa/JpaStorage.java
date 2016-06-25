@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.jpa;
 
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
+import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
@@ -2039,14 +2040,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public ManagedApplicationBean getManagedApplicationBean(String prefix, String appId, String version) throws StorageException {
+    public ManagedApplicationBean getManagedApplicationBean(AppIdentifier app) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE (m.type = :appType OR m.type = :appType1 OR m.type = :appType2) AND m.availability = :scope";
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.prefix = :appPrefix AND m.appId = :appId AND m.version = :appVersion";
         Query query = entityManager.createQuery(jpql);
-        query.setParameter("appType", ManagedApplicationTypes.ExternalMarketplace);
-        query.setParameter("appType1", ManagedApplicationTypes.InternalMarketplace);
-        query.setParameter("appType2", ManagedApplicationTypes.Marketplace);
-        query.setParameter("scope", scope);
+        query.setParameter("appPrefix", app.getPrefix());
+        query.setParameter("appId", app.getAppId());
+        query.setParameter("appVersion", app.getVersion());
         List<ManagedApplicationBean> rows = query.getResultList();
         if(rows.size()>0)return rows.get(0);
         else return null;

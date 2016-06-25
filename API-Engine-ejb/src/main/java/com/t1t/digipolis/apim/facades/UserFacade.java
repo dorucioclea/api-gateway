@@ -12,6 +12,7 @@ import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import com.t1t.digipolis.apim.beans.mail.MembershipAction;
 import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
@@ -547,8 +548,8 @@ public class UserFacade implements Serializable {
             String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());
             //preempt if restricted mode and user is not admin; be carefull to scope the application, non api-engine applications uses this endpoint as well.
             //TODO should be, if appId of webclientcache == reconstruct managed app => verify if
-            final AppIdentifier appRequester = webClientCacheBean.getAppRequester();//requesting application
-            if (webClientCacheBean.getAppRequester() != null && config.getAppliedRestrictions().contains(webClientCacheBean.getAppRequester().getAppId())) {
+            final ManagedApplicationBean managedApplicationBean = storage.getManagedApplicationBean(webClientCacheBean.getAppRequester());
+            if (managedApplicationBean != null && managedApplicationBean.getActivated() && managedApplicationBean.getRestricted()) {
                 final UserBean user = idmStorage.getUser(userId);
                 if (user == null || !user.getAdmin()) {
                     SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
