@@ -41,3 +41,6 @@ ALTER TABLE public.managed_applications ALTER COLUMN restricted SET NOT NULL;
 
 -- add app_id to managed application bean
 ALTER TABLE public.managed_applications ADD COLUMN app_id VARCHAR;
+
+-- make prefix unique because will be used in org names
+ALTER TABLE managed_applications ADD CONSTRAINT UK_managedapp_1 UNIQUE (prefix);

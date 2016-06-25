@@ -1,15 +1,8 @@
 package com.t1t.digipolis.apim.beans.managedapps;
 
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
-import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.persistence.*;
 import java.io.Serializable;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.o;
 
 /**
  * @author Guillaume Vandecasteele

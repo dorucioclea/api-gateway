@@ -391,7 +391,7 @@ public interface IStorageQuery {
      * @return
      * @throws StorageException
      */
-    public Map<String,AvailabilityBean> listAvailableMarkets() throws StorageException;
+    public List<ManagedApplicationBean> listAvailableMarkets() throws StorageException;
 
     /**
      * Returns the default whitelist records. This can be used for an implicit IP Restriction policy.
@@ -600,6 +600,8 @@ public interface IStorageQuery {
     public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException;
 
     public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException;
+
+    public List<ManagedApplicationBean> findManagedApplications() throws StorageException;
 
     public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException;
 

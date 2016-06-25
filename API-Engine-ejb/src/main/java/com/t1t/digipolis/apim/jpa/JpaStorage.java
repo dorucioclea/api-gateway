@@ -475,11 +475,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public void deleteAvailableMarket(AvailabilityBean availabilityBean) throws StorageException {
-        super.delete(availabilityBean);
-    }
-
-    @Override
     public void deleteWhitelistRecord(WhitelistBean whitelistBean) throws StorageException {
         super.delete(whitelistBean);
     }
@@ -649,11 +644,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public SupportComment getServiceSupportComment(Long id) throws StorageException {
         return super.get(id, SupportComment.class);
-    }
-
-    @Override
-    public AvailabilityBean getAvailableMarket(String id) throws StorageException {
-        return super.get(id, AvailabilityBean.class);
     }
 
     @Override
@@ -899,11 +889,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createServiceSupportComment(SupportComment commentBean) throws StorageException {
         super.create(commentBean);
-    }
-
-    @Override
-    public void createAvailableMarket(AvailabilityBean availabilityBean) throws StorageException {
-        super.create(availabilityBean);
     }
 
     @Override
@@ -1901,16 +1886,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public Map<String,AvailabilityBean> listAvailableMarkets() throws StorageException {
+    public List<ManagedApplicationBean> listAvailableMarkets() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT m.availability FROM ManagedApplicationBean m WHERE m.type = 'Marketplace' ORDER BY m.availability.code ASC";
+        String jpql = "SELECT m.availability FROM ManagedApplicationBean m WHERE m.type = :appType OR m.type = :appType1 OR m.type = :appType2 ORDER BY m.name ASC";
         Query query = entityManager.createQuery(jpql);
-        List<AvailabilityBean> rows = query.getResultList();
-        Map<String,AvailabilityBean> markets = new HashMap<>();
-        for(AvailabilityBean bean:rows){
-            markets.put(bean.getCode(),bean);
-        }
-        return markets;
+        query.setParameter("appType", ManagedApplicationTypes.InternalMarketplace);
+        query.setParameter("appType1", ManagedApplicationTypes.ExternalMarketplace);
+        query.setParameter("appType2", ManagedApplicationTypes.Marketplace);
+        return query.getResultList();
     }
 
     @Override
@@ -2256,6 +2239,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         catch (NoResultException ex) {
             return null;
         }
+    }
+
+    @Override
+    public List<ManagedApplicationBean> findManagedApplications() throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT m FROM ManagedApplicationBean m";
+        Query query = entityManager.createQuery(jpql);
+        return query.getResultList();
     }
 
     @Override
