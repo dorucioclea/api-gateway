@@ -1,7 +1,5 @@
 package com.t1t.digipolis.apim.beans.summary;
-
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
-import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
+import com.t1t.digipolis.apim.beans.services.AvailabilityBean;
 
 import java.io.Serializable;
 import java.util.Map;

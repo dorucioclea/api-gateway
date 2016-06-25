@@ -1,27 +1,12 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
 import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
-import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
-import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
-import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyBean;
-import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
-import com.t1t.digipolis.apim.beans.summary.ServiceVersionAvailabilityBean;
-import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
-import com.t1t.digipolis.apim.config.Version;
-import com.t1t.digipolis.apim.core.IStorage;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.SecurityFacade;
-import com.t1t.digipolis.apim.facades.SystemFacade;
-import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.rest.resources.ISecurityResource;
-import com.t1t.digipolis.apim.rest.resources.ISystemResource;
 import com.t1t.digipolis.apim.security.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
