@@ -601,6 +601,8 @@ public interface IStorageQuery {
 
     public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException;
 
+    public ManagedApplicationBean findManagedApplication(String prefix) throws StorageException;
+
     public List<ManagedApplicationBean> findManagedApplications() throws StorageException;
 
     public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException;

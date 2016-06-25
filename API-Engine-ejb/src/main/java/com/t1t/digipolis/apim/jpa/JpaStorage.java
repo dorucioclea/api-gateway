@@ -2242,6 +2242,17 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public ManagedApplicationBean findManagedApplication(String prefix) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.prefix = :appPrefix";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("appPrefix", prefix);
+        List<ManagedApplicationBean> rows = query.getResultList();
+        if(rows.size()>0)return rows.get(0);
+        else return null;
+    }
+
+    @Override
     public List<ManagedApplicationBean> findManagedApplications() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
         String jpql = "SELECT m FROM ManagedApplicationBean m";

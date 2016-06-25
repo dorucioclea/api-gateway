@@ -1993,12 +1993,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
-            //enrich visibility with name (coming from other entity)
-            Map<String, AvailabilityBean> availableMarkets = query.listAvailableMarkets();
+            //enrich visibility with the name of the marketplace based on the persisted prefix.
+            final List<ManagedApplicationBean> availableMarkets = query.listAvailableMarkets();
             for(VisibilityBean vb: serviceVersion.getVisibility()){
-                if(availableMarkets.containsKey(vb.getCode())){
-                    vb.setName(availableMarkets.get(vb.getCode()).getName());
-                }
+                //get the name of the marketplace
+                final ManagedApplicationBean managedApplication = query.findManagedApplication(vb.getCode());
+                vb.setName(managedApplication.getName());
             }
             Map<String,VisibilityBean> serviceVisibilities = serviceVersion.getVisibility().stream().collect(Collectors.toMap(VisibilityBean::getCode, Function.identity()));
             return serviceVisibilities;

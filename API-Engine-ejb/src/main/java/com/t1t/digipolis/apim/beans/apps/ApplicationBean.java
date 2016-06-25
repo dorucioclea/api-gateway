@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.beans.apps;
 
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
-import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
