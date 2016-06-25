@@ -30,13 +30,11 @@ CREATE TABLE organizations (id VARCHAR(255) NOT NULL, id VARCHAR(255) DEFAULT 'n
 
 CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 
-CREATE TABLE availabilities (code VARCHAR(25) NOT NULL, name VARCHAR(255) NOT NULL);
-
 CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
 
 CREATE TABLE black_ip_restriction (netw_value VARCHAR(255));
 
-CREATE TABLE managed_applications (id BIGINT NOT NULL, name VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, gateway_id VARCHAR(255) NULL, type VARCHAR(255) NULL, availability VARCHAR(255) NULL, gateway_username VARCHAR(255) NULL, api_key VARCHAR(255) NULL);
+CREATE TABLE managed_applications (id BIGINT NOT NULL, name VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, gateway_id VARCHAR(255) NULL, type VARCHAR(255) NOT NULL, prefix VARCHAR(255) NOT NULL, gateway_username VARCHAR(255) NULL, api_key VARCHAR(255) NOT NULL, activated BOOLEAN DEFAULT TRUE, restricted BOOLEAN DEFAULT FALSE );
 
 CREATE TABLE plan_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, locked_on TIMESTAMP WITHOUT TIME ZONE NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, plan_id VARCHAR(255) NULL, plan_org_id VARCHAR(255) NULL);
 
@@ -135,10 +133,6 @@ ALTER TABLE support ADD PRIMARY KEY (id);
 ALTER TABLE support_comments ADD PRIMARY KEY (id);
 
 ALTER TABLE managed_applications ADD PRIMARY KEY (id);
-
-ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk5 FOREIGN KEY (gateway_id) REFERENCES gateways (id) ON UPDATE CASCADE;
-
-ALTER TABLE managed_applications ADD CONSTRAINT FK_67jdhkwjqd78t8kcsil9c3dk6 FOREIGN KEY (availability) REFERENCES availabilities (code) ON UPDATE CASCADE;
 
 ALTER TABLE services ADD CONSTRAINT FK_31hj3xmhp1wedxjh5bklnlg15 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 

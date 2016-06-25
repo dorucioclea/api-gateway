@@ -31,7 +31,7 @@ public class ManagedApplicationBean implements Serializable {
     private String gatewayId;
     @ManyToOne()
     @JoinColumn(name = "availability")
-    private AvailabilityBean availability;
+    private String prefix;
     @Column(name = "name")
     private String name;
     @Column(name = "version")
@@ -67,13 +67,9 @@ public class ManagedApplicationBean implements Serializable {
         this.gatewayId = gatewayId;
     }
 
-    public AvailabilityBean getAvailability() {
-        return availability;
-    }
+    public String getPrefix() {return prefix;}
 
-    public void setAvailability(AvailabilityBean availability) {
-        this.availability = availability;
-    }
+    public void setPrefix(String prefix) {this.prefix = prefix;}
 
     public String getName() {
         return name;
@@ -117,7 +113,7 @@ public class ManagedApplicationBean implements Serializable {
         if (!id.equals(that.id)) return false;
         if (type != that.type) return false;
         if (gatewayId != null ? !gatewayId.equals(that.gatewayId) : that.gatewayId != null) return false;
-        if (availability != null ? !availability.equals(that.availability) : that.availability != null) return false;
+        if (prefix != null ? !prefix.equals(that.prefix) : that.prefix != null) return false;
         if (!name.equals(that.name)) return false;
         if (!version.equals(that.version)) return false;
         if (gatewayUsername != null ? !gatewayUsername.equals(that.gatewayUsername) : that.gatewayUsername != null)
@@ -131,7 +127,7 @@ public class ManagedApplicationBean implements Serializable {
         int result = id.hashCode();
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (gatewayId != null ? gatewayId.hashCode() : 0);
-        result = 31 * result + (availability != null ? availability.hashCode() : 0);
+        result = 31 * result + (prefix != null ? prefix.hashCode() : 0);
         result = 31 * result + name.hashCode();
         result = 31 * result + version.hashCode();
         result = 31 * result + (gatewayUsername != null ? gatewayUsername.hashCode() : 0);
@@ -145,7 +141,7 @@ public class ManagedApplicationBean implements Serializable {
                 "id=" + id +
                 ", type=" + type +
                 ", gatewayId='" + gatewayId + '\'' +
-                ", availability='" + availability + '\'' +
+                ", prefix='" + prefix + '\'' +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
                 ", gatewayUsername='" + gatewayUsername + '\'' +

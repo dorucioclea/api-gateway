@@ -1939,11 +1939,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ManagedApplicationBean> getManagedApps() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :appType OR m.type = :appType1 OR m.type = :appType2";
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :appType OR m.type = :appType1 OR m.type = :appType2 OR m.type = :appType3";
         Query query = entityManager.createQuery(jpql);
         query.setParameter("appType", ManagedApplicationTypes.InternalMarketplace);
         query.setParameter("appType1", ManagedApplicationTypes.ExternalMarketplace);
-        query.setParameter("appType2", ManagedApplicationTypes.Consent);
+        query.setParameter("appType2", ManagedApplicationTypes.Marketplace);
+        query.setParameter("appType3", ManagedApplicationTypes.Consent);
         List<ManagedApplicationBean> rows = query.getResultList();
         return rows;
     }
@@ -1951,10 +1952,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public ManagedApplicationBean getMarketplaceManagedApp(AvailabilityBean scope) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE (m.type = :appType OR m.type = :appType1) AND m.availability = :scope";
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE (m.type = :appType OR m.type = :appType1 OR m.type = :appType2) AND m.availability = :scope";
         Query query = entityManager.createQuery(jpql);
         query.setParameter("appType", ManagedApplicationTypes.ExternalMarketplace);
         query.setParameter("appType1", ManagedApplicationTypes.InternalMarketplace);
+        query.setParameter("appType2", ManagedApplicationTypes.Marketplace);
         query.setParameter("scope", scope);
         List<ManagedApplicationBean> rows = query.getResultList();
         if(rows.size()>0)return rows.get(0);
