@@ -24,8 +24,7 @@ public class ManagedApplicationBean implements Serializable {
     private String gatewayId;
     @Column(name = "app_id")
     private String appId;
-    @ManyToOne()
-    @JoinColumn(name = "availability")
+    @Column(name = "prefix",unique=true)
     private String prefix;
     @Column(name = "name")
     private String name;
