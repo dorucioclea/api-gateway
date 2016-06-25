@@ -5,5 +5,5 @@ package com.t1t.digipolis.apim.beans.managedapps;
  * @since 2016
  */
 public enum ManagedApplicationTypes {
-    Marketplace, Publisher, Consent
+    InternalMarketplace, ExternalMarketplace, Publisher, Consent
 }

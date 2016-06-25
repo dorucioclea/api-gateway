@@ -444,7 +444,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public PolicyBean createManagedApplicationPolicy(ManagedApplicationBean managedApp, NewPolicyBean bean) {
         PolicyType type = null;
         switch (managedApp.getType()) {
-            case Marketplace:
+            case InternalMarketplace:case ExternalMarketplace:
                 type = PolicyType.Marketplace;
                 break;
             case Consent:
