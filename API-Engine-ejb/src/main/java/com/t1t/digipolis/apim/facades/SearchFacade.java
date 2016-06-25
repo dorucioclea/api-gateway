@@ -30,7 +30,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.*;
 
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
 
 /**
  * Created by michallispashidis on 17/08/15.
