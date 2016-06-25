@@ -600,7 +600,7 @@ public class MigrationFacade {
         List<ApplicationBean> allApplications = query.findAllApplications();
         for(ApplicationBean app:allApplications){
             OrganizationBean organization = app.getOrganization();
-            ManagedApplicationBean marketplaceManagedApp = query.getMarketplaceManagedApp(storage.getAvailableMarket(app.getContext()));
+            ManagedApplicationBean marketplaceManagedApp = query.findManagedApplication(app.getContext());
 
         }
 

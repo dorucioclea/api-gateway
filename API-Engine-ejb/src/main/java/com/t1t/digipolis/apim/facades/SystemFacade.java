@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;

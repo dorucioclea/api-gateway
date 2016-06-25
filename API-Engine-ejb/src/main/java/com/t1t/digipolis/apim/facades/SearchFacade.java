@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
-import com.t1t.digipolis.apim.beans.search.PagingBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
@@ -17,11 +17,8 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
-import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import org.opensaml.xml.encryption.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,24 +135,28 @@ public class SearchFacade {
         }
     }
 
-    public List<String> findServiceVersionEndpointsForScope(String availability) {
+    public List<String> findServiceVersionEndpointsForMarketplaceType(ManagedApplicationTypes type) {
         List<String> returnValue = new ArrayList<>();
         try {
-            AvailabilityBean ab = storage.getAvailableMarket(availability);
-            if (ab == null) {
+            final List<ManagedApplicationBean> manappList = query.findManagedApplication(type);
+
+            if (manappList==null) {
                 throw ExceptionFactory.availabilityNotFoundException();
             }
-            List<ServiceVersionBean> svbs = query.findServiceVersionsByAvailability(ab);
-            svbs.forEach(sv -> {
-                returnValue.add(new StringBuilder("/")
-                        .append(sv.getService().getOrganization().getId().toLowerCase())
-                        .append("/")
-                        .append(sv.getService().getId().toLowerCase())
-                        .append("/")
-                        .append(sv.getVersion().toLowerCase())
-                        .append("/")
-                        .toString());
-            });
+
+            for(ManagedApplicationBean mb:manappList){
+                List<ServiceVersionBean> svbs = query.findServiceVersionsByAvailability(mb.getPrefix());
+                svbs.forEach(sv -> {
+                    returnValue.add(new StringBuilder("/")
+                            .append(sv.getService().getOrganization().getId().toLowerCase())
+                            .append("/")
+                            .append(sv.getService().getId().toLowerCase())
+                            .append("/")
+                            .append(sv.getVersion().toLowerCase())
+                            .append("/")
+                            .toString());
+                });
+            }
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);

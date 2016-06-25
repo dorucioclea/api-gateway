@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.security.impl;
 
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.facades.UserFacade;
@@ -26,7 +27,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     //Logger
     private static Logger LOG = LoggerFactory.getLogger(ApiEngineAppSecurityContext.class.getName());
     @Inject private UserFacade userFacade;
-    @Inject private AppConfig config;
+    @Inject private IStorageQuery query;
 
     private String currentApplication;
     private AppIdentifier appIdentifier;
@@ -64,13 +65,12 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     public String setCurrentApplication(String currentApplication) throws StorageException {
         this.currentApplication = currentApplication;
         this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication);
-        LOG.debug("Filtered Mkt: {}",config.getFilteredMarketplaces());
-        if(appIdentifier!=null && appIdentifier.getScope()!=null){
-            List<String> filteredList = config.getFilteredMarketplaces().stream().filter(mkt -> mkt.trim().equalsIgnoreCase(appIdentifier.getScope())).collect(Collectors.toList());
-            LOG.debug("Filtered list: {}",filteredList);
-            if(filteredList.size()==0) appIdentifier.setScope("pub");//pub is the default context -> publisher context
+        if(appIdentifier!=null && appIdentifier.getPrefix()!=null){
+            final ManagedApplicationBean managedApplication = query.findManagedApplication(appIdentifier.getPrefix());
+            if(managedApplication!=null){
+                LOG.debug("Managed applications used for request: {}",managedApplication);
+            }
         }
-        LOG.debug("Application definitive scope:{}", appIdentifier);
         return getApplication();
     }
 
@@ -80,9 +80,9 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     }
 
     @Override
-    public String getApplicationScope() {
-        if(appIdentifier!=null && !StringUtils.isEmpty(appIdentifier.getScope())){
-            return appIdentifier.getScope();
+    public String getApplicationPrefix() {
+        if(appIdentifier!=null && !StringUtils.isEmpty(appIdentifier.getPrefix())){
+            return appIdentifier.getPrefix();
         }return "";
     }
 }

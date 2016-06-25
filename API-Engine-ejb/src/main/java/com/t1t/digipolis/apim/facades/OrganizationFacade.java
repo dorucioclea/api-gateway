@@ -12,7 +12,6 @@ import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
@@ -192,15 +191,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         orgUniqueId=BeanUtils.idFromName(orgUniqueId);
 
         //verify if organization is created in marketplace
-        ManagedApplicationBean managedApp = query.getMarketplaceManagedApp(storage.getAvailableMarket(appContext.getApplicationScope()));
+        ManagedApplicationBean managedApp = query.findManagedApplication(appContext.getApplicationPrefix());
         if(managedApp!=null){
             //the request comes from a marketplace => prefix the org
-            orgUniqueId = managedApp.getAvailability().getCode() + MARKET_SEPARATOR + orgUniqueId;
+            orgUniqueId = managedApp.getPrefix() + MARKET_SEPARATOR + orgUniqueId;
         }
 
         OrganizationBean orgBean = new OrganizationBean();
         orgBean.setName(bean.getName());
-        orgBean.setContext(appContext.getApplicationScope());
+        orgBean.setContext(appContext.getApplicationPrefix());
         orgBean.setDescription(bean.getDescription());
         orgBean.setId(orgUniqueId);
         orgBean.setCreatedOn(new Date());
@@ -320,7 +319,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newApp.setDescription(bean.getDescription());
         newApp.setCreatedBy(securityContext.getCurrentUser());
         newApp.setCreatedOn(new Date());
-        newApp.setContext(appContext.getApplicationIdentifier().getScope());
+        newApp.setContext(appContext.getApplicationIdentifier().getPrefix());
         try {
             // Store/persist the new application
             OrganizationBean org = storage.getOrganization(organizationId);
@@ -453,7 +452,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             default:
                 throw ExceptionFactory.invalidPolicyException("Invalid policy type");
         }
-        return doCreatePolicy(managedApp.getAvailability().getCode(), managedApp.getName(), managedApp.getVersion(), bean, type);
+        return doCreatePolicy(managedApp.getPrefix(), managedApp.getName(), managedApp.getVersion(), bean, type);
     }
 
     public PolicyBean getAppPolicy(String organizationId, String applicationId, String version, long policyId) {

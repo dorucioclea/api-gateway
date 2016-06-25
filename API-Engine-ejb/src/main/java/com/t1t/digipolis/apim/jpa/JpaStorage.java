@@ -33,12 +33,9 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.SupportBean;
 import com.t1t.digipolis.apim.beans.support.SupportComment;
-import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.gateway.dto.Contract;
-import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.mail.MailTopic;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.util.ServiceConventionUtil;
@@ -732,8 +729,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         //filter Applications along scope
         SearchResultsBean<ApplicationBean> tempResult = find(criteria, ApplicationBean.class);
         SearchResultsBean<ApplicationBean> result = new SearchResultsBean<>();
-        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
-            List<ApplicationBean> appBeans = tempResult.getBeans().stream().filter(a -> a.getContext().equalsIgnoreCase(appContext.getApplicationScope())).collect(Collectors.toList());
+        if(!StringUtils.isEmpty(appContext.getApplicationPrefix())){
+            List<ApplicationBean> appBeans = tempResult.getBeans().stream().filter(a -> a.getContext().equalsIgnoreCase(appContext.getApplicationPrefix())).collect(Collectors.toList());
             result.setBeans(appBeans);
             result.setTotalSize(appBeans.size());
         }else {
@@ -791,27 +788,27 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return  ServiceScopeUtil.resolveSVBScope((List<ServiceVersionBean>) em.createQuery(jpql)
                 .setParameter("name", name)
                 .setParameter("status", ServiceStatus.Published)
-                .getResultList(), appContext.getApplicationScope());
+                .getResultList(), appContext.getApplicationPrefix());
     }
 
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException {
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(status);
-        return ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationScope());
+        return ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix());
     }
 
     public List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories) throws StorageException {
         List<ServiceVersionBean> allServicesForCat = findAllServiceVersionsInCategory(categories);
-        return ServiceScopeUtil.resolveSVBScope(allServicesForCat,appContext.getApplicationScope());
+        return ServiceScopeUtil.resolveSVBScope(allServicesForCat,appContext.getApplicationPrefix());
     }
 
     public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException {
-        return ServiceScopeUtil.resolveSVBScope(findLatestPublishedServiceVersionsInCategory(categories), appContext.getApplicationScope());
+        return ServiceScopeUtil.resolveSVBScope(findLatestPublishedServiceVersionsInCategory(categories), appContext.getApplicationPrefix());
     }
 
     public Set<String> findAllUniqueCategories() throws StorageException {
         List<ServiceBean> services = new ArrayList<>();
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
-        List<ServiceVersionBean> allServicesFiltered = ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationScope());
+        List<ServiceVersionBean> allServicesFiltered = ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix());
         for(ServiceVersionBean svb:allServicesFiltered){
             services.add(svb.getService());
         }
@@ -826,7 +823,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public Set<String> findAllUniquePublishedCategories() throws StorageException {
         List<ServiceBean> services = new ArrayList<>();
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
-        List<ServiceVersionBean> allServicesFiltered = ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationScope());
+        List<ServiceVersionBean> allServicesFiltered = ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix());
         for(ServiceVersionBean svb:allServicesFiltered){
             services.add(svb.getService());
         }
@@ -1136,8 +1133,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
         List<ApplicationBean> qr = (List<ApplicationBean>) query.getResultList();
         List<ApplicationBean> qrFiltered = new ArrayList<>();
-        if(!StringUtils.isEmpty(appContext.getApplicationScope())){
-            qrFiltered = qr.stream().filter(app -> app.getContext().equalsIgnoreCase(appContext.getApplicationScope())).collect(Collectors.toList());
+        if(!StringUtils.isEmpty(appContext.getApplicationPrefix())){
+            qrFiltered = qr.stream().filter(app -> app.getContext().equalsIgnoreCase(appContext.getApplicationPrefix())).collect(Collectors.toList());
         }else qrFiltered = qr;
 
         for (ApplicationBean bean : qrFiltered) {
@@ -1948,20 +1945,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public ManagedApplicationBean getMarketplaceManagedApp(AvailabilityBean scope) throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE (m.type = :appType OR m.type = :appType1 OR m.type = :appType2) AND m.availability = :scope";
-        Query query = entityManager.createQuery(jpql);
-        query.setParameter("appType", ManagedApplicationTypes.ExternalMarketplace);
-        query.setParameter("appType1", ManagedApplicationTypes.InternalMarketplace);
-        query.setParameter("appType2", ManagedApplicationTypes.Marketplace);
-        query.setParameter("scope", scope);
-        List<ManagedApplicationBean> rows = query.getResultList();
-        if(rows.size()>0)return rows.get(0);
-        else return null;
-    }
-
-    @Override
     public List<PolicyBean> getManagedAppACLPolicies(String organizationId, String serviceId, String version) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
         String content = new StringBuilder().append("%")
@@ -2009,7 +1992,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException {
+    public List<ServiceVersionBean> findServiceVersionsByAvailability(String prefix) throws StorageException {
         List<ServiceVersionBean> returnValue = new ArrayList<>();
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.status = :status";
@@ -2018,7 +2001,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .getResultList();
         svbs.forEach(sv -> {
             sv.getVisibility().forEach(vis -> {
-                if (vis.getCode().equals(bean.getCode())) {
+                if (vis.getCode().equals(prefix)) {
                     returnValue.add(sv);
                 }
             });
@@ -2106,7 +2089,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         Query query = em.createQuery(jpql);
         query.setParameter("orgId", orgId);
         query.setParameter("status", ApplicationStatus.Registered);
-        query.setParameter("appContext", appContext.getApplicationScope());
+        query.setParameter("appContext", appContext.getApplicationPrefix());
         return ((Long) query.getSingleResult()).intValue();
     }
 
@@ -2214,7 +2197,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.createdOn IN (SELECT MAX(s2.createdOn) FROM ServiceVersionBean s2 WHERE s2.status = :status GROUP BY s2.service) ORDER BY s.service.name";
         return ServiceScopeUtil.resolveSVBScope(em.createQuery(jpql)
                 .setParameter("status", status)
-                .getResultList(), appContext.getApplicationScope());
+                .getResultList(), appContext.getApplicationPrefix());
     }
 
     @Override
@@ -2224,7 +2207,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return ServiceScopeUtil.resolveSVBScope(em.createQuery(jpql)
                 .setParameter("status", status)
                 .setParameter("name", serviceName.toLowerCase())
-                .getResultList(), appContext.getApplicationScope());
+                .getResultList(), appContext.getApplicationPrefix());
     }
 
     @Override
@@ -2250,6 +2233,15 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         List<ManagedApplicationBean> rows = query.getResultList();
         if(rows.size()>0)return rows.get(0);
         else return null;
+    }
+
+    @Override
+    public List<ManagedApplicationBean> findManagedApplication(ManagedApplicationTypes type) throws StorageException {
+        EntityManager entityManager = getActiveEntityManager();
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :mType";
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("mType", type);
+        return query.getResultList();
     }
 
     @Override

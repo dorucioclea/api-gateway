@@ -12,6 +12,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -433,16 +434,6 @@ public interface IStorageQuery {
     public List<ManagedApplicationBean> getManagedApps() throws StorageException;
 
     /**
-     * Returns a managed application bean for a given scope. The scope is used as a prefix code,
-     * in order to trace from which managed applciation a request has been made.
-     *
-     * @param avb
-     * @return
-     * @throws StorageException
-     */
-    public ManagedApplicationBean getMarketplaceManagedApp(AvailabilityBean avb) throws StorageException;
-
-    /**
      * Returns a List of ACL Policies associated with marketplaces
      *
      * @return List of Policies
@@ -493,7 +484,7 @@ public interface IStorageQuery {
      * @return
      * @throws StorageException
      */
-    public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException;
+    public List<ServiceVersionBean> findServiceVersionsByAvailability(String prefix) throws StorageException;
 
     /**
      * Returns a unique event by origin, destination and type - ignoring the id
@@ -599,10 +590,44 @@ public interface IStorageQuery {
 
     public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException;
 
+    /**
+     * Resolves a managed application by its apikey.
+     * This is used as a fallback scenario in request filters (in order to set the app context).
+     *
+     * @param apiKey
+     * @return
+     * @throws StorageException
+     */
     public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException;
 
+    /**
+     * Returns the managed applciation by given prefix.
+     * A prefix is the context defined by a managed applications, this is a unique value.
+     * The unique value is used for applications and services to define their context.
+     * Prefixes are used in order to scope/determine visibility.
+     *
+     * @param prefix
+     * @return
+     * @throws StorageException
+     */
     public ManagedApplicationBean findManagedApplication(String prefix) throws StorageException;
 
+    /**
+     * Find all managed applications by type. A type can be InternalMarketplace.
+     * When this is the case, all managed applications will be returned that are interal marketplaces.
+     *
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public List<ManagedApplicationBean> findManagedApplication(ManagedApplicationTypes type) throws StorageException;
+
+    /**
+     * Returns all managed applications without filtering.
+     *
+     * @return
+     * @throws StorageException
+     */
     public List<ManagedApplicationBean> findManagedApplications() throws StorageException;
 
     public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException;
