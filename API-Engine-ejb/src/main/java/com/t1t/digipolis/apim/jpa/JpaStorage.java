@@ -9,7 +9,6 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
@@ -294,6 +293,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(event);
     }
 
+    @Override
+    public void updateManagedApplication(ManagedApplicationBean manapp) throws StorageException {
+        super.update(manapp);
+    }
+
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -493,6 +497,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void deleteMailTemplate(MailTemplateBean mailTemplateBean) throws StorageException {
         super.delete(mailTemplateBean);
+    }
+
+    @Override
+    public void deleteManagedApplication(ManagedApplicationBean manapp) throws StorageException {
+        super.delete(manapp);
     }
 
     /**
@@ -915,6 +924,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createMailTemplate(MailTemplateBean mailTemplateBean) throws Exception {
         super.create(mailTemplateBean);
+    }
+
+    @Override
+    public void createManagedApplication(ManagedApplicationBean manapp) throws Exception {
+        super.create(manapp);
     }
 
     /**
@@ -2037,6 +2051,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public MailTemplateBean getMailTemplate(MailTopic mailTopic) throws StorageException {
         return super.get(mailTopic.getTopicName(),MailTemplateBean.class);
+    }
+
+    @Override
+    public ManagedApplicationBean getManagedApplicationBean(Long id) throws StorageException {
+        return super.get(id, ManagedApplicationBean.class);
     }
 
     @Override
