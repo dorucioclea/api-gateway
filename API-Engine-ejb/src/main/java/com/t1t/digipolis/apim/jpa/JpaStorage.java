@@ -1885,7 +1885,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ManagedApplicationBean> listAvailableMarkets() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT m.availability FROM ManagedApplicationBean m WHERE m.type = :appType OR m.type = :appType1 OR m.type = :appType2 ORDER BY m.name ASC";
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :appType OR m.type = :appType1 OR m.type = :appType2 ORDER BY m.name ASC";
         Query query = entityManager.createQuery(jpql);
         query.setParameter("appType", ManagedApplicationTypes.InternalMarketplace);
         query.setParameter("appType1", ManagedApplicationTypes.ExternalMarketplace);

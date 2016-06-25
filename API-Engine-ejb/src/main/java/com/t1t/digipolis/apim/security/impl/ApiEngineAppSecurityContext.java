@@ -68,7 +68,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
         if(appIdentifier!=null && appIdentifier.getPrefix()!=null){
             final ManagedApplicationBean managedApplication = query.findManagedApplication(appIdentifier.getPrefix());
             if(managedApplication!=null){
-                LOG.debug("Managed applications used for request: {}",managedApplication);
+                LOG.debug("Managed application used for request: {}",managedApplication);
             }
         }
         return getApplication();
