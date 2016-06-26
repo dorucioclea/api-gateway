@@ -2,12 +2,15 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
@@ -16,6 +19,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
@@ -35,18 +39,18 @@ import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.ObjectCloner;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
+import javax.ejb.*;
 import javax.inject.Inject;
 import java.util.*;
 
@@ -591,5 +595,113 @@ public class MigrationFacade {
         } catch (StorageException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getApikey()), e);
         }
+    }
+
+    /**
+     * The migration method will perform the following steps:
+     * <ul>
+     *  <li>get all applications</li>
+     *  <li>make sure the context has been provided, default using 'int'</li>
+     *  <li>get application context</li>
+     *  <li>for context == int: create org with prefix from internal marketplace</li>
+     *  <li>for context == ext: create org with prefix from external marketplace</li>
+     *  <li>for context == empty: don't do anything should be removed later when cleaning up</li>
+     *  <li>update memberships</li>
+     *  <li>assign the new organisation to the application</li>
+     *  <li>assign the application versions to the updated application (composite key tx)</li>
+     *  <li>update kong consumers (APIs remains intact because pub orgs not renamed)</li>
+     * </ul>
+     *
+     * This script can not be executed twice! We don't know when an organization has been split.
+     *
+     * @throws StorageException
+     */
+    public void splitOrgs() throws Exception {
+        _LOG.info("Split Orgs::START");
+        final String APP_DEF_CONTEXT = "int";
+        //get all applications
+        List<ApplicationBean> allApplications = query.findAllApplications();
+        for (ApplicationBean app : allApplications) {
+            //make sure context has been provided
+            if(StringUtils.isEmpty(app.getContext()))app.setContext(APP_DEF_CONTEXT);
+            OrganizationBean originalOrg = app.getOrganization();
+            String destOrgId = splitUsingApp(originalOrg,app);
+            final OrganizationBean destOrganization = storage.getOrganization(destOrgId);
+            ApplicationBean newApp = (ApplicationBean)ObjectCloner.deepCopy(app);
+            newApp.setOrganization(destOrganization);
+            storage.createApplication(newApp);
+            //reassign application version before tx commit
+            final List<ApplicationVersionSummaryBean> applicationVersions = query.getApplicationVersions(originalOrg.getId(), app.getId());
+            for(ApplicationVersionSummaryBean asb:applicationVersions){
+                final ApplicationVersionBean appVersion = storage.getApplicationVersion(originalOrg.getId(), app.getId(), asb.getVersion());
+                appVersion.setApplication(newApp);
+                //update Kong consumer
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
+                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                final KongConsumer consumer = gateway.getConsumer(appConsumerName);
+                if(consumer==null){
+                    //create
+                    gateway.createConsumer(appConsumerName,appConsumerName);
+                }
+            }
+            storage.deleteApplication(app);
+        }
+        _LOG.info("Split Orgs::END");
+    }
+
+    //MEMBERSHIPS UPDATE
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    private String splitUsingApp(OrganizationBean originalOrg,ApplicationBean app) throws Exception {
+        _LOG.info("Split {}", app.getName());
+        ManagedApplicationBean marketplaceManagedApp = query.findManagedApplication(app.getContext());
+        if (marketplaceManagedApp != null) {
+            _LOG.info("App context {} with prefix ({})", marketplaceManagedApp.getName(), marketplaceManagedApp.getPrefix());
+            //create org name - already formatted, just append the prefix
+            String newOrgId = marketplaceManagedApp.getPrefix() + OrganizationFacade.MARKET_SEPARATOR + originalOrg.getId();
+            //verify if org exists, if non-existant -> create new org with deep copy of original
+            OrganizationBean destOrg = verifyAndCreate(originalOrg, newOrgId,app.getContext());
+            //attach detached entity - does the trick
+            destOrg = storage.getOrganization(destOrg.getId());
+            //update memberships
+            final Set<RoleMembershipBean> orgMemberships = idmStorage.getOrgMemberships(originalOrg.getId());
+            for(RoleMembershipBean rmb:orgMemberships){
+                final RoleMembershipBean existingMembership = idmStorage.getMembership(rmb.getUserId(), rmb.getRoleId(), newOrgId);
+                if(existingMembership==null){
+                    RoleMembershipBean newRmb = (RoleMembershipBean) ObjectCloner.deepCopy(rmb);
+                    newRmb.setOrganizationId(newOrgId);
+                    newRmb.setId(null);
+                    idmStorage.createMembership(newRmb);
+                    _LOG.info("-->member created:{} - '{}' with role '{}'", destOrg.getId(),newRmb.getUserId(),newRmb.getRoleId());
+                }
+            }
+            return destOrg.getId();
+        } else {
+            _LOG.info("Ignored Application (must be publisher or consent app):{}", app);
+            return null;
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    private OrganizationBean verifyAndCreate(OrganizationBean originalOrg, String newOrgId,String context) throws Exception {
+        OrganizationBean targetOrg = null;
+        targetOrg = storage.getOrganization(newOrgId);
+        if (targetOrg == null) {
+            //create org
+            OrganizationBean tobecreatedOrg = new OrganizationBean();
+            tobecreatedOrg.setDescription(originalOrg.getDescription());
+            tobecreatedOrg.setFriendlyName(originalOrg.getFriendlyName());
+            tobecreatedOrg.setName(originalOrg.getName());
+            tobecreatedOrg.setOrganizationPrivate(originalOrg.isOrganizationPrivate());
+            tobecreatedOrg.setContext(context);
+            tobecreatedOrg.setCreatedBy(originalOrg.getCreatedBy());
+            tobecreatedOrg.setCreatedOn(originalOrg.getCreatedOn());
+            tobecreatedOrg.setModifiedBy(originalOrg.getModifiedBy());
+            tobecreatedOrg.setModifiedOn(originalOrg.getModifiedOn());
+            tobecreatedOrg.setId(newOrgId);
+            storage.createOrganization(tobecreatedOrg);
+            _LOG.info("-->org created:{}", tobecreatedOrg.getId());
+            return tobecreatedOrg;
+        } else return targetOrg;
     }
 }

@@ -48,10 +48,10 @@ curl -X POST http://devapim.t1t.be:8001/consumers/acpaas.consent_app_nodejs.v1/k
 
 #create publisher consumer
 curl -X POST http://devapim.t1t.be:8001/consumers \
-    --data "username=dev.publisher.v1"
+    --data "username=pub.publisher.v1"
 
 #enable keyauth for publisher and return API key, result should be captured and is the API key for the given consumer
-curl -X POST http://devapim.t1t.be:8001/consumers/dev.publisher.v1/key-auth \
+curl -X POST http://devapim.t1t.be:8001/consumers/pub.publisher.v1/key-auth \
     --data "key=***REMOVED***"
 
 #Analytics

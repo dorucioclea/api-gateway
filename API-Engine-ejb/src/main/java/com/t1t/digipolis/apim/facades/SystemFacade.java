@@ -1,9 +1,10 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.services.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -20,6 +21,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +41,12 @@ public class SystemFacade {
     @Inject private MigrationFacade migrationFacade;
 
     public Map<String, AvailabilityBean> getAvailableMarketplaces() throws StorageException {
-        return query.listAvailableMarkets();
+        final List<ManagedApplicationBean> managedApplicationList = query.listAvailableMarkets();
+        Map<String,AvailabilityBean> result = new HashMap<>();
+        for(ManagedApplicationBean mb:managedApplicationList){
+            result.put(mb.getPrefix(),new AvailabilityBean(mb.getPrefix(),mb.getName()));
+        }
+        return result;
     }
 
     public List<WhitelistBean> getWhitelistRecords()throws StorageException{

@@ -1,14 +1,12 @@
 package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBeanList;
 import com.t1t.digipolis.apim.beans.categories.CategorySearchBean;
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
-import com.t1t.digipolis.apim.beans.services.NewServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
@@ -28,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Set;
@@ -220,9 +217,9 @@ public class SearchResource {
     @GET
     @Path("/availabilities/{availability}/services/versions")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<String> listServiceVersionEndpointsForScope(@PathParam("availability") String availability) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(availability));
-        return searchFacade.findServiceVersionEndpointsForScope(availability);
+    public List<String> listServiceVersionEndpointsForMarketplaceType(@PathParam("availability") ManagedApplicationTypes type) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
+        Preconditions.checkNotNull(type);
+        return searchFacade.findServiceVersionEndpointsForMarketplaceType(type);
     }
 
     @ApiOperation(value = "Search through the latest service versions",
