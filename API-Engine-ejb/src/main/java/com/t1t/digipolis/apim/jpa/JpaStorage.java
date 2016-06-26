@@ -679,8 +679,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public Set<String> getAllOrganizations() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT o FROM OrganizationBean o";
+        String jpql = "SELECT o FROM OrganizationBean o where o.context = :oContext";
         Query query = entityManager.createQuery(jpql);
+        query.setParameter("oContext",appContext.getApplicationPrefix());
         List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
         logger.info("dborgs all:{}",orgs);
         Set<String> orgNames = new TreeSet<>();
