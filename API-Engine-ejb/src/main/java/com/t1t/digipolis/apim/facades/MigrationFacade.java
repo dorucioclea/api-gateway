@@ -660,7 +660,7 @@ public class MigrationFacade {
             //create org name - already formatted, just append the prefix
             String newOrgId = marketplaceManagedApp.getPrefix() + OrganizationFacade.MARKET_SEPARATOR + originalOrg.getId();
             //verify if org exists, if non-existant -> create new org with deep copy of original
-            OrganizationBean destOrg = verifyAndCreate(originalOrg, newOrgId);
+            OrganizationBean destOrg = verifyAndCreate(originalOrg, newOrgId,app.getContext());
             //attach detached entity - does the trick
             destOrg = storage.getOrganization(destOrg.getId());
             //update memberships
@@ -683,7 +683,7 @@ public class MigrationFacade {
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    private OrganizationBean verifyAndCreate(OrganizationBean originalOrg, String newOrgId) throws Exception {
+    private OrganizationBean verifyAndCreate(OrganizationBean originalOrg, String newOrgId,String context) throws Exception {
         OrganizationBean targetOrg = null;
         targetOrg = storage.getOrganization(newOrgId);
         if (targetOrg == null) {
@@ -693,7 +693,7 @@ public class MigrationFacade {
             tobecreatedOrg.setFriendlyName(originalOrg.getFriendlyName());
             tobecreatedOrg.setName(originalOrg.getName());
             tobecreatedOrg.setOrganizationPrivate(originalOrg.isOrganizationPrivate());
-            tobecreatedOrg.setContext(originalOrg.getContext());
+            tobecreatedOrg.setContext(context);
             tobecreatedOrg.setCreatedBy(originalOrg.getCreatedBy());
             tobecreatedOrg.setCreatedOn(originalOrg.getCreatedOn());
             tobecreatedOrg.setModifiedBy(originalOrg.getModifiedBy());
