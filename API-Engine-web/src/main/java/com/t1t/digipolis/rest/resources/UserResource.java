@@ -91,6 +91,7 @@ public class UserResource implements IUserResource {
     @Path("/admins")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAdmins() throws UserNotFoundException, StorageException {
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         final List<UserBean> admins = userFacade.getAdmins();
         return Response.ok().entity(admins).build();
     }
@@ -104,6 +105,7 @@ public class UserResource implements IUserResource {
     @Path("/admins/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteAdminPriviledges(@PathParam("userId") String userId) throws UserNotFoundException, StorageException {
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         userFacade.deleteAdminPriviledges(userId);
         return Response.ok().status(204).build();
     }
@@ -117,6 +119,7 @@ public class UserResource implements IUserResource {
     @Path("/admins/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response addAdminPriviledges(@PathParam("userId") String userId) throws UserNotFoundException, StorageException {
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         userFacade.addAdminPriviledges(userId);
         return Response.ok().status(204).build();
     }

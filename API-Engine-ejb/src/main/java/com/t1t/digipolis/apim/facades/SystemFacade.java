@@ -67,6 +67,22 @@ public class SystemFacade {
         rval.setBuiltOn(config.getBuildDate());
         rval.setVersion(config.getVersion());
         rval.setUp(storage != null);
+        rval.setKongInfo("");
+        rval.setKongCluster("");
+        rval.setKongStatus("");
+        return rval;
+    }
+
+    public SystemStatusBean getAdminStatus() throws StorageException, GatewayAuthenticationException {
+        SystemStatusBean rval = new SystemStatusBean();
+        rval.setId("apim-manager-api"); //$NON-NLS-1$
+        rval.setName("API Manager REST API"); //$NON-NLS-1$
+        rval.setDescription("The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services."); //$NON-NLS-1$
+        rval.setMoreInfo("http://www.trust1team.com"); //$NON-NLS-1$
+        rval.setEnvironment(config.getEnvironment());
+        rval.setBuiltOn(config.getBuildDate());
+        rval.setVersion(config.getVersion());
+        rval.setUp(storage != null);
         //get Kong info
         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
         SystemStatus status = gateway.getStatus();

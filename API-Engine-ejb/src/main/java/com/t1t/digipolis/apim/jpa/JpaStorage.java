@@ -1890,7 +1890,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         Query query = entityManager.createQuery(jpql);
         query.setParameter("appType", ManagedApplicationTypes.InternalMarketplace);
         query.setParameter("appType1", ManagedApplicationTypes.ExternalMarketplace);
-        query.setParameter("appType2", ManagedApplicationTypes.Marketplace);
         return query.getResultList();
     }
 
@@ -1939,7 +1938,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         Query query = entityManager.createQuery(jpql);
         query.setParameter("appType", ManagedApplicationTypes.InternalMarketplace);
         query.setParameter("appType1", ManagedApplicationTypes.ExternalMarketplace);
-        query.setParameter("appType2", ManagedApplicationTypes.Marketplace);
         query.setParameter("appType3", ManagedApplicationTypes.Consent);
         List<ManagedApplicationBean> rows = query.getResultList();
         return rows;

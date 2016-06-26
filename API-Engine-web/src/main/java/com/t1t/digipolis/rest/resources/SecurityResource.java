@@ -3,9 +3,13 @@ package com.t1t.digipolis.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
 import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
+import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.SecurityFacade;
+import com.t1t.digipolis.apim.facades.SystemFacade;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.rest.resources.ISecurityResource;
 import com.t1t.digipolis.apim.security.*;
 import io.swagger.annotations.Api;
@@ -30,6 +34,7 @@ import java.util.Set;
 public class SecurityResource implements ISecurityResource {
     @Inject private SecurityFacade securityFacade;
     @Inject private ISecurityContext securityContext;
+    @Inject private SystemFacade systemFacade;
 
     @ApiOperation(value = "Set OAuth2 expiration time (in seconds)",
                   notes = "Use this endpoint to set the central OAuth2 token expiration time (in seconds)")
@@ -125,5 +130,19 @@ public class SecurityResource implements ISecurityResource {
             throw ExceptionFactory.notAuthorizedException();
         }
         return securityFacade.reissueAllOAuthCredentials();
+    }
+
+    @ApiOperation(value = "Get System Cluster Status",
+                  notes = "This endpoint simply returns the status of the api engine system. This is a useful endpoint to use when testing a client's connection to the API Manager REST services.")
+    @ApiResponses({
+                          @ApiResponse(code = 200, response = SystemStatusBean.class, message = "System status information")
+                  })
+    @GET
+    @Path("/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public SystemStatusBean getAdminStatus() throws GatewayAuthenticationException, StorageException {
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        SystemStatusBean rval = systemFacade.getAdminStatus();
+        return rval;
     }
 }

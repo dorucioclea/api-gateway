@@ -217,8 +217,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         ManagedApplicationBean managedApp = query.findManagedApplication(appContext.getApplicationPrefix());
         if (managedApp != null && (
                         managedApp.getType().equals(ManagedApplicationTypes.InternalMarketplace) ||
-                        managedApp.getType().equals(ManagedApplicationTypes.ExternalMarketplace) ||
-                        managedApp.getType().equals(ManagedApplicationTypes.Marketplace)
+                        managedApp.getType().equals(ManagedApplicationTypes.ExternalMarketplace)
         )) {
             //the request comes from a marketplace => prefix the org
             orgUniqueId = managedApp.getPrefix() + MARKET_SEPARATOR + orgUniqueId;
@@ -470,7 +469,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         switch (managedApp.getType()) {
             case InternalMarketplace:
             case ExternalMarketplace:
-            case Marketplace:
                 type = PolicyType.Marketplace;
                 break;
             case Consent:
