@@ -79,7 +79,7 @@ public class MigrationResource implements IMigrationResource {
     @ApiResponses({@ApiResponse(code = 204, message = "Split completed")})
     @POST
     @Path("sync/split-orgs")
-    public void splitOrgs() throws AbstractRestException, StorageException {
+    public void splitOrgs() throws Exception {
         migrationFacade.splitOrgs();
     }
 }

@@ -47,6 +47,6 @@ public interface IMigrationResource {
      *
      * @throws AbstractRestException
      */
-    public void splitOrgs() throws AbstractRestException, StorageException;
+    public void splitOrgs() throws Exception;
 }
 

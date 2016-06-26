@@ -9,8 +9,6 @@ import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
-import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
-import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
@@ -20,6 +18,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
@@ -42,6 +41,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.ObjectCloner;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -599,39 +599,63 @@ public class MigrationFacade {
      * The migration method will perform the following steps:
      * <ul>
      * <li>get all applications</li>
+     * <li>make sure the context has been provided, default using 'int'</li>
      * <li>get application context</li>
      * <li>for context == int: create org with prefix from internal marketplace</li>
      * <li>for context == ext: create org with prefix from external marketplace</li>
      * <li>for context == empty: don't do anything should be removed later when cleaning up</li>
+     * <li>update memberships</li>
      * <li>assign the new organisation to the application</li>
+     * <li>assign the application versions to the updated application (composite key tx)</li>
      * </ul>
      *
      * @throws StorageException
      */
     public void splitOrgs() throws Exception {
         _LOG.info("Split Orgs::START");
+        final String APP_DEF_CONTEXT = "int";
         //get all applications
         List<ApplicationBean> allApplications = query.findAllApplications();
         for (ApplicationBean app : allApplications) {
-            _LOG.info("Split {}", app.getName());
+            //make sure context has been provided
+            if(StringUtils.isEmpty(app.getContext()))app.setContext(APP_DEF_CONTEXT);
             OrganizationBean originalOrg = app.getOrganization();
-            ManagedApplicationBean marketplaceManagedApp = query.findManagedApplication(app.getContext());
-            _LOG.info("App context {} with prefix ({})", marketplaceManagedApp.getName(), marketplaceManagedApp.getPrefix());
-            if (marketplaceManagedApp.getType().equals(ManagedApplicationTypes.InternalMarketplace)||
-                    marketplaceManagedApp.getType().equals(ManagedApplicationTypes.ExternalMarketplace)||
-                    marketplaceManagedApp.getType().equals(ManagedApplicationTypes.Marketplace)) {
-                //create org name - already formatted, just append the prefix
-                String newOrgId = marketplaceManagedApp.getPrefix() + OrganizationFacade.MARKET_SEPARATOR + originalOrg.getId();
-                //verify if org exists, if non-existant -> create new org with deep copy of original
-                OrganizationBean destOrg = verifyAndCreate(originalOrg,newOrgId);
-                app.setOrganization(destOrg);
-            } else {
-                _LOG.info("Ignored Application (must be publisher or consent app):{}", app);
+            String destOrgId = splitUsingApp(originalOrg,app);
+            final OrganizationBean destOrganization = storage.getOrganization(destOrgId);
+            ApplicationBean newApp = (ApplicationBean)ObjectCloner.deepCopy(app);
+            newApp.setOrganization(destOrganization);
+            storage.createApplication(newApp);
+            //reassign application version before tx commit
+            final List<ApplicationVersionSummaryBean> applicationVersions = query.getApplicationVersions(originalOrg.getId(), app.getId());
+            for(ApplicationVersionSummaryBean asb:applicationVersions){
+                final ApplicationVersionBean applicationVersion = storage.getApplicationVersion(originalOrg.getId(), app.getId(), asb.getVersion());
+                applicationVersion.setApplication(newApp);
             }
+            storage.deleteApplication(app);
         }
         _LOG.info("Split Orgs::END");
     }
 
+    //MEMBERSHIPS UPDATE
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    private String splitUsingApp(OrganizationBean originalOrg,ApplicationBean app) throws Exception {
+        _LOG.info("Split {}", app.getName());
+        ManagedApplicationBean marketplaceManagedApp = query.findManagedApplication(app.getContext());
+        if (marketplaceManagedApp != null) {
+            _LOG.info("App context {} with prefix ({})", marketplaceManagedApp.getName(), marketplaceManagedApp.getPrefix());
+            //create org name - already formatted, just append the prefix
+            String newOrgId = marketplaceManagedApp.getPrefix() + OrganizationFacade.MARKET_SEPARATOR + originalOrg.getId();
+            //verify if org exists, if non-existant -> create new org with deep copy of original
+            OrganizationBean destOrg = verifyAndCreate(originalOrg, newOrgId);
+            return destOrg.getId();
+        } else {
+            _LOG.info("Ignored Application (must be publisher or consent app):{}", app);
+            return null;
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private OrganizationBean verifyAndCreate(OrganizationBean originalOrg, String newOrgId) throws Exception {
         OrganizationBean targetOrg = null;
         targetOrg = storage.getOrganization(newOrgId);
@@ -648,23 +672,9 @@ public class MigrationFacade {
             tobecreatedOrg.setModifiedBy(originalOrg.getModifiedBy());
             tobecreatedOrg.setModifiedOn(originalOrg.getModifiedOn());
             tobecreatedOrg.setId(newOrgId);
-            createOrgInSeparateTx(tobecreatedOrg);
-            _LOG.info("-->org created:{}",tobecreatedOrg.getId());
+            storage.createOrganization(tobecreatedOrg);
+            _LOG.info("-->org created:{}", tobecreatedOrg.getId());
             return tobecreatedOrg;
-        }else return targetOrg;
-    }
-
-    /**
-     * In order to avoid growing heap we commit creation in separate tx.
-     * @param orgBean
-     */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    private void createOrgInSeparateTx(OrganizationBean orgBean) throws Exception {
-        try {
-            storage.createOrganization(orgBean);
-        } catch (StorageException e) {
-            _LOG.error("Error while creating missing organization:{}",orgBean);
-            throw new Exception(e);
-        }
+        } else return targetOrg;
     }
 }
