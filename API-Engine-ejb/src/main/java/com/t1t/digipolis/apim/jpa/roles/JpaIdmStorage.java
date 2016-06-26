@@ -6,13 +6,16 @@ import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
+import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.jpa.AbstractJpaStorage;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -33,6 +36,8 @@ import java.util.Set;
 public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
 
     private static Logger logger = LoggerFactory.getLogger(JpaIdmStorage.class);
+    @Inject ISecurityAppContext appContext;
+    @Inject IStorage storage;
 
     /**
      * Constructor.
@@ -202,7 +207,12 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         criteriaQuery.where(builder.equal(from.get("userId"), userId)); //$NON-NLS-1$
         TypedQuery<RoleMembershipBean> typedQuery = entityManager.createQuery(criteriaQuery);
         List<RoleMembershipBean> resultList = typedQuery.getResultList();
-        memberships.addAll(resultList);
+        for(RoleMembershipBean rmb:resultList){
+            final String organizationId = rmb.getOrganizationId();
+            final OrganizationBean organization = storage.getOrganization(organizationId);
+            if(organization!=null && organization.getContext().equals(appContext.getApplicationPrefix())) memberships.add(rmb);
+        }
+        //memberships.addAll(resultList);
         return memberships;
     }
 
@@ -248,22 +258,26 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
     @Override
     public Set<PermissionBean> getPermissions(String userId) throws StorageException {
         Set<PermissionBean> permissions = new HashSet<>();
-        EntityManager entityManager = getActiveEntityManager();
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        EntityManager em = getActiveEntityManager();
+        CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<RoleMembershipBean> criteriaQuery = builder.createQuery(RoleMembershipBean.class);
         Root<RoleMembershipBean> from = criteriaQuery.from(RoleMembershipBean.class);
         criteriaQuery.where(builder.equal(from.get("userId"), userId));
-        TypedQuery<RoleMembershipBean> typedQuery = entityManager.createQuery(criteriaQuery);
+        TypedQuery<RoleMembershipBean> typedQuery = em.createQuery(criteriaQuery);
         typedQuery.setMaxResults(500);
         List<RoleMembershipBean> resultList = typedQuery.getResultList();
         for (RoleMembershipBean membership : resultList) {
             RoleBean role = getRoleInternal(membership.getRoleId());
             String qualifier = membership.getOrganizationId();
-            for (PermissionType permission : role.getPermissions()) {
-                PermissionBean p = new PermissionBean();
-                p.setName(permission);
-                p.setOrganizationId(qualifier);
-                permissions.add(p);
+            //apply app scope - checking org
+            final OrganizationBean organization = storage.getOrganization(qualifier);
+            if(organization.getContext().equals(appContext.getApplicationPrefix())){
+                for (PermissionType permission : role.getPermissions()) {
+                    PermissionBean p = new PermissionBean();
+                    p.setName(permission);
+                    p.setOrganizationId(qualifier);
+                    permissions.add(p);
+                }
             }
         }
         return permissions;
@@ -273,7 +287,9 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
     public Set<PermissionBean> getAllPermissions() throws StorageException {
         Set<PermissionBean> permissions = new HashSet<>();
         EntityManager em = getActiveEntityManager();
-        Query query = em.createQuery("SELECT o FROM OrganizationBean o");
+        //apply app scope
+        Query query = em.createQuery("SELECT o FROM OrganizationBean o WHERE o.context = :oContext");
+        query.setParameter("oContext",appContext.getApplicationPrefix());
         List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
         for(OrganizationBean org:orgs){
             PermissionType[] ptypes = PermissionType.values();

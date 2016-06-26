@@ -2,6 +2,6 @@
 DELETE FROM managed_applications WHERE true;
 
 -- reinit
-INSERT INTO managed_applications (id, name, version, type, prefix, api_key, activated, restricted, app_id) VALUES (901, 'Internal Marketplace', 'v1', 'Marketplace', 'ext', '***REMOVED***',TRUE,FALSE,'marketplace');
-INSERT INTO managed_applications (id, name, version, type, prefix, api_key, activated, restricted, app_id) VALUES (902, 'External Marketplace', 'v1', 'Marketplace', 'int', '***REMOVED***',TRUE,FALSE,'marketplace');
+INSERT INTO managed_applications (id, name, version, type, prefix, api_key, activated, restricted, app_id) VALUES (901, 'External Marketplace', 'v1', 'Marketplace', 'ext', '***REMOVED***',TRUE,FALSE,'marketplace');
+INSERT INTO managed_applications (id, name, version, type, prefix, api_key, activated, restricted, app_id) VALUES (902, 'Internal Marketplace', 'v1', 'Marketplace', 'int', '***REMOVED***',TRUE,FALSE,'marketplace');
 INSERT INTO managed_applications (id, name, version, type, prefix, api_key, activated, restricted, app_id) VALUES (903, 'Publisher', 'v1', 'Publisher', 'pub', '***REMOVED***',TRUE,FALSE,'publisher');
