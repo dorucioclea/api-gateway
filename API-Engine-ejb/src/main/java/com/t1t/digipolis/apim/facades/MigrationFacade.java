@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
@@ -38,6 +39,7 @@ import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
@@ -598,16 +600,19 @@ public class MigrationFacade {
     /**
      * The migration method will perform the following steps:
      * <ul>
-     * <li>get all applications</li>
-     * <li>make sure the context has been provided, default using 'int'</li>
-     * <li>get application context</li>
-     * <li>for context == int: create org with prefix from internal marketplace</li>
-     * <li>for context == ext: create org with prefix from external marketplace</li>
-     * <li>for context == empty: don't do anything should be removed later when cleaning up</li>
-     * <li>update memberships</li>
-     * <li>assign the new organisation to the application</li>
-     * <li>assign the application versions to the updated application (composite key tx)</li>
+     *  <li>get all applications</li>
+     *  <li>make sure the context has been provided, default using 'int'</li>
+     *  <li>get application context</li>
+     *  <li>for context == int: create org with prefix from internal marketplace</li>
+     *  <li>for context == ext: create org with prefix from external marketplace</li>
+     *  <li>for context == empty: don't do anything should be removed later when cleaning up</li>
+     *  <li>update memberships</li>
+     *  <li>assign the new organisation to the application</li>
+     *  <li>assign the application versions to the updated application (composite key tx)</li>
+     *  <li>update kong consumers (APIs remains intact because pub orgs not renamed)</li>
      * </ul>
+     *
+     * This script can not be executed twice! We don't know when an organization has been split.
      *
      * @throws StorageException
      */
@@ -628,8 +633,16 @@ public class MigrationFacade {
             //reassign application version before tx commit
             final List<ApplicationVersionSummaryBean> applicationVersions = query.getApplicationVersions(originalOrg.getId(), app.getId());
             for(ApplicationVersionSummaryBean asb:applicationVersions){
-                final ApplicationVersionBean applicationVersion = storage.getApplicationVersion(originalOrg.getId(), app.getId(), asb.getVersion());
-                applicationVersion.setApplication(newApp);
+                final ApplicationVersionBean appVersion = storage.getApplicationVersion(originalOrg.getId(), app.getId(), asb.getVersion());
+                appVersion.setApplication(newApp);
+                //update Kong consumer
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
+                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                final KongConsumer consumer = gateway.getConsumer(appConsumerName);
+                if(consumer==null){
+                    //create
+                    gateway.createConsumer(appConsumerName,appConsumerName);
+                }
             }
             storage.deleteApplication(app);
         }
@@ -648,6 +661,20 @@ public class MigrationFacade {
             String newOrgId = marketplaceManagedApp.getPrefix() + OrganizationFacade.MARKET_SEPARATOR + originalOrg.getId();
             //verify if org exists, if non-existant -> create new org with deep copy of original
             OrganizationBean destOrg = verifyAndCreate(originalOrg, newOrgId);
+            //attach detached entity - does the trick
+            destOrg = storage.getOrganization(destOrg.getId());
+            //update memberships
+            final Set<RoleMembershipBean> orgMemberships = idmStorage.getOrgMemberships(originalOrg.getId());
+            for(RoleMembershipBean rmb:orgMemberships){
+                final RoleMembershipBean existingMembership = idmStorage.getMembership(rmb.getUserId(), rmb.getRoleId(), newOrgId);
+                if(existingMembership==null){
+                    RoleMembershipBean newRmb = (RoleMembershipBean) ObjectCloner.deepCopy(rmb);
+                    newRmb.setOrganizationId(newOrgId);
+                    newRmb.setId(null);
+                    idmStorage.createMembership(newRmb);
+                    _LOG.info("-->member created:{} - '{}' with role '{}'", destOrg.getId(),newRmb.getUserId(),newRmb.getRoleId());
+                }
+            }
             return destOrg.getId();
         } else {
             _LOG.info("Ignored Application (must be publisher or consent app):{}", app);
