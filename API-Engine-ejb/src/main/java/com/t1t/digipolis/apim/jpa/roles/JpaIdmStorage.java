@@ -30,6 +30,8 @@ import java.util.Set;
 
 /**
  * A JPA implementation of the role storage interface {@link com.t1t.digipolis.apim.core.IIdmStorage}.
+ * We apply a consumer filter based on its scope.
+ *
  */
 @ApplicationScoped
 @Default
