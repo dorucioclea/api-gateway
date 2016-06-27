@@ -28,8 +28,6 @@ public interface IConfig {
     String DEFAULT_USER_ROLES_FOR_DEFAULT_ORG = "apiapp.defaults.roles";
     String SECURITY_REST_RESORUCES = "apiapp.security.rest_resources";
     String SECURITY_REST_AUTH_RESOURCES = "apiapp.security.rest_auth_resources";
-    String SECURITY_RESTRICTED_MODE = "apiapp.security.only_admin_mode";
-    String SECURITY_RESTRICTION_APPLIED = "apiapp.security.applied_restriction";
     String PROP_FILE_DATE = "date";
     String PROP_FILE_VERSION = "version";
     String PROP_FILE_CONFIG_FILE = "configuration.file";
@@ -43,7 +41,6 @@ public interface IConfig {
     String ANALYTICS_MAX_SENDING_QUEUE = "apiapp.metrics.galileo.max_sending_queue_size";
     String ANALYTICS_HOST = "apiapp.metrics.galileo.host";
     String ANALYTICS_PORT = "apiapp.metrics.galileo.port";
-    String MARKETS_FILTER = "apiapp.marketplaces.filter";
     String NOTIFICATION_ENABLE_DEBUG = "apiapp.notifications.enable_debug";
     String NOTIFICATION_STARTUP_MAIL = "apiapp.notifications.startup_mail";
     String NOTIFICATION_MAIL_FROM = "apiapp.notifications.mail_from";

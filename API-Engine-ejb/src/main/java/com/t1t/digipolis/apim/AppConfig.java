@@ -49,10 +49,6 @@ public class AppConfig implements Serializable {
         //read specific application config, depends on the maven profile that has been set
         config = ConfigFactory.load(getConfigurationFile()); if(config==null) throw new RuntimeException("API Engine log not found");else{
             _LOG.info("===== API Engine configruation ==============================");
-            if(getRestrictedMode()){
-                _LOG.info("===== RESTRICTED MODE =======================================");
-                _LOG.info("Restricted applications (only admin): {}",getAppliedRestrictions());
-            }
             _LOG.info("Using configuration file: {}",getConfigurationFile());
             _LOG.info("Build: {}",getBuildDate());
             _LOG.info("version: {}",getVersion());
@@ -60,16 +56,11 @@ public class AppConfig implements Serializable {
             _LOG.info("Kong host: {}",getKongHost());
             _LOG.info("Kong endpoint: {}",getKongEndpoint());
             _LOG.info("Kong management endpoint: {}",getKongManagementEndpoint());
-            _LOG.info("Marketplace filter: {}",getFilteredMarketplaces());
             _LOG.info("IDP SAML2 endpoint: {}",getIDPSAMLEndpoint());
             _LOG.info("IDP NameID format: {}",getIDPSAMLNameIdFormat());
-/*            _LOG.info("IDP SCIM endpoint: {}",getIDPSCIMEndpoint());
-            _LOG.info("IDP SCIM user login has been configured?: {}",!StringUtils.isEmpty(getIDPSCIMUserLogin()));
-            _LOG.info("IDP SCIM user password has been configured?: {}",!StringUtils.isEmpty(getIDPSCIMUserPassword()));*/
             _LOG.info("IDP OAUTH token endpoint: {}",getIDPOAuthTokenEndpoint());
             _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
             _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
-            /*_LOG.info("IDP SCIM activation: {}",getIDPSCIMActivation());*/
             _LOG.info("REST resource security: {}", getRestResourceSecurity());
             _LOG.info("REST AUTH resource security: {}", getRestAuthResourceSecurity());
             _LOG.info("Metrics schema: {}",getMetricsScheme());
@@ -117,7 +108,6 @@ public class AppConfig implements Serializable {
     public Boolean getAnalyticsEnabled(){return config.getBoolean(IConfig.ANALYTICS_ENABLED);}
     public Boolean getRestResourceSecurity(){return config.getBoolean(IConfig.SECURITY_REST_RESORUCES);}
     public Boolean getRestAuthResourceSecurity(){return config.getBoolean(IConfig.SECURITY_REST_AUTH_RESOURCES);}
-    public Boolean getRestrictedMode(){return config.getBoolean(IConfig.SECURITY_RESTRICTED_MODE);}
     public String getAnalyticsServiceToken(){return config.getString(IConfig.ANALYTICS_TOKEN);}
     public Integer getAnalyticsBatchSize(){return config.getInt(IConfig.ANALYTICS_BATCH_SIZE);}
     public Boolean getAnalyticsLogBody(){return config.getBoolean(IConfig.ANALYTICS_LOG_BODY);}
@@ -126,8 +116,6 @@ public class AppConfig implements Serializable {
     public Integer getAnalyticsMaxSendingQueue(){return config.getInt(IConfig.ANALYTICS_MAX_SENDING_QUEUE);}
     public String getAnalyticsHost(){return config.getString(IConfig.ANALYTICS_HOST);}
     public Integer getAnalyticsPort(){return config.getInt(IConfig.ANALYTICS_PORT);}
-    public List<String> getFilteredMarketplaces(){return config.getStringList(IConfig.MARKETS_FILTER);}
-    public List<String> getAppliedRestrictions(){return config.getStringList(IConfig.SECURITY_RESTRICTION_APPLIED);}
     public Boolean getNotificationsEnableDebug(){return config.getBoolean(IConfig.NOTIFICATION_ENABLE_DEBUG);}
     public String getNotificationStartupMail(){return config.getString(IConfig.NOTIFICATION_STARTUP_MAIL);}
     public String getNotificationMailFrom(){return config.getString(IConfig.NOTIFICATION_MAIL_FROM);}

@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.beans.services;
 
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.hibernate.validator.constraints.URL;
 
 import javax.persistence.*;
 import java.io.Serializable;

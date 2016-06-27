@@ -27,6 +27,8 @@ public class OrganizationBean implements Serializable {
     private String id;
     @Column(nullable=false)
     private String name;
+    @Column(nullable=false)
+    private String context;
     @Column(updatable=true, nullable=true, length=512)
     private String description;
     @Column(name = "created_by", updatable=false, nullable=false)
@@ -174,6 +176,14 @@ public class OrganizationBean implements Serializable {
         this.organizationPrivate = organizationPrivate;
     }
 
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -205,14 +215,19 @@ public class OrganizationBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
-        return "OrganizationBean [id=" + id + ", name=" + name + ", description=" + description
-                + ", createdBy=" + createdBy + ", createdOn=" + createdOn + ", modifiedBy=" + modifiedBy
-                + ", modifiedOn=" + modifiedOn + "]";
+        return "OrganizationBean{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", context='" + context + '\'' +
+                ", description='" + description + '\'' +
+                ", createdBy='" + createdBy + '\'' +
+                ", createdOn=" + createdOn +
+                ", modifiedBy='" + modifiedBy + '\'' +
+                ", modifiedOn=" + modifiedOn +
+                ", friendlyName='" + friendlyName + '\'' +
+                ", organizationPrivate=" + organizationPrivate +
+                '}';
     }
 }
