@@ -844,7 +844,7 @@ public class UserFacade implements Serializable {
      */
     public ExternalUserBean getUserByEmail(String email) {
         try{
-            UserBean userByMail = idmStorage.getUserByMail(email);
+            UserBean userByMail = idmStorage.getUserByMail(email.toLowerCase());
             if(userByMail==null)throw new StorageException();
             log.debug("User found by mail ({}): {}",email, userByMail);
             ExternalUserBean extUser = new ExternalUserBean();
@@ -856,7 +856,7 @@ public class UserFacade implements Serializable {
             extUser.setName(userByMail.getFullName());
             return extUser;
         }catch (StorageException e) {
-            throw new UserNotFoundException("Email unknow to the application: " + email);
+            throw new UserNotFoundException("Email unknown to the application: " + email);
         }
     }
 
@@ -864,7 +864,7 @@ public class UserFacade implements Serializable {
         DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         ExternalUserBean extUser = null;
         try {
-            UserBean user = idmStorage.getUser(username);
+            UserBean user = idmStorage.getUser(username.toLowerCase());
             if(user==null)throw new StorageException();
             log.debug("User found by id ({}): {}",username, user);
             extUser = new ExternalUserBean();
@@ -874,7 +874,7 @@ public class UserFacade implements Serializable {
             extUser.setLastModified(df.format(user.getJoinedOn()));
             extUser.setGivenname(user.getFullName());
         } catch (StorageException e) {
-            throw new UserNotFoundException("User unknow to the application: " + username);
+            throw new UserNotFoundException("User unknown to the application: " + username);
         }
         return extUser;
     }

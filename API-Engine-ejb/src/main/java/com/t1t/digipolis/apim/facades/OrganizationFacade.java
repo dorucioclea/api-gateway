@@ -2470,16 +2470,24 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void grant(String organizationId, GrantRoleBean bean) {
         // Verify that the references are valid.
-        get(organizationId);
-        userFacade.get(bean.getUserId());
+        OrganizationBean org = get(organizationId);
+        UserBean user = userFacade.get(bean.getUserId());
         roleFacade.get(bean.getRoleId());
+
         // If user had a pending membership request,
         MembershipData auditData = new MembershipData();
         auditData.setUserId(bean.getUserId());
         try {
+            if (!idmStorage.getUserMemberships(bean.getUserId(), organizationId).isEmpty()) {
+                String message = new StringBuilder(StringUtils.isEmpty(user.getFullName()) ? user.getUsername() : user.getFullName())
+                        .append(" is already a member of ")
+                        .append(org.getName())
+                        .toString();
+                throw ExceptionFactory.membershipAlreadyExists(message);
+            }
             RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), bean.getRoleId(), organizationId);
             membership.setCreatedOn(new Date());
-            // If the membership already exists, that's fine!
+            // If the membership already exists, throw an exception to let the user know that person is already a member
             if (idmStorage.getMembership(bean.getUserId(), bean.getRoleId(), organizationId) == null) {
                 idmStorage.createMembership(membership);
             }
