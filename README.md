@@ -1,7 +1,6 @@
 API-Engine: API Management Services based on Mashape's KONG gateway
 ===================================================================
-Author: Michallis Pashidis
-Level: Intermediate
+Author: Michallis Pashidis, Guillaume Vandecasteele
 Technologies: EAR, JPA, Java EE, CDI
 Summary: API Engine
 Target Project: Digipolis API Engine

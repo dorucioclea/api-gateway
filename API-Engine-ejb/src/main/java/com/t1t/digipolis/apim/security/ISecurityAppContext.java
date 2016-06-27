@@ -20,6 +20,6 @@ public interface ISecurityAppContext {
     public String getApplication();
     public String setCurrentApplication(String application) throws StorageException;
     public AppIdentifier getApplicationIdentifier();
-    public String getApplicationScope();
+    public String getApplicationPrefix();
 
 }

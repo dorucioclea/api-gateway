@@ -44,10 +44,10 @@ curl -X POST http://apim.t1t.be:8001/consumers/ext.marketplace.v1/key-auth \
 
 #create publisher consumer
 curl -X POST http://apim.t1t.be:8001/consumers \
-    --data "username=publisher.v1"
+    --data "username=pub.publisher.v1"
 
 #enable keyauth for publisher and return API key, result should be captured and is the API key for the given consumer
-curl -X POST http://apim.t1t.be:8001/consumers/publisher.v1/key-auth \
+curl -X POST http://apim.t1t.be:8001/consumers/pub.publisher.v1/key-auth \
     --data "key=***REMOVED***"
 
 #Analytics

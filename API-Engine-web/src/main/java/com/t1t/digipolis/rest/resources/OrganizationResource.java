@@ -132,7 +132,7 @@ public class OrganizationResource implements IOrganizationResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException {
+    public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException, StorageException {
         Preconditions.checkNotNull(bean);
         FieldValidator.validateName(bean.getName());
         return orgFacade.create(bean);

@@ -50,7 +50,7 @@ public interface IOrganizationResource {
      * @throws InvalidNameException when the user attempts to create an Organization with an invalid name
      */
     public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException,
-            NotAuthorizedException, InvalidNameException;
+            NotAuthorizedException, InvalidNameException, StorageException;
 
     /**
      * Use this endpoint to get information about a single Organization

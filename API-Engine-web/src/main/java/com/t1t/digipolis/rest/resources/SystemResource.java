@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.config.Version;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
@@ -15,6 +16,7 @@ import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.SystemFacade;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.rest.resources.ISystemResource;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -40,9 +42,11 @@ public class SystemResource implements ISystemResource {
     @Inject private IStorage storage;
     @Inject private AppConfig config;
     @Inject private Version version;
+    @Inject ISecurityContext securityContext;
     @Inject private SystemFacade systemFacade;
+
     @ApiOperation(value = "Get System Status",
-            notes = "This endpoint simply returns the status of the apiman system. This is a useful endpoint to use when testing a client's connection to the apiman API Manager REST services.")
+            notes = "This endpoint simply returns the status of the api engine system. This is a useful endpoint to use when testing a client's connection to the API Manager REST services.")
     @ApiResponses({
             @ApiResponse(code = 200, response = SystemStatusBean.class, message = "System status information")
     })

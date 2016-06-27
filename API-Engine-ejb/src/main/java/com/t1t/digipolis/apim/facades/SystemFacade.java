@@ -1,9 +1,10 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.services.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -20,6 +21,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +41,12 @@ public class SystemFacade {
     @Inject private MigrationFacade migrationFacade;
 
     public Map<String, AvailabilityBean> getAvailableMarketplaces() throws StorageException {
-        return query.listAvailableMarkets();
+        final List<ManagedApplicationBean> managedApplicationList = query.listAvailableMarkets();
+        Map<String,AvailabilityBean> result = new HashMap<>();
+        for(ManagedApplicationBean mb:managedApplicationList){
+            result.put(mb.getPrefix(),new AvailabilityBean(mb.getPrefix(),mb.getName()));
+        }
+        return result;
     }
 
     public List<WhitelistBean> getWhitelistRecords()throws StorageException{
@@ -51,6 +58,22 @@ public class SystemFacade {
     }
 
     public SystemStatusBean getStatus() throws StorageException, GatewayAuthenticationException {
+        SystemStatusBean rval = new SystemStatusBean();
+        rval.setId("apim-manager-api"); //$NON-NLS-1$
+        rval.setName("API Manager REST API"); //$NON-NLS-1$
+        rval.setDescription("The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services."); //$NON-NLS-1$
+        rval.setMoreInfo("http://www.trust1team.com"); //$NON-NLS-1$
+        rval.setEnvironment(config.getEnvironment());
+        rval.setBuiltOn(config.getBuildDate());
+        rval.setVersion(config.getVersion());
+        rval.setUp(storage != null);
+        rval.setKongInfo("");
+        rval.setKongCluster("");
+        rval.setKongStatus("");
+        return rval;
+    }
+
+    public SystemStatusBean getAdminStatus() throws StorageException, GatewayAuthenticationException {
         SystemStatusBean rval = new SystemStatusBean();
         rval.setId("apim-manager-api"); //$NON-NLS-1$
         rval.setName("API Manager REST API"); //$NON-NLS-1$
