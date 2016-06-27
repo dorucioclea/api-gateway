@@ -1419,25 +1419,112 @@ public interface IOrganizationResource {
     public List<EventBean> getOrganizationAllIncomingEvents(String organizationId) throws NotAuthorizedException;
 
     //TODO- Javadocs for new endpoints
+
+    /**
+     * Get all outgoing event for an organization
+     * @param organizationId
+     * @return
+     * @throws NotAuthorizedException
+     */
     public List<EventBean> getOrganizationAllOutgoingEvents(String organizationId) throws NotAuthorizedException;
 
+    /**
+     * Get an organization's outgoing events by type and status
+     * @param organizationId
+     * @param type
+     * @param <T>
+     * @return
+     * @throws NotAuthorizedException
+     * @throws InvalidEventException
+     */
     public <T> List<T> getOrganizationOutgoingEventsByTypeAndStatus(String organizationId, String type) throws NotAuthorizedException, InvalidEventException;
 
+    /**
+     * Get an organization's incoming events by type and status
+     * @param organizationId
+     * @param type
+     * @param <T>
+     * @return
+     * @throws NotAuthorizedException
+     * @throws InvalidEventException
+     */
     public <T> List<T> getOrganizationIncomingEventsByTypeAndStatus(String organizationId, String type) throws NotAuthorizedException, InvalidEventException;
 
+    /**
+     * Delete an event by id
+     * @param organizationId
+     * @param id
+     * @throws NotAuthorizedException
+     * @throws InvalidEventException
+     * @throws EventNotFoundException
+     */
     public void deleteEvent(String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException;
 
+    /**
+     * Request a contract between an application version and a service version
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @param bean
+     * @return
+     * @throws OrganizationNotFoundException
+     * @throws ApplicationNotFoundException
+     * @throws ServiceNotFoundException
+     * @throws PlanNotFoundException
+     * @throws ContractAlreadyExistsException
+     * @throws NotAuthorizedException
+     */
     public ContractBean requestContract(String organizationId,
                                 String applicationId, String version,
                                 NewContractRequestBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
             ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException,
             NotAuthorizedException;
 
+    /**
+     * Reject a contract request
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @param response
+     * @throws NotAuthorizedException
+     */
     public void rejectContractRequest(String organizationId, String applicationId, String version, NewContractBean response) throws NotAuthorizedException;
 
+    /**
+     * Accept a contract request
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @param response
+     * @return
+     * @throws NotAuthorizedException
+     */
     public ContractBean acceptContractRequest(String organizationId, String applicationId, String version, NewContractBean response) throws NotAuthorizedException;
 
+    /**
+     * Reissue an application version's OAuth2 credentials
+     * @param orgId
+     * @param appId
+     * @param version
+     * @return
+     */
     public NewOAuthCredentialsBean reissueAppVersionOAuthCredentials(String orgId, String appId, String version);
 
+    /**
+     * Reissue an application version's API key
+     * @param orgId
+     * @param appId
+     * @param version
+     * @return
+     */
     public NewApiKeyBean reissueAppVersionApiKey(String orgId, String appId, String version);
+
+    /**
+     * Delete a service version
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @throws NotAuthorizedException
+     */
+    public void deleteServiceVersion(String organizationId, String serviceId, String version) throws NotAuthorizedException;
 }

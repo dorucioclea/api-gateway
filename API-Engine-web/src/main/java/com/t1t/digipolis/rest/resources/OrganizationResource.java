@@ -2214,4 +2214,22 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.acceptContractRequest(organizationId, applicationId, version, response);
     }
+
+    @ApiOperation(value = "Delete Service version")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 409, message = "service has contracts")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteServiceVersion(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version) throws NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        orgFacade.deleteServiceVersion(organizationId, serviceId, version);
+    }
 }

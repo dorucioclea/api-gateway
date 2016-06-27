@@ -31,6 +31,18 @@ public class Service implements Serializable {
     }
 
     /**
+     * Parametrized constructor
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     */
+    public Service(String organizationId, String serviceId, String version) {
+        this.organizationId = organizationId;
+        this.serviceId = serviceId;
+        this.version = version;
+    }
+
+    /**
      * @return the organizationId
      */
     public String getOrganizationId() {

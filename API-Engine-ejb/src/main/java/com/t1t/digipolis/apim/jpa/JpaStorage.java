@@ -295,6 +295,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(manapp);
     }
 
+    @Override
+    public void updateAuditEntry(AuditEntryBean audit) throws StorageException {
+        super.update(audit);
+    }
+
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -1886,7 +1891,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ManagedApplicationBean> listAvailableMarkets() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :appType OR m.type = :appType1 OR m.type = :appType2 ORDER BY m.name ASC";
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :appType OR m.type = :appType1 ORDER BY m.name ASC";
         Query query = entityManager.createQuery(jpql);
         query.setParameter("appType", ManagedApplicationTypes.InternalMarketplace);
         query.setParameter("appType1", ManagedApplicationTypes.ExternalMarketplace);
@@ -2355,6 +2360,38 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return em.createQuery(jpql)
                 .setParameter("orgId", organizationId)
                 .setParameter("status", status)
+                .getResultList();
+    }
+
+    @Override
+    public List<PolicyBean> listPoliciesForEntity(String organizationId, String entityId, String version, PolicyType type) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.organizationId = :orgId AND p.entityId = :entId AND p.entityVersion = :version AND p.type = :pType";
+        return em.createQuery(jpql)
+                .setParameter("orgId", organizationId)
+                .setParameter("entId", entityId)
+                .setParameter("version", version)
+                .setParameter("pType", type)
+                .getResultList();
+    }
+
+    @Override
+    public List<AuditEntryBean> listAuditEntriesForEntity(String organizationId, String entityId, String version, AuditEntityType type) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT a FROM AuditEntryBean a WHERE a.organizationId = :orgId AND a.entityId = :entId AND a.entityVersion = :version AND a.entityType = :aType";
+        return em.createQuery(jpql)
+                .setParameter("orgId", organizationId)
+                .setParameter("entId", entityId)
+                .setParameter("version", version)
+                .setParameter("aType", type)
+                .getResultList();
+    }
+
+    @Override
+    public List<OrganizationBean> getAllOrgs() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT o FROM OrganizationBean o";
+        return em.createQuery(jpql)
                 .getResultList();
     }
 }
