@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
@@ -172,7 +173,7 @@ public class ActionFacade {
             if (gateways == null) {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
-            List<ManagedApplicationBean> marketplaces = query.getManagedApps();
+            List<ManagedApplicationBean> marketplaces = query.findManagedApplication(ManagedApplicationTypes.Consent);
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                 gatewayLink.publishService(gatewaySvc);

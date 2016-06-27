@@ -242,8 +242,6 @@ public class OrganizationResource implements IOrganizationResource {
                                  @PathParam("applicationId") String applicationId,
                                  @PathParam("version") String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
-        if (securityContext.hasPermission(PermissionType.appAdmin, organizationId))
-            Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
@@ -2016,16 +2014,19 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.listMembers(organizationId);
     }
 
-    @ApiOperation(value = "Test endpoint: Clean organization",
-            notes = "Remove a complete organization. This endpoint is meant for testing purpose.")
+    @ApiOperation(value = "Delete Organization",notes = "Delete a complete organization, when plans and services are already deleted up-front.")
     @ApiResponses({
-            @ApiResponse(code = 200, responseContainer = "List", response = MemberBean.class, message = "List of members.")
-    })
+                          @ApiResponse(code = 204, message = "successful, no content"),
+                          @ApiResponse(code = 412, message = "preconditions not met")
+                  })
     @DELETE
     @Path("/{organizationId}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteOrganization(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
         orgFacade.deleteOrganization(organizationId);
     }
 
@@ -2212,5 +2213,23 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.svcAdmin, response.getServiceOrgId()))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.acceptContractRequest(organizationId, applicationId, version, response);
+    }
+
+    @ApiOperation(value = "Delete Service version")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 409, message = "service has contracts")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteServiceVersion(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version) throws NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        orgFacade.deleteServiceVersion(organizationId, serviceId, version);
     }
 }

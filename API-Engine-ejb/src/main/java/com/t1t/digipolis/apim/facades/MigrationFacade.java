@@ -5,11 +5,15 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
+import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
@@ -53,6 +57,7 @@ import retrofit.RetrofitError;
 import javax.ejb.*;
 import javax.inject.Inject;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Guillaume Vandecasteele
@@ -358,7 +363,7 @@ public class MigrationFacade {
                     // Publish the service to all relevant gateways
                     Set<ServiceGatewayBean> gateways = svb.getGateways();
                     if (gateways != null) {
-                        List<ManagedApplicationBean> marketplaces = query.getManagedApps();
+                        List<ManagedApplicationBean> marketplaces = query.findManagedApplication(ManagedApplicationTypes.Consent);
                         for (ServiceGatewayBean serviceGatewayBean : gateways) {
                             try {
                                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
@@ -646,6 +651,7 @@ public class MigrationFacade {
             }
             storage.deleteApplication(app);
         }
+        migrateToSplitOrgs();
         _LOG.info("Split Orgs::END");
     }
 
@@ -703,5 +709,73 @@ public class MigrationFacade {
             _LOG.info("-->org created:{}", tobecreatedOrg.getId());
             return tobecreatedOrg;
         } else return targetOrg;
+    }
+
+    private void migrateToSplitOrgs() {
+        try{
+            for (ApplicationVersionBean avb : query.findAllApplicationVersions()) {
+                //Update policies with new org ids
+                String oldOrgName = avb.getApplication().getOrganization().getId().split(OrganizationFacade.MARKET_SEPARATOR)[1];
+                for (PolicyBean policy : query.listPoliciesForEntity(oldOrgName, avb.getApplication().getId(), avb.getVersion(), PolicyType.Application)) {
+                    policy.setOrganizationId(avb.getApplication().getOrganization().getId());
+                    storage.updatePolicy(policy);
+                }
+                //Update audit entries with new org ids
+                for (AuditEntryBean entry : query.listAuditEntriesForEntity(oldOrgName, avb.getApplication().getId(), avb.getVersion(), AuditEntityType.Application)) {
+                    entry.setOrganizationId(avb.getApplication().getOrganization().getId());
+                    storage.updateAuditEntry(entry);
+                }
+            }
+            for (OrganizationBean org : getOrgsByContext()) {
+                String oldOrgName = org.getId().split(OrganizationFacade.MARKET_SEPARATOR)[1];
+                //update events with new org id's
+                for (EventBean event : query.getAllEventsRelatedToOrganization(oldOrgName)) {
+                    switch (event.getType()) {
+                        case MEMBERSHIP_PENDING:
+                            event.setDestinationId(org.getId());
+                            storage.updateEvent(event);
+                            break;
+                        case CONTRACT_ACCEPTED:
+                        case CONTRACT_REJECTED:
+                            String[] dest = event.getDestinationId().split(".");
+                            if (dest.length != 3) {
+                                continue;
+                            }
+                            event.setDestinationId(new StringBuilder(org.getId())
+                                                        .append(".")
+                                                        .append(dest[1])
+                                                        .append(".")
+                                                        .append(dest[2])
+                                                        .toString());
+                            storage.updateEvent(event);
+                            break;
+                    }
+                }
+            }
+            ManagedApplicationBean intMarket = query.findManagedApplication("int");
+            ManagedApplicationBean extMarket = query.findManagedApplication("ext");
+            List<PolicyBean> mktPlacePol = query.listPoliciesForEntity(intMarket.getPrefix(), intMarket.getAppId(), intMarket.getVersion(), PolicyType.Marketplace);
+            mktPlacePol.addAll(query.listPoliciesForEntity(extMarket.getPrefix(), extMarket.getAppId(), extMarket.getVersion(), PolicyType.Marketplace));
+            for (PolicyBean pol : mktPlacePol) {
+                if (pol.getDefinition().getId().equals(Policies.ACL.name())) {
+                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                    gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(pol.getOrganizationId(), pol.getEntityId(), pol.getEntityVersion()), pol.getKongPluginId());
+                    storage.deletePolicy(pol);
+                }
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private List<OrganizationBean> getOrgsByContext() throws StorageException {
+        List<OrganizationBean> rval = new ArrayList<>();
+        for (OrganizationBean org : query.getAllOrgs()) {
+            if (org.getContext().equals("int") || org.getContext().equals("ext")) {
+                rval.add(org);
+            }
+        }
+        return rval;
     }
 }

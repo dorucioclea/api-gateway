@@ -1824,99 +1824,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (serviceBean == null) {
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
             }
-
+            if (query.getServiceContracts(serviceBean).size() > 0) {
+                throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
+            }
             // Get Service versions
-            List<ServiceVersionSummaryBean> versions = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            versions.stream().forEach(version -> {
-
-                // (Remove any existing contracts) Instead of removing existing contrasts, throw error if there still are any.
-                try {
-                    List<ContractSummaryBean> contracts = query.getServiceContracts(version.getOrganizationId(), version.getId(), version.getVersion(), 1, 1000);
-                    if (contracts.size() > 0) {
-                        throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
-                    }
-                    /*contracts.stream().forEach(contract -> {
-                        try {
-                            ContractBean contractBean = storage.getContract(contract.getContractId());
-                            storage.deleteContract(contractBean);
-                        } catch (StorageException e) {
-                            throw new SystemErrorException(e);
-                        }
-                    });*/
-                } catch (StorageException e) {
-                    throw new SystemErrorException(e);
-                }
-
-                // Remove service definition if found
-                InputStream definitionStream = getServiceDefinition(version.getOrganizationId(), version.getId(), version.getVersion());
-                if (definitionStream != null) {
-                    deleteServiceDefinition(version.getOrganizationId(), version.getId(), version.getVersion());
-                }
-
-                // Remove service policies
-                List<PolicySummaryBean> policies = listServicePolicies(version.getOrganizationId(), version.getId(), version.getVersion());
-                policies.stream().forEach(policy -> {
-                    try {
-                        PolicyBean policyBean = storage.getPolicy(PolicyType.Service, version.getOrganizationId(), version.getId(), version.getVersion(), policy.getId());
-                        storage.deletePolicy(policyBean);
-                    } catch (AbstractRestException e) {
-                        throw e;
-                    } catch (Exception e) {
-                        throw new SystemErrorException(e);
-                    }
-                });
-
-                //Revoke marketplace ACL memberships
-                try {
-                    List<PolicyBean> aclPolicies = query.getManagedAppACLPolicies(organizationId, serviceId, version.getVersion());
-                    for (PolicyBean policy : aclPolicies) {
-                        gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
-                        storage.deletePolicy(policy);
-                    }
-                } catch (StorageException ex) {
-                    throw new SystemErrorException(ex);
-                }
-
-                // Remove gateway config & plan configuration for service version
-                ServiceVersionBean svb = getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
-                svb.getGateways().clear();
-                svb.getPlans().clear();
-                try {
-                    storage.updateServiceVersion(svb);
-                } catch (AbstractRestException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new SystemErrorException(e);
-                }
-
-                // For each version, verify the status: if Published we need to remove the API from Kong
-                ServiceStatus status = version.getStatus();
-                if (status.equals(ServiceStatus.Published)) {
-                    Service service = new Service();
-                    service.setOrganizationId(version.getOrganizationId());
-                    service.setServiceId(version.getId());
-                    service.setVersion(version.getVersion());
-                    try {
-                        gateway.retireService(service);
-                    } catch (Exception e) {
-                        throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
-                    }
-                }
-            });
-            gateway.close();
-            // Remove all service versions from API Engine
-            versions.stream().forEach(version -> {
-                try {
-                    ServiceVersionBean svcVersion = storage.getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
-                    //TODO break contracts in order to clean up the oauth2 stuff
-                    storage.deleteServiceVersion(svcVersion);
-                } catch (AbstractRestException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new SystemErrorException(e);
-                }
-            });
+            for (ServiceVersionSummaryBean svsb : query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId())) {
+                deleteServiceVersionInternal(getServiceVersion(svsb.getOrganizationId(), svsb.getId(), svsb.getVersion()));
+            }
 
             // Remove support entries
             List<SupportBean> supportTickets = listServiceSupportTickets(organizationId, serviceId);
@@ -1929,12 +1843,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             announcements.stream().forEach(announcement -> {
                 deleteServiceAnnouncement(organizationId, serviceId, announcement.getId());
             });
-            // Delete related events
-            String eventId = new StringBuilder(serviceBean.getOrganization().getId())
-                    .append(serviceId)
-                    .append(".%")
-                    .toString();
-            query.deleteAllEventsForEntity(eventId);
+
+            //Service announcement events have a organizationid.serviceid nomenclature, so delete those events
+            query.deleteAllEventsForEntity(new StringBuilder(organizationId).append(".").append(serviceId).toString());
+
             // Finally, delete the Service from API Engine
             storage.deleteService(serviceBean);
         } catch (AbstractRestException e) {
@@ -1942,6 +1854,72 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    public void deleteServiceVersion(String organizationId, String serviceId, String version) {
+        try {
+            if (query.getServiceVersions(organizationId, serviceId).size() == 1) {
+                deleteService(organizationId, serviceId);
+            }
+            else {
+                ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+                deleteServiceVersionInternal(svb);
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private void deleteServiceVersionInternal(ServiceVersionBean svb) throws StorageException {
+        String organizationId = svb.getService().getOrganization().getId();
+        String serviceId = svb.getService().getId();
+        String version = svb.getVersion();
+        //Check for existing contrasts, throw error if there still are any.
+        if (query.getServiceContracts(organizationId, serviceId, version).size() > 0) {
+            throw ExceptionFactory.serviceCannotDeleteException("Service version still has contracts");
+        }
+
+        // Remove service definition if found
+        InputStream definitionStream = getServiceDefinition(organizationId, serviceId, version);
+        if (definitionStream != null) {
+            deleteServiceDefinition(organizationId, serviceId, version);
+        }
+
+        // Remove service policies
+        for (PolicySummaryBean policy : listServicePolicies(organizationId, serviceId, version)) {
+            PolicyBean policyBean = storage.getPolicy(PolicyType.Service, organizationId, serviceId, version, policy.getId());
+            storage.deletePolicy(policyBean);
+        }
+        //Perform the cleanup on the serviceversion's various gateways
+        for (ServiceGatewayBean gwb : svb.getGateways()) {
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gwb.getGatewayId());
+            //Clean up the Managed App ACL(s)
+            for (PolicyBean policy : query.getManagedAppACLPolicies(organizationId, serviceId, version)) {
+                gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
+                storage.deletePolicy(policy);
+            }
+            //Verify the status: if Published or deprecated we need to remove the API from Kong
+            if (svb.getStatus().equals(ServiceStatus.Published) || svb.getStatus().equals(ServiceStatus.Deprecated)) {
+                Service service = new Service(organizationId, serviceId, version);
+                try {
+                    gateway.retireService(service);
+                } catch (Exception e) {
+                    throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
+                }
+            }
+            gateway.close();
+        }
+        // Remove events
+        query.deleteAllEventsForEntity(ServiceConventionUtil.generateServiceUniqueName(svb));
+
+        // Remove gateway config & plan configuration for service version
+        svb.getGateways().clear();
+        svb.getPlans().clear();
+        storage.updateServiceVersion(svb);
+
+        // Now we can finally delete the version itself
+        storage.deleteServiceVersion(svb);
     }
 
     public SearchResultsBean<AuditEntryBean> getServiceActivity(String organizationId, String serviceId, int page, int pageSize) {
@@ -2528,16 +2506,24 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void grant(String organizationId, GrantRoleBean bean) {
         // Verify that the references are valid.
-        get(organizationId);
-        userFacade.get(bean.getUserId());
+        OrganizationBean org = get(organizationId);
+        UserBean user = userFacade.get(bean.getUserId());
         roleFacade.get(bean.getRoleId());
+
         // If user had a pending membership request,
         MembershipData auditData = new MembershipData();
         auditData.setUserId(bean.getUserId());
         try {
+            if (!idmStorage.getUserMemberships(bean.getUserId(), organizationId).isEmpty()) {
+                String message = new StringBuilder(StringUtils.isEmpty(user.getFullName()) ? user.getUsername() : user.getFullName())
+                        .append(" is already a member of ")
+                        .append(org.getName())
+                        .toString();
+                throw ExceptionFactory.membershipAlreadyExists(message);
+            }
             RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), bean.getRoleId(), organizationId);
             membership.setCreatedOn(new Date());
-            // If the membership already exists, that's fine!
+            // If the membership already exists, throw an exception to let the user know that person is already a member
             if (idmStorage.getMembership(bean.getUserId(), bean.getRoleId(), organizationId) == null) {
                 idmStorage.createMembership(membership);
             }
@@ -3810,29 +3796,70 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    /* Test utilities */
-    public boolean deleteOrganization(String orgId) {
+    /**
+     * This implementation deletes an organization only when no services or applications are present,
+     * All plans must be removed as well.
+     * The method will remove the organization and the existing memberships from users.
+     *
+     * TODO implement method that cleansup an organization when no contracts are present.
+     *
+     * @param orgId
+     */
+    public void deleteOrganization(String orgId) {
+        //remove memberships
+        //leave audit and add closure
+        //remove organization
+        OrganizationBean org = get(orgId);
         try {
-            OrganizationBean organization = storage.getOrganization(orgId);
-            deleteOrganization(orgId);
-        } catch (StorageException e) {
-            e.printStackTrace();
+            List<ServiceSummaryBean> services = query.getServicesInOrg(orgId);
+            if (!services.isEmpty()) {
+                if (!query.getServiceVersionsInOrgByStatus(orgId, ServiceStatus.Published).isEmpty() || !query.getServiceVersionsInOrgByStatus(orgId, ServiceStatus.Deprecated).isEmpty()) {
+                    for (ServiceSummaryBean svcSummary : services) {
+                        ServiceBean service = getService(svcSummary.getOrganizationId(), svcSummary.getId());
+                        if (!query.getServiceContracts(service).isEmpty()) {
+                            throw ExceptionFactory.orgCannotBeDeleted("The organization's services still have contracts");
+                        }
+                    }
+                    //TODO - delete the services that don't have any contracts
+                    throw ExceptionFactory.orgCannotBeDeleted("The organization still has published and/or deprecated service versions");
+                }
+                //If the organization doesn't have any published or deprecated services, those services should be safe to delete
+                else {
+                    //TODO - delete all unpublished services in one go
+                    throw ExceptionFactory.orgCannotBeDeleted("The organization still has services");
+                }
+            }
+            //If the organization doesn't have services, check if it has plans
+            if (!query.getPlansInOrg(org.getId()).isEmpty()) {
+                //TODO - Delete all plans if the org doesn't have services
+                throw ExceptionFactory.orgCannotBeDeleted("The organization still has plans");
+            }
+            //By now we can assume that either an exception has been thrown or the organization doesnt't have any services left
+            List<ApplicationSummaryBean> apps = query.getApplicationsInOrg(orgId);
+            if (!apps.isEmpty()) {
+                for (ApplicationSummaryBean appSumm : apps) {
+                    deleteApp(orgId, appSumm.getId());
+                }
+            }
+            deleteOrganizationInternal(org);
         }
-        //get all services
-        //get all service versions
-        //get all applications
-        //get all application versions
-        //get all contracts
-        //remove all contracts
-        //get all oauth apps
-        //get all plans
-        //get all plan versions
-        //get all plan policies
-        //remove all plan policies
-        //remove all plans versions
-        //remove all plans
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
 
-        return true;
+    }
+
+    private void deleteOrganizationInternal(OrganizationBean org) throws StorageException {
+        //This assumes the preliminary work of deleting services, plans and applications has already been done
+        //in the methods calling this method
+        for (RoleMembershipBean member : idmStorage.getOrgMemberships(org.getId())) {
+            idmStorage.deleteMemberships(member.getUserId(), org.getId());
+        }
+        //Delete all related events
+        for (EventBean event : query.getAllEventsRelatedToOrganization(org.getId())) {
+            storage.deleteEvent(event);
+        }
+        storage.deleteOrganization(org);
     }
 
     public NewApiKeyBean reissueApplicationVersionApiKey(String organizationId, String applicationId, String version) {

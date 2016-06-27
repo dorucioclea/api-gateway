@@ -3,7 +3,9 @@ package com.t1t.digipolis.apim.core;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.audit.AuditEntryType;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
@@ -480,7 +482,7 @@ public interface IStorageQuery {
     /**
      * Returns service version beans for a specific availability
      *
-     * @param bean
+     * @param
      * @return
      * @throws StorageException
      */
@@ -630,16 +632,103 @@ public interface IStorageQuery {
      */
     public List<ManagedApplicationBean> findManagedApplications() throws StorageException;
 
+    /**
+     * Return organizations that hold a contract with a service
+     * @param service
+     * @return
+     * @throws StorageException
+     */
     public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException;
 
+    /**
+     * Get service based on its base path
+     * @param organizationId
+     * @param basepath
+     * @return
+     * @throws StorageException
+     */
     public ServiceBean getServiceByBasepath(String organizationId, String basepath) throws StorageException;
 
+    /**
+     * Resolve an API key to the application it belongs to
+     * @param apiKey
+     * @return
+     * @throws StorageException
+     */
     public ApplicationVersionSummaryBean resolveApplicationVersionByAPIKey(String apiKey) throws StorageException;
 
+    /**
+     * Delete all ACL policies
+     * @throws StorageException
+     */
     public void deleteAclPolicies() throws StorageException;
 
+    /**
+     * Update an application's API key
+     * @param avb
+     * @param apiKey
+     * @throws StorageException
+     */
     public void updateApplicationVersionApiKey(ApplicationVersionBean avb, String apiKey) throws StorageException;
 
+    /**
+     * Get all non-retired application versions
+     * @return
+     * @throws StorageException
+     */
     public List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() throws StorageException;
 
+    /**
+     * Get all events related to an organization. Used in the process of organization deletion
+     * @param orgId
+     * @return
+     * @throws StorageException
+     */
+    public List<EventBean> getAllEventsRelatedToOrganization(String orgId) throws StorageException;
+
+    /**
+     * Get all contracts for a service
+     * @param service
+     * @return
+     * @throws StorageException
+     */
+    public List<ContractBean> getServiceContracts(ServiceBean service) throws StorageException;
+
+    /**
+     * Get service versions in an organization by status
+     * @param organizationId
+     * @param status
+     * @return
+     * @throws StorageException
+     */
+    public List<ServiceVersionBean> getServiceVersionsInOrgByStatus(String organizationId, ServiceStatus status) throws StorageException;
+
+    /**
+     * Return policy beans for an entity
+     * @param organizationId
+     * @param entityId
+     * @param version
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public List<PolicyBean> listPoliciesForEntity(String organizationId, String entityId, String version, PolicyType type) throws StorageException;
+
+    /**
+     * Return all audit entries for entity
+     * @param organizationId
+     * @param entityId
+     * @param version
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public List<AuditEntryBean> listAuditEntriesForEntity(String organizationId, String entityId, String version, AuditEntityType type) throws StorageException;
+
+    /**
+     * Return all organizations
+     * @return
+     * @throws StorageException
+     */
+    public List<OrganizationBean> getAllOrgs() throws StorageException;
 }
