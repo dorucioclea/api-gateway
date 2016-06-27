@@ -6,13 +6,15 @@ import javax.persistence.Transient;
 import java.io.Serializable;
 
 /**
- * The Visibility bean tags labels (named codes) to a service. In a marketplace you can select the tags you want to activate.
- * For example, let's introduce tags, 'internal', 'external'.
- * For an interal marketplace, only service versions tagged with 'internal' will appear.
- * For an external marketplace, only service versions tagged with 'external' will appear.
- * You can activate multiple tags for a marketplace. The tag denotes visibility in the context of a marketplace.
+ * The Visibility bean tags (named codes) a service. The tag is a prefix of an existing managed app.
+ * The Visibility bean is a talbe denoting visibility of a service version for different marketplaces.
+ * Each marketplace consumer is a managed applciations, with a predefined 'prefix'.
+ * For example, let's introduce tags, 'int', 'ext'; which are prefixes for internal and external marketplace.
+ * For an interal marketplace, only service versions tagged with 'int' will appear.
+ * For an external marketplace, only service versions tagged with 'ext' will appear.
+ * The tag denotes visibility in the context of a marketplace.
  * The 'show' property must be set to true for a service to appear in the API explorer of a marketplace. When set to false,
- * the service will be exposed on the gateway, but will not be visible on the marketplace.
+ * The service will be exposed on the gateway, but will not be visible on the marketplace.
  */
 @Embeddable
 public class VisibilityBean implements Serializable {

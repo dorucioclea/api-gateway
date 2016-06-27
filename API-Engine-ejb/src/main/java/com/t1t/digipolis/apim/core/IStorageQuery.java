@@ -1,10 +1,10 @@
 package com.t1t.digipolis.apim.core;
 
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
+import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
@@ -12,6 +12,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -391,7 +392,7 @@ public interface IStorageQuery {
      * @return
      * @throws StorageException
      */
-    public Map<String,AvailabilityBean> listAvailableMarkets() throws StorageException;
+    public List<ManagedApplicationBean> listAvailableMarkets() throws StorageException;
 
     /**
      * Returns the default whitelist records. This can be used for an implicit IP Restriction policy.
@@ -441,12 +442,20 @@ public interface IStorageQuery {
     public List<PolicyBean> getManagedAppACLPolicies(String organizationId, String serviceId, String version) throws StorageException;
 
     /**
-     * Returns all applications
+     * Returns all application versions
      *
      * @return List of ApplicationVersionBeans
      * @throws StorageException
      */
     public List<ApplicationVersionBean> findAllApplicationVersions() throws StorageException;
+
+    /**
+     * Returns all applications
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<ApplicationBean> findAllApplications() throws StorageException;
 
     /**
      * Returns all plans (plan version containers) for a given organization.
@@ -475,7 +484,7 @@ public interface IStorageQuery {
      * @return
      * @throws StorageException
      */
-    public List<ServiceVersionBean> findServiceVersionsByAvailability(AvailabilityBean bean) throws StorageException;
+    public List<ServiceVersionBean> findServiceVersionsByAvailability(String prefix) throws StorageException;
 
     /**
      * Returns a unique event by origin, destination and type - ignoring the id
@@ -581,7 +590,45 @@ public interface IStorageQuery {
 
     public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException;
 
+    /**
+     * Resolves a managed application by its apikey.
+     * This is used as a fallback scenario in request filters (in order to set the app context).
+     *
+     * @param apiKey
+     * @return
+     * @throws StorageException
+     */
     public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException;
+
+    /**
+     * Returns the managed applciation by given prefix.
+     * A prefix is the context defined by a managed applications, this is a unique value.
+     * The unique value is used for applications and services to define their context.
+     * Prefixes are used in order to scope/determine visibility.
+     *
+     * @param prefix
+     * @return
+     * @throws StorageException
+     */
+    public ManagedApplicationBean findManagedApplication(String prefix) throws StorageException;
+
+    /**
+     * Find all managed applications by type. A type can be InternalMarketplace.
+     * When this is the case, all managed applications will be returned that are interal marketplaces.
+     *
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public List<ManagedApplicationBean> findManagedApplication(ManagedApplicationTypes type) throws StorageException;
+
+    /**
+     * Returns all managed applications without filtering.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public List<ManagedApplicationBean> findManagedApplications() throws StorageException;
 
     public Set<OrganizationBean> getServiceContractHolders(ServiceBean service) throws StorageException;
 

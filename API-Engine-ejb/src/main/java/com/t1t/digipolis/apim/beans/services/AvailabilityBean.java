@@ -1,27 +1,17 @@
-package com.t1t.digipolis.apim.beans.availability;
-
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+package com.t1t.digipolis.apim.beans.services;
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import java.io.Serializable;
 
 /**
- * Created by michallispashidis on 12/02/16.
+ * Created by michallispashidis on 25/06/16.
  */
-@Entity
-@Table(name = "availabilities")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class AvailabilityBean implements Serializable {
-    @Id
-    @Column(nullable=false)
+public class AvailabilityBean {
     private String code;
-    @Column(nullable=false)
     private String name;
 
-    public AvailabilityBean() {
+    public AvailabilityBean(String code, String name) {
+        this.code = code;
+        this.name = name;
     }
 
     public String getCode() {

@@ -52,11 +52,11 @@ curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers \
     --data "username=dev.publisher.v1"
 
 #enable keyauth for publisher and return API key, result should be captured and is the API key for the given consumer
-curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers/dev.publisher.v1/key-auth \
+curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/consumers/pub.publisher.v1/key-auth \
     --data "key=***REMOVED***"
 
 #Analytics
-curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/apis/dev.apiengine.v1/plugins/ \
+curl -X POST http://devasu018.dev.digant.antwerpen.local:8001/apis/pub.apiengine.v1/plugins/ \
     --data "name=mashape-analytics" \
     --data "config.service_token=558a95f80f7a734609de5c04" \
     --data "config.environment=digi-acc"

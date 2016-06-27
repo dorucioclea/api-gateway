@@ -54,7 +54,7 @@ public abstract class AbstractJpaStorage {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <T> T create(T bean) throws StorageException {
-        log.debug("create:" + bean.toString());
+        log.trace("create:" + bean.toString());
         em.persist(bean);
         em.flush();
         return bean;
@@ -66,7 +66,7 @@ public abstract class AbstractJpaStorage {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <T> T update(T bean) throws StorageException {
-        log.debug("update:" + bean.toString());
+        log.trace("update:" + bean.toString());
         T result = em.merge(bean);
         em.flush();
         return result;
@@ -80,7 +80,7 @@ public abstract class AbstractJpaStorage {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <T> void delete(T bean) throws StorageException {
-        log.debug("delete:" + bean);
+        log.trace("delete:" + bean);
         em.remove(em.merge(bean));
     }
 
@@ -94,7 +94,7 @@ public abstract class AbstractJpaStorage {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public <T> T get(Long id, Class<T> type) throws StorageException {
-        log.debug("get(long:id):" + id);
+        log.trace("get(long:id):" + id);
         T rval = null;
         rval = em.find(type, id);
         return rval;
@@ -109,7 +109,7 @@ public abstract class AbstractJpaStorage {
      * @throws StorageException if a storage problem occurs while storing a bean
      */
     public <T> T get(String id, Class<T> type) throws StorageException {
-        log.debug("get(string:id):" + id);
+        log.trace("get(string:id):" + id);
         T rval = null;
         rval = em.find(type, id);
         return rval;
@@ -125,7 +125,7 @@ public abstract class AbstractJpaStorage {
      * @throws StorageException if a storage problem occurs while storing a bean
      */
     public <T> T get(String organizationId, String id, Class<T> type) throws StorageException {
-        log.debug("getOrganzationComposite(id):" + id);
+        log.trace("getOrganzationComposite(id):" + id);
         T rval = null;
         OrganizationBean orgBean = em.find(OrganizationBean.class, organizationId);
         Object key = new OrganizationBasedCompositeId(orgBean, id);

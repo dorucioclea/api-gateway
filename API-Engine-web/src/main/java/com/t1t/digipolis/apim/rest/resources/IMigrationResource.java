@@ -41,5 +41,12 @@ public interface IMigrationResource {
      * @throws StorageException
      */
     public void rebuild() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException;
+
+    /**
+     * Split all organizations (shared in version v0.7.x and lower) to be contextualized.
+     *
+     * @throws AbstractRestException
+     */
+    public void splitOrgs() throws Exception;
 }
 
