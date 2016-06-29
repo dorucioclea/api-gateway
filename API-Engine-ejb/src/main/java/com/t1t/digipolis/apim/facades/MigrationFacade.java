@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.events.Event;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
@@ -43,10 +44,9 @@ import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.GatewayUtils;
 import com.t1t.digipolis.util.ObjectCloner;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -139,6 +139,7 @@ public class MigrationFacade {
                         npb.setDefinitionId(Policies.ACL.name());
                         npb.setConfiguration(new Gson().toJson(response));
                         npb.setKongPluginId(response.getId());
+                        npb.setGatewayId(gateway.getGatewayId());
                         _LOG.info("Marketplace policy:{}", orgFacade.createManagedApplicationPolicy(managedApp, npb));
                     } catch (Exception ex) {
                         //ignore
@@ -169,7 +170,8 @@ public class MigrationFacade {
                             npb.setKongPluginId(response.getId());
                             npb.setContractId(summary.getContractId());
                             npb.setConfiguration(new Gson().toJson(conf));
-                            _LOG.info("Policy " + applicationName + ":{}", orgFacade.doCreatePolicy(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion(), npb, PolicyType.Application));
+                            npb.setGatewayId(gateway.getGatewayId());
+                            _LOG.info("Policy " + applicationName + ":{}", orgFacade.doCreatePolicy(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion(), npb, PolicyType.Contract));
                         } catch (Exception ex) {
                             ;//ignore
                         }
@@ -262,7 +264,8 @@ public class MigrationFacade {
     //TODO: impact service request events?
     public void rebuildGtw() {
         _LOG.info("====MIGRATION-START====");
-        removeAppACLsFromDB();
+        removeACLsFromDB();
+        removeContractPoliciesFromDB();
         syncUsers();
         republishServices();
         syncApplications();
@@ -321,9 +324,9 @@ public class MigrationFacade {
     private void republishServices() {
         _LOG.info("Publish Services::START");
         try {
-            //get all published services
-            final List<ServiceVersionBean> publishedServices = query.findServiceByStatus(ServiceStatus.Published);
-            for (ServiceVersionBean svb : publishedServices) {
+            //get all published services, including the deprecated ones
+            final List<ServiceVersionBean> services = query.findGatewayServiceVersions();
+            for (ServiceVersionBean svb : services) {
                 _LOG.info("-->sync org:{} service:{} version:{} ...",
                         svb.getService().getOrganization().getId(),
                         svb.getService().getId(),
@@ -382,6 +385,7 @@ public class MigrationFacade {
                                         npb.setDefinitionId(Policies.ACL.name());
                                         npb.setConfiguration(new Gson().toJson(response));
                                         npb.setKongPluginId(response.getId());
+                                        npb.setGatewayId(gatewayLink.getGatewayId());
                                         orgFacade.createManagedApplicationPolicy(managedApp, npb);
                                     } catch (Exception ex) {
                                         //ignore
@@ -409,8 +413,8 @@ public class MigrationFacade {
         _LOG.info("Publish Services::END");
     }
 
-    private void removeAppACLsFromDB() {
-        _LOG.info("Remove DB ACLs::END");
+    private void removeACLsFromDB() {
+        _LOG.info("Remove DB ACLs::BEGIN");
         try {
             query.deleteAclPolicies();
         } catch (StorageException e) {
@@ -418,6 +422,17 @@ public class MigrationFacade {
             e.printStackTrace();
         }
         _LOG.info("Remove DB ACL::END");
+    }
+
+    private void removeContractPoliciesFromDB() {
+        _LOG.info("Remove Contract policies::BEGIN");
+        try {
+            query.deleteContractPolicies();
+        } catch (StorageException e) {
+            _LOG.error("Delete Contract policies failed:" + e.getMessage());
+            e.printStackTrace();
+        }
+        _LOG.info("Remove Contract policies::END");
     }
 
     /**
@@ -505,10 +520,11 @@ public class MigrationFacade {
                             npb.setKongPluginId(response.getId());
                             npb.setContractId(contractBean.getContractId());
                             npb.setConfiguration(gson.toJson(conf));
+                            npb.setGatewayId(gateway.getGatewayId());
                             orgFacade.doCreatePolicy(
                                     avb.getApplication().getOrganization().getId(),
                                     avb.getApplication().getId(),
-                                    avb.getVersion(), npb, PolicyType.Application);
+                                    avb.getVersion(), npb, PolicyType.Contract);
                         }
                     }
 
@@ -520,24 +536,32 @@ public class MigrationFacade {
                         application.setVersion(avb.getVersion());
                         application.setApplicationName(avb.getApplication().getName());
 
-                        IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-
                         Set<Contract> contracts = new HashSet<>();
                         for (ContractSummaryBean contractBean : avbContracts) {
-                            Contract contract = new Contract();
-                            contract.setApiKey(contractBean.getApikey());
-                            contract.setPlan(contractBean.getPlanId());
-                            contract.setServiceId(contractBean.getServiceId());
-                            contract.setServiceOrgId(contractBean.getServiceOrganizationId());
-                            contract.setServiceVersion(contractBean.getServiceVersion());
+                            Contract contract = new Contract(contractBean);
                             contract.getPolicies().addAll(aggregateContractPolicies(contractBean));
                             contracts.add(contract);
                         }
                         application.setContracts(contracts);
 
                         try {
-                            gateway.registerApplication(application);
-                            gateway.close();
+                            Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(avbContracts);
+                            for (IGatewayLink gateway : gateways.values()) {
+                                Map<Contract, KongPluginConfigList> response = gateway.registerApplication(application);
+                                for (Map.Entry<Contract, KongPluginConfigList> entry : response.entrySet()) {
+                                    for (KongPluginConfig config : entry.getValue().getData()) {
+                                        NewPolicyBean npb = new NewPolicyBean();
+                                        npb.setGatewayId(gateway.getGatewayId());
+                                        npb.setConfiguration(new Gson().toJson(config.getConfig()));
+                                        npb.setContractId(entry.getKey().getId());
+                                        npb.setKongPluginId(config.getId());
+                                        npb.setDefinitionId(GatewayUtils.convertKongPluginNameToPolicy(config.getName()).getPolicyDefId());
+                                        //save the policy as a contract policy on the service
+                                        orgFacade.doCreatePolicy(application.getOrganizationId(), application.getApplicationId(), application.getVersion(), npb, PolicyType.Contract);
+                                    }
+                                }
+                                gateway.close();
+                            }
                         } catch (Exception e) {
                             _LOG.error("-->no sync for additional policies applied for org:{} app:{} version:{} ...",
                                     avb.getApplication().getOrganization().getId(),
@@ -713,15 +737,18 @@ public class MigrationFacade {
 
     private void migrateToSplitOrgs() {
         try{
-            for (ApplicationVersionBean avb : query.findAllApplicationVersions()) {
+            List<ApplicationVersionBean> apps = query.findAllApplicationVersions();
+            for (ApplicationVersionBean avb : apps) {
                 //Update policies with new org ids
                 String oldOrgName = avb.getApplication().getOrganization().getId().split(OrganizationFacade.MARKET_SEPARATOR)[1];
-                for (PolicyBean policy : query.listPoliciesForEntity(oldOrgName, avb.getApplication().getId(), avb.getVersion(), PolicyType.Application)) {
+                List<PolicyBean> policies = query.listPoliciesForEntity(oldOrgName, avb.getApplication().getId(), avb.getVersion(), PolicyType.Application);
+                for (PolicyBean policy : policies) {
                     policy.setOrganizationId(avb.getApplication().getOrganization().getId());
                     storage.updatePolicy(policy);
                 }
                 //Update audit entries with new org ids
-                for (AuditEntryBean entry : query.listAuditEntriesForEntity(oldOrgName, avb.getApplication().getId(), avb.getVersion(), AuditEntityType.Application)) {
+                List<AuditEntryBean> entries = query.listAuditEntriesForEntity(oldOrgName, avb.getApplication().getId(), avb.getVersion(), AuditEntityType.Application);
+                for (AuditEntryBean entry : entries) {
                     entry.setOrganizationId(avb.getApplication().getOrganization().getId());
                     storage.updateAuditEntry(entry);
                 }
@@ -729,7 +756,8 @@ public class MigrationFacade {
             for (OrganizationBean org : getOrgsByContext()) {
                 String oldOrgName = org.getId().split(OrganizationFacade.MARKET_SEPARATOR)[1];
                 //update events with new org id's
-                for (EventBean event : query.getAllEventsRelatedToOrganization(oldOrgName)) {
+                List<EventBean> events = query.getAllEventsRelatedToOrganization(oldOrgName);
+                for (EventBean event : events) {
                     switch (event.getType()) {
                         case MEMBERSHIP_PENDING:
                             event.setDestinationId(org.getId());
@@ -771,11 +799,31 @@ public class MigrationFacade {
 
     private List<OrganizationBean> getOrgsByContext() throws StorageException {
         List<OrganizationBean> rval = new ArrayList<>();
-        for (OrganizationBean org : query.getAllOrgs()) {
+        List<OrganizationBean> orgs = query.getAllOrgs();
+        for (OrganizationBean org : orgs) {
             if (org.getContext().equals("int") || org.getContext().equals("ext")) {
                 rval.add(org);
             }
         }
         return rval;
+    }
+
+    private Map<String, IGatewayLink> getApplicationGatewayLinks(List<ContractSummaryBean> contractSummaries) {
+        try {
+            Map<String, IGatewayLink> links = new HashMap<>();
+            for (ContractSummaryBean contract : contractSummaries) {
+                ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion());
+                Set<ServiceGatewayBean> gateways = svb.getGateways();
+                for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                    if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
+                        IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                        links.put(serviceGatewayBean.getGatewayId(), gatewayLink);
+                    }
+                }
+            }
+            return links;
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 }

@@ -547,6 +547,9 @@ public class AuditUtils {
                 break;
             case Consent:
                 entry.setEntityType(AuditEntityType.Consent);
+                break;
+            case Contract:
+                entry.setEntityType(AuditEntityType.Contract);
         }
         PolicyData data = new PolicyData();
         data.setPolicyDefId(bean.getDefinition().getId());

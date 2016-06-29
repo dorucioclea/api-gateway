@@ -2,10 +2,7 @@ package com.t1t.digipolis.apim.gateway;
 
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
-import com.t1t.digipolis.apim.gateway.dto.Application;
-import com.t1t.digipolis.apim.gateway.dto.Service;
-import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
-import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
+import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
@@ -29,6 +26,7 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
@@ -118,11 +116,12 @@ public interface IGatewayLink {
      * Registers a new {@link Application}.  An application is ultimately a collection of
      * contracts to managed services.
      * @param application the application being registered
+     * @return a map with a contract as key and the plugin configs for that contract as value
      * @throws RegistrationException when unable to register application
      * @throws GatewayAuthenticationException when unable to authenticate with gateway  
      * @throws PublishingException when unable to publish application
      */
-    public void registerApplication(Application application) throws RegistrationException, GatewayAuthenticationException;
+    public Map<Contract, KongPluginConfigList> registerApplication(Application application) throws RegistrationException, GatewayAuthenticationException;
 
     /**
      * Removes an {@link Application} from the registry.
@@ -413,4 +412,16 @@ public interface IGatewayLink {
      * @return KongApi
      */
     public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL);
+
+    /**
+     * @return the gateway link's id
+     */
+    public String getGatewayId();
+
+    /**
+     * Delete a service plugin
+     * @param KongApiId
+     * @param pluginId
+     */
+    public void deleteApiPlugin(String KongApiId, String pluginId);
 }

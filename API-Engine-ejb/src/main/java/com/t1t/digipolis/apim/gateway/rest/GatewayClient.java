@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -155,29 +156,41 @@ public class GatewayClient {
      * @throws RegistrationException
      * @throws GatewayAuthenticationException
      */
-    public void register(Application application) throws RegistrationException, GatewayAuthenticationException {
+    public Map<Contract, KongPluginConfigList> register(Application application) throws RegistrationException, GatewayAuthenticationException {
+        Map<Contract, KongPluginConfigList> rval = new HashMap<>();
         //create consumer
         String consumerId = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
         KongConsumer consumer = httpClient.getConsumer(consumerId);
         KongApi api;
         //context of API
         for(Contract contract:application.getContracts()){
-            log.info("Register application with contract:{}",contract);
             //get the API
             String apiName = ServiceConventionUtil.generateServiceUniqueName(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
             api = httpClient.getApi(apiName);
+            List<KongPluginConfig> data = new ArrayList<>();
             for(Policy policy:contract.getPolicies()){
                 //execute policy
                 Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
                 switch(policies){
                     //all policies can be available here
-                    case IPRESTRICTION: createPlanPolicy(api, consumer, policy, Policies.IPRESTRICTION.getKongIdentifier(), Policies.IPRESTRICTION.getClazz());break;
-                    case RATELIMITING: createPlanPolicy(api, consumer, policy, Policies.RATELIMITING.getKongIdentifier(), Policies.RATELIMITING.getClazz());break;
-                    case REQUESTSIZELIMITING: createPlanPolicy(api, consumer, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
-                    default:break;
+                    case IPRESTRICTION:
+                        data.add(createPlanPolicy(api, consumer, policy, Policies.IPRESTRICTION.getKongIdentifier(), Policies.IPRESTRICTION.getClazz()));
+                        break;
+                    case RATELIMITING:
+                        data.add(createPlanPolicy(api, consumer, policy, Policies.RATELIMITING.getKongIdentifier(), Policies.RATELIMITING.getClazz()));
+                        break;
+                    case REQUESTSIZELIMITING:
+                        data.add(createPlanPolicy(api, consumer, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz()));
+                        break;
+                    default:
+                        break;
                 }
             }
+            KongPluginConfigList plugins = new KongPluginConfigList();
+            plugins.setData(data);
+            rval.put(contract, plugins);
         }
+        return rval;
     }
 
     public void registerAppConsumer(Application application, KongConsumer appConsumer){
@@ -891,7 +904,7 @@ public class GatewayClient {
      * @param <T>
      * @throws PublishingException
      */
-    private <T extends KongConfigValue> void createPlanPolicy(KongApi api, KongConsumer consumer, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
+    private <T extends KongConfigValue> KongPluginConfig createPlanPolicy(KongApi api, KongConsumer consumer, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
         Gson gson = new Gson();
         //perform value mapping
         KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
@@ -901,7 +914,7 @@ public class GatewayClient {
                 .withConfig(plugin);
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute
-        config = httpClient.createPluginConfig(api.getId(),config);
+        return httpClient.createPluginConfig(api.getId(),config);
     }
 
     public static String getMetricsURI() {
@@ -920,5 +933,9 @@ public class GatewayClient {
         KongApi api = getApi(ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version));
         api.setUpstreamUrl(upstreamURL);
         return httpClient.updateOrCreateApi(api);
+    }
+
+    public void deleteApiPlugin(String ApiId, String pluginId) {
+        httpClient.deletePlugin(ApiId, pluginId);
     }
 }

@@ -99,6 +99,13 @@ public interface IStorageQuery {
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException;
 
     /**
+     * Find the service versions which are available on the gateway(s)
+     * @return
+     * @throws StorageException
+     */
+    public List<ServiceVersionBean> findGatewayServiceVersions() throws StorageException;
+
+    /**
      * Returns all categories in a list.
      * @return
      * @throws StorageException
@@ -425,7 +432,18 @@ public interface IStorageQuery {
      * @return
      * @throws StorageException
      */
-    public PolicyBean getApplicationACLPolicy(String organizationId, String applicationId, String version, Long contractId) throws StorageException;
+    public PolicyBean getApplicationACLPolicy(String organizationId, String applicationId, String version, Long contractId, String gatewayId) throws StorageException;
+
+    /**
+     * Returns a list of application policies corresponding to a contract
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @param contractId
+     * @return
+     * @throws StorageException
+     */
+    public List<PolicyBean> getApplicationVersionContractPolicies(String organizationId, String applicationId, String version, Long contractId) throws StorageException;
 
     /**
      * Returns a list of all ManagedApplications of Marketplace type
@@ -662,6 +680,12 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public void deleteAclPolicies() throws StorageException;
+
+    /**
+     * Delete all contract policies
+     * @throws StorageException
+     */
+    public void deleteContractPolicies() throws StorageException;
 
     /**
      * Update an application's API key

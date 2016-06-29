@@ -802,6 +802,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix());
     }
 
+    @Override
+    public List<ServiceVersionBean> findGatewayServiceVersions() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.status = :pub OR s.status = :dep";
+        return em.createQuery(jpql)
+                .setParameter("pub", ServiceStatus.Published)
+                .setParameter("dep", ServiceStatus.Deprecated)
+                .getResultList();
+    }
+
     public List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories) throws StorageException {
         List<ServiceVersionBean> allServicesForCat = findAllServiceVersionsInCategory(categories);
         return ServiceScopeUtil.resolveSVBScope(allServicesForCat,appContext.getApplicationPrefix());
@@ -1917,16 +1927,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public PolicyBean getApplicationACLPolicy(String organizationId, String applicationId, String version, Long contractId) throws StorageException {
+    public PolicyBean getApplicationACLPolicy(String organizationId, String applicationId, String version, Long contractId, String gatewayId) throws StorageException {
         try {
             EntityManager entityManager = getActiveEntityManager();
-            String jpql = "SELECT p from PolicyBean p JOIN p.definition d WHERE p.organizationId = :orgId AND p.entityId = :appId AND p.entityVersion = :version AND p.contractId = :contrId AND d.id = 'ACL'"; //$NON-NLS-1$
+            String jpql = "SELECT p from PolicyBean p JOIN p.definition d WHERE p.organizationId = :orgId AND p.entityId = :appId AND p.entityVersion = :version AND p.contractId = :contrId AND d.id = 'ACL' AND p.gatewayId = :gwId"; //$NON-NLS-1$
             Query query = entityManager.createQuery(jpql);
             query.setParameter("orgId", organizationId); //$NON-NLS-1$
             query.setParameter("appId", applicationId); //$NON-NLS-1$
             query.setParameter("version", version); //$NON-NLS-1$
             query.setParameter("contrId", contractId); //$NON-NLS-1$
-
+            query.setParameter("gwId", gatewayId);
             return (PolicyBean) query.getSingleResult();
         } catch (NoResultException e) {
             return null;
@@ -1934,6 +1944,18 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             logger.error(t.getMessage(), t);
             throw new StorageException(t);
         }
+    }
+
+    @Override
+    public List<PolicyBean> getApplicationVersionContractPolicies(String organizationId, String applicationId, String version, Long contractId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.organizationId = :orgId AND p.entityId = :appId AND p.entityVersion = :version AND p.contractId = :contractId";
+        return em.createQuery(jpql)
+                .setParameter("orgId", organizationId)
+                .setParameter("appId", applicationId)
+                .setParameter("version", version)
+                .setParameter("contractId", contractId)
+                .getResultList();
     }
 
     @Override
@@ -1978,7 +2000,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public List<PlanBean> findAllPlans(String organizationId) throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
+        EntityManager em = getActiveEntityManager();
         String jpql = "SELECT p FROM PlanBean p WHERE organization = :orgId";
         return (List<PlanBean>) em.createQuery(jpql)
                 .setParameter("orgId",organizationId)
@@ -1987,7 +2009,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public List<PlanVersionBean> findAllPlanVersionBeans(String organizationId, String planId) throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
+        EntityManager em = getActiveEntityManager();
         String jpql = "SELECT p FROM PlanVersionBean p WHERE plan_id = :planId AND plan_org_id = :orgId";
         return (List<PlanVersionBean>) em.createQuery(jpql)
                 .setParameter("orgId",organizationId)
@@ -2307,11 +2329,21 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return rval;
     }
 
+    @Override
     public void deleteAclPolicies() throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "DELETE FROM PolicyBean p WHERE p.definition.id = :polDefId";
         em.createQuery(jpql)
                 .setParameter("polDefId", Policies.ACL.name())
+                .executeUpdate();
+    }
+
+    @Override
+    public void deleteContractPolicies() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "DELETE FROM PolicyBean p WHERE p.type = :pType";
+        em.createQuery(jpql)
+                .setParameter("pType", PolicyType.Contract)
                 .executeUpdate();
     }
 

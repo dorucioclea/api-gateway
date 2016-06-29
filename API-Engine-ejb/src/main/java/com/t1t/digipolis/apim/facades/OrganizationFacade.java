@@ -46,6 +46,7 @@ import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
+import com.t1t.digipolis.apim.config.Version;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
@@ -122,6 +123,9 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.t1t.digipolis.apim.beans.policies.Policies.TCPLOG;
+import static com.t1t.digipolis.apim.beans.user.ClientTokeType.jwt;
 
 /**
  * Created by michallispashidis on 15/08/15.
@@ -430,7 +434,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .withRedirectUri(avb.getOauthClientRedirect());
                 if (avb.getStatus() == ApplicationStatus.Registered) {
                     List<ContractSummaryBean> csb = query.getApplicationContracts(organizationId, applicationId, version);
-                    for (IGatewayLink gateway : getApplicationGatewayLinks(csb).values()) {
+                    Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(csb);
+                    for (IGatewayLink gateway : gateways.values()) {
                         gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
                     }
                 } else {
@@ -505,6 +510,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
             String appId = ConsumerConventionUtil.createAppUniqueId(avb);
             String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
+            //Check if there already is a contract between the service and application
+            List<ContractSummaryBean> csbs = query.getApplicationContracts(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion());
+            for (ContractSummaryBean sum : csbs) {
+                if (sum.getServiceOrganizationId().equals(organizationId) && sum.getServiceId().equals(serviceId) && sum.getServiceVersion().equals(version)) {
+                    throw ExceptionFactory.contractAlreadyExistsException();
+                }
+            }
             //Check if service allows auto contract creation
             if (!svb.getAutoAcceptContracts()) {
 
@@ -660,9 +672,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             String svcVersion = contract.getService().getVersion();
             if (contract.getApplication().getStatus() == ApplicationStatus.Registered) {
                 Application app = getApplicationForNewContractRegistration(contract);
-                for (IGatewayLink gateway : getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version)).values()) {
+                Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version));
+                for (IGatewayLink gateway : gateways.values()) {
                     enableContractonGateway(contract, gateway);
-                    gateway.registerApplication(app);
+                    //persist the new contract policies
+                    Map<Contract, KongPluginConfigList> response = gateway.registerApplication(app);
+                    for (Map.Entry<Contract, KongPluginConfigList> entry : response.entrySet()) {
+                        for (KongPluginConfig config : entry.getValue().getData()) {
+                            NewPolicyBean npb = new NewPolicyBean();
+                            npb.setGatewayId(gateway.getGatewayId());
+                            npb.setConfiguration(new Gson().toJson(config.getConfig()));
+                            npb.setContractId(contract.getId());
+                            npb.setKongPluginId(config.getId());
+                            npb.setDefinitionId(GatewayUtils.convertKongPluginNameToPolicy(config.getName()).getPolicyDefId());
+                            doCreatePolicy(organizationId, applicationId, version, npb, PolicyType.Contract);
+                        }
+                    }
                 }
             } else {
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
@@ -708,6 +733,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             // only do this on failure (we would get a FK contraint failure, for example) to
             // reduce overhead on the typical happy path.
             // we asume it already exists
+            //
+            // However, we should probably log the exception for debugging purposes
+            log.debug("Contract creation error:{}", e);
             throw ExceptionFactory.contractAlreadyExistsException();
 /*            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
         throw ExceptionFactory.contractAlreadyExistsException();
@@ -726,7 +754,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             try {
                 gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
             } catch (Exception e) {
-                //apikey for consumer already exists
+                //apikey for consumer already exists, but let's log the exception for debugging purposes
+                log.debug("Consumer Key-Auth Exception:{}", e);
             }
             //Add ACL group membership by default on gateway
             KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
@@ -738,15 +767,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             npb.setKongPluginId(response.getId());
             npb.setContractId(contract.getId());
             npb.setConfiguration(new Gson().toJson(conf));
-            doCreatePolicy(applicationOrgId, applicationId, appVersion, npb, PolicyType.Application);
+            npb.setGatewayId(gateway.getGatewayId());
+            doCreatePolicy(applicationOrgId, applicationId, appVersion, npb, PolicyType.Contract);
         }
     }
 
     private Application getApplicationForNewContractRegistration(ContractBean cb) throws StorageException {
-        Application app = new Application();
+        Application app = new Application(cb.getApplication().getApplication().getOrganization().getId(), cb.getApplication().getApplication().getId(), cb.getApplication().getVersion());
         Contract contract = new Contract(cb);
         List<Policy> contractPolicies = new ArrayList<>();
-        for (PolicyBean policy : getServicePlanPoliciesForContract(cb)) {
+        for (PolicyBean policy : getContractedServicePlanPolicies(cb)) {
             contractPolicies.add(new Policy(policy.getDefinition().getId(), policy.getConfiguration()));
         }
         contract.setPolicies(contractPolicies);
@@ -755,11 +785,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return app;
     }
 
-    private List<PolicyBean> getServicePlanPoliciesForContract(ContractBean contract) throws StorageException {
+    private List<PolicyBean> getContractedServicePlanPolicies(ContractBean c) throws StorageException {
         List<PolicyBean> rval = new ArrayList<>();
-        List<PolicySummaryBean> summs = query.getPolicies(contract.getService().getService().getOrganization().getId(), contract.getService().getService().getId(), contract.getService().getVersion(), PolicyType.Plan);
-        for (PolicySummaryBean sum : summs) {
-            rval.add(getPlanPolicy(contract.getPlan().getPlan().getOrganization().getId(), contract.getPlan().getPlan().getId(), contract.getPlan().getVersion(), contract.getPlan().getId()));
+        String planOrg = c.getPlan().getPlan().getOrganization().getId();
+        String planId = c.getPlan().getPlan().getId();
+        String planVersion = c.getPlan().getVersion();
+        List<PolicySummaryBean> sums = query.getPolicies(planOrg, planId, planVersion, PolicyType.Plan);
+        for (PolicySummaryBean sum : sums) {
+            rval.add(getPlanPolicy(planOrg, planId, planVersion, sum.getId()));
         }
         return rval;
     }
@@ -923,7 +956,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             Application application = new Application(organizationId, applicationId, version);
             if (avb.getStatus() == ApplicationStatus.Registered) {
-                for (IGatewayLink gateway : getApplicationGatewayLinks(summaries).values()) {
+                Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(summaries);
+                for (IGatewayLink gateway : gateways.values()) {
                     try {
                         gateway.unregisterApplication(application);
                         gateway.close();
@@ -1585,9 +1619,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      */
     public void deleteContract(String organizationId, String applicationId, String version, Long contractId) {
         try {
-            ContractBean contract = storage.getContract(contractId);
+            ContractBean contract = getContract(organizationId, applicationId, version, contractId);
             ApplicationVersionBean avb;
             avb = storage.getApplicationVersion(organizationId, applicationId, version);
+            Map<String, IGatewayLink> gateways = getApplicationContractGatewayLinks(Collections.singletonList(contract));
             if (contract == null) {
                 throw ExceptionFactory.contractNotFoundException(contractId);
             }
@@ -1611,24 +1646,39 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
             try {
                 //We delete only the key-auth when no other contracts with the application - pending contracts must not be taken into consideration
-                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                 if (contractBeans.size() == 1) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                    gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());//this can only be done when no other contracts exist
+                    //this can only be done when no other contracts exist
+                    if (avb.getStatus() == ApplicationStatus.Registered) {
+                        for (IGatewayLink gateway : gateways.values()) {
+                            gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());
+                        }
+                    }
+                    else {
+                        gateways.get(gatewayFacade.getDefaultGateway().getId()).deleteConsumerKeyAuth(appConsumerName, contract.getApikey());
+                    }
                 }
             } catch (StorageException e) {
                 throw new ApplicationNotFoundException(e.getMessage());
             }
 
-            //Revoke application's ACL membership
+            //Revoke application's contract plugins
             try {
-                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId);
-                if (policy == null) {
-                    throw ExceptionFactory.policyNotFoundException(0);//TODO-> this indicated inconsistency in code! shouldnt be there
+                if (avb.getStatus() == ApplicationStatus.Registered) {
+                    for (IGatewayLink gateway : gateways.values()) {
+                        List<PolicyBean> policies = query.getApplicationVersionContractPolicies(organizationId, applicationId, version, contractId);
+                        for (PolicyBean policy : policies) {
+                            if (policy.getGatewayId().equals(gateway.getGatewayId())) {
+                                deleteContractPolicy(contract, policy, gateway);
+                            }
+                        }
+                    }
                 }
-                gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version), policy.getKongPluginId());
-                deleteAppPolicy(organizationId, applicationId, version, policy.getId());
+                else {
+                    IGatewayLink gateway = gateways.get(gatewayFacade.getDefaultGateway().getId());
+                    PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId, gateway.getGatewayId());
+                    deleteContractPolicy(contract, policy, gateway);
+                }
             } catch (StorageException ex) {
                 throw new SystemErrorException(ex);
             }
@@ -1685,6 +1735,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+    }
+
+    private void deleteContractPolicy(ContractBean c, PolicyBean p, IGatewayLink gateway) throws StorageException {
+        boolean deleted = false;
+        switch (Policies.valueOf(p.getDefinition().getId().toUpperCase())) {
+            case ACL:
+                gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(c.getApplication()), p.getKongPluginId());
+                deleted = true;
+                break;
+            case IPRESTRICTION:
+            case REQUESTSIZELIMITING:
+            case RATELIMITING:
+                gateway.deleteApiPlugin(ServiceConventionUtil.generateServiceUniqueName(c.getService()), p.getKongPluginId());
+                deleted = true;
+                break;
+        }
+        if (deleted) {
+            storage.deletePolicy(p);
         }
     }
 
@@ -1824,7 +1893,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
             }
             // Get Service versions
-            for (ServiceVersionSummaryBean svsb : query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId())) {
+            List<ServiceVersionSummaryBean> svsbs = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
+            for (ServiceVersionSummaryBean svsb : svsbs) {
                 deleteServiceVersionInternal(getServiceVersion(svsb.getOrganizationId(), svsb.getId(), svsb.getVersion()));
             }
 
@@ -1891,7 +1961,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         for (ServiceGatewayBean gwb : svb.getGateways()) {
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gwb.getGatewayId());
             //Clean up the Managed App ACL(s)
-            for (PolicyBean policy : query.getManagedAppACLPolicies(organizationId, serviceId, version)) {
+            List<PolicyBean> policies = query.getManagedAppACLPolicies(organizationId, serviceId, version);
+            for (PolicyBean policy : policies) {
                 gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
                 storage.deletePolicy(policy);
             }
@@ -3030,6 +3101,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setOrderIndex(newIdx);
             policy.setKongPluginId(bean.getKongPluginId());
             policy.setContractId(bean.getContractId());
+            policy.setGatewayId(bean.getGatewayId());
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
             //PolicyTemplateUtil.generatePolicyDescription(policy);
@@ -3852,7 +3924,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             idmStorage.deleteMemberships(member.getUserId(), org.getId());
         }
         //Delete all related events
-        for (EventBean event : query.getAllEventsRelatedToOrganization(org.getId())) {
+        List<EventBean> events = query.getAllEventsRelatedToOrganization(org.getId());
+        for (EventBean event : events) {
             storage.deleteEvent(event);
         }
         storage.deleteOrganization(org);
@@ -3881,7 +3954,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                 if (avb.getStatus() == ApplicationStatus.Registered) {
                     try {
-                        for (IGatewayLink gatewayLink : getApplicationGatewayLinks(contractSummaries).values()) {
+                        Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(contractSummaries);
+                        for (IGatewayLink gatewayLink : gateways.values()) {
                             try {
                                 gatewayLink.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
                             } catch (Exception e) {
@@ -3951,7 +4025,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 if (avb.getStatus() == ApplicationStatus.Registered) {
                     try {
                         List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(rval.getOrganizationId(), rval.getApplicationId(), rval.getVersion());
-                        for (IGatewayLink gatewayLink : getApplicationGatewayLinks(contractSummaries).values()) {
+                        Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(contractSummaries);
+                        for (IGatewayLink gatewayLink : gateways.values()) {
                             try {
                                 gatewayLink.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
                             } catch (Exception e) {
@@ -4003,5 +4078,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
+    }
+
+    private Map<String, IGatewayLink> getApplicationContractGatewayLinks(List<ContractBean> contracts) {
+        Map<String, IGatewayLink> links = new HashMap<>();
+        for (ContractBean contract : contracts) {
+            Set<ServiceGatewayBean> gateways = contract.getService().getGateways();
+            for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
+                    IGatewayLink gateway = createGatewayLink(serviceGatewayBean.getGatewayId());
+                    links.put(serviceGatewayBean.getGatewayId(), gateway);
+                }
+            }
+        }
+        return links;
     }
 }

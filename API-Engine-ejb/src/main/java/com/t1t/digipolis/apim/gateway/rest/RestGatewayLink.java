@@ -8,10 +8,7 @@ import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
-import com.t1t.digipolis.apim.gateway.dto.Application;
-import com.t1t.digipolis.apim.gateway.dto.Service;
-import com.t1t.digipolis.apim.gateway.dto.ServiceEndpoint;
-import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
+import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
@@ -44,6 +41,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * An implementation of a Gateway Link that uses the Gateway's simple REST
@@ -308,11 +306,11 @@ public class RestGatewayLink implements IGatewayLink {
      * @see IGatewayLink#registerApplication(Application)
      */
     @Override
-    public void registerApplication(Application application) throws RegistrationException, GatewayAuthenticationException {
+    public Map<Contract, KongPluginConfigList> registerApplication(Application application) throws RegistrationException, GatewayAuthenticationException {
         if (!isGatewayUp()) {
             throw new RegistrationException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
         }
-        getClient().register(application);
+        return getClient().register(application);
     }
 
     /**
@@ -394,5 +392,15 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL) {
         return getClient().updateApiUpstreamURL(organizationId, serviceId, version, upstreamURL);
+    }
+
+    @Override
+    public String getGatewayId() {
+        return gateway.getId();
+    }
+
+    @Override
+    public void deleteApiPlugin(String KongApiId, String pluginId) {
+        getClient().deleteApiPlugin(KongApiId, pluginId);
     }
 }

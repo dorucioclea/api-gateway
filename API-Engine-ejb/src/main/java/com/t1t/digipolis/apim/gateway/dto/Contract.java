@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway.dto;
 
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ public class Contract implements Serializable {
 
     private static final long serialVersionUID = 8344360785926823601L;
 
+    private Long id;
     private String apiKey;
     private String serviceOrgId;
     private String serviceId;
@@ -28,11 +30,35 @@ public class Contract implements Serializable {
     }
 
     public Contract(ContractBean contract) {
+        this.id = contract.getId();
         this.apiKey = contract.getApikey();
         this.serviceOrgId = contract.getService().getService().getOrganization().getId();
         this.serviceId = contract.getService().getService().getId();
         this.serviceVersion = contract.getService().getVersion();
         this.plan = contract.getPlan().getPlan().getId();
+    }
+
+    public Contract(ContractSummaryBean c) {
+        this.id = c.getContractId();
+        this.apiKey = c.getApikey();
+        this.serviceOrgId = c.getServiceOrganizationId();
+        this.serviceId = c.getServiceId();
+        this.serviceVersion = c.getServiceVersion();
+        this.plan = c.getPlanId();
+    }
+
+    /**
+     * @return the id
+     */
+    public Long getId() {
+        return id;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(Long id) {
+        this.id = id;
     }
 
     /**
@@ -119,35 +145,47 @@ public class Contract implements Serializable {
         this.plan = plan;
     }
 
-    /**
-     * @see Object#hashCode()
-     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Contract contract = (Contract) o;
+
+        if (id != null ? !id.equals(contract.id) : contract.id != null) return false;
+        if (apiKey != null ? !apiKey.equals(contract.apiKey) : contract.apiKey != null) return false;
+        if (serviceOrgId != null ? !serviceOrgId.equals(contract.serviceOrgId) : contract.serviceOrgId != null)
+            return false;
+        if (serviceId != null ? !serviceId.equals(contract.serviceId) : contract.serviceId != null) return false;
+        if (serviceVersion != null ? !serviceVersion.equals(contract.serviceVersion) : contract.serviceVersion != null)
+            return false;
+        if (plan != null ? !plan.equals(contract.plan) : contract.plan != null) return false;
+        return policies != null ? policies.equals(contract.policies) : contract.policies == null;
+
+    }
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((apiKey == null) ? 0 : apiKey.hashCode());
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (apiKey != null ? apiKey.hashCode() : 0);
+        result = 31 * result + (serviceOrgId != null ? serviceOrgId.hashCode() : 0);
+        result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
+        result = 31 * result + (serviceVersion != null ? serviceVersion.hashCode() : 0);
+        result = 31 * result + (plan != null ? plan.hashCode() : 0);
+        result = 31 * result + (policies != null ? policies.hashCode() : 0);
         return result;
     }
 
-    /**
-     * @see Object#equals(Object)
-     */
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Contract other = (Contract) obj;
-        if (apiKey == null) {
-            if (other.apiKey != null)
-                return false;
-        } else if (!apiKey.equals(other.apiKey))
-            return false;
-        return true;
+    public String toString() {
+        return "Contract{" +
+                "id=" + id +
+                ", apiKey='" + apiKey + '\'' +
+                ", serviceOrgId='" + serviceOrgId + '\'' +
+                ", serviceId='" + serviceId + '\'' +
+                ", serviceVersion='" + serviceVersion + '\'' +
+                ", plan='" + plan + '\'' +
+                ", policies=" + policies +
+                '}';
     }
-
 }
