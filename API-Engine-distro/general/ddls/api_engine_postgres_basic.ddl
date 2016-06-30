@@ -26,7 +26,7 @@ CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, en
 
 CREATE TABLE memberships (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NULL, org_id VARCHAR(255) NULL, role_id VARCHAR(255) NULL, user_id VARCHAR(255) NULL);
 
-CREATE TABLE organizations (id VARCHAR(255) NOT NULL, id VARCHAR(255) DEFAULT 'none', created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, friendly_name VARCHAR(255) NULL, private BOOL DEFAULT TRUE);
+CREATE TABLE organizations (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, friendly_name VARCHAR(255) NULL, private BOOL DEFAULT TRUE);
 
 CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 
@@ -79,8 +79,6 @@ ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_i
 ALTER TABLE endpoint_properties ADD PRIMARY KEY (service_version_id, name);
 
 ALTER TABLE svc_gateways ADD PRIMARY KEY (service_version_id, gateway_id);
-
-ALTER TABLE availabilities ADD PRIMARY KEY (code);
 
 ALTER TABLE white_ip_restriction ADD PRIMARY KEY (netw_value);
 
