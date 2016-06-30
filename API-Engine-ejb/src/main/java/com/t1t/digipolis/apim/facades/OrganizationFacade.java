@@ -1687,7 +1687,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
             //validate application state
             // Validate the state of the application.
-            if (!applicationValidator.isReady(avb)) {
+            if (avb.getStatus() != ApplicationStatus.Registered && !applicationValidator.isReady(avb)) {
                 avb.setStatus(ApplicationStatus.Created);
             }
             storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
