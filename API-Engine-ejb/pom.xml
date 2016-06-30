@@ -543,6 +543,12 @@
             </properties>
         </profile>
         <profile>
+            <id>digi-sand</id>
+            <properties>
+                <appconfig.file>application-digi-sandbox</appconfig.file>
+            </properties>
+        </profile>
+        <profile>
             <id>digi-dev</id>
             <properties>
                 <appconfig.file>application-digi-dev</appconfig.file>
