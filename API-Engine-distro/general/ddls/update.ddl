@@ -44,3 +44,8 @@ ALTER TABLE public.managed_applications ADD COLUMN app_id VARCHAR;
 
 -- make prefix unique because will be used in org names
 ALTER TABLE managed_applications ADD CONSTRAINT UK_managedapp_1 UNIQUE (prefix);
+
+-- create generic key mapping table
+CREATE TABLE key_mapping (from_spec_type VARCHAR(25) NOT NULL,to_spec_type VARCHAR(25) NOT NULL,from_spec_claim VARCHAR(255) NOT NULL,to_spec_claim VARCHAR(255) NULL);
+ALTER TABLE key_mapping ADD CONSTRAINT pkkey_mapping PRIMARY KEY (from_spec_type, to_spec_type, from_spec_claim);
+

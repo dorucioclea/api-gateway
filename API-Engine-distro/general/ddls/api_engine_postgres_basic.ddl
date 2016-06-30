@@ -70,6 +70,8 @@ CREATE TABLE events (id BIGINT NOT NULL, origin_id VARCHAR(255) NOT NULL, destin
 
 CREATE TABLE mail_templates (topic VARCHAR(255) NOT NULL,content TEXT NULL,subject TEXT NULL, created_on TIMESTAMP NULL,updated_on TIMESTAMP NULL) WITHOUT OIDS;
 
+CREATE TABLE key_mapping (from_spec_type VARCHAR(25) NOT NULL,to_spec_type VARCHAR(25) NOT NULL,from_spec_claim VARCHAR(255) NOT NULL,to_spec_claim VARCHAR(255) NULL);
+
 ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic);
 
 ALTER TABLE events ADD PRIMARY KEY (id);
@@ -131,6 +133,8 @@ ALTER TABLE support ADD PRIMARY KEY (id);
 ALTER TABLE support_comments ADD PRIMARY KEY (id);
 
 ALTER TABLE managed_applications ADD PRIMARY KEY (id);
+
+ALTER TABLE key_mapping ADD CONSTRAINT pkkey_mapping PRIMARY KEY (from_spec_type, to_spec_type, from_spec_claim);
 
 ALTER TABLE services ADD CONSTRAINT FK_31hj3xmhp1wedxjh5bklnlg15 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 
