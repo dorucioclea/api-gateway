@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "key_mapping", uniqueConstraints = { @UniqueConstraint(columnNames = { "from_spec_type", "to_spec_type", "from_spec_claim" }) })
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-public class KeyMapping implements Serializable{
+public class KeyMappingBean implements Serializable{
     @Id @Column(name="from_spec_type", nullable=false)
     private String fromSpecType;
 
@@ -62,7 +62,7 @@ public class KeyMapping implements Serializable{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        KeyMapping that = (KeyMapping) o;
+        KeyMappingBean that = (KeyMappingBean) o;
 
         if (!fromSpecType.equals(that.fromSpecType)) return false;
         if (!toSpecType.equals(that.toSpecType)) return false;
