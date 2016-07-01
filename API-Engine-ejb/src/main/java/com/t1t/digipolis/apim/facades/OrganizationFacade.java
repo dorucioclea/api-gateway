@@ -1207,13 +1207,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
                     svb.setVisibility(bean.getVisibility());
                     //add implicitly the IP Restriction when: External available and hide = false
-                    //TODO - remove this code if it does turn out to be redundant
-                    KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(IPRestrictionFlavor.WHITELIST, query.listWhitelistRecords());
+                    //Legacy - we added implicitly an IPRestriction policy, we remove this because OR it should be on a separate gateway, or the load balancer should deal with it.
+/*                    KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(IPRestrictionFlavor.WHITELIST, query.listWhitelistRecords());
                     boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
                     if (defaultIPRestriction != null && enableIPR) {
                         Gson gson = new Gson();
                         NewPolicyBean npb = new NewPolicyBean();
-                        npb.setDefinitionId("IPRestriction");//TODO == definition id in the DB - should not be hardcoded -> but addes to the Policies class
+                        npb.setDefinitionId("IPRestriction");
                         npb.setConfiguration(gson.toJson(defaultIPRestriction));
                         try {
                             createServicePolicy(organizationId, serviceId, version, npb);
@@ -1227,7 +1227,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                             psb.getPolicyDefinitionId().equalsIgnoreCase("IPRestriction");
                             deleteServicePolicy(organizationId, serviceId, version, psb.getId());
                         }
-                    }
+                    }*/
                     log.debug("BEAN VISIBILITY UPDATED");
                 }
             } else {
