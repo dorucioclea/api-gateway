@@ -147,7 +147,7 @@ public interface IStorage {
     public MailTemplateBean getMailTemplate (MailTopic mailTopic) throws StorageException;
     public ManagedApplicationBean getManagedApplicationBean(Long id) throws StorageException;
     public ManagedApplicationBean getManagedApplicationBean (AppIdentifier app) throws StorageException;
-    public KeyMappingBean getKeyMappingBean(String fromSpecType, String toSpecType, String fromSpecClaim);
+    public KeyMappingBean getKeyMappingBean(String fromSpecType, String toSpecType, String fromSpecClaim)throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!
