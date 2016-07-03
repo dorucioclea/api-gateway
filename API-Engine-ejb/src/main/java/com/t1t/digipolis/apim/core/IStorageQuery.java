@@ -744,7 +744,7 @@ public interface IStorageQuery {
     /**
      * Returns key mapping collection for given fromSpec, toSpec.
      * This returns for example all key/claim mappings needed from SAML to JWT.
-     * 
+     *
      * @param fromSpec
      * @param toSpec
      * @return
