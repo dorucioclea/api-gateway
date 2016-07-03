@@ -15,7 +15,7 @@ public class IdentityAttributes implements Serializable {
     private String userName;
     private String emails;
     private String givenName;
-    private Map<String,KeyMappingBean> optionalMap;
+    private Map<String,String> optionalMap;
 
     public String getId() {
         return id;
@@ -65,11 +65,11 @@ public class IdentityAttributes implements Serializable {
         this.subjectId = subjectId;
     }
 
-    public Map<String, KeyMappingBean> getOptionalMap() {
+    public Map<String, String> getOptionalMap() {
         return optionalMap;
     }
 
-    public void setOptionalMap(Map<String, KeyMappingBean> optionalMap) {
+    public void setOptionalMap(Map<String, String> optionalMap) {
         this.optionalMap = optionalMap;
     }
 

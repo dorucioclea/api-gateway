@@ -7,6 +7,8 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
+import com.t1t.digipolis.apim.beans.idp.KeyMappingTypes;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
@@ -653,7 +655,20 @@ public class UserFacade implements Serializable {
             } else {
                 identityAttributes.setGivenName("");
             }
-            //TODO add optional attributes from keymap
+            //add optional claims to map, declared in the key mapping table
+            try {
+                final List<KeyMappingBean> keyMapping = query.getKeyMapping(KeyMappingTypes.SAML2.toString(), KeyMappingTypes.JWT.toString());
+                if(keyMapping!=null && keyMapping.size()>0){
+                    Map<String,String>keyMappingBeanMap = new HashMap<>();
+                    for(KeyMappingBean kb:keyMapping){
+                        keyMappingBeanMap.put(kb.getToSpecClaim(),extractedAttributes.get(kb.getFromSpecClaim()));
+                    }
+                    identityAttributes.setOptionalMap(keyMappingBeanMap);
+                }
+            } catch (StorageException e) {
+                //on error ignore optional keymapping
+                log.error("Optional keymap error, but error skipped:{}",e.getMessage());
+            }
         }
         return identityAttributes;
     }
@@ -820,6 +835,7 @@ public class UserFacade implements Serializable {
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
             jwtRequestBean.setSurname(identityAttributes.getFamilyName());
             jwtRequestBean.setSubject(identityAttributes.getId());
+            jwtRequestBean.setOptionalClaims(identityAttributes.getOptionalMap());
             final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
             Integer jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
