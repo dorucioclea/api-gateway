@@ -653,6 +653,7 @@ public class UserFacade implements Serializable {
             } else {
                 identityAttributes.setGivenName("");
             }
+            //TODO add optional attributes from keymap
         }
         return identityAttributes;
     }

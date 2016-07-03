@@ -1,15 +1,21 @@
 package com.t1t.digipolis.apim.security;
 
+import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
+
+import java.io.Serializable;
+import java.util.Map;
+
 /**
  * Created by michallispashidis on 2/12/15.
  */
-public class IdentityAttributes {
+public class IdentityAttributes implements Serializable {
     private String subjectId;
     private String id;
     private String familyName;
     private String userName;
     private String emails;
     private String givenName;
+    private Map<String,KeyMappingBean> optionalMap;
 
     public String getId() {
         return id;
@@ -59,6 +65,14 @@ public class IdentityAttributes {
         this.subjectId = subjectId;
     }
 
+    public Map<String, KeyMappingBean> getOptionalMap() {
+        return optionalMap;
+    }
+
+    public void setOptionalMap(Map<String, KeyMappingBean> optionalMap) {
+        this.optionalMap = optionalMap;
+    }
+
     @Override
     public String toString() {
         return "IdentityAttributes{" +
@@ -68,6 +82,7 @@ public class IdentityAttributes {
                 ", userName='" + userName + '\'' +
                 ", emails='" + emails + '\'' +
                 ", givenName='" + givenName + '\'' +
+                ", optionalMap=" + optionalMap +
                 '}';
     }
 }

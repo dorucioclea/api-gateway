@@ -171,6 +171,8 @@ public class JWTUtils {
         claims.setClaim(IJWT.NAME, jwtRequestBean.getName());//unique username
         claims.setClaim(IJWT.SURNAME, jwtRequestBean.getSurname());
         claims.setClaim(IJWT.GIVEN_NAME, jwtRequestBean.getGivenName());
+        //TODO add other SAML claims from map
+
         return composeJWT(secret, claims);
     }
 
