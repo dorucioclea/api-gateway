@@ -631,6 +631,7 @@ public class UserFacade implements Serializable {
                 extractedAttributes.put(name, nodeValue);
             }
         }
+        log.debug("SAML Attributes retrieved: {}",extractedAttributes);
         //TODO map attributes listed in db table for SAML mapping
         //Use a map to parse table keys to attribute keys => this mapping should be dynamic based on the key_mapping table
         //map values
@@ -658,11 +659,14 @@ public class UserFacade implements Serializable {
             //add optional claims to map, declared in the key mapping table
             try {
                 final List<KeyMappingBean> keyMapping = query.getKeyMapping(KeyMappingTypes.SAML2.toString(), KeyMappingTypes.JWT.toString());
+                log.debug("Found key-mapping from'{}' to '{}':{}",KeyMappingTypes.SAML2.toString(),KeyMappingTypes.JWT.toString(),keyMapping);
                 if(keyMapping!=null && keyMapping.size()>0){
                     Map<String,String>keyMappingBeanMap = new HashMap<>();
                     for(KeyMappingBean kb:keyMapping){
+                        log.debug("Put JWT claim '{}' from SAML claim '{}'",kb.getToSpecClaim(),kb.getFromSpecClaim());
                         keyMappingBeanMap.put(kb.getToSpecClaim(),extractedAttributes.get(kb.getFromSpecClaim()));
                     }
+                    log.debug("Optional claims: {}",keyMappingBeanMap);
                     identityAttributes.setOptionalMap(keyMappingBeanMap);
                 }
             } catch (StorageException e) {
