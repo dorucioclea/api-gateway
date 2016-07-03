@@ -629,6 +629,8 @@ public class UserFacade implements Serializable {
                 extractedAttributes.put(name, nodeValue);
             }
         }
+        //TODO map attributes listed in db table for SAML mapping
+        //Use a map to parse table keys to attribute keys => this mapping should be dynamic based on the key_mapping table
         //map values
         if (extractedAttributes.size() > 0) {
             if (extractedAttributes.containsKey(ISAML2.ATTR_ID)) {
