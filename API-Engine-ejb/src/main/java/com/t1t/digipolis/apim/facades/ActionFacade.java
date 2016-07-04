@@ -40,7 +40,10 @@ import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
+import com.t1t.digipolis.util.GatewayUtils;
 import com.t1t.digipolis.util.KeyUtils;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.io.Charsets;
@@ -186,6 +189,7 @@ public class ActionFacade {
                     npb.setDefinitionId(Policies.ACL.name());
                     npb.setConfiguration(new Gson().toJson(response));
                     npb.setKongPluginId(response.getId());
+                    npb.setGatewayId(gatewayLink.getGatewayId());
                     orgFacade.createManagedApplicationPolicy(marketplace, npb);
                 }
                 gatewayLink.close();
@@ -369,12 +373,7 @@ public class ActionFacade {
 
         Set<Contract> contracts = new HashSet<>();
         for (ContractSummaryBean contractBean : contractBeans) {
-            Contract contract = new Contract();
-            contract.setApiKey(contractBean.getApikey());
-            contract.setPlan(contractBean.getPlanId());
-            contract.setServiceId(contractBean.getServiceId());
-            contract.setServiceOrgId(contractBean.getServiceOrganizationId());
-            contract.setServiceVersion(contractBean.getServiceVersion());
+            Contract contract = new Contract(contractBean);
             contract.getPolicies().addAll(aggregateContractPolicies(contractBean));
             contracts.add(contract);
         }
@@ -406,7 +405,19 @@ public class ActionFacade {
                 } catch (Exception e) {
                     //apikey for consumer already exists
                 }
-                gatewayLink.registerApplication(application);
+                Map<Contract, KongPluginConfigList> response = gatewayLink.registerApplication(application);
+                for (Map.Entry<Contract, KongPluginConfigList> entry : response.entrySet()) {
+                    for (KongPluginConfig config : entry.getValue().getData()) {
+                        NewPolicyBean npb = new NewPolicyBean();
+                        npb.setGatewayId(gatewayLink.getGatewayId());
+                        npb.setConfiguration(new Gson().toJson(config.getConfig()));
+                        npb.setContractId(entry.getKey().getId());
+                        npb.setKongPluginId(config.getId());
+                        npb.setDefinitionId(GatewayUtils.convertKongPluginNameToPolicy(config.getName()).getPolicyDefId());
+                        //save the policy as a contract policy on the service
+                        orgFacade.doCreatePolicy(application.getOrganizationId(), application.getApplicationId(), application.getVersion(), npb, PolicyType.Contract);
+                    }
+                }
                 gatewayLink.close();
             }
         } catch (Exception e) {

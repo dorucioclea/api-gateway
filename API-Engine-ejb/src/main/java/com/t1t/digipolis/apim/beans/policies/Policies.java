@@ -36,30 +36,32 @@ import com.t1t.digipolis.kong.model.*;
  */
 public enum Policies {
     //TODO we can create a plugin framework for policies, but here it's still hard coded, but not a bad start :-)
-    BASICAUTHENTICATION(KongPluginBasicAuth.class,"basic-auth")
-    , CORS(KongPluginCors.class,"cors")
-    , FILELOG(KongPluginFileLog.class,"file-log")
-    , HTTPLOG(KongPluginHttpLog.class,"http-log")
-    , UDPLOG(KongPluginUdpLog.class,"udp-log")
-    , TCPLOG(KongPluginTcpLog.class,"tcp-log")
-    , IPRESTRICTION(KongPluginIPRestriction.class,"ip-restriction")
-    , KEYAUTHENTICATION(KongPluginKeyAuth.class,"key-auth")
-    , OAUTH2(KongPluginOAuth.class,"oauth2")
-    , RATELIMITING(KongPluginRateLimiting.class,"rate-limiting")
-    , REQUESTSIZELIMITING(KongPluginRequestSizeLimiting.class,"request-size-limiting")
-    , REQUESTTRANSFORMER(KongPluginRequestTransformer.class,"request-transformer")
-    , RESPONSETRANSFORMER(KongPluginResponseTransformer.class,"response-transformer")
-    , SSL(KongPluginSSL.class,"ssl")
-    , ANALYTICS(KongPluginAnalytics.class,"mashape-analytics")
-    , JWT(KongPluginJWT.class,"jwt")
-    , ACL(KongPluginACL.class,"acl");
+    BASICAUTHENTICATION(KongPluginBasicAuth.class,"basic-auth", "BasicAuthentication")
+    , CORS(KongPluginCors.class,"cors", "CORS")
+    , FILELOG(KongPluginFileLog.class,"file-log", "FileLog")
+    , HTTPLOG(KongPluginHttpLog.class,"http-log", "HTTPLog")
+    , UDPLOG(KongPluginUdpLog.class,"udp-log", "UDPLog")
+    , TCPLOG(KongPluginTcpLog.class,"tcp-log", "TCPLog")
+    , IPRESTRICTION(KongPluginIPRestriction.class,"ip-restriction", "IPRestriction")
+    , KEYAUTHENTICATION(KongPluginKeyAuth.class,"key-auth", "KeyAuthentication")
+    , OAUTH2(KongPluginOAuth.class,"oauth2", "OAuth2")
+    , RATELIMITING(KongPluginRateLimiting.class,"rate-limiting", "RateLimiting")
+    , REQUESTSIZELIMITING(KongPluginRequestSizeLimiting.class,"request-size-limiting", "RequestSizeLimiting")
+    , REQUESTTRANSFORMER(KongPluginRequestTransformer.class,"request-transformer", "RequestTransformer")
+    , RESPONSETRANSFORMER(KongPluginResponseTransformer.class,"response-transformer", "ResponseTransformer")
+    , SSL(KongPluginSSL.class,"ssl", "SSL")
+    , ANALYTICS(KongPluginAnalytics.class,"mashape-analytics", "Analytics")
+    , JWT(KongPluginJWT.class,"jwt", "JWT")
+    , ACL(KongPluginACL.class,"acl", "ACL");
 
     private Class clazz;
     private String kongIdentifier;
+    private String policyDefId;
 
-    Policies(Class clazz, String identifier) {
+    Policies(Class clazz, String identifier, String policyDefId) {
         this.clazz = clazz;
         this.kongIdentifier = identifier;
+        this.policyDefId = policyDefId;
     }
 
     public Class getClazz() {
@@ -68,6 +70,10 @@ public enum Policies {
 
     public String getKongIdentifier() {
         return kongIdentifier;
+    }
+
+    public String getPolicyDefId() {
+        return this.policyDefId;
     }
 
     @Override

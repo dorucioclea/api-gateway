@@ -52,3 +52,7 @@ ALTER TABLE key_mapping ADD CONSTRAINT pkkey_mapping PRIMARY KEY (from_spec_type
 -- INSERT optional SAML to JWT mapping claims - we apply it in each environment in order to test - for Keycloak we'll add default values
 INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'profielId', 'profielId');
 INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'profielType', 'profielType');
+
+-- Add contracts to registered applications: need to be able to tell on which gateway the policy and its plugin apply
+ALTER TABLE public.policies ADD COLUMN gateway_id VARCHAR(255);
+UPDATE policies SET type = 'Contract' WHERE type = 'Application';

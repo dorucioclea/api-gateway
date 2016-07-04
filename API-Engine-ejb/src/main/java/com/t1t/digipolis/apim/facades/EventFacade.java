@@ -144,14 +144,16 @@ public class EventFacade {
         EventBean event = get(id);
         //The only notifications an organization gets is of type CONTRACT_ACCEPTED or REJECTED, so we check if that's the type.
         //If it is, we can safely assume the destination follows org.serv.version convention
-        if (event.getType() != CONTRACT_ACCEPTED || event.getType() != CONTRACT_REJECTED) {
+        if (event.getType() == CONTRACT_ACCEPTED || event.getType() == CONTRACT_REJECTED) {
+            String destinationOrg = event.getDestinationId().split(".", 2)[0];
+            if (!orgId.equals(destinationOrg)) {
+                throw ExceptionFactory.notAuthorizedException();
+            }
+            deleteEventInternal(event);
+        }
+        else {
             throw ExceptionFactory.invalidEventException(event.getType().toString());
         }
-        String destinationOrg = event.getDestinationId().split(".", 2)[0];
-        if (!orgId.equals(destinationOrg)) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
-        deleteEventInternal(event);
     }
 
     //In order to prevent users from deleting organization-wide event notifications, we'll need to check if the user is

@@ -56,6 +56,8 @@ public class PolicyBean implements Serializable {
     private String kongPluginId;
     @Column(name = "contract_id", updatable = true, nullable = true)
     private Long contractId;
+    @Column(name = "gateway_id")
+    private String gatewayId;
 
 
     /**
@@ -276,12 +278,32 @@ public class PolicyBean implements Serializable {
         this.kongPluginId = policyId;
     }
 
+    /**
+     * @return the contract id
+     */
     public Long getContractId() {
         return contractId;
     }
 
+    /**
+     * @param contractId the contract id to set
+     */
     public void setContractId(Long contractId) {
         this.contractId = contractId;
+    }
+
+    /**
+     * @return the gateway id
+     */
+    public String getGatewayId() {
+        return gatewayId;
+    }
+
+    /**
+     * @param gatewayId the gateway id to set
+     */
+    public void setGatewayId(String gatewayId) {
+        this.gatewayId = gatewayId;
     }
 
     /**
@@ -330,9 +352,11 @@ public class PolicyBean implements Serializable {
                 ", createdOn=" + createdOn +
                 ", modifiedBy='" + modifiedBy + '\'' +
                 ", modifiedOn=" + modifiedOn +
+                ", definition=" + definition +
                 ", orderIndex=" + orderIndex +
                 ", kongPluginId='" + kongPluginId + '\'' +
                 ", contractId=" + contractId +
+                ", gatewayId='" + gatewayId + '\'' +
                 '}';
     }
 }
