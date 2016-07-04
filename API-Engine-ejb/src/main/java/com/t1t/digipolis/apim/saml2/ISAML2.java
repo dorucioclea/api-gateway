@@ -9,4 +9,6 @@ public interface ISAML2 {
     String ATTR_USER_NAME = "userName";
     String ATTR_EMAILS = "emails";
     String ATTR_GIVEN_NAME = "givenName";
+    String ATTR_PROFILE_ID = "profileID";
+    String ATTR_PROFILE_TYPE = "profileType";
 }

@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.mail.MailTemplateBean;
@@ -62,6 +63,7 @@ public interface IStorage {
     public void createEvent(EventBean eventBean) throws StorageException;
     public void createMailTemplate(MailTemplateBean mailTemplateBean) throws Exception;
     public void createManagedApplication(ManagedApplicationBean manapp)throws Exception;
+    public void createKeyMapping(KeyMappingBean keyMappingBean) throws Exception;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -87,6 +89,7 @@ public interface IStorage {
     public void updateEvent(EventBean event)throws StorageException;
     public void updateManagedApplication(ManagedApplicationBean manapp) throws StorageException;
     public void updateAuditEntry(AuditEntryBean audit) throws StorageException;
+    public void updateKeyMapping(KeyMappingBean keyMappingBean) throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
@@ -114,6 +117,7 @@ public interface IStorage {
     public void deleteEvent(EventBean eventBean) throws StorageException;
     public void deleteMailTemplate (MailTemplateBean mailTemplateBean) throws StorageException;
     public void deleteManagedApplication(ManagedApplicationBean manapp)throws StorageException;
+    public void deleteKeyMapping(KeyMappingBean keyMappingBean) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -143,6 +147,7 @@ public interface IStorage {
     public MailTemplateBean getMailTemplate (MailTopic mailTopic) throws StorageException;
     public ManagedApplicationBean getManagedApplicationBean(Long id) throws StorageException;
     public ManagedApplicationBean getManagedApplicationBean (AppIdentifier app) throws StorageException;
+    public KeyMappingBean getKeyMappingBean(String fromSpecType, String toSpecType, String fromSpecClaim)throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

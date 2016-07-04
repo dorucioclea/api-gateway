@@ -7,6 +7,8 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
+import com.t1t.digipolis.apim.beans.idp.KeyMappingTypes;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
@@ -629,6 +631,9 @@ public class UserFacade implements Serializable {
                 extractedAttributes.put(name, nodeValue);
             }
         }
+        log.debug("SAML Attributes retrieved: {}",extractedAttributes);
+        //TODO map attributes listed in db table for SAML mapping
+        //Use a map to parse table keys to attribute keys => this mapping should be dynamic based on the key_mapping table
         //map values
         if (extractedAttributes.size() > 0) {
             if (extractedAttributes.containsKey(ISAML2.ATTR_ID)) {
@@ -650,6 +655,23 @@ public class UserFacade implements Serializable {
                 identityAttributes.setGivenName(extractedAttributes.get(ISAML2.ATTR_GIVEN_NAME));
             } else {
                 identityAttributes.setGivenName("");
+            }
+            //add optional claims to map, declared in the key mapping table
+            try {
+                final List<KeyMappingBean> keyMapping = query.getKeyMapping(KeyMappingTypes.SAML2.toString(), KeyMappingTypes.JWT.toString());
+                log.debug("Found key-mapping from'{}' to '{}':{}",KeyMappingTypes.SAML2.toString(),KeyMappingTypes.JWT.toString(),keyMapping);
+                if(keyMapping!=null && keyMapping.size()>0){
+                    Map<String,String>keyMappingBeanMap = new HashMap<>();
+                    for(KeyMappingBean kb:keyMapping){
+                        log.debug("Put JWT claim '{}' from SAML claim '{}'",kb.getToSpecClaim(),kb.getFromSpecClaim());
+                        keyMappingBeanMap.put(kb.getToSpecClaim(),extractedAttributes.get(kb.getFromSpecClaim()));
+                    }
+                    log.debug("Optional claims: {}",keyMappingBeanMap);
+                    identityAttributes.setOptionalMap(keyMappingBeanMap);
+                }
+            } catch (StorageException e) {
+                //on error ignore optional keymapping
+                log.error("Optional keymap error, but error skipped:{}",e.getMessage());
             }
         }
         return identityAttributes;
@@ -817,6 +839,7 @@ public class UserFacade implements Serializable {
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
             jwtRequestBean.setSurname(identityAttributes.getFamilyName());
             jwtRequestBean.setSubject(identityAttributes.getId());
+            jwtRequestBean.setOptionalClaims(identityAttributes.getOptionalMap());
             final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
             Integer jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
