@@ -1764,19 +1764,36 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             List<PlanVersionBean> allPlanVersionBeans = query.findAllPlanVersionBeans(organizationId, plan.getId());
             //verify if planverions have running contracts
             for (PlanVersionBean pvb : allPlanVersionBeans) {
-                List<ContractBean> planVersionContracts = query.getPlanVersionContracts(pvb.getId());
-                //for existing contract throw exception
-                if (planVersionContracts != null && planVersionContracts.size() > 0)
-                    throw ExceptionFactory.planCannotBeDeleted("Plan still has contracts linked");
-            }
-            //If no contracts we delete the planversions and plan
-            for (PlanVersionBean pvb : allPlanVersionBeans) {
-                storage.deletePlanVersion(pvb);
+                deletePlanVersionInternal(pvb);
             }
             storage.deletePlan(plan);
         } catch (StorageException e) {
             e.printStackTrace();
         }
+    }
+
+    public void deletePlanVersion(String organizationId, String planId, String version) {
+        PlanVersionBean pvb = getPlanVersion(organizationId, planId, version);
+        try {
+            if (query.getPlanVersions(organizationId, planId).size() == 1) {
+                deletePlan(organizationId, planId);
+            }
+            else {
+                deletePlanVersionInternal(pvb);
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private void deletePlanVersionInternal(PlanVersionBean pvb) throws StorageException {
+        List<ContractBean> planVersionContracts = query.getPlanVersionContracts(pvb.getId());
+        //for existing contract throw exception
+        if (planVersionContracts != null && planVersionContracts.size() > 0) {
+            throw ExceptionFactory.planCannotBeDeleted("Plan still has contracts linked");
+        }
+        storage.deletePlanVersion(pvb);
     }
 
     public void deleteService(String organizationId, String serviceId) {
