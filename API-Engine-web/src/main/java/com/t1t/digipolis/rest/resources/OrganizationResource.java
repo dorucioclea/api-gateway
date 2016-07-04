@@ -845,7 +845,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(planId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        orgFacade.deletePlan(organizationId, planId);
+        orgFacade.deletePlanVersion(organizationId, planId, version);
     }
 
     @ApiOperation(value = "Delete Service By ID")
