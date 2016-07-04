@@ -291,9 +291,7 @@ public class LoginResource implements ILoginResource {
 
     @ApiOperation(value = "IDP single logout",
             notes = "This endpoint can be used by an IDP to logout a user.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = String.class, message = "IDP single logout.")
-    })
+    @ApiResponses({@ApiResponse(code = 200, response = String.class, message = "IDP single logout.")})
     @POST
     @Path("/idp/slo")
     @Produces(MediaType.TEXT_PLAIN)
@@ -301,19 +299,18 @@ public class LoginResource implements ILoginResource {
         return idpLogout();
     }
 
-    @ApiOperation(value = "IDP single logout (external marketplace)",
-                  notes = "This endpoint can be used by an IDP to logout a user from the external marketplace.")
-    @ApiResponses({
-                          @ApiResponse(code = 200, response = String.class, message = "IDP single logout.")
-                  })
+    @ApiOperation(value = "IDP single logout (external marketplace)", notes = "This endpoint can be used by an IDP to logout a user from the external marketplace.")
+    @ApiResponses({@ApiResponse(code = 200, response = String.class, message = "IDP single logout.")})
     @POST
-    @Path("/idp/slo")
+    @Path("/idp/slo/astad")
     @Produces(MediaType.TEXT_PLAIN)
     public Response singleIDPLogoutAStad() {
         return idpLogout();
     }
 
     private Response idpLogout(){
+        //TODO change redirect response
+        //TODO clean cache based on SAML SLO Response
         String url = "https://google.com/";//some URI
         URI redirectURL = null;
         try {
