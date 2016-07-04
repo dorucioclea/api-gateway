@@ -892,7 +892,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
 
     public void createAuditEntry(AuditEntryBean entry) throws StorageException {
-        super.create(entry);
+        if (entry != null) {
+            super.create(entry);
+        }
     }
 
     @Override
