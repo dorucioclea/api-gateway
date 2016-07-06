@@ -372,6 +372,7 @@ public class MigrationFacade {
                                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                                 try {
                                     gatewayLink.publishService(gatewaySvc);
+                                    Thread.sleep(100);
                                 } catch (GatewayAuthenticationException e) {
                                     continue;//next loop cycle
                                 }
@@ -387,6 +388,7 @@ public class MigrationFacade {
                                         npb.setKongPluginId(response.getId());
                                         npb.setGatewayId(gatewayLink.getGatewayId());
                                         orgFacade.createManagedApplicationPolicy(managedApp, npb);
+                                        Thread.sleep(20);
                                     } catch (Exception ex) {
                                         //ignore
                                     }
@@ -406,7 +408,7 @@ public class MigrationFacade {
                     _LOG.info("-->sync end (nothing done - service retired)");
                 }
             }
-        } catch (StorageException e) {
+        } catch (StorageException | InterruptedException e) {
             _LOG.error("Synchronize Users failed due to:" + e.getMessage());
             e.printStackTrace();
         }
@@ -463,6 +465,7 @@ public class MigrationFacade {
                         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                         //create consumer
                         gateway.createConsumer(appConsumerName, appConsumerName);
+                        Thread.sleep(50);
                         //when one or more contract exists - apply apikey and ACLs else no apikey or ACL is set
                         if (avbContracts != null && avbContracts.size() > 0) {
                             String apikey = avbContracts.get(0).getApikey();//same apikey for all contracts
@@ -470,6 +473,7 @@ public class MigrationFacade {
                         }
                         //create jwt token
                         gateway.addConsumerJWT(appConsumerName);
+                        Thread.sleep(50);
                         //sync oauth info
                         if (!StringUtils.isEmpty(avb.getoAuthClientId()) && !StringUtils.isEmpty(avb.getOauthClientSecret())) {//redirect may be empty
                             if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
@@ -492,6 +496,7 @@ public class MigrationFacade {
                                 continue;//don't do anything
                             }
                             gateway.enableConsumerForOAuth(appConsumerName, oauthRequest);
+                            Thread.sleep(20);
                         }
                         //if app registered - apply additionally plugins
                         gateway.close();
@@ -513,6 +518,7 @@ public class MigrationFacade {
                                     contractBean.getServiceVersion());
                             //Add ACL group membership by default on gateway
                             KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName, serviceVersionId);
+                            Thread.sleep(50);
                             //Persist the unique Kong plugin id in a new policy associated with the app.
                             NewPolicyBean npb = new NewPolicyBean();
                             KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
@@ -548,6 +554,7 @@ public class MigrationFacade {
                             Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(avbContracts);
                             for (IGatewayLink gateway : gateways.values()) {
                                 Map<Contract, KongPluginConfigList> response = gateway.registerApplication(application);
+                                Thread.sleep(50);
                                 for (Map.Entry<Contract, KongPluginConfigList> entry : response.entrySet()) {
                                     for (KongPluginConfig config : entry.getValue().getData()) {
                                         NewPolicyBean npb = new NewPolicyBean();
@@ -575,7 +582,7 @@ public class MigrationFacade {
                     _LOG.info("-->sync end (nothing done - application retired)");
                 }
             }
-        } catch (StorageException e) {
+        } catch (StorageException | InterruptedException e) {
             _LOG.error("Synchronize Consumers failed due to:" + e.getMessage());
             e.printStackTrace();
         }
@@ -671,6 +678,7 @@ public class MigrationFacade {
                 if(consumer==null){
                     //create
                     gateway.createConsumer(appConsumerName,appConsumerName);
+                    Thread.sleep(50);
                 }
             }
             storage.deleteApplication(app);
@@ -788,11 +796,12 @@ public class MigrationFacade {
                 if (pol.getDefinition().getId().equals(Policies.ACL.name())) {
                     IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                     gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(pol.getOrganizationId(), pol.getEntityId(), pol.getEntityVersion()), pol.getKongPluginId());
+                    Thread.sleep(50);
                     storage.deletePolicy(pol);
                 }
             }
         }
-        catch (StorageException ex) {
+        catch (StorageException | InterruptedException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
