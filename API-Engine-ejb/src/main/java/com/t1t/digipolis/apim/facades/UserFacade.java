@@ -44,6 +44,7 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.CacheUtil;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.JWTUtils;
+import com.t1t.digipolis.util.ValidationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
@@ -372,6 +373,10 @@ public class UserFacade implements Serializable {
      * @return
      */
     public String generateSAML2LogoutRequest(String idpUrl, String spName, String user) {
+        return generateSAML2LogoutRequest(idpUrl, spName, user, null);
+    }
+
+    public String generateSAML2LogoutRequest(String idpUrl, String spName, String user, String relayState) {
         // Initialize the library
         try {
             //Bootstrap OpenSAML
@@ -380,7 +385,16 @@ public class UserFacade implements Serializable {
             LogoutRequest authnRequest = buildLogoutRequest(user, idpUrl, spName);
             //set client application name and callback in the cache
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
-            return idpUrl + "?" + SAML2_KEY_REQUEST + encodedRequestMessage;
+            StringBuilder rval = new StringBuilder(idpUrl)
+                    .append("?")
+                    .append(SAML2_KEY_REQUEST)
+                    .append(encodedRequestMessage);
+            if (relayState != null) {
+                rval.append("&")
+                        .append(SAML2_KEY_RELAY_STATE)
+                        .append(URLEncoder.encode(relayState, "UTF-8"));
+            }
+            return rval.toString();
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
         } catch (MarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Logout Request: " + ex.getMessage());
