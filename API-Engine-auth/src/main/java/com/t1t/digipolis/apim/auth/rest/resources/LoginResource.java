@@ -42,10 +42,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 
 /**
  * Created by michallispashidis on 26/11/15.
@@ -286,7 +283,7 @@ public class LoginResource implements ILoginResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
         Preconditions.checkArgument(!StringUtils.isEmpty(request.getUsername()));
-        return userFacade.generateSAML2LogoutRequest(request.getIdpUrl(), request.getSpName(), request.getUsername());
+        return userFacade.generateSAML2LogoutRequest(request.getIdpUrl(), request.getSpName(), request.getUsername(), request.getRelayState());
     }
 
     @ApiOperation(value = "IDP single logout",
@@ -295,8 +292,8 @@ public class LoginResource implements ILoginResource {
     @POST
     @Path("/idp/slo")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response singleIDPLogout() {
-        return idpLogout();
+    public Response singleIDPLogout(@FormParam("SAMLResponse") String samlResponse, @FormParam("RelayState") String relayState) {
+        return idpLogout(relayState);
     }
 
     @ApiOperation(value = "IDP single logout (external marketplace)", notes = "This endpoint can be used by an IDP to logout a user from the external marketplace.")
@@ -304,21 +301,24 @@ public class LoginResource implements ILoginResource {
     @POST
     @Path("/idp/slo/astad")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response singleIDPLogoutAStad() {
-        return idpLogout();
+    public Response singleIDPLogoutAStad(@FormParam("SAMLResponse") String samlResponse, @FormParam("RelayState") String relayState) {
+        return idpLogout(relayState);
     }
 
-    private Response idpLogout(){
+    private Response idpLogout(String relayState){
         //TODO change redirect response
         //TODO clean cache based on SAML SLO Response
-        String url = "https://google.com/";//some URI
+        String fallBackUrl = "https://google.com/";
         URI redirectURL = null;
         try {
-            redirectURL = new URL(url).toURI();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+            redirectURL = new URL(URLDecoder.decode(relayState, "UTF-8")).toURI();
+        } catch (URISyntaxException | MalformedURLException | UnsupportedEncodingException e) {
+            try {
+                redirectURL = new URL(fallBackUrl).toURI();
+            }
+            catch (URISyntaxException | MalformedURLException ex) {
+                e.printStackTrace();
+            }
         }
         if (redirectURL != null) return Response.seeOther(redirectURL).build();
         return Response.ok(redirectURL).build();
