@@ -320,7 +320,9 @@ public class GatewayValidation {
 
     public static synchronized Policy validateIPRestriction(Policy policy){
         Gson gson = new Gson();
-        KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginIPRestriction.class);
+        //TODO - remove once the gateway consistently returns either an object or an array
+        KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig()
+                .replace(":{}", ":[]"),KongPluginIPRestriction.class);
         //Validate lists prior to checking if empty
         req.setBlacklist(validateIPList(req.getBlacklist()));
         req.setWhitelist(validateIPList(req.getWhitelist()));
