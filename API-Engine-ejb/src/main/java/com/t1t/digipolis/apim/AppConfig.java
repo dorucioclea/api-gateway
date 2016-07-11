@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.opensaml.xml.encryption.Public;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
@@ -77,6 +78,7 @@ public class AppConfig implements Serializable {
             _LOG.info("Notifications: startup mail will be sent to {}", getNotificationStartupMail());
             _LOG.info("Notifications: mail will be send from {}", getNotificationMailFrom());
             _LOG.info("Metrics engine timeout value: {}", getHystrixMetricsTimeout());
+            _LOG.info("Local file path: {}", getLocalFilePath());
             _LOG.info("=============================================================");
         };
     }
@@ -120,4 +122,5 @@ public class AppConfig implements Serializable {
     public String getNotificationStartupMail(){return config.getString(IConfig.NOTIFICATION_STARTUP_MAIL);}
     public String getNotificationMailFrom(){return config.getString(IConfig.NOTIFICATION_MAIL_FROM);}
     public Integer getHystrixMetricsTimeout() {return config.getInt(IConfig.HYSTRIX_METRICS_TIMEOUT_VALUE);}
+    public String getLocalFilePath() {return config.getString(IConfig.FILEPATH_LOCAL);}
 }

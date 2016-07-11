@@ -1,8 +1,5 @@
 package com.t1t.digipolis.apim.beans.contracts;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 
 /**
@@ -14,8 +11,8 @@ public class NewContractRequestBean implements Serializable {
     private String applicationId;
     private String applicationOrg;
     private String applicationVersion;
-
     private String planId;
+    private Boolean termsAgreed;
 
     public String getApplicationId() {
         return applicationId;
@@ -49,6 +46,14 @@ public class NewContractRequestBean implements Serializable {
         this.planId = planId;
     }
 
+    public Boolean getTermsAgreed() {
+        return termsAgreed;
+    }
+
+    public void setTermsAgreed(Boolean termsAgreed) {
+        this.termsAgreed = termsAgreed;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -62,7 +67,8 @@ public class NewContractRequestBean implements Serializable {
             return false;
         if (applicationVersion != null ? !applicationVersion.equals(that.applicationVersion) : that.applicationVersion != null)
             return false;
-        return planId != null ? planId.equals(that.planId) : that.planId == null;
+        if (planId != null ? !planId.equals(that.planId) : that.planId != null) return false;
+        return termsAgreed != null ? termsAgreed.equals(that.termsAgreed) : that.termsAgreed == null;
 
     }
 
@@ -72,6 +78,7 @@ public class NewContractRequestBean implements Serializable {
         result = 31 * result + (applicationOrg != null ? applicationOrg.hashCode() : 0);
         result = 31 * result + (applicationVersion != null ? applicationVersion.hashCode() : 0);
         result = 31 * result + (planId != null ? planId.hashCode() : 0);
+        result = 31 * result + (termsAgreed != null ? termsAgreed.hashCode() : 0);
         return result;
     }
 
@@ -82,6 +89,7 @@ public class NewContractRequestBean implements Serializable {
                 ", applicationOrg='" + applicationOrg + '\'' +
                 ", applicationVersion='" + applicationVersion + '\'' +
                 ", planId='" + planId + '\'' +
+                ", termsAgreed=" + termsAgreed +
                 '}';
     }
 }

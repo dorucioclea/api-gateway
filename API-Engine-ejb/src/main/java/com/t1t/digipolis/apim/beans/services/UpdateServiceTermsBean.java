@@ -3,10 +3,10 @@ package com.t1t.digipolis.apim.beans.services;
 /**
  * Created by michallispashidis on 3/10/15.
  */
-public class UpdateServiceTearmsBean {
+public class UpdateServiceTermsBean {
     private String terms;
 
-    public UpdateServiceTearmsBean() {
+    public UpdateServiceTermsBean() {
     }
 
     public String getTerms() {
@@ -19,7 +19,7 @@ public class UpdateServiceTearmsBean {
 
     @Override
     public String toString() {
-        return "UpdateServiceTearmsBean{" +
+        return "UpdateServiceTermsBean{" +
                 "terms='" + terms + '\'' +
                 '}';
     }
