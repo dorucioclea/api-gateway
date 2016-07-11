@@ -296,12 +296,31 @@ public class LoginResource implements ILoginResource {
         return idpLogout(relayState);
     }
 
+    @ApiOperation(value = "IDP single logout",
+            notes = "This endpoint can be used by an IDP to logout a user using query strings.")
+    @ApiResponses({@ApiResponse(code = 200, response = String.class, message = "IDP single logout.")})
+    @GET
+    @Path("/idp/slo")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response singleIDPLogoutQuery(@QueryParam("SAMLResponse") String samlResponse, @QueryParam("RelayState") String relayState) {
+        return idpLogout(relayState);
+    }
+
     @ApiOperation(value = "IDP single logout (external marketplace)", notes = "This endpoint can be used by an IDP to logout a user from the external marketplace.")
     @ApiResponses({@ApiResponse(code = 200, response = String.class, message = "IDP single logout.")})
     @POST
     @Path("/idp/slo/astad")
     @Produces(MediaType.TEXT_PLAIN)
     public Response singleIDPLogoutAStad(@FormParam("SAMLResponse") String samlResponse, @FormParam("RelayState") String relayState) {
+        return idpLogout(relayState);
+    }
+
+    @ApiOperation(value = "IDP single logout (external marketplace)", notes = "This endpoint can be used by an IDP to logout a user from the external marketplace.")
+    @ApiResponses({@ApiResponse(code = 200, response = String.class, message = "IDP single logout.")})
+    @GET
+    @Path("/idp/slo/astad")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response singleIDPLogoutAStadQuery(@QueryParam("SAMLResponse") String samlResponse, @QueryParam("RelayState") String relayState) {
         return idpLogout(relayState);
     }
 

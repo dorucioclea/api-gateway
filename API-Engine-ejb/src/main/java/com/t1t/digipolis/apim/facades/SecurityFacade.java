@@ -47,7 +47,7 @@ public class SecurityFacade {
     @Inject private OrganizationFacade orgFacade;
 
     public void setOAuthExpTime(Integer expTime){
-        if(!config.getOAuthEnableGatewayEnpoints())throw new OAuthException("Central OAuth2 endpoints are deactivate, this method cannot be used in the current configruation.");
+        if(!config.getOAuthEnableGatewayEnpoints())throw new OAuthException("Central OAuth2 endpoints are deactivate, this method cannot be used in the current configuration.");
         else{
             try {
                 //We create the new application version consumer
@@ -62,7 +62,7 @@ public class SecurityFacade {
     }
 
     public OAuthExpTimeResponse getOAuthExpTime(){
-        if(!config.getOAuthEnableGatewayEnpoints())throw new OAuthException("Central OAuth2 endpoints are deactivate, this method cannot be used in the current configruation.");
+        if(!config.getOAuthEnableGatewayEnpoints())throw new OAuthException("Central OAuth2 endpoints are deactivate, this method cannot be used in the current configuration.");
         else{
             try {
                 //We create the new application version consumer

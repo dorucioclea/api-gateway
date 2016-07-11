@@ -123,7 +123,7 @@
       "post": {
         "tags": ["login"],
         "summary": "Refresh an existing valid JWT. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter.",
-        "description": "Use this endpoint to refresh and prolong your JWT expiration time. If 0 is provided as expiration configruation, the JWT will be infinitly valid. The consuming application can provide at this moment optionally a custom claim map.",
+        "description": "Use this endpoint to refresh and prolong your JWT expiration time. If 0 is provided as expiration configuration, the JWT will be infinitly valid. The consuming application can provide at this moment optionally a custom claim map.",
         "operationId": "refreshToken",
         "consumes": ["application/json"],
         "produces": ["application/json"],
