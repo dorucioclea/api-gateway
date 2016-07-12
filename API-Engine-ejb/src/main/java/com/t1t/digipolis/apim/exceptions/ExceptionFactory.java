@@ -537,4 +537,8 @@ public final class ExceptionFactory {
     public static final ServiceVersionUpdateException serviceVersionUpdateException(String message) {
         return new ServiceVersionUpdateException(message);
     }
+
+    public static final ServiceVersionNotAvailableException serviceVersionNotAvailableException(String serviceId, String version) {
+        return new ServiceVersionNotAvailableException(Messages.i18n.format("ServiceVersionNotAvailable", serviceId, version));
+    }
 }

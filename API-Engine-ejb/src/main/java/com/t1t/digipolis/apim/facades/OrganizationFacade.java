@@ -4196,7 +4196,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         });
         log.debug("allowedPrefixes:{}", allowedPrefixes);
         if (!allowedPrefixes.contains(prefix)) {
-            throw ExceptionFactory.serviceVersionNotFoundException(svb.getService().getId(), svb.getVersion());
+            throw ExceptionFactory.serviceVersionNotAvailableException(svb.getService().getId(), svb.getVersion());
         }
         return svb;
     }
