@@ -4191,17 +4191,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) throws StorageException {
         String prefix = appContext.getApplicationPrefix();
         Set<String> allowedPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
+        svb.getVisibility().forEach(vis -> {
+            allowedPrefixes.add(vis.getCode());
+        });
         log.debug("allowedPrefixes:{}", allowedPrefixes);
         if (!allowedPrefixes.contains(prefix)) {
-            boolean visible = false;
-            for (VisibilityBean vis : svb.getVisibility()) {
-                if (vis.getCode().equals(prefix)) {
-                    visible = true;
-                }
-            }
-            if (!visible) {
-                throw ExceptionFactory.serviceVersionNotFoundException(svb.getService().getId(), svb.getVersion());
-            }
+            throw ExceptionFactory.serviceVersionNotFoundException(svb.getService().getId(), svb.getVersion());
         }
         return svb;
     }
