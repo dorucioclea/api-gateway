@@ -12,6 +12,8 @@ import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
+import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
@@ -4136,4 +4138,45 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         return links;
     }
+
+    public ServiceTagsBean getServiceTags(String organizationId, String serviceId) {
+        ServiceBean service = getService(organizationId, serviceId);
+        return new ServiceTagsBean(organizationId, serviceId, service.getCategories());
+    }
+
+    public void updateServiceTags(String organizationId, String serviceId, ServiceTagsBean bean) {
+        ServiceBean service = getService(organizationId, serviceId);
+        updateServiceTagsInternal(service, bean.getTags());
+    }
+
+    public void addServiceTag(String organizationId, String serviceId, TagBean tag) {
+        ServiceBean service = getService(organizationId, serviceId);
+        Set<String> newTags = new TreeSet<>(service.getCategories());
+        newTags.add(tag.getTag());
+        updateServiceTagsInternal(service, newTags);
+    }
+
+    public void deleteServiceTag(String organizationId, String serviceId, TagBean tag) {
+        ServiceBean service = getService(organizationId, serviceId);
+        Set<String> newTags = new TreeSet<>(service.getCategories());
+        newTags.remove(tag.getTag());
+        updateServiceTagsInternal(service, newTags);
+    }
+
+    private void updateServiceTagsInternal(ServiceBean service, Set<String> newTags) {
+        EntityUpdatedData data = new EntityUpdatedData();
+        if (AuditUtils.valueChanged(service.getCategories(), newTags)) {
+            data.addChange("tags", service.getCategories().toString(), newTags.toString());
+            AuditEntryBean entry = AuditUtils.serviceUpdated(service, data, securityContext);
+            service.setCategories(newTags);
+            try {
+                storage.updateService(service);
+                storage.createAuditEntry(entry);
+            }
+            catch (StorageException ex) {
+                throw ExceptionFactory.systemErrorException(ex);
+            }
+        }
+    }
+
 }
