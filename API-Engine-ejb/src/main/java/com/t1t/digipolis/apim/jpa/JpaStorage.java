@@ -2496,4 +2496,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public DefaultsBean getDefaults(String id) throws StorageException {
         return super.get(id, DefaultsBean.class);
     }
+
+    @Override
+    public Set<String> getManagedAppPrefixesForTypes(List<ManagedApplicationTypes> types) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT p.prefix FROM ManagedApplicationBean p WHERE p.type IN :types";
+        return new HashSet<>(em.createQuery(jpql)
+                .setParameter("types", types)
+                .getResultList());
+    }
 }
