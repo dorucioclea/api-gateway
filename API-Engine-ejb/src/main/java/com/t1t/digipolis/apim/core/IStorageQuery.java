@@ -775,4 +775,12 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<KeyMappingBean> getKeyMapping(String fromSpec, String toSpec) throws StorageException;
+
+    /**
+     * Return prefixes for managed applications of given types
+     * @param types
+     * @return
+     * @throws StorageException
+     */
+    public Set<String> getManagedAppPrefixesForTypes(List<ManagedApplicationTypes> types) throws StorageException;
 }
