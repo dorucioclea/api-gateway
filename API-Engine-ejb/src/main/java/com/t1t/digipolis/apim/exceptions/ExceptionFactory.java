@@ -529,6 +529,15 @@ public final class ExceptionFactory {
         return new TermsAgreementException(message);
     }
 
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final ServiceVersionUpdateException serviceVersionUpdateException(String message) {
+        return new ServiceVersionUpdateException(message);
+    }
+
     public static final ServiceVersionNotAvailableException serviceVersionNotAvailableException(String serviceId, String version) {
         return new ServiceVersionNotAvailableException(Messages.i18n.format("ServiceVersionNotAvailable", serviceId, version));
     }
