@@ -69,7 +69,7 @@ public class ConsumerConventionUtil {
     /**
      * The application identifier denotes the consuming application of the service.
      * In order to support scoped marketplaces/publishers; a scope will be set if the unique appId contains a known prefix.
-     * The known prefixes are in configruation to avoid table lookups.
+     * The known prefixes are in configuration to avoid table lookups.
      * @param appId
      * @return
      */

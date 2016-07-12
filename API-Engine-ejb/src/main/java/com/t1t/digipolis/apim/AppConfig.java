@@ -48,7 +48,7 @@ public class AppConfig implements Serializable {
         }else throw new RuntimeException("API Engine basic property file not found.");
         //read specific application config, depends on the maven profile that has been set
         config = ConfigFactory.load(getConfigurationFile()); if(config==null) throw new RuntimeException("API Engine log not found");else{
-            _LOG.info("===== API Engine configruation ==============================");
+            _LOG.info("===== API Engine configuration ==============================");
             _LOG.info("Using configuration file: {}",getConfigurationFile());
             _LOG.info("Build: {}",getBuildDate());
             _LOG.info("version: {}",getVersion());
