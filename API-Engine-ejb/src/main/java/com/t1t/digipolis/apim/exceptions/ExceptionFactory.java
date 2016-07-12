@@ -538,6 +538,12 @@ public final class ExceptionFactory {
         return new ServiceVersionUpdateException(message);
     }
 
+    /**
+     * Creates an exception
+     * @param serviceId
+     * @param version
+     * @return
+     */
     public static final ServiceVersionNotAvailableException serviceVersionNotAvailableException(String serviceId, String version) {
         return new ServiceVersionNotAvailableException(Messages.i18n.format("ServiceVersionNotAvailable", serviceId, version));
     }

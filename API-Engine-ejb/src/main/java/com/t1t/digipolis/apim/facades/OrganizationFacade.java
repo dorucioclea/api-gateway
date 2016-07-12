@@ -527,7 +527,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     throw ExceptionFactory.contractAlreadyExistsException();
                 }
             }
-            if (svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
+            if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
                 throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
             }
             //Check if service allows auto contract creation
@@ -1173,6 +1173,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
                 if (bean.getVisibility() == null || bean.getVisibility().isEmpty()) {
                     throw ExceptionFactory.serviceVersionUpdateException("At least one store should be selected");
+                }
+                //Check if the new visibility doesn't affect existing contracts
+                List<ContractBean> contracts = query.getServiceContracts(organizationId, serviceId, version);
+                if (!contracts.isEmpty()) {
+                    Set<String> visibilities = new HashSet<>();
+                    svb.getVisibility().forEach(vis -> visibilities.add(vis.getCode()));
+                    for (ContractBean contract : contracts) {
+                        if (!visibilities.contains(contract.getApplication().getApplication().getOrganization().getContext())) {
+                            throw ExceptionFactory.serviceVersionUpdateException(String.format(Messages.i18n.format("ServiceVersionStillHasContractsInScope", serviceId, version)));
+                        }
+                    }
                 }
                 data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
                 svb.setVisibility(bean.getVisibility());
@@ -2985,7 +2996,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw ExceptionFactory.invalidServiceStatusException();
         }
 
-        if (svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
+        if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
             throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
         }
         Set<ServicePlanBean> plans = svb.getPlans();
