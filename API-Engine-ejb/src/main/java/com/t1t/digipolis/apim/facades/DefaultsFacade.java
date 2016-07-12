@@ -6,9 +6,7 @@ import com.t1t.digipolis.apim.beans.services.DefaultServiceTermsBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import org.apache.commons.lang3.StringUtils;
-import org.opensaml.xml.encryption.P;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +18,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -43,17 +40,19 @@ public class DefaultsFacade {
         try {
             DefaultsBean defaults = storage.getDefaults(config.getEnvironment());
             if (defaults != null) {
-                if (StringUtils.isEmpty(defaults.getServiceTerms())) {
+                if (defaults.getServiceTerms() == null) {
                     String fileTerms = readLocalTerms();
                     if (!StringUtils.isEmpty(fileTerms)) {
                         defaults.setServiceTerms(readLocalTerms());
                         storage.updateDefaults(defaults);
+                        _LOG.debug("Defaults Updated:{}", defaults);
                     }
                 }
             }
             else {
                 defaults = new DefaultsBean(config.getEnvironment(), readLocalTerms());
                 storage.createDefaults(defaults);
+                _LOG.debug("Defaults Created:{}", defaults);
             }
             return new DefaultServiceTermsBean(defaults.getServiceTerms());
         }
@@ -68,6 +67,7 @@ public class DefaultsFacade {
             DefaultsBean defaults = storage.getDefaults(config.getEnvironment());
             defaults.setServiceTerms(bean.getTerms());
             storage.updateDefaults(defaults);
+            _LOG.debug("Defaults Updated:{}", defaults);
             return bean;
         }
         catch (StorageException ex) {
