@@ -13,12 +13,12 @@ public class ServiceTagsBean {
 
     private String organizationId;
     private String serviceId;
-    private Set<TagBean> tags;
+    private Set<String> tags;
 
     public ServiceTagsBean() {
     }
 
-    public ServiceTagsBean(String organizationId, String serviceId, Set<TagBean> tags) {
+    public ServiceTagsBean(String organizationId, String serviceId, Set<String> tags) {
         this.organizationId = organizationId;
         this.serviceId = serviceId;
         this.tags = tags;
@@ -40,11 +40,11 @@ public class ServiceTagsBean {
         this.serviceId = serviceId;
     }
 
-    public Set<TagBean> getTags() {
+    public Set<String> getTags() {
         return tags;
     }
 
-    public void setTags(Set<TagBean> tags) {
+    public void setTags(Set<String> tags) {
         this.tags = tags;
     }
 

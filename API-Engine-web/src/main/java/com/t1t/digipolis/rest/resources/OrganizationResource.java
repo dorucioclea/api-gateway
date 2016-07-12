@@ -5,6 +5,8 @@ import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
+import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
@@ -2246,5 +2248,73 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         }
         orgFacade.deleteServiceVersion(organizationId, serviceId, version);
+    }
+
+    @Override
+    @ApiOperation(value = "Get Service tags")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceTagsBean.class, message = "Service tags")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceTagsBean getTags(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        return orgFacade.getServiceTags(organizationId, serviceId);
+    }
+
+    @Override
+    @ApiOperation("Update Service Tags")
+    @ApiResponses({
+        @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void updateTags(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, ServiceTagsBean tags) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkNotNull(tags);
+        orgFacade.updateServiceTags(organizationId, serviceId, tags);
+    }
+
+    @Override
+    @ApiOperation("Delete Service Tag")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void deleteTag(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, TagBean tag) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkNotNull(tag);
+        orgFacade.deleteServiceTag(organizationId, serviceId, tag);
+    }
+
+    @Override
+    @ApiOperation("Add Service Tag")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void addTag(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, TagBean tag) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkNotNull(tag);
+        orgFacade.addServiceTag(organizationId, serviceId, tag);
     }
 }
