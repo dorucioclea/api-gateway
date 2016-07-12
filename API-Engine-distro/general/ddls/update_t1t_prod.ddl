@@ -9,3 +9,6 @@ INSERT INTO managed_applications (id, name, version, type, prefix, api_key, acti
 
 -- update the policies to set the gateway id... because we only have one so far, set the same id for all policies
 UPDATE public.policies SET gateway_id = 'KongGateway';
+
+----- v0.8.1-SNAPSHOT -----
+INSERT INTO defaults (id, service_terms) VALUES ('PROD', 'This is a placeholder for the default terms & conditions\n========================================================\n');

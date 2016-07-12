@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.defaults.DefaultsBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -1530,6 +1531,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             csb.setServiceOrganizationId(svcOrg.getId());
             csb.setServiceOrganizationName(svcOrg.getName());
             csb.setServiceVersion(contractBean.getService().getVersion());
+            csb.setTermsAgreed(contractBean.getTermsAgreed());
             rval.add(csb);
         }
 
@@ -2473,5 +2475,25 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("fromSpecType", fromSpec)
                 .setParameter("toSpecType", toSpec)
                 .getResultList();
+    }
+
+    @Override
+    public void createDefaults(DefaultsBean defaultsBean) throws StorageException {
+        super.create(defaultsBean);
+    }
+
+    @Override
+    public void updateDefaults(DefaultsBean defaultsBean) throws StorageException {
+        super.update(defaultsBean);
+    }
+
+    @Override
+    public void deleteDefaults(DefaultsBean defaultsBean) throws StorageException {
+        super.delete(defaultsBean);
+    }
+
+    @Override
+    public DefaultsBean getDefaults(String id) throws StorageException {
+        return super.get(id, DefaultsBean.class);
     }
 }

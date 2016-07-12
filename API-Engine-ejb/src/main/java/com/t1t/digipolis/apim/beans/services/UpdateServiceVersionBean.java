@@ -27,6 +27,8 @@ public class UpdateServiceVersionBean implements Serializable {
     private Set<ServicePlanBean> plans;
     private Set<VisibilityBean> visibility;
     private Boolean autoAcceptContracts;
+    private Boolean termsAgreementRequired;
+    private String readme;
 
     /**
      * Constructor.
@@ -142,6 +144,22 @@ public class UpdateServiceVersionBean implements Serializable {
         this.autoAcceptContracts = autoAcceptContracts;
     }
 
+    public Boolean getTermsAgreementRequired() {
+        return termsAgreementRequired;
+    }
+
+    public void setTermsAgreementRequired(Boolean termsAgreementRequired) {
+        this.termsAgreementRequired = termsAgreementRequired;
+    }
+
+    public String getReadme() {
+        return readme;
+    }
+
+    public void setReadme(String readme) {
+        this.readme = readme;
+    }
+
     @Override
     public String toString() {
         return "UpdateServiceVersionBean{" +
@@ -154,6 +172,8 @@ public class UpdateServiceVersionBean implements Serializable {
                 ", plans=" + plans +
                 ", visibility=" + visibility +
                 ", autoAcceptContracts=" + autoAcceptContracts +
+                ", termsAgreementRequired=" + termsAgreementRequired +
+                ", readme='" + readme + '\'' +
                 '}';
     }
 

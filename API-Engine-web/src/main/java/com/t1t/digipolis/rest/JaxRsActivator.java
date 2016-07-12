@@ -49,6 +49,8 @@ public class JaxRsActivator extends Application {
         resources.add(SecurityResource.class);
         resources.add(MigrationResource.class);
         resources.add(RestExceptionMapper.class);
+        resources.add(AdminResource.class);
+        resources.add(DefaultsResource.class);
         //resources.add(CORSRequestFilter.class);//CORS Request filter
         //resources.add(CORSResponseFilter.class);//CORS Response filter
     }

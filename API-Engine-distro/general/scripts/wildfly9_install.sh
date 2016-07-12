@@ -14,6 +14,7 @@ WILDFLY_DOWNLOAD_ADDRESS=http://download.jboss.org/wildfly/$WILDFLY_VERSION/$WIL
 INSTALL_DIR=/opt
 WILDFLY_FULL_DIR=$INSTALL_DIR/$WILDFLY_FILENAME
 WILDFLY_DIR=$INSTALL_DIR/wildfly
+API_GATEWAY_USR_DIR=/usr/local/api-gateway
 
 WILDFLY_USER="wildfly"
 WILDFLY_SERVICE="wildfly"
@@ -51,6 +52,9 @@ ln -s $WILDFLY_FULL_DIR/ $WILDFLY_DIR
 useradd -s /sbin/nologin $WILDFLY_USER
 chown -R $WILDFLY_USER:$WILDFLY_USER $WILDFLY_DIR
 chown -R $WILDFLY_USER:$WILDFLY_USER $WILDFLY_DIR/
+mkdir $API_GATEWAY_USR_DIR
+chown -R $WILDFLY_USER:$WILDFLY_USER $API_GATEWAY_USR_DIR
+chown -R $WILDFLY_USER:$WILDFLY_USER $API_GATEWAY_USR_DIR/
 
 echo "Registrating Wildfly as service..."
 # if Debian-like distribution

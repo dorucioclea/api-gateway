@@ -102,6 +102,7 @@ import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ClassPathUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
@@ -122,12 +123,18 @@ import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.t1t.digipolis.apim.beans.policies.Policies.TCPLOG;
 import static com.t1t.digipolis.apim.beans.user.ClientTokeType.jwt;
+import static java.lang.ClassLoader.getSystemResource;
 
 /**
  * Created by michallispashidis on 15/08/15.
@@ -400,6 +407,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     ncb.setServiceId(contract.getServiceId());
                     ncb.setServiceOrgId(contract.getServiceOrganizationId());
                     ncb.setServiceVersion(contract.getServiceVersion());
+                    ncb.setTermsAgreed(contract.getTermsAgreed());
                     createContract(organizationId, applicationId, newVersion.getVersion(), ncb);
                 }
                 List<PolicySummaryBean> policies = listAppPolicies(organizationId, applicationId, bean.getCloneVersion());
@@ -519,6 +527,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     throw ExceptionFactory.contractAlreadyExistsException();
                 }
             }
+            if (svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
+                throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
+            }
             //Check if service allows auto contract creation
             if (!svb.getAutoAcceptContracts()) {
 
@@ -582,6 +593,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 ncb.setServiceId(serviceId);
                 ncb.setServiceVersion(version);
                 ncb.setPlanId(bean.getPlanId());
+                ncb.setTermsAgreed(bean.getTermsAgreed());
                 return createContract(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion(), ncb);
             }
         } catch (StorageException ex) {
@@ -937,7 +949,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
-
     }
 
     private void deleteAppVersionInternal(String organizationId, String applicationId, String version) {
@@ -1156,7 +1167,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 svb.setEndpointType(bean.getEndpointType());
                 log.debug("BEAN ENDPOINT TYPE UPDATED");
             }
-            if (svb.getStatus() != ServiceStatus.Retired || svb.getStatus() != ServiceStatus.Deprecated || svb.getStatus() != ServiceStatus.Published) {
+            if (AuditUtils.valueChanged(svb.getReadme(), bean.getReadme())) {
+                data.addChange("readme", svb.getReadme(), bean.getReadme());
+                svb.setReadme(bean.getReadme());
+            }
+            if (svb.getStatus() != ServiceStatus.Deprecated && svb.getStatus() != ServiceStatus.Published) {
                 svb.setModifiedBy(securityContext.getCurrentUser());
                 svb.setModifiedOn(new Date());
                 if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
@@ -1231,6 +1246,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         }
                     }*/
                     log.debug("BEAN VISIBILITY UPDATED");
+                }
+                if (AuditUtils.valueChanged(svb.getTermsAgreementRequired(), bean.getTermsAgreementRequired())) {
+                    data.addChange("termsAgreementRequired", String.valueOf(svb.getTermsAgreementRequired()), String.valueOf(bean.getTermsAgreementRequired()));
+                    svb.setTermsAgreementRequired(bean.getTermsAgreementRequired());
                 }
             } else {
                 throw ExceptionFactory.invalidServiceStatusException();
@@ -1360,6 +1379,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
                 // Clone primary attributes of the service version
                 UpdateServiceVersionBean updatedService = new UpdateServiceVersionBean();
+                updatedService.setReadme(cloneSource.getReadme());
+                updatedService.setTermsAgreementRequired(cloneSource.getTermsAgreementRequired());
                 updatedService.setEndpoint(cloneSource.getEndpoint());
                 updatedService.setEndpointType(cloneSource.getEndpointType());
                 updatedService.setEndpointProperties(cloneSource.getEndpointProperties());
@@ -1826,7 +1847,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ServiceBean updateServiceTerms(String organizationId, String serviceId, UpdateServiceTearmsBean serviceTerms) {
+    public ServiceBean updateServiceTerms(String organizationId, String serviceId, UpdateServiceTermsBean serviceTerms) {
         try {
             ServiceBean bean = storage.getService(organizationId, serviceId);
             if (bean == null) {
@@ -2955,6 +2976,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (svb.getStatus() != ServiceStatus.Published) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
+
+        if (svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
+            throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
+        }
         Set<ServicePlanBean> plans = svb.getPlans();
         String planVersion = null;
         if (plans != null) {
@@ -2980,6 +3005,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         contract.setApplication(avb);
         contract.setService(svb);
         contract.setPlan(pvb);
+        contract.setTermsAgreed(bean.getTermsAgreed());
         contract.setCreatedBy(securityContext.getCurrentUser());
         contract.setCreatedOn(new Date());
         if (applicationVersionContracts.size() > 0) {

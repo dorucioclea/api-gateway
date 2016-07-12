@@ -799,7 +799,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/terms")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceBean updateServiceTerms(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, UpdateServiceTearmsBean serviceTerms) throws ServiceNotFoundException, NotAuthorizedException{
+    public ServiceBean updateServiceTerms(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, UpdateServiceTermsBean serviceTerms) throws ServiceNotFoundException, NotAuthorizedException{
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkNotNull(serviceTerms);
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceTerms.getTerms()));
@@ -2174,7 +2174,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Request a Service Contract",
             notes = "Use this endpoint to request a Contract between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Contract requested")
+            @ApiResponse(code = 204, response = ContractBean.class, message = "Contract requested")
     })
     @POST
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/request")
@@ -2216,7 +2216,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Accept an Application's Contract Request",
             notes = "Use this endpoint to accpet a Contract request between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Contract rejected")
+            @ApiResponse(code = 204, response = ContractBean.class, message = "Contract Accepted")
     })
     @POST
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/accept")

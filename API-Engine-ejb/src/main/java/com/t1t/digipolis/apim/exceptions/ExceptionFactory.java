@@ -405,56 +405,127 @@ public final class ExceptionFactory {
         return new MemberShipRequestFailedException(message);
     }
 
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final InvalidEventException invalidEventException(String message) {
         return new InvalidEventException(message);
     }
 
+    /**
+     * Creates an exception
+     * @return
+     */
     public static final EventNotFoundException eventNotFoundException() {
         return new EventNotFoundException();
     }
 
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final ContractRequestFailedException contractRequestFailedException(String message) {
         return new ContractRequestFailedException(message);
     }
 
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final InvalidSearchCriteriaException invalidSearchCriteriaException(String message) {
         return new InvalidSearchCriteriaException(message);
     }
 
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final CachingException cachingException(String message) {
         return new CachingException(message);
     }
 
+    /**
+     * Creates an exception
+     * @param organizationName
+     * @param basepath
+     * @return
+     */
     public static final ServiceBasepathAlreadyInUseException serviceBasepathAlreadyInUseException(String organizationName, String basepath) {
         return new ServiceBasepathAlreadyInUseException(Messages.i18n.format("ServiceBasePathAlreadyInUse", organizationName, basepath));
     }
 
-
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final OrganizationCannotBeDeletedException orgCannotBeDeleted(String message){
         return new OrganizationCannotBeDeletedException(message);
     }
 
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final PlanCannotBeDeletedException planCannotBeDeleted(String message){
         return new PlanCannotBeDeletedException(message);
     }
 
+    /**
+     * Creates an exception
+     * @return
+     */
     public static final MetricsUnavailableException metricsUnavailableException() {
         return new MetricsUnavailableException();
     }
 
+    /**
+     * Creates an exception
+     * @return
+     */
     public static final ContractNotFoundException contractNotFoundException() {
         return new ContractNotFoundException();
     }
 
+    /**
+     *
+     * @param apiKey
+     * @return
+     */
     public static final APIKeyAlreadyExistsException apiKeyAlreadyExistsException(String apiKey) {
         return new APIKeyAlreadyExistsException(apiKey);
     }
 
+    /**
+     * Creates an exception
+     * @param throwable
+     * @return
+     */
     public static final SystemErrorException systemErrorException(Throwable throwable) {
         return new SystemErrorException(throwable);
     }
 
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final MemberShipAlreadyExistsException membershipAlreadyExists(String message) {
         return new MemberShipAlreadyExistsException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final TermsAgreementException termsAgreementException(String message) {
+        return new TermsAgreementException(message);
     }
 }

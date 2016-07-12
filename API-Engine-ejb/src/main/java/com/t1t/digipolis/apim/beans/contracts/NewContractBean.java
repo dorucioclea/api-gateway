@@ -13,6 +13,7 @@ public class NewContractBean implements Serializable {
     private String serviceOrgId;
     private String serviceId;
     private String serviceVersion;
+    private Boolean termsAgreed;
 
     private String planId;
 
@@ -79,16 +80,29 @@ public class NewContractBean implements Serializable {
     }
 
     /**
+     * @return the value of termsAgreed
+     */
+    public Boolean getTermsAgreed() {
+        return termsAgreed;
+    }
+
+    /**
+     * @param termsAgreed the value to set
+     */
+    public void setTermsAgreed(Boolean termsAgreed) {
+        this.termsAgreed = termsAgreed;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((planId == null) ? 0 : planId.hashCode());
-        result = prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
-        result = prime * result + ((serviceOrgId == null) ? 0 : serviceOrgId.hashCode());
-        result = prime * result + ((serviceVersion == null) ? 0 : serviceVersion.hashCode());
+        int result = serviceOrgId != null ? serviceOrgId.hashCode() : 0;
+        result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
+        result = 31 * result + (serviceVersion != null ? serviceVersion.hashCode() : 0);
+        result = 31 * result + (termsAgreed != null ? termsAgreed.hashCode() : 0);
+        result = 31 * result + (planId != null ? planId.hashCode() : 0);
         return result;
     }
 
@@ -96,35 +110,19 @@ public class NewContractBean implements Serializable {
      * @see Object#equals(Object)
      */
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NewContractBean that = (NewContractBean) o;
+
+        if (serviceOrgId != null ? !serviceOrgId.equals(that.serviceOrgId) : that.serviceOrgId != null) return false;
+        if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) return false;
+        if (serviceVersion != null ? !serviceVersion.equals(that.serviceVersion) : that.serviceVersion != null)
             return false;
-        if (getClass() != obj.getClass())
-            return false;
-        NewContractBean other = (NewContractBean) obj;
-        if (planId == null) {
-            if (other.planId != null)
-                return false;
-        } else if (!planId.equals(other.planId))
-            return false;
-        if (serviceId == null) {
-            if (other.serviceId != null)
-                return false;
-        } else if (!serviceId.equals(other.serviceId))
-            return false;
-        if (serviceOrgId == null) {
-            if (other.serviceOrgId != null)
-                return false;
-        } else if (!serviceOrgId.equals(other.serviceOrgId))
-            return false;
-        if (serviceVersion == null) {
-            if (other.serviceVersion != null)
-                return false;
-        } else if (!serviceVersion.equals(other.serviceVersion))
-            return false;
-        return true;
+        if (termsAgreed != null ? !termsAgreed.equals(that.termsAgreed) : that.termsAgreed != null) return false;
+        return planId != null ? planId.equals(that.planId) : that.planId == null;
+
     }
 
     /* (non-Javadoc)
@@ -133,8 +131,12 @@ public class NewContractBean implements Serializable {
     @Override
     @SuppressWarnings("nls")
     public String toString() {
-        return "NewContractBean [serviceOrgId=" + serviceOrgId + ", serviceId=" + serviceId
-                + ", serviceVersion=" + serviceVersion + ", planId=" + planId + "]";
+        return "NewContractBean{" +
+                "serviceOrgId='" + serviceOrgId + '\'' +
+                ", serviceId='" + serviceId + '\'' +
+                ", serviceVersion='" + serviceVersion + '\'' +
+                ", termsAgreed=" + termsAgreed +
+                ", planId='" + planId + '\'' +
+                '}';
     }
-
 }
