@@ -457,4 +457,8 @@ public final class ExceptionFactory {
     public static final MemberShipAlreadyExistsException membershipAlreadyExists(String message) {
         return new MemberShipAlreadyExistsException(message);
     }
+
+    public static final ServiceVersionNotAvailableException serviceVersionNotAvailableException(String serviceId, String version) {
+        return new ServiceVersionNotAvailableException(Messages.i18n.format("ServiceVersionNotAvailable", serviceId, version));
+    }
 }
