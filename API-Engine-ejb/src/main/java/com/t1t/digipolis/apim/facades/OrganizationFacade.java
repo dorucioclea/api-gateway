@@ -1178,7 +1178,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 List<ContractBean> contracts = query.getServiceContracts(organizationId, serviceId, version);
                 if (!contracts.isEmpty()) {
                     Set<String> visibilities = new HashSet<>();
-                    svb.getVisibility().forEach(vis -> visibilities.add(vis.getCode()));
+                    bean.getVisibility().forEach(vis -> visibilities.add(vis.getCode()));
                     for (ContractBean contract : contracts) {
                         if (!visibilities.contains(contract.getApplication().getApplication().getOrganization().getContext())) {
                             throw ExceptionFactory.serviceVersionUpdateException(String.format(Messages.i18n.format("ServiceVersionStillHasContractsInScope", serviceId, version)));
