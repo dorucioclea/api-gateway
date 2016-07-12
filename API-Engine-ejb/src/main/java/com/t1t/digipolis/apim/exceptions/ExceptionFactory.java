@@ -528,4 +528,8 @@ public final class ExceptionFactory {
     public static final TermsAgreementException termsAgreementException(String message) {
         return new TermsAgreementException(message);
     }
+
+    public static final ServiceVersionNotAvailableException serviceVersionNotAvailableException(String serviceId, String version) {
+        return new ServiceVersionNotAvailableException(Messages.i18n.format("ServiceVersionNotAvailable", serviceId, version));
+    }
 }
