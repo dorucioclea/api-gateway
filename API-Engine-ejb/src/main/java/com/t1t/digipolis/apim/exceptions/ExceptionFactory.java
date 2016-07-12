@@ -528,4 +528,13 @@ public final class ExceptionFactory {
     public static final TermsAgreementException termsAgreementException(String message) {
         return new TermsAgreementException(message);
     }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final ServiceVersionUpdateException serviceVersionUpdateException(String message) {
+        return new ServiceVersionUpdateException(message);
+    }
 }
