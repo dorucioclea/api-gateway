@@ -12,3 +12,4 @@ UPDATE public.policies SET gateway_id = 'KongGateway';
 
 -------------------- v0.8.1-SNAPSHOT --------------------
 UPDATE services SET terms = null;
+INSERT INTO defaults (id, service_terms) VALUES ('DEV', 'This is a placeholder for the default terms & conditions\n========================================================\n');

@@ -71,3 +71,6 @@ UPDATE public.policies SET gateway_id = 'KongGateway';
 
 -- fix for wrong configurations
 UPDATE policies SET configuration = '{"mandatory_scope":false,"token_expiration":7200,"enable_authorization_code":true,"enable_implicit_grant":true,"enable_client_credentials":true,"hide_credentials":false,"scopes":[]}' WHERE id = 1125 OR id = 1096 OR id = 1112;
+
+----- v0.8.1-SNAPSHOT -----
+INSERT INTO defaults (id, service_terms) VALUES ('DEV', 'This is a placeholder for the default terms & conditions\n========================================================\n');
