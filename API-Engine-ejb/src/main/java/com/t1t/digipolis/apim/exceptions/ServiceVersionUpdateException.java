@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-public class ServiceVersionUpdateException extends AbstractInvalidInputException {
+public class ServiceVersionUpdateException extends AbstractInvalidStateException {
 
     public ServiceVersionUpdateException() {
     }

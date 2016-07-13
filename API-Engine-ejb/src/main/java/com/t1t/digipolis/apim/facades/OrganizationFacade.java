@@ -1172,7 +1172,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
                 if (bean.getVisibility() == null || bean.getVisibility().isEmpty()) {
-                    throw ExceptionFactory.serviceVersionUpdateException("At least one store should be selected");
+                    throw ExceptionFactory.serviceVersionUpdateException(Messages.i18n.format("ServiceVersionHasNoAvailability"));
                 }
                 //Check if the new visibility doesn't affect existing contracts
                 List<ContractBean> contracts = query.getServiceContracts(organizationId, serviceId, version);
