@@ -1118,11 +1118,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version) {
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
+
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
             decryptEndpointProperties(serviceVersion);
-            return serviceVersion;
+            return filterServiceVersionByAppPrefix(serviceVersion);
         } catch (AbstractRestException e) {
             throw e;
         } catch (StorageException e) {
@@ -4109,5 +4110,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
         }
         return links;
+    }
+
+    private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) throws StorageException {
+        String prefix = appContext.getApplicationPrefix();
+        Set<String> allowedPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
+        svb.getVisibility().forEach(vis -> {
+            allowedPrefixes.add(vis.getCode());
+        });
+        log.debug("allowedPrefixes:{}", allowedPrefixes);
+        if (!allowedPrefixes.contains(prefix)) {
+            throw ExceptionFactory.serviceVersionNotAvailableException(svb.getService().getId(), svb.getVersion());
+        }
+        return svb;
     }
 }

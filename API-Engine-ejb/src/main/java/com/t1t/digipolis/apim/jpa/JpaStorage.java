@@ -2474,4 +2474,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("toSpecType", toSpec)
                 .getResultList();
     }
+
+    @Override
+    public Set<String> getManagedAppPrefixesForTypes(List<ManagedApplicationTypes> types) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT p.prefix FROM ManagedApplicationBean p WHERE p.type IN :types";
+        return new HashSet<>(em.createQuery(jpql)
+                .setParameter("types", types)
+                .getResultList());
+    }
 }
