@@ -674,7 +674,7 @@ public class MigrationFacade {
                     //update
                     originalConsumer.setUsername(appConsumerName);
                     originalConsumer.setCustomId(appConsumerName);
-                    gateway.updateConsumer(originalConsumer.getId(), originalConsumer);
+                    gateway.updateOrCreateConsumer(originalConsumer);
                 }
             }
             storage.deleteApplication(app);
