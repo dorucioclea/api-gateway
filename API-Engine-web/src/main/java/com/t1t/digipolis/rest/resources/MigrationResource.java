@@ -80,6 +80,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("sync/split-orgs")
     public void splitOrgs() throws Exception {
-        migrationFacade.splitOrgs();
+        //migrationFacade.splitOrgs();
     }
 }
