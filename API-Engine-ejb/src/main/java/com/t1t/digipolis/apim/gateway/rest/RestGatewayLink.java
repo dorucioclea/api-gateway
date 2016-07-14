@@ -403,4 +403,9 @@ public class RestGatewayLink implements IGatewayLink {
     public void deleteApiPlugin(String KongApiId, String pluginId) {
         getClient().deleteApiPlugin(KongApiId, pluginId);
     }
+
+    @Override
+    public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer) {
+        return getClient().updateConsumer(kongConsumerId, updatedConsumer);
+    }
 }
