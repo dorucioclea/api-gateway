@@ -938,4 +938,8 @@ public class GatewayClient {
     public void deleteApiPlugin(String ApiId, String pluginId) {
         httpClient.deletePlugin(ApiId, pluginId);
     }
+
+    public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer) {
+        return httpClient.updateConsumer(kongConsumerId, updatedConsumer);
+    }
 }
