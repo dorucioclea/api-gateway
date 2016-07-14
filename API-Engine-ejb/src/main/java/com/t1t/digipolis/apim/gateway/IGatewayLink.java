@@ -424,4 +424,11 @@ public interface IGatewayLink {
      * @param pluginId
      */
     public void deleteApiPlugin(String KongApiId, String pluginId);
+
+    /**
+     * Update a consumer on the gateway
+     * @param kongConsumerId
+     * @return
+     */
+    public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer);
 }

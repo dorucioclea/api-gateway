@@ -666,11 +666,15 @@ public class MigrationFacade {
                 appVersion.setApplication(newApp);
                 //update Kong consumer
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion());
+                String originalConsumerName = ConsumerConventionUtil.createAppUniqueId(originalOrg.getId(), appVersion.getApplication().getId(), appVersion.getVersion());
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                 final KongConsumer consumer = gateway.getConsumer(appConsumerName);
-                if(consumer==null){
-                    //create
-                    gateway.createConsumer(appConsumerName,appConsumerName);
+                KongConsumer originalConsumer = gateway.getConsumer(originalConsumerName);
+                if(consumer==null && originalConsumer != null){
+                    //update
+                    originalConsumer.setUsername(appConsumerName);
+                    originalConsumer.setCustomId(appConsumerName);
+                    gateway.updateConsumer(originalConsumer.getId(), originalConsumer);
                 }
             }
             storage.deleteApplication(app);
