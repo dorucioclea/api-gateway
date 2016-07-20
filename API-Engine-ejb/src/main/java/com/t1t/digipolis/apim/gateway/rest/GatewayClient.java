@@ -510,7 +510,7 @@ public class GatewayClient {
         //additional oauth actions
         if(flagOauth2){
             if(appConfig.getOAuthEnableGatewayEnpoints()){
-                addGatewayOAuthScopes(gatewayBean, api);
+                //addGatewayOAuthScopes(gatewayBean, api);
             }
         }
     }
