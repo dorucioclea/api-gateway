@@ -17,11 +17,11 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <name>api-gateway</name>
+    <name>API-Engine</name>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.t1t.digipolis</groupId>
-    <artifactId>api-gateway</artifactId>
-    <version>0.7.2-SNAPSHOT</version>
+    <artifactId>API-Engine</artifactId>
+    <version>0.8.0-RC</version>
     <packaging>pom</packaging>
 
     <description>
@@ -61,11 +61,11 @@
     </licenses>
 
     <modules>
-        <module>api-gateway-ejb</module>
-        <module>api-gateway-web</module>
-        <module>api-gateway-ear</module>
-        <module>api-gateway-auth</module>
-        <module>api-gateway-distro</module>
+        <module>API-Engine-ejb</module>
+        <module>API-Engine-web</module>
+        <module>API-Engine-ear</module>
+        <module>API-Engine-auth</module>
+        <module>API-Engine-distro</module>
     </modules>
 
     <properties>
