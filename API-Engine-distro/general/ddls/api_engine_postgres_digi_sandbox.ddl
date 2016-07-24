@@ -42,4 +42,3 @@ INSERT INTO mail_templates(topic, subject, content, created_on,updated_on) VALUE
 -- INSERT optional SAML to JWT mapping claims
 INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'profielId', 'profielId');
 INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'profielType', 'profielType');
-
