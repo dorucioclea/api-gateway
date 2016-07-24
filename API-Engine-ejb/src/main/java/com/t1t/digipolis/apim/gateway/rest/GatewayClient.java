@@ -771,14 +771,11 @@ public class GatewayClient {
     }
 
     public KongPluginOAuthConsumerResponse enableConsumerForOAuth(String consumerId,KongPluginOAuthConsumerRequest request){
-        //be sure that the uri ends with an '/'
-        if(!request.getRedirectUri().endsWith("/"))request.setRedirectUri(request.getRedirectUri() + "/");
         return httpClient.enableOAuthForConsumer(consumerId,request.getName(),request.getClientId(),request.getClientSecret(),request.getRedirectUri());
     }
 
     public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request) {
         KongPluginOAuthConsumerResponse rval = null;
-        if(!request.getRedirectUri().endsWith("/"))request.setRedirectUri(request.getRedirectUri() + "/");
         KongPluginOAuthConsumerResponseList plugins = httpClient.getConsumerOAuthCredentials(consumerId);
         //Delete the plugin with the old credentials
         for (KongPluginOAuthConsumerResponse credentials : plugins.getData()) {
