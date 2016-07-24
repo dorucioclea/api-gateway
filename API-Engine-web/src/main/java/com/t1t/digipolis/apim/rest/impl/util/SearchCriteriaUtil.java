@@ -23,6 +23,7 @@ public final class SearchCriteriaUtil {
         validOperators.add(SearchCriteriaFilterOperator.lte);
         validOperators.add(SearchCriteriaFilterOperator.neq);
         validOperators.add(SearchCriteriaFilterOperator.like);
+        validOperators.add(SearchCriteriaFilterOperator.bool_eq);
     }
 
     /**

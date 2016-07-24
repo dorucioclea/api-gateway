@@ -72,7 +72,7 @@ public class CurrentUserResource implements ICurrentUserResource {
             Preconditions.checkArgument(info.getPic().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         }
         if (info.getBio() != null) {
-            Preconditions.checkArgument(info.getBio().length() <=1_000_000, "Bio should not exceed 1,000,000 characters: " + info.getBio().length());
+            Preconditions.checkArgument(info.getBio().length() <= 1_000_000, "Bio should not exceed 1,000,000 characters: " + info.getBio().length());
         }
         currentUserFacade.updateInfo(info);
     }
@@ -227,5 +227,17 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<EventAggregateBean> getAllActionEvents() {
         return eventFacade.getAllIncomingActionEvents(currentUserFacade.getInfo());
+    }
+
+    @Override
+    @ApiOperation(value = "Clear all incoming notification",
+            notes = "Call this endpoint to delete all informative notifications addressed to the current user")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Notifications deleted")
+    })
+    @DELETE
+    @Path("/notifications/incoming/")
+    public void deleteAll() {
+        eventFacade.deleteAllEvents(currentUserFacade.getInfo());
     }
 }

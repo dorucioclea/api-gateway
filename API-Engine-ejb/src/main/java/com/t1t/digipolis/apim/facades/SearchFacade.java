@@ -1,14 +1,16 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
-import com.t1t.digipolis.apim.beans.search.PagingBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterBean;
+import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
@@ -16,7 +18,6 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -31,7 +32,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.*;
 
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -41,22 +41,27 @@ import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
 public class SearchFacade {
     private static Logger log = LoggerFactory.getLogger(SearchFacade.class.getName());
 
-    @PersistenceContext
-    private EntityManager em;
-    @Inject
-    private ISecurityContext securityContext;
-    @Inject
-    private IStorage storage;
-    @Inject
-    private IStorageQuery query;
-    @Inject
-    private IMetricsAccessor metrics;
+    @PersistenceContext private EntityManager em;
+    @Inject private ISecurityContext securityContext;
+    @Inject private IStorage storage;
+    @Inject private IStorageQuery query;
+    @Inject private IMetricsAccessor metrics;
+    @Inject ISecurityAppContext appContext;
 
     private static final String NAME = "name";
     private static final String STATUS = "status";
 
+    private SearchCriteriaFilterBean getAppContextFilter(){
+        SearchCriteriaFilterBean appContextFilter = new SearchCriteriaFilterBean();
+        appContextFilter.setName("context");
+        appContextFilter.setValue(appContext.getApplicationPrefix());
+        appContextFilter.setOperator(SearchCriteriaFilterOperator.eq);
+        return appContextFilter;
+    }
+
     public SearchResultsBean<OrganizationSummaryBean> searchOrgs(SearchCriteriaBean criteria) {
         try {
+            criteria.getFilters().add(getAppContextFilter());
             return query.findOrganizations(criteria);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -65,6 +70,7 @@ public class SearchFacade {
 
     public SearchResultsBean<ApplicationSummaryBean> searchApps(SearchCriteriaBean criteria) {
         try {
+            criteria.getFilters().add(getAppContextFilter());
             return query.findApplications(criteria);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -72,9 +78,8 @@ public class SearchFacade {
     }
 
     public SearchResultsBean<ServiceSummaryBean> searchServices(SearchCriteriaBean criteria) {
-        //TODO: temporary solution - Service contains no visibility option, thus we return modified service versions
+        //temporary solution - Service contains no visibility option, thus we return modified service versions
         try {
-            //we store records in sorted set, otherwise we'll have duplicates
             Set<ServiceSummaryBean> resultServices = new TreeSet<>();
             List<ServiceVersionBean> serviceByStatus = new ArrayList<>();
             for (SearchCriteriaFilterBean filter : criteria.getFilters()) {
@@ -136,24 +141,28 @@ public class SearchFacade {
         }
     }
 
-    public List<String> findServiceVersionEndpointsForScope(String availability) {
+    public List<String> findServiceVersionEndpointsForMarketplaceType(ManagedApplicationTypes type) {
         List<String> returnValue = new ArrayList<>();
         try {
-            AvailabilityBean ab = storage.getAvailableMarket(availability);
-            if (ab == null) {
+            final List<ManagedApplicationBean> manappList = query.findManagedApplication(type);
+
+            if (manappList==null) {
                 throw ExceptionFactory.availabilityNotFoundException();
             }
-            List<ServiceVersionBean> svbs = query.findServiceVersionsByAvailability(ab);
-            svbs.forEach(sv -> {
-                returnValue.add(new StringBuilder("/")
-                        .append(sv.getService().getOrganization().getId().toLowerCase())
-                        .append("/")
-                        .append(sv.getService().getId().toLowerCase())
-                        .append("/")
-                        .append(sv.getVersion().toLowerCase())
-                        .append("/")
-                        .toString());
-            });
+
+            for(ManagedApplicationBean mb:manappList){
+                List<ServiceVersionBean> svbs = query.findServiceVersionsByAvailability(mb.getPrefix());
+                svbs.forEach(sv -> {
+                    returnValue.add(new StringBuilder("/")
+                            .append(sv.getService().getOrganization().getId().toLowerCase())
+                            .append("/")
+                            .append(sv.getService().getId().toLowerCase())
+                            .append("/")
+                            .append(sv.getVersion().toLowerCase())
+                            .append("/")
+                            .toString());
+                });
+            }
         }
         catch (StorageException ex) {
             throw new SystemErrorException(ex);
@@ -223,5 +232,14 @@ public class SearchFacade {
             svmibs.add(svmib);
         });
         return svmibs;
+    }
+
+    public ApplicationVersionSummaryBean resolveApiKey(String apikey) {
+        try {
+            return query.resolveApplicationVersionByAPIKey(apikey);
+        }
+        catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
     }
 }

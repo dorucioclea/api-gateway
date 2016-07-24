@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.beans.summary;
 
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -30,11 +32,34 @@ public class ContractSummaryBean implements Serializable {
     private String planVersion;
     private String provisionKey;
     private Date createdOn;
+    private Boolean termsAgreed;
 
     /**
      * Constructor.
      */
     public ContractSummaryBean() {
+    }
+
+    public ContractSummaryBean(ContractBean c) {
+        this.contractId = c.getId();
+        this.apikey = c.getApikey();
+        this.appOrganizationId = c.getApplication().getApplication().getOrganization().getId();
+        this.appOrganizationName = c.getApplication().getApplication().getOrganization().getName();
+        this.appId = c.getApplication().getApplication().getId();
+        this.appName = c.getApplication().getApplication().getName();
+        this.appVersion = c.getApplication().getVersion();
+        this.serviceOrganizationId = c.getService().getService().getOrganization().getId();
+        this.serviceOrganizationName = c.getService().getService().getOrganization().getName();
+        this.serviceId = c.getService().getService().getId();
+        this.serviceName = c.getService().getService().getName();
+        this.serviceVersion = c.getService().getVersion();
+        this.serviceDescription = c.getService().getService().getDescription();
+        this.planName = c.getPlan().getPlan().getName();
+        this.planId = c.getPlan().getPlan().getId();
+        this.planVersion = c.getPlan().getVersion();
+        this.provisionKey = c.getService().getProvisionKey();
+        this.createdOn = c.getCreatedOn();
+        this.termsAgreed = c.getTermsAgreed();
     }
 
     /**
@@ -275,12 +300,32 @@ public class ContractSummaryBean implements Serializable {
         this.apikey = apikey;
     }
 
+    /**
+     * @return the provision key
+     */
     public String getProvisionKey() {
         return provisionKey;
     }
 
+    /**
+     * @param provisionKey the provision key to set
+     */
     public void setProvisionKey(String provisionKey) {
         this.provisionKey = provisionKey;
+    }
+
+    /**
+     * @return the value of termsAgreed
+     */
+    public Boolean getTermsAgreed() {
+        return termsAgreed;
+    }
+
+    /**
+     * @param termsAgreed the value to set
+     */
+    public void setTermsAgreed(Boolean termsAgreed) {
+        this.termsAgreed = termsAgreed;
     }
 
     /**

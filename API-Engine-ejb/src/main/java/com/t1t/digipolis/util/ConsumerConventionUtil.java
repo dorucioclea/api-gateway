@@ -2,7 +2,6 @@ package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -59,9 +58,9 @@ public class ConsumerConventionUtil {
     }
 
     public static String createManagedApplicationConsumerName(ManagedApplicationBean bean) {
-        StringBuilder builder = new StringBuilder(bean.getAvailability() == null ? "" : bean.getAvailability().getCode());
+        StringBuilder builder = new StringBuilder(bean.getPrefix());
         if (builder.length() > 0) builder.append(".");
-        return builder.append(bean.getName())
+        return builder.append(bean.getAppId())
                 .append(".")
                 .append(bean.getVersion())
                 .toString();
@@ -70,7 +69,7 @@ public class ConsumerConventionUtil {
     /**
      * The application identifier denotes the consuming application of the service.
      * In order to support scoped marketplaces/publishers; a scope will be set if the unique appId contains a known prefix.
-     * The known prefixes are in configruation to avoid table lookups.
+     * The known prefixes are in configuration to avoid table lookups.
      * @param appId
      * @return
      */
@@ -80,11 +79,11 @@ public class ConsumerConventionUtil {
         String[] splitResult = appId.split("\\.");
         if(splitResult.length==3){
             //set optional marketplace scope
-            appIdBean.setScope(splitResult[0]);
+            appIdBean.setPrefix(splitResult[0]);
             appIdBean.setAppId(splitResult[1]);
             appIdBean.setVersion(splitResult[2]);
         }else if (splitResult.length == 2){
-            appIdBean.setScope(splitResult[0]);
+            appIdBean.setPrefix(splitResult[0]);
             appIdBean.setAppId(splitResult[1]);
         }else {
             return null;

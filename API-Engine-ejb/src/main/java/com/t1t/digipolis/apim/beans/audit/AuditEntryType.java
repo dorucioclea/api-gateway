@@ -15,5 +15,7 @@ public enum AuditEntryType {
     AddPolicy, RemovePolicy, UpdatePolicy, ReorderPolicies,
     CreateContract, BreakContract,
     Lock,
-    UpdateDefinition, DeleteDefinition, Deprecate
+    UpdateDefinition, DeleteDefinition, Deprecate,
+    //Other
+    OAuth2Reissuance, KeyAuthReissuance
 }

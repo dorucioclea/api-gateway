@@ -1,6 +1,8 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.apps.*;
+import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.idm.RoleBean;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
@@ -15,6 +17,7 @@ import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
@@ -25,9 +28,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import static org.mockito.Mockito.*;
 import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
@@ -44,7 +49,7 @@ import static org.junit.Assert.*;
  * Created by michallispashidis on 22/10/15.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(OrganizationFacade.class)
+@PrepareForTest({OrganizationFacade.class, AuditUtils.class})
 public class OrganizationFacadeTest {
     private static final Logger _LOG = LoggerFactory.getLogger(OrganizationFacadeTest.class.getName());
     @Rule
@@ -252,6 +257,8 @@ public class OrganizationFacadeTest {
     public void testUpdateAppVersionURI() throws Exception {
         when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(new ApplicationVersionBean());
         when(securityContext.getCurrentUser()).thenReturn("admin");
+        PowerMockito.mockStatic(AuditUtils.class);
+        when(AuditUtils.applicationVersionUpdated(any(ApplicationVersionBean.class), any(EntityUpdatedData.class), any(ISecurityContext.class))).thenReturn(new AuditEntryBean());
         orgFacade.updateAppVersionURI("someorg", "someapp", "someversion", new UpdateApplicationVersionURIBean());
         verify(storage).updateApplicationVersion(anyObject());
     }

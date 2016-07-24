@@ -2,7 +2,7 @@ package com.t1t.digipolis.apim.beans.services;
 
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.hibernate.validator.constraints.URL;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -91,6 +91,12 @@ public class ServiceVersionBean implements Serializable {
     private Map<String,String> oauthScopes;
     @Column(name = "auto_accept_contracts")
     private Boolean autoAcceptContracts;
+    @Lob
+    @Column(name="readme")
+    @Type(type = "org.hibernate.type.TextType")
+    private String readme;
+    @Column(name = "terms_agreement_required")
+    private Boolean termsAgreementRequired;
 
     /**
      * Constructor.
@@ -391,6 +397,22 @@ public class ServiceVersionBean implements Serializable {
         this.autoAcceptContracts = autoAcceptContracts;
     }
 
+    public String getReadme() {
+        return readme;
+    }
+
+    public void setReadme(String readme) {
+        this.readme = readme;
+    }
+
+    public Boolean getTermsAgreementRequired() {
+        return termsAgreementRequired;
+    }
+
+    public void setTermsAgreementRequired(Boolean termsAgreementRequired) {
+        this.termsAgreementRequired = termsAgreementRequired;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -442,11 +464,14 @@ public class ServiceVersionBean implements Serializable {
                 ", modifiedOn=" + modifiedOn +
                 ", publishedOn=" + publishedOn +
                 ", retiredOn=" + retiredOn +
+                ", deprecatedOn=" + deprecatedOn +
                 ", definitionType=" + definitionType +
                 ", provisionKey='" + provisionKey + '\'' +
                 ", onlinedoc='" + onlinedoc + '\'' +
                 ", oauthScopes=" + oauthScopes +
                 ", autoAcceptContracts=" + autoAcceptContracts +
+                ", readme='" + readme + '\'' +
+                ", termsAgreementRequired=" + termsAgreementRequired +
                 '}';
     }
 }

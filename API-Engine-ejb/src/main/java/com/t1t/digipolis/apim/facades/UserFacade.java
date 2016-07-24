@@ -2,15 +2,19 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
+import com.t1t.digipolis.apim.beans.idp.KeyMappingTypes;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import com.t1t.digipolis.apim.beans.mail.MembershipAction;
 import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
@@ -40,6 +44,7 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.CacheUtil;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.JWTUtils;
+import com.t1t.digipolis.util.ValidationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
@@ -368,6 +373,10 @@ public class UserFacade implements Serializable {
      * @return
      */
     public String generateSAML2LogoutRequest(String idpUrl, String spName, String user) {
+        return generateSAML2LogoutRequest(idpUrl, spName, user, null);
+    }
+
+    public String generateSAML2LogoutRequest(String idpUrl, String spName, String user, String relayState) {
         // Initialize the library
         try {
             //Bootstrap OpenSAML
@@ -376,7 +385,16 @@ public class UserFacade implements Serializable {
             LogoutRequest authnRequest = buildLogoutRequest(user, idpUrl, spName);
             //set client application name and callback in the cache
             String encodedRequestMessage = encodeAuthnRequest(authnRequest);
-            return idpUrl + "?" + SAML2_KEY_REQUEST + encodedRequestMessage;
+            StringBuilder rval = new StringBuilder(idpUrl)
+                    .append("?")
+                    .append(SAML2_KEY_REQUEST)
+                    .append(encodedRequestMessage);
+            if (relayState != null) {
+                rval.append("&")
+                        .append(SAML2_KEY_RELAY_STATE)
+                        .append(URLEncoder.encode(relayState, "UTF-8"));
+            }
+            return rval.toString();
             //redirectUrl = identityProviderUrl + "?SAMLRequest=" + encodedAuthRequest + "&RelayState=" + relayState;
         } catch (MarshallingException | IOException | ConfigurationException ex) {
             throw new SAMLAuthException("Could not generate the SAML2 Logout Request: " + ex.getMessage());
@@ -545,7 +563,8 @@ public class UserFacade implements Serializable {
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());
             //preempt if restricted mode and user is not admin; be carefull to scope the application, non api-engine applications uses this endpoint as well.
-            if (config.getRestrictedMode() && webClientCacheBean.getAppRequester() != null && config.getAppliedRestrictions().contains(webClientCacheBean.getAppRequester().getAppId())) {
+            final ManagedApplicationBean managedApplicationBean = storage.getManagedApplicationBean(webClientCacheBean.getAppRequester());
+            if (managedApplicationBean != null && managedApplicationBean.getActivated() && managedApplicationBean.getRestricted()) {
                 final UserBean user = idmStorage.getUser(userId);
                 if (user == null || !user.getAdmin()) {
                     SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
@@ -626,6 +645,9 @@ public class UserFacade implements Serializable {
                 extractedAttributes.put(name, nodeValue);
             }
         }
+        log.debug("SAML Attributes retrieved: {}",extractedAttributes);
+        //TODO map attributes listed in db table for SAML mapping
+        //Use a map to parse table keys to attribute keys => this mapping should be dynamic based on the key_mapping table
         //map values
         if (extractedAttributes.size() > 0) {
             if (extractedAttributes.containsKey(ISAML2.ATTR_ID)) {
@@ -647,6 +669,23 @@ public class UserFacade implements Serializable {
                 identityAttributes.setGivenName(extractedAttributes.get(ISAML2.ATTR_GIVEN_NAME));
             } else {
                 identityAttributes.setGivenName("");
+            }
+            //add optional claims to map, declared in the key mapping table
+            try {
+                final List<KeyMappingBean> keyMapping = query.getKeyMapping(KeyMappingTypes.SAML2.toString(), KeyMappingTypes.JWT.toString());
+                log.debug("Found key-mapping from'{}' to '{}':{}",KeyMappingTypes.SAML2.toString(),KeyMappingTypes.JWT.toString(),keyMapping);
+                if(keyMapping!=null && keyMapping.size()>0){
+                    Map<String,String>keyMappingBeanMap = new HashMap<>();
+                    for(KeyMappingBean kb:keyMapping){
+                        log.debug("Put JWT claim '{}' from SAML claim '{}'",kb.getToSpecClaim(),kb.getFromSpecClaim());
+                        keyMappingBeanMap.put(kb.getToSpecClaim(),extractedAttributes.get(kb.getFromSpecClaim()));
+                    }
+                    log.debug("Optional claims: {}",keyMappingBeanMap);
+                    identityAttributes.setOptionalMap(keyMappingBeanMap);
+                }
+            } catch (StorageException e) {
+                //on error ignore optional keymapping
+                log.error("Optional keymap error, but error skipped:{}",e.getMessage());
             }
         }
         return identityAttributes;
@@ -814,6 +853,7 @@ public class UserFacade implements Serializable {
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
             jwtRequestBean.setSurname(identityAttributes.getFamilyName());
             jwtRequestBean.setSubject(identityAttributes.getId());
+            jwtRequestBean.setOptionalClaims(identityAttributes.getOptionalMap());
             final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
             Integer jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
@@ -841,7 +881,7 @@ public class UserFacade implements Serializable {
      */
     public ExternalUserBean getUserByEmail(String email) {
         try{
-            UserBean userByMail = idmStorage.getUserByMail(email);
+            UserBean userByMail = idmStorage.getUserByMail(email.toLowerCase());
             if(userByMail==null)throw new StorageException();
             log.debug("User found by mail ({}): {}",email, userByMail);
             ExternalUserBean extUser = new ExternalUserBean();
@@ -853,7 +893,7 @@ public class UserFacade implements Serializable {
             extUser.setName(userByMail.getFullName());
             return extUser;
         }catch (StorageException e) {
-            throw new UserNotFoundException("Email unknow to the application: " + email);
+            throw new UserNotFoundException("Email unknown to the application: " + email);
         }
     }
 
@@ -861,7 +901,7 @@ public class UserFacade implements Serializable {
         DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
         ExternalUserBean extUser = null;
         try {
-            UserBean user = idmStorage.getUser(username);
+            UserBean user = idmStorage.getUser(username.toLowerCase());
             if(user==null)throw new StorageException();
             log.debug("User found by id ({}): {}",username, user);
             extUser = new ExternalUserBean();
@@ -871,7 +911,7 @@ public class UserFacade implements Serializable {
             extUser.setLastModified(df.format(user.getJoinedOn()));
             extUser.setGivenname(user.getFullName());
         } catch (StorageException e) {
-            throw new UserNotFoundException("User unknow to the application: " + username);
+            throw new UserNotFoundException("User unknown to the application: " + username);
         }
         return extUser;
     }
