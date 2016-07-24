@@ -26,10 +26,12 @@ public final class ErrorCodes {
     public static final int USER_NOT_FOUND                  = 1001;
     public static final int USER_ALREADY_EXISTS             = 1002;
     public static final int USER_STILL_OWNER                = 1003;
+    public static final int USER_ALREADY_A_MEMBER           = 1004;
 
     public static final String USER_NOT_FOUND_INFO          = null;
     public static final String USER_ALREADY_EXISTS_INFO     = null;
     public static final String USER_STILL_OWNER_INFO        = null;
+    public static final String USER_ALREADY_A_MEMBER_INFO   = null;
 
 
     //
@@ -67,6 +69,7 @@ public final class ErrorCodes {
     public static final int APP_STATUS_ERROR                = 4006;
     public static final int APP_VERSION_ALREADY_EXISTS      = 4007;
     public static final int CONTRACT_ALREADY_REQUESTED      = 4008;
+    public static final int TERMS_AGREEMENT_MISSING         = 4009;
 
     public static final String APP_ALREADY_EXISTS_INFO      = null;
     public static final String APP_NOT_FOUND_INFO           = null;
@@ -75,6 +78,7 @@ public final class ErrorCodes {
     public static final String CONTRACT_ALREADY_EXISTS_INFO = null;
     public static final String APP_STATUS_ERROR_INFO        = null;
     public static final String APP_VERSION_ALREADY_EXISTS_INFO = null;
+    public static final String TERMS_AGREEMENT_MISSING_INFO = null;
 
 
     //
@@ -88,6 +92,8 @@ public final class ErrorCodes {
     public static final int SERVICE_VERSION_ALREADY_EXISTS      = 5006;
     public static final int SERVICE_STILL_HAS_CONTRACTS         = 5009;
     public static final int SERVICE_BASEPATH_ALREADY_EXISTS     = 5010;
+    public static final int SERVICE_UPDATE_VALUES_INVALID       = 5011;
+    public static final int SERVICE_VERSION_NOT_AVAILABLE       = 5012;
 
     public static final String SERVICE_ALREADY_EXISTS_INFO      = null;
     public static final String SERVICE_NOT_FOUND_INFO           = null;
@@ -95,6 +101,8 @@ public final class ErrorCodes {
     public static final String SERVICE_STATUS_ERROR_INFO        = null;
     public static final String SERVICE_DEFINITION_NOT_FOUND_INFO   = null;
     public static final String SERVICE_VERSION_ALREADY_EXISTS_INFO      = null;
+    public static final String SERVICE_UPDATE_VALUES_INVALID_INFO   = null;
+    public static final String SERVICE_VERSION_NOT_AVAILABLE_INFO = null;
 
 
     //
@@ -155,6 +163,7 @@ public final class ErrorCodes {
     //
     public static final int GATEWAY_ALREADY_EXISTS              = 11001;
     public static final int GATEWAY_NOT_FOUND                   = 11002;
+    public static final int GATEWAY_API_KEY_ALREADY_EXISTS      = 11003;
 
     public static final String GATEWAY_ALREADY_EXISTS_INFO      = null;
     public static final String GATEWAY_NOT_FOUND_INFO           = null;

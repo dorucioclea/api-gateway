@@ -5,6 +5,8 @@ import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
+import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
@@ -132,7 +134,7 @@ public class OrganizationResource implements IOrganizationResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException {
+    public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException, StorageException {
         Preconditions.checkNotNull(bean);
         FieldValidator.validateName(bean.getName());
         return orgFacade.create(bean);
@@ -231,6 +233,25 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.deleteApp(organizationId, applicationId);
     }
 
+    @ApiOperation(value = "Delete Application Version")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteAppVersion(@PathParam("organizationId") String organizationId,
+                                 @PathParam("applicationId") String applicationId,
+                                 @PathParam("version") String version)
+            throws ApplicationNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        orgFacade.deleteAppVersion(organizationId, applicationId, version);
+    }
+
     @ApiOperation(value = "Get Application Activity",
             notes = "This endpoint returns audit activity information about the Application.")
     @ApiResponses({
@@ -312,7 +333,44 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         Preconditions.checkNotNull(updateAppUri);
+        if (!ValidationUtils.isValidURL(updateAppUri.getUri())) {
+            throw new IllegalArgumentException();
+        }
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
+    }
+
+    @Override
+    @ApiOperation(value = "Reissue Application version's API key",
+            notes = "Use this endpoint to revoke the application version's current API key and assign a new one")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = NewApiKeyBean.class, message = "API key reissued")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/key-auth/reissue")
+    @Produces(MediaType.APPLICATION_JSON)
+    public NewApiKeyBean reissueAppVersionApiKey(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
+        if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(appId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.reissueApplicationVersionApiKey(orgId, appId, version);
+    }
+
+    @Override
+    @ApiOperation(value = "Reissue Application version's OAuth2 credentials",
+            notes = "Use this endpoint to revoke the application version's current OAuth2 credentials and assign new credentials")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = NewOAuthCredentialsBean.class, message = "OAuth2 credentials reissued")
+    })
+    @POST
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth2/reissue")
+    @Produces(MediaType.APPLICATION_JSON)
+    public NewOAuthCredentialsBean reissueAppVersionOAuthCredentials(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
+        if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(appId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        return orgFacade.reissueApplicationVersionOAuthCredentials(orgId, appId, version);
     }
 
     @ApiOperation(value = "Get Application Version",
@@ -741,7 +799,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/terms")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceBean updateServiceTerms(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, UpdateServiceTearmsBean serviceTerms) throws ServiceNotFoundException, NotAuthorizedException{
+    public ServiceBean updateServiceTerms(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, UpdateServiceTermsBean serviceTerms) throws ServiceNotFoundException, NotAuthorizedException{
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkNotNull(serviceTerms);
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceTerms.getTerms()));
@@ -775,6 +833,21 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(planId));
         orgFacade.deletePlan(organizationId, planId);
+    }
+
+    @ApiOperation(value = "Delete Plan Version")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 412, message = "preconditions not met")
+    })
+    @DELETE
+    @Path("/{organizationId}/plans/{planId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deletePlanVersion(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId, @PathParam("version") String version) throws ServiceNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        orgFacade.deletePlanVersion(organizationId, planId, version);
     }
 
     @ApiOperation(value = "Delete Service By ID")
@@ -1958,16 +2031,19 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.listMembers(organizationId);
     }
 
-    @ApiOperation(value = "Test endpoint: Clean organization",
-            notes = "Remove a complete organization. This endpoint is meant for testing purpose.")
+    @ApiOperation(value = "Delete Organization",notes = "Delete a complete organization, when plans and services are already deleted up-front.")
     @ApiResponses({
-            @ApiResponse(code = 200, responseContainer = "List", response = MemberBean.class, message = "List of members.")
-    })
+                          @ApiResponse(code = 204, message = "successful, no content"),
+                          @ApiResponse(code = 412, message = "preconditions not met")
+                  })
     @DELETE
     @Path("/{organizationId}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteOrganization(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
         orgFacade.deleteOrganization(organizationId);
     }
 
@@ -2098,7 +2174,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Request a Service Contract",
             notes = "Use this endpoint to request a Contract between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Contract requested")
+            @ApiResponse(code = 204, response = ContractBean.class, message = "Contract requested")
     })
     @POST
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/request")
@@ -2140,7 +2216,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Accept an Application's Contract Request",
             notes = "Use this endpoint to accpet a Contract request between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Contract rejected")
+            @ApiResponse(code = 204, response = ContractBean.class, message = "Contract Accepted")
     })
     @POST
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/accept")
@@ -2156,5 +2232,89 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.acceptContractRequest(organizationId, applicationId, version, response);
     }
 
+    @ApiOperation(value = "Delete Service version")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 409, message = "service has contracts")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteServiceVersion(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version) throws NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        orgFacade.deleteServiceVersion(organizationId, serviceId, version);
+    }
 
+    @Override
+    @ApiOperation(value = "Get Service tags")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceTagsBean.class, message = "Service tags")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceTagsBean getTags(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        return orgFacade.getServiceTags(organizationId, serviceId);
+    }
+
+    @Override
+    @ApiOperation("Update Service Tags")
+    @ApiResponses({
+        @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void updateTags(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, ServiceTagsBean tags) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkNotNull(tags);
+        orgFacade.updateServiceTags(organizationId, serviceId, tags);
+    }
+
+    @Override
+    @ApiOperation("Delete Service Tag")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void deleteTag(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, TagBean tag) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkNotNull(tag);
+        orgFacade.deleteServiceTag(organizationId, serviceId, tag);
+    }
+
+    @Override
+    @ApiOperation("Add Service Tag")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void addTag(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, TagBean tag) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkNotNull(tag);
+        orgFacade.addServiceTag(organizationId, serviceId, tag);
+    }
 }

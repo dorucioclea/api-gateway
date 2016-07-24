@@ -17,11 +17,11 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <name>api-engine-root</name>
+    <name>API-Engine</name>
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.t1t.digipolis</groupId>
     <artifactId>API-Engine</artifactId>
-    <version>0.7.2-SNAPSHOT</version>
+    <version>0.8.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>
@@ -64,8 +64,8 @@
         <module>API-Engine-ejb</module>
         <module>API-Engine-web</module>
         <module>API-Engine-ear</module>
-        <module>Api-Engine-auth</module>
-        <module>Api-Engine-distro</module>
+        <module>API-Engine-auth</module>
+        <module>API-Engine-distro</module>
     </modules>
 
     <properties>
@@ -80,8 +80,6 @@
         <version.compiler.plugin>3.1</version.compiler.plugin>
         <version.ear.plugin>2.10</version.ear.plugin>
         <version.ejb.plugin>2.3</version.ejb.plugin>
-        <version.surefire.plugin>2.16</version.surefire.plugin>
-        <version.war.plugin>2.5</version.war.plugin>
 
         <!-- Plugin Versions -->
         <version.antrun.plugin>1.7</version.antrun.plugin>
@@ -750,13 +748,6 @@
                 <artifactId>hystrix-core</artifactId>
                 <version>${hystrix-core.version}</version>
             </dependency>
-
-            <!--Infinspan-->
-            <dependency>
-                <groupId>org.infinispan</groupId>
-                <artifactId>infinispan-core</artifactId>
-                <version>${infinispan-core.version}</version>
-            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -780,7 +771,16 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${version.deploy.plugin}</version>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${version.compiler.plugin}</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -788,7 +788,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.17</version>
+                    <version>${version.surefire.plugin}</version>
                 </plugin>
             </plugins>
         </pluginManagement>

@@ -72,4 +72,14 @@ public class MigrationResource implements IMigrationResource {
     public void syncGateways() throws AbstractRestException{
         migrationFacade.syncBusinessModel();
     }
+
+    @Override
+    @ApiOperation(value =  "Split orgs by context",
+            notes = "Use this endpoint in order to split orgs from v0.7x to v0.8.0")
+    @ApiResponses({@ApiResponse(code = 204, message = "Split completed")})
+    @POST
+    @Path("sync/split-orgs")
+    public void splitOrgs() throws Exception {
+        //migrationFacade.splitOrgs();
+    }
 }

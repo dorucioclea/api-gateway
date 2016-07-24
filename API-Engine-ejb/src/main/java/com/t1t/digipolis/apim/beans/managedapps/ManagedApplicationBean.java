@@ -1,15 +1,8 @@
 package com.t1t.digipolis.apim.beans.managedapps;
 
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
-import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.persistence.*;
 import java.io.Serializable;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.o;
 
 /**
  * @author Guillaume Vandecasteele
@@ -29,9 +22,10 @@ public class ManagedApplicationBean implements Serializable {
     private ManagedApplicationTypes type;
     @Column(name = "gateway_id")
     private String gatewayId;
-    @ManyToOne()
-    @JoinColumn(name = "availability")
-    private AvailabilityBean availability;
+    @Column(name = "app_id")
+    private String appId;
+    @Column(name = "prefix",unique=true)
+    private String prefix;
     @Column(name = "name")
     private String name;
     @Column(name = "version")
@@ -40,6 +34,10 @@ public class ManagedApplicationBean implements Serializable {
     private String gatewayUsername;
     @Column(name = "api_key")
     private String apiKey;
+    @Column(name = "restricted")
+    private Boolean restricted;
+    @Column(name = "activated")
+    private Boolean activated;
 
     public ManagedApplicationBean() {}
 
@@ -67,13 +65,9 @@ public class ManagedApplicationBean implements Serializable {
         this.gatewayId = gatewayId;
     }
 
-    public AvailabilityBean getAvailability() {
-        return availability;
-    }
+    public String getPrefix() {return prefix;}
 
-    public void setAvailability(AvailabilityBean availability) {
-        this.availability = availability;
-    }
+    public void setPrefix(String prefix) {this.prefix = prefix;}
 
     public String getName() {
         return name;
@@ -107,35 +101,53 @@ public class ManagedApplicationBean implements Serializable {
         this.version = version;
     }
 
+    public String getAppId() {return appId;}
+
+    public void setAppId(String appId) {this.appId = appId;}
+
+    public Boolean getRestricted() {return restricted;}
+
+    public void setRestricted(Boolean restricted) {this.restricted = restricted;}
+
+    public Boolean getActivated() {return activated;}
+
+    public void setActivated(Boolean activated) {this.activated = activated;}
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof ManagedApplicationBean)) return false;
 
         ManagedApplicationBean that = (ManagedApplicationBean) o;
 
         if (!id.equals(that.id)) return false;
         if (type != that.type) return false;
         if (gatewayId != null ? !gatewayId.equals(that.gatewayId) : that.gatewayId != null) return false;
-        if (availability != null ? !availability.equals(that.availability) : that.availability != null) return false;
+        if (!appId.equals(that.appId)) return false;
+        if (!prefix.equals(that.prefix)) return false;
         if (!name.equals(that.name)) return false;
         if (!version.equals(that.version)) return false;
         if (gatewayUsername != null ? !gatewayUsername.equals(that.gatewayUsername) : that.gatewayUsername != null)
             return false;
-        return apiKey != null ? apiKey.equals(that.apiKey) : that.apiKey == null;
+        if (!apiKey.equals(that.apiKey)) return false;
+        if (!restricted.equals(that.restricted)) return false;
+        return activated.equals(that.activated);
 
     }
 
     @Override
     public int hashCode() {
         int result = id.hashCode();
-        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + type.hashCode();
         result = 31 * result + (gatewayId != null ? gatewayId.hashCode() : 0);
-        result = 31 * result + (availability != null ? availability.hashCode() : 0);
+        result = 31 * result + appId.hashCode();
+        result = 31 * result + prefix.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + version.hashCode();
         result = 31 * result + (gatewayUsername != null ? gatewayUsername.hashCode() : 0);
-        result = 31 * result + (apiKey != null ? apiKey.hashCode() : 0);
+        result = 31 * result + apiKey.hashCode();
+        result = 31 * result + restricted.hashCode();
+        result = 31 * result + activated.hashCode();
         return result;
     }
 
@@ -145,11 +157,14 @@ public class ManagedApplicationBean implements Serializable {
                 "id=" + id +
                 ", type=" + type +
                 ", gatewayId='" + gatewayId + '\'' +
-                ", availability='" + availability + '\'' +
+                ", appId='" + appId + '\'' +
+                ", prefix='" + prefix + '\'' +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
                 ", gatewayUsername='" + gatewayUsername + '\'' +
                 ", apiKey='" + apiKey + '\'' +
+                ", restricted=" + restricted +
+                ", activated=" + activated +
                 '}';
     }
 }

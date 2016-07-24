@@ -7,11 +7,13 @@ import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.audit.AuditEntryType;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.digipolis.apim.beans.availability.AvailabilityBean;
+import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
+import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
@@ -26,6 +28,7 @@ import com.t1t.digipolis.apim.beans.mail.MembershipAction;
 import com.t1t.digipolis.apim.beans.mail.MembershipRequestMailBean;
 import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
 import com.t1t.digipolis.apim.beans.metrics.AppUsagePerServiceBean;
@@ -45,6 +48,7 @@ import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
+import com.t1t.digipolis.apim.config.Version;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
@@ -61,15 +65,33 @@ import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongApi;
+import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongExtraInfo;
+import com.t1t.digipolis.kong.model.KongInfo;
+import com.t1t.digipolis.kong.model.KongInstalledPlugins;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
+import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongPluginACLRequest;
+import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
@@ -79,8 +101,8 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ClassPathUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
@@ -101,9 +123,18 @@ import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.t1t.digipolis.apim.beans.policies.Policies.TCPLOG;
+import static com.t1t.digipolis.apim.beans.user.ClientTokeType.jwt;
+import static java.lang.ClassLoader.getSystemResource;
 
 /**
  * Created by michallispashidis on 15/08/15.
@@ -147,6 +178,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     @Inject
     private Event<AnnouncementBean> announcement;
 
+    public final static String MARKET_SEPARATOR = "-";
 
     @SuppressWarnings("nls")
     public static final String[] DATE_FORMATS = {
@@ -169,7 +201,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
     //craete organization
-    public OrganizationBean create(NewOrganizationBean bean) {
+    public OrganizationBean create(NewOrganizationBean bean) throws StorageException {
         List<RoleBean> autoGrantedRoles = null;
         SearchCriteriaBean criteria = new SearchCriteriaBean();
         criteria.setPage(1);
@@ -186,10 +218,26 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable"));
             }
         }
+        //determine org id
+        String orgUniqueId = bean.getName();
+        orgUniqueId = orgUniqueId.replaceAll(MARKET_SEPARATOR, "");
+        orgUniqueId = BeanUtils.idFromName(orgUniqueId);
+
+        //verify if organization is created in marketplace (aka not publisher or consent type)
+        ManagedApplicationBean managedApp = query.findManagedApplication(appContext.getApplicationPrefix());
+        if (managedApp != null && (
+                        managedApp.getType().equals(ManagedApplicationTypes.InternalMarketplace) ||
+                        managedApp.getType().equals(ManagedApplicationTypes.ExternalMarketplace)
+        )) {
+            //the request comes from a marketplace => prefix the org
+            orgUniqueId = managedApp.getPrefix() + MARKET_SEPARATOR + orgUniqueId;
+        }
+
         OrganizationBean orgBean = new OrganizationBean();
         orgBean.setName(bean.getName());
+        orgBean.setContext(appContext.getApplicationPrefix());
         orgBean.setDescription(bean.getDescription());
-        orgBean.setId(BeanUtils.idFromName(bean.getName()));
+        orgBean.setId(orgUniqueId);
         orgBean.setCreatedOn(new Date());
         orgBean.setCreatedBy(securityContext.getCurrentUser());
         orgBean.setModifiedOn(new Date());
@@ -307,7 +355,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newApp.setDescription(bean.getDescription());
         newApp.setCreatedBy(securityContext.getCurrentUser());
         newApp.setCreatedOn(new Date());
-        newApp.setContext(appContext.getApplicationIdentifier().getScope());
+        newApp.setContext(appContext.getApplicationIdentifier().getPrefix());
         try {
             // Store/persist the new application
             OrganizationBean org = storage.getOrganization(organizationId);
@@ -359,6 +407,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     ncb.setServiceId(contract.getServiceId());
                     ncb.setServiceOrgId(contract.getServiceOrganizationId());
                     ncb.setServiceVersion(contract.getServiceVersion());
+                    ncb.setTermsAgreed(contract.getTermsAgreed());
                     createContract(organizationId, applicationId, newVersion.getVersion(), ncb);
                 }
                 List<PolicySummaryBean> policies = listAppPolicies(organizationId, applicationId, bean.getCloneVersion());
@@ -381,12 +430,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             log.debug("Enter updateAppversionURI:{}", uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if (avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
+            String previousURI = avb.getOauthClientRedirect();
             avb.setOauthClientRedirect(uri.getUri());
-            storage.updateApplicationVersion(avb);
             //register application credentials for OAuth2
             //create OAuth2 application credentials on the application consumer - should only been done once for this application
             if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
-                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                 //String uniqueUserId = securityContext.getCurrentUser();
                 KongPluginOAuthConsumerRequest OAuthRequest = new KongPluginOAuthConsumerRequest()
                         .withClientId(avb.getoAuthClientId())
@@ -395,20 +444,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .withRedirectUri(avb.getOauthClientRedirect());
                 if (avb.getStatus() == ApplicationStatus.Registered) {
                     List<ContractSummaryBean> csb = query.getApplicationContracts(organizationId, applicationId, version);
-                    for (IGatewayLink gateway : getApplicationGatewayLinks(csb).values()) {
+                    Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(csb);
+                    for (IGatewayLink gateway : gateways.values()) {
                         gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
                     }
-                }
-                else {
+                } else {
                     if (avb.getStatus() != ApplicationStatus.Retired) {
                         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                         gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
-                    }
-                    else {
+                    } else {
                         throw ExceptionFactory.invalidApplicationStatusException();
                     }
                 }
             }
+            EntityUpdatedData data = new EntityUpdatedData();
+            data.addChange("OAuth2 Callback URI", previousURI, avb.getOauthClientRedirect());
+            storage.updateApplicationVersion(avb);
+            storage.createAuditEntry(AuditUtils.applicationVersionUpdated(avb, data, securityContext));
             return avb;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -427,7 +479,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public PolicyBean createManagedApplicationPolicy(ManagedApplicationBean managedApp, NewPolicyBean bean) {
         PolicyType type = null;
         switch (managedApp.getType()) {
-            case Marketplace:
+            case InternalMarketplace:
+            case ExternalMarketplace:
                 type = PolicyType.Marketplace;
                 break;
             case Consent:
@@ -436,7 +489,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             default:
                 throw ExceptionFactory.invalidPolicyException("Invalid policy type");
         }
-        return doCreatePolicy(managedApp.getAvailability().getCode(), managedApp.getName(), managedApp.getVersion(), bean, type);
+        return doCreatePolicy(managedApp.getPrefix(), managedApp.getName(), managedApp.getVersion(), bean, type);
     }
 
     public PolicyBean getAppPolicy(String organizationId, String applicationId, String version, long policyId) {
@@ -464,12 +517,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             //verify if serviceversion and appversion exist
             ApplicationVersionBean avb = getAppVersion(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion());
-            if (avb.getStatus() == ApplicationStatus.Registered) {
-                throw ExceptionFactory.invalidApplicationStatusException();
-            }
             ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
             String appId = ConsumerConventionUtil.createAppUniqueId(avb);
             String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
+            //Check if there already is a contract between the service and application
+            List<ContractSummaryBean> csbs = query.getApplicationContracts(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion());
+            for (ContractSummaryBean sum : csbs) {
+                if (sum.getServiceOrganizationId().equals(organizationId) && sum.getServiceId().equals(serviceId) && sum.getServiceVersion().equals(version)) {
+                    throw ExceptionFactory.contractAlreadyExistsException();
+                }
+            }
+            if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
+                throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
+            }
             //Check if service allows auto contract creation
             if (!svb.getAutoAcceptContracts()) {
 
@@ -502,9 +562,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 //send notification to org owners for
                 listMembers(organizationId).forEach(member -> {
                     member.getRoles().forEach(role -> {
-                        if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){//only owners
-                            try{
-                                if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
+                        if (role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())) {//only owners
+                            try {
+                                if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
                                     ContractMailBean contractMailBean = new ContractMailBean();
                                     contractMailBean.setTo(member.getEmail());
                                     contractMailBean.setUserId(securityContext.getCurrentUser());
@@ -519,25 +579,24 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                                     contractMailBean.setPlanVersion(pvsb.getVersion());
                                     mailService.sendContractRequest(contractMailBean);
                                 }
-                            }catch(Exception e){
-                                log.error("Error sending mail:{}",e.getMessage());
+                            } catch (Exception e) {
+                                log.error("Error sending mail:{}", e.getMessage());
                             }
                         }
                     });
                 });
                 return null;
-            }
-            else {
+            } else {
                 //Service accepts all incoming contract requests so create and return new contract
                 NewContractBean ncb = new NewContractBean();
                 ncb.setServiceOrgId(organizationId);
                 ncb.setServiceId(serviceId);
                 ncb.setServiceVersion(version);
                 ncb.setPlanId(bean.getPlanId());
+                ncb.setTermsAgreed(bean.getTermsAgreed());
                 return createContract(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion(), ncb);
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -554,9 +613,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //send notification to app org owners
         listMembers(organizationId).forEach(member -> {
             member.getRoles().forEach(role -> {
-                if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){//only owners
-                    try{
-                        if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
+                if (role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())) {//only owners
+                    try {
+                        if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
                             ContractMailBean contractMailBean = new ContractMailBean();
                             contractMailBean.setTo(member.getEmail());
                             contractMailBean.setUserId(securityContext.getCurrentUser());
@@ -570,8 +629,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                             contractMailBean.setPlanName(bean.getPlanId());
                             mailService.rejectContractRequest(contractMailBean);
                         }
-                    }catch(Exception e){
-                        log.error("Error sending mail:{}",e.getMessage());
+                    } catch (Exception e) {
+                        log.error("Error sending mail:{}", e.getMessage());
                     }
                 }
             });
@@ -591,9 +650,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //send notification to app org owners
         listMembers(organizationId).forEach(member -> {
             member.getRoles().forEach(role -> {
-                if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){//only owners
-                    try{
-                        if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
+                if (role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())) {//only owners
+                    try {
+                        if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
                             ContractMailBean contractMailBean = new ContractMailBean();
                             contractMailBean.setTo(member.getEmail());
                             contractMailBean.setUserId(securityContext.getCurrentUser());
@@ -607,8 +666,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                             contractMailBean.setPlanName(bean.getPlanId());
                             mailService.approveContractRequest(contractMailBean);
                         }
-                    }catch(Exception e){
-                        log.error("Error sending mail:{}",e.getMessage());
+                    } catch (Exception e) {
+                        log.error("Error sending mail:{}", e.getMessage());
                     }
                 }
             });
@@ -622,33 +681,37 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             //for contract add keyauth to application consumer
-            //We create the new application version consumer
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            Gson gson = new Gson();
-            if (contract != null) {
-                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                try {
-                    gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
-                } catch (Exception e) {
-                    //apikey for consumer already exists
+            String serviceOrgId = contract.getService().getService().getOrganization().getId();
+            String serviceId = contract.getService().getService().getId();
+            String svcVersion = contract.getService().getVersion();
+            if (contract.getApplication().getStatus() == ApplicationStatus.Registered) {
+                Application app = getApplicationForNewContractRegistration(contract);
+                Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version));
+                for (IGatewayLink gateway : gateways.values()) {
+                    enableContractonGateway(contract, gateway);
+                    //persist the new contract policies
+                    Map<Contract, KongPluginConfigList> response = gateway.registerApplication(app);
+                    for (Map.Entry<Contract, KongPluginConfigList> entry : response.entrySet()) {
+                        for (KongPluginConfig config : entry.getValue().getData()) {
+                            NewPolicyBean npb = new NewPolicyBean();
+                            npb.setGatewayId(gateway.getGatewayId());
+                            npb.setConfiguration(new Gson().toJson(config.getConfig()));
+                            npb.setContractId(contract.getId());
+                            npb.setKongPluginId(config.getId());
+                            npb.setDefinitionId(GatewayUtils.convertKongPluginNameToPolicy(config.getName()).getPolicyDefId());
+                            doCreatePolicy(organizationId, applicationId, version, npb, PolicyType.Contract);
+                        }
+                    }
                 }
-                //Add ACL group membership by default on gateway
-                KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
-                        ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()));
-                //Persist the unique Kong plugin id in a new policy associated with the app.
-                NewPolicyBean npb = new NewPolicyBean();
-                KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
-                npb.setDefinitionId(Policies.ACL.name());
-                npb.setKongPluginId(response.getId());
-                npb.setContractId(contract.getId());
-                npb.setConfiguration(gson.toJson(conf));
-                doCreatePolicy(organizationId, applicationId, version, npb, PolicyType.Application);
+            } else {
+                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                enableContractonGateway(contract, gateway);
             }
             //verify if the contracting service has OAuth enabled
-            List<PolicySummaryBean> policySummaryBeans = listServicePolicies(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+            List<PolicySummaryBean> policySummaryBeans = listServicePolicies(serviceOrgId, serviceId, svcVersion);
             for (PolicySummaryBean summaryBean : policySummaryBeans) {
                 if (summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())) {
-                    ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
+                    ApplicationVersionBean avb = contract.getApplication();
                     boolean changed = false;
                     if (StringUtils.isEmpty(avb.getoAuthClientId())) {
                         //create client_id and client_secret for the application - the same client_id/secret must be used for all services
@@ -658,11 +721,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         changed = true;
                     }
                     //Check if client credentials is enabled, and if so, already enable oauth on gateway
-                    PolicyBean pb = storage.getPolicy(PolicyType.Service, bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion(), summaryBean.getId());
-                    KongPluginOAuth oAuthValue = gson.fromJson(pb.getConfiguration(), KongPluginOAuth.class);
-                    if (oAuthValue.getEnableClientCredentials()) {
+                    PolicyBean pb = storage.getPolicy(PolicyType.Service, serviceOrgId, serviceId, svcVersion, summaryBean.getId());
+                    KongPluginOAuth oAuthValue = new Gson().fromJson(pb.getConfiguration(), KongPluginOAuth.class);
+                    if (oAuthValue.getEnableClientCredentials() && avb.getOauthClientRedirect() == null) {
                         avb.setOauthClientRedirect(PLACEHOLDER_CALLBACK_URI);
-                        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId,applicationId,version);
+                        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                         OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
                         requestBean.setUniqueUserName(appConsumerName);
                         requestBean.setAppOAuthId(avb.getoAuthClientId());
@@ -684,6 +747,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             // only do this on failure (we would get a FK contraint failure, for example) to
             // reduce overhead on the typical happy path.
             // we asume it already exists
+            //
+            // However, we should probably log the exception for debugging purposes
+            log.debug("Contract creation error:{}", e);
             throw ExceptionFactory.contractAlreadyExistsException();
 /*            if (contractAlreadyExists(organizationId, applicationId, version, bean)) {
         throw ExceptionFactory.contractAlreadyExistsException();
@@ -691,6 +757,58 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         throw new SystemErrorException(e);
     }*/
         }
+    }
+
+    private void enableContractonGateway(ContractBean contract, IGatewayLink gateway) throws StorageException {
+        String applicationOrgId = contract.getApplication().getApplication().getOrganization().getId();
+        String applicationId = contract.getApplication().getApplication().getId();
+        String appVersion = contract.getApplication().getVersion();
+        if (contract != null) {
+            String appConsumerName = ConsumerConventionUtil.createAppUniqueId(contract.getApplication());
+            try {
+                gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
+            } catch (Exception e) {
+                //apikey for consumer already exists, but let's log the exception for debugging purposes
+                log.debug("Consumer Key-Auth Exception:{}", e);
+            }
+            //Add ACL group membership by default on gateway
+            KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
+                    ServiceConventionUtil.generateServiceUniqueName(contract.getService()));
+            //Persist the unique Kong plugin id in a new policy associated with the app.
+            NewPolicyBean npb = new NewPolicyBean();
+            KongPluginACLResponse conf = new KongPluginACLResponse().withGroup(response.getGroup());
+            npb.setDefinitionId(Policies.ACL.name());
+            npb.setKongPluginId(response.getId());
+            npb.setContractId(contract.getId());
+            npb.setConfiguration(new Gson().toJson(conf));
+            npb.setGatewayId(gateway.getGatewayId());
+            doCreatePolicy(applicationOrgId, applicationId, appVersion, npb, PolicyType.Contract);
+        }
+    }
+
+    private Application getApplicationForNewContractRegistration(ContractBean cb) throws StorageException {
+        Application app = new Application(cb.getApplication().getApplication().getOrganization().getId(), cb.getApplication().getApplication().getId(), cb.getApplication().getVersion());
+        Contract contract = new Contract(cb);
+        List<Policy> contractPolicies = new ArrayList<>();
+        for (PolicyBean policy : getContractedServicePlanPolicies(cb)) {
+            contractPolicies.add(new Policy(policy.getDefinition().getId(), policy.getConfiguration()));
+        }
+        contract.setPolicies(contractPolicies);
+        app.setContracts(new HashSet<>());
+        app.getContracts().add(contract);
+        return app;
+    }
+
+    private List<PolicyBean> getContractedServicePlanPolicies(ContractBean c) throws StorageException {
+        List<PolicyBean> rval = new ArrayList<>();
+        String planOrg = c.getPlan().getPlan().getOrganization().getId();
+        String planId = c.getPlan().getPlan().getId();
+        String planVersion = c.getPlan().getVersion();
+        List<PolicySummaryBean> sums = query.getPolicies(planOrg, planId, planVersion, PolicyType.Plan);
+        for (PolicySummaryBean sum : sums) {
+            rval.add(getPlanPolicy(planOrg, planId, planVersion, sum.getId()));
+        }
+        return rval;
     }
 
     public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) throws StorageException {
@@ -807,62 +925,76 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             // Get Application versions
             List<ApplicationVersionSummaryBean> versions = query.getApplicationVersions(applicationBean.getOrganization().getId(), applicationBean.getId());
-            // For each version, we will clean up the database and the gateway
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            for(ApplicationVersionSummaryBean version:versions){
-                // Note that contract must be remove before deleting app - this is by using 'unregister' app in the action facade - but for some use cases, you can delete app while still having contract
-                List<ContractSummaryBean> contractBeans = query.getApplicationContracts(version.getOrganizationId(), version.getId(), version.getVersion());
-                // delete all contracts
-                for(ContractSummaryBean contractSumBean:contractBeans){
-                    ContractBean contract = null;
-                    try {
-                        contract = storage.getContract(contractSumBean.getContractId());
-                        storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
-                        storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
-                        storage.deleteContract(contract);
-                        log.debug(String.format("Deleted contract: %s", contract));
-                    } catch (StorageException e) {
-                        throw new SystemErrorException(e);
-                    }
-                }
-                // Verify the status: if Created, Ready or Registered we need to remove the consumer from Kong
-                ApplicationStatus status = version.getStatus();
-                if (status.equals(ApplicationStatus.Created) || status.equals(ApplicationStatus.Ready) || status.equals(ApplicationStatus.Registered)) {
-                    Application application = new Application();
-                    application.setOrganizationId(version.getOrganizationId());
-                    application.setApplicationId(version.getId());
-                    application.setVersion(version.getVersion());
-                    try {
-                        gateway.unregisterApplication(application);
-                    } catch (Exception e) {
-                        throw ExceptionFactory.actionException(Messages.i18n.format("UnregisterError"), e); //$NON-NLS-1$
-                    }
-                }
+            for (ApplicationVersionSummaryBean appVersion : versions) {
+                deleteAppVersionInternal(appVersion.getOrganizationId(), appVersion.getId(), appVersion.getVersion());
             }
-            gateway.close();
-            // Remove all application versions from API Engine
-            versions.stream().forEach(version -> {
-                try {
-                    ApplicationVersionBean appVersion = storage.getApplicationVersion(version.getOrganizationId(), version.getId(), version.getVersion());
-                    storage.deleteApplicationVersion(appVersion);
-                } catch (AbstractRestException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new SystemErrorException(e);
-                }
-            });
-            // Delete related application events
-            String eventId = new StringBuilder(applicationBean.getOrganization().getId())
-                    .append(applicationId)
-                    .append(".%")
-                    .toString();
-            query.deleteAllEventsForEntity(eventId);
             // Finally, delete the application from API Engine
             storage.deleteApplication(applicationBean);
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+    }
+
+    public void deleteAppVersion(String organizationId, String applicationId, String version) {
+        try {
+            List<ApplicationVersionSummaryBean> versions = query.getApplicationVersions(organizationId, applicationId);
+            //If there's only one version left, delete the entire application...
+            if (versions.size() == 1) {
+                deleteApp(organizationId, applicationId);
+            } else {
+                deleteAppVersionInternal(organizationId, applicationId, version);
+            }
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private void deleteAppVersionInternal(String organizationId, String applicationId, String version) {
+        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
+        try {
+            List<ContractSummaryBean> summaries = query.getApplicationContracts(organizationId, applicationId, version);
+            for (ContractSummaryBean contractSumBean : summaries) {
+                ContractBean contract = null;
+                try {
+                    contract = storage.getContract(contractSumBean.getContractId());
+                    storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
+                    storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
+                    storage.deleteContract(contract);
+                    log.debug(String.format("Deleted contract: %s", contract));
+                } catch (StorageException e) {
+                    throw new SystemErrorException(e);
+                }
+            }
+            Application application = new Application(organizationId, applicationId, version);
+            if (avb.getStatus() == ApplicationStatus.Registered) {
+                Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(summaries);
+                for (IGatewayLink gateway : gateways.values()) {
+                    try {
+                        gateway.unregisterApplication(application);
+                        gateway.close();
+                    } catch (GatewayAuthenticationException ex) {
+                        throw ExceptionFactory.systemErrorException(ex);
+                    }
+                }
+            } else {
+                if (avb.getStatus() != ApplicationStatus.Retired) {
+                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                    try {
+                        gateway.unregisterApplication(application);
+                        gateway.close();
+                    } catch (GatewayAuthenticationException ex) {
+                        throw ExceptionFactory.systemErrorException(ex);
+                    }
+                }
+            }
+            // Delete related application events
+            query.deleteAllEventsForEntity(ConsumerConventionUtil.createAppUniqueId(avb));
+            // Finally delete the application
+            storage.deleteApplicationVersion(avb);
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
@@ -999,11 +1131,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version) {
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
+
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
             decryptEndpointProperties(serviceVersion);
-            return serviceVersion;
+            return filterServiceVersionByAppPrefix(serviceVersion);
         } catch (AbstractRestException e) {
             throw e;
         } catch (StorageException e) {
@@ -1022,8 +1155,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         EntityUpdatedData data = new EntityUpdatedData();
         if (svb.getStatus() != ServiceStatus.Retired) {
             if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
-                svb.setModifiedBy(securityContext.getCurrentUser());
-                svb.setModifiedOn(new Date());
                 data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
                 svb.setEndpoint(bean.getEndpoint());
                 //If the service is already published, update the upstream URL's on the gateways the service is published on
@@ -1035,85 +1166,106 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 svb.setEndpointType(bean.getEndpointType());
                 log.debug("BEAN ENDPOINT TYPE UPDATED");
             }
-            if (svb.getStatus() != ServiceStatus.Retired || svb.getStatus() != ServiceStatus.Deprecated || svb.getStatus() != ServiceStatus.Published) {
-                svb.setModifiedBy(securityContext.getCurrentUser());
-                svb.setModifiedOn(new Date());
-                if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
-                    data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
-                    svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
-                    log.debug("BEAN AUTOACCEPT CONTRACTS UPDATED");
+            if (AuditUtils.valueChanged(svb.getReadme(), bean.getReadme())) {
+                data.addChange("readme", svb.getReadme(), bean.getReadme());
+                svb.setReadme(bean.getReadme());
+            }
+            if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
+                if (bean.getVisibility() == null || bean.getVisibility().isEmpty()) {
+                    throw ExceptionFactory.serviceVersionUpdateException(Messages.i18n.format("ServiceVersionHasNoAvailability"));
                 }
-                if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
-                    data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
-                    if (svb.getPlans() == null) {
-                        svb.setPlans(new HashSet<ServicePlanBean>());
-                    }
-                    svb.getPlans().clear();
-                    if (bean.getPlans() != null) {
-                        svb.getPlans().addAll(bean.getPlans());
-                    }
-                    log.debug("BEAN PLANS UPDATED");
-                }
-                if (AuditUtils.valueChanged(svb.getGateways(), bean.getGateways())) {
-                    data.addChange("gateways", AuditUtils.asString_ServiceGatewayBeans(svb.getGateways()), AuditUtils.asString_ServiceGatewayBeans(bean.getGateways())); //$NON-NLS-1$
-                    if (svb.getGateways() == null) {
-                        svb.setGateways(new HashSet<ServiceGatewayBean>());
-                    }
-                    svb.getGateways().clear();
-                    svb.getGateways().addAll(bean.getGateways());
-                    log.debug("BEAN GATEWAYS UPDATED");
-                }
-                if (AuditUtils.valueChanged(svb.getOnlinedoc(), bean.getOnlinedoc())) {
-                    data.addChange("online doc", svb.getOnlinedoc(), bean.getOnlinedoc());
-                    svb.setOnlinedoc(bean.getOnlinedoc());
-                    log.debug("BEAN ONLINE DOCS UPDATED");
-                }
-                if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
-                    if (svb.getEndpointProperties() == null) {
-                        svb.setEndpointProperties(new HashMap<String, String>());
-                    } else {
-                        svb.getEndpointProperties().clear();
-                    }
-                    if (bean.getEndpointProperties() != null) {
-                        svb.getEndpointProperties().putAll(bean.getEndpointProperties());
-                    }
-                    log.debug("BEAN ENDPOINT PROPERTIES UPDATED");
-                }
-                if (AuditUtils.valueChanged(svb.isPublicService(), bean.getPublicService())) {
-                    data.addChange("publicService", String.valueOf(svb.isPublicService()), String.valueOf(bean.getPublicService())); //$NON-NLS-1$
-                    svb.setPublicService(bean.getPublicService());
-                    log.debug("BEAN PUBLICITY UPDATED");
-                }
-                if (AuditUtils.valueChanged(svb.getVisibility(), bean.getVisibility())) {
-                    data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
-                    svb.setVisibility(bean.getVisibility());
-                    //add implicitly the IP Restriction when: External available and hide = false
-                    //TODO - remove this code if it does turn out to be redundant
-                    KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(IPRestrictionFlavor.WHITELIST, query.listWhitelistRecords());
-                    boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
-                    if(defaultIPRestriction !=null && enableIPR){
-                        Gson gson = new Gson();
-                        NewPolicyBean npb = new NewPolicyBean();
-                        npb.setDefinitionId("IPRestriction");//TODO == definition id in the DB - should not be hardcoded -> but addes to the Policies class
-                        npb.setConfiguration(gson.toJson(defaultIPRestriction));
-                        try{
-                            createServicePolicy(organizationId,serviceId,version,npb);
-                        }catch(PolicyDefinitionAlreadyExistsException pdex){;}//ignore if policy already exists
-                    }else{
-                        //remove eventual policies already added
-                        List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
-                        for(PolicySummaryBean psb:policies){
-                            psb.getPolicyDefinitionId().equalsIgnoreCase("IPRestriction");
-                            deleteServicePolicy(organizationId,serviceId,version,psb.getId());
+                //Check if the new visibility doesn't affect existing contracts
+                List<ContractBean> contracts = query.getServiceContracts(organizationId, serviceId, version);
+                if (!contracts.isEmpty()) {
+                    Set<String> visibilities = new HashSet<>();
+                    bean.getVisibility().forEach(vis -> visibilities.add(vis.getCode()));
+                    for (ContractBean contract : contracts) {
+                        if (!visibilities.contains(contract.getApplication().getApplication().getOrganization().getContext())) {
+                            throw ExceptionFactory.serviceVersionUpdateException(String.format(Messages.i18n.format("ServiceVersionStillHasContractsInScope", serviceId, version)));
                         }
                     }
-                    log.debug("BEAN VISIBILITY UPDATED");
                 }
+                data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
+                svb.setVisibility(bean.getVisibility());
+                //add implicitly the IP Restriction when: External available and hide = false
+                //Legacy - we added implicitly an IPRestriction policy, we remove this because OR it should be on a separate gateway, or the load balancer should deal with it.
+/*                    KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(IPRestrictionFlavor.WHITELIST, query.listWhitelistRecords());
+                    boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
+                    if (defaultIPRestriction != null && enableIPR) {
+                        Gson gson = new Gson();
+                        NewPolicyBean npb = new NewPolicyBean();
+                        npb.setDefinitionId("IPRestriction");
+                        npb.setConfiguration(gson.toJson(defaultIPRestriction));
+                        try {
+                            createServicePolicy(organizationId, serviceId, version, npb);
+                        } catch (PolicyDefinitionAlreadyExistsException pdex) {
+                            ;
+                        }//ignore if policy already exists
+                    } else {
+                        //remove eventual policies already added
+                        List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
+                        for (PolicySummaryBean psb : policies) {
+                            psb.getPolicyDefinitionId().equalsIgnoreCase("IPRestriction");
+                            deleteServicePolicy(organizationId, serviceId, version, psb.getId());
+                        }
+                    }*/
+                log.debug("BEAN VISIBILITY UPDATED");
             }
-            else {
-                throw ExceptionFactory.invalidServiceStatusException();
+            if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
+                data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
+                svb.setAutoAcceptContracts(bean.getAutoAcceptContracts());
+                log.debug("BEAN AUTOACCEPT CONTRACTS UPDATED");
             }
-            if(svb.getStatus()!=ServiceStatus.Published){
+            if (AuditUtils.valueChanged(svb.getPlans(), bean.getPlans())) {
+                isServiceVersionPublishedOrDeprecated(svb);
+                data.addChange("plans", AuditUtils.asString_ServicePlanBeans(svb.getPlans()), AuditUtils.asString_ServicePlanBeans(bean.getPlans())); //$NON-NLS-1$
+                if (svb.getPlans() == null) {
+                    svb.setPlans(new HashSet<ServicePlanBean>());
+                }
+                svb.getPlans().clear();
+                if (bean.getPlans() != null) {
+                    svb.getPlans().addAll(bean.getPlans());
+                }
+                log.debug("BEAN PLANS UPDATED");
+            }
+            if (AuditUtils.valueChanged(svb.getGateways(), bean.getGateways())) {
+                isServiceVersionPublishedOrDeprecated(svb);
+                data.addChange("gateways", AuditUtils.asString_ServiceGatewayBeans(svb.getGateways()), AuditUtils.asString_ServiceGatewayBeans(bean.getGateways())); //$NON-NLS-1$
+                if (svb.getGateways() == null) {
+                    svb.setGateways(new HashSet<ServiceGatewayBean>());
+                }
+                svb.getGateways().clear();
+                svb.getGateways().addAll(bean.getGateways());
+                log.debug("BEAN GATEWAYS UPDATED");
+            }
+            if (AuditUtils.valueChanged(svb.getOnlinedoc(), bean.getOnlinedoc())) {
+                data.addChange("online doc", svb.getOnlinedoc(), bean.getOnlinedoc());
+                svb.setOnlinedoc(bean.getOnlinedoc());
+                log.debug("BEAN ONLINE DOCS UPDATED");
+            }
+            if (AuditUtils.valueChanged(svb.getEndpointProperties(), bean.getEndpointProperties())) {
+                isServiceVersionPublishedOrDeprecated(svb);
+                if (svb.getEndpointProperties() == null) {
+                    svb.setEndpointProperties(new HashMap<String, String>());
+                } else {
+                    svb.getEndpointProperties().clear();
+                }
+                if (bean.getEndpointProperties() != null) {
+                    svb.getEndpointProperties().putAll(bean.getEndpointProperties());
+                }
+                log.debug("BEAN ENDPOINT PROPERTIES UPDATED");
+            }
+            if (AuditUtils.valueChanged(svb.isPublicService(), bean.getPublicService())) {
+                isServiceVersionPublishedOrDeprecated(svb);
+                data.addChange("publicService", String.valueOf(svb.isPublicService()), String.valueOf(bean.getPublicService())); //$NON-NLS-1$
+                svb.setPublicService(bean.getPublicService());
+                log.debug("BEAN PUBLICITY UPDATED");
+            }
+            if (AuditUtils.valueChanged(svb.getTermsAgreementRequired(), bean.getTermsAgreementRequired())) {
+                data.addChange("termsAgreementRequired", String.valueOf(svb.getTermsAgreementRequired()), String.valueOf(bean.getTermsAgreementRequired()));
+                svb.setTermsAgreementRequired(bean.getTermsAgreementRequired());
+            }
+            if (svb.getStatus() != ServiceStatus.Published) {
                 try {
                     if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
                         GatewaySummaryBean gateway = getSingularGateway();
@@ -1154,6 +1306,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         }
                     }
                 }
+                svb.setModifiedBy(securityContext.getCurrentUser());
+                svb.setModifiedOn(new Date());
                 storage.updateServiceVersion(svb);
                 AuditEntryBean entry = AuditUtils.serviceVersionUpdated(svb, data, securityContext);
                 if (entry != null) {
@@ -1167,8 +1321,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             } catch (Exception e) {
                 throw new SystemErrorException(e);
             }
-        }
-        else {
+        } else {
             throw ExceptionFactory.invalidServiceStatusException();
         }
     }
@@ -1213,6 +1366,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    private void isServiceVersionPublishedOrDeprecated(ServiceVersionBean svb) {
+        if (svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) {
+            throw ExceptionFactory.invalidServiceStatusException();
+        }
+    }
+
     public ServiceVersionBean createServiceVersion(String organizationId, String serviceId, NewServiceVersionBean bean) {
         log.info("newservice:{}", bean);
         ServiceVersionBean newVersion = null;
@@ -1239,6 +1398,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
                 // Clone primary attributes of the service version
                 UpdateServiceVersionBean updatedService = new UpdateServiceVersionBean();
+                updatedService.setReadme(cloneSource.getReadme());
+                updatedService.setTermsAgreementRequired(cloneSource.getTermsAgreementRequired());
                 updatedService.setEndpoint(cloneSource.getEndpoint());
                 updatedService.setEndpointType(cloneSource.getEndpointType());
                 updatedService.setEndpointProperties(cloneSource.getEndpointProperties());
@@ -1263,7 +1424,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getServicePolicy(organizationId, serviceId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,serviceId,bean.getCloneVersion())).getPolicyJsonConfig());
+                    npb.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()), ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, bean.getCloneVersion())).getPolicyJsonConfig());
                     createServicePolicy(organizationId, serviceId, newVersion.getVersion(), npb);
                 }
                 newVersion = updateServiceVersion(organizationId, serviceId, bean.getVersion(), updatedService);
@@ -1381,8 +1542,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     MetricsConsumerUsageList usageList = metrics.getAppUsageForService(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion(), interval, from, to, consumerId);
                     if (usageList != null) {
                         data.put(ServiceConventionUtil.generateServiceUniqueName(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()), usageList);
-                    }
-                    else {
+                    } else {
                         throw ExceptionFactory.metricsUnavailableException();
                     }
 
@@ -1406,8 +1566,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         MetricsUsageList usageList = metrics.getUsage(organizationId, serviceId, version, interval, from, to);
         if (usageList != null) {
             return usageList;
-        }
-        else {
+        } else {
             throw ExceptionFactory.metricsUnavailableException();
         }
 
@@ -1417,8 +1576,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         ServiceMarketInfo marketInfo = metrics.getServiceMarketInfo(organizationId, serviceId, version);
         if (marketInfo != null) {
             return marketInfo;
-        }
-        else {
+        } else {
             throw ExceptionFactory.metricsUnavailableException();
         }
 
@@ -1435,8 +1593,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         MetricsResponseStatsList statsList = metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
         if (statsList != null) {
             return statsList;
-        }
-        else {
+        } else {
             throw ExceptionFactory.metricsUnavailableException();
         }
 
@@ -1449,8 +1606,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         MetricsResponseSummaryList summList = metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
         if (summList != null) {
             return summList;
-        }
-        else {
+        } else {
             throw ExceptionFactory.metricsUnavailableException();
         }
 
@@ -1495,8 +1651,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     /**
      * Deletes a contract from an application with a service:
      * <ul>
-     *     <li>Status Created/Ready:</li>
+     * <li>Status Created/Ready:</li>
      * </ul>
+     *
      * @param organizationId
      * @param applicationId
      * @param version
@@ -1504,9 +1661,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      */
     public void deleteContract(String organizationId, String applicationId, String version, Long contractId) {
         try {
-            ContractBean contract = storage.getContract(contractId);
+            ContractBean contract = getContract(organizationId, applicationId, version, contractId);
             ApplicationVersionBean avb;
             avb = storage.getApplicationVersion(organizationId, applicationId, version);
+            Map<String, IGatewayLink> gateways = getApplicationContractGatewayLinks(Collections.singletonList(contract));
             if (contract == null) {
                 throw ExceptionFactory.contractNotFoundException(contractId);
             }
@@ -1530,26 +1688,40 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
             try {
                 //We delete only the key-auth when no other contracts with the application - pending contracts must not be taken into consideration
-                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                if (contractBeans.size()==1) {
+                if (contractBeans.size() == 1) {
                     String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                    gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());//this can only be done when no other contracts exist
+                    //this can only be done when no other contracts exist
+                    if (avb.getStatus() == ApplicationStatus.Registered) {
+                        for (IGatewayLink gateway : gateways.values()) {
+                            gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());
+                        }
+                    }
+                    else {
+                        gateways.get(gatewayFacade.getDefaultGateway().getId()).deleteConsumerKeyAuth(appConsumerName, contract.getApikey());
+                    }
                 }
             } catch (StorageException e) {
                 throw new ApplicationNotFoundException(e.getMessage());
             }
 
-            //Revoke application's ACL membership
+            //Revoke application's contract plugins
             try {
-                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId);
-                if (policy == null) {
-                    throw ExceptionFactory.policyNotFoundException(0);//TODO-> this indicated inconsistency in code! shouldnt be there
+                if (avb.getStatus() == ApplicationStatus.Registered) {
+                    for (IGatewayLink gateway : gateways.values()) {
+                        List<PolicyBean> policies = query.getApplicationVersionContractPolicies(organizationId, applicationId, version, contractId);
+                        for (PolicyBean policy : policies) {
+                            if (policy.getGatewayId().equals(gateway.getGatewayId())) {
+                                deleteContractPolicy(contract, policy, gateway);
+                            }
+                        }
+                    }
                 }
-                gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version), policy.getKongPluginId());
-                deleteAppPolicy(organizationId, applicationId, version, policy.getId());
-            }
-            catch (StorageException ex) {
+                else {
+                    IGatewayLink gateway = gateways.get(gatewayFacade.getDefaultGateway().getId());
+                    PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId, gateway.getGatewayId());
+                    deleteContractPolicy(contract, policy, gateway);
+                }
+            } catch (StorageException ex) {
                 throw new SystemErrorException(ex);
             }
             //remove contract
@@ -1557,7 +1729,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
             //validate application state
             // Validate the state of the application.
-            if (!applicationValidator.isReady(avb)) {
+            if (avb.getStatus() != ApplicationStatus.Registered && !applicationValidator.isReady(avb)) {
                 avb.setStatus(ApplicationStatus.Created);
             }
             storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
@@ -1605,6 +1777,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+    }
+
+    private void deleteContractPolicy(ContractBean c, PolicyBean p, IGatewayLink gateway) throws StorageException {
+        boolean deleted = false;
+        switch (Policies.valueOf(p.getDefinition().getId().toUpperCase())) {
+            case ACL:
+                gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(c.getApplication()), p.getKongPluginId());
+                deleted = true;
+                break;
+            case IPRESTRICTION:
+            case REQUESTSIZELIMITING:
+            case RATELIMITING:
+                gateway.deleteApiPlugin(ServiceConventionUtil.generateServiceUniqueName(c.getService()), p.getKongPluginId());
+                deleted = true;
+                break;
+        }
+        if (deleted) {
+            storage.deletePolicy(p);
         }
     }
 
@@ -1675,7 +1866,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public ServiceBean updateServiceTerms(String organizationId, String serviceId, UpdateServiceTearmsBean serviceTerms) {
+    public ServiceBean updateServiceTerms(String organizationId, String serviceId, UpdateServiceTermsBean serviceTerms) {
         try {
             ServiceBean bean = storage.getService(organizationId, serviceId);
             if (bean == null) {
@@ -1705,28 +1896,47 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void deletePlan(String organizationId, String planId){
-        if(!securityContext.hasPermission(PermissionType.planAdmin, organizationId))throw ExceptionFactory.notAuthorizedException();
-        try{
+    public void deletePlan(String organizationId, String planId) {
+        if (!securityContext.hasPermission(PermissionType.planAdmin, organizationId))
+            throw ExceptionFactory.notAuthorizedException();
+        try {
             //Get Plan info
             PlanBean plan = storage.getPlan(organizationId, planId);
-            if(plan==null)throw ExceptionFactory.planNotFoundException(planId);
+            if (plan == null) throw ExceptionFactory.planNotFoundException(planId);
             //Get all plan versions
             List<PlanVersionBean> allPlanVersionBeans = query.findAllPlanVersionBeans(organizationId, plan.getId());
             //verify if planverions have running contracts
-            for(PlanVersionBean pvb: allPlanVersionBeans){
-                List<ContractBean> planVersionContracts = query.getPlanVersionContracts(pvb.getId());
-                //for existing contract throw exception
-                if(planVersionContracts!=null&&planVersionContracts.size()>0)throw ExceptionFactory.planCannotBeDeleted("Plan still has contracts linked");
-            }
-            //If no contracts we delete the planversions and plan
-            for(PlanVersionBean pvb:allPlanVersionBeans){
-                storage.deletePlanVersion(pvb);
+            for (PlanVersionBean pvb : allPlanVersionBeans) {
+                deletePlanVersionInternal(pvb);
             }
             storage.deletePlan(plan);
         } catch (StorageException e) {
             e.printStackTrace();
         }
+    }
+
+    public void deletePlanVersion(String organizationId, String planId, String version) {
+        PlanVersionBean pvb = getPlanVersion(organizationId, planId, version);
+        try {
+            if (query.getPlanVersions(organizationId, planId).size() == 1) {
+                deletePlan(organizationId, planId);
+            }
+            else {
+                deletePlanVersionInternal(pvb);
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private void deletePlanVersionInternal(PlanVersionBean pvb) throws StorageException {
+        List<ContractBean> planVersionContracts = query.getPlanVersionContracts(pvb.getId());
+        //for existing contract throw exception
+        if (planVersionContracts != null && planVersionContracts.size() > 0) {
+            throw ExceptionFactory.planCannotBeDeleted("Plan still has contracts linked");
+        }
+        storage.deletePlanVersion(pvb);
     }
 
     public void deleteService(String organizationId, String serviceId) {
@@ -1738,100 +1948,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (serviceBean == null) {
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
             }
-
+            if (query.getServiceContracts(serviceBean).size() > 0) {
+                throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
+            }
             // Get Service versions
-            List<ServiceVersionSummaryBean> versions = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            versions.stream().forEach(version -> {
-
-                // (Remove any existing contracts) Instead of removing existing contrasts, throw error if there still are any.
-                try {
-                    List<ContractSummaryBean> contracts = query.getServiceContracts(version.getOrganizationId(), version.getId(), version.getVersion(), 1, 1000);
-                    if (contracts.size() > 0) {
-                        throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
-                    }
-                    /*contracts.stream().forEach(contract -> {
-                        try {
-                            ContractBean contractBean = storage.getContract(contract.getContractId());
-                            storage.deleteContract(contractBean);
-                        } catch (StorageException e) {
-                            throw new SystemErrorException(e);
-                        }
-                    });*/
-                } catch (StorageException e) {
-                    throw new SystemErrorException(e);
-                }
-
-                // Remove service definition if found
-                InputStream definitionStream = getServiceDefinition(version.getOrganizationId(), version.getId(), version.getVersion());
-                if (definitionStream != null) {
-                    deleteServiceDefinition(version.getOrganizationId(), version.getId(), version.getVersion());
-                }
-
-                // Remove service policies
-                List<PolicySummaryBean> policies = listServicePolicies(version.getOrganizationId(), version.getId(), version.getVersion());
-                policies.stream().forEach(policy -> {
-                    try {
-                        PolicyBean policyBean = storage.getPolicy(PolicyType.Service, version.getOrganizationId(), version.getId(), version.getVersion(), policy.getId());
-                        storage.deletePolicy(policyBean);
-                    } catch (AbstractRestException e) {
-                        throw e;
-                    } catch (Exception e) {
-                        throw new SystemErrorException(e);
-                    }
-                });
-
-                //Revoke marketplace ACL memberships
-                try {
-                    List<PolicyBean> aclPolicies = query.getManagedAppACLPolicies(organizationId, serviceId, version.getVersion());
-                    for (PolicyBean policy : aclPolicies) {
-                        gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
-                        storage.deletePolicy(policy);
-                    }
-                }
-                catch (StorageException ex) {
-                    throw new SystemErrorException(ex);
-                }
-
-                // Remove gateway config & plan configuration for service version
-                ServiceVersionBean svb = getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
-                svb.getGateways().clear();
-                svb.getPlans().clear();
-                try {
-                    storage.updateServiceVersion(svb);
-                } catch (AbstractRestException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new SystemErrorException(e);
-                }
-
-                // For each version, verify the status: if Published we need to remove the API from Kong
-                ServiceStatus status = version.getStatus();
-                if (status.equals(ServiceStatus.Published)) {
-                    Service service = new Service();
-                    service.setOrganizationId(version.getOrganizationId());
-                    service.setServiceId(version.getId());
-                    service.setVersion(version.getVersion());
-                    try {
-                        gateway.retireService(service);
-                    } catch (Exception e) {
-                        throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
-                    }
-                }
-            });
-            gateway.close();
-            // Remove all service versions from API Engine
-            versions.stream().forEach(version -> {
-                try {
-                    ServiceVersionBean svcVersion = storage.getServiceVersion(version.getOrganizationId(), version.getId(), version.getVersion());
-                    //TODO break contracts in order to clean up the oauth2 stuff
-                    storage.deleteServiceVersion(svcVersion);
-                } catch (AbstractRestException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new SystemErrorException(e);
-                }
-            });
+            List<ServiceVersionSummaryBean> svsbs = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
+            for (ServiceVersionSummaryBean svsb : svsbs) {
+                deleteServiceVersionInternal(getServiceVersion(svsb.getOrganizationId(), svsb.getId(), svsb.getVersion()));
+            }
 
             // Remove support entries
             List<SupportBean> supportTickets = listServiceSupportTickets(organizationId, serviceId);
@@ -1844,12 +1968,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             announcements.stream().forEach(announcement -> {
                 deleteServiceAnnouncement(organizationId, serviceId, announcement.getId());
             });
-            // Delete related events
-            String eventId = new StringBuilder(serviceBean.getOrganization().getId())
-                    .append(serviceId)
-                    .append(".%")
-                    .toString();
-            query.deleteAllEventsForEntity(eventId);
+
+            //Service announcement events have a organizationid.serviceid nomenclature, so delete those events
+            query.deleteAllEventsForEntity(new StringBuilder(organizationId).append(".").append(serviceId).toString());
+
             // Finally, delete the Service from API Engine
             storage.deleteService(serviceBean);
         } catch (AbstractRestException e) {
@@ -1857,6 +1979,73 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    public void deleteServiceVersion(String organizationId, String serviceId, String version) {
+        try {
+            if (query.getServiceVersions(organizationId, serviceId).size() == 1) {
+                deleteService(organizationId, serviceId);
+            }
+            else {
+                ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+                deleteServiceVersionInternal(svb);
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private void deleteServiceVersionInternal(ServiceVersionBean svb) throws StorageException {
+        String organizationId = svb.getService().getOrganization().getId();
+        String serviceId = svb.getService().getId();
+        String version = svb.getVersion();
+        //Check for existing contrasts, throw error if there still are any.
+        if (query.getServiceContracts(organizationId, serviceId, version).size() > 0) {
+            throw ExceptionFactory.serviceCannotDeleteException("Service version still has contracts");
+        }
+
+        // Remove service definition if found
+        InputStream definitionStream = getServiceDefinition(organizationId, serviceId, version);
+        if (definitionStream != null) {
+            deleteServiceDefinition(organizationId, serviceId, version);
+        }
+
+        // Remove service policies
+        for (PolicySummaryBean policy : listServicePolicies(organizationId, serviceId, version)) {
+            PolicyBean policyBean = storage.getPolicy(PolicyType.Service, organizationId, serviceId, version, policy.getId());
+            storage.deletePolicy(policyBean);
+        }
+        //Perform the cleanup on the serviceversion's various gateways
+        for (ServiceGatewayBean gwb : svb.getGateways()) {
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gwb.getGatewayId());
+            //Clean up the Managed App ACL(s)
+            List<PolicyBean> policies = query.getManagedAppACLPolicies(organizationId, serviceId, version);
+            for (PolicyBean policy : policies) {
+                gateway.deleteConsumerACLPlugin(ConsumerConventionUtil.createAppUniqueId(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()), policy.getKongPluginId());
+                storage.deletePolicy(policy);
+            }
+            //Verify the status: if Published or deprecated we need to remove the API from Kong
+            if (svb.getStatus().equals(ServiceStatus.Published) || svb.getStatus().equals(ServiceStatus.Deprecated)) {
+                Service service = new Service(organizationId, serviceId, version);
+                try {
+                    gateway.retireService(service);
+                } catch (Exception e) {
+                    throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
+                }
+            }
+            gateway.close();
+        }
+        // Remove events
+        query.deleteAllEventsForEntity(ServiceConventionUtil.generateServiceUniqueName(svb));
+
+        // Remove gateway config & plan configuration for service version
+        svb.getGateways().clear();
+        svb.getPlans().clear();
+        storage.updateServiceVersion(svb);
+
+        // Now we can finally delete the version itself
+        storage.deleteServiceVersion(svb);
     }
 
     public SearchResultsBean<AuditEntryBean> getServiceActivity(String organizationId, String serviceId, int page, int pageSize) {
@@ -1956,14 +2145,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (serviceVersion == null) {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
-            //enrich visibility with name (coming from other entity)
-            Map<String, AvailabilityBean> availableMarkets = query.listAvailableMarkets();
-            for(VisibilityBean vb: serviceVersion.getVisibility()){
-                if(availableMarkets.containsKey(vb.getCode())){
-                    vb.setName(availableMarkets.get(vb.getCode()).getName());
-                }
+            //enrich visibility with the name of the marketplace based on the persisted prefix.
+            final List<ManagedApplicationBean> availableMarkets = query.listAvailableMarkets();
+            for (VisibilityBean vb : serviceVersion.getVisibility()) {
+                //get the name of the marketplace
+                final ManagedApplicationBean managedApplication = query.findManagedApplication(vb.getCode());
+                vb.setName(managedApplication.getName());
             }
-            Map<String,VisibilityBean> serviceVisibilities = serviceVersion.getVisibility().stream().collect(Collectors.toMap(VisibilityBean::getCode, Function.identity()));
+            Map<String, VisibilityBean> serviceVisibilities = serviceVersion.getVisibility().stream().collect(Collectors.toMap(VisibilityBean::getCode, Function.identity()));
             return serviceVisibilities;
         } catch (AbstractRestException e) {
             throw e;
@@ -1996,12 +2185,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
             KongPluginConfigList pluginConfigList = gateway.getServicePlugin(serviceKongId, pluginId);
-            if(pluginConfigList!=null && pluginConfigList.getData().size()>0){
+            if (pluginConfigList != null && pluginConfigList.getData().size() > 0) {
                 KongPluginConfig pluginConfig = pluginConfigList.getData().get(0);
                 pluginConfig.setEnabled(enable);
-                pluginConfig = gateway.updateServicePlugin(serviceKongId,pluginConfig);
+                pluginConfig = gateway.updateServicePlugin(serviceKongId, pluginConfig);
                 return pluginConfig;
-            }else{
+            } else {
                 return null;
             }
         } catch (AbstractRestException e) {
@@ -2063,7 +2252,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             // TODO capture specific change values when auditing policy updates
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,serviceId,version)).getPolicyJsonConfig());
+                policy.setConfiguration(GatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration()), ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version)).getPolicyJsonConfig());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
@@ -2187,14 +2376,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public Set<ApplicationBean> listServiceConsumers(String orgId, String serviceId){
+    public Set<ApplicationBean> listServiceConsumers(String orgId, String serviceId) {
         //get all service versions
         final List<ServiceVersionSummaryBean> serviceVersions = listServiceVersions(orgId, serviceId);
         Set<ApplicationBean> apps = new TreeSet<>();
-        for(ServiceVersionSummaryBean svb:serviceVersions){
+        for (ServiceVersionSummaryBean svb : serviceVersions) {
             try {
                 final List<ContractBean> serviceContracts = query.getServiceContracts(svb.getOrganizationId(), svb.getId(), svb.getVersion());
-                for(ContractBean contract:serviceContracts){
+                for (ContractBean contract : serviceContracts) {
                     //contract means: service published and application registeredf
                     apps.add(contract.getApplication().getApplication());
                 }
@@ -2443,16 +2632,24 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void grant(String organizationId, GrantRoleBean bean) {
         // Verify that the references are valid.
-        get(organizationId);
-        userFacade.get(bean.getUserId());
+        OrganizationBean org = get(organizationId);
+        UserBean user = userFacade.get(bean.getUserId());
         roleFacade.get(bean.getRoleId());
+
         // If user had a pending membership request,
         MembershipData auditData = new MembershipData();
         auditData.setUserId(bean.getUserId());
         try {
+            if (!idmStorage.getUserMemberships(bean.getUserId(), organizationId).isEmpty()) {
+                String message = new StringBuilder(StringUtils.isEmpty(user.getFullName()) ? user.getUsername() : user.getFullName())
+                        .append(" is already a member of ")
+                        .append(org.getName())
+                        .toString();
+                throw ExceptionFactory.membershipAlreadyExists(message);
+            }
             RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), bean.getRoleId(), organizationId);
             membership.setCreatedOn(new Date());
-            // If the membership already exists, that's fine!
+            // If the membership already exists, throw an exception to let the user know that person is already a member
             if (idmStorage.getMembership(bean.getUserId(), bean.getRoleId(), organizationId) == null) {
                 idmStorage.createMembership(membership);
             }
@@ -2474,11 +2671,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 .withType(EventType.MEMBERSHIP_GRANTED);
         event.fire(newEvent);
         //send email
-        try{
+        try {
             final RoleBean roleBean = roleFacade.get(bean.getRoleId());
             final OrganizationBean organizationBean = get(organizationId);
             final UserBean userBean = userFacade.get(bean.getUserId());
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
                 UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
                 updateMemberMailBean.setTo(userBean.getEmail());
                 updateMemberMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
@@ -2487,8 +2684,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updateMemberMailBean.setRole(roleBean.getName());
                 mailService.sendUpdateMember(updateMemberMailBean);
             }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
+        } catch (Exception e) {
+            log.error("Error sending mail:{}", e.getMessage());
         }
     }
 
@@ -2548,10 +2745,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
         }
         //send email
-        try{
+        try {
             final OrganizationBean organizationBean = get(organizationId);
             final UserBean userBean = userFacade.get(userId);
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
                 UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
                 updateMemberMailBean.setTo(userBean.getEmail());
                 updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
@@ -2560,8 +2757,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updateMemberMailBean.setRole("");
                 mailService.sendUpdateMember(updateMemberMailBean);
             }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
+        } catch (Exception e) {
+            log.error("Error sending mail:{}", e.getMessage());
         }
     }
 
@@ -2588,11 +2785,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
         //send email
-        try{
+        try {
             final RoleBean roleBean = roleFacade.get(bean.getRoleId());
             final OrganizationBean organizationBean = get(organizationId);
             final UserBean userBean = userFacade.get(userId);
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
                 UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
                 updateMemberMailBean.setTo(userBean.getEmail());
                 updateMemberMailBean.setMembershipAction(MembershipAction.UPDATE_ROLE);
@@ -2601,8 +2798,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updateMemberMailBean.setRole(roleBean.getName());
                 mailService.sendUpdateMember(updateMemberMailBean);
             }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
+        } catch (Exception e) {
+            log.error("Error sending mail:{}", e.getMessage());
         }
     }
 
@@ -2625,10 +2822,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
         //send email
-        try{
+        try {
             final OrganizationBean organizationBean = get(organizationId);
             final UserBean userBean = userFacade.get(userId);
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
                 UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
                 updateMemberMailBean.setTo(userBean.getEmail());
                 updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
@@ -2637,8 +2834,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updateMemberMailBean.setRole("");
                 mailService.sendUpdateMember(updateMemberMailBean);
             }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
+        } catch (Exception e) {
+            log.error("Error sending mail:{}", e.getMessage());
         }
     }
 
@@ -2674,10 +2871,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
         //send email
-        try{
+        try {
             final OrganizationBean organizationBean = get(organizationId);
             final UserBean userBean = userFacade.get(bean.getNewOwnerId());
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
+            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
                 UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
                 updateMemberMailBean.setTo(userBean.getEmail());
                 updateMemberMailBean.setMembershipAction(MembershipAction.TRANSFER);
@@ -2685,8 +2882,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
                 mailService.sendUpdateMember(updateMemberMailBean);
             }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
+        } catch (Exception e) {
+            log.error("Error sending mail:{}", e.getMessage());
         }
     }
 
@@ -2762,7 +2959,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId(), newVersion.getVersion());
                 //Applications' customId must contain version otherwise only one version of an application can be available on the gateway at one time
                 //String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
-                gateway.createConsumer(appConsumerName,appConsumerName);
+                gateway.createConsumer(appConsumerName, appConsumerName);
             }
         } catch (StorageException e) {
             throw new ApplicationNotFoundException(e.getMessage());
@@ -2798,6 +2995,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (svb.getStatus() != ServiceStatus.Published) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
+
+        if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
+            throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
+        }
         Set<ServicePlanBean> plans = svb.getPlans();
         String planVersion = null;
         if (plans != null) {
@@ -2823,11 +3024,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         contract.setApplication(avb);
         contract.setService(svb);
         contract.setPlan(pvb);
+        contract.setTermsAgreed(bean.getTermsAgreed());
         contract.setCreatedBy(securityContext.getCurrentUser());
         contract.setCreatedOn(new Date());
-        if(applicationVersionContracts.size()>0){
+        if (applicationVersionContracts.size() > 0) {
             contract.setApikey(applicationVersionContracts.get(0).getApikey());//use same apikey when already a contract
-        }else {
+        } else {
             contract.setApikey(apiKeyGenerator.generate());
         }
         // Validate the state of the application.
@@ -2950,7 +3152,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setDefinition(def);
             policy.setName(def.getName());
             //validate (remove null values) and apply custom implementation for the policy
-            String policyJsonConfig = GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration()),ServiceConventionUtil.generateServiceUniqueName(organizationId,entityId,entityVersion)).getPolicyJsonConfig();
+            String policyJsonConfig = GatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration()), ServiceConventionUtil.generateServiceUniqueName(organizationId, entityId, entityVersion)).getPolicyJsonConfig();
             policy.setConfiguration(policyJsonConfig);
             policy.setCreatedBy(securityContext.getCurrentUser());
             policy.setCreatedOn(new Date());
@@ -2963,6 +3165,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setOrderIndex(newIdx);
             policy.setKongPluginId(bean.getKongPluginId());
             policy.setContractId(bean.getContractId());
+            policy.setGatewayId(bean.getGatewayId());
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
             //PolicyTemplateUtil.generatePolicyDescription(policy);
@@ -3496,7 +3699,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return announcementBeans;
     }
 
-    public void requestMembership(String orgId){
+    public void requestMembership(String orgId) {
         OrganizationBean org = get(orgId);
         if (org == null) {
             throw ExceptionFactory.organizationNotFoundException(orgId);
@@ -3511,20 +3714,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw ExceptionFactory.membershipRequestFailedException("Already a member");
         }
         try {
-            EventBean event = query.getEventByOriginDestinationAndType(securityContext.getCurrentUser(), org.getId() , EventType.MEMBERSHIP_PENDING);
+            EventBean event = query.getEventByOriginDestinationAndType(securityContext.getCurrentUser(), org.getId(), EventType.MEMBERSHIP_PENDING);
             if (event != null) {
                 throw ExceptionFactory.membershipRequestFailedException("Membership already requested, still pending");
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
         listMembers(orgId).forEach(member -> {
             member.getRoles().forEach(role -> {
-                if(role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())){
+                if (role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())) {
                     //send email
-                    try{
-                        if(member.getUserId()!=null && !StringUtils.isEmpty(member.getEmail())){
+                    try {
+                        if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
                             MembershipRequestMailBean membershipRequestMailBean = new MembershipRequestMailBean();
                             membershipRequestMailBean.setTo(member.getEmail());
                             membershipRequestMailBean.setUserId(securityContext.getCurrentUser());
@@ -3533,8 +3735,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                             membershipRequestMailBean.setOrgFriendlyName(org.getFriendlyName());
                             mailService.sendRequestMembership(membershipRequestMailBean);
                         }
-                    }catch(Exception e){
-                        log.error("Error sending mail:{}",e.getMessage());
+                    } catch (Exception e) {
+                        log.error("Error sending mail:{}", e.getMessage());
                     }
                 }
             });
@@ -3726,29 +3928,201 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    /* Test utilities */
-    public boolean deleteOrganization(String orgId) {
+    /**
+     * This implementation deletes an organization only when no services or applications are present,
+     * All plans must be removed as well.
+     * The method will remove the organization and the existing memberships from users.
+     *
+     * TODO implement method that cleansup an organization when no contracts are present.
+     *
+     * @param orgId
+     */
+    public void deleteOrganization(String orgId) {
+        //remove memberships
+        //leave audit and add closure
+        //remove organization
+        OrganizationBean org = get(orgId);
         try {
-            OrganizationBean organization = storage.getOrganization(orgId);
-            deleteOrganization(orgId);
-        } catch (StorageException e) {
-            e.printStackTrace();
+            List<ServiceSummaryBean> services = query.getServicesInOrg(orgId);
+            if (!services.isEmpty()) {
+                if (!query.getServiceVersionsInOrgByStatus(orgId, ServiceStatus.Published).isEmpty() || !query.getServiceVersionsInOrgByStatus(orgId, ServiceStatus.Deprecated).isEmpty()) {
+                    for (ServiceSummaryBean svcSummary : services) {
+                        ServiceBean service = getService(svcSummary.getOrganizationId(), svcSummary.getId());
+                        if (!query.getServiceContracts(service).isEmpty()) {
+                            throw ExceptionFactory.orgCannotBeDeleted("The organization's services still have contracts");
+                        }
+                    }
+                    //TODO - delete the services that don't have any contracts
+                    throw ExceptionFactory.orgCannotBeDeleted("The organization still has published and/or deprecated service versions");
+                }
+                //If the organization doesn't have any published or deprecated services, those services should be safe to delete
+                else {
+                    //TODO - delete all unpublished services in one go
+                    throw ExceptionFactory.orgCannotBeDeleted("The organization still has services");
+                }
+            }
+            //If the organization doesn't have services, check if it has plans
+            if (!query.getPlansInOrg(org.getId()).isEmpty()) {
+                //TODO - Delete all plans if the org doesn't have services
+                throw ExceptionFactory.orgCannotBeDeleted("The organization still has plans");
+            }
+            //By now we can assume that either an exception has been thrown or the organization doesnt't have any services left
+            List<ApplicationSummaryBean> apps = query.getApplicationsInOrg(orgId);
+            if (!apps.isEmpty()) {
+                for (ApplicationSummaryBean appSumm : apps) {
+                    deleteApp(orgId, appSumm.getId());
+                }
+            }
+            deleteOrganizationInternal(org);
         }
-        //get all services
-        //get all service versions
-        //get all applications
-        //get all application versions
-        //get all contracts
-        //remove all contracts
-        //get all oauth apps
-        //get all plans
-        //get all plan versions
-        //get all plan policies
-        //remove all plan policies
-        //remove all plans versions
-        //remove all plans
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
 
-        return true;
+    }
+
+    private void deleteOrganizationInternal(OrganizationBean org) throws StorageException {
+        //This assumes the preliminary work of deleting services, plans and applications has already been done
+        //in the methods calling this method
+        for (RoleMembershipBean member : idmStorage.getOrgMemberships(org.getId())) {
+            idmStorage.deleteMemberships(member.getUserId(), org.getId());
+        }
+        //Delete all related events
+        List<EventBean> events = query.getAllEventsRelatedToOrganization(org.getId());
+        for (EventBean event : events) {
+            storage.deleteEvent(event);
+        }
+        storage.deleteOrganization(org);
+    }
+
+    public NewApiKeyBean reissueApplicationVersionApiKey(String organizationId, String applicationId, String version) {
+        return reissueApplicationVersionApiKey(getAppVersion(organizationId, applicationId, version));
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public NewApiKeyBean reissueApplicationVersionApiKey(ApplicationVersionBean avb) {
+        try {
+            String organizationId = avb.getApplication().getOrganization().getId();
+            String applicationId = avb.getApplication().getId();
+            String version = avb.getVersion();
+            //Get list of contracts associated with application
+            List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(organizationId, applicationId, version);
+            if (contractSummaries != null && !contractSummaries.isEmpty()) {
+
+                //Generate new API key for contracts
+                String newApiKey = apiKeyGenerator.generate();
+
+                //Keep old API key for auditing purposes and retrieve & delete correct plugin on gateway
+                String revokedKey = contractSummaries.get(0).getApikey();
+                //If the application is registered, change the API key on all relevant gateways
+                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
+                if (avb.getStatus() == ApplicationStatus.Registered) {
+                    try {
+                        Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(contractSummaries);
+                        for (IGatewayLink gatewayLink : gateways.values()) {
+                            try {
+                                gatewayLink.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
+                            } catch (Exception e) {
+                                throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
+                            }
+                            gatewayLink.close();
+                        }
+                    } catch (Exception e) {
+                        throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
+                    }
+                } else {
+                    //If the application isn't retired, it exists only on the default gateway
+                    if (avb.getStatus() != ApplicationStatus.Retired) {
+                        try {
+                            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                            gateway.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
+                        } catch (Exception ex) {
+                            throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
+                        }
+                    } else {
+                        throw ExceptionFactory.invalidApplicationStatusException();
+                    }
+                }
+                EntityUpdatedData data = new EntityUpdatedData();
+                data.addChange("apikey", revokedKey, newApiKey);
+                query.updateApplicationVersionApiKey(avb, newApiKey);
+                storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.KeyAuthReissuance, securityContext));
+                return new NewApiKeyBean(organizationId, applicationId, version, revokedKey, newApiKey);
+            } else {
+                //Application has no contracts, so return null
+                return null;
+            }
+        } catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
+    }
+
+    public NewOAuthCredentialsBean reissueApplicationVersionOAuthCredentials(String organizationId, String applicationId, String version) {
+        return reissueApplicationVersionOAuthCredentials(getAppVersion(organizationId, applicationId, version));
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public NewOAuthCredentialsBean reissueApplicationVersionOAuthCredentials(ApplicationVersionBean avb) {
+        try {
+            //Check if the app version has Oauthcredentials
+            if (avb.getoAuthClientId() == null || avb.getOauthClientSecret() == null) {
+                return null;
+            }
+            //Check if the app has a callback uri, if it doesn't it isn't a consumer on the gateway(s), but we still want to
+            //reissue the OAuth2 credentials
+            NewOAuthCredentialsBean rval = new NewOAuthCredentialsBean();
+            rval.setOrganizationId(avb.getApplication().getOrganization().getId());
+            rval.setApplicationId(avb.getApplication().getId());
+            rval.setVersion(avb.getVersion());
+            rval.setRevokedClientId(avb.getoAuthClientId());
+            rval.setRevokedClientSecret(avb.getOauthClientSecret());
+            avb.setoAuthClientId(apiKeyGenerator.generate());
+            avb.setOauthClientSecret(apiKeyGenerator.generate());
+            rval.setNewClientId(avb.getoAuthClientId());
+            rval.setNewClientSecret(avb.getOauthClientSecret());
+            if (ValidationUtils.isValidURL(avb.getOauthClientRedirect())) {
+                KongPluginOAuthConsumerRequest oAuthConsumerRequest = new KongPluginOAuthConsumerRequest()
+                        .withClientId(avb.getoAuthClientId())
+                        .withClientSecret(avb.getOauthClientSecret())
+                        .withRedirectUri(avb.getOauthClientRedirect())
+                        .withName(avb.getApplication().getName());
+                if (avb.getStatus() == ApplicationStatus.Registered) {
+                    try {
+                        List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(rval.getOrganizationId(), rval.getApplicationId(), rval.getVersion());
+                        Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(contractSummaries);
+                        for (IGatewayLink gatewayLink : gateways.values()) {
+                            try {
+                                gatewayLink.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
+                            } catch (Exception e) {
+                                throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                            }
+                            gatewayLink.close();
+                        }
+                    } catch (Exception e) {
+                        throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
+                    }
+                } else {
+                    if (avb.getStatus() != ApplicationStatus.Retired) {
+                        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                        try {
+                            gateway.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
+                        } catch (Exception e) {
+                            throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
+                        }
+                    } else {
+                        throw ExceptionFactory.invalidApplicationStatusException();
+                    }
+                }
+            }
+            EntityUpdatedData data = new EntityUpdatedData();
+            data.addChange("OAuth2 Client ID", rval.getRevokedClientId(), rval.getNewClientId());
+            data.addChange("OAuth2 Client Secret", rval.getRevokedClientSecret(), rval.getNewClientSecret());
+            storage.updateApplicationVersion(avb);
+            storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.OAuth2Reissuance, securityContext));
+            return rval;
+        } catch (StorageException ex) {
+            throw new SystemErrorException(ex);
+        }
     }
 
     private Map<String, IGatewayLink> getApplicationGatewayLinks(List<ContractSummaryBean> contractSummaries) {
@@ -3765,9 +4139,76 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 }
             }
             return links;
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
-        catch (StorageException ex) {
-            throw new SystemErrorException(ex);
+    }
+
+    private Map<String, IGatewayLink> getApplicationContractGatewayLinks(List<ContractBean> contracts) {
+        Map<String, IGatewayLink> links = new HashMap<>();
+        for (ContractBean contract : contracts) {
+            Set<ServiceGatewayBean> gateways = contract.getService().getGateways();
+            for (ServiceGatewayBean serviceGatewayBean : gateways) {
+                if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
+                    IGatewayLink gateway = createGatewayLink(serviceGatewayBean.getGatewayId());
+                    links.put(serviceGatewayBean.getGatewayId(), gateway);
+                }
+            }
         }
+        return links;
+    }
+
+    public ServiceTagsBean getServiceTags(String organizationId, String serviceId) {
+        ServiceBean service = getService(organizationId, serviceId);
+        return new ServiceTagsBean(organizationId, serviceId, service.getCategories());
+    }
+
+    public void updateServiceTags(String organizationId, String serviceId, ServiceTagsBean bean) {
+        ServiceBean service = getService(organizationId, serviceId);
+        updateServiceTagsInternal(service, bean.getTags());
+    }
+
+    public void addServiceTag(String organizationId, String serviceId, TagBean tag) {
+        ServiceBean service = getService(organizationId, serviceId);
+        Set<String> newTags = new TreeSet<>(service.getCategories());
+        newTags.add(tag.getTag());
+        updateServiceTagsInternal(service, newTags);
+    }
+
+    public void deleteServiceTag(String organizationId, String serviceId, TagBean tag) {
+        ServiceBean service = getService(organizationId, serviceId);
+        Set<String> newTags = new TreeSet<>(service.getCategories());
+        newTags.remove(tag.getTag());
+        updateServiceTagsInternal(service, newTags);
+    }
+
+    private void updateServiceTagsInternal(ServiceBean service, Set<String> newTags) {
+        EntityUpdatedData data = new EntityUpdatedData();
+        if (AuditUtils.valueChanged(service.getCategories(), newTags)) {
+            data.addChange("tags", service.getCategories().toString(), newTags.toString());
+            AuditEntryBean entry = AuditUtils.serviceUpdated(service, data, securityContext);
+            service.setCategories(newTags);
+            try {
+                storage.updateService(service);
+                storage.createAuditEntry(entry);
+            }
+            catch (StorageException ex) {
+                throw ExceptionFactory.systemErrorException(ex);
+            }
+        }
+    }
+
+
+    private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) throws StorageException {
+        String prefix = appContext.getApplicationPrefix();
+        Set<String> allowedPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
+        svb.getVisibility().forEach(vis -> {
+            allowedPrefixes.add(vis.getCode());
+        });
+        log.debug("allowedPrefixes:{}", allowedPrefixes);
+        if (!allowedPrefixes.contains(prefix)) {
+            throw ExceptionFactory.serviceVersionNotAvailableException(svb.getService().getId(), svb.getVersion());
+        }
+        return svb;
     }
 }

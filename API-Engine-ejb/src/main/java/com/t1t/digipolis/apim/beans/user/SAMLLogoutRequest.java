@@ -9,8 +9,16 @@ public class SAMLLogoutRequest implements Serializable{
     private String idpUrl;
     private String spName;
     private String username;
+    private String relayState;
 
     public SAMLLogoutRequest() {
+    }
+
+    public SAMLLogoutRequest(String idpUrl, String spName, String username, String relayState) {
+        this.idpUrl = idpUrl;
+        this.spName = spName;
+        this.username = username;
+        this.relayState = relayState;
     }
 
     public SAMLLogoutRequest(String idpUrl, String spName, String username) {
@@ -43,12 +51,21 @@ public class SAMLLogoutRequest implements Serializable{
         this.username = username;
     }
 
+    public String getRelayState() {
+        return relayState;
+    }
+
+    public void setRelayState(String relayState) {
+        this.relayState = relayState;
+    }
+
     @Override
     public String toString() {
         return "SAMLLogoutRequest{" +
                 "idpUrl='" + idpUrl + '\'' +
                 ", spName='" + spName + '\'' +
                 ", username='" + username + '\'' +
+                ", relayState='" + relayState + '\'' +
                 '}';
     }
 }

@@ -14,6 +14,7 @@ public class NewPolicyBean implements Serializable {
     private String configuration;
     private String kongPluginId;
     private Long contractId;
+    private String gatewayId;
 
     /**
      * Constructor.
@@ -79,6 +80,20 @@ public class NewPolicyBean implements Serializable {
         this.contractId = contractId;
     }
 
+    /**
+     * @return the gateway id
+     */
+    public String getGatewayId() {
+        return gatewayId;
+    }
+
+    /**
+     * @param gatewayId the gateway id to set
+     */
+    public void setGatewayId(String gatewayId) {
+        this.gatewayId = gatewayId;
+    }
+
     @Override
     public String toString() {
         return "NewPolicyBean{" +
@@ -86,6 +101,7 @@ public class NewPolicyBean implements Serializable {
                 ", configuration='" + configuration + '\'' +
                 ", kongPluginId='" + kongPluginId + '\'' +
                 ", contractId=" + contractId +
+                ", gatewayId='" + gatewayId + '\'' +
                 '}';
     }
 }

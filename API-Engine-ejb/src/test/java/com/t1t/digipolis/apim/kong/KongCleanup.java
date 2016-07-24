@@ -2,10 +2,13 @@ package com.t1t.digipolis.apim.kong;
 
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongApiList;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +26,7 @@ public class KongCleanup {
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
-    private static final String KONG_UNDER_TEST_URL = "http://rasu076.rte.antwerpen.local:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_URL = "http://devapim.t1t.be:8001";//should point to the admin url:port
     //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
@@ -49,18 +52,23 @@ public class KongCleanup {
 
     public void cleanAll() throws Exception {
         //remove all consumers
-/*        KongConsumerList consumers = kongClient.getConsumers();
+        KongConsumerList consumers = kongClient.getConsumers();
         for (KongConsumer cons : consumers.getData()) {
             kongClient.deleteConsumer(cons.getId());
-        }*/
+        }
+
+        //remove all plugins
+        final KongPluginConfigList allPlugins = kongClient.getAllPlugins();
+        final List<KongPluginConfig> plugins = allPlugins.getData();
+        for(KongPluginConfig kpc:plugins){
+            kongClient.deletePlugin(kpc.getApiId(),kpc.getId());
+        }
 
         //remove all apis
         KongApiList apilist = kongClient.listApis();
         List<KongApi> apis = apilist.getData();
         for(KongApi api:apis){
-            if(api.getName().startsWith("testorg")){
-                kongClient.deleteApi(api.getId());
-            }
+            kongClient.deleteApi(api.getId());
         }
     }
 }

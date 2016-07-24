@@ -6,17 +6,13 @@ import java.io.Serializable;
  * Created by michallispashidis on 29/11/15.
  */
 public class AppIdentifier implements Serializable {
-    private String scope;
+    private String prefix;
     private String appId;
     private String version;
 
-    public String getScope() {
-        return scope;
-    }
+    public String getPrefix() {return prefix;}
 
-    public void setScope(String scope) {
-        this.scope = scope;
-    }
+    public void setPrefix(String prefix) {this.prefix = prefix;}
 
     public String getAppId() {
         return appId;
@@ -41,7 +37,7 @@ public class AppIdentifier implements Serializable {
 
         AppIdentifier that = (AppIdentifier) o;
 
-        if (!scope.equals(that.scope)) return false;
+        if (!prefix.equals(that.prefix)) return false;
         if (!appId.equals(that.appId)) return false;
         return version.equals(that.version);
 
@@ -49,7 +45,7 @@ public class AppIdentifier implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = scope.hashCode();
+        int result = prefix.hashCode();
         result = 31 * result + appId.hashCode();
         result = 31 * result + version.hashCode();
         return result;
@@ -58,7 +54,7 @@ public class AppIdentifier implements Serializable {
     @Override
     public String toString() {
         return "AppIdentifier{" +
-                "scope='" + scope + '\'' +
+                "scope='" + prefix + '\'' +
                 ", appId='" + appId + '\'' +
                 ", version='" + version + '\'' +
                 '}';
