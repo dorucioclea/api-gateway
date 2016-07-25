@@ -16,6 +16,7 @@ import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.List;
 
@@ -28,8 +29,7 @@ import java.util.List;
  * <li>gateway configuration</li>
  * </ul>
  */
-@Singleton
-@Startup
+@ApplicationScoped
 @DependsOn(value="AppConfig")
 public class StartupService {
     private static final Logger _LOG = LoggerFactory.getLogger(StartupService.class.getName());
