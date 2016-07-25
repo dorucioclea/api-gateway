@@ -1,19 +1,20 @@
 package com.t1t.digipolis.apim;
 
+import com.t1t.digipolis.apim.beans.config.ConfigBean;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import org.apache.commons.lang3.StringUtils;
-import org.opensaml.xml.encryption.Public;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 
@@ -22,21 +23,32 @@ import java.util.Properties;
  * This will load the configuration for a specific environment and produce the config throughout the application.
  * More information about the config Typesafe approach can be found: https://github.com/typesafehub/config#essential-information
  */
-@Singleton
 @ApplicationScoped
-@Startup
 public class AppConfig implements Serializable {
     private static Config config;
     private static Properties properties;
     private static Logger _LOG = LoggerFactory.getLogger(AppConfig.class.getName());
+    @Inject private IStorage storageService;
     @Inject private StartupService startupService;
 
     @PostConstruct
     public void postInit() {
-            initConfig();
+            initConfig(null);
     }
 
-    public void initConfig(){
+    public void initConfig(ConfigBean optionalConfig){
+        final ConfigBean defaultConfig;
+        if(optionalConfig==null){
+            try {
+                final List<ConfigBean> configList = storageService.getDefaultConfig();
+                if(configList!=null && configList.size()>0) defaultConfig = configList.get(0);
+                else throw new StorageException("No configuration found.");
+            } catch (StorageException e) {
+                throw new RuntimeException("Could not start the service, missing configuration.");
+            }
+        }else defaultConfig = optionalConfig;
+        Path configPath = Paths.get(defaultConfig.getConfigPath());
+        _LOG.info("Config path loaded:{}",configPath.toAbsolutePath());
         //read properties file
         InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties");
         properties = new Properties();
@@ -48,7 +60,11 @@ public class AppConfig implements Serializable {
             }
         }else throw new RuntimeException("API Engine basic property file not found.");
         //read specific application config, depends on the maven profile that has been set
-        config = ConfigFactory.load(getConfigurationFile()); if(config==null) throw new RuntimeException("API Engine log not found");else{
+        if(!configPath.toFile().exists()) throw new RuntimeException("API Engine config property file not found.");
+        config = ConfigFactory.parseFile(configPath.toFile());
+        //config = ConfigFactory.load(getConfigurationFile());
+        if(config==null) throw new RuntimeException("API Engine log not found");
+        else{
             _LOG.info("===== API Engine configuration ==============================");
             _LOG.info("Using configuration file: {}",getConfigurationFile());
             _LOG.info("Build: {}",getBuildDate());
