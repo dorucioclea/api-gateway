@@ -6,3 +6,8 @@ UPDATE service_versions SET status = 'Created' WHERE terms_agreement_required = 
 ALTER TABLE contracts ADD COLUMN terms_agreed BOOL DEFAULT FALSE;
 CREATE TABLE defaults (id VARCHAR(255) NOT NULL, service_terms TEXT NULL);
 ALTER TABLE defaults ADD PRIMARY KEY (id);
+
+-- add config in db
+CREATE TABLE config(id BIGINT NOT NULL, config_path VARCHAR(255) NOT NULL);
+ALTER TABLE config ADD PRIMARY KEY (id);
+INSERT INTO config(config_path) VALUES ('/opt/wildfly/standalone/configuration/application.conf')

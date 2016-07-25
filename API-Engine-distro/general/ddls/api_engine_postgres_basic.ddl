@@ -6,6 +6,8 @@
 
 CREATE SEQUENCE hibernate_sequence START WITH 999;
 
+CREATE TABLE config(id BIGINT NOT NULL, config_path VARCHAR(255) NOT NULL);
+
 CREATE TABLE application_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, app_id VARCHAR(255) NULL, app_org_id VARCHAR(255) NULL, oauth_client_id VARCHAR(255), oauth_client_secret VARCHAR(255), oauth_client_redirect VARCHAR(255));
 
 CREATE TABLE applications (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, context VARCHAR(255) NOT NULL DEFAULT '', name VARCHAR(255) NOT NULL, organization_id VARCHAR(255) NOT NULL, logo OID);
@@ -75,6 +77,8 @@ CREATE TABLE mail_templates (topic VARCHAR(255) NOT NULL,content TEXT NULL,subje
 CREATE TABLE key_mapping (from_spec_type VARCHAR(25) NOT NULL,to_spec_type VARCHAR(25) NOT NULL,from_spec_claim VARCHAR(255) NOT NULL,to_spec_claim VARCHAR(255) NULL);
 
 ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic);
+
+ALTER TABLE config ADD PRIMARY KEY (id);
 
 ALTER TABLE events ADD PRIMARY KEY (id);
 
@@ -845,3 +849,5 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "group"
   ]
 }', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
+
+INSERT INTO config(config_path) VALUES ('/opt/wildfly/standalone/configuration/application.conf')

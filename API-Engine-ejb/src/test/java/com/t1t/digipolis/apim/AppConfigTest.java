@@ -1,5 +1,8 @@
 package com.t1t.digipolis.apim;
 
+import com.t1t.digipolis.apim.beans.config.ConfigBean;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -7,6 +10,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 import org.junit.runners.MethodSorters;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -26,8 +36,10 @@ public class AppConfigTest {
 
     @BeforeClass
     public static void init() throws Exception {
+        ConfigBean configBean = new ConfigBean();
+        configBean.setConfigPath("src/test/resources/application-test.conf");
         config = new AppConfig();
-        config.initConfig();
+        config.initConfig(configBean);
     }
 
     @Test

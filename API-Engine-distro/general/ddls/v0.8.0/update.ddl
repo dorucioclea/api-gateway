@@ -56,7 +56,3 @@ INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_c
 -- Add contracts to registered applications: need to be able to tell on which gateway the policy and its plugin apply
 ALTER TABLE public.policies ADD COLUMN gateway_id VARCHAR(255);
 UPDATE policies SET type = 'Contract' WHERE type = 'Application';
-
-
--------------------- v0.8.1-SNAPSHOT --------------------
-

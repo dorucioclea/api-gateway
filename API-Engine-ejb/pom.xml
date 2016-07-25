@@ -504,54 +504,6 @@
                 <appconfig.file>application</appconfig.file>
             </properties>
         </profile>
-        <profile>
-            <id>docker</id>
-            <properties>
-                <appconfig.file>application-docker</appconfig.file>
-            </properties>
-        </profile>
-        <profile>
-            <id>t1t-dev</id>
-            <properties>
-                <appconfig.file>application-t1t-dev</appconfig.file>
-            </properties>
-        </profile>
-        <profile>
-            <id>t1t-acc</id>
-            <properties>
-                <appconfig.file>application-t1t-acc</appconfig.file>
-            </properties>
-        </profile>
-        <profile>
-            <id>t1t-prd</id>
-            <properties>
-                <appconfig.file>application-t1t-prd</appconfig.file>
-            </properties>
-        </profile>
-        <profile>
-            <id>digi-sand</id>
-            <properties>
-                <appconfig.file>application-digi-sandbox</appconfig.file>
-            </properties>
-        </profile>
-        <profile>
-            <id>digi-dev</id>
-            <properties>
-                <appconfig.file>application-digi-dev</appconfig.file>
-            </properties>
-        </profile>
-        <profile>
-            <id>digi-acc</id>
-            <properties>
-                <appconfig.file>application-digi-acc</appconfig.file>
-            </properties>
-        </profile>
-        <profile>
-            <id>digi-prod</id>
-            <properties>
-                <appconfig.file>application-digi-prod</appconfig.file>
-            </properties>
-        </profile>
     </profiles>
 
 </project>

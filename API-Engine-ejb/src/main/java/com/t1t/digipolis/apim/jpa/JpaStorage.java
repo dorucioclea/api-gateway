@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
+import com.t1t.digipolis.apim.beans.config.ConfigBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.defaults.DefaultsBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
@@ -53,6 +54,10 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -2487,8 +2492,18 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public void createConfig(ConfigBean config) throws StorageException {
+        super.create(config);
+    }
+
+    @Override
     public void updateDefaults(DefaultsBean defaultsBean) throws StorageException {
         super.update(defaultsBean);
+    }
+
+    @Override
+    public void updateConfig(ConfigBean config) throws StorageException {
+        super.update(config);
     }
 
     @Override
@@ -2497,8 +2512,23 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public void deleteConfig(ConfigBean configBean) throws StorageException {
+        super.delete(config);
+    }
+
+    @Override
     public DefaultsBean getDefaults(String id) throws StorageException {
         return super.get(id, DefaultsBean.class);
+    }
+
+    @Override
+    public List<ConfigBean> getDefaultConfig() throws StorageException {
+        CriteriaBuilder cb = getActiveEntityManager().getCriteriaBuilder();
+        CriteriaQuery<ConfigBean> cq = cb.createQuery(ConfigBean.class);
+        Root<ConfigBean> rootEntry = cq.from(ConfigBean.class);
+        CriteriaQuery<ConfigBean> all = cq.select(rootEntry);
+        TypedQuery<ConfigBean> defaultConfig = em.createQuery(all);
+        return defaultConfig.getResultList();
     }
 
     @Override
