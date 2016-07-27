@@ -1166,31 +1166,32 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ApplicationSummaryBean> getApplicationsInOrgs(Set<String> orgIds) throws StorageException {
         List<ApplicationSummaryBean> rval = new ArrayList<>();
+        if(orgIds!=null && orgIds.size()>0){
+            EntityManager entityManager = getActiveEntityManager();
+            String jpql = "SELECT a FROM ApplicationBean a JOIN a.organization o WHERE o.id IN :orgs ORDER BY a.id ASC"; //$NON-NLS-1$
+            Query query = entityManager.createQuery(jpql);
+            query.setParameter("orgs", orgIds); //$NON-NLS-1$
+            List resultList = query.getResultList();
+            if(resultList.size()>0){
+                List<ApplicationBean> qr = (List<ApplicationBean>) query.getResultList();
+                List<ApplicationBean> qrFiltered = new ArrayList<>();
+                if(!StringUtils.isEmpty(appContext.getApplicationPrefix())){
+                    qrFiltered = qr.stream().filter(app -> app.getContext().equalsIgnoreCase(appContext.getApplicationPrefix())).collect(Collectors.toList());
+                }else qrFiltered = qr;
 
-        EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT a FROM ApplicationBean a JOIN a.organization o WHERE o.id IN :orgs ORDER BY a.id ASC"; //$NON-NLS-1$
-        Query query = entityManager.createQuery(jpql);
-        query.setParameter("orgs", orgIds); //$NON-NLS-1$
-        List resultList = query.getResultList();
-        if(resultList.size()>0){
-            List<ApplicationBean> qr = (List<ApplicationBean>) query.getResultList();
-            List<ApplicationBean> qrFiltered = new ArrayList<>();
-            if(!StringUtils.isEmpty(appContext.getApplicationPrefix())){
-                qrFiltered = qr.stream().filter(app -> app.getContext().equalsIgnoreCase(appContext.getApplicationPrefix())).collect(Collectors.toList());
-            }else qrFiltered = qr;
-
-            for (ApplicationBean bean : qrFiltered) {
-                ApplicationSummaryBean summary = new ApplicationSummaryBean();
-                summary.setId(bean.getId());
-                summary.setName(bean.getName());
-                summary.setBase64logo(bean.getBase64logo());
-                summary.setDescription(bean.getDescription());
-                // TODO find the number of contracts - probably need a native SQL query to pull that together
-                summary.setNumContracts(0);
-                OrganizationBean org = bean.getOrganization();
-                summary.setOrganizationId(org.getId());
-                summary.setOrganizationName(org.getName());
-                rval.add(summary);
+                for (ApplicationBean bean : qrFiltered) {
+                    ApplicationSummaryBean summary = new ApplicationSummaryBean();
+                    summary.setId(bean.getId());
+                    summary.setName(bean.getName());
+                    summary.setBase64logo(bean.getBase64logo());
+                    summary.setDescription(bean.getDescription());
+                    // TODO find the number of contracts - probably need a native SQL query to pull that together
+                    summary.setNumContracts(0);
+                    OrganizationBean org = bean.getOrganization();
+                    summary.setOrganizationId(org.getId());
+                    summary.setOrganizationName(org.getName());
+                    rval.add(summary);
+                }
             }
         }
         return rval;
