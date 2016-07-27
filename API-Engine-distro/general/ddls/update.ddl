@@ -10,4 +10,4 @@ ALTER TABLE defaults ADD PRIMARY KEY (id);
 -- add config in db
 CREATE TABLE config(id BIGINT NOT NULL, config_path VARCHAR(255) NOT NULL);
 ALTER TABLE config ADD PRIMARY KEY (id);
-INSERT INTO config(id,config_path) VALUES (7,'/opt/wildfly/standalone/configuration/application.conf')
+INSERT INTO config(id,config_path) VALUES (7,'/opt/wildfly/standalone/configuration/application.conf');
