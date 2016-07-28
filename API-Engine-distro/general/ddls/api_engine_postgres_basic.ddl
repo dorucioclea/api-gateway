@@ -851,3 +851,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
 }', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
 
 INSERT INTO config(config_path) VALUES ('/opt/wildfly/standalone/configuration/application.conf')
+
+ALTER TABLE public.organizations ADD COLUMN context VARCHAR(255);
+UPDATE public.organizations SET context = 'pub';
+ALTER TABLE public.organizations ALTER COLUMN context SET DEFAULT 'pub';
+ALTER TABLE public.organizations ALTER COLUMN context SET NOT NULL;
