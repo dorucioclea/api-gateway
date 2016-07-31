@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "data": {
-      "id": "kongPluginKeyAuthResponse",
+      "id": "kongPluginJWTResponse",
       "type": "array",
        "items": {
          "$ref":"KongPluginJWTResponse.json"

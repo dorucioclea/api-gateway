@@ -133,7 +133,6 @@ public final class ErrorCodes {
     // Action API related
     //
     public static final int ACTION_ERROR                      = 8001;
-
     public static final String ACTION_ERROR_INFO              = null;
 
 
@@ -220,4 +219,10 @@ public final class ErrorCodes {
     //
 
     public static final int CACHING_ERROR             = 17001;
+
+    //
+    // Security related
+    //
+    public static final int JWT_PUB_KEY_ERROR               = 18001;
+    public static final String JWT_PUB_KEY_INFO             = null;
 }

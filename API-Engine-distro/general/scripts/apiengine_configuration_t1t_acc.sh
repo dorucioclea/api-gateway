@@ -66,7 +66,7 @@ curl -X POST http://accapim.t1t.be:8001/apis/acc.apiengine.v1/plugins/ \
 #register api engine authorization endpoints
 curl -i -X POST \
   --url http://accapim.t1t.be:8001/apis/ \
-  --data 'request_path=/acc/apiengineauth/v1' \
+  --data 'request_path=/apiengineauth/v1' \
   --data 'name=acc.apiengineauth.v1' \
   --data 'upstream_url=http://accapi.t1t.be/API-Engine-auth/v1/' \
   --data 'strip_request_path=true'

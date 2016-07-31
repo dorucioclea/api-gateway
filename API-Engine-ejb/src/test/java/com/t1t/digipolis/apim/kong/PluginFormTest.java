@@ -38,7 +38,7 @@ public class PluginFormTest {
         Policy initPol = new Policy();
         initPol.setPolicyImpl(Policies.REQUESTTRANSFORMER.getKongIdentifier());
         initPol.setPolicyJsonConfig(json);
-        Policy resultPol = GatewayValidation.validateRequestTransformer(initPol);
+        Policy resultPol = new GatewayValidation().validateRequestTransformer(initPol);
         _LOG.info(resultPol.toString());
         assertNotNull(resultPol);
     }

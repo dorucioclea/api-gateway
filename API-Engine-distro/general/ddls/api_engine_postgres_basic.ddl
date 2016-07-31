@@ -24,7 +24,7 @@ CREATE TABLE contracts (id BIGINT NOT NULL, apikey VARCHAR(255) NOT NULL, create
 
 CREATE TABLE endpoint_properties (service_version_id BIGINT NOT NULL, value VARCHAR(255) NULL, name VARCHAR(255) NOT NULL);
 
-CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, oauth_token VARCHAR(255) NULL,oauth_authorize VARCHAR(255) NULL, oauth_context VARCHAR(255) NULL, jwt_exp_time INT NULL DEFAULT 7200);
+CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, jwt_exp_time INT NULL DEFAULT 7200, oauth_exp_time INT NULL DEFAULT 7200, jwt_pub_key TEXT NULL DEFAULT '', jwt_pub_key_endpoint VARCHAR(255) NULL DEFAULT '');
 
 CREATE TABLE memberships (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NULL, org_id VARCHAR(255) NULL, role_id VARCHAR(255) NULL, user_id VARCHAR(255) NULL);
 
@@ -818,21 +818,19 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   ]
 }', 'JsonSchema', 'fa-line-chart', 'Mashape Analytics Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT', 'Enable the service to accept Json Web Tokens', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT', 'Enable the service to accept and validate Json Web Tokens towards the upstream API.', '{
   "type": "object",
   "title": "JWT Token",
-  "properties": {
-    "claims_to_verify": {
-      "title": "Validate expiration time",
-      "description":"When set to false, the expiration validation will be skipped, not the validation of the token itself.",
-      "type": "boolean",
-      "required": true
-    }
-  },
-  "required": [
-    "claims_to_verify"
-  ]
+  "properties": {},
+  "required": []
 }', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWTUp', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
+  "type": "object",
+  "title": "JWT-Upstream",
+  "properties": {},
+  "required": []
+}', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', NULL ,TRUE ,FALSE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
   "type": "object",

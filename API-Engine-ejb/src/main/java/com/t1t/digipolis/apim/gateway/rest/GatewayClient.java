@@ -457,6 +457,8 @@ public class GatewayClient {
         boolean flagOauth2 = false;
         //flag for custom Analytics policy
         boolean customAnalytics = false;
+        //flag for JWT-Up - if applied, skip JWT
+        boolean flagJWT = false;
         //flag for custom ACL policy
         boolean customAclflag = false;
         //verify if api creation has been succesfull
@@ -477,10 +479,11 @@ public class GatewayClient {
                         case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
                         case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
                         //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
-                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, GatewayValidation.validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
+                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
                             log.info("start post oauth2 actions");flagOauth2=true;postOAuth2Actions(service, policy, config, api);break;//upon transformation we use another enhanced object for json deserialization
                         case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
-                        case JWT: createServicePolicy(api,policy,Policies.JWT.getKongIdentifier(),Policies.JWT.getClazz());break;
+                        case JWTUP: createServicePolicy(api,policy,Policies.JWTUP.getKongIdentifier(),Policies.JWTUP.getClazz());flagJWT=true;break;
+                        case JWT: if(!flagJWT){createServicePolicy(api,policy,Policies.JWT.getKongIdentifier(),Policies.JWT.getClazz());}break;//skip JWT if JWT-UP is applied
                         case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
                         case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
                         case RESPONSETRANSFORMER: createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(),Policies.RESPONSETRANSFORMER.getClazz());break;
@@ -938,5 +941,37 @@ public class GatewayClient {
 
     public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer) {
         return httpClient.updateConsumer(kongConsumerId, updatedConsumer);
+    }
+
+    /**
+     * Validate OAuth plugin values and if necessary transform.
+     *
+     * @param policy    OAuth policy
+     * @return
+     */
+    public synchronized Policy validateExplicitOAuth(Policy policy) {
+        //we can be sure this is an OAuth Policy
+        Gson gson = new Gson();
+        KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        KongPluginOAuthEnhanced newOAuthValue = new KongPluginOAuthEnhanced();
+        newOAuthValue.setEnableImplicitGrant(oauthValue.getEnableImplicitGrant());
+        newOAuthValue.setEnableAuthorizationCode(oauthValue.getEnableAuthorizationCode());
+        newOAuthValue.setEnableClientCredentials(oauthValue.getEnableClientCredentials());
+        newOAuthValue.setEnablePasswordGrant(oauthValue.getEnablePasswordGrant());
+        newOAuthValue.setHideCredentials(oauthValue.getHideCredentials());
+        newOAuthValue.setMandatoryScope(oauthValue.getMandatoryScope());
+        newOAuthValue.setProvisionKey(oauthValue.getProvisionKey());
+        newOAuthValue.setTokenExpiration(oauthValue.getTokenExpiration());
+        List<KongPluginOAuthScope> scopeObjects = oauthValue.getScopes();
+        List<Object>scopes = new ArrayList<>();
+        for(KongPluginOAuthScope scope:scopeObjects){
+            scopes.add(scope.getScope());
+        }
+        newOAuthValue.setScopes(scopes);
+        //perform enhancements
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
+        return responsePolicy;
     }
 }

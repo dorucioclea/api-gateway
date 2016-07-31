@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
@@ -16,6 +19,7 @@ import com.t1t.digipolis.kong.model.KongPluginJWT;
 import com.t1t.digipolis.kong.model.KongPluginFileLog;
 import com.t1t.digipolis.kong.model.KongPluginHttpLog;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.KongPluginJWTUp;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
@@ -34,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -45,10 +50,15 @@ import static org.jgroups.Version.description;
 /**
  * Created by michallispashidis on 30/09/15.
  */
+@ApplicationScoped
 public class GatewayValidation {
     private static Logger _LOG = LoggerFactory.getLogger(GatewayValidation.class.getName());
     private static String environment;
     private static final String OAUTH_SCOPE_CONCAT = ".";
+
+    public GatewayValidation() {}
+
+    @Inject private IStorageQuery storageQuery;
     @Inject private AppConfig config;
     {
         environment = "";
@@ -57,7 +67,7 @@ public class GatewayValidation {
         }
     }
 
-   public static Policy validate(Policy policy, String... optionalPrefixId) throws PolicyViolationException{
+   public Policy validate(Policy policy, String... optionalPrefixId) throws PolicyViolationException, StorageException {
         _LOG.debug("Valdiate policy:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
@@ -81,12 +91,13 @@ public class GatewayValidation {
             case SSL: return validateSSL(policy);
             case ANALYTICS: return validateAnalytics(policy);
             case JWT: return validateJWT(policy);
+            case JWTUP: return validateJWTUp(policy);
             case ACL: return validateACL(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
     }
 
-    private static Policy validateACL(Policy policy) {
+    private Policy validateACL(Policy policy) {
         Gson gson = new Gson();
         String group = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginACLResponse.class).getGroup();
         Policy pol = new Policy();
@@ -95,7 +106,7 @@ public class GatewayValidation {
         return pol;
     }
 
-    private static Policy validateJWT(Policy policy) {
+    private Policy validateJWT(Policy policy) {
         Gson gson = new Gson();
         JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
         KongPluginJWT kongPluginJWT = new KongPluginJWT();
@@ -112,6 +123,19 @@ public class GatewayValidation {
         return responsePolicy;
     }
 
+    private Policy validateJWTUp(Policy policy) throws StorageException {
+        Gson gson = new Gson();
+        KongPluginJWTUp kongPluginJWTUp = new KongPluginJWTUp();
+        kongPluginJWTUp.setIssuerUrl(storageQuery.getDefaultGateway().getEndpoint());
+        kongPluginJWTUp.setX5uUrl(storageQuery.getDefaultGateway().getEndpoint()+storageQuery.getDefaultGateway().getJWTPubKeyEndpoint());
+        kongPluginJWTUp.setTokenExpiration(storageQuery.getDefaultGateway().getJWTExpTime());
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWTUp, KongPluginJWTUp.class));
+        _LOG.debug("Modified policy:{}",policy);
+        return responsePolicy;
+    }
+
     /**
      * OAuth is a special case, we want to keep the scopes until the gateway applies the policy.
      * Gateway supports a central oauth context path, in order to distinguish oauth scopes, a prefix is added implicitly
@@ -119,7 +143,7 @@ public class GatewayValidation {
      * @param policy
      * @return
      */
-    public static synchronized Policy validateOAuth(Policy policy, String optionalPrefixId){
+    public synchronized Policy validateOAuth(Policy policy, String optionalPrefixId){
         Gson gson = new Gson();
         KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
         List<KongPluginOAuthScope> scopes = oauthValue.getScopes();
@@ -145,37 +169,7 @@ public class GatewayValidation {
         return responsePolicy;
     }
 
-    /**
-     * Validate OAuth plugin values and if necessary transform.
-     *
-     * @param policy    OAuth policy
-     * @return
-     */
-    public static synchronized Policy validateExplicitOAuth(Policy policy) {
-        //we can be sure this is an OAuth Policy
-        Gson gson = new Gson();
-        KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
-        KongPluginOAuthEnhanced newOAuthValue = new KongPluginOAuthEnhanced();
-        newOAuthValue.setEnableImplicitGrant(oauthValue.getEnableImplicitGrant());
-        newOAuthValue.setEnableAuthorizationCode(oauthValue.getEnableAuthorizationCode());
-        newOAuthValue.setEnableClientCredentials(oauthValue.getEnableClientCredentials());
-        newOAuthValue.setEnablePasswordGrant(oauthValue.getEnablePasswordGrant());
-        newOAuthValue.setHideCredentials(oauthValue.getHideCredentials());
-        newOAuthValue.setMandatoryScope(oauthValue.getMandatoryScope());
-        newOAuthValue.setProvisionKey(oauthValue.getProvisionKey());
-        newOAuthValue.setTokenExpiration(oauthValue.getTokenExpiration());
-        List<KongPluginOAuthScope> scopeObjects = oauthValue.getScopes();
-        List<Object>scopes = new ArrayList<>();
-        for(KongPluginOAuthScope scope:scopeObjects){
-            scopes.add(scope.getScope());
-        }
-        newOAuthValue.setScopes(scopes);
-        //perform enhancements
-        Policy responsePolicy = new Policy();
-        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
-        responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
-        return responsePolicy;
-    }
+
 
     /**
      * Validate Request Transformation Policy
@@ -183,7 +177,7 @@ public class GatewayValidation {
      * @param policy
      * @return
      */
-    public static synchronized Policy validateRequestTransformer(Policy policy){
+    public synchronized Policy validateRequestTransformer(Policy policy){
         Gson gson = new Gson();
         KongPluginRequestTransformer req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginRequestTransformer.class);
         //if all lists are empty -> error
@@ -228,7 +222,7 @@ public class GatewayValidation {
         return requestPolicy;
     }
 
-    public static synchronized Policy validateResponseTransformer(Policy policy){
+    public synchronized Policy validateResponseTransformer(Policy policy){
         Gson gson = new Gson();
         KongPluginResponseTransformer req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginResponseTransformer.class);
         //if all lists are empty -> error
@@ -261,11 +255,11 @@ public class GatewayValidation {
         return responsePolicy;
     }
 
-    public static synchronized Policy validateBasicAuth(Policy policy){
+    public synchronized Policy validateBasicAuth(Policy policy){
         return policy;
     }
 
-    public static synchronized Policy validateCORS(Policy policy){
+    public synchronized Policy validateCORS(Policy policy){
         Gson gson = new Gson();
         KongPluginCors req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginCors.class);
         KongPluginCors res = new KongPluginCors();
@@ -286,7 +280,7 @@ public class GatewayValidation {
         return responsePolicy;
     }
 
-    public static synchronized Policy validateFileLog(Policy policy){
+    public synchronized Policy validateFileLog(Policy policy){
         Gson gson = new Gson();
         KongPluginFileLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginFileLog.class);
         if(StringUtils.isEmpty(req.getPath())) throw new PolicyViolationException("Form was not correctly filled in.");
@@ -294,7 +288,7 @@ public class GatewayValidation {
         return policy;
     }
 
-    public static synchronized Policy validateHTTPLog(Policy policy){
+    public synchronized Policy validateHTTPLog(Policy policy){
         Gson gson = new Gson();
         KongPluginHttpLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginHttpLog.class);
         if(StringUtils.isEmpty(req.getHttpEndpoint())) throw new PolicyViolationException("Form was not correctly filled in.");
@@ -302,7 +296,7 @@ public class GatewayValidation {
         return policy;
     }
 
-    public static synchronized Policy validateUDPLog(Policy policy){
+    public synchronized Policy validateUDPLog(Policy policy){
         Gson gson = new Gson();
         KongPluginUdpLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginUdpLog.class);
         if(StringUtils.isEmpty(req.getHost())) throw new PolicyViolationException("Form was not correctly filled in.");
@@ -310,7 +304,7 @@ public class GatewayValidation {
         return policy;
     }
 
-    public static synchronized Policy validateTCPLog(Policy policy){
+    public synchronized Policy validateTCPLog(Policy policy){
         Gson gson = new Gson();
         KongPluginTcpLog req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginTcpLog.class);
         if(StringUtils.isEmpty(req.getHost())) throw new PolicyViolationException("Form was not correctly filled in.");
@@ -318,7 +312,7 @@ public class GatewayValidation {
         return policy;
     }
 
-    public static synchronized Policy validateIPRestriction(Policy policy){
+    public synchronized Policy validateIPRestriction(Policy policy){
         Gson gson = new Gson();
         //TODO - remove once the gateway consistently returns either an object or an array
         KongPluginIPRestriction req = gson.fromJson(policy.getPolicyJsonConfig()
@@ -348,7 +342,7 @@ public class GatewayValidation {
         return responsePolicy;
     }
 
-    private static synchronized List<String> validateIPList(List<String> list) {
+    private synchronized List<String> validateIPList(List<String> list) {
         Set<String> uniqueValues = new HashSet<>();
         list.forEach(ip -> {
             if (!StringUtils.isEmpty(ip) && isValidIp(ip)) uniqueValues.add(ip);
@@ -356,7 +350,7 @@ public class GatewayValidation {
         return new ArrayList<>(uniqueValues);
     }
 
-    public static synchronized Policy validateKeyAuth(Policy policy){
+    public synchronized Policy validateKeyAuth(Policy policy){
         KongPluginKeyAuth req = new Gson().fromJson(policy.getPolicyJsonConfig(),KongPluginKeyAuth.class);
         if(req.getKeyNames()!=null&&req.getKeyNames().size()>0){
             _LOG.debug("Modified policy:{}",policy);
@@ -365,7 +359,7 @@ public class GatewayValidation {
         else throw new PolicyViolationException("Default applies already or you should provide at least one key name.");
     }
 
-    public static synchronized Policy validateRateLimiting(Policy policy){
+    public synchronized Policy validateRateLimiting(Policy policy){
         KongPluginRateLimiting req = new Gson().fromJson(policy.getPolicyJsonConfig(),KongPluginRateLimiting.class);
         List<Integer> ratesArray = new ArrayList<>();
         if (req.getYear() != null) ratesArray.add(req.getYear());
@@ -385,17 +379,17 @@ public class GatewayValidation {
         return policy;
     }
 
-    public static synchronized Policy validateRequestSizeLimiting(Policy policy){
+    public synchronized Policy validateRequestSizeLimiting(Policy policy){
         //nothing to do - works fine
         _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
 
-    public static synchronized Policy validateSSL(Policy policy){
+    public synchronized Policy validateSSL(Policy policy){
         throw new PolicyViolationException("At the moment no DNS services have been registered, you need DNS based routing for SSL to apply.");
     }
 
-    public static synchronized Policy validateAnalytics(Policy policy){
+    public synchronized Policy validateAnalytics(Policy policy){
         Gson gson = new Gson();
         KongPluginAnalytics req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginAnalytics.class);
         if(StringUtils.isEmpty(req.getServiceToken())) throw new PolicyViolationException("Form was not correctly filled in.");

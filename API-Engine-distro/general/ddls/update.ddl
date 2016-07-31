@@ -52,6 +52,9 @@ ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY 
 ALTER TABLE plan_versions ADD CONSTRAINT FK_tonylvm2ypnq3efxqr1g0m9fs FOREIGN KEY (plan_id, plan_org_id) REFERENCES plans (id, organization_id) ON UPDATE CASCADE;
 ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id) ON UPDATE CASCADE;
 
+-- fix missing config
+ALTER TABLE policies ADD COLUMN gateway_id VARCHAR(255) NULL;
+
 -- terms and agreement
 ALTER TABLE service_versions ADD COLUMN terms_agreement_required BOOL DEFAULT FALSE;
 ALTER TABLE service_versions ADD COLUMN readme TEXT NULL;
@@ -65,3 +68,45 @@ ALTER TABLE defaults ADD PRIMARY KEY (id);
 CREATE TABLE config(id BIGINT NOT NULL, config_path VARCHAR(255) NOT NULL);
 ALTER TABLE config ADD PRIMARY KEY (id);
 INSERT INTO config(id,config_path) VALUES (7,'/opt/wildfly/standalone/configuration/application.conf');
+
+-- update gateway (remove oauth2 endpoints, add jwt/oauth expiration time)
+ALTER TABLE gateways DROP COLUMN oauth_authorize;
+ALTER TABLE gateways DROP COLUMN oauth_token;
+ALTER TABLE gateways DROP COLUMN oauth_context;
+
+ALTER TABLE gateways ADD COLUMN oauth_exp_time INT NULL DEFAULT 7200;
+ALTER TABLE gateways ADD COLUMN jwt_pub_key TEXT NULL DEFAULT '';
+ALTER TABLE gateways ADD COLUMN jwt_pub_key_endpoint VARCHAR(255) NULL DEFAULT '';
+UPDATE gateways SET jwt_pub_key_endpoint='/apiengineauth/v1/gtw/tokens/pub';
+
+UPDATE gateways SET jwt_pub_key='-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAjmrg7sFxRdobSZHI2Zjk
+nrpFT/QrXDpYzUU8IMa4TOkgERtZ3OBlZdmcbyufpBn52fX9XEeH9TuB919cPxBE
+zJ7CsReS+Wqpy9PSw+pmCiCfjHflud2uw50neX8eJxYtzHC7UN8+uA8oCKjw0I3P
++ECa7aW/DmMcI/5Osrixe7fPzv8CEzhTbw7A96nK2+VI/UqFWf1oDswlX8POhzLE
+iuj7xBiubjl6N4DZnQyao8S2EgfPONJ4mrIn6TD071/tOMh1GYAwJpVCv3agRQWG
+8MilaayrC4Z53k6dKWQS6IfU7w5bgB1+hgIzph+NMo7VY4NbJX96uoD7AoiB4o66
+rS1jCKKyDqL0M90C1Hh7+R+yMhIkFdEGCKFGh3fl9UDGJ4FDTmo4du0CqnmwmjoV
+fRdtyn+61ADxP6zd7n1LAqyPB4EkxukQ77K/ONLpRv2trft9oSUR1jWMq7w12WYr
+hYVxOGSo5N4EGBJjHAyQgMCS8PXgm7N9XaNukes0YCyAL9XSBCE3n4T4BOWG9D2B
+CD/zUvn5CFywJhug9Rw4LWt0o2GayiN3yH0pdXAsjSFTb7VivpOsW0/y6iGf0BjK
+T8yXJEo8oPp4H2IuL4xL48mntBnVjPsItnziGCjqgHB7lqb7qyu/6+xtHgLlFoc2
+0KBvSaDFYbbEtO4NFVrMuIECAwEAAQ==
+-----END PUBLIC KEY-----';
+
+-- update JWT: remove expiration claim option because by default applied.
+UPDATE policydefs SET description = 'Enable the service to accept and validate Json Web Tokens towards the upstream API.', form='{
+  "type": "object",
+  "title": "JWT Token",
+  "properties": {},
+  "required": []
+}' WHERE id = 'JWT';
+
+
+-- add JWT-Up: config is implicitly set by the API Engine.
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWTUp', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
+  "type": "object",
+  "title": "JWT-Upstream",
+  "properties": {},
+  "required": []
+}', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', NULL ,TRUE ,FALSE ,FALSE );

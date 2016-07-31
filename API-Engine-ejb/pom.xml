@@ -454,6 +454,7 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTResponseList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWT.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTUp.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUser.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUserList.json</sourcePath>
                     </sourcePaths>

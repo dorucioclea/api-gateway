@@ -58,6 +58,15 @@ public interface IStorageQuery {
     public List<GatewaySummaryBean> listGateways() throws StorageException;
 
     /**
+     * Returns the default gateway, in case there is only one gateway.
+     * This is a really stupid implementation, returning the first in a list.
+     *
+     * @return
+     * @throws StorageException
+     */
+    public GatewayBean getDefaultGateway() throws StorageException;
+
+    /**
      * List all the gatewaybeans with all available information.
      *
      * @return
