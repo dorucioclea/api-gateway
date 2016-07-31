@@ -52,6 +52,9 @@ ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY 
 ALTER TABLE plan_versions ADD CONSTRAINT FK_tonylvm2ypnq3efxqr1g0m9fs FOREIGN KEY (plan_id, plan_org_id) REFERENCES plans (id, organization_id) ON UPDATE CASCADE;
 ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id) ON UPDATE CASCADE;
 
+-- fix missing config
+ALTER TABLE policies ADD COLUMN gateway_id VARCHAR(255) NULL;
+
 -- terms and agreement
 ALTER TABLE service_versions ADD COLUMN terms_agreement_required BOOL DEFAULT FALSE;
 ALTER TABLE service_versions ADD COLUMN readme TEXT NULL;
