@@ -124,7 +124,7 @@ public class GatewayValidation {
         Gson gson = new Gson();
         KongPluginJWTUp kongPluginJWTUp = new KongPluginJWTUp();
         kongPluginJWTUp.setIssuerUrl(staticStorageQuery.getDefaultGateway().getEndpoint());
-        kongPluginJWTUp.setX5uUrl("");
+        kongPluginJWTUp.setX5uUrl(staticStorageQuery.getDefaultGateway().getJWTPubKeyEndpoint());
         kongPluginJWTUp.setTokenExpiration(staticStorageQuery.getDefaultGateway().getJWTExpTime());
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());

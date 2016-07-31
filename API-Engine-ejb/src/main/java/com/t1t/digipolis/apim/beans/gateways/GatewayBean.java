@@ -41,6 +41,8 @@ public class GatewayBean implements Serializable {
     private Integer JWTExpTime;
     @Column(name = "jwt_pub_key", nullable = true)
     private String JWTPubKey;
+    @Column(name = "jwt_pub_key_endpoint", nullable = true)
+    private String JWTPubKeyEndpoint;
     @Column(updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private GatewayType type;
@@ -175,6 +177,14 @@ public class GatewayBean implements Serializable {
         this.configuration = configuration;
     }
 
+    public String getJWTPubKeyEndpoint() {
+        return JWTPubKeyEndpoint;
+    }
+
+    public void setJWTPubKeyEndpoint(String JWTPubKeyEndpoint) {
+        this.JWTPubKeyEndpoint = JWTPubKeyEndpoint;
+    }
+
     @Override
     public String toString() {
         return "GatewayBean{" +
@@ -189,6 +199,7 @@ public class GatewayBean implements Serializable {
                 ", OAuthExpTime=" + OAuthExpTime +
                 ", JWTExpTime=" + JWTExpTime +
                 ", JWTPubKey='" + JWTPubKey + '\'' +
+                ", JWTPubKeyEndpoint='" + JWTPubKeyEndpoint + '\'' +
                 ", type=" + type +
                 ", configuration='" + configuration + '\'' +
                 '}';
