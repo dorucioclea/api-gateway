@@ -76,6 +76,8 @@ ALTER TABLE gateways DROP COLUMN oauth_context;
 
 ALTER TABLE gateways ADD COLUMN oauth_exp_time INT NULL DEFAULT 7200;
 ALTER TABLE gateways ADD COLUMN jwt_pub_key TEXT NULL DEFAULT '';
+ALTER TABLE gateways ADD COLUMN jwt_pub_key_endpoint VARCHAR(255) NULL DEFAULT '';
+UPDATE gateways SET jwt_pub_key_endpoint='/apiengineauth/v1/gtw/tokens/pub';
 
 UPDATE gateways SET jwt_pub_key='-----BEGIN PUBLIC KEY-----
 MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAjmrg7sFxRdobSZHI2Zjk
@@ -91,3 +93,20 @@ CD/zUvn5CFywJhug9Rw4LWt0o2GayiN3yH0pdXAsjSFTb7VivpOsW0/y6iGf0BjK
 T8yXJEo8oPp4H2IuL4xL48mntBnVjPsItnziGCjqgHB7lqb7qyu/6+xtHgLlFoc2
 0KBvSaDFYbbEtO4NFVrMuIECAwEAAQ==
 -----END PUBLIC KEY-----';
+
+-- update JWT: remove expiration claim option because by default applied.
+UPDATE policydefs SET description = 'Enable the service to accept and validate Json Web Tokens towards the upstream API.', form='{
+  "type": "object",
+  "title": "JWT Token",
+  "properties": {},
+  "required": []
+}' WHERE id = 'JWT';
+
+
+-- add JWT-Up: config is implicitly set by the API Engine.
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT-Up', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
+  "type": "object",
+  "title": "JWT-Upstream",
+  "properties": {},
+  "required": []
+}', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', NULL ,TRUE ,FALSE ,FALSE );

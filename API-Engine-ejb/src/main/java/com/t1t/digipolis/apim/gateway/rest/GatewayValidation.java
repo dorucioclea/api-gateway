@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
@@ -16,6 +19,7 @@ import com.t1t.digipolis.kong.model.KongPluginJWT;
 import com.t1t.digipolis.kong.model.KongPluginFileLog;
 import com.t1t.digipolis.kong.model.KongPluginHttpLog;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
+import com.t1t.digipolis.kong.model.KongPluginJWTUp;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
@@ -49,15 +53,18 @@ public class GatewayValidation {
     private static Logger _LOG = LoggerFactory.getLogger(GatewayValidation.class.getName());
     private static String environment;
     private static final String OAUTH_SCOPE_CONCAT = ".";
+    private static IStorageQuery staticStorageQuery;
+    @Inject private IStorageQuery storageQuery;
     @Inject private AppConfig config;
     {
         environment = "";
         if(config!=null){
             environment = new StringBuffer("").append(config.getEnvironment()).toString();
+            staticStorageQuery = storageQuery;
         }
     }
 
-   public static Policy validate(Policy policy, String... optionalPrefixId) throws PolicyViolationException{
+   public static Policy validate(Policy policy, String... optionalPrefixId) throws PolicyViolationException, StorageException {
         _LOG.debug("Valdiate policy:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
@@ -81,6 +88,7 @@ public class GatewayValidation {
             case SSL: return validateSSL(policy);
             case ANALYTICS: return validateAnalytics(policy);
             case JWT: return validateJWT(policy);
+            case JWTUP: return validateJWTUp(policy);
             case ACL: return validateACL(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
@@ -108,6 +116,19 @@ public class GatewayValidation {
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWT, KongPluginJWT.class));
+        _LOG.debug("Modified policy:{}",policy);
+        return responsePolicy;
+    }
+
+    private static Policy validateJWTUp(Policy policy) throws StorageException {
+        Gson gson = new Gson();
+        KongPluginJWTUp kongPluginJWTUp = new KongPluginJWTUp();
+        kongPluginJWTUp.setIssuerUrl(staticStorageQuery.getDefaultGateway().getEndpoint());
+        kongPluginJWTUp.setX5uUrl("");
+        kongPluginJWTUp.setTokenExpiration(staticStorageQuery.getDefaultGateway().getJWTExpTime());
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWTUp, KongPluginJWTUp.class));
         _LOG.debug("Modified policy:{}",policy);
         return responsePolicy;
     }

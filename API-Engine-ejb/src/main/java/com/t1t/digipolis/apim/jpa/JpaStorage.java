@@ -1043,6 +1043,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public GatewayBean getDefaultGateway() throws StorageException {
+        final List<GatewayBean> gatewayBeans = listGatewayBeans();
+        if(gatewayBeans!=null && gatewayBeans.size()>0)return gatewayBeans.get(0);
+        return null;
+    }
+
+    @Override
     public List<GatewayBean> listGatewayBeans() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
         String jpql = "SELECT g FROM GatewayBean g";

@@ -66,7 +66,7 @@ curl -X POST http://devapim.t1t.be:8001/apis/devapiengine.v1/plugins/ \
 #register api engine authorization endpoints
 curl -i -X POST \
   --url http://devapim.t1t.be:8001/apis/ \
-  --data 'request_path=/dev/apiengineauth/v1' \
+  --data 'request_path=/apiengineauth/v1' \
   --data 'name=devapiengineauth.v1' \
   --data 'upstream_url=http://devapi.t1t.be/API-Engine-auth/v1/' \
   --data 'strip_request_path=true'

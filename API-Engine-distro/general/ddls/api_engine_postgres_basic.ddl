@@ -818,21 +818,19 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   ]
 }', 'JsonSchema', 'fa-line-chart', 'Mashape Analytics Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT', 'Enable the service to accept Json Web Tokens', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT', 'Enable the service to accept and validate Json Web Tokens towards the upstream API.', '{
   "type": "object",
   "title": "JWT Token",
-  "properties": {
-    "claims_to_verify": {
-      "title": "Validate expiration time",
-      "description":"When set to false, the expiration validation will be skipped, not the validation of the token itself.",
-      "type": "boolean",
-      "required": true
-    }
-  },
-  "required": [
-    "claims_to_verify"
-  ]
+  "properties": {},
+  "required": []
 }', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT-Up', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
+  "type": "object",
+  "title": "JWT-Upstream",
+  "properties": {},
+  "required": []
+}', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', NULL ,TRUE ,FALSE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
   "type": "object",
