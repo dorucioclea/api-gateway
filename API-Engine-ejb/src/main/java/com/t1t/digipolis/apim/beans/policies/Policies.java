@@ -8,6 +8,7 @@ import com.t1t.digipolis.kong.model.KongPluginFileLog;
 import com.t1t.digipolis.kong.model.KongPluginHttpLog;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.KongPluginJWT;
+import com.t1t.digipolis.kong.model.KongPluginJWTUp;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
 import com.t1t.digipolis.kong.model.KongPluginACL;
@@ -42,7 +43,7 @@ public enum Policies {
     , SSL(KongPluginSSL.class,"ssl", "SSL")
     , ANALYTICS(KongPluginAnalytics.class,"mashape-analytics", "Analytics")
     , JWT(KongPluginJWT.class,"jwt", "JWT")
-    , JWTUP(KongPluginJWT.class,"jwt-up", "JWT-Up")
+    , JWTUP(KongPluginJWTUp.class,"jwt-up", "JWT-Up")
     , ACL(KongPluginACL.class,"acl", "ACL");
 
     private Class clazz;

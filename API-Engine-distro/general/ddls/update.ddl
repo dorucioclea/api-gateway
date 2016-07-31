@@ -104,7 +104,7 @@ UPDATE policydefs SET description = 'Enable the service to accept and validate J
 
 
 -- add JWT-Up: config is implicitly set by the API Engine.
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT-Up', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWTUp', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
   "type": "object",
   "title": "JWT-Upstream",
   "properties": {},

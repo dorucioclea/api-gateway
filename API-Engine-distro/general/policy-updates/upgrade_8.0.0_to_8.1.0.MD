@@ -6,5 +6,6 @@ The following actions should be executed in order to upgrade towards API Engine 
  - add JWT-up: 
     - install plugin on all Kong running nodes: $ luarocks install kong-plugin-jwt-up
     - update certificates on all Kong running nodes: followe instruction on https://trust1t.atlassian.net/wiki/pages/viewpage.action?pageId=74547210
+    - update kong.yaml
  - execture migration endpoint:
     - provides jwt credentials for all consumers (application consumers and end-user consumers)

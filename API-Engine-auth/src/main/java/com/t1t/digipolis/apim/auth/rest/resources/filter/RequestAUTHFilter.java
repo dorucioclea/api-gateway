@@ -55,6 +55,7 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
                     .build());
             return;
         }
+        return;
     }
 }
 
