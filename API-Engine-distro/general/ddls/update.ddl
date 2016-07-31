@@ -65,3 +65,26 @@ ALTER TABLE defaults ADD PRIMARY KEY (id);
 CREATE TABLE config(id BIGINT NOT NULL, config_path VARCHAR(255) NOT NULL);
 ALTER TABLE config ADD PRIMARY KEY (id);
 INSERT INTO config(id,config_path) VALUES (7,'/opt/wildfly/standalone/configuration/application.conf');
+
+-- update gateway (remove oauth2 endpoints, add jwt/oauth expiration time)
+ALTER TABLE gateways DROP COLUMN oauth_authorize;
+ALTER TABLE gateways DROP COLUMN oauth_token;
+ALTER TABLE gateways DROP COLUMN oauth_context;
+
+ALTER TABLE gateways ADD COLUMN oauth_exp_time INT NULL DEFAULT 7200;
+ALTER TABLE gateways ADD COLUMN jwt_pub_key TEXT NULL DEFAULT '';
+
+UPDATE gateways SET jwt_pub_key='-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAjmrg7sFxRdobSZHI2Zjk
+nrpFT/QrXDpYzUU8IMa4TOkgERtZ3OBlZdmcbyufpBn52fX9XEeH9TuB919cPxBE
+zJ7CsReS+Wqpy9PSw+pmCiCfjHflud2uw50neX8eJxYtzHC7UN8+uA8oCKjw0I3P
++ECa7aW/DmMcI/5Osrixe7fPzv8CEzhTbw7A96nK2+VI/UqFWf1oDswlX8POhzLE
+iuj7xBiubjl6N4DZnQyao8S2EgfPONJ4mrIn6TD071/tOMh1GYAwJpVCv3agRQWG
+8MilaayrC4Z53k6dKWQS6IfU7w5bgB1+hgIzph+NMo7VY4NbJX96uoD7AoiB4o66
+rS1jCKKyDqL0M90C1Hh7+R+yMhIkFdEGCKFGh3fl9UDGJ4FDTmo4du0CqnmwmjoV
+fRdtyn+61ADxP6zd7n1LAqyPB4EkxukQ77K/ONLpRv2trft9oSUR1jWMq7w12WYr
+hYVxOGSo5N4EGBJjHAyQgMCS8PXgm7N9XaNukes0YCyAL9XSBCE3n4T4BOWG9D2B
+CD/zUvn5CFywJhug9Rw4LWt0o2GayiN3yH0pdXAsjSFTb7VivpOsW0/y6iGf0BjK
+T8yXJEo8oPp4H2IuL4xL48mntBnVjPsItnziGCjqgHB7lqb7qyu/6+xtHgLlFoc2
+0KBvSaDFYbbEtO4NFVrMuIECAwEAAQ==
+-----END PUBLIC KEY-----';
