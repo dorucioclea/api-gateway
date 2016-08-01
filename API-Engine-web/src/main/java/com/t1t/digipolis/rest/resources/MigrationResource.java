@@ -79,7 +79,7 @@ public class MigrationResource implements IMigrationResource {
     @ApiResponses({@ApiResponse(code = 204, message = "JWT issuance complete")})
     @POST
     @Path("sync/jwt-issuance")
-    public void issueJWT() throws AbstractRestException{
+    public void issueJWT() throws AbstractRestException, StorageException {
         migrationFacade.issueJWT();
     }
 

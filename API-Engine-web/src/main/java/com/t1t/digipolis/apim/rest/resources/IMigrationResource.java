@@ -55,6 +55,6 @@ public interface IMigrationResource {
      * for applications, this was not the case until v0.8.1
      * @throws AbstractRestException
      */
-    public void issueJWT() throws AbstractRestException;
+    public void issueJWT() throws AbstractRestException, StorageException;
 }
 
