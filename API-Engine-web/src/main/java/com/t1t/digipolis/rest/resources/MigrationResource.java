@@ -74,6 +74,17 @@ public class MigrationResource implements IMigrationResource {
     }
 
     @Override
+    @ApiOperation(value =  "Issue JWT credentials for all cosumers.",
+                  notes = "Issue JWT credentials for all cosumers, if consumer has JWT credentials, functionality is skipped to prevent renewal.")
+    @ApiResponses({@ApiResponse(code = 204, message = "JWT issuance complete")})
+    @POST
+    @Path("sync/jwt-issuance")
+    public void issueJWT() throws AbstractRestException, StorageException {
+        migrationFacade.issueJWT();
+    }
+
+    //Obsolete should not be used past version 0.8.0
+/*    @Override
     @ApiOperation(value =  "Split orgs by context",
             notes = "Use this endpoint in order to split orgs from v0.7x to v0.8.0")
     @ApiResponses({@ApiResponse(code = 204, message = "Split completed")})
@@ -81,5 +92,5 @@ public class MigrationResource implements IMigrationResource {
     @Path("sync/split-orgs")
     public void splitOrgs() throws Exception {
         //migrationFacade.splitOrgs();
-    }
+    }*/
 }

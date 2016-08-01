@@ -10,6 +10,10 @@
          "$ref":"KongPluginJWTResponse.json"
       }
     },
+    "total": {
+      "id": "total",
+      "type": "integer"
+    },
     "next": {
       "id": "next",
       "type": "string"

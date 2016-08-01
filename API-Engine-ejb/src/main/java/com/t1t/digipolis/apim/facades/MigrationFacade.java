@@ -45,6 +45,13 @@ import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayUtils;
 import com.t1t.digipolis.util.ObjectCloner;
@@ -828,6 +835,27 @@ public class MigrationFacade {
             return links;
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public void issueJWT() throws StorageException {
+        //for users this will be ok - we don't have to migrate
+        //migrate applications
+        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+
+        final List<ApplicationVersionBean> allApplicationVersions = query.findAllApplicationVersions();
+        for(ApplicationVersionBean appVersion:allApplicationVersions){
+            final String appUniqueId = ConsumerConventionUtil.createAppUniqueId(appVersion);
+            //get defautl gateway
+            KongPluginJWTResponseList response = gateway.getConsumerJWT(appUniqueId);
+            if (response.getData().size() <= 0) {
+                final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(appUniqueId);
+                final String key = kongPluginJWTResponse.getKey();
+                final String secret = kongPluginJWTResponse.getSecret();
+                _LOG.info("Consumer '{}' JWT credentials generated ({},{})",appUniqueId,key,secret);
+            }else{
+                _LOG.info("Consumer '{}' already has JWT credentials",appUniqueId);
+            }
         }
     }
 }

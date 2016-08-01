@@ -47,6 +47,14 @@ public interface IMigrationResource {
      *
      * @throws AbstractRestException
      */
-    public void splitOrgs() throws Exception;
+    //public void splitOrgs() throws Exception;
+
+    /**
+     * Issue JWT credentials for all consumers, if a consumer has already JWT credentials, skip.
+     * This functionality is mainly to enrich existing consumers with JWT credentials. For end-users this is already done,
+     * for applications, this was not the case until v0.8.1
+     * @throws AbstractRestException
+     */
+    public void issueJWT() throws AbstractRestException, StorageException;
 }
 
