@@ -97,8 +97,10 @@
           "type": "string"
         },
         "custom_plugins": {
-          "type": "object",
-          "properties": {}
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "proxy_listen_ssl": {
           "type": "string"
