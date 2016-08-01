@@ -45,6 +45,11 @@ import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayUtils;
 import com.t1t.digipolis.util.ObjectCloner;
@@ -829,5 +834,9 @@ public class MigrationFacade {
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
+    }
+
+    public void issueJWT(){
+
     }
 }
