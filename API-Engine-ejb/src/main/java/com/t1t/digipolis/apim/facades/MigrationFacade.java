@@ -847,14 +847,19 @@ public class MigrationFacade {
         for(ApplicationVersionBean appVersion:allApplicationVersions){
             final String appUniqueId = ConsumerConventionUtil.createAppUniqueId(appVersion);
             //get defautl gateway
-            KongPluginJWTResponseList response = gateway.getConsumerJWT(appUniqueId);
-            if (response.getData().size() <= 0) {
-                final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(appUniqueId);
-                final String key = kongPluginJWTResponse.getKey();
-                final String secret = kongPluginJWTResponse.getSecret();
-                _LOG.info("Consumer '{}' JWT credentials generated ({},{})",appUniqueId,key,secret);
-            }else{
-                _LOG.info("Consumer '{}' already has JWT credentials",appUniqueId);
+            try{
+                KongPluginJWTResponseList response = gateway.getConsumerJWT(appUniqueId);
+                if (response.getData().size() <= 0) {
+                    final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(appUniqueId);
+                    final String key = kongPluginJWTResponse.getKey();
+                    final String secret = kongPluginJWTResponse.getSecret();
+                    _LOG.info("Consumer '{}' JWT credentials generated ({},{})",appUniqueId,key,secret);
+                }else{
+                    _LOG.info("Consumer '{}' already has JWT credentials",appUniqueId);
+                }
+            }catch (RetrofitError rte) {
+                _LOG.error("-->no sync executed for application {}",appUniqueId);
+                continue;
             }
         }
     }

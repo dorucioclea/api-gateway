@@ -42,8 +42,6 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
         try {
             if(!config.getRestAuthResourceSecurity()){
                 securityAppContext.setCurrentApplication("dummyorg.dummyapp.version");
-            } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(JWT_PUB_KEY_PATH)){
-                ;//allow access without setting security context.
             } else {
                 securityAppContext.setCurrentApplication(appId);
             }

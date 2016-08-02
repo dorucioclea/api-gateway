@@ -9,3 +9,7 @@ The following actions should be executed in order to upgrade towards API Engine 
     - update kong.yaml
  - execture migration endpoint:
     - provides jwt credentials for all consumers (application consumers and end-user consumers)
+    
+ - copy correct application config file
+ 
+ 
