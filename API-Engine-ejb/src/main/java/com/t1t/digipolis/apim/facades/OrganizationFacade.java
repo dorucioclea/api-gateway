@@ -373,13 +373,16 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             try {
                 List<ContractSummaryBean> contracts = getApplicationVersionContracts(organizationId, applicationId, bean.getCloneVersion());
                 for (ContractSummaryBean contract : contracts) {
-                    NewContractBean ncb = new NewContractBean();
-                    ncb.setPlanId(contract.getPlanId());
-                    ncb.setServiceId(contract.getServiceId());
-                    ncb.setServiceOrgId(contract.getServiceOrganizationId());
-                    ncb.setServiceVersion(contract.getServiceVersion());
-                    ncb.setTermsAgreed(contract.getTermsAgreed());
-                    createContract(organizationId, applicationId, newVersion.getVersion(), ncb);
+                    ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion());
+                    if (svb.getAutoAcceptContracts()) {
+                        NewContractBean ncb = new NewContractBean();
+                        ncb.setPlanId(contract.getPlanId());
+                        ncb.setServiceId(contract.getServiceId());
+                        ncb.setServiceOrgId(contract.getServiceOrganizationId());
+                        ncb.setServiceVersion(contract.getServiceVersion());
+                        ncb.setTermsAgreed(contract.getTermsAgreed());
+                        createContract(organizationId, applicationId, newVersion.getVersion(), ncb);
+                    }
                 }
                 List<PolicySummaryBean> policies = listAppPolicies(organizationId, applicationId, bean.getCloneVersion());
                 for (PolicySummaryBean policySummary : policies) {
