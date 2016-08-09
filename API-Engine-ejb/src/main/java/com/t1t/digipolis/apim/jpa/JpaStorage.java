@@ -41,6 +41,7 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.mail.MailTopic;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import com.t1t.digipolis.util.ServiceScopeUtil;
 import org.apache.commons.io.IOUtils;
@@ -75,6 +76,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     private static Logger logger = LoggerFactory.getLogger(JpaStorage.class);
     @Inject AppConfig config;
     @Inject ISecurityAppContext appContext;
+    @Inject
+    ISecurityContext security;
 
     /**
      * Constructor.
@@ -812,12 +815,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("name", name)
                 .setParameter("status", ServiceStatus.Published)
                 .getResultList();
-        return  doNotFilterServices() ? rval : ServiceScopeUtil.resolveSVBScope(rval, appContext.getApplicationPrefix());
+        return  doNotFilterServices() ? rval : ServiceScopeUtil.resolveSVBScope(rval, appContext.getApplicationPrefix(), security.isAdmin());
     }
 
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException {
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(status);
-        return doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix());
+        return doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix(), security.isAdmin());
     }
 
     @Override
@@ -832,17 +835,17 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     public List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories) throws StorageException {
         List<ServiceVersionBean> allServicesForCat = findAllServiceVersionsInCategory(categories);
-        return doNotFilterServices() ? allServicesForCat : ServiceScopeUtil.resolveSVBScope(allServicesForCat,appContext.getApplicationPrefix());
+        return doNotFilterServices() ? allServicesForCat : ServiceScopeUtil.resolveSVBScope(allServicesForCat,appContext.getApplicationPrefix(), security.isAdmin());
     }
 
     public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException {
-        return doNotFilterServices() ? findLatestPublishedServiceVersionsInCategory(categories) : ServiceScopeUtil.resolveSVBScope(findLatestPublishedServiceVersionsInCategory(categories), appContext.getApplicationPrefix());
+        return doNotFilterServices() ? findLatestPublishedServiceVersionsInCategory(categories) : ServiceScopeUtil.resolveSVBScope(findLatestPublishedServiceVersionsInCategory(categories), appContext.getApplicationPrefix(), security.isAdmin());
     }
 
     public Set<String> findAllUniqueCategories() throws StorageException {
         List<ServiceBean> services = new ArrayList<>();
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
-        List<ServiceVersionBean> allServicesFiltered = doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix());
+        List<ServiceVersionBean> allServicesFiltered = doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix(), security.isAdmin());
         for(ServiceVersionBean svb:allServicesFiltered){
             services.add(svb.getService());
         }
@@ -857,7 +860,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public Set<String> findAllUniquePublishedCategories() throws StorageException {
         List<ServiceBean> services = new ArrayList<>();
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
-        List<ServiceVersionBean> allServicesFiltered = doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix());
+        List<ServiceVersionBean> allServicesFiltered = doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix(), security.isAdmin());
         for(ServiceVersionBean svb:allServicesFiltered){
             services.add(svb.getService());
         }
@@ -2274,7 +2277,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         List<ServiceVersionBean> rval = (List<ServiceVersionBean>) em.createQuery(jpql)
                 .setParameter("status", status)
                 .getResultList();
-        return doNotFilterServices() ? rval : ServiceScopeUtil.resolveSVBScope(rval, appContext.getApplicationPrefix());
+        return doNotFilterServices() ? rval : ServiceScopeUtil.resolveSVBScope(rval, appContext.getApplicationPrefix(), security.isAdmin());
     }
 
     @Override
@@ -2285,7 +2288,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("status", status)
                 .setParameter("name", serviceName.toLowerCase())
                 .getResultList();
-        return doNotFilterServices() ? rval : ServiceScopeUtil.resolveSVBScope(rval, appContext.getApplicationPrefix());
+        return doNotFilterServices() ? rval : ServiceScopeUtil.resolveSVBScope(rval, appContext.getApplicationPrefix(), security.isAdmin());
     }
 
     @Override
