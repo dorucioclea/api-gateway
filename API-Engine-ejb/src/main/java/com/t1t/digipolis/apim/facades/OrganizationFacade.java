@@ -22,7 +22,6 @@ import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
-import com.t1t.digipolis.apim.beans.iprestriction.IPRestrictionFlavor;
 import com.t1t.digipolis.apim.beans.mail.ContractMailBean;
 import com.t1t.digipolis.apim.beans.mail.MembershipAction;
 import com.t1t.digipolis.apim.beans.mail.MembershipRequestMailBean;
@@ -404,8 +403,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             log.debug("Enter updateAppversionURI:{}", uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if (avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
-            String previousURI = avb.getOauthClientRedirect();
-            avb.setOauthClientRedirect(uri.getUri());
+            Set<String> previousURIs = avb.getOauthClientRedirects();
+            avb.setOauthClientRedirects(uri.getUris());
             //register application credentials for OAuth2
             //create OAuth2 application credentials on the application consumer - should only been done once for this application
             if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
@@ -415,7 +414,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .withClientId(avb.getoAuthClientId())
                         .withClientSecret(avb.getOauthClientSecret())
                         .withName(avb.getApplication().getName())
-                        .withRedirectUri(avb.getOauthClientRedirect());
+                        .withRedirectUri(avb.getOauthClientRedirects());
                 if (avb.getStatus() == ApplicationStatus.Registered) {
                     List<ContractSummaryBean> csb = query.getApplicationContracts(organizationId, applicationId, version);
                     Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(csb);
@@ -432,7 +431,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 }
             }
             EntityUpdatedData data = new EntityUpdatedData();
-            data.addChange("OAuth2 Callback URI", previousURI, avb.getOauthClientRedirect());
+            data.addChange("OAuth2 Callback URI", String.valueOf(previousURIs), String.valueOf(avb.getOauthClientRedirects()));
             storage.updateApplicationVersion(avb);
             storage.createAuditEntry(AuditUtils.applicationVersionUpdated(avb, data, securityContext));
             return avb;
@@ -697,8 +696,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     //Check if client credentials is enabled, and if so, already enable oauth on gateway
                     PolicyBean pb = storage.getPolicy(PolicyType.Service, serviceOrgId, serviceId, svcVersion, summaryBean.getId());
                     KongPluginOAuth oAuthValue = new Gson().fromJson(pb.getConfiguration(), KongPluginOAuth.class);
-                    if (oAuthValue.getEnableClientCredentials() && avb.getOauthClientRedirect() == null) {
-                        avb.setOauthClientRedirect(PLACEHOLDER_CALLBACK_URI);
+                    if (oAuthValue.getEnableClientCredentials() && (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())) {
+                        avb.setOauthClientRedirects(new HashSet<>(Arrays.asList(PLACEHOLDER_CALLBACK_URI)));
                         String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                         OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
                         requestBean.setUniqueUserName(appConsumerName);
@@ -799,9 +798,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new ApplicationNotFoundException("Application not found with given OAuth2 clientId and clientSecret.");
             String appUniqueName = ConsumerConventionUtil.createAppUniqueId(avb.getApplication().getOrganization().getId(), avb.getApplication().getId(), avb.getVersion());
             oauthRequest.setName(avb.getApplication().getName());
-            if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
+            if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())
                 throw new OAuthException("The application must provide an OAuth2 redirect URL");
-            oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
+            oauthRequest.setRedirectUri(avb.getOauthClientRedirects());
             String defaultGateway = query.listGateways().get(0).getId();
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
@@ -1730,7 +1729,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     //We create the new application version consumer
                     IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                     //upon filling redirect URI the OAuth credential has been made, check if callback is there, otherwise 405 gateway exception.
-                    if (contract != null && !StringUtils.isEmpty(avb.getOauthClientRedirect())) {
+                    if (contract != null && !(avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())) {
                         String uniqueUserId = securityContext.getCurrentUser();
                         UserBean user = idmStorage.getUser(uniqueUserId);
                         KongPluginOAuthConsumerResponseList info = gateway.getApplicationOAuthInformation(avb.getoAuthClientId());
@@ -1744,7 +1743,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 //clear application version OAuth information
                 avb.setoAuthClientId("");
                 avb.setOauthClientSecret("");
-                avb.setOauthClientRedirect("");
+                avb.setOauthClientRedirects(Collections.EMPTY_SET);
                 storage.updateApplicationVersion(avb);
             }
         } catch (AbstractRestException e) {
@@ -4055,11 +4054,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             avb.setOauthClientSecret(apiKeyGenerator.generate());
             rval.setNewClientId(avb.getoAuthClientId());
             rval.setNewClientSecret(avb.getOauthClientSecret());
-            if (ValidationUtils.isValidURL(avb.getOauthClientRedirect())) {
+            if (!(avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().stream().filter(uri -> ValidationUtils.isValidURL(uri)).collect(Collectors.toSet()).isEmpty())) {
                 KongPluginOAuthConsumerRequest oAuthConsumerRequest = new KongPluginOAuthConsumerRequest()
                         .withClientId(avb.getoAuthClientId())
                         .withClientSecret(avb.getOauthClientSecret())
-                        .withRedirectUri(avb.getOauthClientRedirect())
+                        .withRedirectUri(avb.getOauthClientRedirects())
                         .withName(avb.getApplication().getName());
                 if (avb.getStatus() == ApplicationStatus.Registered) {
                     try {

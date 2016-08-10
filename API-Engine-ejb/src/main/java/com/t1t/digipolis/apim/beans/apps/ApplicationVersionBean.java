@@ -1,13 +1,10 @@
 package com.t1t.digipolis.apim.beans.apps;
 
-import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -55,8 +52,10 @@ public class ApplicationVersionBean implements Serializable {
     private String oAuthClientId;
     @Column(name = "oauth_client_secret")
     private String oauthClientSecret;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name="app_oauth_redirect_uris", joinColumns=@JoinColumn(name="application_version_id"))
     @Column(name = "oauth_client_redirect")
-    private String oauthClientRedirect;
+    private Set<String> oauthClientRedirects;
 
 
 
@@ -222,12 +221,12 @@ public class ApplicationVersionBean implements Serializable {
         this.oauthClientSecret = oauthClientSecret;
     }
 
-    public String getOauthClientRedirect() {
-        return oauthClientRedirect;
+    public Set<String> getOauthClientRedirects() {
+        return oauthClientRedirects;
     }
 
-    public void setOauthClientRedirect(String oauthClientRedirect) {
-        this.oauthClientRedirect = oauthClientRedirect;
+    public void setOauthClientRedirects(Set<String> oauthClientRedirect) {
+        this.oauthClientRedirects = oauthClientRedirect;
     }
 
     /**

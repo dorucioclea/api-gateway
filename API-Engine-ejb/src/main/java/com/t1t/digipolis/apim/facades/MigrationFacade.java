@@ -8,7 +8,6 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.digipolis.apim.beans.events.Event;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
@@ -44,7 +43,6 @@ import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
@@ -479,8 +477,8 @@ public class MigrationFacade {
                         gateway.addConsumerJWT(appConsumerName);
                         //sync oauth info
                         if (!StringUtils.isEmpty(avb.getoAuthClientId()) && !StringUtils.isEmpty(avb.getOauthClientSecret())) {//redirect may be empty
-                            if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
-                                avb.setOauthClientRedirect(OrganizationFacade.PLACEHOLDER_CALLBACK_URI);
+                            if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())
+                                avb.setOauthClientRedirects(new HashSet<>(Arrays.asList(OrganizationFacade.PLACEHOLDER_CALLBACK_URI)));
                             //apply oauth
                             OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
                             requestBean.setUniqueUserName(appConsumerName);
@@ -491,7 +489,7 @@ public class MigrationFacade {
                                     .withClientId(requestBean.getAppOAuthId())
                                     .withClientSecret(requestBean.getAppOAuthSecret());
                             oauthRequest.setName(avb.getApplication().getName());
-                            oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
+                            oauthRequest.setRedirectUri(avb.getOauthClientRedirects());
                             try {
 
                             } catch (Exception e) {
