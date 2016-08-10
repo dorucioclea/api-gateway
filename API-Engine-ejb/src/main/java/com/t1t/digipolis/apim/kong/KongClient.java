@@ -102,6 +102,7 @@ public interface KongClient {
     @GET("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(@Path(value = "consumerId", encode = false)String consumerId);
     @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(@Query("client_id")String clientId);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens();
-    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens(@Query("client_id")String clientId);
+    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens(@Query("credential_id")String credential_id);
+    @DELETE("/oauth2_tokens/{tokenId}") Object revokeOAuthToken(@Path("tokenId") String tokenId);
     @DELETE("/consumers/{consumerId}/oauth2/{pluginId}")Object deleteOAuth2Credential(@Path(value = "consumerId", encode = false)String consumerId, @Path("pluginId")String pluginId);
 }

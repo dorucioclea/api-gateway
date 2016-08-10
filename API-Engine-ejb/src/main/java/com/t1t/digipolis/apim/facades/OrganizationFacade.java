@@ -63,18 +63,7 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginOAuth;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -4157,6 +4146,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         updateServiceTagsInternal(service, newTags);
     }
 
+    public List<KongOAuthToken> getApplicationVersionOAuthTokens(String organizationId, String applicationId, String versionId) {
+        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, versionId);
+
+    }
+
     private void updateServiceTagsInternal(ServiceBean service, Set<String> newTags) {
         EntityUpdatedData data = new EntityUpdatedData();
         if (AuditUtils.valueChanged(service.getCategories(), newTags)) {
@@ -4172,7 +4166,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
         }
     }
-
 
     private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) throws StorageException {
         String prefix = appContext.getApplicationPrefix();
