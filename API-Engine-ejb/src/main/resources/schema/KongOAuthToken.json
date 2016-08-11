@@ -29,11 +29,15 @@
     },
     "created_at": {
       "id": "created_at",
-      "type": "integer"
+      "type": "number"
     },
     "expires_in": {
       "id": "expires_in",
       "type": "integer"
+    },
+    "refresh_token": {
+      "id": "refresh_token",
+      "type": "string"
     }
   }
 }

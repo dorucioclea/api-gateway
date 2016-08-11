@@ -457,7 +457,7 @@ public class ActionFacade {
                 String org, id, ver;
                 switch (policyType) {
 /*                    case Application: {
-                        org = contractBean.getAppOrganizationId();
+                        org = contractBean.getOrganizationId();
                         id = contractBean.getAppId();
                         ver = contractBean.getAppVersion();
                         break;

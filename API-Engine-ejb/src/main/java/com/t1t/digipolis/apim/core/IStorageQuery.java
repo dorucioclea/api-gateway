@@ -792,4 +792,6 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public Set<String> getManagedAppPrefixesForTypes(List<ManagedApplicationTypes> types) throws StorageException;
+
+    public List<GatewayBean> getAllGateways() throws StorageException;
 }

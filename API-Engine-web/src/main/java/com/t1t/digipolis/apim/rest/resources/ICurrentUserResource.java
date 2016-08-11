@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.rest.resources;
 
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
@@ -13,6 +14,7 @@ import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The Current User API.  Returns information about the authenticated
@@ -89,19 +91,69 @@ public interface ICurrentUserResource {
      */
     public List<ServiceSummaryBean> getServices();
 
+    /**
+     * Use this endpoint to retrieve all incoming events for the current user
+     * @return
+     */
     public List<EventBean> getCurrentUserAllIncomingEvents();
 
+    /**
+     * Use this endpoint to retrieve all outgoing event for the current user
+     * @return
+     */
     public List<EventBean> getCurrentUserAllOutgoingEvents();
 
+    /**
+     * Use this endpoint to retrieve the current user's outgoing events by type and status
+     * @param type
+     * @param <T>
+     * @return
+     */
     public <T> List<T> getCurrentUserOutgoingEventsByTypeAndStatus(String type);
 
+    /**
+     * Use this endpoint to retrieve the current user's incoming events by type and status
+     * @param type
+     * @param <T>
+     * @return
+     */
     public <T> List<T> getCurrentUsersIncomingEventsByTypeAndStatus(String type);
 
+    /**
+     * Delete an event
+     * @param id
+     * @throws com.t1t.digipolis.apim.exceptions.NotAuthorizedException
+     * @throws InvalidEventException
+     * @throws EventNotFoundException
+     */
     public void deleteEvent(Long id) throws com.t1t.digipolis.apim.exceptions.NotAuthorizedException, InvalidEventException, EventNotFoundException;
 
+    /**
+     * Get all events for the current user that require no action on the user's behalf
+     * @return
+     */
     public List<EventAggregateBean> getAllNonActionEvents();
 
+    /**
+     * Get all events for the current user that require an action on the user's behalf
+     * @return
+     */
     public List<EventAggregateBean> getAllActionEvents();
 
+    /**
+     * Delete all events for the current user that do not require any actions on the user's behalf
+     */
     public void deleteAll();
+
+    /**
+     * Retrieve the current user's OAuth2 tokens
+     * @return
+     */
+    public Set<OAuth2TokenBean> getCurrentUserOAuthTokens();
+
+    /**
+     * Revoke a current user's OAuth2 token
+     * @param token
+     */
+    public void revokeCurrentUserOAuthToken(OAuth2TokenBean token);
 }

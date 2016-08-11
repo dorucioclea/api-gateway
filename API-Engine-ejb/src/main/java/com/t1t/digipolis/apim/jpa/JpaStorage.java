@@ -1540,7 +1540,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             csb.setContractId(contractBean.getId());
             csb.setCreatedOn(contractBean.getCreatedOn());
             csb.setPlanId(plan.getId());
-            csb.setProvisionKey(contractBean.getService().getProvisionKey());
+            if (getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)).contains(appContext.getApplicationPrefix())) {
+                csb.setProvisionKey(contractBean.getService().getProvisionKey());
+            }
             csb.setPlanName(plan.getName());
             csb.setPlanVersion(contractBean.getPlan().getVersion());
             csb.setServiceDescription(service.getDescription());
@@ -2551,6 +2553,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return new HashSet<>(em.createQuery(jpql)
                 .setParameter("types", types)
                 .getResultList());
+    }
+
+    @Override
+    public List<GatewayBean> getAllGateways() throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT g FROM GatewayBean g";
+        return em.createQuery(jpql).getResultList();
     }
 
     private boolean doNotFilterServices() throws StorageException {

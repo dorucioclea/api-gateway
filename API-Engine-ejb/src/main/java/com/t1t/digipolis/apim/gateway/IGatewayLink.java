@@ -431,4 +431,38 @@ public interface IGatewayLink {
      * @return
      */
     public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer);
+
+    /**
+     * Retrieve a consumer's OAuth2 tokens
+     * @param consumerOAuthCredentialId
+     * @return
+     */
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId);
+
+    /**
+     * Delete a token on the gateway corresponding to the id
+     * @param tokenId
+     */
+    public void revokeOAuthToken(String tokenId);
+
+    /**
+     * Retrieve oauth tokens by authenticated user id
+     * @param authenticatedUserId
+     * @return
+     */
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId);
+
+    /**
+     * Retrieve OAuth information based on credential id
+     * @param credentialId
+     * @return
+     */
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(String credentialId);
+
+    /**
+     * Retrieve an OAuth token from the gateway
+     * @param tokenId
+     * @return
+     */
+    public KongOAuthTokenList getOAuthToken(String tokenId);
 }
