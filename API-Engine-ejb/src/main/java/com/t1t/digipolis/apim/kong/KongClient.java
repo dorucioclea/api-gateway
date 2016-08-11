@@ -27,6 +27,8 @@ import com.t1t.digipolis.kong.model.KongPluginACLRequest;
 import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
 import retrofit.http.*;
 
+import java.util.Collection;
+
 /**
  * Created by michallispashidis on 7/08/15.
  */
@@ -98,7 +100,7 @@ public interface KongClient {
 
     /*********************   OAUTH   *******************/
     @FormUrlEncoded
-    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path(value = "consumerId", encode = false)String consumerId,@Field("name") String name, @Field("client_id")String clientId, @Field("client_secret")String clientSecret,@Field("redirect_uri")String redirectURL);
+    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path(value = "consumerId", encode = false)String consumerId,@Field("name") String name, @Field("client_id")String clientId, @Field("client_secret")String clientSecret,@Field("redirect_uri")Iterable<String> redirectURL);
     @GET("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(@Path(value = "consumerId", encode = false)String consumerId);
     @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(@Query("client_id")String clientId);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens();

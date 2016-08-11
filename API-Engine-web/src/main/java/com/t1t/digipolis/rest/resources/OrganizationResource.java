@@ -63,6 +63,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This is the rest endpoint implementation.
@@ -333,7 +334,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         Preconditions.checkNotNull(updateAppUri);
-        if (!ValidationUtils.isValidURL(updateAppUri.getUri())) {
+        if (updateAppUri.getUris() == null || updateAppUri.getUris().stream().filter(uri -> ValidationUtils.isValidURL(uri)).collect(Collectors.toSet()).isEmpty()) {
             throw new IllegalArgumentException();
         }
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);

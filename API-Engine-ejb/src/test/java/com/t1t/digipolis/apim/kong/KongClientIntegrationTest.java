@@ -529,7 +529,7 @@ public class KongClientIntegrationTest {
         assertNotNull(oauthConsumer.getId());
 
         //create application to use oauth2 for service A and B
-        KongPluginOAuthConsumerResponse kongPluginOAuthConsumerResponse = kongClient.enableOAuthForConsumer(oauthConsumer.getId(), oauthConsumer.getId(), "", "", "http://localhost:5000");
+        KongPluginOAuthConsumerResponse kongPluginOAuthConsumerResponse = kongClient.enableOAuthForConsumer(oauthConsumer.getId(), oauthConsumer.getId(), "", "", Collections.singleton("http://localhost:5000"));
 
         //keys should be generated
         String client_id = kongPluginOAuthConsumerResponse.getClientId();
@@ -570,7 +570,7 @@ public class KongClientIntegrationTest {
     public void enableOAuthForConsumer()throws Exception{
         KongConsumer consumer = new KongConsumer().withUsername("oauthconsumer1");
         consumer = kongClient.createConsumer(consumer);
-        KongPluginOAuthConsumerResponse response = kongClient.enableOAuthForConsumer(consumer.getId(),"TestApplication","ABCCLIENTID","ABCCLIENTSECRET","http://localhost:4000/");
+        KongPluginOAuthConsumerResponse response = kongClient.enableOAuthForConsumer(consumer.getId(),"TestApplication","ABCCLIENTID","ABCCLIENTSECRET", Collections.singleton("http://localhost:4000/"));
         assertTrue(response!=null);
         kongClient.deleteConsumer(consumer.getId());
     }

@@ -110,3 +110,12 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "properties": {},
   "required": []
 }', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', NULL ,TRUE ,FALSE ,FALSE );
+
+--Multiple callback URI's for kong 0.8.3
+
+CREATE TABLE app_oauth_redirect_uris AS SELECT application_versions.id, application_versions.oauth_client_redirect FROM application_versions WHERE oauth_client_redirect NOTNULL;
+ALTER TABLE app_oauth_redirect_uris RENAME COLUMN id TO application_version_id;
+CREATE INDEX IDX_app_oauth_redirect_uris_1 ON app_oauth_redirect_uris(application_version_id);
+ALTER TABLE app_oauth_redirect_uris ADD CONSTRAINT UK_app_oauth_redirect_uris UNIQUE (application_version_id, oauth_client_redirect);
+ALTER TABLE app_oauth_redirect_uris ADD CONSTRAINT FK_app_oauth_redirect_uris_1 FOREIGN KEY (application_version_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
+ALTER TABLE application_versions DROP COLUMN oauth_client_redirect;
