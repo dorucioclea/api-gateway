@@ -408,4 +408,29 @@ public class RestGatewayLink implements IGatewayLink {
     public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer) {
         return getClient().updateConsumer(kongConsumerId, updatedConsumer);
     }
+
+    @Override
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId) {
+        return getClient().getConsumerOAuthTokenList(consumerOAuthCredentialId);
+    }
+
+    @Override
+    public void revokeOAuthToken(String tokenId) {
+        getClient().revokeOAuthToken(tokenId);
+    }
+
+    @Override
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId) {
+        return getClient().getConsumerOAuthTokenListByUserId(authenticatedUserId);
+    }
+
+    @Override
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(String credentialId) {
+        return getClient().getApplicationOAuthInformationByCredentialId(credentialId);
+    }
+
+    @Override
+    public KongOAuthTokenList getOAuthToken(String tokenId) {
+        return getClient().getOAuthToken(tokenId);
+    }
 }

@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -1562,4 +1563,24 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException
      */
     public void addTag(String organizationId, String serviceId, TagBean tag) throws NotAuthorizedException;
+
+    /**
+     * Retrieve an application version's OAuth tokens
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @return
+     * @throws NotAuthorizedException
+     */
+    public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version) throws NotAuthorizedException;
+
+    /**
+     * Revoke an application version's OAuth token
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @param token
+     * @throws NotAuthorizedException
+     */
+    public void revokeApplicationVersionOAuthToken(String organizationId, String applicationId, String version, OAuth2TokenBean token) throws NotAuthorizedException;
 }

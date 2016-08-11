@@ -972,4 +972,24 @@ public class GatewayClient {
         responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
         return responsePolicy;
     }
+
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId) {
+        return httpClient.getOAuthTokensByCredentialId(consumerOAuthCredentialId);
+    }
+
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId) {
+        return httpClient.getOAuthTokensByAuthenticatedUser(authenticatedUserId);
+    }
+
+    public void revokeOAuthToken(String tokenId) {
+        httpClient.revokeOAuthToken(tokenId);
+    }
+
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(String credentialId) {
+        return httpClient.getApplicationOAuthInformationByCredentialId(credentialId);
+    }
+
+    public KongOAuthTokenList getOAuthToken(String tokenId) {
+        return httpClient.getOAuthToken(tokenId);
+    }
 }

@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryType;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
@@ -62,18 +63,7 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginOAuth;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -4108,7 +4098,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    private Map<String, IGatewayLink> getApplicationGatewayLinks(List<ContractSummaryBean> contractSummaries) {
+    public Map<String, IGatewayLink> getApplicationGatewayLinks(List<ContractSummaryBean> contractSummaries) {
         try {
             Map<String, IGatewayLink> links = new HashMap<>();
             for (ContractSummaryBean contract : contractSummaries) {
@@ -4127,7 +4117,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    private Map<String, IGatewayLink> getApplicationContractGatewayLinks(List<ContractBean> contracts) {
+    public Map<String, IGatewayLink> getApplicationContractGatewayLinks(List<ContractBean> contracts) {
         Map<String, IGatewayLink> links = new HashMap<>();
         for (ContractBean contract : contracts) {
             Set<ServiceGatewayBean> gateways = contract.getService().getGateways();
@@ -4181,7 +4171,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-
     private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) throws StorageException {
         String prefix = appContext.getApplicationPrefix();
         Set<String> allowedPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
@@ -4193,5 +4182,44 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw ExceptionFactory.serviceVersionNotAvailableException(svb.getService().getId(), svb.getVersion());
         }
         return svb;
+    }
+
+
+
+    public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version) {
+        Set<OAuth2TokenBean> rval = new HashSet<>();
+        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
+        try {
+            Map<String, Set<String>> credentialIds =  new HashMap<>();
+            //create gatewayclients for every gateway the application is registered on
+            Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version));
+            for (IGatewayLink gateway : gateways.values()) {
+                KongPluginOAuthConsumerResponseList response = gateway.getConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb));
+                //retrieve the oauth2 consumer credential ids so that we can retrieve the actual tokens
+                credentialIds.put(gateway.getGatewayId(), response.getData().stream().map(resp -> resp.getId()).collect(Collectors.toSet()));
+            }
+            for (String gatewayId : credentialIds.keySet()) {
+                IGatewayLink gateway = gateways.get(gatewayId);
+                for (String credentialId : credentialIds.get(gatewayId)) {
+                    List<KongOAuthToken> tokens = gateway.getConsumerOAuthTokenList(credentialId).getData();
+                    for (KongOAuthToken token : tokens) {
+                        rval.add(new OAuth2TokenBean(token, gatewayId, avb));
+                    }
+                }
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+        return rval;
+    }
+
+    public void revokeApplicationVersionOAuthToken(OAuth2TokenBean token) {
+        IGatewayLink gateway = gatewayFacade.createGatewayLink(token.getGatewayId());
+        List<KongPluginOAuthConsumerResponse> appTokens = gateway.getConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(token.getOrganizationId(), token.getApplicationId(), token.getVersion())).getData();
+        if (appTokens.stream().filter(appToken -> appToken.getId().equals(token.getCredentialId())).collect(Collectors.toList()).isEmpty()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        gateway.revokeOAuthToken(token.getId());
     }
 }
