@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.beans.authorization;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.kong.model.KongOAuthToken;
 
@@ -10,6 +11,7 @@ import java.util.Date;
  * @author Guillaume Vandecasteele
  * @since 2016
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OAuth2TokenBean implements Serializable {
 
     private String scope;
