@@ -382,6 +382,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         ncb.setTermsAgreed(contract.getTermsAgreed());
                         createContract(organizationId, applicationId, newVersion.getVersion(), ncb);
                     }
+                    else {
+                        NewContractRequestBean request = new NewContractRequestBean();
+                        request.setTermsAgreed(true);
+                        request.setApplicationOrg(organizationId);
+                        request.setApplicationId(applicationId);
+                        request.setApplicationVersion(newVersion.getVersion());
+                        request.setPlanId(contract.getPlanId());
+                        requestContract(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion(), request);
+                    }
                 }
                 List<PolicySummaryBean> policies = listAppPolicies(organizationId, applicationId, bean.getCloneVersion());
                 for (PolicySummaryBean policySummary : policies) {
