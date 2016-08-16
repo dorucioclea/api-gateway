@@ -119,3 +119,145 @@ CREATE INDEX IDX_app_oauth_redirect_uris_1 ON app_oauth_redirect_uris(applicatio
 ALTER TABLE app_oauth_redirect_uris ADD CONSTRAINT UK_app_oauth_redirect_uris UNIQUE (application_version_id, oauth_client_redirect);
 ALTER TABLE app_oauth_redirect_uris ADD CONSTRAINT FK_app_oauth_redirect_uris_1 FOREIGN KEY (application_version_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
 ALTER TABLE application_versions DROP COLUMN oauth_client_redirect;
+
+--Fix for missing escape character in IP restriction form
+
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "IP Restriction",
+  "properties": {
+    "blacklist": {
+        "type": "array",
+        "items":{
+               "type": "string",
+               "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
+                "description": "List of IPs or CIDR ranges to blacklist. You cannot set blacklist values if you have already whitelist values specified!",
+                "validationMessage":"IP or CIDR required"
+        }
+    },
+    "whitelist": {
+        "type": "array",
+        "items":{
+            "type": "string",
+            "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
+            "description": "List of IPs or CIDR ranges to whitelist. You cannot set whitelist values if you have already blacklist values specified.",
+            "validationMessage":"IP or CIDR required"
+        }
+    }
+  }
+}' WHERE id = 'IPRestriction';
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto) VALUES ('JSONThreatProtection', 'Protect your API from JSON content-level attack attempts that use structures that overwhelm JSON Parsers.', '{
+  "type": "object",
+  "title": "JSON Threat Protection",
+  "properties": {
+    "source": {
+      "title": "Source",
+      "type": "string",
+      "pattern": "^request$|^response$|^message$",
+      "validationMessage": "Should be one of: request,response,message",
+      "description": "The sources that should be protected"
+    },
+    "container_depth": {
+      "title": "Container Depth",
+      "description": "Specifies the maximum allowed containment depth, where the containers are objects or arrays. For example, an array containing an object which contains an object would result in a containment depth of 3. If you do not specify this element, or if you specify a negative integer, the system does not enforce any limit.",
+      "type": "number",
+      "default": 0
+    },
+    "string_value_length": {
+      "title": "String Value Length",
+      "description": "Specifies the maximum length allowed for a string value. If you do not specify this element, or if you specify a negative integer, the system does not enforce a limit.",
+      "type": "number",
+      "default": 0
+    },
+    "array_element_count": {
+      "title": "Array Element Count",
+      "description": "Specifies the maximum number of elements allowed in an array. If you do not specify this element, or if you specify a negative integer, the system does not enforce a limit.",
+      "type": "number",
+      "default": 0
+    },
+    "object_entry_count": {
+      "title": "Object Entry Count",
+      "description": "Specifies the maximum number of entries allowed in an object. If you do not specify this element, or if you specify a negative integer, the system does not enforce any limit.",
+      "type": "number",
+      "default": 0
+    },
+    "object_entry_name_length": {
+      "title": "Object Entry Name Length",
+      "description": "Specifies the maximum string length allowed for a property name within an object. If you do not specify this element, or if you specify a negative integer, the system does not enforce any limit.",
+      "type": "number",
+      "default": 0
+    }
+  }
+}', 'JsonSchema', 'fa-shield', 'JSON Threat Protection', NULL, TRUE, FALSE, FALSE);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto) VALUES ('LDAP', 'Add LDAP Bind Authentication to your APIs, with username and password protection.', '{
+  "type": "object",
+  "title": "LDAP Authentication",
+  "properties": {
+    "ldap_host": {
+      "title": "LDAP Host",
+      "description": "Host on which the LDAP server is running.",
+      "type": "string"
+    },
+    "ldap_port": {
+      "title": "LDAP Port",
+      "description": "TCP port where the LDAP server is listening.",
+      "type": "number",
+      "default": 636
+    },
+    "base_dn": {
+      "title": "Base DN",
+      "description": "Base DN as the starting point for the search.",
+      "type": "string"
+    },
+    "attribute": {
+      "title": "Attribute",
+      "description": "Attribute to be used to search the user.",
+      "type": "string"
+    },
+    "cache_ttl": {
+      "title": "Cache TTL",
+      "description": "Cache expiry time",
+      "type": "number",
+      "default": 60
+    },
+    "timeout": {
+      "title": "Timeout",
+      "description": "An optional timeout in milliseconds when waiting for connection with LDAP server.",
+      "type": "number",
+      "default": 10000
+    },
+    "keepalive": {
+      "title": "Keep Alive",
+      "description": "An optional value in milliseconds that defines for how long an idle connection to LDAP server will live before being closed.",
+      "type": "number",
+      "default": 60000
+    },
+    "verify_ldap_host": {
+      "title": "Verify LDAP Host",
+      "description": "Set it to true to authenticate LDAP server.",
+      "type": "boolean",
+      "default": false
+    },
+    "start_tls": {
+      "title": "Start TLS",
+      "description": "Set it to true to issue StartTLS (Transport Layer Security) extended operation over ldap connection.",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "ldap_host",
+    "cache_ttl"
+    "ldap_port",
+    "base_dn",
+    "attribute"
+  ]
+}', 'JsonSchema', 'fa-database', 'LDAP Policy', NULL, TRUE, FALSE, FALSE);

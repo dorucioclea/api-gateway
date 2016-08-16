@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces": [
+    "com.t1t.digipolis.kong.model.KongConfigValue"
+  ],
+  "properties": {
+    "ldap_port": {
+      "type": "number",
+      "required": true
+    },
+    "cache_ttl": {
+      "type": "number",
+      "required": true,
+      "default": 60
+    },
+    "timeout": {
+      "type": "number",
+      "default": 10000
+    },
+    "start_tls": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "hide_credentials": {
+      "type": "boolean",
+      "default": false
+    },
+    "ldap_host": {
+      "type": "string",
+      "required": true
+    },
+    "base_dn": {
+      "type": "string",
+      "required": true
+    },
+    "verify_ldap_host": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "keepalive": {
+      "type": "number",
+      "default": 60000
+    },
+    "attribute": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

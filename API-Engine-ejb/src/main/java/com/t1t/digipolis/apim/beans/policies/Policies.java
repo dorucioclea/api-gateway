@@ -44,7 +44,9 @@ public enum Policies {
     , ANALYTICS(KongPluginAnalytics.class,"mashape-analytics", "Analytics")
     , JWT(KongPluginJWT.class,"jwt", "JWT")
     , JWTUP(KongPluginJWTUp.class,"jwt-up", "JWT-Up")
-    , ACL(KongPluginACL.class,"acl", "ACL");
+    , ACL(KongPluginACL.class,"acl", "ACL")
+    , LDAP(KongPluginLDAP.class, "ldap-auth", "LDAP")
+    , JSONTHREATPROTECTION(KongPluginJsonThreatProtection.class,"json-threat-protection","JSONThreatProtection");
 
     private Class clazz;
     private String kongIdentifier;

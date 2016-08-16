@@ -43,10 +43,6 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static com.t1t.digipolis.apim.beans.policies.Policies.BASICAUTHENTICATION;
-import static com.t1t.digipolis.apim.beans.policies.Policies.CORS;
-import static org.jgroups.Version.description;
-
 /**
  * Created by michallispashidis on 30/09/15.
  */
@@ -93,6 +89,8 @@ public class GatewayValidation {
             case JWT: return validateJWT(policy);
             case JWTUP: return validateJWTUp(policy);
             case ACL: return validateACL(policy);
+            case LDAP: return validateLDAP(policy);
+            case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
     }
@@ -396,6 +394,19 @@ public class GatewayValidation {
         //implicit environment set -> separate environment support in Mashape analytics - Galileo
         if(!StringUtils.isEmpty(environment))req.setEnvironment(environment);
         _LOG.debug("Modified policy:{}",policy);
+        return policy;
+    }
+
+    public synchronized Policy validateLDAP(Policy policy) {
+        KongPluginLDAP req = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginLDAP.class);
+        if (StringUtils.isEmpty(req.getLdapHost()) || StringUtils.isEmpty(req.getBaseDn()) || StringUtils.isEmpty(req.getAttribute()) || req.getVerifyLdapHost() == null || req.getStartTls() == null || req.getCacheTtl() == null) {
+            throw new PolicyViolationException("Form was not correctly filled in.");
+        }
+        return policy;
+    }
+
+    public synchronized Policy validateJsonThreatProtection(Policy policy) {
+        //Do nothing, it's fine
         return policy;
     }
 
