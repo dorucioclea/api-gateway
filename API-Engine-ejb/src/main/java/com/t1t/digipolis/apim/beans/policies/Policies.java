@@ -46,7 +46,8 @@ public enum Policies {
     , JWTUP(KongPluginJWTUp.class,"jwt-up", "JWT-Up")
     , ACL(KongPluginACL.class,"acl", "ACL")
     , LDAP(KongPluginLDAP.class, "ldap-auth", "LDAP")
-    , JSONTHREATPROTECTION(KongPluginJsonThreatProtection.class,"json-threat-protection","JSONThreatProtection");
+    , JSONTHREATPROTECTION(KongPluginJsonThreatProtection.class,"json-threat-protection","JSONThreatProtection")
+    , HAL(KongPluginEmptyConfig.class, "hal", "HAL");
 
     private Class clazz;
     private String kongIdentifier;

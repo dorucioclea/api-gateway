@@ -459,6 +459,7 @@
                         <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUserList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginLDAP.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJsonThreatProtection.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginEmptyConfig.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>
