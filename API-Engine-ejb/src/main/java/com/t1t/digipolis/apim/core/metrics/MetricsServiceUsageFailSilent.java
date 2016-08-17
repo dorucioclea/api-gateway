@@ -9,7 +9,7 @@ import com.t1t.digipolis.kong.model.MetricsUsageList;
  * @since 2016
  */
 public class MetricsServiceUsageFailSilent extends HystrixCommand<MetricsUsageList> {
-    private final MetricsClient client;
+    private final MongoDBMetricsClient client;
 
     private final String organizationId;
     private final String serviceId;
@@ -19,7 +19,7 @@ public class MetricsServiceUsageFailSilent extends HystrixCommand<MetricsUsageLi
     private final String to;
 
 
-    public MetricsServiceUsageFailSilent(MetricsClient client, String organizationId, String serviceId, String version, String interval, String from, String to, Integer timeout) {
+    public MetricsServiceUsageFailSilent(MongoDBMetricsClient client, String organizationId, String serviceId, String version, String interval, String from, String to, Integer timeout) {
         super(HystrixCommandGroupKey.Factory.asKey("MetricsServiceUsage"), timeout != null ? timeout : 200);
         this.client = client;
 
@@ -33,7 +33,7 @@ public class MetricsServiceUsageFailSilent extends HystrixCommand<MetricsUsageLi
 
     @Override
     protected MetricsUsageList run() {
-        return client.getServiceUsageFromToInterval(organizationId, serviceId, version, interval, from, to);
+        return client.getUsage(organizationId, serviceId, version, interval, from, to);
     }
 
     @Override

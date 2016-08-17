@@ -9,7 +9,7 @@ import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
  * @since 2016
  */
 public class MetricsResponseSummaryFailSilent extends HystrixCommand<MetricsResponseSummaryList> {
-    private final MetricsClient client;
+    private final MongoDBMetricsClient client;
 
     private final String organizationId;
     private final String serviceId;
@@ -18,7 +18,7 @@ public class MetricsResponseSummaryFailSilent extends HystrixCommand<MetricsResp
     private final String to;
 
 
-    public MetricsResponseSummaryFailSilent(MetricsClient client, String organizationId, String serviceId, String version, String from, String to, Integer timeout) {
+    public MetricsResponseSummaryFailSilent(MongoDBMetricsClient client, String organizationId, String serviceId, String version, String from, String to, Integer timeout) {
         super(HystrixCommandGroupKey.Factory.asKey("MetricsResponseSummary"), timeout != null ? timeout : 200);
         this.client = client;
 
@@ -31,7 +31,7 @@ public class MetricsResponseSummaryFailSilent extends HystrixCommand<MetricsResp
 
     @Override
     protected MetricsResponseSummaryList run() {
-        return client.getServiceResponseSummaryFromTo(organizationId, serviceId, version, from, to);
+        return client.getResponseStatsSummary(organizationId, serviceId, version, from, to);
     }
 
     @Override

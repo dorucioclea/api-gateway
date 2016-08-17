@@ -4,8 +4,6 @@ import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
 import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
-import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.MetricsUnavailableException;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsage;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
@@ -36,9 +34,9 @@ import java.util.*;
 @Singleton
 @ApplicationScoped
 @Default
-public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
+public class MongoMetricsAccessor implements MetricsClient, Serializable {
     private static Logger log = LoggerFactory.getLogger(MongoMetricsAccessor.class.getName());
-    private static MetricsClient httpClient;
+    private static MongoDBMetricsClient httpClient;
     private static String metricsURI;
     private static RestMetricsBuilder restMetricsBuilder;
     private static Config config;
@@ -76,7 +74,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
             log.info("Metrics processor instantiated for URI: {}", metricsURI);
             //create metrics client instance
             restMetricsBuilder = new RestMetricsBuilder();
-            httpClient = restMetricsBuilder.getService(metricsURI, MetricsClient.class);
+            httpClient = restMetricsBuilder.getService(metricsURI, MongoDBMetricsClient.class);
             timeout = config.getInt(IConfig.HYSTRIX_METRICS_TIMEOUT_VALUE);
         }else throw new RuntimeException("MongoMetricsAccessor - Metrics are not initialized");
     }

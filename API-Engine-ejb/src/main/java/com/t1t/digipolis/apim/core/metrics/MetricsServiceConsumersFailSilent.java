@@ -9,14 +9,14 @@ import com.t1t.digipolis.kong.model.MetricsServiceConsumerList;
  * @since 2016
  */
 public class MetricsServiceConsumersFailSilent extends HystrixCommand<MetricsServiceConsumerList> {
-    private final MetricsClient client;
+    private final MongoDBMetricsClient client;
 
     private final String organizationId;
     private final String serviceId;
     private final String version;
 
 
-    public MetricsServiceConsumersFailSilent(MetricsClient client, String organizationId, String serviceId, String version, Integer timeout) {
+    public MetricsServiceConsumersFailSilent(MongoDBMetricsClient client, String organizationId, String serviceId, String version, Integer timeout) {
         super(HystrixCommandGroupKey.Factory.asKey("MetricsMarketInfo"), timeout != null ? timeout : 200);
         this.client = client;
 
@@ -27,7 +27,7 @@ public class MetricsServiceConsumersFailSilent extends HystrixCommand<MetricsSer
 
     @Override
     protected MetricsServiceConsumerList run() {
-        return client.getServiceConsumers(organizationId, serviceId, version);
+        return client.getServiceMarketInfo(organizationId, serviceId, version);
     }
 
     @Override
