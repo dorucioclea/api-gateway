@@ -74,7 +74,7 @@ public class CurrentUserResource implements ICurrentUserResource {
             Preconditions.checkArgument(info.getPic().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         }
         if (info.getBio() != null) {
-            Preconditions.checkArgument(info.getBio().length() <= 1_000_000, "Bio should not exceed 1,000,000 characters: " + info.getBio().length());
+            Preconditions.checkArgument(info.getBio().length() <= 100_000, "Bio should not exceed 1,00,000 characters: " + info.getBio().length());
         }
         currentUserFacade.updateInfo(info);
     }

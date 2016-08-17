@@ -966,8 +966,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "ldap_host",
     "cache_ttl"
     "ldap_port",
-    "base_dn",
-    "attribute"
+    "base_dn"
   ]
 }', 'JsonSchema', 'fa-database', 'LDAP Policy', NULL, TRUE, FALSE, FALSE);
 
