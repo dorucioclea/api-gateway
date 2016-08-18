@@ -3,7 +3,7 @@ package com.t1t.digipolis.apim.core.metrics;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import org.joda.time.DateTime;
 
 import static org.bouncycastle.crypto.tls.ConnectionEnd.client;
@@ -12,7 +12,7 @@ import static org.bouncycastle.crypto.tls.ConnectionEnd.client;
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-public class MetricsConsumerUsageFailSilent extends AbstractHystrixMetricsCommand<MetricsConsumerUsageList> {
+public class MetricsResponseStatsListFailSilent extends AbstractHystrixMetricsCommand<MetricsResponseStatsList> {
 
     private final String organizationId;
     private final String serviceId;
@@ -20,11 +20,10 @@ public class MetricsConsumerUsageFailSilent extends AbstractHystrixMetricsComman
     private final HistogramIntervalType interval;
     private final DateTime from;
     private final DateTime to;
-    private final String consumerId;
 
 
-    public MetricsConsumerUsageFailSilent(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId, Integer timeout) {
-        super(HystrixCommandGroupKey.Factory.asKey("MetricsConsumerUsage"), timeout != null ? timeout : 200);
+    public MetricsResponseStatsListFailSilent(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to, Integer timeout) {
+        super(HystrixCommandGroupKey.Factory.asKey("MetricsResponseStatsList"), timeout != null ? timeout : 200);
 
         this.organizationId = organizationId;
         this.serviceId = serviceId;
@@ -32,16 +31,15 @@ public class MetricsConsumerUsageFailSilent extends AbstractHystrixMetricsComman
         this.interval = interval;
         this.from = from;
         this.to = to;
-        this.consumerId = consumerId;
     }
 
     @Override
-    protected MetricsConsumerUsageList run() {
-        return this.getSpi().getAppUsageForService(organizationId, serviceId, version, interval, from, to, consumerId);
+    protected MetricsResponseStatsList run() {
+        return this.getSpi().getResponseStats(organizationId, serviceId, version, interval, from, to);
     }
 
     @Override
-    protected MetricsConsumerUsageList getFallback() {
+    protected MetricsResponseStatsList getFallback() {
         return null;
     }
 }

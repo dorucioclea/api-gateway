@@ -12,6 +12,7 @@ import com.t1t.digipolis.apim.beans.user.ClientTokeType;
 import com.t1t.digipolis.apim.beans.user.SAMLRequest;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.metrics.MetricsSPI;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
@@ -70,7 +71,7 @@ public class UserFacadeTest extends TestCase {
     @Mock
     IServiceValidator serviceValidator;
     @Mock
-    IMetricsAccessor metrics;
+    MetricsSPI metrics;
     @Mock
     GatewayFacade gatewayFacade;
     @Mock

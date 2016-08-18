@@ -50,6 +50,7 @@ import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.metrics.MetricsService;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
@@ -118,7 +119,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     @Inject
     private IServiceValidator serviceValidator;
     @Inject
-    private IMetricsAccessor metrics;
+    private MetricsService metrics;
     @Inject
     private GatewayFacade gatewayFacade;
     @Inject

@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.facades;
 import com.t1t.digipolis.apim.beans.actions.ActionBean;
 import com.t1t.digipolis.apim.beans.actions.ActionType;
 import com.t1t.digipolis.apim.core.*;
+import com.t1t.digipolis.apim.core.metrics.MetricsSPI;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import org.junit.Rule;
@@ -36,7 +37,7 @@ public class ActionFacadeTest {
     @Mock IApiKeyGenerator apiKeyGenerator;
     @Mock IApplicationValidator applicationValidator;
     @Mock IServiceValidator serviceValidator;
-    @Mock IMetricsAccessor metrics;
+    @Mock MetricsSPI metrics;
     @Mock GatewayFacade gatewayFacade;
     @Mock IGatewayLinkFactory gatewayLinkFactory;
     @Mock UserFacade userFacade;

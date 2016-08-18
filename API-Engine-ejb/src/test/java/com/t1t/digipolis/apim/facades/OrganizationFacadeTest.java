@@ -16,6 +16,7 @@ import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.*;
+import com.t1t.digipolis.apim.core.metrics.MetricsSPI;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
@@ -64,7 +65,7 @@ public class OrganizationFacadeTest {
     @Mock IApiKeyGenerator apiKeyGenerator;
     @Mock IApplicationValidator applicationValidator;
     @Mock IServiceValidator serviceValidator;
-    @Mock IMetricsAccessor metrics;
+    @Mock MetricsSPI metrics;
     @Mock GatewayFacade gatewayFacade;
     @Mock GatewayValidation gatewayValidation;
     @Mock IGatewayLinkFactory gatewayLinkFactory;

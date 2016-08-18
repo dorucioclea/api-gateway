@@ -1,20 +1,20 @@
-package com.t1t.digipolis.apim.core;
+package com.t1t.digipolis.apim.core.metrics;
 
-import com.t1t.digipolis.apim.beans.metrics.*;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
+import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
+import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
+import com.t1t.digipolis.kong.model.*;
 import org.joda.time.DateTime;
 
 /**
+ * @author Guillaume Vandecasteele
+ * @since 2016
  * An interface used to access metrics information.  Typically metrics are
  * recorded at runtime by the API Gateway into some sort of data store (e.g.
  * mongodb).  Implementations of this interface
  * must know how to extract the metrics information in useful and common ways
  * from that data store.
  */
-public interface IMetricsAccessor {
+public interface MetricsSPI {
 
     /**
      * Query the metrics store for the total # of requests made to the service
@@ -83,5 +83,4 @@ public interface IMetricsAccessor {
      * @return
      */
     ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version);
-
 }

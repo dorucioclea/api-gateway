@@ -14,10 +14,10 @@ import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.core.IMetricsAccessor;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.metrics.MetricsService;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
@@ -46,7 +46,7 @@ public class SearchFacade {
     @Inject private ISecurityContext securityContext;
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
-    @Inject private IMetricsAccessor metrics;
+    @Inject private MetricsService metrics;
     @Inject ISecurityAppContext appContext;
 
     private static final String NAME = "name";

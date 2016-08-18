@@ -31,6 +31,7 @@ import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.metrics.MetricsService;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.EventFacade;
@@ -95,7 +96,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Inject
     IStorageQuery query;
     @Inject
-    IMetricsAccessor metrics;
+    MetricsService metrics;
     @Inject
     private OrganizationFacade orgFacade;
     @Inject

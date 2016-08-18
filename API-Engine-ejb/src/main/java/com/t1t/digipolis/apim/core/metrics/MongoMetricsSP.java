@@ -3,7 +3,6 @@ package com.t1t.digipolis.apim.core.metrics;
 import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
 import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
-import com.t1t.digipolis.apim.core.IMetricsAccessor;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsage;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
@@ -20,9 +19,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Singleton;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Default;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -31,29 +27,21 @@ import java.util.*;
 /**
  * Created by michallispashidis on 12/09/15.
  */
-@Singleton
-@ApplicationScoped
-@Default
-public class MongoMetricsAccessor implements MetricsClient, Serializable {
-    private static Logger log = LoggerFactory.getLogger(MongoMetricsAccessor.class.getName());
+public class MongoMetricsSP implements MetricsSPI, Serializable {
+    private static Logger log = LoggerFactory.getLogger(MongoMetricsSP.class.getName());
     private static MongoDBMetricsClient httpClient;
-    private static String metricsURI;
-    private static RestMetricsBuilder restMetricsBuilder;
-    private static Config config;
-    private static Properties properties;
-    private static Integer timeout;
 
     //interval values
-    private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
-    private static final long ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000;
-    private static final long ONE_DAY_MILLIS = 1 * 24 * 60 * 60 * 1000;
+    private static final long ONE_MINUTE_MILLIS = 60 * 1000;
+    private static final long ONE_HOUR_MILLIS = 60 * 60 * 1000;
+    private static final long ONE_DAY_MILLIS = 24 * 60 * 60 * 1000;
     private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
     private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
     {
         //read properties file
         InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties");
-        properties = new Properties();
+        Properties properties = new Properties();
         if(is!=null) {
             try {
                 properties.load(is);
@@ -62,8 +50,9 @@ public class MongoMetricsAccessor implements MetricsClient, Serializable {
             }
         }else throw new RuntimeException("API Engine basic property file not found.");
         //read specific application config, depends on the maven profile that has been set
-        config = ConfigFactory.load(properties.getProperty(IConfig.PROP_FILE_CONFIG_FILE)); if(config==null) throw new RuntimeException("API Engine log not found");
-        metricsURI = "";
+        Config config = ConfigFactory.load(properties.getProperty(IConfig.PROP_FILE_CONFIG_FILE));
+        if(config ==null) throw new RuntimeException("API Engine log not found");
+        String metricsURI = "";
         if (config != null && StringUtils.isEmpty(metricsURI)) {
             metricsURI = new StringBuffer("")
                     .append(config.getString(IConfig.METRICS_SCHEME))
@@ -73,15 +62,14 @@ public class MongoMetricsAccessor implements MetricsClient, Serializable {
                     .append("/").toString();
             log.info("Metrics processor instantiated for URI: {}", metricsURI);
             //create metrics client instance
-            restMetricsBuilder = new RestMetricsBuilder();
+            RestMetricsBuilder restMetricsBuilder = new RestMetricsBuilder();
             httpClient = restMetricsBuilder.getService(metricsURI, MongoDBMetricsClient.class);
-            timeout = config.getInt(IConfig.HYSTRIX_METRICS_TIMEOUT_VALUE);
         }else throw new RuntimeException("MongoMetricsAccessor - Metrics are not initialized");
     }
 
     @Override
     public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        MetricsUsageList originList = new MetricsServiceUsageFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), timeout).execute();
+        MetricsUsageList originList = httpClient.getUsage(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
         if (originList == null) {
             return null;
         }
@@ -109,7 +97,7 @@ public class MongoMetricsAccessor implements MetricsClient, Serializable {
 
     @Override
     public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        MetricsResponseStatsList originList = new MetricsResponseStatisticsFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), timeout).execute();
+        MetricsResponseStatsList originList = httpClient.getResponseStats(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis());
         if (originList == null) {
             return null;
         }
@@ -141,13 +129,13 @@ public class MongoMetricsAccessor implements MetricsClient, Serializable {
     @Override
     public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
         //here we only have on set of results, we don't need to add date records in order to prepare the data for a front end application
-        return new MetricsResponseSummaryFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis(), timeout).execute();
+        return httpClient.getResponseStatsSummary(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis());
 
     }
 
     @Override
     public MetricsConsumerUsageList getAppUsageForService(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
-        MetricsConsumerUsageList originList = new MetricsConsumerUsageFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId, timeout).execute();
+        MetricsConsumerUsageList originList = httpClient.getAppUsageForService(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), interval.toString(), "" + from.getMillis(), "" + to.getMillis(), consumerId);
         if (originList == null) {
             return null;
         }
@@ -176,7 +164,7 @@ public class MongoMetricsAccessor implements MetricsClient, Serializable {
     @Override
     public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) {
         //distinct active users
-        MetricsServiceConsumerList conList = new MetricsServiceConsumersFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), timeout).execute();
+        MetricsServiceConsumerList conList = httpClient.getServiceMarketInfo(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase());
         if (conList == null) {
             return null;
         }
@@ -184,7 +172,7 @@ public class MongoMetricsAccessor implements MetricsClient, Serializable {
         //uptime - conventionally last month/by week
         DateTime to = new DateTime();
         DateTime from = to.minusMonths(1);
-        MetricsResponseSummaryList summList = new MetricsResponseSummaryFailSilent(httpClient, organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis(), timeout).execute();
+        MetricsResponseSummaryList summList = httpClient.getResponseStatsSummary(organizationId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase(), "" + from.getMillis(), "" + to.getMillis());
         if (summList == null) {
             return null;
         }

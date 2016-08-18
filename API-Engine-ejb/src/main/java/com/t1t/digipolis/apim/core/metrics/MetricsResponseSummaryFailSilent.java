@@ -3,24 +3,25 @@ package com.t1t.digipolis.apim.core.metrics;
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import org.joda.time.DateTime;
+
+import static org.bouncycastle.crypto.tls.ConnectionEnd.client;
 
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-public class MetricsResponseSummaryFailSilent extends HystrixCommand<MetricsResponseSummaryList> {
-    private final MongoDBMetricsClient client;
+public class MetricsResponseSummaryFailSilent extends AbstractHystrixMetricsCommand<MetricsResponseSummaryList> {
 
     private final String organizationId;
     private final String serviceId;
     private final String version;
-    private final String from;
-    private final String to;
+    private final DateTime from;
+    private final DateTime to;
 
 
-    public MetricsResponseSummaryFailSilent(MongoDBMetricsClient client, String organizationId, String serviceId, String version, String from, String to, Integer timeout) {
+    public MetricsResponseSummaryFailSilent(String organizationId, String serviceId, String version, DateTime from, DateTime to, Integer timeout) {
         super(HystrixCommandGroupKey.Factory.asKey("MetricsResponseSummary"), timeout != null ? timeout : 200);
-        this.client = client;
 
         this.organizationId = organizationId;
         this.serviceId = serviceId;
@@ -31,7 +32,7 @@ public class MetricsResponseSummaryFailSilent extends HystrixCommand<MetricsResp
 
     @Override
     protected MetricsResponseSummaryList run() {
-        return client.getResponseStatsSummary(organizationId, serviceId, version, from, to);
+        return this.getSpi().getResponseStatsSummary(organizationId, serviceId, version, from, to);
     }
 
     @Override
