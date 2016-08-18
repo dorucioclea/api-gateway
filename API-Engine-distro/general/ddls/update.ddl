@@ -260,3 +260,10 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "base_dn"
   ]
 }', 'JsonSchema', 'fa-database', 'LDAP Policy', NULL, TRUE, FALSE, FALSE);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('HAL', 'The HAL policy rewrites currie-values from hal/json bodies.', '{
+  "type": "object",
+  "title": "HAL",
+  "properties": {},
+  "required": []
+}', 'JsonSchema', 'fa-paw', 'HAL Policy', NULL ,TRUE ,FALSE ,FALSE );

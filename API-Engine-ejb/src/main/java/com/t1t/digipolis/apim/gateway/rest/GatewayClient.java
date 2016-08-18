@@ -490,6 +490,7 @@ public class GatewayClient {
                         case ACL: createServicePolicy(api, policy, Policies.ACL.getKongIdentifier(), Policies.ACL.getClazz()); customAclflag = true; break;
                         case JSONTHREATPROTECTION: createServicePolicy(api, policy, Policies.JSONTHREATPROTECTION.getKongIdentifier(), Policies.JSONTHREATPROTECTION.getClazz());break;
                         case LDAP: createServicePolicy(api, policy, Policies.LDAP.getKongIdentifier(), Policies.LDAP.getClazz());break;
+                        case HAL: createServicePolicy(api, policy, Policies.HAL.getKongIdentifier(), Policies.HAL.getClazz()); break;
                         default:break;
                     }
                 }

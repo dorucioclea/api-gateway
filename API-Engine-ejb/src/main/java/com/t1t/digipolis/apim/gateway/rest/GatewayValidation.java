@@ -43,6 +43,8 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.t1t.digipolis.apim.beans.services.ServiceDefinitionType.HAL;
+
 /**
  * Created by michallispashidis on 30/09/15.
  */
@@ -91,6 +93,7 @@ public class GatewayValidation {
             case ACL: return validateACL(policy);
             case LDAP: return validateLDAP(policy);
             case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
+            case HAL: return policy;
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
     }
