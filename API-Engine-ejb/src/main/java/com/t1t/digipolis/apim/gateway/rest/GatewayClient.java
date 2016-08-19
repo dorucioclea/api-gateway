@@ -17,6 +17,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongExtraInfo;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginACLRequest;
 import com.t1t.digipolis.kong.model.KongPluginACL;
