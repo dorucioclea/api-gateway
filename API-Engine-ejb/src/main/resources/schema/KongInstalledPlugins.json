@@ -5,11 +5,7 @@
   "properties": {
     "enabled_plugins": {
       "id": "enabled_plugins",
-      "type": "array",
-      "items": {
-        "id": "0",
-        "type": "string"
-      }
+      "type": "object"
     }
   }
 }

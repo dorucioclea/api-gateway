@@ -4,40 +4,28 @@
   "type": "object",
   "properties": {
     "timers": {
-      "id": "timers",
-      "type": "string"
+      "type": "object"
     },
     "version": {
-      "id": "version",
       "type": "string"
     },
     "configuration": {
-      "id": "configuration",
-      "type": "string"
+      "type": "object"
     },
     "lua_version": {
-      "id": "lua_version",
       "type": "string"
     },
     "tagline": {
-      "id": "tagline",
       "type": "string"
     },
     "hostname": {
-      "id": "hostname",
       "type": "string"
     },
     "plugins": {
-      "id": "plugins",
       "type": "object",
       "properties": {
         "available_on_server": {
-          "id": "available_on_server",
-          "type": "array",
-          "items": {
-            "id": "0",
-            "type": "string"
-          }
+          "type": "object"
         }
       }
     }

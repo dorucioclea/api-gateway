@@ -94,10 +94,11 @@ public class KongClientIntegrationTest {
         assertTrue(!StringUtils.isEmpty(kongInfo.getLuaVersion()));
         assertTrue(!StringUtils.isEmpty(kongInfo.getVersion()));
         assertTrue(!StringUtils.isEmpty(kongInfo.getTagline()));
+        assertTrue(kongInfo.getTimers()!=null);
+        assertTrue(kongInfo.getConfiguration()!=null);
         Plugins plugins = kongInfo.getPlugins();
         //normally minimum 1 plugin should be available
         assertNotNull(plugins.getAvailableOnServer());
-        assertTrue(plugins.getAvailableOnServer().size()>0);
     }
 
     @Test
@@ -263,7 +264,6 @@ public class KongClientIntegrationTest {
         KongInstalledPlugins installedPlugins = kongClient.getInstalledPlugins();
         log.info("Installed plugins:{}",installedPlugins);
         assertNotNull(installedPlugins);
-        assertTrue(installedPlugins.getEnabledPlugins().size() > 0);
     }
 
     @Test
@@ -492,7 +492,12 @@ public class KongClientIntegrationTest {
         assertTrue(enhancedOAuthValue.getMandatoryScope());
     }
 
+    /**
+     * Can be usefull in the near future
+     * @throws Exception
+     */
     @Test
+    @Ignore
     public void registerOAuthCentralService()throws Exception{
         //create service identifiers
         String serviceAId = "orgA.serviceA.v1";
