@@ -2353,21 +2353,4 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version);
     }
 
-    @Override
-    @ApiOperation("Revoke Application Version Oauth2 Token")
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "Succesful, no content")
-    })
-    @DELETE
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth2/tokens")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void revokeApplicationVersionOAuthToken(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, OAuth2TokenBean token) throws NotAuthorizedException {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(applicationId) && StringUtils.isNotEmpty(version));
-        Preconditions.checkNotNull(token);
-        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()));
-        if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
-        orgFacade.revokeApplicationVersionOAuthToken(token);
-    }
 }

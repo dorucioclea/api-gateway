@@ -1573,14 +1573,4 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException
      */
     public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version) throws NotAuthorizedException;
-
-    /**
-     * Revoke an application version's OAuth token
-     * @param organizationId
-     * @param applicationId
-     * @param version
-     * @param token
-     * @throws NotAuthorizedException
-     */
-    public void revokeApplicationVersionOAuthToken(String organizationId, String applicationId, String version, OAuth2TokenBean token) throws NotAuthorizedException;
 }
