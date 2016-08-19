@@ -572,21 +572,22 @@ public class GatewayClient {
     }
 
     private void registerDefaultAnalyticsPolicy(KongApi api){
-        if(appConfig.getAnalyticsEnabled()){
             KongPluginAnalytics analyticsPolicy = new KongPluginAnalytics()
-                    .withBatchSize(appConfig.getAnalyticsBatchSize())
-                    .withDelay(appConfig.getAnalyticsDelay())
+                    .withConnectionTimeout(appConfig.getAnalyticsConnTimeout())
+                    .withServiceToken(appConfig.getAnalyticsServiceToken())
                     .withEnvironment(appConfig.getAnalyticsEnvironment())
+                    .withRetryCount(appConfig.getAnalyticsRetryCount())
+                    .withQueueSize(appConfig.getAnalyticsQueueSize())
+                    .withFlushTimeout(appConfig.getAnalyticsFlushTimeout())
+                    .withLogBodies(appConfig.getAnalyticsLogBodies())
                     .withHost(appConfig.getAnalyticsHost())
                     .withPort(appConfig.getAnalyticsPort())
-                    .withLogBody(appConfig.getAnalyticsLogBody())
-                    .withMaxSendingQueueSize(appConfig.getAnalyticsMaxSendingQueue())
-                    .withServiceToken(appConfig.getAnalyticsServiceToken());
+                    .withHttps(appConfig.getAnalyticsHttps())
+                    .withHttpsVerify(appConfig.getAnalyticsHttpsVerify());
             KongPluginConfig config = new KongPluginConfig()
                     .withName(Policies.ANALYTICS.getKongIdentifier())
                     .withConfig(analyticsPolicy);
             httpClient.createPluginConfig(api.getId(),config);
-        }
     }
 
     /**
