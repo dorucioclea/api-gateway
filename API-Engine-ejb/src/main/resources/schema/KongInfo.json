@@ -3,8 +3,16 @@
   "id": "/",
   "type": "object",
   "properties": {
+    "timers": {
+      "id": "timers",
+      "type": "string"
+    },
     "version": {
       "id": "version",
+      "type": "string"
+    },
+    "configuration": {
+      "id": "configuration",
       "type": "string"
     },
     "lua_version": {

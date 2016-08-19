@@ -12,4 +12,7 @@ The following actions should be executed in order to upgrade towards API Engine 
     
  - copy correct application config file
  
- 
+ Upgrade notes: 0.8.0 -> 0.9.0
+ -----------------------------
+ - add HAL plugin
+ - update LDAP login handler.lua and access.lua

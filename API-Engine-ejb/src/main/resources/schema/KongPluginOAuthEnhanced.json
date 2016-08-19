@@ -6,6 +6,7 @@
   "properties": {
     "scopes": {
       "type": "array",
+      "items": {"type": "string"},
       "required": false
     },
     "mandatory_scope": {
