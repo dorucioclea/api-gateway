@@ -9,6 +9,8 @@ import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.AbstractUserException;
+import com.t1t.digipolis.apim.exceptions.JWTException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
@@ -724,18 +726,20 @@ public class GatewayClient {
         KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest();
         jwtRequest.setAlgorithm(encoding);
         switch (encoding){
+            case JWTUtils.JWT_HS256 : {
+                KongPluginJWTRequest request = new KongPluginJWTRequest();
+                request.setAlgorithm(JWTUtils.JWT_HS256);
+                request.setRsaPublicKey(gatewayBean.getJWTPubKey());
+                return httpClient.createConsumerJWTCredentials(id, request);
+            }
             case JWTUtils.JWT_RS256 : {
                 KongPluginJWTRequest request = new KongPluginJWTRequest();
                 request.setAlgorithm(JWTUtils.JWT_RS256);
-                request.setRsaPublicKey(gatewayBean.getJWTPrivKey());
-                return httpClient.createConsumerJWTCredentials(id, new KongPluginJWTRequest());
-            }
-            default:{
-                KongPluginJWTRequest request = new KongPluginJWTRequest();
-                request.setAlgorithm(JWTUtils.JWT_HS256);
-                return httpClient.createConsumerJWTCredentials(id, new KongPluginJWTRequest());
+                request.setRsaPublicKey(gatewayBean.getJWTPubKey());
+                return httpClient.createConsumerJWTCredentials(id, request);
             }
         }
+        throw new JWTException();
     }
 
     public KongPluginJWTResponseList getConsumerJWT(String id){
