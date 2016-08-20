@@ -33,6 +33,7 @@ import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginHttpLog;
+import com.t1t.digipolis.kong.model.KongPluginJWT;
 import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
@@ -720,12 +721,22 @@ public class GatewayClient {
         return httpClient.createConsumerKeyAuthCredentials(id, new KongPluginKeyAuthRequest().withKey(apiKey));
     }
 
-    public KongPluginJWTResponse createConsumerJWT(String id){
-        //default the JWT request supported should be a HS256
+    public KongPluginJWTResponse createConsumerJWT(String id,String encoding){
         KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest();
-        jwtRequest.setAlgorithm(JWTUtils.JWT_HS256);
-        //TODO support RS356
-        return httpClient.createConsumerJWTCredentials(id, new KongPluginJWTRequest());
+        jwtRequest.setAlgorithm(encoding);
+        switch (encoding){
+            case JWTUtils.JWT_RS256 : {
+                KongPluginJWTRequest request = new KongPluginJWTRequest();
+                request.setAlgorithm(JWTUtils.JWT_RS256);
+                request.setRsaPublicKey(gatewayBean.getJWTPrivKeyEndpoint());
+                return httpClient.createConsumerJWTCredentials(id, new KongPluginJWTRequest());
+            }
+            default:{
+                KongPluginJWTRequest request = new KongPluginJWTRequest();
+                request.setAlgorithm(JWTUtils.JWT_HS256);
+                return httpClient.createConsumerJWTCredentials(id, new KongPluginJWTRequest());
+            }
+        }
     }
 
     public KongPluginJWTResponseList getConsumerJWT(String id){

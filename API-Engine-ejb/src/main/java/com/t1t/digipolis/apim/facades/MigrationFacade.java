@@ -50,10 +50,7 @@ import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.GatewayUtils;
-import com.t1t.digipolis.util.ObjectCloner;
-import com.t1t.digipolis.util.ServiceConventionUtil;
+import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -304,7 +301,7 @@ public class MigrationFacade {
                         gatewayLink.createConsumerWithKongId(user.getKongUsername(), ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
                         Thread.sleep(100);
                         //create jwt token
-                        gatewayLink.addConsumerJWT(user.getKongUsername());
+                        gatewayLink.addConsumerJWT(user.getKongUsername(), JWTUtils.JWT_RS256);
                     } catch (RetrofitError rte) {
                         _LOG.error("-->no sync executed for kong id {} and username {}", user.getKongUsername(), user.getUsername());
                         continue;
@@ -474,7 +471,7 @@ public class MigrationFacade {
                             gateway.addConsumerKeyAuth(appConsumerName, apikey);
                         }
                         //create jwt token
-                        gateway.addConsumerJWT(appConsumerName);
+                        gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256);
                         //sync oauth info
                         if (!StringUtils.isEmpty(avb.getoAuthClientId()) && !StringUtils.isEmpty(avb.getOauthClientSecret())) {//redirect may be empty
                             if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())
@@ -848,7 +845,7 @@ public class MigrationFacade {
             try{
                 KongPluginJWTResponseList response = gateway.getConsumerJWT(appUniqueId);
                 if (response.getData().size() <= 0) {
-                    final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(appUniqueId);
+                    final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(appUniqueId,JWTUtils.JWT_RS256);
                     final String key = kongPluginJWTResponse.getKey();
                     final String secret = kongPluginJWTResponse.getSecret();
                     _LOG.info("Consumer '{}' JWT credentials generated ({},{})",appUniqueId,key,secret);

@@ -29,8 +29,8 @@ import java.util.*;
  */
 public class JWTUtils {
     private static Logger _LOG = LoggerFactory.getLogger(JWTUtils.class.getName());
-    public static String JWT_HS256 = "HS256";
-    public static String JWT_RS256 = "RS256";
+    public static final String JWT_HS256 = "HS256";
+    public static final String JWT_RS256 = "RS256";
 
     /**
      * Validate token signed with RSA algorithm.

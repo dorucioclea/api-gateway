@@ -43,6 +43,8 @@ public class GatewayBean implements Serializable {
     private String JWTPubKey;
     @Column(name = "jwt_pub_key_endpoint", nullable = true)
     private String JWTPubKeyEndpoint;
+    @Column(name = "jwt_priv_key_endpoint", nullable = true)
+    private String JWTPrivKeyEndpoint;
     @Column(updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private GatewayType type;
@@ -184,6 +186,10 @@ public class GatewayBean implements Serializable {
     public void setJWTPubKeyEndpoint(String JWTPubKeyEndpoint) {
         this.JWTPubKeyEndpoint = JWTPubKeyEndpoint;
     }
+
+    public String getJWTPrivKeyEndpoint() {return JWTPrivKeyEndpoint;}
+
+    public void setJWTPrivKeyEndpoint(String JWTPrivKeyEndpoint) {this.JWTPrivKeyEndpoint = JWTPrivKeyEndpoint;}
 
     @Override
     public String toString() {

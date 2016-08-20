@@ -2945,7 +2945,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 //Applications' customId must contain version otherwise only one version of an application can be available on the gateway at one time
                 //String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
                 gateway.createConsumer(appConsumerName, appConsumerName);
-                gateway.addConsumerJWT(appConsumerName);
+                gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256);
             }
         } catch (StorageException e) {
             throw new ApplicationNotFoundException(e.getMessage());

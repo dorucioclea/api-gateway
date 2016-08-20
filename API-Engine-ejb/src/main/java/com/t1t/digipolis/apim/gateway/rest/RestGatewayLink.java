@@ -18,6 +18,7 @@ import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.KongServiceBuilder;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -145,8 +146,8 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongPluginJWTResponse addConsumerJWT(String id) throws ConsumerException {
-        return getClient().createConsumerJWT(id);
+    public KongPluginJWTResponse addConsumerJWT(String id,String encoding) throws ConsumerException {
+        return getClient().createConsumerJWT(id,encoding);
     }
 
     @Override
