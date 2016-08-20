@@ -33,7 +33,6 @@ import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginCors;
 import com.t1t.digipolis.kong.model.KongPluginHttpLog;
-import com.t1t.digipolis.kong.model.KongPluginJWT;
 import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
@@ -728,7 +727,7 @@ public class GatewayClient {
             case JWTUtils.JWT_RS256 : {
                 KongPluginJWTRequest request = new KongPluginJWTRequest();
                 request.setAlgorithm(JWTUtils.JWT_RS256);
-                request.setRsaPublicKey(gatewayBean.getJWTPrivKeyEndpoint());
+                request.setRsaPublicKey(gatewayBean.getJWTPrivKey());
                 return httpClient.createConsumerJWTCredentials(id, new KongPluginJWTRequest());
             }
             default:{
