@@ -25,7 +25,10 @@
       "type": "object",
       "properties": {
         "available_on_server": {
-          "type": "object"
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     }
