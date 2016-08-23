@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
-import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
@@ -22,7 +21,6 @@ import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.KongPluginJWTUp;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
-import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
@@ -42,8 +40,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
-
-import static com.t1t.digipolis.apim.beans.services.ServiceDefinitionType.HAL;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -91,7 +87,7 @@ public class GatewayValidation {
             case JWT: return validateJWT(policy);
             case JWTUP: return validateJWTUp(policy);
             case ACL: return validateACL(policy);
-            case LDAP: return validateLDAP(policy);
+            case LDAPAUTHENTICATION: return validateLDAP(policy);
             case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
             case HAL: return policy;
             default:throw new PolicyViolationException("Unknown policy "+ policy);

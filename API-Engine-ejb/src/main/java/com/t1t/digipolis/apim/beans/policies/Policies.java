@@ -48,7 +48,7 @@ public enum Policies {
     , JWT(KongPluginJWT.class,"jwt", "JWT")
     , JWTUP(KongPluginJWTUp.class,"jwt-up", "JWT-Up")
     , ACL(KongPluginACL.class,"acl", "ACL")
-    , LDAP(KongPluginLDAP.class, "ldap-auth", "LDAP")
+    , LDAPAUTHENTICATION(KongPluginLDAP.class, "ldap-auth", "LDAPAUTHENTICATION")
     , JSONTHREATPROTECTION(KongPluginJsonThreatProtection.class,"json-threat-protection","JSONThreatProtection")
     , HAL(KongPluginEmptyConfig.class, "hal", "HAL");
 

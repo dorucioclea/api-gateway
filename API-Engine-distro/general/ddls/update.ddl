@@ -191,7 +191,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   }
 }', 'JsonSchema', 'fa-shield', 'JSON Threat Protection', NULL, FALSE, FALSE, FALSE);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto) VALUES ('LDAP', 'Add LDAP Bind Authentication to your APIs, with username and password protection.', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto) VALUES ('LDAPAuthentication', 'Add LDAP Bind Authentication to your APIs, with username and password protection.', '{
   "type": "object",
   "title": "LDAP Authentication",
   "properties": {
@@ -259,7 +259,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "ldap_port",
     "base_dn"
   ]
-}', 'JsonSchema', 'fa-database', 'LDAP Policy', NULL, TRUE, FALSE, FALSE);
+}', 'JsonSchema', 'fa-database', 'LDAP Authentication Policy', NULL, TRUE, FALSE, FALSE);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('HAL', 'The HAL policy rewrites currie-values from hal/json bodies.', '{
   "type": "object",

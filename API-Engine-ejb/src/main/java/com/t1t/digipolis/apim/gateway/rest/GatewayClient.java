@@ -9,7 +9,6 @@ import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.AbstractUserException;
 import com.t1t.digipolis.apim.exceptions.JWTException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
@@ -492,7 +491,7 @@ public class GatewayClient {
                         case ANALYTICS: createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());customAnalytics=true;break;
                         case ACL: createServicePolicy(api, policy, Policies.ACL.getKongIdentifier(), Policies.ACL.getClazz()); customAclflag = true; break;
                         case JSONTHREATPROTECTION: createServicePolicy(api, policy, Policies.JSONTHREATPROTECTION.getKongIdentifier(), Policies.JSONTHREATPROTECTION.getClazz());break;
-                        case LDAP: createServicePolicy(api, policy, Policies.LDAP.getKongIdentifier(), Policies.LDAP.getClazz());break;
+                        case LDAPAUTHENTICATION: createServicePolicy(api, policy, Policies.LDAPAUTHENTICATION.getKongIdentifier(), Policies.LDAPAUTHENTICATION.getClazz());break;
                         case HAL: createServicePolicy(api, policy, Policies.HAL.getKongIdentifier(), Policies.HAL.getClazz()); break;
                         default:break;
                     }
