@@ -626,6 +626,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //Validate service and app version, and verify if request actually occurred
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         ServiceVersionBean svb = getServiceVersion(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+        if (svb.getTermsAgreementRequired()) {
+            bean.setTermsAgreed(true);
+        }
         ContractBean contract = createContract(organizationId, applicationId, version, bean);
         NewEventBean newEvent = new NewEventBean()
                 .withOriginId(ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()))
@@ -2980,10 +2983,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         if (svb.getStatus() != ServiceStatus.Published) {
             throw ExceptionFactory.invalidServiceStatusException();
-        }
-
-        if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
-            throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
         }
         Set<ServicePlanBean> plans = svb.getPlans();
         String planVersion = null;
