@@ -189,7 +189,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "default": 0
     }
   }
-}', 'JsonSchema', 'fa-shield', 'JSON Threat Protection', NULL, TRUE, FALSE, FALSE);
+}', 'JsonSchema', 'fa-shield', 'JSON Threat Protection', NULL, FALSE, FALSE, FALSE);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto) VALUES ('LDAP', 'Add LDAP Bind Authentication to your APIs, with username and password protection.', '{
   "type": "object",
@@ -255,7 +255,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   },
   "required": [
     "ldap_host",
-    "cache_ttl"
+    "cache_ttl",
     "ldap_port",
     "base_dn"
   ]
@@ -323,3 +323,5 @@ BgZoQKih2rWwvy57oYLS8qiwyFQXTgZXa4FOBUeNhICZzuqvfwRSYMoZagqBj+d3
 qF+ung3SPHlIjHZqIHAtXvxYT1O0KC4FQkWFdkxdB2cd3lUey8CsyLbk1aykwnQh
 KSi6QZyd62TdYsyPmHObvmVTV/NVfdE833Cc601FrcLyAfY/L5185qGLcZj2
 -----END RSA PRIVATE KEY-----';
+
+UPDATE gateways SET jwt_pub_key_endpoint = '/keys/pub';
