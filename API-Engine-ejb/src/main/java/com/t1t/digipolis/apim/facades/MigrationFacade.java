@@ -834,27 +834,32 @@ public class MigrationFacade {
     }
 
     public void issueJWT() throws StorageException {
-        //for users this will be ok - we don't have to migrate
-        //migrate applications
+        //Issue new JWT credentials with RS256 algorithm
         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
 
         final List<ApplicationVersionBean> allApplicationVersions = query.findAllApplicationVersions();
-        for(ApplicationVersionBean appVersion:allApplicationVersions){
-            final String appUniqueId = ConsumerConventionUtil.createAppUniqueId(appVersion);
-            //get defautl gateway
+        final List<UserBean> users = idmStorage.getAllUsers();
+
+        Set<String> consumerIds = new HashSet<>();
+
+        consumerIds.addAll(allApplicationVersions.stream().filter(avb -> avb.getStatus() != ApplicationStatus.Retired).map(ConsumerConventionUtil::createAppUniqueId).collect(Collectors.toList()));
+        consumerIds.addAll(users.stream().map(UserBean::getKongUsername).collect(Collectors.toList()));
+
+        for (String consumerId : consumerIds) {
+            //get default gateway
             try{
-                KongPluginJWTResponseList response = gateway.getConsumerJWT(appUniqueId);
-                if (response.getData().size() <= 0) {
-                    final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(appUniqueId,JWTUtils.JWT_RS256);
-                    final String key = kongPluginJWTResponse.getKey();
-                    final String secret = kongPluginJWTResponse.getSecret();
-                    _LOG.info("Consumer '{}' JWT credentials generated ({},{})",appUniqueId,key,secret);
-                }else{
-                    _LOG.info("Consumer '{}' already has JWT credentials",appUniqueId);
+                KongPluginJWTResponseList response = gateway.getConsumerJWT(consumerId);
+                if (response.getData().size() > 0) {
+                    for (KongPluginJWTResponse resp : response.getData()) {
+                        gateway.deleteConsumerJwtCredential(resp.getConsumerId(), resp.getId());
+                    }
                 }
+                final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(consumerId,JWTUtils.JWT_RS256);
+                final String key = kongPluginJWTResponse.getKey();
+                final String secret = kongPluginJWTResponse.getSecret();
+                _LOG.info("Consumer '{}' JWT credentials generated ({},{})",consumerId,key,secret);
             }catch (RetrofitError rte) {
-                _LOG.error("-->no sync executed for application {}",appUniqueId);
-                continue;
+                _LOG.error("-->no sync executed for application {}", consumerId);
             }
         }
     }

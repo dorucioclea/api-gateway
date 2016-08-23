@@ -466,4 +466,11 @@ public interface IGatewayLink {
      * @return
      */
     public KongOAuthTokenList getOAuthToken(String tokenId);
+
+    /**
+     * Delete a consumer's JWT credential
+     * @param consumerId
+     * @param credentialId
+     */
+    public void deleteConsumerJwtCredential(String consumerId, String credentialId);
 }

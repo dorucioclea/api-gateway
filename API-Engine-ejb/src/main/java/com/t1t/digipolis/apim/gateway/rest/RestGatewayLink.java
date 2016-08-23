@@ -434,4 +434,9 @@ public class RestGatewayLink implements IGatewayLink {
     public KongOAuthTokenList getOAuthToken(String tokenId) {
         return getClient().getOAuthToken(tokenId);
     }
+
+    @Override
+    public void deleteConsumerJwtCredential(String consumerId, String credentialId) {
+        getClient().deleteConsumerJwtCredential(consumerId, credentialId);
+    }
 }

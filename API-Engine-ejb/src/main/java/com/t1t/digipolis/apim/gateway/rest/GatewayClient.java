@@ -1011,4 +1011,8 @@ public class GatewayClient {
     public KongOAuthTokenList getOAuthToken(String tokenId) {
         return httpClient.getOAuthToken(tokenId);
     }
+
+    public void deleteConsumerJwtCredential(String consumerId, String credentialId) {
+        httpClient.deleteConsumerJwtCredential(consumerId, credentialId);
+    }
 }
