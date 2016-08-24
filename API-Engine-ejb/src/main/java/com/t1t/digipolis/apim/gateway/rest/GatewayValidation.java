@@ -398,7 +398,7 @@ public class GatewayValidation {
 
     public synchronized Policy validateLDAP(Policy policy) {
         KongPluginLDAP req = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginLDAP.class);
-        if (StringUtils.isEmpty(req.getLdapHost()) || StringUtils.isEmpty(req.getBaseDn()) || StringUtils.isEmpty(req.getAttribute()) || req.getVerifyLdapHost() == null || req.getStartTls() == null || req.getCacheTtl() == null) {
+        if (StringUtils.isEmpty(req.getLdapHost()) || StringUtils.isEmpty(req.getBaseDn())) {
             throw new PolicyViolationException("Form was not correctly filled in.");
         }
         return policy;
