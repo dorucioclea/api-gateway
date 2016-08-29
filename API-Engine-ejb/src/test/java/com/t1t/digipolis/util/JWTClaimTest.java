@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.junit.Assert.*;
 
-import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
@@ -173,7 +172,7 @@ public class JWTClaimTest {
         JWTRequestBean jwtRequestBean = new JWTRequestBean();
         jwtRequestBean.setIssuer(JWT_KEY);
         jwtRequestBean.setAudience(JWT_AUDIENCE);
-        jwtRequestBean.setExpirationTimeMinutes(10);
+        jwtRequestBean.setExpirationTimeSeconds(10);
         jwtRequestBean.setPlan("free");
         jwtRequestBean.setEmail("michallis@trust1team.com");
         jwtRequestBean.setName("Michallis Pashidis");

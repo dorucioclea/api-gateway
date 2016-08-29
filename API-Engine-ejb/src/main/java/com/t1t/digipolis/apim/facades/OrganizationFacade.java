@@ -63,7 +63,6 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongOAuthToken;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
@@ -502,7 +501,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             //verify if serviceversion and appversion exist
             ApplicationVersionBean avb = getAppVersion(bean.getApplicationOrg(), bean.getApplicationId(), bean.getApplicationVersion());
-            ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+            ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
             String appId = ConsumerConventionUtil.createAppUniqueId(avb);
             String svcId = ServiceConventionUtil.generateServiceUniqueName(svb);
             //Check if there already is a contract between the service and application
@@ -589,7 +588,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void rejectContractRequest(String organizationId, String applicationId, String version, NewContractBean bean) {
         //Validate service and app version, and verify if request actually occurred
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
-        ServiceVersionBean svb = getServiceVersion(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+        ServiceVersionBean svb = getServiceVersionInternal(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
         NewEventBean newEvent = new NewEventBean()
                 .withOriginId(ServiceConventionUtil.generateServiceUniqueName(svb))
                 .withDestinationId(ConsumerConventionUtil.createAppUniqueId(avb))
@@ -625,8 +624,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public ContractBean acceptContractRequest(String organizationId, String applicationId, String version, NewContractBean bean) {
         //Validate service and app version, and verify if request actually occurred
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
-        ServiceVersionBean svb = getServiceVersion(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
-        if (svb.getTermsAgreementRequired()) {
+        ServiceVersionBean svb = getServiceVersionInternal(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+        if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired()) {
             bean.setTermsAgreed(true);
         }
         ContractBean contract = createContract(organizationId, applicationId, version, bean);
@@ -1102,7 +1101,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public PolicyBean createServicePolicy(String organizationId, String serviceId, String version, NewPolicyBean bean) {
         // Make sure the service exists
-        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
         if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
@@ -1116,7 +1115,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return doCreatePolicy(organizationId, serviceId, version, bean, PolicyType.Service);
     }
 
-    public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version) {
+    public ServiceVersionBean getServiceVersionInternal(String organizationId, String serviceId, String version) {
         try {
             ServiceVersionBean serviceVersion = storage.getServiceVersion(organizationId, serviceId, version);
 
@@ -1124,7 +1123,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
             decryptEndpointProperties(serviceVersion);
-            return filterServiceVersionByAppPrefix(serviceVersion);
+            return serviceVersion;
         } catch (AbstractRestException e) {
             throw e;
         } catch (StorageException e) {
@@ -1132,14 +1131,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
+    public ServiceVersionBean getServiceVersion(String orgId, String svcId, String version) {
+        return filterServiceVersionByAppPrefix(getServiceVersionInternal(orgId, svcId, version));
+    }
+
     public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         // Make sure the service exists
-        getServiceVersion(organizationId, serviceId, version);
+        getServiceVersionInternal(organizationId, serviceId, version);
         return doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
     }
 
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
-        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
         EntityUpdatedData data = new EntityUpdatedData();
         if (svb.getStatus() != ServiceStatus.Retired) {
             if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
@@ -1375,6 +1378,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.serviceVersionAlreadyExistsException(serviceId, bean.getVersion());
             }
             newVersion = createServiceVersionInternal(bean, service, gateway);
+            log.debug("new serviceversion before cloning:{}", newVersion);
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -1382,7 +1386,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         if (bean.isClone() && bean.getCloneVersion() != null) {
             try {
-                ServiceVersionBean cloneSource = getServiceVersion(organizationId, serviceId, bean.getCloneVersion());
+                ServiceVersionBean cloneSource = getServiceVersionInternal(organizationId, serviceId, bean.getCloneVersion());
 
                 // Clone primary attributes of the service version
                 UpdateServiceVersionBean updatedService = new UpdateServiceVersionBean();
@@ -1391,12 +1395,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 updatedService.setEndpoint(cloneSource.getEndpoint());
                 updatedService.setEndpointType(cloneSource.getEndpointType());
                 updatedService.setEndpointProperties(cloneSource.getEndpointProperties());
-                updatedService.setGateways(cloneSource.getGateways());
+
                 updatedService.setOnlinedoc(cloneSource.getOnlinedoc());
                 updatedService.setPublicService(cloneSource.isPublicService());
                 updatedService.setAutoAcceptContracts(cloneSource.getAutoAcceptContracts());
-                updatedService.setPlans(cloneSource.getPlans());
-                updatedService.setVisibility(cloneSource.getVisibility());
+
+                //create new sets in order to avoid persistence errors
+                updatedService.setGateways(new HashSet<>(cloneSource.getGateways()));
+                updatedService.setPlans(new HashSet<>(cloneSource.getPlans()));
+                updatedService.setVisibility(new HashSet<>(cloneSource.getVisibility()));
+
+                newVersion = updateServiceVersion(organizationId, serviceId, bean.getVersion(), updatedService);
+                log.debug("new serviceversion post cloning:{}", newVersion);
 
                 // Clone the service definition document
                 try {
@@ -1415,15 +1425,14 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     npb.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()), ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, bean.getCloneVersion())).getPolicyJsonConfig());
                     createServicePolicy(organizationId, serviceId, newVersion.getVersion(), npb);
                 }
-                newVersion = updateServiceVersion(organizationId, serviceId, bean.getVersion(), updatedService);
             } catch (Exception e) {
                 // TODO it's ok if the clone fails - we did our best
                 // TODO We could try a little harder
-                //throw new SystemErrorException(e);
-                if (e != null) {
+                throw new SystemErrorException(e);
+                /*if (e != null) {
                     Throwable t = e;
                     e = (Exception) t;
-                }
+                }*/
             }
         }
         return newVersion;
@@ -1481,7 +1490,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public List<PolicySummaryBean> listServicePolicies(String organizationId, String serviceId, String version) {
         // Try to get the service first - will throw an exception if not found.
-        getServiceVersion(organizationId, serviceId, version);
+        getServiceVersionInternal(organizationId, serviceId, version);
         try {
             return query.getPolicies(organizationId, serviceId, version, PolicyType.Service);
         } catch (StorageException e) {
@@ -1942,7 +1951,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             // Get Service versions
             List<ServiceVersionSummaryBean> svsbs = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
             for (ServiceVersionSummaryBean svsb : svsbs) {
-                deleteServiceVersionInternal(getServiceVersion(svsb.getOrganizationId(), svsb.getId(), svsb.getVersion()));
+                deleteServiceVersionInternal(getServiceVersionInternal(svsb.getOrganizationId(), svsb.getId(), svsb.getVersion()));
             }
 
             // Remove support entries
@@ -1975,7 +1984,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 deleteService(organizationId, serviceId);
             }
             else {
-                ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+                ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
                 deleteServiceVersionInternal(svb);
             }
         }
@@ -2219,7 +2228,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public List<ServicePlanSummaryBean> getServiceVersionPlans(String organizationId, String serviceId, String version) {
         // Ensure the version exists first.
-        getServiceVersion(organizationId, serviceId, version);
+        getServiceVersionInternal(organizationId, serviceId, version);
         try {
             return query.getServiceVersionPlans(organizationId, serviceId, version);
         } catch (StorageException e) {
@@ -2229,7 +2238,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) {
         // Make sure the service exists
-        ServiceStatus svs = getServiceVersion(organizationId, serviceId, version).getStatus();
+        ServiceStatus svs = getServiceVersionInternal(organizationId, serviceId, version).getStatus();
         if (svs == ServiceStatus.Published || svs == ServiceStatus.Deprecated) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
@@ -2257,7 +2266,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void deleteServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         // Make sure the service exists
-        ServiceVersionBean service = getServiceVersion(organizationId, serviceId, version);
+        ServiceVersionBean service = getServiceVersionInternal(organizationId, serviceId, version);
         if (service.getStatus() == ServiceStatus.Published || service.getStatus() == ServiceStatus.Retired || service.getStatus() == ServiceStatus.Deprecated) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
@@ -2296,7 +2305,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void reorderServicePolicies(String organizationId, String serviceId, String version, PolicyChainBean policyChain) {
         // Make sure the service exists
-        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
         try {
             List<Long> newOrder = new ArrayList<>(policyChain.getPolicies().size());
             for (PolicySummaryBean psb : policyChain.getPolicies()) {
@@ -2313,7 +2322,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public PolicyChainBean getServicePolicyChain(String organizationId, String serviceId, String version, String planId) {
         // Try to get the service first - will throw an exception if not found.
-        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
         try {
             String planVersion = null;
             Set<ServicePlanBean> plans = svb.getPlans();
@@ -2348,7 +2357,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             pageSize = 20;
         }
         // Try to get the service first - will throw an exception if not found.
-        getServiceVersion(organizationId, serviceId, version);
+        getServiceVersionInternal(organizationId, serviceId, version);
         try {
             List<ContractSummaryBean> contracts = query.getServiceContracts(organizationId, serviceId, version, page, pageSize);
 
@@ -4183,17 +4192,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) throws StorageException {
+    private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) {
         String prefix = appContext.getApplicationPrefix();
-        Set<String> allowedPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
-        svb.getVisibility().forEach(vis -> {
-            allowedPrefixes.add(vis.getCode());
-        });
-        log.debug("allowedPrefixes:{}", allowedPrefixes);
-        if (!allowedPrefixes.contains(prefix)) {
-            throw ExceptionFactory.serviceVersionNotAvailableException(svb.getService().getId(), svb.getVersion());
+        try {
+            Set<String> allowedPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
+            svb.getVisibility().forEach(vis -> {
+                allowedPrefixes.add(vis.getCode());
+            });
+            log.debug("allowedPrefixes:{}", allowedPrefixes);
+            if (!allowedPrefixes.contains(prefix)) {
+                throw ExceptionFactory.serviceVersionNotAvailableException(svb.getService().getId(), svb.getVersion());
+            }
+            return svb;
         }
-        return svb;
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 
 

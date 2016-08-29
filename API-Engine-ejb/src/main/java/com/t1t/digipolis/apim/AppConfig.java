@@ -87,7 +87,7 @@ public class AppConfig implements Serializable {
             _LOG.info("Default user roles: {}",getDefaultUserRoles());
             _LOG.info("Consent page: {}",getOAuthConsentURI());
             _LOG.info("Enable centralized OAuth2 token/authorization endpoints: {}",getOAuthEnableGatewayEnpoints());
-            _LOG.info("JWT default token expiration (in minutes):{}",getJWTDefaultTokenExpInMinutes());
+            _LOG.info("JWT default token expiration (in minutes):{}", getJWTDefaultTokenExpInSeconds());
             _LOG.info("Analytics enables: {}",getAnalyticsHost());
             _LOG.info("Analytics send towards {} with port {} and service token {}",getAnalyticsHost(),getAnalyticsPort(),getAnalyticsServiceToken());
             _LOG.info("Notifications: debug enabled? {}", getNotificationsEnableDebug());
@@ -122,7 +122,7 @@ public class AppConfig implements Serializable {
     public Boolean getOAuthEnableGatewayEnpoints(){return config.getBoolean(IConfig.OAUTH_ENABLE_GTW_ENDPOINTS);}
     public String getIDPSCIMUserLogin(){return config.getString(IConfig.IDP_SCIM_USER_LOGIN);}
     public String getIDPSCIMUserPassword(){return config.getString(IConfig.IDP_SCIM_USER_PWD);}
-    public Integer getJWTDefaultTokenExpInMinutes(){return config.getInt(IConfig.JWT_DEFAULT_TOKEN_EXP);}
+    public Integer getJWTDefaultTokenExpInSeconds(){return config.getInt(IConfig.JWT_DEFAULT_TOKEN_EXP);}
     public Boolean getRestResourceSecurity(){return config.getBoolean(IConfig.SECURITY_REST_RESORUCES);}
     public Boolean getRestAuthResourceSecurity(){return config.getBoolean(IConfig.SECURITY_REST_AUTH_RESOURCES);}
     public String getAnalyticsServiceToken(){return config.getString(IConfig.ANALYTICS_TOKEN);}

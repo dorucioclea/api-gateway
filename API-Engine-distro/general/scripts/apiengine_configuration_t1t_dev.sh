@@ -107,3 +107,5 @@ curl -X POST http://devapim.t1t.be:8001/apis/gatewaykeys/plugins \
     --data "config.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey, Authorization" \
     --data "config.credentials=true" \
     --data "config.max_age=3600"
+
+#Kong gateway with central O
