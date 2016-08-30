@@ -935,10 +935,7 @@ public class UserFacade implements Serializable {
         try {
             secret = cacheUtil.getToken(key);
         }
-        catch (Exception e) {
-            throw ExceptionFactory.cachingException(e.getMessage());
-        }
-        if (StringUtils.isEmpty(secret)) {
+        catch (CachingException e) {
             //retrieve from Kong
             String gatewayId = null;
             try {
@@ -948,8 +945,11 @@ public class UserFacade implements Serializable {
                 if (data != null && data.size() > 0) {
                     secret = data.get(0).getSecret();
                 } else throw new StorageException("Refresh JWT - somehow the user is not known");
-            } catch (StorageException e) {
-                throw new GatewayException("Error connection to gateway:{}" + e.getMessage());
+            } catch (StorageException ex) {
+                throw new GatewayException("Error connection to gateway:{}" + ex.getMessage());
+            }
+            if (secret == null) {
+                throw e;
             }
         }
         return secret;
