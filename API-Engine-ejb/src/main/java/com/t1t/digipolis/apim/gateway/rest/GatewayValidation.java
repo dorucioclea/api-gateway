@@ -148,7 +148,7 @@ public class GatewayValidation {
         for (KongPluginOAuthScope scope : scopes) {
             if (!StringUtils.isEmpty(scope.getScope())) {
                 //add prefix
-                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope());
+                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope().toLowerCase());
                 if (StringUtils.isEmpty(scope.getScopeDesc())) scope.setScopeDesc(scope.getScope());
                 responseScopes.add(scope);
             }
