@@ -20,8 +20,8 @@ public class OAuth2TokenBean implements Serializable {
     private String id;
     private String tokenType;
     private String credentialId;
-    private Date createdAt;
-    private Integer expiresIn;
+    //Combination of KongOAuthToken createdAt and expiresIn values
+    private Date expiration;
     private String refreshToken;
     private String gatewayId;
     private String organizationId;
@@ -38,8 +38,8 @@ public class OAuth2TokenBean implements Serializable {
         this.id = id;
         this.tokenType = tokenType;
         this.credentialId = credentialId;
-        this.createdAt = createdAt;
-        this.expiresIn = expiresIn;
+        //Expiration date = createdAt + expiresIn (in seconds, so multiply by 1000 for millis)
+        this.expiration = new Date(createdAt.getTime() + expiresIn * 1_000);
         this.gatewayId = gatewayId;
         this.refreshToken = refreshToken;
         this.organizationId = organizationId;
@@ -54,8 +54,8 @@ public class OAuth2TokenBean implements Serializable {
         this.id = token.getId();
         this.tokenType = token.getTokenType();
         this.credentialId = token.getCredentialId();
-        this.createdAt = new Date(token.getCreatedAt().longValue());
-        this.expiresIn = token.getExpiresIn();
+        //Expiration date = createdAt + expiresIn (in seconds, so multiply by 1000 for millis)
+        this.expiration = new Date(token.getCreatedAt().longValue() + token.getExpiresIn() * 1_000);
         this.refreshToken = token.getRefreshToken();
         this.gatewayId = gatewayId;
         this.organizationId = avb.getApplication().getOrganization().getId();
@@ -70,8 +70,8 @@ public class OAuth2TokenBean implements Serializable {
         this.id = token.getId();
         this.tokenType = token.getTokenType();
         this.credentialId = token.getCredentialId();
-        this.createdAt = new Date(token.getCreatedAt().longValue());
-        this.expiresIn = token.getExpiresIn();
+        //Expiration date = createdAt + expiresIn (in seconds, so multiply by 1000 for millis)
+        this.expiration = new Date(token.getCreatedAt().longValue() + token.getExpiresIn() * 1_000);
         this.refreshToken = token.getRefreshToken();
         this.gatewayId = gatewayId;
         this.organizationId = organizationId;
@@ -127,20 +127,12 @@ public class OAuth2TokenBean implements Serializable {
         this.credentialId = credentialId;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
+    public Date getExpiration() {
+        return expiration;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Integer getExpiresIn() {
-        return expiresIn;
-    }
-
-    public void setExpiresIn(Integer expiresIn) {
-        this.expiresIn = expiresIn;
+    public void setExpiration(Date expiration) {
+        this.expiration = expiration;
     }
 
     public String getGatewayId() {
@@ -211,8 +203,7 @@ public class OAuth2TokenBean implements Serializable {
                 ", id='" + id + '\'' +
                 ", tokenType='" + tokenType + '\'' +
                 ", credentialId='" + credentialId + '\'' +
-                ", createdAt=" + createdAt +
-                ", expiresIn=" + expiresIn +
+                ", expiration=" + expiration +
                 ", refreshToken='" + refreshToken + '\'' +
                 ", gatewayId='" + gatewayId + '\'' +
                 ", organizationId='" + organizationId + '\'' +
