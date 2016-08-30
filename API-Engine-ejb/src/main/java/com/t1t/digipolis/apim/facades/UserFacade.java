@@ -935,7 +935,7 @@ public class UserFacade implements Serializable {
         try {
             secret = cacheUtil.getToken(key);
         }
-        catch (CachingException e) {
+        catch (Exception e) {
             //retrieve from Kong
             String gatewayId = null;
             try {
@@ -948,8 +948,9 @@ public class UserFacade implements Serializable {
             } catch (StorageException ex) {
                 throw new GatewayException("Error connection to gateway:{}" + ex.getMessage());
             }
+            //We've done all we could to retrieve the secret
             if (secret == null) {
-                throw e;
+                throw ExceptionFactory.cachingException(e.getMessage());
             }
         }
         return secret;

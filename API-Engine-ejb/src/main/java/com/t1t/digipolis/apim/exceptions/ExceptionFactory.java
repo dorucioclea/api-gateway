@@ -517,6 +517,15 @@ public final class ExceptionFactory {
      * @param message
      * @return
      */
+    public static final SystemErrorException systemErrorException(String message) {
+        return new SystemErrorException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final MemberShipAlreadyExistsException membershipAlreadyExists(String message) {
         return new MemberShipAlreadyExistsException(message);
     }
