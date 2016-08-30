@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.exceptions;
 
 import com.t1t.digipolis.apim.common.plugin.PluginCoordinates;
+import com.t1t.digipolis.apim.exceptions.i18n.JWTInvalidException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 
 /**
@@ -546,5 +547,14 @@ public final class ExceptionFactory {
      */
     public static final ServiceVersionNotAvailableException serviceVersionNotAvailableException(String serviceId, String version) {
         return new ServiceVersionNotAvailableException(Messages.i18n.format("ServiceVersionNotAvailable", serviceId, version));
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final JWTInvalidException jwtInvalidException(String message, Throwable ex) {
+        return new JWTInvalidException(message, ex);
     }
 }

@@ -955,24 +955,32 @@ public class UserFacade implements Serializable {
         return secret;
     }
 
-    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws IOException, InvalidJwtException, MalformedClaimException, JoseException, StorageException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
         //get body
-        JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
-        JwtClaims jwtClaims = jwtContext.getJwtClaims();
-        //get gateway default expiration time for JWT
-        final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
-        Integer jwtExpirationTime = 60;//default 60min.
-        String pubKeyEndpoint = gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
-        if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
-            jwtExpirationTime = gatewayBean.getJWTExpTime();
-        }else{
-            jwtExpirationTime = config.getJWTDefaultTokenExpInSeconds();
+        try {
+            JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
+            JwtClaims jwtClaims = jwtContext.getJwtClaims();
+            //get gateway default expiration time for JWT
+            final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+            Integer jwtExpirationTime = 60;//default 60min.
+            String pubKeyEndpoint = gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
+            if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
+                jwtExpirationTime = gatewayBean.getJWTExpTime();
+            }else{
+                jwtExpirationTime = config.getJWTDefaultTokenExpInSeconds();
+            }
+            //get secret based on iss/username - cached
+            String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
+            JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
+            jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()),pubKeyEndpoint));
+            return jwtRefreshResponseBean;
         }
-        //get secret based on iss/username - cached
-        String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
-        JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()),pubKeyEndpoint));
-        return jwtRefreshResponseBean;
+        catch (InvalidJwtException | UnsupportedEncodingException | MalformedClaimException ex) {
+            throw ExceptionFactory.jwtInvalidException("Cannot parse JWT", ex);
+        }
+        catch (StorageException | JoseException | InvalidKeySpecException | NoSuchAlgorithmException | IOException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 
     /**
