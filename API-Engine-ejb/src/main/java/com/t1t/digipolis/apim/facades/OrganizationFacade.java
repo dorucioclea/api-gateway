@@ -1135,10 +1135,38 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return filterServiceVersionByAppPrefix(getServiceVersionInternal(orgId, svcId, version));
     }
 
-    public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
+    public PolicyBean getServicePolicyInternal(String organizationId, String serviceId, String version, long policyId) {
         // Make sure the service exists
         getServiceVersionInternal(organizationId, serviceId, version);
         return doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
+    }
+
+    public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
+        try {
+            return scrubPolicy(getServicePolicyInternal(organizationId, serviceId, version, policyId));
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private PolicyBean scrubPolicy(PolicyBean policy) throws StorageException {
+        //TODO - scrub the sensitive information out of policy configurations
+        /*boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
+
+        if (doFilter) {
+            switch (Policies.valueOf(policy.getDefinition().getId().toUpperCase())) {
+                case OAUTH2:
+                    Gson gson = new Gson();
+                    KongPluginOAuth oauthConfig = gson.fromJson(policy.getConfiguration(), KongPluginOAuth.class);
+                    oauthConfig.setProvisionKey(null);
+                    policy.setConfiguration(gson.toJson(oauthConfig));
+                    break;
+                default:
+                    break;
+            }
+        }*/
+        return policy;
     }
 
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
@@ -1419,7 +1447,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 // Clone all service policies
                 List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, bean.getCloneVersion());
                 for (PolicySummaryBean policySummary : policies) {
-                    PolicyBean policy = getServicePolicy(organizationId, serviceId, bean.getCloneVersion(), policySummary.getId());
+                    PolicyBean policy = getServicePolicyInternal(organizationId, serviceId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
                     npb.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()), ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, bean.getCloneVersion())).getPolicyJsonConfig());
@@ -4195,7 +4223,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) {
         String prefix = appContext.getApplicationPrefix();
         try {
-            Set<String> allowedPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
+            Set<String> publisherAndConsentPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
+            Set<String> allowedPrefixes = new HashSet<>(publisherAndConsentPrefixes);
             svb.getVisibility().forEach(vis -> {
                 allowedPrefixes.add(vis.getCode());
             });
@@ -4203,6 +4232,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!allowedPrefixes.contains(prefix)) {
                 throw ExceptionFactory.serviceVersionNotAvailableException(svb.getService().getId(), svb.getVersion());
             }
+            //TODO - Remove the provision key if the appcontext is not a consent app or a publisher
+            /*if (!publisherAndConsentPrefixes.contains(prefix)) {
+                svb.setProvisionKey(null);
+            }*/
             return svb;
         }
         catch (StorageException ex) {
