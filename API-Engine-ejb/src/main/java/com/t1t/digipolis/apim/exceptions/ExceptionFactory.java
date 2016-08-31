@@ -566,4 +566,8 @@ public final class ExceptionFactory {
     public static final JWTInvalidException jwtInvalidException(String message, Throwable ex) {
         return new JWTInvalidException(message, ex);
     }
+
+    public static final UserAlreadyAdminException userAlreadyAdminException(String message) {
+        return new UserAlreadyAdminException(message);
+    }
 }

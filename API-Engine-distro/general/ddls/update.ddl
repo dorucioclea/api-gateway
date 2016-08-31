@@ -392,3 +392,20 @@ UPDATE policydefs SET form = '{
     }
   }
 }' WHERE id = 'RequestTransformer';
+
+UPDATE policydefs set form = '{
+  "type": "object",
+  "title": "Request Size Limiting",
+  "properties": {
+    "allowed_payload_size": {
+      "title": "Allowed payload size",
+      "description": "Allowed request payload size in megabytes, default is 128 (128 000 000 Bytes)",
+      "type": "number",
+      "default": 128,
+      "minimum": 0
+    }
+  },
+  "required": [
+    "allowed_payload_size"
+  ]
+}' WHERE id = 'RequestSizeLimiting';

@@ -237,6 +237,12 @@ public class UserFacade implements Serializable {
             newUserBean.setAdmin(true);
             initNewUser(newUserBean);
         }else{
+            if (user.getAdmin()) {
+                String message = new StringBuilder(StringUtils.isEmpty(user.getFullName()) ? user.getUsername() : user.getFullName())
+                        .append(" is already an administrator")
+                        .toString();
+                throw ExceptionFactory.userAlreadyAdminException(message);
+            }
             user.setAdmin(true);
             idmStorage.updateUser(user);
         }

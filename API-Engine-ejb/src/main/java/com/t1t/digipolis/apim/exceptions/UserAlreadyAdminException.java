@@ -7,8 +7,23 @@ import org.slf4j.LoggerFactory;
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-public class UserAlreadyAdminException {
+public class UserAlreadyAdminException extends AbstractAlreadyExistsException {
 
-    private static final Logger _LOG = LoggerFactory.getLogger(UserAlreadyAdminException.class);
+    public UserAlreadyAdminException() {
+        super();
+    }
 
+    public UserAlreadyAdminException(String message) {
+        super(message);
+    }
+
+    @Override
+    public int getErrorCode() {
+        return ErrorCodes.USER_ALREADY_ADMIN;
+    }
+
+    @Override
+    public String getMoreInfoUrl() {
+        return ErrorCodes.USER_ALREADY_ADMIN_INFO;
+    }
 }

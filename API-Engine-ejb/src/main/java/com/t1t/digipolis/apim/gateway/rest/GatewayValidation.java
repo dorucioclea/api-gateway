@@ -381,6 +381,14 @@ public class GatewayValidation {
 
     public synchronized Policy validateRequestSizeLimiting(Policy policy){
         //nothing to do - works fine
+        KongPluginRequestSizeLimiting req = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginRequestSizeLimiting.class);
+        if (req.getAllowedPayloadSize() == null) {
+            //Set the allowed payload size to the default 128Mb
+            req.setAllowedPayloadSize(128D);
+        }
+        if (req.getAllowedPayloadSize() < 0) {
+            throw ExceptionFactory.invalidPolicyException("Negative values aren't allowed");
+        }
         _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
