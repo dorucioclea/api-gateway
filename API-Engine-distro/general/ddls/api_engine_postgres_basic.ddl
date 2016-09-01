@@ -582,9 +582,13 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "title": "Allowed payload size",
       "description": "Allowed request payload size in megabytes, default is 128 (128 000 000 Bytes)",
       "type": "number",
-      "default": 128
+      "default": 128,
+      "minimum": 0
     }
-  }
+  },
+  "required": [
+    "allowed_payload_size"
+  ]
 }', 'JsonSchema', 'fa-compress', 'Request Size Limiting Policy', NULL ,TRUE ,TRUE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
@@ -603,7 +607,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
                 "description": "Parameter name to remove from the request querystring."
               }
           },
-          "form": {
+          "body": {
               "type": "array",
               "items": {
                 "title": "Form",
@@ -633,7 +637,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
                 "description": "Paramname:value to add to the request querystring."
               }
           },
-          "form": {
+          "body": {
               "type": "array",
               "items": {
                 "title": "Form",
