@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServicePlanSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceVersionEndpointSummaryBean;
+import com.t1t.digipolis.apim.beans.summary.ServiceVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceVersionVisibilityBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.beans.support.*;
@@ -66,6 +67,21 @@ public class OrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
         return orgFacade.getServiceSupportTicket(organizationId, serviceId, Long.parseLong(supportId.trim(), 10));
+    }
+
+    @ApiOperation(value = "List Service Versions",
+            notes = "Use this endpoint to list all of the versions of a Service.")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionSummaryBean.class, message = "A list of Services.")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<ServiceVersionSummaryBean> listServiceVersions(@PathParam("organizationId") String organizationId,
+                                                               @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        return orgFacade.listServiceVersions(organizationId, serviceId);
     }
 
     @ApiOperation(value = "Get Service Version",
