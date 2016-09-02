@@ -4,10 +4,10 @@
   "type": "object",
   "properties": {
     "data": {
-      "id": "kongApi",
+      "id": "kongClusterItem",
       "type": "array",
       "items": {
-        "$ref":"KongApi.json"
+        "$ref":"KongClusterItem.json"
       }
     },
     "total": {

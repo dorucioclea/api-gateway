@@ -3,21 +3,17 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "id": {
-      "id": "id",
+    "address": {
+      "id": "address",
       "type": "string"
     },
-    "username": {
-      "id": "username",
+    "name": {
+      "id": "name",
       "type": "string"
     },
-    "custom_id": {
-      "id": "custom_id",
+    "status": {
+      "id": "status",
       "type": "string"
-    },
-    "created_at": {
-      "id": "created_at",
-      "type": "number"
     }
   }
 }

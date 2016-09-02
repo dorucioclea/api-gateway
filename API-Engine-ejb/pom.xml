@@ -333,6 +333,12 @@
             <artifactId>commons-beanutils</artifactId>
         </dependency>
 
+        <!--Bouncycastle-->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+        </dependency>
+
     </dependencies>
     <build>
         <finalName>${project.artifactId}</finalName>
@@ -460,6 +466,8 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginLDAP.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJsonThreatProtection.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginEmptyConfig.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongClusterItem.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongCluster.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.digipolis.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>

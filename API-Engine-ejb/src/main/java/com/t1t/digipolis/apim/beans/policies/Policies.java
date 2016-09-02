@@ -4,12 +4,15 @@ import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuth;
 import com.t1t.digipolis.kong.model.KongPluginCors;
+import com.t1t.digipolis.kong.model.KongPluginEmptyConfig;
 import com.t1t.digipolis.kong.model.KongPluginFileLog;
 import com.t1t.digipolis.kong.model.KongPluginHttpLog;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.KongPluginJWT;
 import com.t1t.digipolis.kong.model.KongPluginJWTUp;
+import com.t1t.digipolis.kong.model.KongPluginJsonThreatProtection;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
+import com.t1t.digipolis.kong.model.KongPluginLDAP;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
 import com.t1t.digipolis.kong.model.KongPluginACL;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
@@ -41,11 +44,11 @@ public enum Policies {
     , REQUESTTRANSFORMER(KongPluginRequestTransformer.class,"request-transformer", "RequestTransformer")
     , RESPONSETRANSFORMER(KongPluginResponseTransformer.class,"response-transformer", "ResponseTransformer")
     , SSL(KongPluginSSL.class,"ssl", "SSL")
-    , ANALYTICS(KongPluginAnalytics.class,"mashape-analytics", "Analytics")
+    , ANALYTICS(KongPluginAnalytics.class,"galileo", "Galileo")
     , JWT(KongPluginJWT.class,"jwt", "JWT")
     , JWTUP(KongPluginJWTUp.class,"jwt-up", "JWT-Up")
     , ACL(KongPluginACL.class,"acl", "ACL")
-    , LDAP(KongPluginLDAP.class, "ldap-auth", "LDAP")
+    , LDAPAUTHENTICATION(KongPluginLDAP.class, "ldap-auth", "LDAPAUTHENTICATION")
     , JSONTHREATPROTECTION(KongPluginJsonThreatProtection.class,"json-threat-protection","JSONThreatProtection")
     , HAL(KongPluginEmptyConfig.class, "hal", "HAL");
 

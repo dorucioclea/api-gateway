@@ -41,10 +41,7 @@ import com.t1t.digipolis.apim.security.IdentityAttributes;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
-import com.t1t.digipolis.util.CacheUtil;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.JWTUtils;
-import com.t1t.digipolis.util.ValidationUtils;
+import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
@@ -93,6 +90,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -820,7 +819,7 @@ public class UserFacade implements Serializable {
                 //update kong username in local userbean
                 user.setKongUsername(consumer.getId());
                 idmStorage.updateUser(user);
-                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
+                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
                 jwtKey = jwtResponse.getKey();//JWT "iss"
                 jwtSecret = jwtResponse.getSecret();
             } else {
@@ -830,7 +829,7 @@ public class UserFacade implements Serializable {
                     jwtSecret = response.getData().get(0).getSecret();
                 } else {
                     //create jwt credentials
-                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
+                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
                     jwtKey = jwtResponse.getKey();//JWT "iss"
                     jwtSecret = jwtResponse.getSecret();
                 }
@@ -859,7 +858,7 @@ public class UserFacade implements Serializable {
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
                 jwtExpirationTime = gatewayBean.getJWTExpTime();
             }
-            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret, jwtExpirationTime);
+            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint());
             log.debug("==>JWT:{}",issuedJWT);
             //close gateway
             gatewayLink.close();
@@ -957,13 +956,14 @@ public class UserFacade implements Serializable {
         return secret;
     }
 
-    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JoseException, StorageException {
+    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws IOException, InvalidJwtException, MalformedClaimException, JoseException, StorageException, NoSuchAlgorithmException, InvalidKeySpecException {
         //get body
         JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
         JwtClaims jwtClaims = jwtContext.getJwtClaims();
         //get gateway default expiration time for JWT
         final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
         Integer jwtExpirationTime = 60;//default 60min.
+        String pubKeyEndpoint = gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
         if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
             jwtExpirationTime = gatewayBean.getJWTExpTime();
         }else{
@@ -972,7 +972,7 @@ public class UserFacade implements Serializable {
         //get secret based on iss/username - cached
         String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
         JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime));
+        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()),pubKeyEndpoint));
         return jwtRefreshResponseBean;
     }
 

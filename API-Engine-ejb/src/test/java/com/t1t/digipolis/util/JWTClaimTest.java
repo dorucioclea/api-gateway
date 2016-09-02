@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
@@ -138,9 +139,36 @@ public class JWTClaimTest {
     }
 
     @Test
-    public void issueJWT() throws IOException{
+    public void issueJWT() throws Exception{
         final String JWT_KEY = "7da8cb6408bb42a4c27785c2c5b467b2";
         final String JWT_SECRET = "ddfd1beb178d449fc4603bec701abb96";
+        final PrivateKey privateKey = KeyUtils.getPrivateKey("-----BEGIN RSA PRIVATE KEY-----\n" +
+                "MIIEpAIBAAKCAQEAw5mp3MS3hVLkHwB9lMrEx34MjYCmKeH/XeMLexNpTd1FzuNv\n" +
+                "6rArovTY763CDo1Tp0xHz0LPlDJJtpqAgsnfDwCcgn6ddZTo1u7XYzgEDfS8J4SY\n" +
+                "dcKxZiSdVTpb9k7pByXfnwK/fwq5oeBAJXISv5ZLB1IEVZHhUvGCH0udlJ2vadqu\n" +
+                "R03phBHcvlNmMbJGWAetkdcKyi+7TaW7OUSjlge4WYERgYzBB6eJH+UfPjmw3aSP\n" +
+                "ZcNXt2RckPXEbNrL8TVXYdEvwLJoJv9/I8JPFLiGOm5uTMEk8S4txs2efueg1Xyy\n" +
+                "milCKzzuXlJvrvPA4u6HI7qNvuvkvUjQmwBHgwIDAQABAoIBAQCP3ZblTT8abdRh\n" +
+                "xQ+Y/+bqQBjlfwk4ZwRXvuYz2Rwr7CMrP3eSq4785ZAmAaxo3aP4ug9bL23UN4Sm\n" +
+                "LU92YxqQQ0faZ1xTHnp/k96SGKJKzYYSnuEwREoMscOS60C2kmWtHzsyDmhg/bd5\n" +
+                "i6JCqHuHtPhsYvPTKGANjJrDf+9gXazArmwYrdTnyBeFC88SeRG8uH2lP2VyqHiw\n" +
+                "ZvEQ3PkRRY0yJRqEtrIRIlgVDuuu2PhPg+MR4iqR1RONjDUFaSJjR7UYWY/m/dmg\n" +
+                "HlalqpKjOzW6RcMmymLKaW6wF3y8lbs0qCjCYzrD3bZnlXN1kIw6cxhplfrSNyGZ\n" +
+                "BY/qWytJAoGBAO8UsagT8tehCu/5smHpG5jgMY96XKPxFw7VYcZwuC5aiMAbhKDO\n" +
+                "OmHxYrXBT/8EQMIk9kd4r2JUrIx+VKO01wMAn6fF4VMrrXlEuOKDX6ZE1ay0OJ0v\n" +
+                "gCmFtKB/EFXXDQLV24pgYgQLxnj+FKFV2dQLmv5ZsAVcmBHSkM9PBdUlAoGBANFx\n" +
+                "QPuVaSgRLFlXw9QxLXEJbBFuljt6qgfL1YDj/ANgafO8HMepY6jUUPW5LkFye188\n" +
+                "J9wS+EPmzSJGxdga80DUnf18yl7wme0odDI/7D8gcTfu3nYcCkQzeykZNGAwEe+0\n" +
+                "SvhXB9fjWgs8kFIjJIxKGmlMJRMHWN1qaECEkg2HAoGBAIb93EHW4as21wIgrsPx\n" +
+                "5w8up00n/d7jZe2ONiLhyl0B6WzvHLffOb/Ll7ygZhbLw/TbAePhFMYkoTjCq++z\n" +
+                "UCP12i/U3yEi7FQopWvgWcV74FofeEfoZikLwa1NkV+miUYskkVTnoRCUdJHREbE\n" +
+                "PrYnx2AOLAEbAxItHm6vY8+xAoGAL85JBePpt8KLu+zjfximhamf6C60zejGzLbD\n" +
+                "CgN/74lfRcoHS6+nVs73l87n9vpZnLhPZNVTo7QX2J4M5LHqGj8tvMFyM895Yv+b\n" +
+                "3ihnFVWjYh/82Tq3QS/7Cbt+EAKI5Yzim+LJoIZ9dBkj3Au3eOolMym1QK2ppAh4\n" +
+                "uVlJORsCgYBv/zpNukkXrSxVHjeZj582nkdAGafYvT0tEQ1u3LERgifUNwhmHH+m\n" +
+                "1OcqJKpbgQhGzidXK6lPiVFpsRXv9ICP7o96FjmQrMw2lAfC7stYnFLKzv+cj8L9\n" +
+                "h4hhNWM6i/DHXjPsHgwdzlX4ulq8M7dR8Oqm9DrbdAyWz8h8/kzsnA==\n" +
+                "-----END RSA PRIVATE KEY-----");
         final String JWT_AUDIENCE = "http://consumerapp";
         JWTRequestBean jwtRequestBean = new JWTRequestBean();
         jwtRequestBean.setIssuer(JWT_KEY);
@@ -154,7 +182,7 @@ public class JWTClaimTest {
         jwtRequestBean.setSubject("ex02393");
         String jwt = null;
         try {
-            jwt = JWTUtils.composeJWT(jwtRequestBean,JWT_SECRET,60);
+            jwt = JWTUtils.composeJWT(jwtRequestBean,JWT_SECRET,60, privateKey,"somenedpoint");
         } catch (JoseException e) {
             fail();
         }

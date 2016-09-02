@@ -12,9 +12,14 @@ import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongConsumerList;
 import com.t1t.digipolis.kong.model.KongInfo;
 import com.t1t.digipolis.kong.model.KongInstalledPlugins;
+import com.t1t.digipolis.kong.model.KongPluginACL;
+import com.t1t.digipolis.kong.model.KongPluginACLRequest;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginCors;
+import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
@@ -23,6 +28,7 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.Plugins;
+import com.t1t.digipolis.util.JWTUtils;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
@@ -50,7 +56,7 @@ public class KongClientIntegrationTest {
     private static KongClient kongClient;
     private static Gson gson;
     //TODO make configurable in maven test profile
-    private static final String KONG_UNDER_TEST_URL = "http://devapim.t1t.be:8001";//should point to the admin url:port
+    private static final String KONG_UNDER_TEST_URL = "http://130.211.89.219:8001";//should point to the admin url:port
     private static final String KONG_UNDER_TEST_CONSUMER_URL = "http://devapim.t1t.be";
     //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
@@ -59,6 +65,21 @@ public class KongClientIntegrationTest {
     private static final String API_URL_OAUTH_A = "http://servicea.com/endpoint";
     private static final String API_URL_OAUTH_B = "http://serviceb.com/endpoint";
     private static final String API_URL_OAUTH_ORG= "http://dummyhost";
+
+    private static final String JWT_RSA_PUB_KEY_PEM = "-----BEGIN PUBLIC KEY-----\n" +
+            "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAjmrg7sFxRdobSZHI2Zjk\n" +
+            "nrpFT/QrXDpYzUU8IMa4TOkgERtZ3OBlZdmcbyufpBn52fX9XEeH9TuB919cPxBE\n" +
+            "zJ7CsReS+Wqpy9PSw+pmCiCfjHflud2uw50neX8eJxYtzHC7UN8+uA8oCKjw0I3P\n" +
+            "+ECa7aW/DmMcI/5Osrixe7fPzv8CEzhTbw7A96nK2+VI/UqFWf1oDswlX8POhzLE\n" +
+            "iuj7xBiubjl6N4DZnQyao8S2EgfPONJ4mrIn6TD071/tOMh1GYAwJpVCv3agRQWG\n" +
+            "8MilaayrC4Z53k6dKWQS6IfU7w5bgB1+hgIzph+NMo7VY4NbJX96uoD7AoiB4o66\n" +
+            "rS1jCKKyDqL0M90C1Hh7+R+yMhIkFdEGCKFGh3fl9UDGJ4FDTmo4du0CqnmwmjoV\n" +
+            "fRdtyn+61ADxP6zd7n1LAqyPB4EkxukQ77K/ONLpRv2trft9oSUR1jWMq7w12WYr\n" +
+            "hYVxOGSo5N4EGBJjHAyQgMCS8PXgm7N9XaNukes0YCyAL9XSBCE3n4T4BOWG9D2B\n" +
+            "CD/zUvn5CFywJhug9Rw4LWt0o2GayiN3yH0pdXAsjSFTb7VivpOsW0/y6iGf0BjK\n" +
+            "T8yXJEo8oPp4H2IuL4xL48mntBnVjPsItnziGCjqgHB7lqb7qyu/6+xtHgLlFoc2\n" +
+            "0KBvSaDFYbbEtO4NFVrMuIECAwEAAQ==\n" +
+            "-----END PUBLIC KEY-----";
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -82,6 +103,45 @@ public class KongClientIntegrationTest {
     }
 
     @Test
+    public void testJWTHSCert()throws Exception{
+        KongConsumer cons = new KongConsumer();
+        cons.setUsername("malakaxyz");
+        cons.setCustomId("malakaxyz");
+        KongConsumer regCons = kongClient.createConsumer(cons);
+        assertNotNull(regCons);
+        assertEquals(cons.getUsername(), regCons.getUsername());
+        assertEquals(cons.getCustomId(), regCons.getCustomId());
+        //create token
+        KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest();
+        jwtRequest.setAlgorithm(JWTUtils.JWT_HS256);
+        final KongPluginJWTResponse issuedCredentials = kongClient.createConsumerJWTCredentials("malakaxyz", jwtRequest);
+        assertTrue(issuedCredentials.getKey()!=null);
+        assertTrue(issuedCredentials.getSecret()!=null);
+        //cleanup
+        kongClient.deleteConsumer(regCons.getId());
+    }
+
+    @Test
+    public void testJWTRSCert()throws Exception{
+        KongConsumer cons = new KongConsumer();
+        cons.setUsername("malakaxyz");
+        cons.setCustomId("malakaxyz");
+        KongConsumer regCons = kongClient.createConsumer(cons);
+        assertNotNull(regCons);
+        assertEquals(cons.getUsername(), regCons.getUsername());
+        assertEquals(cons.getCustomId(), regCons.getCustomId());
+        //create token
+        KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest();
+        jwtRequest.setAlgorithm(JWTUtils.JWT_RS256);
+        jwtRequest.setRsaPublicKey(JWT_RSA_PUB_KEY_PEM);
+        final KongPluginJWTResponse issuedCredentials = kongClient.createConsumerJWTCredentials("malakaxyz", jwtRequest);
+        assertTrue(issuedCredentials.getKey()!=null);
+        assertTrue(issuedCredentials.getSecret()!=null);
+        //cleanup
+        kongClient.deleteConsumer(regCons.getId());
+    }
+
+    @Test
     public void testGetInfo() throws Exception {
         KongInfo kongInfo = kongClient.getParsedInfo();
         assertNotNull(kongInfo);
@@ -91,10 +151,11 @@ public class KongClientIntegrationTest {
         assertTrue(!StringUtils.isEmpty(kongInfo.getLuaVersion()));
         assertTrue(!StringUtils.isEmpty(kongInfo.getVersion()));
         assertTrue(!StringUtils.isEmpty(kongInfo.getTagline()));
+        assertTrue(kongInfo.getTimers()!=null);
+        assertTrue(kongInfo.getConfiguration()!=null);
         Plugins plugins = kongInfo.getPlugins();
         //normally minimum 1 plugin should be available
         assertNotNull(plugins.getAvailableOnServer());
-        assertTrue(plugins.getAvailableOnServer().size()>0);
     }
 
     @Test
@@ -260,7 +321,6 @@ public class KongClientIntegrationTest {
         KongInstalledPlugins installedPlugins = kongClient.getInstalledPlugins();
         log.info("Installed plugins:{}",installedPlugins);
         assertNotNull(installedPlugins);
-        assertTrue(installedPlugins.getEnabledPlugins().size() > 0);
     }
 
     @Test
@@ -489,7 +549,12 @@ public class KongClientIntegrationTest {
         assertTrue(enhancedOAuthValue.getMandatoryScope());
     }
 
+    /**
+     * Can be usefull in the near future
+     * @throws Exception
+     */
     @Test
+    @Ignore
     public void registerOAuthCentralService()throws Exception{
         //create service identifiers
         String serviceAId = "orgA.serviceA.v1";

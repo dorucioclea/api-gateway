@@ -3,10 +3,13 @@ package com.t1t.digipolis.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
 import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
+import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.SecurityFacade;
 import com.t1t.digipolis.apim.facades.SystemFacade;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
@@ -35,6 +38,7 @@ public class SecurityResource implements ISecurityResource {
     @Inject private SecurityFacade securityFacade;
     @Inject private ISecurityContext securityContext;
     @Inject private SystemFacade systemFacade;
+    @Inject private OrganizationFacade orgFacade;
 
     @ApiOperation(value = "Set OAuth2 expiration time (in seconds)",
                   notes = "Use this endpoint to set the central OAuth2 token expiration time (in seconds)")
@@ -144,5 +148,22 @@ public class SecurityResource implements ISecurityResource {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         SystemStatusBean rval = systemFacade.getAdminStatus();
         return rval;
+    }
+
+    @ApiOperation("Revoke Application Version Oauth2 Token")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @POST
+    @Path("/oauth2/tokens/revoke")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void revokeApplicationVersionOAuthToken(OAuth2TokenBean token) throws NotAuthorizedException {
+        Preconditions.checkNotNull(token);
+        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getOrganizationId()) && StringUtils.isNotEmpty(token.getApplicationId()) && StringUtils.isNotEmpty(token.getVersion()));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()));
+        if (!securityContext.hasPermission(PermissionType.appAdmin, token.getOrganizationId())) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        orgFacade.revokeApplicationVersionOAuthToken(token);
     }
 }

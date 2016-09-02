@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.JWTException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
@@ -17,6 +18,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongExtraInfo;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginACLRequest;
 import com.t1t.digipolis.kong.model.KongPluginACL;
@@ -489,7 +491,7 @@ public class GatewayClient {
                         case ANALYTICS: createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());customAnalytics=true;break;
                         case ACL: createServicePolicy(api, policy, Policies.ACL.getKongIdentifier(), Policies.ACL.getClazz()); customAclflag = true; break;
                         case JSONTHREATPROTECTION: createServicePolicy(api, policy, Policies.JSONTHREATPROTECTION.getKongIdentifier(), Policies.JSONTHREATPROTECTION.getClazz());break;
-                        case LDAP: createServicePolicy(api, policy, Policies.LDAP.getKongIdentifier(), Policies.LDAP.getClazz());break;
+                        case LDAPAUTHENTICATION: createServicePolicy(api, policy, Policies.LDAPAUTHENTICATION.getKongIdentifier(), Policies.LDAPAUTHENTICATION.getClazz());break;
                         case HAL: createServicePolicy(api, policy, Policies.HAL.getKongIdentifier(), Policies.HAL.getClazz()); break;
                         default:break;
                     }
@@ -571,21 +573,22 @@ public class GatewayClient {
     }
 
     private void registerDefaultAnalyticsPolicy(KongApi api){
-        if(appConfig.getAnalyticsEnabled()){
             KongPluginAnalytics analyticsPolicy = new KongPluginAnalytics()
-                    .withBatchSize(appConfig.getAnalyticsBatchSize())
-                    .withDelay(appConfig.getAnalyticsDelay())
+                    .withConnectionTimeout(appConfig.getAnalyticsConnTimeout())
+                    .withServiceToken(appConfig.getAnalyticsServiceToken())
                     .withEnvironment(appConfig.getAnalyticsEnvironment())
+                    .withRetryCount(appConfig.getAnalyticsRetryCount())
+                    .withQueueSize(appConfig.getAnalyticsQueueSize())
+                    .withFlushTimeout(appConfig.getAnalyticsFlushTimeout())
+                    .withLogBodies(appConfig.getAnalyticsLogBodies())
                     .withHost(appConfig.getAnalyticsHost())
                     .withPort(appConfig.getAnalyticsPort())
-                    .withLogBody(appConfig.getAnalyticsLogBody())
-                    .withMaxSendingQueueSize(appConfig.getAnalyticsMaxSendingQueue())
-                    .withServiceToken(appConfig.getAnalyticsServiceToken());
+                    .withHttps(appConfig.getAnalyticsHttps())
+                    .withHttpsVerify(appConfig.getAnalyticsHttpsVerify());
             KongPluginConfig config = new KongPluginConfig()
                     .withName(Policies.ANALYTICS.getKongIdentifier())
                     .withConfig(analyticsPolicy);
             httpClient.createPluginConfig(api.getId(),config);
-        }
     }
 
     /**
@@ -718,12 +721,24 @@ public class GatewayClient {
         return httpClient.createConsumerKeyAuthCredentials(id, new KongPluginKeyAuthRequest().withKey(apiKey));
     }
 
-    public KongPluginJWTResponse createConsumerJWT(String id){
-        //default the JWT request supported should be a HS256
+    public KongPluginJWTResponse createConsumerJWT(String id,String encoding){
         KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest();
-        jwtRequest.setAlgorithm(JWTUtils.JWT_HS256);
-        //TODO support RS356
-        return httpClient.createConsumerJWTCredentials(id, new KongPluginJWTRequest());
+        jwtRequest.setAlgorithm(encoding);
+        switch (encoding){
+            case JWTUtils.JWT_HS256 : {
+                KongPluginJWTRequest request = new KongPluginJWTRequest();
+                request.setAlgorithm(JWTUtils.JWT_HS256);
+                request.setRsaPublicKey(gatewayBean.getJWTPubKey());
+                return httpClient.createConsumerJWTCredentials(id, request);
+            }
+            case JWTUtils.JWT_RS256 : {
+                KongPluginJWTRequest request = new KongPluginJWTRequest();
+                request.setAlgorithm(JWTUtils.JWT_RS256);
+                request.setRsaPublicKey(gatewayBean.getJWTPubKey());
+                return httpClient.createConsumerJWTCredentials(id, request);
+            }
+        }
+        throw new JWTException();
     }
 
     public KongPluginJWTResponseList getConsumerJWT(String id){
@@ -994,5 +1009,9 @@ public class GatewayClient {
 
     public KongOAuthTokenList getOAuthToken(String tokenId) {
         return httpClient.getOAuthToken(tokenId);
+    }
+
+    public void deleteConsumerJwtCredential(String consumerId, String credentialId) {
+        httpClient.deleteConsumerJwtCredential(consumerId, credentialId);
     }
 }

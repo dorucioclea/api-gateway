@@ -8,6 +8,19 @@
       "type": "array",
       "items": {"type": "string"},
       "required": false
+    },
+    "uri_param_names": {
+      "type": "array",
+      "items": {"type": "string"},
+      "required": false
+    },
+    "secret_is_base64": {
+      "type": "boolean",
+      "required": false
+    },
+    "key_claim_name": {
+      "type": "string",
+      "required": false
     }
   }
 }
