@@ -1454,13 +1454,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     createServicePolicy(organizationId, serviceId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
-                // TODO it's ok if the clone fails - we did our best
-                // TODO We could try a little harder
-                throw new SystemErrorException(e);
-                /*if (e != null) {
+                //it's ok if the clone fails - we did our best
+                if (e != null) {
                     Throwable t = e;
                     e = (Exception) t;
-                }*/
+                }
             }
         }
         return newVersion;
