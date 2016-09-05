@@ -27,11 +27,15 @@ public final class ErrorCodes {
     public static final int USER_ALREADY_EXISTS             = 1002;
     public static final int USER_STILL_OWNER                = 1003;
     public static final int USER_ALREADY_A_MEMBER           = 1004;
+    public static final int JWT_INVALID                     = 1005;
+    public static final int USER_ALREADY_ADMIN              = 1006;
 
     public static final String USER_NOT_FOUND_INFO          = null;
     public static final String USER_ALREADY_EXISTS_INFO     = null;
     public static final String USER_STILL_OWNER_INFO        = null;
     public static final String USER_ALREADY_A_MEMBER_INFO   = null;
+    public static final String JWT_INVALID_INFO             = null;
+    public static final String USER_ALREADY_ADMIN_INFO      = null;
 
 
     //

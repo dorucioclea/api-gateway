@@ -7,7 +7,6 @@ import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
-import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
@@ -127,7 +126,7 @@ public class ActionFacade {
             throw ExceptionFactory.notAuthorizedException();
         ServiceVersionBean versionBean = null;
         try {
-            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
+            versionBean = orgFacade.getServiceVersionInternal(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (ServiceVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
         }
@@ -239,7 +238,7 @@ public class ActionFacade {
 
         ServiceVersionBean versionBean = null;
         try {
-            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
+            versionBean = orgFacade.getServiceVersionInternal(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (ServiceVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
         }
@@ -300,7 +299,7 @@ public class ActionFacade {
 
         ServiceVersionBean versionBean = null;
         try {
-            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
+            versionBean = orgFacade.getServiceVersionInternal(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (ServiceVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
         }

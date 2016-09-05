@@ -107,11 +107,11 @@ public class GatewayValidation {
         Gson gson = new Gson();
         JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
         KongPluginJWT kongPluginJWT = new KongPluginJWT();
-        List<String> claimsToVerify = new ArrayList<>();
+        Set<String> claimsToVerify = new HashSet<>();
         //if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment
         //--enforce to validate JWT exp
         claimsToVerify.add("exp");
-        kongPluginJWT.setClaimsToVerify(claimsToVerify);
+        kongPluginJWT.setClaimsToVerify(new ArrayList<>(claimsToVerify));
         //perform enhancements
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
@@ -148,7 +148,7 @@ public class GatewayValidation {
         for (KongPluginOAuthScope scope : scopes) {
             if (!StringUtils.isEmpty(scope.getScope())) {
                 //add prefix
-                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope());
+                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope().toLowerCase());
                 if (StringUtils.isEmpty(scope.getScopeDesc())) scope.setScopeDesc(scope.getScope());
                 responseScopes.add(scope);
             }
@@ -359,6 +359,9 @@ public class GatewayValidation {
     public synchronized Policy validateRateLimiting(Policy policy){
         KongPluginRateLimiting req = new Gson().fromJson(policy.getPolicyJsonConfig(),KongPluginRateLimiting.class);
         List<Integer> ratesArray = new ArrayList<>();
+        if (req.getYear() == null && req.getMonth() == null && req.getDay() == null && req.getHour() == null && req.getMinute() == null && req.getSecond() == null) {
+            throw ExceptionFactory.policyDefInvalidException("At least one value must be filled in");
+        }
         if (req.getYear() != null) ratesArray.add(req.getYear());
         if (req.getMonth() != null) ratesArray.add(req.getMonth());
         if (req.getDay() != null) ratesArray.add(req.getDay());
@@ -378,6 +381,14 @@ public class GatewayValidation {
 
     public synchronized Policy validateRequestSizeLimiting(Policy policy){
         //nothing to do - works fine
+        KongPluginRequestSizeLimiting req = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginRequestSizeLimiting.class);
+        if (req.getAllowedPayloadSize() == null) {
+            //Set the allowed payload size to the default 128Mb
+            req.setAllowedPayloadSize(128D);
+        }
+        if (req.getAllowedPayloadSize() < 0) {
+            throw ExceptionFactory.invalidPolicyException("Negative values aren't allowed");
+        }
         _LOG.debug("Modified policy:{}",policy);
         return policy;
     }

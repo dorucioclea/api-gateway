@@ -851,7 +851,12 @@ public class MigrationFacade {
                 KongPluginJWTResponseList response = gateway.getConsumerJWT(consumerId);
                 if (response.getData().size() > 0) {
                     for (KongPluginJWTResponse resp : response.getData()) {
-                        gateway.deleteConsumerJwtCredential(resp.getConsumerId(), resp.getId());
+                        try {
+                            gateway.deleteConsumerJwtCredential(resp.getConsumerId(), resp.getId());
+                        }
+                        catch (RetrofitError ex) {
+                            _LOG.info("Consumer '{}' JWT credentials not deleted ({},{})",resp.getKey(), resp.getSecret());
+                        }
                     }
                 }
                 final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(consumerId,JWTUtils.JWT_RS256);

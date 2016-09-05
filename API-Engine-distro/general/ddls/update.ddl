@@ -325,3 +325,90 @@ KSi6QZyd62TdYsyPmHObvmVTV/NVfdE833Cc601FrcLyAfY/L5185qGLcZj2
 -----END RSA PRIVATE KEY-----';
 
 UPDATE gateways SET jwt_pub_key_endpoint = '/keys/pub';
+
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "Request Transformer",
+  "properties": {
+    "remove": {
+      "title": "Remove from request",
+      "type": "object",
+      "properties": {
+          "querystring": {
+              "type": "array",
+              "items": {
+                "title": "Querystring",
+                "type": "string",
+                "description": "Parameter name to remove from the request querystring."
+              }
+          },
+          "body": {
+              "type": "array",
+              "items": {
+                "title": "Form",
+                "type": "string",
+                "description": "Parameter names to remove from the request body."
+              }
+          },
+          "headers": {
+              "type": "array",
+              "items": {
+                "title": "Header",
+                "type": "string",
+                "description": "Header names to remove from the request."
+              }
+          }
+      }
+    },
+    "add": {
+      "title": "Add to request",
+      "type": "object",
+      "properties": {
+          "querystring": {
+              "type": "array",
+              "items": {
+                "title": "Query",
+                "type": "string",
+                "description": "Paramname:value to add to the request querystring."
+              }
+          },
+          "body": {
+              "type": "array",
+              "items": {
+                "title": "Form",
+                "type": "string",
+                "description": "Paramname:value to add to the request body in urlencoded format."
+              }
+          },
+          "headers": {
+              "type": "array",
+              "items": {
+                "title": "Header",
+                "type": "string",
+                "description": "Headername:value to add to the request headers."
+              }
+          }
+      }
+    }
+  }
+}' WHERE id = 'RequestTransformer';
+
+UPDATE policydefs set form = '{
+  "type": "object",
+  "title": "Request Size Limiting",
+  "properties": {
+    "allowed_payload_size": {
+      "title": "Allowed payload size",
+      "description": "Allowed request payload size in megabytes, default is 128 (128 000 000 Bytes)",
+      "type": "number",
+      "default": 128,
+      "minimum": 0
+    }
+  },
+  "required": [
+    "allowed_payload_size"
+  ]
+}' WHERE id = 'RequestSizeLimiting';
+
+-- Extra claim for rijksregisternummer DV
+INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'rrnr', 'rrnr');

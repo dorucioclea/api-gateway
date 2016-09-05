@@ -180,13 +180,7 @@ public class LoginResource implements ILoginResource {
     public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
         Preconditions.checkNotNull(jwtRefreshRequestBean);
         Preconditions.checkArgument(!StringUtils.isEmpty(jwtRefreshRequestBean.getOriginalJWT()));
-        JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-        try {
-            jwtRefreshResponseBean = userFacade.refreshToken(jwtRefreshRequestBean);
-        } catch (NoSuchAlgorithmException | InvalidJwtException | MalformedClaimException | JoseException |StorageException | IOException | InvalidKeySpecException e) {
-            new SystemErrorException(e);
-        }
-        return jwtRefreshResponseBean;
+        return userFacade.refreshToken(jwtRefreshRequestBean);
     }
 
     @ApiOperation(value = "The service provider for the SAML2 Authentication request",

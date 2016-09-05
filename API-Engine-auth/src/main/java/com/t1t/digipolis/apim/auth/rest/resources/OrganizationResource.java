@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceDefinitionType;
@@ -16,7 +15,6 @@ import com.t1t.digipolis.apim.beans.support.SupportBean;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
-import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

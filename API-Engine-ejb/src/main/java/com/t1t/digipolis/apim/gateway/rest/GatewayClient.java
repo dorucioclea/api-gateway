@@ -356,7 +356,13 @@ public class GatewayClient {
 
     public void removeGatewayOAuthScopes(GatewayBean gtw, KongApi api){
         Gson gson = new Gson();
-        final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        KongPluginConfigList gtwPluginConfigList = null;
+        try {
+            gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        }
+        catch (RetrofitError ex) {
+            log.debug("Error retrieving oauth2 configs:{}", ex);
+        }
         if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
             KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
             KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString()

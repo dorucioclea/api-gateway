@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -238,6 +237,12 @@ public class UserFacade implements Serializable {
             newUserBean.setAdmin(true);
             initNewUser(newUserBean);
         }else{
+            if (user.getAdmin()) {
+                String message = new StringBuilder(StringUtils.isEmpty(user.getFullName()) ? user.getUsername() : user.getFullName())
+                        .append(" is already an administrator")
+                        .toString();
+                throw ExceptionFactory.userAlreadyAdminException(message);
+            }
             user.setAdmin(true);
             idmStorage.updateUser(user);
         }
@@ -351,9 +356,9 @@ public class UserFacade implements Serializable {
         webCache.setToken(samlRequest.getToken());
         webCache.setClientAppRedirect(samlRequest.getClientAppRedirect());
         if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
-            webCache.setTokenExpirationTimeMinutes(gatewayBean.getJWTExpTime());
+            webCache.setTokenExpirationTimeSeconds(gatewayBean.getJWTExpTime());
         }else{
-            webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+            webCache.setTokenExpirationTimeSeconds(config.getJWTDefaultTokenExpInSeconds());
         }
         webCache.setOptionalClaimset(samlRequest.getOptionalClaimMap());
         webCache.setAppRequester(securityAppContext.getApplicationIdentifier());
@@ -840,13 +845,13 @@ public class UserFacade implements Serializable {
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
             jwtRequestBean.setIssuer(jwtKey);
             if (cacheBean != null) {
-                if (cacheBean.getTokenExpirationTimeMinutes() != null)
-                    jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
-                else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+                if (cacheBean.getTokenExpirationTimeSeconds() != null)
+                    jwtRequestBean.setExpirationTimeSeconds(cacheBean.getTokenExpirationTimeSeconds());
+                else jwtRequestBean.setExpirationTimeSeconds(config.getJWTDefaultTokenExpInSeconds());
                 jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
                 jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
             } else {
-                jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+                jwtRequestBean.setExpirationTimeSeconds(config.getJWTDefaultTokenExpInSeconds());
             }
             jwtRequestBean.setName(identityAttributes.getUserName());
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
@@ -854,7 +859,7 @@ public class UserFacade implements Serializable {
             jwtRequestBean.setSubject(identityAttributes.getId());
             jwtRequestBean.setOptionalClaims(identityAttributes.getOptionalMap());
             final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
-            Integer jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
+            Integer jwtExpirationTime = config.getJWTDefaultTokenExpInSeconds();
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
                 jwtExpirationTime = gatewayBean.getJWTExpTime();
             }
@@ -937,9 +942,6 @@ public class UserFacade implements Serializable {
             secret = cacheUtil.getToken(key);
         }
         catch (Exception e) {
-            throw ExceptionFactory.cachingException(e.getMessage());
-        }
-        if (StringUtils.isEmpty(secret)) {
             //retrieve from Kong
             String gatewayId = null;
             try {
@@ -949,31 +951,43 @@ public class UserFacade implements Serializable {
                 if (data != null && data.size() > 0) {
                     secret = data.get(0).getSecret();
                 } else throw new StorageException("Refresh JWT - somehow the user is not known");
-            } catch (StorageException e) {
-                throw new GatewayException("Error connection to gateway:{}" + e.getMessage());
+            } catch (StorageException ex) {
+                throw new GatewayException("Error connection to gateway:{}" + ex.getMessage());
+            }
+            //We've done all we could to retrieve the secret
+            if (secret == null) {
+                throw ExceptionFactory.cachingException(e.getMessage());
             }
         }
         return secret;
     }
 
-    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws IOException, InvalidJwtException, MalformedClaimException, JoseException, StorageException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
         //get body
-        JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
-        JwtClaims jwtClaims = jwtContext.getJwtClaims();
-        //get gateway default expiration time for JWT
-        final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
-        Integer jwtExpirationTime = 60;//default 60min.
-        String pubKeyEndpoint = gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
-        if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
-            jwtExpirationTime = gatewayBean.getJWTExpTime();
-        }else{
-            jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
+        try {
+            JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
+            JwtClaims jwtClaims = jwtContext.getJwtClaims();
+            //get gateway default expiration time for JWT
+            final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+            Integer jwtExpirationTime = 60;//default 60min.
+            String pubKeyEndpoint = gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
+            if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
+                jwtExpirationTime = gatewayBean.getJWTExpTime();
+            }else{
+                jwtExpirationTime = config.getJWTDefaultTokenExpInSeconds();
+            }
+            //get secret based on iss/username - cached
+            String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
+            JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
+            jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()),pubKeyEndpoint));
+            return jwtRefreshResponseBean;
         }
-        //get secret based on iss/username - cached
-        String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
-        JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()),pubKeyEndpoint));
-        return jwtRefreshResponseBean;
+        catch (InvalidJwtException | UnsupportedEncodingException | MalformedClaimException ex) {
+            throw ExceptionFactory.jwtInvalidException("Cannot parse JWT", ex);
+        }
+        catch (StorageException | JoseException | InvalidKeySpecException | NoSuchAlgorithmException | IOException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 
     /**
