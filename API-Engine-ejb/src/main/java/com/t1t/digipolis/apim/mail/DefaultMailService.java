@@ -16,6 +16,8 @@ import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
+import static com.t1t.digipolis.apim.mail.MailTopic.MEMBERSHIP_ADMIN_NEW;
+
 /**
  * Simple mailprovider, no templating and no dynamic substitutions.
  * For a straight forward impl, only text messages supported, with inline replacements.
@@ -34,145 +36,109 @@ public class DefaultMailService implements MailService {
     private static final String KEY_END = "}";
 
     public void sendTestMail() throws MailServiceException {
-        try{
-            //get the mail template
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.TEST);
-            //prepare map
-            TestMailBean testMailBean = new TestMailBean();
-            testMailBean.setEnvironment(config.getEnvironment());
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(testMailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate,config.getNotificationStartupMail());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
+        BaseMailBean mail = new BaseMailBean();
+        mail.setTo(config.getNotificationStartupMail());
+        createAndSendMail(MailTopic.TEST, mail);
     }
 
     @Override
     public void sendStatusMail(StatusMailBean statusMailBean) throws MailServiceException {
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.STATUS);
-            TestMailBean testMailBean = new TestMailBean();
-            testMailBean.setEnvironment(config.getEnvironment());
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(testMailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate,statusMailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
+        createAndSendMail(MailTopic.STATUS, statusMailBean);
     }
 
     @Override
     public void sendRequestMembership(MembershipRequestMailBean membershipRequestMailBean) throws MailServiceException {
-        membershipRequestMailBean.setEnvironment(config.getEnvironment());
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_REQUEST);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(membershipRequestMailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, membershipRequestMailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
+        createAndSendMail(MailTopic.MEMBERSHIP_REQUEST, membershipRequestMailBean);
     }
 
     @Override
-    public void approveRequestMembership(MembershipApproveMailBean membershipApproveMailBean) throws MailServiceException {
-        membershipApproveMailBean.setEnvironment(config.getEnvironment());
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_APPROVE);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(membershipApproveMailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, membershipApproveMailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
+    public void approveRequestMembership(MembershipRequestMailBean bean) throws MailServiceException {
+        createAndSendMail(MailTopic.MEMBERSHIP_REJECT, bean);
     }
 
     @Override
-    public void rejectRequestMembership(MembershipRejectMailBean membershipRejectMailBean) throws MailServiceException {
-        membershipRejectMailBean.setEnvironment(config.getEnvironment());
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_REJECT);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(membershipRejectMailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, membershipRejectMailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
+    public void rejectRequestMembership(MembershipRequestMailBean bean) throws MailServiceException {
+        createAndSendMail(MailTopic.MEMBERSHIP_REJECT, bean);
+    }
+
+    @Override
+    public void cancelMembershipRequest(MembershipRequestMailBean bean) throws MailServiceException {
+        createAndSendMail(MailTopic.MEMBERSHIP_REQUEST_CANCEL, bean);
     }
 
     @Override
     public void sendUpdateMember(UpdateMemberMailBean updateMemberMailBean) throws MailServiceException {
-        updateMemberMailBean.setEnvironment(config.getEnvironment());
+        MailTopic topic = null;
         switch (updateMemberMailBean.getMembershipAction()) {
             case NEW_MEMBERSHIP: {
-                sendMembershipNew(updateMemberMailBean);
+                topic = MailTopic.MEMBERSHIP_NEW;
                 break;
             }
             case TRANSFER: {
-                sendMembershipTransfer(updateMemberMailBean);
+                topic = MailTopic.ORGANIZATION_TRANSFER;
                 break;
             }
             case DELETE_MEMBERSHIP: {
-                sendMembershipDelete(updateMemberMailBean);
+                topic = MailTopic.MEMBERSHIP_DELETED;
                 break;
             }
             case UPDATE_ROLE: {
-                sendMembershipUpdateRole(updateMemberMailBean);
+                topic = MailTopic.MEMBERSHIP_UPDATE_ROLE;
                 break;
             }
+        }
+        if (topic != null) {
+            createAndSendMail(topic, updateMemberMailBean);
         }
     }
 
     @Override
     public void sendUpdateAdmin(UpdateAdminMailBean updateAdminMailBean) throws MailServiceException {
-        updateAdminMailBean.setEnvironment(config.getEnvironment());
+        MailTopic topic = null;
         switch (updateAdminMailBean.getMembershipAction()) {
             case NEW_MEMBERSHIP: {
-                sendMembershipAdminNew(updateAdminMailBean);
+                topic = MailTopic.MEMBERSHIP_ADMIN_NEW;
                 break;
             }
             case DELETE_MEMBERSHIP: {
-                sendMembershipAdminDelete(updateAdminMailBean);
+                topic = MailTopic.MEMBERSHIP_ADMIN_DELETED;
                 break;
             }
+        }
+        if (topic != null) {
+            createAndSendMail(topic, updateAdminMailBean);
         }
     }
 
     @Override
     public void sendContractRequest(ContractMailBean mailBean) throws MailServiceException {
-        mailBean.setEnvironment(config.getEnvironment());
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.CONTRACT_REQUEST);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, mailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
+        createAndSendMail(MailTopic.CONTRACT_REQUEST, mailBean);
     }
 
     @Override
     public void approveContractRequest(ContractMailBean mailBean) throws MailServiceException {
-        mailBean.setEnvironment(config.getEnvironment());
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.CONTRACT_APPROVE);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, mailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
+        createAndSendMail(MailTopic.CONTRACT_APPROVE, mailBean);
     }
 
     @Override
     public void rejectContractRequest(ContractMailBean mailBean) throws MailServiceException {
-        mailBean.setEnvironment(config.getEnvironment());
+        createAndSendMail(MailTopic.CONTRACT_REJECT, mailBean);
+    }
+
+    @Override
+    public void cancelContractRequest(ContractMailBean bean) throws MailServiceException {
+        createAndSendMail(MailTopic.CONTRACT_REQUEST_CANCEL, bean);
+    }
+
+    private void createAndSendMail(MailTopic topic, BaseMailBean bean) {
         try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.CONTRACT_REJECT);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
+            bean.setEnvironment(config.getEnvironment());
+            //get the mail template
+            MailTemplateBean mailTemplate = storage.getMailTemplate(topic);
+            //prepare map
+            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(bean);
             final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, mailBean.getTo());
+            prepAndSendMail(sub,mailTemplate, bean.getTo());
         }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
             throw new MailServiceException(ex.getMessage());
         }
@@ -192,71 +158,5 @@ public class DefaultMailService implements MailService {
         mailBean.setTo(to);
         _LOG.debug("Sending mail: {}",mailBean);
         mailProvider.sendMail(mailProvider.composeMessage(mailBean));
-    }
-
-    private void sendMembershipAdminDelete(UpdateAdminMailBean mailBean) throws MailServiceException {
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_ADMIN_DELETED);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, mailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
-    }
-
-    private void sendMembershipAdminNew(UpdateAdminMailBean mailBean) throws MailServiceException {
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_ADMIN_NEW);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, mailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
-    }
-
-    private void sendMembershipUpdateRole(UpdateMemberMailBean mailBean) throws MailServiceException {
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_UPDATE_ROLE);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, mailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
-    }
-
-    private void sendMembershipDelete(UpdateMemberMailBean mailBean) throws MailServiceException {
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_DELETED);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, mailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
-    }
-
-    private void sendMembershipTransfer(UpdateMemberMailBean mailBean) throws MailServiceException {
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.ORGANIZATION_TRANSFER);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, mailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
-    }
-
-    private void sendMembershipNew(UpdateMemberMailBean mailBean) throws MailServiceException {
-        try{
-            MailTemplateBean mailTemplate = storage.getMailTemplate(MailTopic.MEMBERSHIP_NEW);
-            Map<String, String> keymap = BeanUtilsBean.getInstance().describe(mailBean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, mailBean.getTo());
-        }catch(StorageException|NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
-            throw new MailServiceException(ex.getMessage());
-        }
     }
 }
