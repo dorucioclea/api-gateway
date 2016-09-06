@@ -294,12 +294,12 @@ public class EventFacade {
         event.setBody(bean.getBody());
         try {
 
-            eventCleanup(event);
-
             //Get the original body so we know what plan the contract was accepted under
             if (event.getType() == CONTRACT_ACCEPTED || event.getType() == CONTRACT_REJECTED) {
-                event.setBody(query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), CONTRACT_PENDING).getBody());
+                event.setBody(query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), EventType.CONTRACT_PENDING).getBody());
             }
+
+            eventCleanup(event);
 
             //Do not create a new event upon cancelling a pending request
             if (event.getType() != MEMBERSHIP_CANCELLED && event.getType() != CONTRACT_CANCELLED) {
@@ -345,34 +345,34 @@ public class EventFacade {
                 case MEMBERSHIP_GRANTED:
                     origin = event.getDestinationId();
                     destination = event.getOriginId();
-                    type = MEMBERSHIP_PENDING;
+                    type = EventType.MEMBERSHIP_PENDING;
                     break;
 
                 case MEMBERSHIP_CANCELLED:
                     origin = event.getOriginId();
                     destination = event.getDestinationId();
-                    type = MEMBERSHIP_PENDING;
+                    type = EventType.MEMBERSHIP_PENDING;
                     break;
                 case MEMBERSHIP_PENDING:
                     origin = event.getDestinationId();
                     destination = event.getOriginId();
-                    type = MEMBERSHIP_REJECTED;
+                    type = EventType.MEMBERSHIP_REJECTED;
                     break;
                 case CONTRACT_ACCEPTED:
                 case CONTRACT_REJECTED:
                     origin = event.getDestinationId();
                     destination = event.getOriginId();
-                    type = CONTRACT_PENDING;
+                    type = EventType.CONTRACT_PENDING;
                     break;
                 case CONTRACT_CANCELLED:
                     origin = event.getOriginId();
                     destination = event.getDestinationId();
-                    type = CONTRACT_PENDING;
+                    type = EventType.CONTRACT_PENDING;
                     break;
                 case CONTRACT_PENDING:
                     origin = event.getDestinationId();
                     destination = event.getOriginId();
-                    type = CONTRACT_REJECTED;
+                    type = EventType.CONTRACT_REJECTED;
                     break;
                 default:
                     //Do nothing
@@ -765,10 +765,10 @@ public class EventFacade {
                                             mailService.cancelContractRequest(contractMailBean);
                                             break;
                                         case CONTRACT_REJECTED:
-                                            mailService.approveContractRequest(contractMailBean);
+                                            mailService.rejectContractRequest(contractMailBean);
                                             break;
                                         case CONTRACT_ACCEPTED:
-                                            mailService.rejectContractRequest(contractMailBean);
+                                            mailService.approveContractRequest(contractMailBean);
                                             break;
                                     }
                                     break;

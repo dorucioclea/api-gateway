@@ -2610,24 +2610,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //Trigger new event for accepted membership request
 
         fireEvent(organizationId, bean.getUserId(), EventType.MEMBERSHIP_GRANTED, null);
-
-        //send email
-        try {
-            final RoleBean roleBean = roleFacade.get(bean.getRoleId());
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(bean.getUserId());
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                updateMemberMailBean.setRole(roleBean.getName());
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
     }
 
     public void grant(String organizationId, GrantRolesBean bean) {

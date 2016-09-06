@@ -53,7 +53,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void approveRequestMembership(MembershipRequestMailBean bean) throws MailServiceException {
-        createAndSendMail(MailTopic.MEMBERSHIP_REJECT, bean);
+        createAndSendMail(MailTopic.MEMBERSHIP_APPROVE, bean);
     }
 
     @Override

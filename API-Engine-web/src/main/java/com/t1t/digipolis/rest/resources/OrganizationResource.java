@@ -1968,7 +1968,6 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         orgFacade.grant(organizationId, bean);
-        orgFacade.grant(organizationId, bean);
     }
 
     @ApiOperation(value = "Revoke Single Membership",

@@ -2130,6 +2130,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                     .getSingleResult();
         }
         catch (NoResultException ex) {
+            logger.debug("problem:{}", ex);
             return null;
         }
     }
