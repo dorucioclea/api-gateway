@@ -443,6 +443,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             EntityUpdatedData data = new EntityUpdatedData();
             data.addChange("OAuth2 Callback URI", String.valueOf(previousURIs), String.valueOf(avb.getOauthClientRedirects()));
+            if (avb.getStatus() != ApplicationStatus.Registered && applicationValidator.isReady(avb)) {
+                avb.setStatus(ApplicationStatus.Ready);
+            }
             storage.updateApplicationVersion(avb);
             storage.createAuditEntry(AuditUtils.applicationVersionUpdated(avb, data, securityContext));
             return avb;
@@ -3053,7 +3056,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             contract.setApikey(apiKeyGenerator.generate());
         }
         // Validate the state of the application.
-        if (avb.getStatus() != ApplicationStatus.Registered && applicationValidator.isReady(avb, true)) {
+        if (avb.getStatus() != ApplicationStatus.Registered && applicationValidator.isReady(avb)) {
             avb.setStatus(ApplicationStatus.Ready);
         }
         storage.createContract(contract);

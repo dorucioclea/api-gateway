@@ -2562,6 +2562,23 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return em.createQuery(jpql).getResultList();
     }
 
+    @Override
+    public List<PolicyBean> getEntityPoliciesByDefinitionId(String organizationId, String entityId, String version, PolicyType type, Policies definitionId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.organizationId = :orgId " +
+                "AND p.entityId = :entId " +
+                "AND p.entityVersion = :version " +
+                "AND p.type = :type " +
+                "AND p.definition.id = :defId";
+        return em.createQuery(jpql)
+                .setParameter("orgId", organizationId)
+                .setParameter("entId", entityId)
+                .setParameter("version", version)
+                .setParameter("type", type)
+                .setParameter("defId", definitionId.getPolicyDefId())
+                .getResultList();
+    }
+
     private boolean doNotFilterServices() throws StorageException {
         return getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
     }
