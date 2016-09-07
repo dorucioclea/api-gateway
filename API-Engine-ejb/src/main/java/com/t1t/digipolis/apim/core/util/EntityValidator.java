@@ -1,11 +1,15 @@
 package com.t1t.digipolis.apim.core.util;
 
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.core.IApplicationValidator;
 import com.t1t.digipolis.apim.core.IServiceValidator;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -34,27 +38,38 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
      * @see com.t1t.digipolis.apim.core.IApplicationValidator#isReady(ApplicationVersionBean)
      */
     @Override
-    public boolean isReady(ApplicationVersionBean application) throws Exception {
-        boolean hasContracts = true;
+    public boolean isReady(ApplicationVersionBean application) {
+        boolean ready = true;
 
-        List<ContractSummaryBean> contracts = storageQuery.getApplicationContracts(application.getApplication().getOrganization().getId(), application.getApplication().getId(), application.getVersion());
-        if (contracts.isEmpty()) {
-            hasContracts = false;
-            return isReady(application, hasContracts);
+        try {
+            List<ContractSummaryBean> contracts = storageQuery.getApplicationContracts(application.getApplication().getOrganization().getId(), application.getApplication().getId(), application.getVersion());
+            if (contracts.isEmpty()) {
+                ready = false;
+            }
+            else {
+                boolean requiresCallback = false;
+                for (ContractSummaryBean summary : contracts) {
+                    if (!storageQuery.getEntityPoliciesByDefinitionId(summary.getServiceOrganizationId(), summary.getServiceId(), summary.getServiceVersion(), PolicyType.Service, Policies.OAUTH2).isEmpty()) {
+                        requiresCallback = true;
+                    }
+                }
+                if (requiresCallback) {
+                    ready = !StringUtils.isEmpty(application.getoAuthClientId()) && !application.getOauthClientRedirects().isEmpty();
+                }
+            }
         }
-        //verify if OAuth2 callback url has not been provided
-        //TODO removed at the moment this is the responsability of the front end which is not a good but rather temporary solution
-/*        if(!StringUtils.isEmpty(application.getoAuthClientId())){
-            if(StringUtils.isEmpty(application.getOauthClientRedirect())) return isReady(application,false);
-        }*/
-        return isReady(application, hasContracts);
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+
+        return isReady(application, ready);
     }
 
     /**
      * @see com.t1t.digipolis.apim.core.IApplicationValidator#isReady(ApplicationVersionBean, boolean)
      */
     @Override
-    public boolean isReady(ApplicationVersionBean application, boolean hasContracts) throws Exception {
+    public boolean isReady(ApplicationVersionBean application, boolean hasContracts) {
         boolean ready = hasContracts;
         return ready;
     }

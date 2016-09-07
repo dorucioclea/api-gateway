@@ -17,10 +17,8 @@ import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.apim.security.IdentityAttributes;
 import com.t1t.digipolis.util.CacheUtil;
 import junit.framework.TestCase;
-import org.apache.commons.httpclient.util.URIUtil;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
@@ -28,7 +26,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.saml2.common.Extensions;
-import org.opensaml.ws.wssecurity.Username;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
@@ -254,7 +251,7 @@ public class UserFacadeTest extends TestCase {
         ClientTokeType tokeType = ClientTokeType.jwt;
         Integer overrideExp = 5;
         Map<String, String> optClaimMap = new HashMap<>();
-        when(config.getJWTDefaultTokenExpInMinutes()).thenReturn(10);
+        when(config.getJWTDefaultTokenExpInSeconds()).thenReturn(10);
         thrown.expect(IllegalArgumentException.class);//some issue bootstrapping context
         SAMLRequest samlRequest = new SAMLRequest();
         samlRequest.setClientAppRedirect(clientUrl);

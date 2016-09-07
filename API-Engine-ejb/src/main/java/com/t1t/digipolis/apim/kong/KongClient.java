@@ -79,6 +79,8 @@ public interface KongClient {
     KongPluginJWTResponse createConsumerJWTCredentials(@Path("id") String id, @Body KongPluginJWTRequest kongPluginJWTRequest);
     @GET("/consumers/{id}/jwt")
     KongPluginJWTResponseList getConsumerJWTCredentials(@Path("id")String id);
+    @DELETE("/consumers/{consumerId}/jwt/{credentialId}")
+    Object deleteConsumerJwtCredential(@Path("consumerId") String consumerId, @Path("credentialId") String credentialId);
     @POST("/consumers/{id}/acls")
     KongPluginACLResponse addConsumerToACL(@Path("id") String id, @Body  KongPluginACLRequest request);
     @GET("/consumers/{id}/acls")
@@ -110,4 +112,6 @@ public interface KongClient {
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthToken(@Query("id") String tokenId);
     @DELETE("/oauth2_tokens/{tokenId}") Object revokeOAuthToken(@Path("tokenId") String tokenId);
     @DELETE("/consumers/{consumerId}/oauth2/{pluginId}")Object deleteOAuth2Credential(@Path(value = "consumerId", encode = false)String consumerId, @Path("pluginId")String pluginId);
+
+    /*********************   JWT   *******************/
 }

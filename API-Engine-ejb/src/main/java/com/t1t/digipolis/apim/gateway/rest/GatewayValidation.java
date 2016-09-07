@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
-import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
@@ -22,7 +21,6 @@ import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
 import com.t1t.digipolis.kong.model.KongPluginJWTUp;
 import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
 import com.t1t.digipolis.kong.model.KongPluginOAuth;
-import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
 import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
 import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
@@ -42,8 +40,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
-
-import static com.t1t.digipolis.apim.beans.services.ServiceDefinitionType.HAL;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -91,7 +87,7 @@ public class GatewayValidation {
             case JWT: return validateJWT(policy);
             case JWTUP: return validateJWTUp(policy);
             case ACL: return validateACL(policy);
-            case LDAP: return validateLDAP(policy);
+            case LDAPAUTHENTICATION: return validateLDAP(policy);
             case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
             case HAL: return policy;
             default:throw new PolicyViolationException("Unknown policy "+ policy);
@@ -111,11 +107,11 @@ public class GatewayValidation {
         Gson gson = new Gson();
         JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
         KongPluginJWT kongPluginJWT = new KongPluginJWT();
-        List<String> claimsToVerify = new ArrayList<>();
+        Set<String> claimsToVerify = new HashSet<>();
         //if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment
         //--enforce to validate JWT exp
         claimsToVerify.add("exp");
-        kongPluginJWT.setClaimsToVerify(claimsToVerify);
+        kongPluginJWT.setClaimsToVerify(new ArrayList<>(claimsToVerify));
         //perform enhancements
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
@@ -152,8 +148,8 @@ public class GatewayValidation {
         for (KongPluginOAuthScope scope : scopes) {
             if (!StringUtils.isEmpty(scope.getScope())) {
                 //add prefix
-                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope());
                 if (StringUtils.isEmpty(scope.getScopeDesc())) scope.setScopeDesc(scope.getScope());
+                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope().toLowerCase());
                 responseScopes.add(scope);
             }
         }
@@ -363,6 +359,9 @@ public class GatewayValidation {
     public synchronized Policy validateRateLimiting(Policy policy){
         KongPluginRateLimiting req = new Gson().fromJson(policy.getPolicyJsonConfig(),KongPluginRateLimiting.class);
         List<Integer> ratesArray = new ArrayList<>();
+        if (req.getYear() == null && req.getMonth() == null && req.getDay() == null && req.getHour() == null && req.getMinute() == null && req.getSecond() == null) {
+            throw ExceptionFactory.policyDefInvalidException("At least one value must be filled in");
+        }
         if (req.getYear() != null) ratesArray.add(req.getYear());
         if (req.getMonth() != null) ratesArray.add(req.getMonth());
         if (req.getDay() != null) ratesArray.add(req.getDay());
@@ -382,6 +381,14 @@ public class GatewayValidation {
 
     public synchronized Policy validateRequestSizeLimiting(Policy policy){
         //nothing to do - works fine
+        KongPluginRequestSizeLimiting req = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginRequestSizeLimiting.class);
+        if (req.getAllowedPayloadSize() == null) {
+            //Set the allowed payload size to the default 128Mb
+            req.setAllowedPayloadSize(128D);
+        }
+        if (req.getAllowedPayloadSize() < 0) {
+            throw ExceptionFactory.invalidPolicyException("Negative values aren't allowed");
+        }
         _LOG.debug("Modified policy:{}",policy);
         return policy;
     }
@@ -402,7 +409,7 @@ public class GatewayValidation {
 
     public synchronized Policy validateLDAP(Policy policy) {
         KongPluginLDAP req = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginLDAP.class);
-        if (StringUtils.isEmpty(req.getLdapHost()) || StringUtils.isEmpty(req.getBaseDn()) || StringUtils.isEmpty(req.getAttribute()) || req.getVerifyLdapHost() == null || req.getStartTls() == null || req.getCacheTtl() == null) {
+        if (StringUtils.isEmpty(req.getLdapHost()) || StringUtils.isEmpty(req.getBaseDn())) {
             throw new PolicyViolationException("Form was not correctly filled in.");
         }
         return policy;

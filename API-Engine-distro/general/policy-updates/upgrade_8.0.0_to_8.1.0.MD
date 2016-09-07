@@ -4,7 +4,7 @@ The following actions should be executed in order to upgrade towards API Engine 
  - replace cors_handler.lua on all Kong running nodes
  - replace key-auth_handler.lua on all Kong running nodes
  - add JWT-up: 
-    - install plugin on all Kong running nodes: $ luarocks install kong-plugin-jwt-up
+    - install plugin on all Kong running nodes: $ luarocks install kong-plugin-jwt-up (version 1.4.0)
     - update certificates on all Kong running nodes: followe instruction on https://trust1t.atlassian.net/wiki/pages/viewpage.action?pageId=74547210
     - update kong.yaml
  - execture migration endpoint:
@@ -12,4 +12,7 @@ The following actions should be executed in order to upgrade towards API Engine 
     
  - copy correct application config file
  
- 
+ Upgrade notes: 0.8.0 -> 0.9.0
+ -----------------------------
+ - add HAL plugin
+ - update LDAP login handler.lua and access.lua

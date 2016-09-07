@@ -19,6 +19,7 @@ import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
@@ -793,5 +794,22 @@ public interface IStorageQuery {
      */
     public Set<String> getManagedAppPrefixesForTypes(List<ManagedApplicationTypes> types) throws StorageException;
 
+    /**
+     * Returns all gateways
+     * @return
+     * @throws StorageException
+     */
     public List<GatewayBean> getAllGateways() throws StorageException;
+
+    /**
+     * Get policies for an entity based on definition id
+     * @param organizationId
+     * @param entityId
+     * @param version
+     * @param type
+     * @param definitionId
+     * @return
+     * @throws StorageException
+     */
+    public List<PolicyBean> getEntityPoliciesByDefinitionId(String organizationId, String entityId, String version, PolicyType type, Policies definitionId) throws StorageException;
 }

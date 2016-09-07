@@ -87,8 +87,8 @@ public class AppConfig implements Serializable {
             _LOG.info("Default user roles: {}",getDefaultUserRoles());
             _LOG.info("Consent page: {}",getOAuthConsentURI());
             _LOG.info("Enable centralized OAuth2 token/authorization endpoints: {}",getOAuthEnableGatewayEnpoints());
-            _LOG.info("JWT default token expiration (in minutes):{}",getJWTDefaultTokenExpInMinutes());
-            _LOG.info("Analytics enables: {}",getAnalyticsEnabled());
+            _LOG.info("JWT default token expiration (in minutes):{}", getJWTDefaultTokenExpInSeconds());
+            _LOG.info("Analytics enables: {}",getAnalyticsHost());
             _LOG.info("Analytics send towards {} with port {} and service token {}",getAnalyticsHost(),getAnalyticsPort(),getAnalyticsServiceToken());
             _LOG.info("Notifications: debug enabled? {}", getNotificationsEnableDebug());
             _LOG.info("Notifications: startup mail will be sent to {}", getNotificationStartupMail());
@@ -122,18 +122,20 @@ public class AppConfig implements Serializable {
     public Boolean getOAuthEnableGatewayEnpoints(){return config.getBoolean(IConfig.OAUTH_ENABLE_GTW_ENDPOINTS);}
     public String getIDPSCIMUserLogin(){return config.getString(IConfig.IDP_SCIM_USER_LOGIN);}
     public String getIDPSCIMUserPassword(){return config.getString(IConfig.IDP_SCIM_USER_PWD);}
-    public Integer getJWTDefaultTokenExpInMinutes(){return config.getInt(IConfig.JWT_DEFAULT_TOKEN_EXP);}
-    public Boolean getAnalyticsEnabled(){return config.getBoolean(IConfig.ANALYTICS_ENABLED);}
+    public Integer getJWTDefaultTokenExpInSeconds(){return config.getInt(IConfig.JWT_DEFAULT_TOKEN_EXP);}
     public Boolean getRestResourceSecurity(){return config.getBoolean(IConfig.SECURITY_REST_RESORUCES);}
     public Boolean getRestAuthResourceSecurity(){return config.getBoolean(IConfig.SECURITY_REST_AUTH_RESOURCES);}
     public String getAnalyticsServiceToken(){return config.getString(IConfig.ANALYTICS_TOKEN);}
-    public Integer getAnalyticsBatchSize(){return config.getInt(IConfig.ANALYTICS_BATCH_SIZE);}
-    public Boolean getAnalyticsLogBody(){return config.getBoolean(IConfig.ANALYTICS_LOG_BODY);}
-    public Integer getAnalyticsDelay(){return config.getInt(IConfig.ANALYTICS_DELAY);}
     public String getAnalyticsEnvironment(){return config.getString(IConfig.ANALYTICS_ENVIRONMENT);}
-    public Integer getAnalyticsMaxSendingQueue(){return config.getInt(IConfig.ANALYTICS_MAX_SENDING_QUEUE);}
+    public Integer getAnalyticsRetryCount(){return config.getInt(IConfig.ANALYTICS_RETRY_COUNT);}
+    public Integer getAnalyticsQueueSize(){return config.getInt(IConfig.ANALYTICS_QUEUE_SIZE);}
+    public Integer getAnalyticsFlushTimeout(){return config.getInt(IConfig.ANALYTICS_FLUSH_TIMEOUT);}
+    public Boolean getAnalyticsLogBodies(){return config.getBoolean(IConfig.ANALYTICS_LOG_BODIES);}
+    public Integer getAnalyticsConnTimeout(){return config.getInt(IConfig.ANALYTICS_CONN_TIMEOUT);}
     public String getAnalyticsHost(){return config.getString(IConfig.ANALYTICS_HOST);}
     public Integer getAnalyticsPort(){return config.getInt(IConfig.ANALYTICS_PORT);}
+    public Boolean getAnalyticsHttps(){return config.getBoolean(IConfig.ANALYTICS_HTTPS);}
+    public Boolean getAnalyticsHttpsVerify(){return config.getBoolean(IConfig.ANALYTICS_HTTPS_VERIFY);}
     public Boolean getNotificationsEnableDebug(){return config.getBoolean(IConfig.NOTIFICATION_ENABLE_DEBUG);}
     public String getNotificationStartupMail(){return config.getString(IConfig.NOTIFICATION_STARTUP_MAIL);}
     public String getNotificationMailFrom(){return config.getString(IConfig.NOTIFICATION_MAIL_FROM);}

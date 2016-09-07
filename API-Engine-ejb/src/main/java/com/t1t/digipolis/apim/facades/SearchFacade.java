@@ -63,7 +63,16 @@ public class SearchFacade {
     public SearchResultsBean<OrganizationSummaryBean> searchOrgs(SearchCriteriaBean criteria) {
         try {
             criteria.getFilters().add(getAppContextFilter());
-            return query.findOrganizations(criteria);
+            SearchResultsBean<OrganizationSummaryBean> results = query.findOrganizations(criteria);
+            //Enrich the beans with counters
+            for (OrganizationSummaryBean summary : results.getBeans()) {
+                summary.setNumApps(query.getRegisteredApplicationCountForOrg(summary.getId()));
+                summary.setNumPlans(query.getLockedPlanCountForOrg(summary.getId()));
+                summary.setNumMembers(query.getMemberCountForOrg(summary.getId()));
+                summary.setNumServices(query.getPublishedServiceCountForOrg(summary.getId()));
+                summary.setNumEvents(query.getEventCountForOrg(summary.getId()));
+            }
+            return results;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }

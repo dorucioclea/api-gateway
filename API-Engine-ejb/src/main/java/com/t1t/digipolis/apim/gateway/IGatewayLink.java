@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -247,7 +248,7 @@ public interface IGatewayLink {
      * @return
      * @throws ConsumerException
      */
-    public KongPluginJWTResponse addConsumerJWT(String id) throws ConsumerException;
+    public KongPluginJWTResponse addConsumerJWT(String id, String encoding) throws ConsumerException;
 
     /**
      * Retrieve a consumer information with it's JWT key.
@@ -465,4 +466,11 @@ public interface IGatewayLink {
      * @return
      */
     public KongOAuthTokenList getOAuthToken(String tokenId);
+
+    /**
+     * Delete a consumer's JWT credential
+     * @param consumerId
+     * @param credentialId
+     */
+    public void deleteConsumerJwtCredential(String consumerId, String credentialId);
 }

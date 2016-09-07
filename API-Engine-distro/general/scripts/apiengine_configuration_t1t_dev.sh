@@ -90,3 +90,22 @@ curl -X POST http://devapim.t1t.be:8001/apis/devapiengineauth.v1/plugins/ \
     --data "name=mashape-analytics" \
     --data "config.service_token=558a95f80f7a734609de5c04" \
     --data "config.environment=t1t-dev"
+
+#register api engine contextless endpoints
+curl -i -X POST \
+  --url http://devapim.t1t.be:8001/apis/ \
+  --data 'request_path=/keys/' \
+  --data 'name=gatewaykeys' \
+  --data 'upstream_url=http://devapi.t1t.be/API-Engine-auth/v1/gtw/tokens/' \
+  --data 'strip_request_path=true'
+
+#enable CORS
+curl -X POST http://devapim.t1t.be:8001/apis/gatewaykeys/plugins \
+    --data "name=cors" \
+    --data "config.origin=*" \
+    --data "config.methods=GET,HEAD,PUT,PATCH,POST,DELETE" \
+    --data "config.headers=Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, apikey, Authorization" \
+    --data "config.credentials=true" \
+    --data "config.max_age=3600"
+
+#Kong gateway with central O

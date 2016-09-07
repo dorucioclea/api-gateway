@@ -4,41 +4,53 @@
   "type": "object",
   "javaInterfaces" : ["com.t1t.digipolis.kong.model.KongConfigValue"],
   "properties": {
-    "max_sending_queue_size": {
-      "id": "max_sending_queue_size",
-      "type": "integer"
+    "environment": {
+      "type": "string",
+      "required": true
     },
-    "log_body": {
-      "id": "log_body",
-      "type": "boolean"
+    "retry_count": {
+      "type": "integer",
+      "required": false
     },
-    "batch_size": {
-      "id": "batch_size",
-      "type": "integer"
+    "queue_size": {
+      "type": "integer",
+      "required": false
+    },
+    "flush_timeout": {
+      "type": "integer",
+      "required": false
+    },
+    "log_bodies": {
+      "type": "boolean",
+      "required": false
     },
     "service_token": {
-      "id": "service_token",
-      "type": "string"
+      "type": "string",
+      "required": true
     },
-    "environment": {
-      "id": "environment",
-      "type": "string"
-    },
-    "delay": {
-      "id": "delay",
-      "type": "integer"
+    "connection_timeout": {
+      "type": "integer",
+      "required": false
     },
     "host": {
-      "id": "host",
-      "type": "string"
+      "type": "string",
+      "default": "collector.galileo.mashape.com",
+      "required": true
     },
     "port": {
-      "id": "port",
-      "type": "integer"
+      "type": "integer",
+      "default": 443,
+      "required": true
     },
-    "path": {
-      "id": "path",
-      "type": "string"
+    "https": {
+      "type": "boolean",
+      "default": true,
+      "required": false
+    },
+    "https_verify": {
+      "type": "boolean",
+      "default": false,
+      "required": false
     }
   }
 }
