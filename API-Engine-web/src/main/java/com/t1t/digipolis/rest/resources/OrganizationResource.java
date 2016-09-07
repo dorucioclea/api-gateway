@@ -2200,6 +2200,7 @@ public class OrganizationResource implements IOrganizationResource {
     })
     @POST
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/requests/cancel")
+    @Consumes(MediaType.APPLICATION_JSON)
     public void cancelContractRequest(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version, ContractCancellationBean request) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
@@ -2222,6 +2223,7 @@ public class OrganizationResource implements IOrganizationResource {
     })
     @POST
     @Path("/{organizationId}/membership-requests/cancel")
+    @Consumes(MediaType.APPLICATION_JSON)
     public void cancelMembershipRequest(@PathParam("organizationId") String organizationId) throws InvalidEventException, EventNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(securityContext.getCurrentUser()));

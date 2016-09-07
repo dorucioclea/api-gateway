@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
+import com.t1t.digipolis.apim.beans.events.EventType;
+import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
@@ -80,6 +82,7 @@ import org.xml.sax.SAXException;
 
 import javax.crypto.SecretKey;
 import javax.ejb.*;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -128,7 +131,7 @@ public class UserFacade implements Serializable {
     @Inject
     private AppConfig config;
     @Inject
-    private MailService mailService;
+    private Event<NewEventBean> event;
 
     public UserBean get(String userId) {
         try {
@@ -213,18 +216,7 @@ public class UserFacade implements Serializable {
         if(user==null)throw new UserNotFoundException("User unknow in the application: " + userId);
         user.setAdmin(false);
         idmStorage.updateUser(user);
-        //send email
-        try{
-            final UserBean userBean = get(userId);
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
-                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
-                updateAdminMailBean.setTo(userBean.getEmail());
-                updateAdminMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
-                mailService.sendUpdateAdmin(updateAdminMailBean);
-            }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
-        }
+        fireEvent(securityContext.getCurrentUser(), userId, EventType.ADMIN_REVOKED, null);
     }
 
     public void addAdminPriviledges(String userId)throws StorageException{
@@ -246,18 +238,7 @@ public class UserFacade implements Serializable {
             user.setAdmin(true);
             idmStorage.updateUser(user);
         }
-        //send email
-        try{
-            final UserBean userBean = get(userId);
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
-                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
-                updateAdminMailBean.setTo(userBean.getEmail());
-                updateAdminMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
-                mailService.sendUpdateAdmin(updateAdminMailBean);
-            }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
-        }
+        fireEvent(securityContext.getCurrentUser(), userId, EventType.ADMIN_GRANTED, null);
     }
 
     public List<OrganizationSummaryBean> getOrganizations(String userId) {
@@ -1068,4 +1049,19 @@ public class UserFacade implements Serializable {
         return identityAttributes;
     }
 
+    /**
+     * Fires a new event with the following parameters
+     * @param origin
+     * @param destination
+     * @param type
+     * @param body
+     */
+    private void fireEvent(String origin, String destination, EventType type, String body) {
+        NewEventBean neb = new NewEventBean()
+                .withOriginId(origin)
+                .withDestinationId(destination)
+                .withType(type)
+                .withBody(body);
+        event.fire(neb);
+    }
 }

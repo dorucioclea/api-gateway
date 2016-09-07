@@ -33,6 +33,7 @@ public class EventAggregateBean implements Serializable {
     private String planVersion;
     private EventType type;
     private String body;
+    private String role;
 
     public Long getId() {
         return id;
@@ -226,6 +227,14 @@ public class EventAggregateBean implements Serializable {
         this.serviceOrgFriendlyName = serviceOrgFriendlyName;
     }
 
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -248,6 +257,7 @@ public class EventAggregateBean implements Serializable {
                 "id=" + id +
                 ", userId='" + userId + '\'' +
                 ", fullName='" + fullName + '\'' +
+                ", organizationId='" + organizationId + '\'' +
                 ", organizationName='" + organizationName + '\'' +
                 ", friendlyName='" + friendlyName + '\'' +
                 ", applicationOrgId='" + applicationOrgId + '\'' +
@@ -268,6 +278,7 @@ public class EventAggregateBean implements Serializable {
                 ", planVersion='" + planVersion + '\'' +
                 ", type=" + type +
                 ", body='" + body + '\'' +
+                ", role='" + role + '\'' +
                 '}';
     }
 }

@@ -4,12 +4,8 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.events.*;
-import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
-import com.t1t.digipolis.apim.beans.idm.Role;
-import com.t1t.digipolis.apim.beans.idm.UserBean;
-import com.t1t.digipolis.apim.beans.mail.ContractMailBean;
-import com.t1t.digipolis.apim.beans.mail.MembershipRequestMailBean;
+import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.mail.*;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.services.ServiceBean;
@@ -19,7 +15,6 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.MailServiceException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -57,6 +52,8 @@ public class EventFacade {
     private OrganizationFacade orgFacade;
     @Inject
     private MailService mailService;
+    @Inject
+    private RoleFacade roleFacade;
 
     public EventBean get(Long id) {
         try {
@@ -101,6 +98,7 @@ public class EventFacade {
         switch (getEventType(type)) {
             case MEMBERSHIP_GRANTED:
             case MEMBERSHIP_REJECTED:
+            case MEMBERSHIP_REVOKED_ROLE:
                 return convertToMembershipRequests(events);
             default:
                 return null;
@@ -111,6 +109,8 @@ public class EventFacade {
         List<EventBean> events = getOutgoingEventsByType(securityContext.getCurrentUser(), type);
         switch (getEventType(type)) {
             case CONTRACT_PENDING:
+                return convertToContractRequests(events);
+            case MEMBERSHIP_PENDING:
                 return convertToMembershipRequests(events);
             default:
                 return null;
@@ -129,10 +129,12 @@ public class EventFacade {
         List<EventBean> events = filterIncomingOrganizationResults(getIncomingEventsByType(validateOrgId(organizationId), type), organizationId);
         switch (getEventType(type)) {
             case MEMBERSHIP_PENDING:
+            case MEMBERSHIP_REQUEST_CANCELLED:
                 return convertToMembershipRequests(events);
             case CONTRACT_ACCEPTED:
             case CONTRACT_PENDING:
             case CONTRACT_REJECTED:
+            case CONTRACT_REQUEST_CANCELLED:
                 return convertToContractRequests(events);
             default:
                 return null;
@@ -169,6 +171,8 @@ public class EventFacade {
         switch (event.getType()) {
             case CONTRACT_ACCEPTED:
             case CONTRACT_REJECTED:
+            case CONTRACT_REQUEST_CANCELLED:
+            case MEMBERSHIP_REQUEST_CANCELLED:
                 String destinationOrg = event.getDestinationId().split("\\.", 2)[0];
                 if (!orgId.equals(destinationOrg)) {
                     throw ExceptionFactory.notAuthorizedException();
@@ -268,19 +272,6 @@ public class EventFacade {
         }
     }
 
-    public void cancelRequest(EventBean event) throws StorageException {
-        event = get(event.getOriginId(), event.getDestinationId(), event.getType());
-        switch (event.getType()) {
-            case CONTRACT_PENDING:
-            case MEMBERSHIP_PENDING:
-                sendMail(event);
-                deleteEventInternal(event);
-                break;
-            default:
-                throw ExceptionFactory.invalidEventException("Not a pending request");
-        }
-    }
-
     /*****************/
     /* Evenlisteners */
     /*****************/
@@ -295,17 +286,30 @@ public class EventFacade {
         try {
 
             //Get the original body so we know what plan the contract was accepted under
-            if (event.getType() == CONTRACT_ACCEPTED || event.getType() == CONTRACT_REJECTED) {
-                event.setBody(query.getEventByOriginDestinationAndType(bean.getDestinationId(), bean.getOriginId(), EventType.CONTRACT_PENDING).getBody());
+            String origin = null;
+            String dest = null;
+            switch (event.getType()) {
+                case CONTRACT_ACCEPTED:
+                case CONTRACT_REJECTED:
+                    origin = bean.getDestinationId();
+                    dest = bean.getOriginId();
+                    break;
+                case CONTRACT_REQUEST_CANCELLED:
+                    origin = bean.getOriginId();
+                    dest = bean.getDestinationId();
+                    break;
+                default:
+                    //do nothing
+                    break;
+            }
+            if (origin != null && dest != null) {
+                event.setBody(query.getEventByOriginDestinationAndType(origin, dest, CONTRACT_PENDING).getBody());
             }
 
             eventCleanup(event);
 
-            //Do not create a new event upon cancelling a pending request
-            if (event.getType() != MEMBERSHIP_CANCELLED && event.getType() != CONTRACT_CANCELLED) {
-                verifyAndCreate(event);
-                _LOG.debug("Event created:{}", event);
-            }
+            verifyAndCreate(event);
+            _LOG.debug("Event created:{}", event);
             sendMail(event);
         }
         catch (StorageException ex) {
@@ -347,8 +351,7 @@ public class EventFacade {
                     destination = event.getOriginId();
                     type = EventType.MEMBERSHIP_PENDING;
                     break;
-
-                case MEMBERSHIP_CANCELLED:
+                case MEMBERSHIP_REQUEST_CANCELLED:
                     origin = event.getOriginId();
                     destination = event.getDestinationId();
                     type = EventType.MEMBERSHIP_PENDING;
@@ -364,7 +367,7 @@ public class EventFacade {
                     destination = event.getOriginId();
                     type = EventType.CONTRACT_PENDING;
                     break;
-                case CONTRACT_CANCELLED:
+                case CONTRACT_REQUEST_CANCELLED:
                     origin = event.getOriginId();
                     destination = event.getDestinationId();
                     type = EventType.CONTRACT_PENDING;
@@ -575,6 +578,12 @@ public class EventFacade {
             switch (event.getType()) {
                 case MEMBERSHIP_GRANTED:
                 case MEMBERSHIP_REJECTED:
+                case MEMBERSHIP_REVOKED:
+                case MEMBERSHIP_REVOKED_ROLE:
+                case MEMBERSHIP_TRANSFER:
+                case MEMBERSHIP_UPDATED:
+                case ADMIN_GRANTED:
+                case ADMIN_REVOKED:
                     UserBean user = userFacade.get(event.getDestinationId());
                     eab.setUserId(event.getDestinationId());
                     eab.setFullName(user.getFullName());
@@ -582,7 +591,7 @@ public class EventFacade {
                     eab.setOrganizationName(org.getName());
                     eab.setFriendlyName(org.getFriendlyName());
                     eab.setOrganizationId(org.getId());
-
+                    eab.setRole(event.getBody() == null ? null : event.getBody());
                     eabs.add(eab);
                     break;
                 case CONTRACT_ACCEPTED:
@@ -607,6 +616,7 @@ public class EventFacade {
                     }
                     break;
                 case CONTRACT_PENDING:
+                case CONTRACT_REQUEST_CANCELLED:
                     app = event.getOriginId().split("\\.");
                     svc = event.getDestinationId().split("\\.");
 
@@ -632,6 +642,7 @@ public class EventFacade {
                     }
                     break;
                 case MEMBERSHIP_PENDING:
+                case MEMBERSHIP_REQUEST_CANCELLED:
                     user = userFacade.get(event.getOriginId());
                     eab.setUserId(event.getOriginId());
                     eab.setFullName(user.getFullName());
@@ -641,6 +652,8 @@ public class EventFacade {
                     eab.setOrganizationId(org.getId());
                     eabs.add(eab);
                     break;
+                case ANNOUNCEMENT_NEW:
+                    //TODO - events for new announcements
             }
         });
         return eabs;
@@ -674,137 +687,195 @@ public class EventFacade {
     }
 
     private void sendMail(EventBean event) {
-        switch (event.getType()) {
-            case CONTRACT_PENDING:
-            case CONTRACT_CANCELLED:
-            case CONTRACT_ACCEPTED:
-            case CONTRACT_REJECTED:
-                sendMailToOwners(getOrgIdFromUniqueId(event.getDestinationId()), event);
-                break;
-            case MEMBERSHIP_PENDING:
-            case MEMBERSHIP_CANCELLED:
-                sendMailToOwners(event.getDestinationId(), event);
-                break;
-            case MEMBERSHIP_GRANTED:
-            case MEMBERSHIP_REJECTED:
-                sendMailToUsers(event.getDestinationId(), event);
-                break;
-            case ANNOUNCEMENT_NEW:
-                //TODO - send mail when a new announcement is created
-                break;
-            default:
-                //Do nothing
+        try {
+            switch (event.getType()) {
+                case CONTRACT_PENDING:
+                case CONTRACT_REQUEST_CANCELLED:
+                case CONTRACT_ACCEPTED:
+                case CONTRACT_REJECTED:
+                    sendMailToOwners(getOrgIdFromUniqueId(event.getDestinationId()), event);
+                    break;
+                case MEMBERSHIP_PENDING:
+                case MEMBERSHIP_REQUEST_CANCELLED:
+                    sendMailToOwners(event.getDestinationId(), event);
+                    break;
+                case MEMBERSHIP_GRANTED:
+                case MEMBERSHIP_REJECTED:
+                case MEMBERSHIP_REVOKED_ROLE:
+                case MEMBERSHIP_UPDATED:
+                case MEMBERSHIP_REVOKED:
+                case MEMBERSHIP_TRANSFER:
+                case ADMIN_GRANTED:
+                case ADMIN_REVOKED:
+                    sendMailToUser(event.getDestinationId(), event);
+                    break;
+                case ANNOUNCEMENT_NEW:
+                    //TODO - send mail when a new announcement is created
+                    break;
+                default:
+                    //Do nothing
+                    break;
+            }
         }
-
+        catch (Exception ex) {
+            _LOG.error("Error sending mail:{}", ex.getMessage());
+        }
     }
 
     private void sendMailToOwners(String destinationOrgId, EventBean event) {
         orgFacade.listMembers(destinationOrgId).forEach(member -> {
             member.getRoles().forEach(role -> {
                 if (role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())) {//only owners
-                    try {
-                        if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
-                            switch (event.getType()) {
-                                case MEMBERSHIP_PENDING:
-                                case MEMBERSHIP_CANCELLED:
-                                    OrganizationBean org = orgFacade.get(destinationOrgId);
-                                    MembershipRequestMailBean membershipRequestMailBean = new MembershipRequestMailBean();
-                                    membershipRequestMailBean.setTo(member.getEmail());
-                                    membershipRequestMailBean.setUserId(securityContext.getCurrentUser());
-                                    membershipRequestMailBean.setUserMail(securityContext.getEmail());
-                                    membershipRequestMailBean.setOrgName(org.getName());
-                                    membershipRequestMailBean.setOrgFriendlyName(org.getFriendlyName());
-                                    switch (event.getType()) {
-                                        case MEMBERSHIP_CANCELLED:
-                                            mailService.cancelMembershipRequest(membershipRequestMailBean);
-                                            break;
-                                        case MEMBERSHIP_PENDING:
-                                            mailService.sendRequestMembership(membershipRequestMailBean);
-                                            break;
-                                    }
-                                    break;
-                                case CONTRACT_PENDING:
-                                case CONTRACT_CANCELLED:
-                                case CONTRACT_REJECTED:
-                                case CONTRACT_ACCEPTED:
-                                    ContractMailBean contractMailBean = new ContractMailBean();
-                                    contractMailBean.setTo(member.getEmail());
-                                    contractMailBean.setUserId(securityContext.getCurrentUser());
-                                    contractMailBean.setUserMail(securityContext.getEmail());
+                    if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
+                        switch (event.getType()) {
+                            case MEMBERSHIP_PENDING:
+                            case MEMBERSHIP_REQUEST_CANCELLED:
+                                OrganizationBean org = orgFacade.get(destinationOrgId);
+                                MembershipRequestMailBean membershipRequestMailBean = new MembershipRequestMailBean();
+                                membershipRequestMailBean.setTo(member.getEmail());
+                                membershipRequestMailBean.setUserId(securityContext.getCurrentUser());
+                                membershipRequestMailBean.setUserMail(securityContext.getEmail());
+                                membershipRequestMailBean.setOrgName(org.getName());
+                                membershipRequestMailBean.setOrgFriendlyName(org.getFriendlyName());
+                                switch (event.getType()) {
+                                    case MEMBERSHIP_REQUEST_CANCELLED:
+                                        mailService.cancelMembershipRequest(membershipRequestMailBean);
+                                        break;
+                                    case MEMBERSHIP_PENDING:
+                                        mailService.sendRequestMembership(membershipRequestMailBean);
+                                        break;
+                                }
+                                break;
+                            case CONTRACT_PENDING:
+                            case CONTRACT_REQUEST_CANCELLED:
+                            case CONTRACT_REJECTED:
+                            case CONTRACT_ACCEPTED:
+                                ContractMailBean contractMailBean = new ContractMailBean();
+                                contractMailBean.setTo(member.getEmail());
+                                contractMailBean.setUserId(securityContext.getCurrentUser());
+                                contractMailBean.setUserMail(securityContext.getEmail());
 
-                                    ApplicationVersionBean avb = null;
-                                    ServiceVersionBean svb = null;
+                                ApplicationVersionBean avb = null;
+                                ServiceVersionBean svb = null;
 
-                                    switch (event.getType()) {
-                                        case CONTRACT_PENDING:
-                                        case CONTRACT_CANCELLED:
-                                            avb = orgFacade.getApplicationVersionByUniqueId(event.getOriginId());
-                                            svb = orgFacade.getServiceVersionByUniqueId(event.getDestinationId());
-                                            break;
-                                        case CONTRACT_ACCEPTED:
-                                        case CONTRACT_REJECTED:
-                                            avb = orgFacade.getApplicationVersionByUniqueId(event.getDestinationId());
-                                            svb = orgFacade.getServiceVersionByUniqueId(event.getOriginId());
-                                            break;
-                                    }
-                                    contractMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
-                                    contractMailBean.setAppName(avb.getApplication().getName());
-                                    contractMailBean.setAppVersion(avb.getVersion());
-                                    contractMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
-                                    contractMailBean.setServiceName(svb.getService().getName());
-                                    contractMailBean.setServiceVersion(svb.getVersion());
-                                    Gson gson = new Gson();
-                                    PlanVersionSummaryBean pvsb = gson.fromJson(event.getBody(), PlanVersionSummaryBean.class);
-                                    _LOG.debug("PVSB:{}", pvsb);
-                                    contractMailBean.setPlanName(new Gson().fromJson(event.getBody(), PlanVersionSummaryBean.class).getName());
-                                    switch (event.getType()) {
-                                        case CONTRACT_PENDING:
-                                            mailService.sendContractRequest(contractMailBean);
-                                            break;
-                                        case CONTRACT_CANCELLED:
-                                            mailService.cancelContractRequest(contractMailBean);
-                                            break;
-                                        case CONTRACT_REJECTED:
-                                            mailService.rejectContractRequest(contractMailBean);
-                                            break;
-                                        case CONTRACT_ACCEPTED:
-                                            mailService.approveContractRequest(contractMailBean);
-                                            break;
-                                    }
-                                    break;
-                                default:
-                                    //Do nothing
-                            }
+                                switch (event.getType()) {
+                                    case CONTRACT_PENDING:
+                                    case CONTRACT_REQUEST_CANCELLED:
+                                        avb = orgFacade.getApplicationVersionByUniqueId(event.getOriginId());
+                                        svb = orgFacade.getServiceVersionByUniqueId(event.getDestinationId());
+                                        break;
+                                    case CONTRACT_ACCEPTED:
+                                    case CONTRACT_REJECTED:
+                                        avb = orgFacade.getApplicationVersionByUniqueId(event.getDestinationId());
+                                        svb = orgFacade.getServiceVersionByUniqueId(event.getOriginId());
+                                        break;
+                                }
+                                contractMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
+                                contractMailBean.setAppName(avb.getApplication().getName());
+                                contractMailBean.setAppVersion(avb.getVersion());
+                                contractMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
+                                contractMailBean.setServiceName(svb.getService().getName());
+                                contractMailBean.setServiceVersion(svb.getVersion());
+                                Gson gson = new Gson();
+                                PlanVersionSummaryBean pvsb = gson.fromJson(event.getBody(), PlanVersionSummaryBean.class);
+                                contractMailBean.setPlanName(new Gson().fromJson(event.getBody(), PlanVersionSummaryBean.class).getName());
+                                switch (event.getType()) {
+                                    case CONTRACT_PENDING:
+                                        mailService.sendContractRequest(contractMailBean);
+                                        break;
+                                    case CONTRACT_REQUEST_CANCELLED:
+                                        mailService.cancelContractRequest(contractMailBean);
+                                        break;
+                                    case CONTRACT_REJECTED:
+                                        mailService.rejectContractRequest(contractMailBean);
+                                        break;
+                                    case CONTRACT_ACCEPTED:
+                                        mailService.approveContractRequest(contractMailBean);
+                                        break;
+                                }
+                                break;
+                            default:
+                                //Do nothing
+                                break;
                         }
-
-                    } catch (MailServiceException e) {
-                        _LOG.error("Error sending mail:{}", e.getMessage());
                     }
                 }
             });
         });
     }
 
-    private void sendMailToUsers(String userId, EventBean event) {
-        OrganizationBean org = orgFacade.get(event.getOriginId());
-        MembershipRequestMailBean bean =  new MembershipRequestMailBean();
-        bean.setTo(userFacade.get(userId).getEmail());
-        bean.setOrgFriendlyName(org.getFriendlyName());
-        bean.setOrgName(org.getName());
-        try {
+    private void sendMailToUser(String userId, EventBean event) {
+        OrganizationBean org = null;
+        switch (event.getType()) {
+            case ADMIN_GRANTED:
+            case ADMIN_REVOKED:
+                break;
+            default:
+                org = orgFacade.get(event.getOriginId());
+        }
+        UserBean user = userFacade.get(userId);
+        if (user != null && !StringUtils.isEmpty(user.getEmail())) {
             switch (event.getType()) {
                 case MEMBERSHIP_GRANTED:
-                    mailService.approveRequestMembership(bean);
-                    break;
                 case MEMBERSHIP_REJECTED:
-                    mailService.rejectRequestMembership(bean);
+                    MembershipRequestMailBean bean =  new MembershipRequestMailBean();
+                    bean.setTo(user.getEmail());
+                    bean.setOrgFriendlyName(org.getFriendlyName());
+                    bean.setOrgName(org.getName());
+                    switch (event.getType()) {
+                        case MEMBERSHIP_GRANTED:
+                            mailService.approveRequestMembership(bean);
+                            break;
+                        case MEMBERSHIP_REJECTED:
+                            mailService.rejectRequestMembership(bean);
+                            break;
+                    }
+                    break;
+                case MEMBERSHIP_REVOKED:
+                case MEMBERSHIP_REVOKED_ROLE:
+                case MEMBERSHIP_UPDATED:
+                case MEMBERSHIP_TRANSFER:
+                    String roleName = null;
+                    if (!StringUtils.isEmpty(event.getBody())) {
+                        roleName = roleFacade.get(event.getBody()).getName();
+                    }
+                    UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
+                    updateMemberMailBean.setTo(user.getEmail());
+                    updateMemberMailBean.setOrgName(org.getName());
+                    updateMemberMailBean.setOrgFriendlyName(org.getFriendlyName());
+                    updateMemberMailBean.setRole(roleName);
+                    switch (event.getType()) {
+                        case MEMBERSHIP_REVOKED_ROLE:
+                        case MEMBERSHIP_REVOKED:
+                            updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
+                            break;
+                        case MEMBERSHIP_UPDATED:
+                            updateMemberMailBean.setMembershipAction(MembershipAction.UPDATE_ROLE);
+                            break;
+                        case MEMBERSHIP_TRANSFER:
+                            updateMemberMailBean.setMembershipAction(MembershipAction.TRANSFER);
+                            break;
+                    }
+                    mailService.sendUpdateMember(updateMemberMailBean);
+                    break;
+                case ADMIN_GRANTED:
+                case ADMIN_REVOKED:
+                    UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
+                    updateAdminMailBean.setTo(user.getEmail());
+                    switch (event.getType()) {
+                        case ADMIN_GRANTED:
+                            updateAdminMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
+                            break;
+                        case ADMIN_REVOKED:
+                            updateAdminMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
+                            break;
+                    }
+                    mailService.sendUpdateAdmin(updateAdminMailBean);
                     break;
                 default:
                     //Do nothing
+                    break;
             }
-        }
-        catch (Exception ex) {
-            _LOG.error("Error sending mail:{}", ex.getMessage());
         }
     }
 }

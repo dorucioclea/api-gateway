@@ -23,9 +23,7 @@ import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
-import com.t1t.digipolis.apim.beans.mail.ContractMailBean;
 import com.t1t.digipolis.apim.beans.mail.MembershipAction;
-import com.t1t.digipolis.apim.beans.mail.MembershipRequestMailBean;
 import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
@@ -141,8 +139,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private RoleFacade roleFacade;
     @Inject
     private AppConfig config;
-    @Inject
-    private MailService mailService;
     @Inject
     private Event<NewEventBean> event;
     @Inject
@@ -2667,22 +2663,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new SystemErrorException(e);
             }
         }
-        //send email
-        try {
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(userId);
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                updateMemberMailBean.setRole("");
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
+        fireEvent(organizationId, userId, EventType.MEMBERSHIP_REVOKED_ROLE, roleId);
     }
 
     public void updateMembership(String organizationId, String userId, GrantRoleBean bean) {
@@ -2707,23 +2688,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
-        //send email
-        try {
-            final RoleBean roleBean = roleFacade.get(bean.getRoleId());
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(userId);
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.UPDATE_ROLE);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                updateMemberMailBean.setRole(roleBean.getName());
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
+        fireEvent(organizationId, userId, EventType.MEMBERSHIP_UPDATED, bean.getRoleId());
     }
 
     public void revokeAll(String organizationId, String userId) {
@@ -2744,22 +2709,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
-        //send email
-        try {
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(userId);
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                updateMemberMailBean.setRole("");
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
+        fireEvent(organizationId, userId, EventType.MEMBERSHIP_REVOKED, null);
     }
 
     public void transferOrgOwnership(String organizationId, TransferOwnershipBean bean) {
@@ -2793,21 +2743,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
-        //send email
-        try {
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(bean.getNewOwnerId());
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.TRANSFER);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
+        fireEvent(organizationId, newOwnerId, EventType.MEMBERSHIP_TRANSFER, null);
     }
 
     public List<MemberBean> listMembers(String organizationId) {
@@ -4151,13 +4087,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public void cancelMembershipRequest(String orgId) {
-        fireEvent(securityContext.getCurrentUser(), get(orgId).getId(), EventType.MEMBERSHIP_CANCELLED, null);
+        fireEvent(securityContext.getCurrentUser(), get(orgId).getId(), EventType.MEMBERSHIP_REQUEST_CANCELLED, null);
     }
 
     public void cancelContractRequest(String svcOrgId, String svcId, String svcVersion, String appOrgId, String appId, String appVersion) {
         fireEvent(ConsumerConventionUtil.createAppUniqueId(getAppVersion(appOrgId, appId, appVersion)),
                 ServiceConventionUtil.generateServiceUniqueName(getServiceVersion(svcOrgId, svcId, svcVersion)),
-                EventType.CONTRACT_CANCELLED,
+                EventType.CONTRACT_REQUEST_CANCELLED,
                 null);
     }
 
