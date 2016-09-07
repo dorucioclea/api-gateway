@@ -1,3 +1,4 @@
 # Metrics Service Providers
 # MongoDB
 com.t1t.digipolis.apim.core.metrics.MongoMetricsSP
+com.t1t.digipolis.apim.core.metrics.DataDogMetricsSP

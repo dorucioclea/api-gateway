@@ -51,7 +51,7 @@ public class MongoMetricsSP implements MetricsSPI, Serializable {
         }else throw new RuntimeException("API Engine basic property file not found.");
         //read specific application config, depends on the maven profile that has been set
         Config config = ConfigFactory.load(properties.getProperty(IConfig.PROP_FILE_CONFIG_FILE));
-        if(config ==null) throw new RuntimeException("API Engine log not found");
+        if(config ==null) throw new RuntimeException("API Engine config not found");
         String metricsURI = "";
         if (config != null && StringUtils.isEmpty(metricsURI)) {
             metricsURI = new StringBuffer("")
@@ -62,8 +62,8 @@ public class MongoMetricsSP implements MetricsSPI, Serializable {
                     .append("/").toString();
             log.info("Metrics processor instantiated for URI: {}", metricsURI);
             //create metrics client instance
-            RestMetricsBuilder restMetricsBuilder = new RestMetricsBuilder();
-            httpClient = restMetricsBuilder.getService(metricsURI, MongoDBMetricsClient.class);
+            RestMongoMetricsBuilder restMongoMetricsBuilder = new RestMongoMetricsBuilder();
+            httpClient = restMongoMetricsBuilder.getService(metricsURI, MongoDBMetricsClient.class);
         }else throw new RuntimeException("MongoMetricsAccessor - Metrics are not initialized");
     }
 
