@@ -855,4 +855,20 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public void deleteAllEventsForAnnouncement(Long announcementId) throws StorageException;
+
+    /**
+     * Retrieve all published service versions for a service
+     * @param service
+     * @return
+     * @throws StorageException
+     */
+    public List<ServiceVersionBean> getServiceVersionsByServiceAndStatus(ServiceBean service, ServiceStatus status) throws StorageException;
+
+    /**
+     * Retrieve a service by name
+     * @param name
+     * @return
+     * @throws StorageException
+     */
+    public ServiceBean getServiceByName(String name) throws StorageException;
 }

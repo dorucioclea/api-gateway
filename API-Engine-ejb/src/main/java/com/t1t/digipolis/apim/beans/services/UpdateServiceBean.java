@@ -14,6 +14,7 @@ public class UpdateServiceBean implements Serializable {
 
     private static final long serialVersionUID = 8811488441452291116L;
 
+    private String name;
     private String description;
     private String base64logo;
     private Set<String> categories;
@@ -54,10 +55,20 @@ public class UpdateServiceBean implements Serializable {
         this.base64logo = base64logo;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     @Override
     public String toString() {
         return "UpdateServiceBean{" +
-                "description='" + description + '\'' +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", base64logo='" + base64logo + '\'' +
                 ", categories=" + categories +
                 '}';
     }

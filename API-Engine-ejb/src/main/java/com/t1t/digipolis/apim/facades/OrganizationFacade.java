@@ -2032,6 +2032,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 auditData.addChange("logo", serviceForUpdate.getBase64logo(), bean.getBase64logo()); //$NON-NLS-1$
                 serviceForUpdate.setBase64logo(bean.getBase64logo());
             }
+            if (AuditUtils.valueChanged(serviceForUpdate.getName(), bean.getName())) {
+                auditData.addChange("name", serviceForUpdate.getName(), bean.getName());
+                if (query.getServiceByName(bean.getName()) != null) {
+                    throw ExceptionFactory.serviceAlreadyExistsException(bean.getName());
+                }
+                serviceForUpdate.setName(bean.getName());
+            }
             storage.updateService(serviceForUpdate);
             storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));
         } catch (AbstractRestException e) {

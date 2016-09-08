@@ -2590,6 +2590,30 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .executeUpdate();
     }
 
+    @Override
+    public List<ServiceVersionBean> getServiceVersionsByServiceAndStatus(ServiceBean service, ServiceStatus status) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.service = :svc AND s.status = :status";
+        return em.createQuery(jpql)
+                .setParameter("svc", service)
+                .setParameter("status", status)
+                .getResultList();
+    }
+
+    @Override
+    public ServiceBean getServiceByName(String name) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceBean s WHERE LOWER(s.name) LIKE :name";
+        try {
+            return (ServiceBean) em.createQuery(jpql)
+                    .setParameter("name", name.toLowerCase())
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
+    }
+
     private boolean doNotFilterServices() throws StorageException {
         return getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
     }
