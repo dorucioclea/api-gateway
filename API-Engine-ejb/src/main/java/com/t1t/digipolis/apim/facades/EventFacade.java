@@ -400,7 +400,7 @@ public class EventFacade {
 
     private void handleNewAnnouncement(AnnouncementBean announcement) {
         try {
-            ServiceBean service = storage.getService(announcement.getOrganizationId(), announcement.getServiceId());
+            ServiceBean service = orgFacade.getService(announcement.getOrganizationId(), announcement.getServiceId());
             Set<OrganizationBean> contractHolders = query.getServiceContractHolders(service);
             Set<String> members = new HashSet<>();
             //Get members for each organization and add them to the set.
