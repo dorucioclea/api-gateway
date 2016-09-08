@@ -8,6 +8,12 @@ import com.google.gson.reflect.TypeToken;
 import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
 import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.kong.model.*;
+import com.t1t.digipolis.kong.model.DataDogMetricsQuery;
+import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
+import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
+import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
+import com.t1t.digipolis.kong.model.MetricsUsage;
+import com.t1t.digipolis.kong.model.MetricsUsageList;
 import org.joda.time.DateTime;
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -58,24 +64,8 @@ public class DataDogMetricsSP implements MetricsSPI, Serializable {
 
     @Override
     public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        JsonObject usage = httpClient.getUsage();
-        JsonArray series = usage.getAsJsonArray("series");
-        List<Arrays> yourList;
-        if(series.size()>0){
-            JsonObject series0 = series.get(0).getAsJsonObject();
-            JsonArray pointlist = series0.getAsJsonArray("pointlist");
-            Type listType = new TypeToken<List<Object>>() {}.getType();
-            yourList = new Gson().fromJson(series0.getAsJsonArray("pointlist"), listType);
-
-            //compose response
-            MetricsUsageList metricsUsageList = new MetricsUsageList();
-            //metricsUsageList.setData();
-        }
-
-        if (usage == null) {
-            return null;
-        }
-
+        DataDogMetricsQuery query = httpClient.queryMeterics("***REMOVED***","***REMOVED***","1473160678","1473247056","avg:kong.bza_citygis_v1.request.count{host:rasu094.rte.antwerpen.local}.as_count()");
+        System.out.println(query);
         //get value list
 
         //get interval

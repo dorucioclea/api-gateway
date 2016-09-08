@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string"
+    },
+    "res_type": {
+      "type": "string"
+    },
+    "series": {
+      "type": "array",
+      "items": {
+        "$ref":"DataDogMetricsSerie.json"
+      }
+    },
+    "from_date": {
+      "type": "number"
+    },
+    "group_by": {
+      "type": "array",
+      "items": {
+        "type":"Object"
+      }
+    },
+    "to_date": {
+      "type": "number"
+    },
+    "query": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    }
+  }
+}
