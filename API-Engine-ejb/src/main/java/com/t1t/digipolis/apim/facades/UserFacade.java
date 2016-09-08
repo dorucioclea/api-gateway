@@ -482,6 +482,9 @@ public class UserFacade implements Serializable {
             sIndex = cacheUtil.getSessionIndex(userId);
             sessionIndex.setSessionIndex(sIndex.getSessionIndex());
         }
+        else {
+            throw ExceptionFactory.cachingException("User session Cache with id " + userId + " does not exist!");
+        }
         NameID nameId = (new NameIDBuilder()).buildObject();
         nameId.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
         nameId.setValue(sIndex.getSubjectId());
@@ -542,6 +545,9 @@ public class UserFacade implements Serializable {
         utilPrintCache();
         String urlEncodedRelaystate = URLEncoder.encode(relayState, "UTF-8");
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(urlEncodedRelaystate.trim());
+        if (webClientCacheBean == null) {
+            throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
+        }
         try {
             assertion = processSSOResponse(samlResponse);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
@@ -918,11 +924,8 @@ public class UserFacade implements Serializable {
      * @return
      */
     private String getSecretFromTokenCache(String key, String userName) {
-        String secret;
-        try {
-            secret = cacheUtil.getToken(key);
-        }
-        catch (Exception e) {
+        String secret = cacheUtil.getToken(key);
+        if (secret == null) {
             //retrieve from Kong
             String gatewayId = null;
             try {
@@ -932,12 +935,12 @@ public class UserFacade implements Serializable {
                 if (data != null && data.size() > 0) {
                     secret = data.get(0).getSecret();
                 } else throw new StorageException("Refresh JWT - somehow the user is not known");
-            } catch (StorageException ex) {
+            } catch (Exception ex) {
                 throw new GatewayException("Error connection to gateway:{}" + ex.getMessage());
             }
             //We've done all we could to retrieve the secret
             if (secret == null) {
-                throw ExceptionFactory.cachingException(e.getMessage());
+                throw ExceptionFactory.cachingException("Token Cache with id " + key + " does not exist!");
             }
         }
         return secret;
