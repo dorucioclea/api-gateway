@@ -1065,7 +1065,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     private PolicyBean scrubPolicy(PolicyBean policy) throws StorageException {
         //TODO - scrub the sensitive information out of policy configurations
-        /*boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
+        boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
 
         if (doFilter) {
             switch (Policies.valueOf(policy.getDefinition().getId().toUpperCase())) {
@@ -1075,10 +1075,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     oauthConfig.setProvisionKey(null);
                     policy.setConfiguration(gson.toJson(oauthConfig));
                     break;
+                case REQUESTTRANSFORMER:
+                case RESPONSETRANSFORMER:
+                    policy.setConfiguration(null);
                 default:
                     break;
             }
-        }*/
+        }
         return policy;
     }
 
