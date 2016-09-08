@@ -609,16 +609,52 @@ public interface IStorageQuery {
      */
     public Integer getEventCountForOrg(String orgId) throws StorageException;
 
+    /**
+     * Get all incoming non-action events
+     * @param destination
+     * @return
+     * @throws StorageException
+     */
     public List<EventBean> getAllIncomingNonActionEvents(String destination) throws StorageException;
 
+    /**
+     * Get all incoming action events
+     * @param destination
+     * @return
+     * @throws StorageException
+     */
     public List<EventBean> getAllIncomingActionEvents(String destination) throws StorageException;
 
+    /**
+     * Delete all events for an entity
+     * @param entityId
+     * @throws StorageException
+     */
     public void deleteAllEventsForEntity(String entityId) throws StorageException;
 
+    /**
+     * Find latest service versions by status
+     * @param status
+     * @return
+     * @throws StorageException
+     */
     public List<ServiceVersionBean> findLatestServiceVersionByStatus(ServiceStatus status) throws StorageException;
 
+    /**
+     * Find latest service versions by status and servicename
+     * @param serviceName
+     * @param status
+     * @return
+     * @throws StorageException
+     */
     public List<ServiceVersionBean> findLatestServiceVersionByStatusAndServiceName(String serviceName, ServiceStatus status) throws StorageException;
 
+    /**
+     * Find latest service versions by category
+     * @param categories
+     * @return
+     * @throws StorageException
+     */
     public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException;
 
     /**
@@ -812,4 +848,11 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<PolicyBean> getEntityPoliciesByDefinitionId(String organizationId, String entityId, String version, PolicyType type, Policies definitionId) throws StorageException;
+
+    /**
+     * Delete all events related to an announcement
+     * @param announcementId
+     * @throws StorageException
+     */
+    public void deleteAllEventsForAnnouncement(Long announcementId) throws StorageException;
 }
