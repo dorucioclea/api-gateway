@@ -23,8 +23,6 @@ import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
-import com.t1t.digipolis.apim.beans.mail.MembershipAction;
-import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -58,7 +56,6 @@ import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
-import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -2743,7 +2740,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
-        fireEvent(organizationId, newOwnerId, EventType.MEMBERSHIP_TRANSFER, null);
+        fireEvent(organizationId, newOwnerId, EventType.MEMBERSHIP_TRANSFER, currentOwnerId);
     }
 
     public List<MemberBean> listMembers(String organizationId) {
@@ -3496,7 +3493,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ann.setServiceId(bean.getId());
             storage.createServiceAnnouncement(ann);
             //Fire off new event in order to notify those that need to be notified
-            //announcement.fire(ann);
+            announcement.fire(ann);
             return ann;
         } catch (AbstractRestException e) {
             throw e;
@@ -3514,8 +3511,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             AnnouncementBean ann = storage.getServiceAnnouncement(id);
             if (ann != null) {
-                if (ann.getOrganizationId().equals(organizationId) && ann.getServiceId().equals(serviceId))
+                if (ann.getOrganizationId().equals(organizationId) && ann.getServiceId().equals(serviceId)) {
                     storage.deleteServiceAnnouncement(ann);
+                }
+                //Delete new announcement notifications/events
+                query.deleteAllEventsForAnnouncement(id);
             }
         } catch (StorageException e) {
             throw new SystemErrorException(e);

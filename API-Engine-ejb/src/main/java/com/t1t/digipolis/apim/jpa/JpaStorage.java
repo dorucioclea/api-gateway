@@ -2580,6 +2580,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .getResultList();
     }
 
+    @Override
+    public void deleteAllEventsForAnnouncement(Long announcementId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "DELETE FROM EventBean e WHERE e.type = :type AND e.body = :annId";
+        em.createQuery(jpql)
+                .setParameter("type", EventType.ANNOUNCEMENT_NEW)
+                .setParameter("annId", announcementId.toString())
+                .executeUpdate();
+    }
+
     private boolean doNotFilterServices() throws StorageException {
         return getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
     }

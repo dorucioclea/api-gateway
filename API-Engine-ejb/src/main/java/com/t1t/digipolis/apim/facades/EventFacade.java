@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.t1t.digipolis.apim.beans.events.EventType.*;
+import static javafx.scene.input.KeyCode.Z;
 
 /**
  * @author Guillaume Vandecasteele
@@ -416,7 +417,7 @@ public class EventFacade {
                         .append(service.getId())
                         .toString());
                 event.setDestinationId(member);
-                event.setBody(announcement.getDescription());
+                event.setBody(announcement.getId().toString());
                 event.setCreatedOn(new Date());
                 event.setType(ANNOUNCEMENT_NEW);
                 //Check if there still is a previous announcement from that service to that user, and delete it if necessary
@@ -587,11 +588,31 @@ public class EventFacade {
                     UserBean user = userFacade.get(event.getDestinationId());
                     eab.setUserId(event.getDestinationId());
                     eab.setFullName(user.getFullName());
-                    OrganizationBean org = getOrg(event.getOriginId());
-                    eab.setOrganizationName(org.getName());
-                    eab.setFriendlyName(org.getFriendlyName());
-                    eab.setOrganizationId(org.getId());
-                    eab.setRole(event.getBody() == null ? null : event.getBody());
+                    switch (event.getType()) {
+                        case ADMIN_GRANTED:
+                        case ADMIN_REVOKED:
+                            eab.setAdminUserId(event.getOriginId());
+                            break;
+                        case MEMBERSHIP_GRANTED:
+                        case MEMBERSHIP_REJECTED:
+                        case MEMBERSHIP_REVOKED:
+                        case MEMBERSHIP_REVOKED_ROLE:
+                        case MEMBERSHIP_TRANSFER:
+                        case MEMBERSHIP_UPDATED:
+                            OrganizationBean org = getOrg(event.getOriginId());
+                            eab.setOrganizationName(org.getName());
+                            eab.setFriendlyName(org.getFriendlyName());
+                            eab.setOrganizationId(org.getId());
+                            switch (event.getType()) {
+                                case MEMBERSHIP_TRANSFER:
+                                    eab.setCurrentOwnerId(event.getBody());
+                                    break;
+                                default:
+                                    eab.setRole(event.getBody());
+                                    break;
+                            }
+                            break;
+                    }
                     eabs.add(eab);
                     break;
                 case CONTRACT_ACCEPTED:
@@ -646,13 +667,30 @@ public class EventFacade {
                     user = userFacade.get(event.getOriginId());
                     eab.setUserId(event.getOriginId());
                     eab.setFullName(user.getFullName());
-                    org = getOrg(event.getDestinationId());
+                    OrganizationBean org = getOrg(event.getDestinationId());
                     eab.setOrganizationName(org.getName());
                     eab.setFriendlyName(org.getFriendlyName());
                     eab.setOrganizationId(org.getId());
                     eabs.add(eab);
                     break;
                 case ANNOUNCEMENT_NEW:
+                    user = userFacade.get(event.getDestinationId());
+                    eab.setUserId(event.getDestinationId());
+                    eab.setFullName(user.getFullName());
+                    String[] split = event.getOriginId().split("\\.");
+                    if (split.length == 2) {
+                        try {
+                            ServiceBean service = storage.getService(split[0], split[1]);
+                            eab.setServiceId(service.getId());
+                            eab.setServiceName(service.getName());
+                            eab.setServiceOrgId(service.getOrganization().getId());
+                            eab.setServiceOrgName(service.getOrganization().getName());
+                            eab.setServiceOrgFriendlyName(service.getOrganization().getFriendlyName());
+                        }
+                        catch (StorageException ex) {
+                            throw ExceptionFactory.systemErrorException(ex);
+                        }
+                    }
                     //TODO - events for new announcements
             }
         });

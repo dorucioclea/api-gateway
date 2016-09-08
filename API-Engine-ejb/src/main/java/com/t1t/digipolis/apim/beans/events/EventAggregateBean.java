@@ -34,6 +34,9 @@ public class EventAggregateBean implements Serializable {
     private EventType type;
     private String body;
     private String role;
+    private String adminUserId;
+    private String currentOwnerId;
+    private Long announcementId;
 
     public Long getId() {
         return id;
@@ -235,6 +238,30 @@ public class EventAggregateBean implements Serializable {
         this.role = role;
     }
 
+    public String getAdminUserId() {
+        return adminUserId;
+    }
+
+    public void setAdminUserId(String adminUserId) {
+        this.adminUserId = adminUserId;
+    }
+
+    public String getCurrentOwnerId() {
+        return currentOwnerId;
+    }
+
+    public void setCurrentOwnerId(String currentOwnerId) {
+        this.currentOwnerId = currentOwnerId;
+    }
+
+    public Long getAnnouncementId() {
+        return announcementId;
+    }
+
+    public void setAnnouncementId(Long announcementId) {
+        this.announcementId = announcementId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -279,6 +306,9 @@ public class EventAggregateBean implements Serializable {
                 ", type=" + type +
                 ", body='" + body + '\'' +
                 ", role='" + role + '\'' +
+                ", adminUserId='" + adminUserId + '\'' +
+                ", currentOwnerId='" + currentOwnerId + '\'' +
+                ", announcementId=" + announcementId +
                 '}';
     }
 }
