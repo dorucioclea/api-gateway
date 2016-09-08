@@ -18,6 +18,7 @@ public class UpdateServiceBean implements Serializable {
     private String description;
     private String base64logo;
     private Set<String> categories;
+    private Boolean admin;
 
     /**
      * Constructor.
@@ -63,6 +64,14 @@ public class UpdateServiceBean implements Serializable {
         this.name = name;
     }
 
+    public Boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
+    }
+
     @Override
     public String toString() {
         return "UpdateServiceBean{" +
@@ -70,6 +79,7 @@ public class UpdateServiceBean implements Serializable {
                 ", description='" + description + '\'' +
                 ", base64logo='" + base64logo + '\'' +
                 ", categories=" + categories +
+                ", admin=" + admin +
                 '}';
     }
 }

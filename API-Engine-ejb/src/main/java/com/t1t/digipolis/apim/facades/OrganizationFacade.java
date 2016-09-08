@@ -25,6 +25,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
+import com.t1t.digipolis.apim.beans.managedapps.NewManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
 import com.t1t.digipolis.apim.beans.metrics.AppUsagePerServiceBean;
@@ -510,8 +511,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
                 throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
             }
-            //Check if service allows auto contract creation
-            if (!svb.getAutoAcceptContracts()) {
+            //Check if service allows auto contract creation or is an admin service
+            if (!svb.getAutoAcceptContracts() || svb.getService().isAdmin()) {
 
                 //Check if there is a pending contract request
                 if (query.getEventByOriginDestinationAndType(appId, svcId, EventType.CONTRACT_PENDING) != null) {
@@ -562,6 +563,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //Validate service and app version, and verify if request actually occurred
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         ServiceVersionBean svb = getServiceVersionInternal(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+        if (svb.getService().isAdmin() && !securityContext.isAdmin()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
         if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired()) {
             bean.setTermsAgreed(true);
         }
@@ -579,6 +583,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             //add OAuth2 consumer default to the application
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
+            //If the service is an admin service, the application version must be added as a custom managed app
+            if (contract.getService().getService().isAdmin()) {
+                ApplicationVersionBean avb = contract.getApplication();
+                avb.set
+            }
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             //for contract add keyauth to application consumer
             String serviceOrgId = contract.getService().getService().getOrganization().getId();
@@ -1270,6 +1279,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newService.setCategories(bean.getCategories());
         newService.setBase64logo(bean.getBase64logo());
         newService.setCreatedOn(new Date());
+        if (bean.isAdmin() && !securityContext.isAdmin()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
         newService.setCreatedBy(securityContext.getCurrentUser());
         try {
             GatewaySummaryBean gateway = getSingularGateway();
@@ -2041,6 +2053,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     throw ExceptionFactory.serviceAlreadyExistsException(bean.getName());
                 }
                 serviceForUpdate.setName(bean.getName());
+            }
+            if (AuditUtils.valueChanged(serviceForUpdate.isAdmin(), bean.isAdmin())) {
+                auditData.addChange("admin", serviceForUpdate.isAdmin().toString(), bean.isAdmin().toString());
+                if (!securityContext.isAdmin()) {
+                    throw ExceptionFactory.notAuthorizedException();
+                }
+                serviceForUpdate.setAdmin(bean.isAdmin());
             }
             storage.updateService(serviceForUpdate);
             storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));
@@ -3099,7 +3118,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setModifiedOn(new Date());
         newVersion.setStatus(ServiceStatus.Created);
         newVersion.setService(service);
-        newVersion.setAutoAcceptContracts(true);
+        //If the service is designated as an admin service, do not enable auto contract acceptance
+        newVersion.setAutoAcceptContracts(!service.isAdmin());
         if (gateway != null) {
             if (newVersion.getGateways() == null) {
                 newVersion.setGateways(new HashSet<ServiceGatewayBean>());
@@ -4124,6 +4144,20 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public ServiceVersionBean getServiceVersionByUniqueId(String UID) {
         String[] split = splitUID(UID);
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
+    }
+
+    private ManagedApplicationBean createManagedApplication(NewManagedApplicationBean newManagedApp) {
+        ManagedApplicationBean mab = new ManagedApplicationBean();
+        mab.setName(newManagedApp.getName());
+        mab.setActivated(newManagedApp.getActivated());
+        mab.setApiKey(newManagedApp.getApiKey());
+        mab.setAppId(newManagedApp.getAppId());
+        mab.setGatewayId(newManagedApp.getGatewayId());
+        mab.setGatewayUsername(newManagedApp.getGatewayUsername());
+
+        mab.setRestricted(newManagedApp.getRestricted());
+        mab.setType(newManagedApp.getType());
+        mab.setVersion(newManagedApp.getVersion());
     }
 
     private String[] splitUID(String UID) {

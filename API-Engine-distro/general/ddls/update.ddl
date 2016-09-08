@@ -412,3 +412,12 @@ UPDATE policydefs set form = '{
 
 -- Extra claim for rijksregisternummer DV
 INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'rrnr', 'rrnr');
+
+
+------------------------------------------------------------------------------------------
+--------------------------------------v0.8.2-SNAPSHOT-------------------------------------
+------------------------------------------------------------------------------------------
+
+ALTER TABLE services ADD COLUMN admin BOOL DEFAULT FALSE;
+ALTER TABLE application_versions ADD COLUMN managed_app_id BIGINT DEFAULT NULL;
+ALTER TABLE application_versions ADD CONSTRAINT fk_managed_app_id FOREIGN KEY (managed_app_id) REFERENCES managed_applications (id) ON UPDATE CASCADE;

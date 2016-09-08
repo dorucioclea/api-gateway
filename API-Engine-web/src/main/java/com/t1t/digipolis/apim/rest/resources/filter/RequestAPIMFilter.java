@@ -77,14 +77,14 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             ;//allow from idp
         } else {
             //Get apikey - app context - SHOULD BE ALWAYS PROVIDED
-            String appId = containerRequestContext.getHeaderString(HEADER_CONSUMER_USERNAME);
+            String consumerId = containerRequestContext.getHeaderString(HEADER_CONSUMER_USERNAME);
             try {
-                if (appId == null) {
-                    String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
-                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
-                    appId = mab == null ? "" : ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
-                }
-                securityAppContext.setCurrentApplication(appId);
+                //We shouldn't resolve the application context based on the X-Consumer-id header
+                //We do require the apikey in order to resolve which managed application is linked to the 
+                String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
+                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
+                String managedAppId = mab == null ? "" : ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
+                securityAppContext.setCurrentApplication(managedAppId);
             } catch (StorageException e) {
                 throw new IOException(e);
             }

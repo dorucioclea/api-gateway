@@ -22,6 +22,7 @@ public class NewServiceBean implements Serializable {
     private String basepath;
     private Set<String> categories;
     private String base64logo;
+    private Boolean admin;
 
     /**
      * Constructor.
@@ -95,6 +96,14 @@ public class NewServiceBean implements Serializable {
         this.base64logo = base64logo;
     }
 
+    public Boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
+    }
+
     @Override
     public String toString() {
         return "NewServiceBean{" +
@@ -103,6 +112,7 @@ public class NewServiceBean implements Serializable {
                 ", initialVersion='" + initialVersion + '\'' +
                 ", basepath='" + basepath + '\'' +
                 ", categories=" + categories +
+                ", admin=" + admin +
                 '}';
     }
 }

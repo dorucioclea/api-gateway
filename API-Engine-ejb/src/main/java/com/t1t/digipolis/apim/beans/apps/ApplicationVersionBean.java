@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.beans.apps;
 
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
@@ -56,6 +57,9 @@ public class ApplicationVersionBean implements Serializable {
     @CollectionTable(name="app_oauth_redirect_uris", joinColumns=@JoinColumn(name="application_version_id"))
     @Column(name = "oauth_client_redirect")
     private Set<String> oauthClientRedirects;
+    @OneToOne
+    @JoinColumn(name = "managed_app_id", referencedColumnName = "id")
+    private ManagedApplicationBean managedApp;
 
 
 
@@ -227,6 +231,14 @@ public class ApplicationVersionBean implements Serializable {
 
     public void setOauthClientRedirects(Set<String> oauthClientRedirect) {
         this.oauthClientRedirects = oauthClientRedirect;
+    }
+
+    public ManagedApplicationBean getManagedApp() {
+        return managedApp;
+    }
+
+    public void setManagedApp(ManagedApplicationBean managedApp) {
+        this.managedApp = managedApp;
     }
 
     /**

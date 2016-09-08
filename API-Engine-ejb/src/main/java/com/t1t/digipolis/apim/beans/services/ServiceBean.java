@@ -59,6 +59,8 @@ public class ServiceBean implements Serializable {
     @CollectionTable(name="followers")
     @Column(name="user_id")
     private Set<String> followers;
+    @Column(name = "admin")
+    private Boolean admin;
 
     /**
      * Constructor.
@@ -190,6 +192,14 @@ public class ServiceBean implements Serializable {
         this.base64logo = Base64.decodeBase64(base64logo.getBytes());
     }
 
+    public Boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
+    }
+
     @Override
     public String toString() {
         return "ServiceBean{" +
@@ -201,6 +211,7 @@ public class ServiceBean implements Serializable {
                 ", description='" + description + '\'' +
                 ", createdBy='" + createdBy + '\'' +
                 ", createdOn=" + createdOn +
+                ", admin=" + admin +
                 '}';
     }
 }
