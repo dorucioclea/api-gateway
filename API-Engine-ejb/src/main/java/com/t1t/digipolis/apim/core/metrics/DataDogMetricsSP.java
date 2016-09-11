@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
 import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.DataDogMetricsQuery;
+import com.t1t.digipolis.kong.model.DataDogMetricsSerie;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
@@ -67,19 +68,20 @@ public class DataDogMetricsSP implements MetricsSPI, Serializable {
         DataDogMetricsQuery query = httpClient.queryMeterics("***REMOVED***","***REMOVED***","1473160678","1473247056","avg:kong.bza_citygis_v1.request.count{host:rasu094.rte.antwerpen.local}.as_count()");
         System.out.println(query);
         //get value list
-
+        final DataDogMetricsSerie dataDogMetricsSerie = query.getSeries().get(0);
+        final List<List<Object>> pointlist = dataDogMetricsSerie.getPointlist();
         //get interval
-
+        final Double seriesInterval = dataDogMetricsSerie.getInterval();
         //get length
-
+        final Double seriesLength = dataDogMetricsSerie.getLength();
 
         //will contain the final results
         MetricsUsageList resultUsageList = new MetricsUsageList();
         //we create a epoch map in order to add specific values at random and sort the key values
         Map<Long, MetricsUsage> processingMap = new TreeMap<>();
-        long intervalMillis = 300;//interval
-        //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
-        long fromMillis = from.getMillis();
+
+        //fill the map, transpose, array of timestamp and value
+        pointlist.stream().forEach(point -> {processingMap.put((Long) point.get(0),new MetricsUsage().withInterval((Double) point.get(0)).withCount((Double) point.get(1)));});
 
 /*        for (MetricsUsage originUsage : originList.getData()) {
             processingMap.put(new Double(originUsage.getInterval()).longValue(), new MetricsUsage().withCount(originUsage.getCount()).withInterval(originUsage.getInterval()));

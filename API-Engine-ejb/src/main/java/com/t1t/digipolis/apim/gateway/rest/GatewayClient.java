@@ -578,25 +578,6 @@ public class GatewayClient {
         httpClient.createPluginConfig(api.getId(),config);
     }
 
-    private void registerDefaultAnalyticsPolicy(KongApi api){
-            KongPluginAnalytics analyticsPolicy = new KongPluginAnalytics()
-                    .withConnectionTimeout(appConfig.getAnalyticsConnTimeout())
-                    .withServiceToken(appConfig.getAnalyticsServiceToken())
-                    .withEnvironment(appConfig.getAnalyticsEnvironment())
-                    .withRetryCount(appConfig.getAnalyticsRetryCount())
-                    .withQueueSize(appConfig.getAnalyticsQueueSize())
-                    .withFlushTimeout(appConfig.getAnalyticsFlushTimeout())
-                    .withLogBodies(appConfig.getAnalyticsLogBodies())
-                    .withHost(appConfig.getAnalyticsHost())
-                    .withPort(appConfig.getAnalyticsPort())
-                    .withHttps(appConfig.getAnalyticsHttps())
-                    .withHttpsVerify(appConfig.getAnalyticsHttpsVerify());
-            KongPluginConfig config = new KongPluginConfig()
-                    .withName(Policies.ANALYTICS.getKongIdentifier())
-                    .withConfig(analyticsPolicy);
-            httpClient.createPluginConfig(api.getId(),config);
-    }
-
     /**
      * Registers the default keyauth plugin with apikey key_value (service-scoped policy).
      * Only consumers having an valid API key can access the API.

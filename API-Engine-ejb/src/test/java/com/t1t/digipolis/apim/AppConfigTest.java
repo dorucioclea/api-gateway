@@ -84,36 +84,6 @@ public class AppConfigTest {
     }
 
     @Test
-    public void testGetIDPSCIMEndpoint() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMEndpoint()));
-    }
-
-    @Test
-    public void testGetSCIMUserLogin() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMUserLogin()));
-    }
-
-    @Test
-    public void testGetSCIMUserPassword()throws Exception{
-        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMUserPassword()));
-    }
-
-    @Test
-    public void testGetIDPOAuthTokenEndpoint() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPOAuthTokenEndpoint()));
-    }
-
-    @Test
-    public void testGetIDPOAuthClientId() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPOAuthClientId()));
-    }
-
-    @Test
-    public void testGetIDPOAuthClientSecret() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPOAuthClientSecret()));
-    }
-
-    @Test
     public void testGetMetricsScheme() throws Exception {
         assertTrue(!StringUtils.isEmpty(config.getMetricsScheme()));
     }

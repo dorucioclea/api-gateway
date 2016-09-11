@@ -18,6 +18,7 @@ import java.util.List;
 
 /**
  * Created by michallispashidis on 23/11/15.
+ * We leave the code in order to support later on the roadmap a SCIM protocol for user info
  */
 @ApplicationScoped
 @Default
@@ -30,9 +31,9 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
     public void initSCIMCommunication() {
         //get SCIM configuration
         SCIMConfigBean scimConfigBean = new SCIMConfigBean();
-        scimConfigBean.setEndpoint(config.getIDPSCIMEndpoint());
+/*        scimConfigBean.setEndpoint(config.getIDPSCIMEndpoint());
         scimConfigBean.setUsername(config.getIDPSCIMUserLogin());
-        scimConfigBean.setPassword(config.getIDPSCIMUserPassword());
+        scimConfigBean.setPassword(config.getIDPSCIMUserPassword());*/
         scimServiceBuilder = new SCIMServiceBuilder();
         scimClient = scimServiceBuilder.getService(scimConfigBean, SCIMClient.class);
     }
