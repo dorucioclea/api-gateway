@@ -2130,6 +2130,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                     .getSingleResult();
         }
         catch (NoResultException ex) {
+            logger.debug("problem:{}", ex);
             return null;
         }
     }
@@ -2577,6 +2578,40 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("type", type)
                 .setParameter("defId", definitionId.getPolicyDefId())
                 .getResultList();
+    }
+
+    @Override
+    public void deleteAllEventsForAnnouncement(Long announcementId) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "DELETE FROM EventBean e WHERE e.type = :type AND e.body = :annId";
+        em.createQuery(jpql)
+                .setParameter("type", EventType.ANNOUNCEMENT_NEW)
+                .setParameter("annId", announcementId.toString())
+                .executeUpdate();
+    }
+
+    @Override
+    public List<ServiceVersionBean> getServiceVersionsByServiceAndStatus(ServiceBean service, ServiceStatus status) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.service = :svc AND s.status = :status";
+        return em.createQuery(jpql)
+                .setParameter("svc", service)
+                .setParameter("status", status)
+                .getResultList();
+    }
+
+    @Override
+    public ServiceBean getServiceByName(String name) throws StorageException {
+        EntityManager em = getActiveEntityManager();
+        String jpql = "SELECT s FROM ServiceBean s WHERE LOWER(s.name) LIKE :name";
+        try {
+            return (ServiceBean) em.createQuery(jpql)
+                    .setParameter("name", name.toLowerCase())
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
     }
 
     private boolean doNotFilterServices() throws StorageException {

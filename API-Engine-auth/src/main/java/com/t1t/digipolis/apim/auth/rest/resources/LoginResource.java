@@ -328,7 +328,7 @@ public class LoginResource implements ILoginResource {
         URI redirectURL = null;
         try {
             redirectURL = new URL(URLDecoder.decode(relayState, "UTF-8")).toURI();
-        } catch (URISyntaxException | MalformedURLException | UnsupportedEncodingException e) {
+        } catch (URISyntaxException | MalformedURLException | UnsupportedEncodingException | NullPointerException e) {
             try {
                 redirectURL = new URL(fallBackUrl).toURI();
             }

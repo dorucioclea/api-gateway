@@ -23,10 +23,6 @@ import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
-import com.t1t.digipolis.apim.beans.mail.ContractMailBean;
-import com.t1t.digipolis.apim.beans.mail.MembershipAction;
-import com.t1t.digipolis.apim.beans.mail.MembershipRequestMailBean;
-import com.t1t.digipolis.apim.beans.mail.UpdateMemberMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -61,7 +57,6 @@ import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.kong.KongConstants;
-import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -142,8 +137,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private RoleFacade roleFacade;
     @Inject
     private AppConfig config;
-    @Inject
-    private MailService mailService;
     @Inject
     private Event<NewEventBean> event;
     @Inject
@@ -541,38 +534,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 pvsb.setName(pvb.getPlan().getName());
                 pvsb.setVersion(pvb.getVersion());
 
-                NewEventBean newEvent = new NewEventBean()
-                        .withOriginId(appId)
-                        .withDestinationId(svcId)
-                        .withType(EventType.CONTRACT_PENDING)
-                        .withBody(new Gson().toJson(pvsb));
-                event.fire(newEvent);
-                //send notification to org owners for
-                listMembers(organizationId).forEach(member -> {
-                    member.getRoles().forEach(role -> {
-                        if (role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())) {//only owners
-                            try {
-                                if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
-                                    ContractMailBean contractMailBean = new ContractMailBean();
-                                    contractMailBean.setTo(member.getEmail());
-                                    contractMailBean.setUserId(securityContext.getCurrentUser());
-                                    contractMailBean.setUserMail(securityContext.getEmail());
-                                    contractMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
-                                    contractMailBean.setAppName(avb.getApplication().getName());
-                                    contractMailBean.setAppVersion(avb.getVersion());
-                                    contractMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
-                                    contractMailBean.setServiceName(svb.getService().getName());
-                                    contractMailBean.setServiceVersion(svb.getVersion());
-                                    contractMailBean.setPlanName(pvsb.getName());
-                                    contractMailBean.setPlanVersion(pvsb.getVersion());
-                                    mailService.sendContractRequest(contractMailBean);
-                                }
-                            } catch (Exception e) {
-                                log.error("Error sending mail:{}", e.getMessage());
-                            }
-                        }
-                    });
-                });
+                fireEvent(appId, svcId, EventType.CONTRACT_PENDING, new Gson().toJson(pvsb));
                 return null;
             } else {
                 //Service accepts all incoming contract requests so create and return new contract
@@ -593,36 +555,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //Validate service and app version, and verify if request actually occurred
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         ServiceVersionBean svb = getServiceVersionInternal(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
-        NewEventBean newEvent = new NewEventBean()
-                .withOriginId(ServiceConventionUtil.generateServiceUniqueName(svb))
-                .withDestinationId(ConsumerConventionUtil.createAppUniqueId(avb))
-                .withType(EventType.CONTRACT_REJECTED);
-        event.fire(newEvent);
-        //send notification to app org owners
-        listMembers(organizationId).forEach(member -> {
-            member.getRoles().forEach(role -> {
-                if (role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())) {//only owners
-                    try {
-                        if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
-                            ContractMailBean contractMailBean = new ContractMailBean();
-                            contractMailBean.setTo(member.getEmail());
-                            contractMailBean.setUserId(securityContext.getCurrentUser());
-                            contractMailBean.setUserMail(securityContext.getEmail());
-                            contractMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
-                            contractMailBean.setAppName(avb.getApplication().getName());
-                            contractMailBean.setAppVersion(avb.getVersion());
-                            contractMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
-                            contractMailBean.setServiceName(svb.getService().getName());
-                            contractMailBean.setServiceVersion(svb.getVersion());
-                            contractMailBean.setPlanName(bean.getPlanId());
-                            mailService.rejectContractRequest(contractMailBean);
-                        }
-                    } catch (Exception e) {
-                        log.error("Error sending mail:{}", e.getMessage());
-                    }
-                }
-            });
-        });
+
+        fireEvent(ServiceConventionUtil.generateServiceUniqueName(svb), ConsumerConventionUtil.createAppUniqueId(avb), EventType.CONTRACT_REJECTED, null);
     }
 
     public ContractBean acceptContractRequest(String organizationId, String applicationId, String version, NewContractBean bean) {
@@ -633,36 +567,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             bean.setTermsAgreed(true);
         }
         ContractBean contract = createContract(organizationId, applicationId, version, bean);
-        NewEventBean newEvent = new NewEventBean()
-                .withOriginId(ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()))
-                .withDestinationId(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version))
-                .withType(EventType.CONTRACT_ACCEPTED);
-        event.fire(newEvent);
-        //send notification to app org owners
-        listMembers(organizationId).forEach(member -> {
-            member.getRoles().forEach(role -> {
-                if (role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())) {//only owners
-                    try {
-                        if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
-                            ContractMailBean contractMailBean = new ContractMailBean();
-                            contractMailBean.setTo(member.getEmail());
-                            contractMailBean.setUserId(securityContext.getCurrentUser());
-                            contractMailBean.setUserMail(securityContext.getEmail());
-                            contractMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
-                            contractMailBean.setAppName(avb.getApplication().getName());
-                            contractMailBean.setAppVersion(avb.getVersion());
-                            contractMailBean.setServiceOrgName(svb.getService().getOrganization().getName());
-                            contractMailBean.setServiceName(svb.getService().getName());
-                            contractMailBean.setServiceVersion(svb.getVersion());
-                            contractMailBean.setPlanName(bean.getPlanId());
-                            mailService.approveContractRequest(contractMailBean);
-                        }
-                    } catch (Exception e) {
-                        log.error("Error sending mail:{}", e.getMessage());
-                    }
-                }
-            });
-        });
+
+        fireEvent(ServiceConventionUtil.generateServiceUniqueName(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion()),
+                ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version),
+                EventType.CONTRACT_ACCEPTED,
+                null);
+
         return contract;
     }
 
@@ -1156,7 +1066,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     private PolicyBean scrubPolicy(PolicyBean policy) throws StorageException {
         //TODO - scrub the sensitive information out of policy configurations
-        /*boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
+        boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
 
         if (doFilter) {
             switch (Policies.valueOf(policy.getDefinition().getId().toUpperCase())) {
@@ -1166,10 +1076,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     oauthConfig.setProvisionKey(null);
                     policy.setConfiguration(gson.toJson(oauthConfig));
                     break;
+                case REQUESTTRANSFORMER:
+                case RESPONSETRANSFORMER:
+                    policy.setConfiguration(null);
                 default:
                     break;
             }
-        }*/
+        }
         return policy;
     }
 
@@ -2123,6 +2036,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 auditData.addChange("logo", serviceForUpdate.getBase64logo(), bean.getBase64logo()); //$NON-NLS-1$
                 serviceForUpdate.setBase64logo(bean.getBase64logo());
             }
+            if (AuditUtils.valueChanged(serviceForUpdate.getName(), bean.getName())) {
+                auditData.addChange("name", serviceForUpdate.getName(), bean.getName());
+                if (query.getServiceByName(bean.getName()) != null) {
+                    throw ExceptionFactory.serviceAlreadyExistsException(bean.getName());
+                }
+                serviceForUpdate.setName(bean.getName());
+            }
             storage.updateService(serviceForUpdate);
             storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));
         } catch (AbstractRestException e) {
@@ -2692,28 +2612,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
         //Trigger new event for accepted membership request
-        NewEventBean newEvent = new NewEventBean()
-                .withOriginId(organizationId)
-                .withDestinationId(bean.getUserId())
-                .withType(EventType.MEMBERSHIP_GRANTED);
-        event.fire(newEvent);
-        //send email
-        try {
-            final RoleBean roleBean = roleFacade.get(bean.getRoleId());
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(bean.getUserId());
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                updateMemberMailBean.setRole(roleBean.getName());
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
+
+        fireEvent(organizationId, bean.getUserId(), EventType.MEMBERSHIP_GRANTED, null);
     }
 
     public void grant(String organizationId, GrantRolesBean bean) {
@@ -2771,22 +2671,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new SystemErrorException(e);
             }
         }
-        //send email
-        try {
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(userId);
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                updateMemberMailBean.setRole("");
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
+        fireEvent(organizationId, userId, EventType.MEMBERSHIP_REVOKED_ROLE, roleId);
     }
 
     public void updateMembership(String organizationId, String userId, GrantRoleBean bean) {
@@ -2811,23 +2696,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
-        //send email
-        try {
-            final RoleBean roleBean = roleFacade.get(bean.getRoleId());
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(userId);
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.UPDATE_ROLE);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                updateMemberMailBean.setRole(roleBean.getName());
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
+        fireEvent(organizationId, userId, EventType.MEMBERSHIP_UPDATED, bean.getRoleId());
     }
 
     public void revokeAll(String organizationId, String userId) {
@@ -2848,22 +2717,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
-        //send email
-        try {
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(userId);
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                updateMemberMailBean.setRole("");
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
+        fireEvent(organizationId, userId, EventType.MEMBERSHIP_REVOKED, null);
     }
 
     public void transferOrgOwnership(String organizationId, TransferOwnershipBean bean) {
@@ -2897,21 +2751,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
-        //send email
-        try {
-            final OrganizationBean organizationBean = get(organizationId);
-            final UserBean userBean = userFacade.get(bean.getNewOwnerId());
-            if (userBean != null && !StringUtils.isEmpty(userBean.getEmail())) {
-                UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
-                updateMemberMailBean.setTo(userBean.getEmail());
-                updateMemberMailBean.setMembershipAction(MembershipAction.TRANSFER);
-                updateMemberMailBean.setOrgName(organizationBean.getName());
-                updateMemberMailBean.setOrgFriendlyName(organizationBean.getFriendlyName());
-                mailService.sendUpdateMember(updateMemberMailBean);
-            }
-        } catch (Exception e) {
-            log.error("Error sending mail:{}", e.getMessage());
-        }
+        fireEvent(organizationId, newOwnerId, EventType.MEMBERSHIP_TRANSFER, currentOwnerId);
     }
 
     public List<MemberBean> listMembers(String organizationId) {
@@ -3664,7 +3504,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ann.setServiceId(bean.getId());
             storage.createServiceAnnouncement(ann);
             //Fire off new event in order to notify those that need to be notified
-            //announcement.fire(ann);
+            announcement.fire(ann);
             return ann;
         } catch (AbstractRestException e) {
             throw e;
@@ -3682,8 +3522,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             AnnouncementBean ann = storage.getServiceAnnouncement(id);
             if (ann != null) {
-                if (ann.getOrganizationId().equals(organizationId) && ann.getServiceId().equals(serviceId))
+                if (ann.getOrganizationId().equals(organizationId) && ann.getServiceId().equals(serviceId)) {
                     storage.deleteServiceAnnouncement(ann);
+                }
+                //Delete new announcement notifications/events
+                query.deleteAllEventsForAnnouncement(id);
             }
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -3745,41 +3588,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
-        listMembers(orgId).forEach(member -> {
-            member.getRoles().forEach(role -> {
-                if (role.getRoleName().toLowerCase().equals(Role.OWNER.toString().toLowerCase())) {
-                    //send email
-                    try {
-                        if (member.getUserId() != null && !StringUtils.isEmpty(member.getEmail())) {
-                            MembershipRequestMailBean membershipRequestMailBean = new MembershipRequestMailBean();
-                            membershipRequestMailBean.setTo(member.getEmail());
-                            membershipRequestMailBean.setUserId(securityContext.getCurrentUser());
-                            membershipRequestMailBean.setUserMail(securityContext.getEmail());
-                            membershipRequestMailBean.setOrgName(org.getName());
-                            membershipRequestMailBean.setOrgFriendlyName(org.getFriendlyName());
-                            mailService.sendRequestMembership(membershipRequestMailBean);
-                        }
-                    } catch (Exception e) {
-                        log.error("Error sending mail:{}", e.getMessage());
-                    }
-                }
-            });
-        });
-        NewEventBean newEvent = new NewEventBean()
-                .withOriginId(securityContext.getCurrentUser())
-                .withDestinationId(org.getId())
-                .withType(EventType.MEMBERSHIP_PENDING);
-        event.fire(newEvent);
+        fireEvent(securityContext.getCurrentUser(), org.getId(), EventType.MEMBERSHIP_PENDING, null);
     }
 
     public void rejectMembershipRequest(String organizationId, String userId) {
-        OrganizationBean org = get(organizationId);
-        UserBean user = userFacade.get(userId);
-        NewEventBean newEvent = new NewEventBean()
-                .withOriginId(org.getId())
-                .withDestinationId(user.getUsername())
-                .withType(EventType.MEMBERSHIP_REJECTED);
-        event.fire(newEvent);
+        fireEvent(get(organizationId).getId(), userFacade.get(userId).getUsername(), EventType.MEMBERSHIP_REJECTED, null);
     }
 
     /**
@@ -4282,5 +4095,45 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw ExceptionFactory.notAuthorizedException();
         }
         gateway.revokeOAuthToken(token.getId());
+    }
+
+    public void cancelMembershipRequest(String orgId) {
+        fireEvent(securityContext.getCurrentUser(), get(orgId).getId(), EventType.MEMBERSHIP_REQUEST_CANCELLED, null);
+    }
+
+    public void cancelContractRequest(String svcOrgId, String svcId, String svcVersion, String appOrgId, String appId, String appVersion) {
+        fireEvent(ConsumerConventionUtil.createAppUniqueId(getAppVersion(appOrgId, appId, appVersion)),
+                ServiceConventionUtil.generateServiceUniqueName(getServiceVersion(svcOrgId, svcId, svcVersion)),
+                EventType.CONTRACT_REQUEST_CANCELLED,
+                null);
+    }
+
+    private void fireEvent(String origin, String destination, EventType type, String body) {
+        NewEventBean neb = new NewEventBean()
+                .withOriginId(origin)
+                .withDestinationId(destination)
+                .withType(type)
+                .withBody(body);
+        event.fire(neb);
+    }
+
+    public ApplicationVersionBean getApplicationVersionByUniqueId(String UID) {
+        String[] split = splitUID(UID);
+        return split == null ? null : getAppVersion(split[0], split[1], split[2]);
+    }
+
+    public ServiceVersionBean getServiceVersionByUniqueId(String UID) {
+        String[] split = splitUID(UID);
+        return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
+    }
+
+    private String[] splitUID(String UID) {
+        String[] split = UID.split("\\.");
+        if (split.length != 3) {
+            return null;
+        }
+        else {
+            return split;
+        }
     }
 }

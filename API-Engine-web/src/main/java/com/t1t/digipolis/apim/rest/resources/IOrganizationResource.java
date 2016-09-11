@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.contracts.ContractCancellationBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
@@ -31,6 +32,7 @@ import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
@@ -1460,6 +1462,26 @@ public interface IOrganizationResource {
      * @throws EventNotFoundException
      */
     public void deleteEvent(String organizationId, Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException;
+
+    /**
+     * Cancel a pending contract request
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @param request
+     * @throws NotAuthorizedException
+     * @throws InvalidEventException
+     * @throws EventNotFoundException
+     */
+    public void cancelContractRequest(String organizationId, String serviceId, String version, ContractCancellationBean request) throws NotAuthorizedException, InvalidEventException, EventNotFoundException;
+
+    /**
+     * Cancel a pending membership request
+     * @param organizationId
+     * @throws InvalidEventException
+     * @throws EventNotFoundException
+     */
+    public void cancelMembershipRequest(String organizationId) throws InvalidEventException, EventNotFoundException;
 
     /**
      * Request a contract between an application version and a service version

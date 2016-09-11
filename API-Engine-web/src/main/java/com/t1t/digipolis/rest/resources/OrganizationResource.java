@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.contracts.ContractCancellationBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
@@ -70,6 +71,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
 
 /**
  * This is the rest endpoint implementation.
@@ -2188,6 +2191,44 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         }
         eventFacade.deleteOrgEvent(organizationId, id);
+    }
+
+    @Override
+    @ApiOperation(value = "Cancel an pending contract request",
+            notes = "Call this endpoint to cancel a pending contract request.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Pending request deleted")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/requests/cancel")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void cancelContractRequest(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version, ContractCancellationBean request) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getOrganizationId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getApplicationId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getVersion()));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, request.getOrganizationId())) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        orgFacade.cancelContractRequest(organizationId, serviceId, version, request.getOrganizationId(), request.getApplicationId(), request.getVersion());
+    }
+
+    @Override
+    @ApiOperation(value = "Cancel a pending membership request",
+            notes = "Call this endpoint to cancel a pending membership request")
+    @ApiResponses({
+        @ApiResponse(code = 204, message = "Pending request deleted")
+    })
+    @POST
+    @Path("/{organizationId}/membership-requests/cancel")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void cancelMembershipRequest(@PathParam("organizationId") String organizationId) throws InvalidEventException, EventNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(securityContext.getCurrentUser()));
+        orgFacade.cancelMembershipRequest(organizationId);
     }
 
     @Override
