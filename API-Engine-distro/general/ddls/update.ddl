@@ -422,5 +422,9 @@ INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_c
 ------------------------------------------------------------------------------------------
 
 ALTER TABLE services ADD COLUMN admin BOOL DEFAULT FALSE;
-ALTER TABLE application_versions ADD COLUMN managed_app_id BIGINT DEFAULT NULL;
-ALTER TABLE application_versions ADD CONSTRAINT fk_managed_app_id FOREIGN KEY (managed_app_id) REFERENCES managed_applications (id) ON UPDATE CASCADE;
+CREATE TABLE managed_application_keys AS SELECT managed_applications.id, managed_applications.api_key FROM managed_applications;
+ALTER TABLE managed_applications DROP COLUMN api_key;
+ALTER TABLE managed_application_keys ADD CONSTRAINT UK_managed_app_keys_1 UNIQUE (id, api_key);
+CREATE INDEX IDX_managed_app_keys_1 ON managed_application_keys(id);
+
+INSERT INTO managed_applications(id, name, version, app_id, type, prefix, activated, restricted) VALUES (905, 'Admin Application', 'v1', 'adminapp', 'Admin', 'admin', TRUE, FALSE);

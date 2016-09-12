@@ -2297,7 +2297,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.apiKey = :apiKey";
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE :apiKey IN (m.apiKeys)";
         try {
             return (ManagedApplicationBean) em.createQuery(jpql)
                     .setParameter("apiKey", apiKey)
@@ -2612,6 +2612,15 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         catch (NoResultException ex) {
             return null;
         }
+    }
+
+    @Override
+    public Set<ManagedApplicationBean> getManagedApplicationsByType(ManagedApplicationTypes type) throws StorageException {
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :mType";
+        return new HashSet<ManagedApplicationBean>(getActiveEntityManager()
+                .createQuery(jpql)
+                .setParameter("mType", type)
+                .getResultList());
     }
 
     private boolean doNotFilterServices() throws StorageException {

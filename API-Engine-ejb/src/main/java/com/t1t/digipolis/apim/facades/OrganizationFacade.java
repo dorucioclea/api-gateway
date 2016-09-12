@@ -25,7 +25,6 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
-import com.t1t.digipolis.apim.beans.managedapps.NewManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.members.MemberRoleBean;
 import com.t1t.digipolis.apim.beans.metrics.AppUsagePerServiceBean;
@@ -586,7 +585,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //If the service is an admin service, the application version must be added as a custom managed app
             if (contract.getService().getService().isAdmin()) {
                 ApplicationVersionBean avb = contract.getApplication();
-                avb.set
+                Set<ManagedApplicationBean> mabs = query.getManagedApplicationsByType(ManagedApplicationTypes.Admin);
+                if (mabs != null && !mabs.isEmpty()) {
+                    for (ManagedApplicationBean mab : mabs) {
+                        mab.getApiKeys().add(contract.getApikey());
+                        storage.updateManagedApplication(mab);
+                    }
+                }
             }
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             //for contract add keyauth to application consumer
@@ -868,6 +873,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 ContractBean contract = null;
                 try {
                     contract = storage.getContract(contractSumBean.getContractId());
+                    if (contract.getService().getService().isAdmin()) {
+                        ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApikey());
+                        mab.getApiKeys().remove(contract.getApikey());
+                        storage.updateManagedApplication(mab);
+                    }
                     storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
                     storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
                     storage.deleteContract(contract);
@@ -1675,6 +1685,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             } catch (StorageException ex) {
                 throw new SystemErrorException(ex);
             }
+            //Revoke admin priviledges if contract was with an admin service
+            if (contract.getService().getService().isAdmin()) {
+                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApikey());
+                mab.getApiKeys().remove(contract.getApikey());
+                storage.updateManagedApplication(mab);
+            }
+
             //remove contract
             storage.deleteContract(contract);
 
@@ -3899,6 +3916,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         throw ExceptionFactory.invalidApplicationStatusException();
                     }
                 }
+                //Update managed app keys if any
+                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(revokedKey);
+                mab.getApiKeys().remove(revokedKey);
+                mab.getApiKeys().add(newApiKey);
+                storage.updateManagedApplication(mab);
+
                 EntityUpdatedData data = new EntityUpdatedData();
                 data.addChange("apikey", revokedKey, newApiKey);
                 query.updateApplicationVersionApiKey(avb, newApiKey);
@@ -4146,7 +4169,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
     }
 
-    private ManagedApplicationBean createManagedApplication(NewManagedApplicationBean newManagedApp) {
+    /*private ManagedApplicationBean createManagedApplication(NewManagedApplicationBean newManagedApp) {
         ManagedApplicationBean mab = new ManagedApplicationBean();
         mab.setName(newManagedApp.getName());
         mab.setActivated(newManagedApp.getActivated());
@@ -4158,7 +4181,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         mab.setRestricted(newManagedApp.getRestricted());
         mab.setType(newManagedApp.getType());
         mab.setVersion(newManagedApp.getVersion());
-    }
+    }*/
 
     private String[] splitUID(String UID) {
         String[] split = UID.split("\\.");

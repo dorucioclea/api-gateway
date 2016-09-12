@@ -1,8 +1,10 @@
 package com.t1t.digipolis.apim.beans.managedapps;
 
+import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * @author Guillaume Vandecasteele
@@ -32,8 +34,10 @@ public class ManagedApplicationBean implements Serializable {
     private String version;
     @Column(name = "gateway_username")
     private String gatewayUsername;
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name="managed_application_keys", joinColumns=@JoinColumn(name="id"))
     @Column(name = "api_key")
-    private String apiKey;
+    private Set<String> apiKeys;
     @Column(name = "restricted")
     private Boolean restricted;
     @Column(name = "activated")
@@ -85,12 +89,12 @@ public class ManagedApplicationBean implements Serializable {
         this.gatewayUsername = gatewayUsername;
     }
 
-    public String getApiKey() {
-        return apiKey;
+    public Set<String> getApiKeys() {
+        return apiKeys;
     }
 
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
+    public void setApiKeys(Set<String> apiKeys) {
+        this.apiKeys = apiKeys;
     }
 
     public String getVersion() {
@@ -129,7 +133,7 @@ public class ManagedApplicationBean implements Serializable {
         if (!version.equals(that.version)) return false;
         if (gatewayUsername != null ? !gatewayUsername.equals(that.gatewayUsername) : that.gatewayUsername != null)
             return false;
-        if (!apiKey.equals(that.apiKey)) return false;
+        if (!apiKeys.equals(that.apiKeys)) return false;
         if (!restricted.equals(that.restricted)) return false;
         return activated.equals(that.activated);
 
@@ -145,7 +149,7 @@ public class ManagedApplicationBean implements Serializable {
         result = 31 * result + name.hashCode();
         result = 31 * result + version.hashCode();
         result = 31 * result + (gatewayUsername != null ? gatewayUsername.hashCode() : 0);
-        result = 31 * result + apiKey.hashCode();
+        result = 31 * result + apiKeys.hashCode();
         result = 31 * result + restricted.hashCode();
         result = 31 * result + activated.hashCode();
         return result;
@@ -162,7 +166,7 @@ public class ManagedApplicationBean implements Serializable {
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
                 ", gatewayUsername='" + gatewayUsername + '\'' +
-                ", apiKey='" + apiKey + '\'' +
+                ", apiKeys='" + apiKeys + '\'' +
                 ", restricted=" + restricted +
                 ", activated=" + activated +
                 '}';
