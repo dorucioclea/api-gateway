@@ -1077,6 +1077,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     break;
                 case REQUESTTRANSFORMER:
                 case RESPONSETRANSFORMER:
+                case LDAPAUTHENTICATION:
                     policy.setConfiguration(null);
                 default:
                     break;
