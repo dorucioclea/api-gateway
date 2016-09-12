@@ -1,5 +1,8 @@
 package com.t1t.digipolis.apim.beans.events;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -7,6 +10,7 @@ import java.util.Date;
  * @author Guillaume Vandecasteele
  * @since 2016
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EventAggregateBean implements Serializable {
 
     private Long id;

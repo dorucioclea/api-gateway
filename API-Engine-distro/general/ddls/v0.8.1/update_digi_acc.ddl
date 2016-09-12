@@ -1,59 +1,38 @@
--- update for v0.8.1
--- fix missing contraints from 0.8.0
-ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic);
-ALTER TABLE events ADD PRIMARY KEY (id);
-ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_id,user_id);
-ALTER TABLE endpoint_properties ADD PRIMARY KEY (service_version_id, name);
-ALTER TABLE svc_gateways ADD PRIMARY KEY (service_version_id, gateway_id);
-ALTER TABLE white_ip_restriction ADD PRIMARY KEY (netw_value);
-ALTER TABLE black_ip_restriction ADD PRIMARY KEY (netw_value);
-ALTER TABLE svc_plans ADD PRIMARY KEY (service_version_id, plan_id, version);
-ALTER TABLE svc_visibility ADD PRIMARY KEY (service_version_id, code);
-ALTER TABLE application_versions ADD PRIMARY KEY (id);
-ALTER TABLE applications ADD PRIMARY KEY (id, organization_id);
-ALTER TABLE auditlog ADD PRIMARY KEY (id);
-ALTER TABLE announcements ADD PRIMARY KEY (id);
-ALTER TABLE contracts ADD PRIMARY KEY (id);
-ALTER TABLE gateways ADD PRIMARY KEY (id);
-ALTER TABLE memberships ADD PRIMARY KEY (id);
-ALTER TABLE organizations ADD PRIMARY KEY (id);
-ALTER TABLE plan_versions ADD PRIMARY KEY (id);
-ALTER TABLE plans ADD PRIMARY KEY (id, organization_id);
-ALTER TABLE plugins ADD PRIMARY KEY (id);
-ALTER TABLE policies ADD PRIMARY KEY (id);
-ALTER TABLE oauth_apps ADD PRIMARY KEY (id);
-ALTER TABLE policydefs ADD PRIMARY KEY (id);
-ALTER TABLE roles ADD PRIMARY KEY (id);
-ALTER TABLE service_defs ADD PRIMARY KEY (id);
-ALTER TABLE service_versions ADD PRIMARY KEY (id);
-ALTER TABLE services ADD PRIMARY KEY (id, organization_id);
-ALTER TABLE users ADD PRIMARY KEY (username);
-ALTER TABLE support ADD PRIMARY KEY (id);
-ALTER TABLE support_comments ADD PRIMARY KEY (id);
-ALTER TABLE managed_applications ADD PRIMARY KEY (id);
+DELETE FROM service_defs WHERE service_version_id NOT IN (SELECT id FROM service_versions);
+DELETE FROM svc_gateways WHERE service_version_id NOT IN (SELECT id FROM service_versions);
+DELETE FROM svc_plans WHERE service_version_id NOT IN (SELECT id FROM service_versions);
+DELETE FROM svc_visibility WHERE service_version_id NOT IN (SELECT id FROM service_versions);
 
 ALTER TABLE managed_applications ADD CONSTRAINT FK_managed_applications_1 FOREIGN KEY (gateway_id) REFERENCES gateways (id) ON UPDATE CASCADE;
 ALTER TABLE services ADD CONSTRAINT FK_services_1 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 ALTER TABLE contracts ADD CONSTRAINT FK_contracts_1 FOREIGN KEY (appv_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
 ALTER TABLE service_defs ADD CONSTRAINT FK_service_defs_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE svc_gateways ADD CONSTRAINT FK_svc_gateways_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE svc_plans ADD CONSTRAINT FK_scv_plans_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 ALTER TABLE application_versions ADD CONSTRAINT FK_application_versions_1 FOREIGN KEY (app_id, app_org_id) REFERENCES applications (id, organization_id) ON UPDATE CASCADE;
-ALTER TABLE contracts ADD CONSTRAINT FK_contracts_1 FOREIGN KEY (svcv_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE contracts ADD CONSTRAINT FK_contracts_2 FOREIGN KEY (svcv_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 ALTER TABLE service_versions ADD CONSTRAINT FK_service_versions_1 FOREIGN KEY (service_id, service_org_id) REFERENCES services (id, organization_id) ON UPDATE CASCADE;
 ALTER TABLE endpoint_properties ADD CONSTRAINT FK_endpoint_properties_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 ALTER TABLE applications ADD CONSTRAINT FK_applications_1 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 ALTER TABLE policies ADD CONSTRAINT FK_policies_1 FOREIGN KEY (definition_id) REFERENCES policydefs (id) ON UPDATE CASCADE;
 ALTER TABLE oauth_apps ADD CONSTRAINT FK_oauth_apps_1 FOREIGN KEY (app_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
 ALTER TABLE plans ADD CONSTRAINT FK_plans_1 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
-ALTER TABLE contracts ADD CONSTRAINT FK_contracts_2 FOREIGN KEY (planv_id) REFERENCES plan_versions (id) ON UPDATE CASCADE;
-ALTER TABLE svc_gateways ADD CONSTRAINT FK_svc_gateways_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE contracts ADD CONSTRAINT FK_contracts_3 FOREIGN KEY (planv_id) REFERENCES plan_versions (id) ON UPDATE CASCADE;
 ALTER TABLE permissions ADD CONSTRAINT FK_permissions_1 FOREIGN KEY (role_id) REFERENCES roles (id) ON UPDATE CASCADE;
-ALTER TABLE svc_plans ADD CONSTRAINT FK_scv_plans_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
-ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 ALTER TABLE plan_versions ADD CONSTRAINT FK_plan_versions_1 FOREIGN KEY (plan_id, plan_org_id) REFERENCES plans (id, organization_id) ON UPDATE CASCADE;
 ALTER TABLE followers ADD CONSTRAINT FK_followers_1 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id) ON UPDATE CASCADE;
 
--- fix missing config
-ALTER TABLE policies ADD COLUMN gateway_id VARCHAR(255) NULL;
+ALTER TABLE application_versions DROP CONSTRAINT fk_8epnoby31bt7xakegakigpikp;
+ALTER TABLE endpoint_properties DROP CONSTRAINT fk_gn0ydqur10sxuvpyw2jvv4xxb;
+ALTER TABLE followers DROP CONSTRAINT  fk_29hj3xmhp1wedxjh1bklnlg15;
+ALTER TABLE oauth_apps DROP CONSTRAINT fk_l5q6we1bos1yl98nmogei7aja;
+ALTER TABLE permissions DROP CONSTRAINT fk_sq51ihfrapwdr98uufenhcocg;
+ALTER TABLE plan_versions DROP CONSTRAINT fk_tonylvm2ypnq3efxqr1g0m9fs;
+ALTER TABLE policies DROP CONSTRAINT fk_l4q6we1bos1yl9unmogei6aja;
+ALTER TABLE service_versions DROP CONSTRAINT fk_92erjg9k1lni97gd87nt6tq37;
+
+UPDATE policies SET gateway_id = 'KongGateway';
 
 -- terms and agreement
 ALTER TABLE service_versions ADD COLUMN terms_agreement_required BOOL DEFAULT FALSE;
@@ -413,14 +392,26 @@ UPDATE policydefs set form = '{
   ]
 }' WHERE id = 'RequestSizeLimiting';
 
--- Extra claim for rijksregisternummer DV
-INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'rrnr', 'rrnr');
+DELETE FROM contracts WHERE appv_id = 6475;
+DELETE FROM application_versions WHERE app_id = 'TestApplication';
+DELETE FROM applications WHERE id = 'TestApplication';
 
+DELETE FROM svc_gateways WHERE service_version_id = 9662;
+DELETE FROM svc_plans WHERE service_version_id = 9662;
+DELETE FROM svc_visibility WHERE service_version_id = 9662;
+DELETE FROM contracts WHERE svcv_id = 9662;
+DELETE FROM service_versions WHERE service_id = 'test_service_name';
+DELETE FROM services WHERE id = 'test_service_name';
 
-------------------------------------------------------------------------------------------
---------------------------------------v0.8.2-SNAPSHOT-------------------------------------
-------------------------------------------------------------------------------------------
+UPDATE applications SET id = LOWER(id);
+UPDATE application_versions SET app_id = LOWER(app_id);
+UPDATE auditlog SET entity_id = LOWER(entity_id);
+UPDATE categories SET servicebean_id = LOWER(servicebean_id);
 
-ALTER TABLE services ADD COLUMN admin BOOL DEFAULT FALSE;
-ALTER TABLE application_versions ADD COLUMN managed_app_id BIGINT DEFAULT NULL;
-ALTER TABLE application_versions ADD CONSTRAINT fk_managed_app_id FOREIGN KEY (managed_app_id) REFERENCES managed_applications (id) ON UPDATE CASCADE;
+UPDATE services SET id = LOWER(id);
+UPDATE service_versions SET service_id = LOWER(service_id);
+UPDATE followers SET servicebean_id = LOWER(servicebean_id);
+UPDATE plans SET id = LOWER(id);
+UPDATE plan_versions SET plan_id = LOWER(plan_id);
+UPDATE policies SET entity_id = LOWER(entity_id);
+UPDATE svc_plans SET plan_id = LOWER(plan_id);
