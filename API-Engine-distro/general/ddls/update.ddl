@@ -425,8 +425,8 @@ ALTER TABLE services ADD COLUMN admin BOOL DEFAULT FALSE;
 CREATE TABLE managed_application_keys AS SELECT managed_applications.id, managed_applications.api_key FROM managed_applications;
 ALTER TABLE managed_applications DROP COLUMN api_key;
 ALTER TABLE managed_application_keys ADD CONSTRAINT UK_managed_app_keys_1 UNIQUE (id, api_key);
+ALTER TABLE managed_application_keys RENAME COLUMN id TO managed_app_id;
 ALTER TABLE managed_application_keys ADD CONSTRAINT FK_managed_app_keys_1 FOREIGN KEY (managed_app_id) REFERENCES managed_applications(id);
-CREATE INDEX IDX_managed_app_keys_1 ON managed_application_keys(id);
+CREATE INDEX IDX_managed_app_keys_1 ON managed_application_keys(managed_app_id);
 
 INSERT INTO managed_applications(id, name, version, app_id, type, prefix, activated, restricted) VALUES (905, 'Admin Application', 'v1', 'adminapp', 'Admin', 'admin', TRUE, FALSE);
-ALTER TABLE managed_application_keys RENAME COLUMN id TO managed_app_id;
