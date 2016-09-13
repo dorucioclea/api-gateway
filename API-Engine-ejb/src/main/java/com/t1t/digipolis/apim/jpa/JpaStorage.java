@@ -1254,9 +1254,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             EntityManager entityManager = getActiveEntityManager();
             String jpql = "SELECT v from ServiceVersionBean v JOIN v.service s JOIN s.organization o WHERE o.id = :orgId AND s.id = :serviceId AND v.version = :version"; //$NON-NLS-1$
             Query query = entityManager.createQuery(jpql);
-            query.setParameter("orgId", orgId); //$NON-NLS-1$
-            query.setParameter("serviceId", serviceId); //$NON-NLS-1$
-            query.setParameter("version", version); //$NON-NLS-1$
+            query.setParameter("orgId", orgId.toLowerCase()); //$NON-NLS-1$
+            query.setParameter("serviceId", serviceId.toLowerCase()); //$NON-NLS-1$
+            query.setParameter("version", version.toLowerCase()); //$NON-NLS-1$
 
             return (ServiceVersionBean) query.getSingleResult();
         } catch (NoResultException e) {
