@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.plugins;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
  * Models a single plugin when creating.
  *
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewPluginBean implements Serializable {
 
     private static final long serialVersionUID = 3246882829241218365L;

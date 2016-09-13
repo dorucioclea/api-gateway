@@ -1,15 +1,14 @@
 package com.t1t.digipolis.apim.beans.services;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import org.apache.commons.codec.binary.Base64;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -19,7 +18,7 @@ import java.util.Set;
 @Entity
 @Table(name = "services")
 @IdClass(OrganizationBasedCompositeId.class)
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceBean implements Serializable {
 
     private static final long serialVersionUID = 1526742536153467539L;

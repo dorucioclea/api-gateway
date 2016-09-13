@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.beans.managedapps;
 
-import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
@@ -13,7 +12,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "managed_applications")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ManagedApplicationBean implements Serializable {
 
     @Id

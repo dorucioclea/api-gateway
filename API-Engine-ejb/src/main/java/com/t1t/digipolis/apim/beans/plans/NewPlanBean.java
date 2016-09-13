@@ -1,13 +1,13 @@
 package com.t1t.digipolis.apim.beans.plans;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 
 /**
  * Bean used when creating a plan.
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewPlanBean implements Serializable {
 
     private static final long serialVersionUID = 3950418276301140111L;

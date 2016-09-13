@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.events;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
 
@@ -13,7 +13,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "events")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EventBean implements Serializable {
 
     @Id

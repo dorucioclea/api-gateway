@@ -1,9 +1,9 @@
 package com.t1t.digipolis.apim.beans.apps;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import org.apache.commons.codec.binary.Base64;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -18,7 +18,7 @@ import java.util.Set;
 @Entity
 @Table(name = "applications")
 @IdClass(OrganizationBasedCompositeId.class)
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApplicationBean implements Comparable<ApplicationBean>,Serializable {
 
     private static final long serialVersionUID = -197129444021040365L;
