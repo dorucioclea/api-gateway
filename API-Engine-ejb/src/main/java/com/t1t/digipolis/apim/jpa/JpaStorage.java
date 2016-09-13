@@ -66,6 +66,8 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.l;
+
 /**
  * A JPA implementation of the storage interface.
  */
@@ -1540,7 +1542,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             csb.setContractId(contractBean.getId());
             csb.setCreatedOn(contractBean.getCreatedOn());
             csb.setPlanId(plan.getId());
-            if (getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)).contains(appContext.getApplicationPrefix())) {
+            if (getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
                 csb.setProvisionKey(contractBean.getService().getProvisionKey());
             }
             csb.setPlanName(plan.getName());
@@ -2297,7 +2299,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE :apiKey IN (m.apiKeys)";
+        String jpql = "SELECT m FROM ManagedApplicationBean m JOIN m.apiKeys a WHERE :apiKey = a";
         try {
             return (ManagedApplicationBean) em.createQuery(jpql)
                     .setParameter("apiKey", apiKey)
@@ -2624,6 +2626,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     private boolean doNotFilterServices() throws StorageException {
-        return getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
+        return getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix());
     }
 }

@@ -1084,7 +1084,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     private PolicyBean scrubPolicy(PolicyBean policy) throws StorageException {
         //TODO - scrub the sensitive information out of policy configurations
-        boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
+        boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix());
 
         if (doFilter) {
             switch (Policies.valueOf(policy.getDefinition().getId().toUpperCase())) {
@@ -1164,6 +1164,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         }
                     }*/
                 log.debug("BEAN VISIBILITY UPDATED");
+            }
+            //Set auto accept to false no matter what when the service is an admin service
+            if (svb.getService().isAdmin()) {
+                bean.setAutoAcceptContracts(false);
             }
             if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
                 data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
@@ -1292,6 +1296,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (bean.isAdmin() && !securityContext.isAdmin()) {
             throw ExceptionFactory.notAuthorizedException();
         }
+        newService.setAdmin(bean.isAdmin());
         newService.setCreatedBy(securityContext.getCurrentUser());
         try {
             GatewaySummaryBean gateway = getSingularGateway();
@@ -4080,7 +4085,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) {
         String prefix = appContext.getApplicationPrefix();
         try {
-            Set<String> publisherAndConsentPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
+            Set<String> publisherAndConsentPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin));
             Set<String> allowedPrefixes = new HashSet<>(publisherAndConsentPrefixes);
             svb.getVisibility().forEach(vis -> {
                 allowedPrefixes.add(vis.getCode());

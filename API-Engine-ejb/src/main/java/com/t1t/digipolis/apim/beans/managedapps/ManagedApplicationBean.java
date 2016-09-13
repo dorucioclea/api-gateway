@@ -35,7 +35,7 @@ public class ManagedApplicationBean implements Serializable {
     @Column(name = "gateway_username")
     private String gatewayUsername;
     @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="managed_application_keys", joinColumns=@JoinColumn(name="id"))
+    @CollectionTable(name="managed_application_keys", joinColumns=@JoinColumn(name="managed_app_id"))
     @Column(name = "api_key")
     private Set<String> apiKeys;
     @Column(name = "restricted")

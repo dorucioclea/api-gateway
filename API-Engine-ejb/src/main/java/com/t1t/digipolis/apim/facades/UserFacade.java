@@ -931,7 +931,7 @@ public class UserFacade implements Serializable {
             try {
                 gatewayId = gatewayFacade.getDefaultGateway().getId();
                 IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-                List<KongPluginJWTResponse> data = gatewayLink.getConsumerJWT(userName).getData();
+                List<KongPluginJWTResponse> data = gatewayLink.getConsumerJWT(get(userName).getKongUsername()).getData();
                 if (data != null && data.size() > 0) {
                     secret = data.get(0).getSecret();
                 } else throw new StorageException("Refresh JWT - somehow the user is not known");
