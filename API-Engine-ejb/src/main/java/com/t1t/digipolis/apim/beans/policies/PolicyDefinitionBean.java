@@ -43,6 +43,8 @@ public class PolicyDefinitionBean implements Serializable {
     private Boolean scopePlan;
     @Column(name="scope_auto")
     private Boolean scopeAuto;
+    @Column(name="form_override")
+    private String formOverride;
 
     /**
      * Constructor.
@@ -172,6 +174,14 @@ public class PolicyDefinitionBean implements Serializable {
         this.scopeAuto = scopeAuto;
     }
 
+    public String getFormOverride() {
+        return formOverride;
+    }
+
+    public void setFormOverride(String formOverride) {
+        this.formOverride = formOverride;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -216,6 +226,7 @@ public class PolicyDefinitionBean implements Serializable {
                 ", scopeService=" + scopeService +
                 ", scopePlan=" + scopePlan +
                 ", scopeAuto=" + scopeAuto +
+                ", formOverride=" + formOverride +
                 '}';
     }
 

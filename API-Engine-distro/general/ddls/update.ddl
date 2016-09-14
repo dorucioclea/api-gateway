@@ -493,3 +493,19 @@ UPDATE policydefs SET form = '{
     }
   }
 }' WHERE id = 'OAuth2';
+
+ALTER TABLE policydefs ADD COLUMN form_override VARCHAR(4096) DEFAULT NULL;
+
+UPDATE policydefs SET form_override = '[
+  "scopes",
+  "mandatory_scope",
+  "token_expiration",
+  "enable_authorization_code",
+  "enable_implicit_grant",
+  {
+    "type":"help",
+    "helpvalue":"<p class=\"text-justified text-warning xsmall\">WARNING: The Implicit Grant flow is necessary for try-out functionality in the marketplace, but also prohibits the usage of refresh tokens.</p>"
+  },
+  "enable_client_credentials",
+  "hide_credentials"
+]' WHERE id = 'OAuth2';
