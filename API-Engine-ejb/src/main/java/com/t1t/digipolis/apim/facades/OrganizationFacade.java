@@ -511,7 +511,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
             }
             //Check if service allows auto contract creation or is an admin service
-            if (!svb.getAutoAcceptContracts() || svb.getService().isAdmin()) {
+            if (!svb.getAutoAcceptContracts() || (svb.getService().isAdmin() != null && svb.getService().isAdmin())) {
 
                 //Check if there is a pending contract request
                 if (query.getEventByOriginDestinationAndType(appId, svcId, EventType.CONTRACT_PENDING) != null) {
@@ -1294,10 +1294,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newService.setCategories(bean.getCategories());
         newService.setBase64logo(bean.getBase64logo());
         newService.setCreatedOn(new Date());
-        if (bean.isAdmin() && !securityContext.isAdmin()) {
+        if (bean.isAdmin() != null && bean.isAdmin() && !securityContext.isAdmin()) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        newService.setAdmin(bean.isAdmin());
+        newService.setAdmin(bean.isAdmin() == null ? false : bean.isAdmin());
         newService.setCreatedBy(securityContext.getCurrentUser());
         try {
             GatewaySummaryBean gateway = getSingularGateway();
@@ -3142,7 +3142,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setStatus(ServiceStatus.Created);
         newVersion.setService(service);
         //If the service is designated as an admin service, do not enable auto contract acceptance
-        newVersion.setAutoAcceptContracts(!service.isAdmin());
+        newVersion.setAutoAcceptContracts(service.isAdmin() != null && !service.isAdmin());
         if (gateway != null) {
             if (newVersion.getGateways() == null) {
                 newVersion.setGateways(new HashSet<ServiceGatewayBean>());
