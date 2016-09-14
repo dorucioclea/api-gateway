@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.services;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Set;
 /**
  * Bean used when updating a service.
  */
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateServiceBean implements Serializable {
 
     private static final long serialVersionUID = 8811488441452291116L;
@@ -18,6 +18,7 @@ public class UpdateServiceBean implements Serializable {
     private String description;
     private String base64logo;
     private Set<String> categories;
+    private Boolean admin;
 
     /**
      * Constructor.
@@ -63,6 +64,14 @@ public class UpdateServiceBean implements Serializable {
         this.name = name;
     }
 
+    public Boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
+    }
+
     @Override
     public String toString() {
         return "UpdateServiceBean{" +
@@ -70,6 +79,7 @@ public class UpdateServiceBean implements Serializable {
                 ", description='" + description + '\'' +
                 ", base64logo='" + base64logo + '\'' +
                 ", categories=" + categories +
+                ", admin=" + admin +
                 '}';
     }
 }

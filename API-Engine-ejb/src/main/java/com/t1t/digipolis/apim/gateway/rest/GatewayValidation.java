@@ -52,7 +52,7 @@ public class GatewayValidation {
 
     public GatewayValidation() {}
 
-    @Inject private IStorageQuery storageQuery;
+    @Inject private IStorageQuery query;
     @Inject private AppConfig config;
     {
         environment = "";
@@ -123,9 +123,9 @@ public class GatewayValidation {
     private Policy validateJWTUp(Policy policy) throws StorageException {
         Gson gson = new Gson();
         KongPluginJWTUp kongPluginJWTUp = new KongPluginJWTUp();
-        kongPluginJWTUp.setIssuerUrl(storageQuery.getDefaultGateway().getEndpoint());
-        kongPluginJWTUp.setX5uUrl(storageQuery.getDefaultGateway().getEndpoint()+storageQuery.getDefaultGateway().getJWTPubKeyEndpoint());
-        kongPluginJWTUp.setTokenExpiration(storageQuery.getDefaultGateway().getJWTExpTime());
+        kongPluginJWTUp.setIssuerUrl(query.getDefaultGateway().getEndpoint());
+        kongPluginJWTUp.setX5uUrl(query.getDefaultGateway().getEndpoint()+ query.getDefaultGateway().getJWTPubKeyEndpoint());
+        kongPluginJWTUp.setTokenExpiration(query.getDefaultGateway().getJWTExpTime());
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWTUp, KongPluginJWTUp.class));
@@ -160,6 +160,15 @@ public class GatewayValidation {
         //create custom provisionkey - explicitly
         oauthValue.setScopes(responseScopes);
         oauthValue.setProvisionKey(UUID.randomUUID().toString());
+        //If no OAuth token expiration has been set, use the default gateway value
+        if (oauthValue.getTokenExpiration() == null) {
+            try {
+                oauthValue.setTokenExpiration(query.getDefaultGateway().getOAuthExpTime());
+            }
+            catch (StorageException ex) {
+                throw ExceptionFactory.systemErrorException(ex);
+            }
+        }
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(oauthValue,KongPluginOAuth.class));

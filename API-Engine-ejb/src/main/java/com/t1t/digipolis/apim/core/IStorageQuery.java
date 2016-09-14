@@ -871,4 +871,12 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public ServiceBean getServiceByName(String name) throws StorageException;
+
+    /**
+     * Retrieve Managed Applications by Type
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public Set<ManagedApplicationBean> getManagedApplicationsByType(ManagedApplicationTypes type) throws StorageException;
 }

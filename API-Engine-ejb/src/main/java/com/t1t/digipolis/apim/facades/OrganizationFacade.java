@@ -510,8 +510,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired() && (bean.getTermsAgreed() == null || !bean.getTermsAgreed())) {
                 throw ExceptionFactory.termsAgreementException("Agreement to terms & conditions required for contract creation");
             }
-            //Check if service allows auto contract creation
-            if (!svb.getAutoAcceptContracts()) {
+            //Check if service allows auto contract creation or is an admin service
+            if (!svb.getAutoAcceptContracts() || svb.getService().isAdmin()) {
 
                 //Check if there is a pending contract request
                 if (query.getEventByOriginDestinationAndType(appId, svcId, EventType.CONTRACT_PENDING) != null) {
@@ -562,6 +562,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //Validate service and app version, and verify if request actually occurred
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         ServiceVersionBean svb = getServiceVersionInternal(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
+        if (svb.getService().isAdmin() && !securityContext.isAdmin()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
         if (svb.getTermsAgreementRequired() != null && svb.getTermsAgreementRequired()) {
             bean.setTermsAgreed(true);
         }
@@ -579,6 +582,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             //add OAuth2 consumer default to the application
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
+            //If the service is an admin service, the application version must be added as a custom managed app
+            if (contract.getService().getService().isAdmin()) {
+                ApplicationVersionBean avb = contract.getApplication();
+                Set<ManagedApplicationBean> mabs = query.getManagedApplicationsByType(ManagedApplicationTypes.Admin);
+                if (mabs != null && !mabs.isEmpty()) {
+                    for (ManagedApplicationBean mab : mabs) {
+                        mab.getApiKeys().add(contract.getApikey());
+                        storage.updateManagedApplication(mab);
+                    }
+                }
+            }
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             //for contract add keyauth to application consumer
             String serviceOrgId = contract.getService().getService().getOrganization().getId();
@@ -859,6 +873,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 ContractBean contract = null;
                 try {
                     contract = storage.getContract(contractSumBean.getContractId());
+                    if (contract.getService().getService().isAdmin()) {
+                        ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApikey());
+                        mab.getApiKeys().remove(contract.getApikey());
+                        storage.updateManagedApplication(mab);
+                    }
                     storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
                     storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
                     storage.deleteContract(contract);
@@ -1065,7 +1084,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     private PolicyBean scrubPolicy(PolicyBean policy) throws StorageException {
         //TODO - scrub the sensitive information out of policy configurations
-        boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
+        boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix());
 
         if (doFilter) {
             switch (Policies.valueOf(policy.getDefinition().getId().toUpperCase())) {
@@ -1146,6 +1165,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         }
                     }*/
                 log.debug("BEAN VISIBILITY UPDATED");
+            }
+            //Set auto accept to false no matter what when the service is an admin service
+            if (svb.getService().isAdmin()) {
+                bean.setAutoAcceptContracts(false);
             }
             if (AuditUtils.valueChanged(svb.getAutoAcceptContracts(), bean.getAutoAcceptContracts())) {
                 data.addChange("autoAcceptContracts", svb.getAutoAcceptContracts().toString(), bean.getAutoAcceptContracts().toString());
@@ -1271,6 +1294,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newService.setCategories(bean.getCategories());
         newService.setBase64logo(bean.getBase64logo());
         newService.setCreatedOn(new Date());
+        if (bean.isAdmin() && !securityContext.isAdmin()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        newService.setAdmin(bean.isAdmin());
         newService.setCreatedBy(securityContext.getCurrentUser());
         try {
             GatewaySummaryBean gateway = getSingularGateway();
@@ -1664,6 +1691,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             } catch (StorageException ex) {
                 throw new SystemErrorException(ex);
             }
+            //Revoke admin priviledges if contract was with an admin service
+            if (contract.getService().getService().isAdmin()) {
+                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApikey());
+                mab.getApiKeys().remove(contract.getApikey());
+                storage.updateManagedApplication(mab);
+            }
+
             //remove contract
             storage.deleteContract(contract);
 
@@ -2042,6 +2076,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     throw ExceptionFactory.serviceAlreadyExistsException(bean.getName());
                 }
                 serviceForUpdate.setName(bean.getName());
+            }
+            if (AuditUtils.valueChanged(serviceForUpdate.isAdmin(), bean.isAdmin())) {
+                auditData.addChange("admin", serviceForUpdate.isAdmin().toString(), bean.isAdmin().toString());
+                if (!securityContext.isAdmin()) {
+                    throw ExceptionFactory.notAuthorizedException();
+                }
+                serviceForUpdate.setAdmin(bean.isAdmin());
             }
             storage.updateService(serviceForUpdate);
             storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));
@@ -3100,7 +3141,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setModifiedOn(new Date());
         newVersion.setStatus(ServiceStatus.Created);
         newVersion.setService(service);
-        newVersion.setAutoAcceptContracts(true);
+        //If the service is designated as an admin service, do not enable auto contract acceptance
+        newVersion.setAutoAcceptContracts(!service.isAdmin());
         if (gateway != null) {
             if (newVersion.getGateways() == null) {
                 newVersion.setGateways(new HashSet<ServiceGatewayBean>());
@@ -3880,6 +3922,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         throw ExceptionFactory.invalidApplicationStatusException();
                     }
                 }
+                //Update managed app keys if any
+                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(revokedKey);
+                mab.getApiKeys().remove(revokedKey);
+                mab.getApiKeys().add(newApiKey);
+                storage.updateManagedApplication(mab);
+
                 EntityUpdatedData data = new EntityUpdatedData();
                 data.addChange("apikey", revokedKey, newApiKey);
                 query.updateApplicationVersionApiKey(avb, newApiKey);
@@ -4038,7 +4086,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private ServiceVersionBean filterServiceVersionByAppPrefix(ServiceVersionBean svb) {
         String prefix = appContext.getApplicationPrefix();
         try {
-            Set<String> publisherAndConsentPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher));
+            Set<String> publisherAndConsentPrefixes = query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin));
             Set<String> allowedPrefixes = new HashSet<>(publisherAndConsentPrefixes);
             svb.getVisibility().forEach(vis -> {
                 allowedPrefixes.add(vis.getCode());
@@ -4126,6 +4174,20 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         String[] split = splitUID(UID);
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
     }
+
+    /*private ManagedApplicationBean createManagedApplication(NewManagedApplicationBean newManagedApp) {
+        ManagedApplicationBean mab = new ManagedApplicationBean();
+        mab.setName(newManagedApp.getName());
+        mab.setActivated(newManagedApp.getActivated());
+        mab.setApiKey(newManagedApp.getApiKey());
+        mab.setAppId(newManagedApp.getAppId());
+        mab.setGatewayId(newManagedApp.getGatewayId());
+        mab.setGatewayUsername(newManagedApp.getGatewayUsername());
+
+        mab.setRestricted(newManagedApp.getRestricted());
+        mab.setType(newManagedApp.getType());
+        mab.setVersion(newManagedApp.getVersion());
+    }*/
 
     private String[] splitUID(String UID) {
         String[] split = UID.split("\\.");

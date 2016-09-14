@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.apps;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -18,7 +18,7 @@ import java.util.Set;
 @Entity
 @Table(name = "application_versions",
        uniqueConstraints = { @UniqueConstraint(columnNames = { "app_id", "app_org_id", "version" }) })
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApplicationVersionBean implements Serializable {
 
     private static final long serialVersionUID = -2218697175049442690L;

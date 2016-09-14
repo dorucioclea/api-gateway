@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.apps;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
  * Bean used when creating a new application version.
  *
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewApplicationVersionBean implements Serializable {
 
     private static final long serialVersionUID = 960818800225855945L;

@@ -562,6 +562,11 @@ public class ActionFacade {
             ContractBean contract = null;
             try {
                 contract = storage.getContract(contractSumBean.getContractId());
+                if (contract.getService().getService().isAdmin()) {
+                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApikey());
+                    mab.getApiKeys().remove(contract.getApikey());
+                    storage.updateManagedApplication(mab);
+                }
                 storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
                 storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
                 storage.deleteContract(contract);

@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.iprestriction;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,7 +13,7 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "black_ip_restriction")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BlacklistBean extends IPRestrictionBean implements Serializable{
     public BlacklistBean() {}
 

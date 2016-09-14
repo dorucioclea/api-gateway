@@ -1,14 +1,12 @@
 package com.t1t.digipolis.apim.beans.policies;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.summary.PolicyFormType;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * A Policy Definition describes a type of policy that can be added to
@@ -18,7 +16,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "policydefs")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PolicyDefinitionBean implements Serializable {
 
     private static final long serialVersionUID = 1801150127602136865L;

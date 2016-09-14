@@ -1,8 +1,8 @@
 package com.t1t.digipolis.apim.beans.plans;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -15,7 +15,7 @@ import java.util.Date;
 @Entity
 @Table(name = "plans")
 @IdClass(OrganizationBasedCompositeId.class)
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PlanBean implements Serializable {
 
     private static final long serialVersionUID = -7961331943587584049L;

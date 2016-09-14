@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.policies;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -15,7 +15,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "policies")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PolicyBean implements Serializable {
 
     private static final long serialVersionUID = -8534463608508756791L;

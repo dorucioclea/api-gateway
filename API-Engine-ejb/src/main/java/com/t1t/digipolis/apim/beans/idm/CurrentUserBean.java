@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.beans.idm;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Set;
 
 /**
@@ -7,6 +9,7 @@ import java.util.Set;
  * user bean but also includes all of the user's permissions.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CurrentUserBean extends UserBean {
 
     private static final long serialVersionUID = -5687453720494525865L;

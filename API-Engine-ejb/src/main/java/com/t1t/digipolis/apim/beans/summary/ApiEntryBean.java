@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.summary;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
@@ -10,7 +10,7 @@ import java.io.Serializable;
  *
  */
 @XmlRootElement(name = "api")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiEntryBean implements Serializable {
 
     private static final long serialVersionUID = -7578173174922025902L;
