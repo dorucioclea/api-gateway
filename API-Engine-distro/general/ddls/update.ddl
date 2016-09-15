@@ -537,3 +537,13 @@ UPDATE policydefs SET form = '{
   },
   "required": []
 }' WHERE id = 'HAL';
+
+ALTER TABLE policies ADD COLUMN enabled BOOL DEFAULT TRUE;
+
+CREATE TABLE gateway_policies AS SELECT policies.id AS policy_id, policies.gateway_id, policies.kong_plugin_id, policies.enabled FROM policies;
+ALTER TABLE policies DROP COLUMN gateway_id;
+ALTER TABLE policies DROP COLUMN kong_plugin_id;
+ALTER TABLE policies DROP COLUMN enabled;
+ALTER TABLE gateway_policies ADD CONSTRAINT FK_gateway_policies_1 FOREIGN KEY (gateway_id) REFERENCES policies(id) ON UPDATE CASCADE;
+ALTER TABLE gateway_policies ADD CONSTRAINT UK_gateway_policies_1 UNIQUE (gateway_id, kong_plugin_id);
+CREATE INDEX IDX_gateway_policies_1 ON gateway_policies(gateway_id);

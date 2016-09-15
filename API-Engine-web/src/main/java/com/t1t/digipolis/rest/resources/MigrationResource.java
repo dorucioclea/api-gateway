@@ -83,6 +83,16 @@ public class MigrationResource implements IMigrationResource {
         migrationFacade.issueJWT();
     }
 
+    @Override
+    @ApiOperation(value =  "Sync service policies with plugin ids",
+            notes = "Sync service policies with plugin ids")
+    @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
+    @POST
+    @Path("sync/service-policies")
+    public void updatePoliciesWithGatewayPluginIds() {
+        migrationFacade.updatePoliciesWithGatewayPluginIds();
+    }
+
     //Obsolete should not be used past version 0.8.0
 /*    @Override
     @ApiOperation(value =  "Split orgs by context",

@@ -1795,7 +1795,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(this.securityContext.getCurrentUser());
             storage.updatePolicy(policy);
-            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Application, securityContext));
+            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Application, null, securityContext));
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -2229,8 +2229,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public void updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) {
         // Make sure the service exists
-        ServiceStatus svs = getServiceVersionInternal(organizationId, serviceId, version).getStatus();
-        if (svs == ServiceStatus.Published || svs == ServiceStatus.Deprecated) {
+        ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
+        if (svb.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         try {
@@ -2238,15 +2238,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
-            // TODO capture specific change values when auditing policy updates
+            EntityUpdatedData data = new EntityUpdatedData();
+            //We do not audit policy data because it may contain sensitive information
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
                 policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration()), ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version)).getPolicyJsonConfig());
+            }
+            if (bean.isEnabled() != null && AuditUtils.valueChanged(policy.isEnabled(), bean.isEnabled())) {
+                policy.setEnabled(bean.isEnabled());
+                data.addChange("enabled", policy.isEnabled().toString(), bean.isEnabled().toString());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
             storage.updatePolicy(policy);
-            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Service, securityContext));
-
+            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Service, data, securityContext));
+            if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) {
+                for (ServiceGatewayBean svcGw : svb.getGateways()) {
+                    IGatewayLink gw = gatewayFacade.createGatewayLink(svcGw.getGatewayId());
+                    //gw.updateServicePlugin(null, null);
+                }
+            }
             log.debug(String.format("Updated service policy %s", policy)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
             throw e;
@@ -2571,7 +2581,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(this.securityContext.getCurrentUser());
             storage.updatePolicy(policy);
-            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Plan, securityContext));
+            storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Plan, null, securityContext));
             log.debug(String.format("Updated plan policy %s", policy)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
             throw e;
@@ -3053,6 +3063,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         try {
             PolicyBean policy = new PolicyBean();
+            //Enable the policy if the value hasn't been set
+            policy.setEnabled(bean.isEnabled() != null ? bean.isEnabled() : true);
             policy.setId(null);
             policy.setDefinition(def);
             policy.setName(def.getName());

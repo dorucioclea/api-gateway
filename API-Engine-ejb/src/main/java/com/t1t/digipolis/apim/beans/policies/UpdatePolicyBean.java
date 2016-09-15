@@ -11,6 +11,7 @@ public class UpdatePolicyBean implements Serializable {
     private static final long serialVersionUID = 1625082587625332040L;
 
     private String configuration;
+    private Boolean enabled;
 
     /**
      * Constructor.
@@ -32,13 +33,29 @@ public class UpdatePolicyBean implements Serializable {
         this.configuration = configuration;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
+    /**
+     * @return the value of enabled
      */
+    public Boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * @param enabled the value to set
+     */
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {
-        return "UpdatePolicyBean [configuration=***]";
+        return "UpdatePolicyBean{" +
+                "configuration='" + configuration + '\'' +
+                ", enabled=" + enabled +
+                '}';
     }
-
 }

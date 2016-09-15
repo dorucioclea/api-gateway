@@ -56,5 +56,10 @@ public interface IMigrationResource {
      * @throws AbstractRestException
      */
     public void issueJWT() throws AbstractRestException, StorageException;
+
+    /**
+     * Sync the gateway api plugin id's with corresponding service policies
+     */
+    public void updatePoliciesWithGatewayPluginIds();
 }
 
