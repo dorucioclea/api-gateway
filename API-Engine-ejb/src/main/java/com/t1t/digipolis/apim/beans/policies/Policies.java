@@ -46,9 +46,9 @@ public enum Policies {
     , SSL(KongPluginSSL.class,"ssl", "SSL")
     , ANALYTICS(KongPluginAnalytics.class,"galileo", "Galileo")
     , JWT(KongPluginJWT.class,"jwt", "JWT")
-    , JWTUP(KongPluginJWTUp.class,"jwt-up", "JWT-Up")
+    , JWTUP(KongPluginJWTUp.class,"jwt-up", "JWTUp")
     , ACL(KongPluginACL.class,"acl", "ACL")
-    , LDAPAUTHENTICATION(KongPluginLDAP.class, "ldap-auth", "LDAPAUTHENTICATION")
+    , LDAPAUTHENTICATION(KongPluginLDAP.class, "ldap-auth", "LDAPAuthentication")
     , JSONTHREATPROTECTION(KongPluginJsonThreatProtection.class,"json-threat-protection","JSONThreatProtection")
     , HAL(KongPluginEmptyConfig.class, "hal", "HAL");
 

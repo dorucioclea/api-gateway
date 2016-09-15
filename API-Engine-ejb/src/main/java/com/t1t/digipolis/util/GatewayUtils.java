@@ -47,6 +47,14 @@ public class GatewayUtils {
                 return Policies.JWT;
             case "acl":
                 return Policies.ACL;
+            case "hal":
+                return Policies.HAL;
+            case "jwt-up":
+                return Policies.JWTUP;
+            case "ldap-auth":
+                return Policies.LDAPAUTHENTICATION;
+            case "json-threat-protection":
+                return Policies.JSONTHREATPROTECTION;
             default:
                 throw ExceptionFactory.policyDefNotFoundException(pluginName);
         }
