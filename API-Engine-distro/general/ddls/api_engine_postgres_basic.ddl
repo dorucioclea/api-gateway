@@ -26,7 +26,7 @@ CREATE TABLE contracts (id BIGINT NOT NULL, apikey VARCHAR(255) NOT NULL, create
 
 CREATE TABLE endpoint_properties (service_version_id BIGINT NOT NULL, value VARCHAR(255) NULL, name VARCHAR(255) NOT NULL);
 
-CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, jwt_exp_time INT NULL DEFAULT 7200, oauth_exp_time INT NULL DEFAULT 7200, jwt_pub_key TEXT NULL DEFAULT '', jwt_pub_key_endpoint VARCHAR(255) NULL DEFAULT '');
+CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, jwt_exp_time INT NULL DEFAULT 7200, oauth_exp_time INT NULL DEFAULT 7200, jwt_pub_key TEXT NULL DEFAULT '', jwt_pub_key_endpoint VARCHAR(255) NULL DEFAULT '/keys/pub');
 
 CREATE TABLE memberships (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NULL, org_id VARCHAR(255) NULL, role_id VARCHAR(255) NULL, user_id VARCHAR(255) NULL);
 
@@ -40,7 +40,9 @@ CREATE TABLE black_ip_restriction (netw_value VARCHAR(255));
 
 CREATE TABLE defaults (id VARCHAR(255) NOT NULL, service_terms TEXT NULL);
 
-CREATE TABLE managed_applications (id BIGINT NOT NULL, name VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, gateway_id VARCHAR(255) NULL, app_id VARCHAR(255) NULL, type VARCHAR(255) NOT NULL, prefix VARCHAR(255) NOT NULL, gateway_username VARCHAR(255) NULL, api_key VARCHAR(255) NOT NULL, activated BOOLEAN DEFAULT TRUE, restricted BOOLEAN DEFAULT FALSE );
+CREATE TABLE managed_applications (id BIGINT NOT NULL, name VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, gateway_id VARCHAR(255) NULL, app_id VARCHAR(255) NULL, type VARCHAR(255) NOT NULL, prefix VARCHAR(255) NOT NULL, gateway_username VARCHAR(255) NULL, activated BOOLEAN DEFAULT TRUE, restricted BOOLEAN DEFAULT FALSE );
+
+CREATE TABLE managed_application_keys (managed_app_id BIGINT, api_key VARCHAR(255));
 
 CREATE TABLE plan_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, locked_on TIMESTAMP WITHOUT TIME ZONE NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, plan_id VARCHAR(255) NULL, plan_org_id VARCHAR(255) NULL);
 
@@ -52,7 +54,7 @@ CREATE TABLE policies (id BIGINT NOT NULL, configuration TEXT NULL, created_by V
 
 CREATE TABLE oauth_apps (id BIGINT NOT NULL, oauth_svc_orgid VARCHAR(255) NOT NULL, oauth_svc_id VARCHAR(255) NOT NULL,oauth_svc_version VARCHAR(255) NOT NULL,oauth_client_id VARCHAR(255) NOT NULL,oauth_client_secret VARCHAR(255) NOT NULL,oauth_client_redirect VARCHAR(255),app_id BIGINT NOT NULL);
 
-CREATE TABLE policydefs (id VARCHAR(255) NOT NULL, description VARCHAR(512) NOT NULL, form VARCHAR(4096) NULL, form_type VARCHAR(255) NULL, icon VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plugin_id BIGINT NULL, scope_service BOOL, scope_plan BOOL, scope_auto BOOL);
+CREATE TABLE policydefs (id VARCHAR(255) NOT NULL, description VARCHAR(512) NOT NULL, form VARCHAR(4096) NULL, form_override VARCHAR(4096) DEFAULT NULL, form_type VARCHAR(255) NULL, icon VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plugin_id BIGINT NULL, scope_service BOOL, scope_plan BOOL, scope_auto BOOL);
 
 CREATE TABLE roles (id VARCHAR(255) NOT NULL, auto_grant BOOLEAN NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, name VARCHAR(255) NULL);
 
@@ -146,43 +148,45 @@ ALTER TABLE managed_applications ADD PRIMARY KEY (id);
 
 ALTER TABLE key_mapping ADD CONSTRAINT pkkey_mapping PRIMARY KEY (from_spec_type, to_spec_type, from_spec_claim);
 
-ALTER TABLE services ADD CONSTRAINT FK_31hj3xmhp1wedxjh5bklnlg15 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
+ALTER TABLE services ADD CONSTRAINT FK_services_1 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 
-ALTER TABLE contracts ADD CONSTRAINT FK_6h06sgs4dudh1wehmk0us973g FOREIGN KEY (appv_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
+ALTER TABLE contracts ADD CONSTRAINT FK_contracts_1 FOREIGN KEY (appv_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE service_defs ADD CONSTRAINT FK_81fuw1n8afmvpw4buk7l4tyxk FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE contracts ADD CONSTRAINT FK_contracts_2 FOREIGN KEY (svcv_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE application_versions ADD CONSTRAINT FK_8epnoby31bt7xakegakigpikp FOREIGN KEY (app_id, app_org_id) REFERENCES applications (id, organization_id) ON UPDATE CASCADE;
+ALTER TABLE contracts ADD CONSTRAINT FK_contracts_3 FOREIGN KEY (planv_id) REFERENCES plan_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE contracts ADD CONSTRAINT FK_8o6t1f3kg96rxy5uv51f6k9fy FOREIGN KEY (svcv_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE service_defs ADD CONSTRAINT FK_service_defs_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE service_versions ADD CONSTRAINT FK_92erjg9k1lni97gd87nt6tq37 FOREIGN KEY (service_id, service_org_id) REFERENCES services (id, organization_id) ON UPDATE CASCADE;
+ALTER TABLE application_versions ADD CONSTRAINT FK_application_versions_1 FOREIGN KEY (app_id, app_org_id) REFERENCES applications (id, organization_id) ON UPDATE CASCADE;
 
-ALTER TABLE endpoint_properties ADD CONSTRAINT FK_gn0ydqur10sxuvpyw2jvv4xxb FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE service_versions ADD CONSTRAINT FK_service_versions_1 FOREIGN KEY (service_id, service_org_id) REFERENCES services (id, organization_id) ON UPDATE CASCADE;
 
-ALTER TABLE applications ADD CONSTRAINT FK_jenpu34rtuncsgvtw0sfo8qq9 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
+ALTER TABLE endpoint_properties ADD CONSTRAINT FK_endpoint_properties_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE policies ADD CONSTRAINT FK_l4q6we1bos1yl9unmogei6aja FOREIGN KEY (definition_id) REFERENCES policydefs (id) ON UPDATE CASCADE;
+ALTER TABLE applications ADD CONSTRAINT FK_applications_1 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 
-ALTER TABLE oauth_apps ADD CONSTRAINT FK_l5q6we1bos1yl98nmogei7aja FOREIGN KEY (app_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
+ALTER TABLE policies ADD CONSTRAINT FK_policies_1 FOREIGN KEY (definition_id) REFERENCES policydefs (id) ON UPDATE CASCADE;
 
-ALTER TABLE plans ADD CONSTRAINT FK_lwhc7xrdbsun1ak2uvfu0prj8 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
+ALTER TABLE oauth_apps ADD CONSTRAINT FK_oauth_apps_1 FOREIGN KEY (app_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE contracts ADD CONSTRAINT FK_nyw8xu6m8cx4rwwbtrxbjneui FOREIGN KEY (planv_id) REFERENCES plan_versions (id) ON UPDATE CASCADE;
+ALTER TABLE plans ADD CONSTRAINT FK_plans_1 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 
-ALTER TABLE svc_gateways ADD CONSTRAINT FK_p5dm3cngljt6yrsnvc7uc6a75 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE svc_gateways ADD CONSTRAINT FK_svc_gateways_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE permissions ADD CONSTRAINT FK_sq51ihfrapwdr98uufenhcocg FOREIGN KEY (role_id) REFERENCES roles (id) ON UPDATE CASCADE;
+ALTER TABLE permissions ADD CONSTRAINT FK_permissions_1 FOREIGN KEY (role_id) REFERENCES roles (id) ON UPDATE CASCADE;
 
-ALTER TABLE svc_plans ADD CONSTRAINT FK_t7uvfcsswopb9kh8wpa86blqr FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE svc_plans ADD CONSTRAINT FK_svc_plans_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
+ALTER TABLE svc_visibility ADD CONSTRAINT FK_svc_version_visibility_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 
-ALTER TABLE plan_versions ADD CONSTRAINT FK_tonylvm2ypnq3efxqr1g0m9fs FOREIGN KEY (plan_id, plan_org_id) REFERENCES plans (id, organization_id) ON UPDATE CASCADE;
+ALTER TABLE plan_versions ADD CONSTRAINT FK_plan_versions_1 FOREIGN KEY (plan_id, plan_org_id) REFERENCES plans (id, organization_id) ON UPDATE CASCADE;
 
-ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id) ON UPDATE CASCADE;
+ALTER TABLE followers ADD CONSTRAINT FK_followers_1 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id) ON UPDATE CASCADE;
 
 ALTER TABLE app_oauth_redirect_uris ADD CONSTRAINT FK_app_oauth_redirect_uris_1 FOREIGN KEY (application_version_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
+
+ALTER TABLE managed_application_keys ADD CONSTRAINT FK_managed_app_keys_1 FOREIGN KEY (managed_app_id) REFERENCES managed_applications(id) ON UPDATE CASCADE;
 
 ALTER TABLE managed_applications ADD CONSTRAINT UK_managedapp_1 UNIQUE (prefix);
 
@@ -203,6 +207,8 @@ ALTER TABLE contracts ADD CONSTRAINT UK_contracts_1 UNIQUE (appv_id, svcv_id, pl
 ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
 
 ALTER TABLE events ADD CONSTRAINT UK_events_1 UNIQUE (origin_id, destination_id, type);
+
+ALTER TABLE managed_application_keys ADD CONSTRAINT UK_managed_app_keys_1 UNIQUE (managed_app_id, api_key);
 
 ALTER TABLE app_oauth_redirect_uris ADD CONSTRAINT UK_app_oauth_redirect_uris UNIQUE (application_version_id, oauth_client_redirect);
 
@@ -256,11 +262,13 @@ CREATE INDEX IDX_app_oauth_redirect_uris_1 ON app_oauth_redirect_uris(applicatio
 
 CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organization_id VARCHAR(255) NOT NULL,category VARCHAR(255),FOREIGN KEY (ServiceBean_id, ServiceBean_organization_id) REFERENCES services (id, organization_id));
 
-CREATE INDEX FK_huasdtal54l0isoauy6mrtmpx ON categories (ServiceBean_id, ServiceBean_organization_id);
+CREATE INDEX IDX_categories_1 ON categories (ServiceBean_id, ServiceBean_organization_id);
 
 CREATE TABLE oauth_scopes(ServiceVersionBean_id BIGINT NOT NULL, oauth_scopes VARCHAR(255), oauth_scopes_desc VARCHAR(255) ,FOREIGN KEY (ServiceVersionBean_id) REFERENCES service_versions (id));
 
-CREATE INDEX FK_uhasdtal55l0isoauy6mrtmpx ON oauth_scopes (ServiceVersionBean_id);
+CREATE INDEX IDX_oauth_scopes_1 ON oauth_scopes (ServiceVersionBean_id);
+
+CREATE INDEX idx_managed_app_keys_1 ON managed_application_keys (managed_app_id);
 
 
 -- DATA POPULAT... *** SQLINES FOR EVALUATION USE ONLY *** 
@@ -450,7 +458,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
         "type": "array",
         "items":{
                "type": "string",
-               "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$",
+               "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
                 "description": "List of IPs or CIDR ranges to blacklist. You cannot set blacklist values if you have already whitelist values specified!",
                 "validationMessage":"IP or CIDR required"
         }
@@ -459,7 +467,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
         "type": "array",
         "items":{
             "type": "string",
-            "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$",
+            "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
             "description": "List of IPs or CIDR ranges to whitelist. You cannot set whitelist values if you have already blacklist values specified.",
             "validationMessage":"IP or CIDR required"
         }
@@ -467,7 +475,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   }
 }', 'JsonSchema', 'fa-table', 'IP Restriction Policy', NULL ,TRUE ,TRUE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('OAuth2', 'Add an OAuth2 Authentication to your APIs', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto, form_override) VALUES ('OAuth2', 'Add an OAuth2 Authentication to your APIs', '{
   "type": "object",
   "title": "OAuth2",
   "properties": {
@@ -500,9 +508,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "token_expiration": {
       "title": "Token expiration",
       "type": "number",
-      "default": 7200,
-      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration.",
-      "minimum": 0
+      "minimum": 0,
+      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration."
     },
     "enable_authorization_code": {
       "title": "Enable Authorization Code Grant",
@@ -529,7 +536,19 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by Kong before proxying the request."
     }
   }
-}', 'JsonSchema', 'fa-sign-in', 'OAuth2 Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-sign-in', 'OAuth2 Policy', NULL ,TRUE ,FALSE ,FALSE, '[
+  "scopes",
+  "mandatory_scope",
+  "token_expiration",
+  "enable_authorization_code",
+  "enable_implicit_grant",
+  {
+    "type":"help",
+    "helpvalue":"<p class=\"text-justified text-warning xsmall\">WARNING: The Implicit Grant flow is necessary for try-out functionality in the marketplace, but also prohibits the usage of refresh tokens.</p>"
+  },
+  "enable_client_credentials",
+  "hide_credentials"
+]');
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RateLimiting', 'Rate-limit how many HTTP requests a consumer can make', '{
   "type": "object",
@@ -833,14 +852,18 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT', 'Enable the service to accept and validate Json Web Tokens towards the upstream API.', '{
   "type": "object",
   "title": "JWT Token",
-  "properties": {},
+  "properties": {
+    "placeholder" :{}
+  },
   "required": []
 }', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWTUp', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
   "type": "object",
   "title": "JWT-Upstream",
-  "properties": {},
+  "properties": {
+    "placeholder" :{}
+  },
   "required": []
 }', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', NULL ,TRUE ,FALSE ,FALSE );
 
@@ -976,8 +999,10 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('HAL', 'The HAL policy rewrites currie-values from hal/json bodies.', '{
   "type": "object",
-  "title": "HAL",
-  "properties": {},
+  "title": "HAL Authentication",
+  "properties": {
+    "placeholder" :{}
+  },
   "required": []
 }', 'JsonSchema', 'fa-paw', 'HAL Policy', NULL ,TRUE ,FALSE ,FALSE );
 

@@ -509,3 +509,31 @@ UPDATE policydefs SET form_override = '[
   "enable_client_credentials",
   "hide_credentials"
 ]' WHERE id = 'OAuth2';
+
+-- Fix for previous policy schemas persisting in view when current schema has empty properties
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "JWT-Upstream",
+  "properties": {
+    "placeholder" :{}
+  },
+  "required": []
+}' WHERE id = 'JWTUp';
+
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "JWT Token",
+  "properties": {
+    "placeholder" :{}
+  },
+  "required": []
+}' WHERE id = 'JWT';
+
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "HAL Authentication",
+  "properties": {
+    "placeholder" :{}
+  },
+  "required": []
+}' WHERE id = 'HAL';
