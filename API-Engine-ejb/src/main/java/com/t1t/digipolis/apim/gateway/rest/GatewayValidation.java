@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
@@ -41,6 +42,8 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.t1t.digipolis.apim.beans.policies.Policies.LDAPAUTHENTICATION;
+
 /**
  * Created by michallispashidis on 30/09/15.
  */
@@ -61,7 +64,7 @@ public class GatewayValidation {
         }
     }
 
-   public Policy validate(Policy policy, String... optionalPrefixId) throws PolicyViolationException, StorageException {
+   public Policy validate(Policy policy, PolicyType type, String... optionalPrefixId) throws PolicyViolationException, StorageException {
         _LOG.debug("Valdiate policy:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
@@ -86,7 +89,9 @@ public class GatewayValidation {
             case ANALYTICS: return validateAnalytics(policy);
             case JWT: return validateJWT(policy);
             case JWTUP: return validateJWTUp(policy);
-            case ACL: return validateACL(policy);
+            case ACL:
+                if (type == PolicyType.Contract) return validateACL(policy);
+                if (type == PolicyType.Service) return validateServiceACL(policy);
             case LDAPAUTHENTICATION: return validateLDAP(policy);
             case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
             case HAL: return policy;
@@ -94,8 +99,18 @@ public class GatewayValidation {
         }
     }
 
+    private Policy validateServiceACL(Policy policy) {
+        Gson gson = new Gson();
+        KongPluginACL config = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginACL.class);
+        if (config.getWhitelist().isEmpty() && config.getBlacklist().isEmpty()) {
+            throw ExceptionFactory.invalidPolicyException("ACL Policy needs at least one group name in either whitelist or blacklist");
+        }
+        return policy;
+    }
+
     private Policy validateACL(Policy policy) {
         Gson gson = new Gson();
+
         String group = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginACLResponse.class).getGroup();
         Policy pol = new Policy();
         pol.setPolicyImpl(policy.getPolicyImpl());

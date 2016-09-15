@@ -914,6 +914,7 @@ public class MigrationFacade {
                                         npb.setConfiguration(polConfig.replace(":{}", ":[]"));
                                         try {
                                             orgFacade.doCreatePolicy(entry.getKey().getService().getOrganization().getId(), entry.getKey().getService().getId(), entry.getKey().getVersion(), npb, PolicyType.Service);
+                                            _LOG.info("plugin created for:{}", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()), policyDefId);
                                         }
                                         catch (Exception ex) {
                                             _LOG.info("creating new policy for plugin failed:{}", plugin);

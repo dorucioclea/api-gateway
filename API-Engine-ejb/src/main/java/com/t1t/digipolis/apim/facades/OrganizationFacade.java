@@ -392,7 +392,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getAppPolicy(organizationId, applicationId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration())).getPolicyJsonConfig());
+                    npb.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()), PolicyType.Application).getPolicyJsonConfig());
                     createAppPolicy(organizationId, applicationId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -1394,7 +1394,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getServicePolicyInternal(organizationId, serviceId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()), ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, bean.getCloneVersion())).getPolicyJsonConfig());
+                    npb.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()), PolicyType.Service, ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, bean.getCloneVersion())).getPolicyJsonConfig());
                     createServicePolicy(organizationId, serviceId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -1790,7 +1790,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration())).getPolicyJsonConfig());
+                policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()), PolicyType.Application).getPolicyJsonConfig());
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(this.securityContext.getCurrentUser());
@@ -2241,7 +2241,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             EntityUpdatedData data = new EntityUpdatedData();
             //We do not audit policy data because it may contain sensitive information
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
-                policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration()), ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version)).getPolicyJsonConfig());
+                policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration()), PolicyType.Service, ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version)).getPolicyJsonConfig());
             }
             if (bean.isEnabled() != null && AuditUtils.valueChanged(policy.isEnabled(), bean.isEnabled())) {
                 policy.setEnabled(bean.isEnabled());
@@ -2515,7 +2515,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     PolicyBean policy = getPlanPolicy(organizationId, planId, bean.getCloneVersion(), policySummary.getId());
                     NewPolicyBean npb = new NewPolicyBean();
                     npb.setDefinitionId(policy.getDefinition().getId());
-                    npb.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration())).getPolicyJsonConfig());
+                    npb.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), policy.getConfiguration()), PolicyType.Plan).getPolicyJsonConfig());
                     createPlanPolicy(organizationId, planId, newVersion.getVersion(), npb);
                 }
             } catch (Exception e) {
@@ -2575,7 +2575,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
 
-                policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration())).getPolicyJsonConfig());
+                policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration()), PolicyType.Plan).getPolicyJsonConfig());
                 // Note: we do not audit the policy configuration since it may have sensitive data
             }
             policy.setModifiedOn(new Date());
@@ -3069,7 +3069,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setDefinition(def);
             policy.setName(def.getName());
             //validate (remove null values) and apply custom implementation for the policy
-            String policyJsonConfig = gatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration()), ServiceConventionUtil.generateServiceUniqueName(organizationId, entityId, entityVersion)).getPolicyJsonConfig();
+            String policyJsonConfig = gatewayValidation.validate(new Policy(def.getId(), bean.getConfiguration()), type, ServiceConventionUtil.generateServiceUniqueName(organizationId, entityId, entityVersion)).getPolicyJsonConfig();
             policy.setConfiguration(policyJsonConfig);
             policy.setCreatedBy(securityContext.getCurrentUser());
             policy.setCreatedOn(new Date());

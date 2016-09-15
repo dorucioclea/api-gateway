@@ -306,7 +306,7 @@ public class OrganizationFacadeTest {
         when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(avb);
         when(storage.getPolicyDefinition(anyString())).thenReturn(pdb);
         when(securityContext.getCurrentUser()).thenReturn("admin");
-        when(gatewayValidation.validate(anyObject())).thenReturn(new Policy("somepolicy","{}"));
+        when(gatewayValidation.validate(anyObject(),PolicyType.Application)).thenReturn(new Policy("somepolicy","{}"));
         orgFacade.createAppPolicy("someorg", "someapp", "someversion", npb);
         verify(storage).createPolicy(anyObject());
         verify(storage).createAuditEntry(anyObject());
@@ -530,8 +530,8 @@ public class OrganizationFacadeTest {
         planVersionBean.setStatus(PlanStatus.Created);
         when(Policies.valueOf(anyString())).thenReturn(Policies.BASICAUTHENTICATION);
         when(gValidation.validateBasicAuth(anyObject())).thenReturn(new Policy());
-        when(gValidation.validate(anyObject())).thenReturn(new Policy());
-        when(gValidation.validate(anyObject())).thenReturn(new Policy());
+        when(gValidation.validate(anyObject(), PolicyType.Plan)).thenReturn(new Policy());
+        when(gValidation.validate(anyObject(),PolicyType.Plan)).thenReturn(new Policy());
         when(query.getMaxPolicyOrderIndex(anyString(), anyString(), anyString(), anyObject())).thenReturn(0);
         when(storage.getPlanVersion(anyString(), anyString(), anyString())).thenReturn(new PlanVersionBean());
         when(storage.getPolicyDefinition(anyString())).thenReturn(new PolicyDefinitionBean());
