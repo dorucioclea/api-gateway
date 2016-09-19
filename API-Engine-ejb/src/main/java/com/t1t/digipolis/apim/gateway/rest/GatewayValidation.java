@@ -42,6 +42,7 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.t1t.digipolis.apim.beans.policies.Policies.JSONTHREATPROTECTION;
 import static com.t1t.digipolis.apim.beans.policies.Policies.LDAPAUTHENTICATION;
 
 /**
@@ -65,7 +66,6 @@ public class GatewayValidation {
     }
 
    public Policy validate(Policy policy, PolicyType type, String... optionalPrefixId) throws PolicyViolationException, StorageException {
-        _LOG.debug("Valdiate policy:{}", policy);
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
         switch(policies){
@@ -90,8 +90,10 @@ public class GatewayValidation {
             case JWT: return validateJWT(policy);
             case JWTUP: return validateJWTUp(policy);
             case ACL:
-                if (type == PolicyType.Contract) return validateACL(policy);
                 if (type == PolicyType.Service) return validateServiceACL(policy);
+                else {
+                    return validateACL(policy);
+                }
             case LDAPAUTHENTICATION: return validateLDAP(policy);
             case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
             case HAL: return policy;
@@ -432,6 +434,7 @@ public class GatewayValidation {
     }
 
     public synchronized Policy validateLDAP(Policy policy) {
+        _LOG.info("ldap policy to validate:{}", policy);
         KongPluginLDAP req = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginLDAP.class);
         if (StringUtils.isEmpty(req.getLdapHost()) || StringUtils.isEmpty(req.getBaseDn())) {
             throw new PolicyViolationException("Form was not correctly filled in.");

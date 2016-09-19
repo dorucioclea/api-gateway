@@ -42,6 +42,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -265,11 +266,11 @@ public class RestGatewayLink implements IGatewayLink {
      * @see IGatewayLink#publishService(Service)
      */
     @Override
-    public void publishService(Service service) throws PublishingException, GatewayAuthenticationException {
+    public Service publishService(Service service) throws PublishingException, GatewayAuthenticationException {
         if (!isGatewayUp()) {
             throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
         }
-        getClient().publish(service);
+        return getClient().publish(service);
     }
 
     @Override
@@ -438,5 +439,10 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void deleteConsumerJwtCredential(String consumerId, String credentialId) {
         getClient().deleteConsumerJwtCredential(consumerId, credentialId);
+    }
+
+    @Override
+    public KongPluginConfig getPlugin(String pluginId) {
+        return getClient().getPlugin(pluginId);
     }
 }

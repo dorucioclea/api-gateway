@@ -1062,7 +1062,9 @@ public class OrganizationResource implements IOrganizationResource {
         return servicePlugins;
     }
 
-    @ApiOperation(value = "Enable Service Plugins",
+    //Enabling and disabling plugins is now done through the update service policy endpoint
+
+    /*@ApiOperation(value = "Enable Service Plugins",
                   notes = "Use this endpoint to enable an existing plugin for a service.")
     @ApiResponses({@ApiResponse(code = 200, response = KongPluginConfig.class, message = "Enabled plugin for a service.")})
     @POST
@@ -1092,7 +1094,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(pluginId));
         KongPluginConfig servicePlugin = orgFacade.changeEnabledStateServicePlugin(organizationId, serviceId, version, pluginId,false);
         return servicePlugin;
-    }
+    }*/
 
     @ApiOperation(value = "Get Service Version Activity",
             notes = "Use this endpoint to get audit activity information for a single version of the Service.")

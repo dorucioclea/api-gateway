@@ -1034,7 +1034,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public PolicyBean createServicePolicy(String organizationId, String serviceId, String version, NewPolicyBean bean) {
         // Make sure the service exists
         ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
-        if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Retired || svb.getStatus() == ServiceStatus.Deprecated) {
+        if (svb.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         //validate no other policy of the same type has been added for this service - only on policy of the same type is allowed
@@ -1044,7 +1044,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new PolicyDefinitionAlreadyExistsException("The policy already exists for the service: " + bean.getDefinitionId());
         }
         log.debug(String.format("Created service policy %s", svb)); //$NON-NLS-1$
-        return doCreatePolicy(organizationId, serviceId, version, bean, PolicyType.Service);
+        PolicyBean policy = doCreatePolicy(organizationId, serviceId, version, bean, PolicyType.Service);
+        if (svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) {
+            IGatewayLink gw = gatewayFacade.createGatewayLink(policy.getGatewayId());
+            gw.updateServicePlugin(ServiceConventionUtil.generateServiceUniqueName(svb), new Gson)
+        }
+        return policy;
     }
 
     public ServiceVersionBean getServiceVersionInternal(String organizationId, String serviceId, String version) {
@@ -2168,7 +2173,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public KongPluginConfig changeEnabledStateServicePlugin(String organizationId, String serviceId, String version, String pluginId, boolean enable) {
+    //Superfluous now that enabling and disabling service are done through the updateservice method
+
+    /*public KongPluginConfig changeEnabledStateServicePlugin(String organizationId, String serviceId, String version, String pluginId, boolean enable) {
         String serviceKongId = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
         try {
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
@@ -2186,7 +2193,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
-    }
+    }*/
 
     public SearchResultsBean<AuditEntryBean> getServiceVersionActivity(String organizationId, String serviceId, String version, int page, int pageSize) {
         if (page <= 1) {
@@ -2238,25 +2245,40 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
             }
+            KongPluginConfig plugin = null;
+            IGatewayLink gw = null;
+            if ((svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated)
+                    && !StringUtils.isEmpty(policy.getKongPluginId()) && !StringUtils.isEmpty(policy.getGatewayId())) {
+                gw = gatewayFacade.createGatewayLink(policy.getGatewayId());
+                plugin = gw.getPlugin(policy.getKongPluginId());
+            }
             EntityUpdatedData data = new EntityUpdatedData();
             //We do not audit policy data because it may contain sensitive information
             if (AuditUtils.valueChanged(policy.getConfiguration(), bean.getConfiguration())) {
+                log.info("policy old_config:{}", policy.getConfiguration());
                 policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration()), PolicyType.Service, ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version)).getPolicyJsonConfig());
+                if (plugin != null) {
+                    log.info("policy new_config:{}", bean.getConfiguration());
+                    log.info("policy val_config:{}", policy.getConfiguration());
+                    log.info("plugin old_config:{}", plugin.getConfig());
+                    plugin.setConfig(new Gson().fromJson(policy.getConfiguration(), Policies.valueOf(policy.getDefinition().getId().toUpperCase()).getClazz()));
+                    log.info("plugin new_config:{}", plugin.getConfig());
+                }
             }
             if (bean.isEnabled() != null && AuditUtils.valueChanged(policy.isEnabled(), bean.isEnabled())) {
                 policy.setEnabled(bean.isEnabled());
                 data.addChange("enabled", policy.isEnabled().toString(), bean.isEnabled().toString());
+                if (plugin != null) {
+                    plugin.setEnabled(bean.isEnabled());
+                }
+            }
+            if (plugin != null && gw != null && !data.getChanges().isEmpty()) {
+                gw.updateServicePlugin(ServiceConventionUtil.generateServiceUniqueName(svb), plugin);
             }
             policy.setModifiedOn(new Date());
             policy.setModifiedBy(securityContext.getCurrentUser());
             storage.updatePolicy(policy);
             storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Service, data, securityContext));
-            if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) {
-                for (ServiceGatewayBean svcGw : svb.getGateways()) {
-                    IGatewayLink gw = gatewayFacade.createGatewayLink(svcGw.getGatewayId());
-                    //gw.updateServicePlugin(null, null);
-                }
-            }
             log.debug(String.format("Updated service policy %s", policy)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
             throw e;
@@ -3082,7 +3104,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setOrderIndex(newIdx);
             policy.setKongPluginId(bean.getKongPluginId());
             policy.setContractId(bean.getContractId());
-            policy.setGatewayId(bean.getGatewayId());
+            policy.setGatewayId(bean.getGatewayId() == null ? null : gatewayFacade.get(bean.getGatewayId()).getId());
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
             //PolicyTemplateUtil.generatePolicyDescription(policy);

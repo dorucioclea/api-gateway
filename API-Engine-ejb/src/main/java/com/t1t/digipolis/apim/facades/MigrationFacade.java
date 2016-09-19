@@ -901,7 +901,7 @@ public class MigrationFacade {
                                         .collect(Collectors.toList());
                                 if (pol.size() != 1) {
                                     if (pol.size() != 0) {
-                                        _LOG.info("Syncing for plugin failed, multiple or no possible policies:{}", plugin);
+                                        _LOG.warn("Syncing for plugin failed, multiple or no possible policies:{}", plugin);
                                     }
                                     else {
                                         NewPolicyBean npb = new NewPolicyBean();
@@ -910,14 +910,14 @@ public class MigrationFacade {
                                         npb.setDefinitionId(policyDefId);
                                         npb.setEnabled(plugin.getEnabled());
                                         String polConfig = new Gson().toJson(plugin.getConfig());
-                                        _LOG.warn("polConfig:{}", polConfig);
+                                        _LOG.debug("policy configuration:{}", polConfig);
                                         npb.setConfiguration(polConfig.replace(":{}", ":[]"));
                                         try {
                                             orgFacade.doCreatePolicy(entry.getKey().getService().getOrganization().getId(), entry.getKey().getService().getId(), entry.getKey().getVersion(), npb, PolicyType.Service);
-                                            _LOG.info("plugin created for:{}", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()), policyDefId);
+                                            _LOG.info("policy created for plugin:{}", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()), policyDefId);
                                         }
                                         catch (Exception ex) {
-                                            _LOG.info("creating new policy for plugin failed:{}", plugin);
+                                            _LOG.warn("creating new policy for plugin failed:{}", plugin);
                                         }
                                     }
                                 }
@@ -925,7 +925,14 @@ public class MigrationFacade {
                                     PolicyBean p = pol.get(0);
                                     if (!StringUtils.isEmpty(p.getKongPluginId())) {
                                         if (!p.getKongPluginId().equals(plugin.getId())) {
-                                            _LOG.info("policy plugin id not saved, already existing id doesn't match new one:{}", p.getKongPluginId(), plugin.getId());
+                                            if (gw.getPlugin(p.getKongPluginId()) == null) {
+                                                p.setKongPluginId(plugin.getId());
+                                                storage.updatePolicy(p);
+                                                _LOG.info("plugin id was outdated, now updated:{}", p.getEntityId(), p.getKongPluginId());
+                                            }
+                                            else {
+                                                _LOG.warn("policy plugin id not saved, already existing id doesn't match new one:{}", p.getKongPluginId(), plugin.getId());
+                                            }
                                         }
                                         else {
                                             _LOG.info("syncing not necessary");
