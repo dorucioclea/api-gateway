@@ -480,4 +480,14 @@ public interface IGatewayLink {
      * @return
      */
     public KongPluginConfig getPlugin(String pluginId);
+
+    /**
+     * Creates a service policy/plugin on the gateway
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @param policy
+     * @return
+     */
+    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy);
 }

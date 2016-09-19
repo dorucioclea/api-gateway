@@ -419,6 +419,8 @@ public class GatewayClient {
         return httpClient.addApi(api);
     }
 
+
+
     /**
      * Publishes an API to the kong gateway.
      * The properties path and target_url are variable, and will be retrieved from the service dto.
@@ -476,92 +478,35 @@ public class GatewayClient {
                 List<Policy> policyList = service.getServicePolicies();
                 for(Policy policy:policyList){
                     //execute policy
-                    Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
-                    KongPluginConfig plugin = null;
-                    switch(policies){
+                    Policies type = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
+                    createServicePolicy(service.getOrganizationId(), service.getServiceId(), service.getVersion(), policy);
+                    switch(type) {
                         //all policies can be available here
-                        case BASICAUTHENTICATION:
-                            plugin = createServicePolicy(api, policy, Policies.BASICAUTHENTICATION.getKongIdentifier(), Policies.BASICAUTHENTICATION.getClazz());
-                            break;
                         case CORS:
-                            plugin = createCorsServicePolicy(api, policy);
                             customCorsFlag=true;
                             break;
-                        case FILELOG:
-                            plugin = createServicePolicy(api, policy, Policies.FILELOG.getKongIdentifier(), Policies.FILELOG.getClazz());
-                            break;
                         case HTTPLOG:
-                            plugin = createServicePolicy(api,policy, Policies.HTTPLOG.getKongIdentifier(), Policies.HTTPLOG.getClazz());
                             customHttp=true;
                             break;
-                        case UDPLOG:
-                            plugin = createServicePolicy(api, policy, Policies.UDPLOG.getKongIdentifier(), Policies.UDPLOG.getClazz());
-                            break;
-                        case TCPLOG:
-                            plugin = createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(), Policies.TCPLOG.getClazz());
-                            break;
-                        case IPRESTRICTION:
-                            plugin = createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(), Policies.IPRESTRICTION.getClazz());
-                            break;
                         case KEYAUTHENTICATION:
-                            plugin = createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(), Policies.KEYAUTHENTICATION.getClazz());
                             customKeyAuth=true;
                             break;
                         //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
                         case OAUTH2:
-                            plugin = createServicePolicy(api, validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
-                            log.info("start post oauth2 actions");
-                            flagOauth2=true;
                             //upon transformation we use another enhanced object for json deserialization
-                            postOAuth2Actions(service, policy, plugin, api);
-                            break;
-                        case RATELIMITING:
-                            plugin = createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(), Policies.RATELIMITING.getClazz());
+                            flagOauth2=true;
                             break;
                         case JWTUP:
-                            plugin = createServicePolicy(api, policy, Policies.JWTUP.getKongIdentifier(), Policies.JWTUP.getClazz());
-                            flagJWT=true;
-                            break;
-                        case JWT:
-                            //skip JWT if JWT-UP is applied
-                            if (!flagJWT) {
-                                plugin = createServicePolicy(api, policy, Policies.JWT.getKongIdentifier(), Policies.JWT.getClazz());
-                            }
-                            break;
-                        case REQUESTSIZELIMITING:
-                            plugin = createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(), Policies.REQUESTSIZELIMITING.getClazz());
-                            break;
-                        case REQUESTTRANSFORMER:
-                            plugin = createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(), Policies.REQUESTTRANSFORMER.getClazz());
-                            break;
-                        case RESPONSETRANSFORMER:
-                            plugin = createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(), Policies.RESPONSETRANSFORMER.getClazz());
-                            break;
-                        case SSL:
-                            plugin = createServicePolicy(api, policy, Policies.SSL.getKongIdentifier(), Policies.SSL.getClazz());
+                            //flagJWT=true;
                             break;
                         case ANALYTICS:
-                            plugin = createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(), Policies.ANALYTICS.getClazz());
                             customAnalytics=true;
                             break;
                         case ACL:
-                            plugin = createServicePolicy(api, policy, Policies.ACL.getKongIdentifier(), Policies.ACL.getClazz());
                             customAclflag = true;
-                            break;
-                        case JSONTHREATPROTECTION:
-                            plugin = createServicePolicy(api, policy, Policies.JSONTHREATPROTECTION.getKongIdentifier(), Policies.JSONTHREATPROTECTION.getClazz());
-                            break;
-                        case LDAPAUTHENTICATION:
-                            plugin = createServicePolicy(api, policy, Policies.LDAPAUTHENTICATION.getKongIdentifier(), Policies.LDAPAUTHENTICATION.getClazz());
-                            break;
-                        case HAL:
-                            plugin = createServicePolicy(api, policy, Policies.HAL.getKongIdentifier(), Policies.HAL.getClazz());
                             break;
                         default:
                             break;
-                    }
-                    if (plugin != null && !StringUtils.isEmpty(plugin.getId())) {
-                        policy.setKongPluginId(plugin.getId());
                     }
                 }
             }catch (Exception e){
@@ -619,8 +564,10 @@ public class GatewayClient {
      *
      * @param policy
      */
-    private void postOAuth2Actions(Service service, Policy policy, KongPluginConfig config, KongApi api) {
-        Preconditions.checkNotNull(service);
+    private void postOAuth2Actions(String organizationId, String serviceId, String version, Policy policy, KongPluginConfig config) {
+        Preconditions.checkNotNull(organizationId);
+        Preconditions.checkNotNull(serviceId);
+        Preconditions.checkNotNull(version);
         Preconditions.checkNotNull(policy);
         Preconditions.checkNotNull(config);
         //config contains provisioning and scopes
@@ -635,7 +582,7 @@ public class GatewayClient {
             }
             KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(conf,KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
             log.info("Response after applying oauth on API:{}",enhancedOAuthValue);
-            ServiceVersionBean svb = storage.getServiceVersion(service.getOrganizationId(), service.getServiceId(), service.getVersion());
+            ServiceVersionBean svb = storage.getServiceVersion(organizationId, serviceId, version);
             svb.setProvisionKey(enhancedOAuthValue.getProvisionKey());
             Map<String,String> scopeMap = new HashMap<>();
             List<KongPluginOAuthScope> scopeObjects = oauthValue.getScopes();
@@ -972,13 +919,13 @@ public class GatewayClient {
     /**
      * This method creates the policy on given api with pre-defined values.
      *
-     * @param api
+     * @param apiId
      * @param policy
      * @param kongIdentifier
      * @param clazz
      * @param <T>
      */
-    private <T extends KongConfigValue> KongPluginConfig createServicePolicy(KongApi api, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
+    private <T extends KongConfigValue> KongPluginConfig createServicePolicyInternal(String apiId, Policy policy, String kongIdentifier, Class<T> clazz)throws PublishingException {
         Gson gson = new Gson();
         //perform value mapping
         KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
@@ -986,11 +933,11 @@ public class GatewayClient {
                 .withName(kongIdentifier)//set required kong identifier
                 .withConfig(plugin);
         //TODO: strong validation should be done and rollback of the service registration upon error?!
-        config = httpClient.createPluginConfig(api.getId(),config);
+        config = httpClient.createPluginConfig(apiId,config);
         return config;
     }
 
-    private KongPluginConfig createCorsServicePolicy(KongApi api, Policy policy) throws PublishingException {
+    private KongPluginConfig createCorsServicePolicy(String apiId, Policy policy) throws PublishingException {
         //Add the default headers to the custom headers in the policy
         Set<String> customHeaders = new HashSet<>(Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY, "Authorization"));
         KongPluginCors plugin = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginCors.class);
@@ -999,7 +946,7 @@ public class GatewayClient {
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.CORS.getKongIdentifier())
                 .withConfig(plugin);
-        return httpClient.createPluginConfig(api.getId(), config);
+        return httpClient.createPluginConfig(apiId, config);
     }
 
     /**
@@ -1116,93 +1063,90 @@ public class GatewayClient {
         }
     }
 
-    /*public Policy createServicePolicy(Policy policy) {
+    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy) {
+        String api = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
         KongPluginConfig plugin = null;
         switch(policies){
             //all policies can be available here
             case BASICAUTHENTICATION:
-                plugin = createServicePolicy(api, policy, Policies.BASICAUTHENTICATION.getKongIdentifier(), Policies.BASICAUTHENTICATION.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.BASICAUTHENTICATION.getKongIdentifier(), Policies.BASICAUTHENTICATION.getClazz());
                 break;
             case CORS:
                 plugin = createCorsServicePolicy(api, policy);
-                customCorsFlag=true;
                 break;
             case FILELOG:
-                plugin = createServicePolicy(api, policy, Policies.FILELOG.getKongIdentifier(), Policies.FILELOG.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.FILELOG.getKongIdentifier(), Policies.FILELOG.getClazz());
                 break;
             case HTTPLOG:
-                plugin = createServicePolicy(api,policy, Policies.HTTPLOG.getKongIdentifier(), Policies.HTTPLOG.getClazz());
-                customHttp=true;
+                plugin = createServicePolicyInternal(api,policy, Policies.HTTPLOG.getKongIdentifier(), Policies.HTTPLOG.getClazz());
                 break;
             case UDPLOG:
-                plugin = createServicePolicy(api, policy, Policies.UDPLOG.getKongIdentifier(), Policies.UDPLOG.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.UDPLOG.getKongIdentifier(), Policies.UDPLOG.getClazz());
                 break;
             case TCPLOG:
-                plugin = createServicePolicy(api, policy, Policies.TCPLOG.getKongIdentifier(), Policies.TCPLOG.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.TCPLOG.getKongIdentifier(), Policies.TCPLOG.getClazz());
                 break;
             case IPRESTRICTION:
-                plugin = createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(), Policies.IPRESTRICTION.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.IPRESTRICTION.getKongIdentifier(), Policies.IPRESTRICTION.getClazz());
                 break;
             case KEYAUTHENTICATION:
-                plugin = createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(), Policies.KEYAUTHENTICATION.getClazz());
-                customKeyAuth=true;
+                plugin = createServicePolicyInternal(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(), Policies.KEYAUTHENTICATION.getClazz());
                 break;
             //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
             case OAUTH2:
-                plugin = createServicePolicy(api, validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
+                plugin = createServicePolicyInternal(api, validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
                 log.info("start post oauth2 actions");
-                flagOauth2=true;
                 //upon transformation we use another enhanced object for json deserialization
-                postOAuth2Actions(service, policy, plugin, api);
+                postOAuth2Actions(organizationId, serviceId, version, policy, plugin);
                 break;
             case RATELIMITING:
-                plugin = createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(), Policies.RATELIMITING.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.RATELIMITING.getKongIdentifier(), Policies.RATELIMITING.getClazz());
                 break;
             case JWTUP:
-                plugin = createServicePolicy(api, policy, Policies.JWTUP.getKongIdentifier(), Policies.JWTUP.getClazz());
-                flagJWT=true;
+                plugin = createServicePolicyInternal(api, policy, Policies.JWTUP.getKongIdentifier(), Policies.JWTUP.getClazz());
+                //flagJWT=true;
                 break;
             case JWT:
-                //skip JWT if JWT-UP is applied
-                if (!flagJWT) {
-                    plugin = createServicePolicy(api, policy, Policies.JWT.getKongIdentifier(), Policies.JWT.getClazz());
-                }
+                //Originally we skipped the jwt plugin if a service has a jwtup policy
+                //if (!flagJWT) {
+                    plugin = createServicePolicyInternal(api, policy, Policies.JWT.getKongIdentifier(), Policies.JWT.getClazz());
+                //}
                 break;
             case REQUESTSIZELIMITING:
-                plugin = createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(), Policies.REQUESTSIZELIMITING.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(), Policies.REQUESTSIZELIMITING.getClazz());
                 break;
             case REQUESTTRANSFORMER:
-                plugin = createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(), Policies.REQUESTTRANSFORMER.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(), Policies.REQUESTTRANSFORMER.getClazz());
                 break;
             case RESPONSETRANSFORMER:
-                plugin = createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(), Policies.RESPONSETRANSFORMER.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(), Policies.RESPONSETRANSFORMER.getClazz());
                 break;
             case SSL:
-                plugin = createServicePolicy(api, policy, Policies.SSL.getKongIdentifier(), Policies.SSL.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.SSL.getKongIdentifier(), Policies.SSL.getClazz());
                 break;
             case ANALYTICS:
-                plugin = createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(), Policies.ANALYTICS.getClazz());
-                customAnalytics=true;
+                plugin = createServicePolicyInternal(api,policy,Policies.ANALYTICS.getKongIdentifier(), Policies.ANALYTICS.getClazz());
                 break;
             case ACL:
-                plugin = createServicePolicy(api, policy, Policies.ACL.getKongIdentifier(), Policies.ACL.getClazz());
-                customAclflag = true;
+                plugin = createServicePolicyInternal(api, policy, Policies.ACL.getKongIdentifier(), Policies.ACL.getClazz());
                 break;
             case JSONTHREATPROTECTION:
-                plugin = createServicePolicy(api, policy, Policies.JSONTHREATPROTECTION.getKongIdentifier(), Policies.JSONTHREATPROTECTION.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.JSONTHREATPROTECTION.getKongIdentifier(), Policies.JSONTHREATPROTECTION.getClazz());
                 break;
             case LDAPAUTHENTICATION:
-                plugin = createServicePolicy(api, policy, Policies.LDAPAUTHENTICATION.getKongIdentifier(), Policies.LDAPAUTHENTICATION.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.LDAPAUTHENTICATION.getKongIdentifier(), Policies.LDAPAUTHENTICATION.getClazz());
                 break;
             case HAL:
-                plugin = createServicePolicy(api, policy, Policies.HAL.getKongIdentifier(), Policies.HAL.getClazz());
+                plugin = createServicePolicyInternal(api, policy, Policies.HAL.getKongIdentifier(), Policies.HAL.getClazz());
                 break;
             default:
                 break;
         }
         if (plugin != null && !StringUtils.isEmpty(plugin.getId())) {
             policy.setKongPluginId(plugin.getId());
+            policy.setPolicyJsonConfig(new Gson().toJson(plugin.getConfig()).replace(":{}", ":[]"));
         }
-    }*/
+        return policy;
+    }
 }

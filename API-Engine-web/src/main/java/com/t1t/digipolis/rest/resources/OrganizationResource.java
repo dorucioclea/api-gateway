@@ -1239,7 +1239,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void updateServicePolicy(@PathParam("organizationId") String organizationId,
+    public PolicyBean updateServicePolicy(@PathParam("organizationId") String organizationId,
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("version") String version,
                                     @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
@@ -1249,7 +1249,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
+        return orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
     }
 
     @ApiOperation(value = "Remove Service Policy",

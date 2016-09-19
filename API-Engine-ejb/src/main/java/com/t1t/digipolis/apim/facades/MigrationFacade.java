@@ -272,6 +272,7 @@ public class MigrationFacade {
         syncUsers();
         republishServices();
         syncApplications();
+        updatePoliciesWithGatewayPluginIds();
         //MigrateToAcl is not a sync endpoint. Do not use unless you're migrating a gateway that doesn't have acl policies to a version of the API Engine that does
         //migrateToAcl();
         _LOG.info("====MIGRATION-END======");

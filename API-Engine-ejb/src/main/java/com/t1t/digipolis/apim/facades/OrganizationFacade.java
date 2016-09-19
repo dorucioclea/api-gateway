@@ -1045,9 +1045,22 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         log.debug(String.format("Created service policy %s", svb)); //$NON-NLS-1$
         PolicyBean policy = doCreatePolicy(organizationId, serviceId, version, bean, PolicyType.Service);
+        //Apply the new policy on the gateway if the service is published
         if (svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) {
             IGatewayLink gw = gatewayFacade.createGatewayLink(policy.getGatewayId());
-            gw.updateServicePlugin(ServiceConventionUtil.generateServiceUniqueName(svb), new Gson)
+            Policy newPolicy = new Policy();
+            newPolicy.setPolicyJsonConfig(policy.getConfiguration());
+            newPolicy.setPolicyImpl(policy.getDefinition().getId());
+            newPolicy.setPolicyId(policy.getId());
+            newPolicy = gw.createServicePolicy(organizationId, serviceId, version, newPolicy);
+            policy.setKongPluginId(newPolicy.getKongPluginId());
+            policy.setConfiguration(newPolicy.getPolicyJsonConfig());
+            try {
+                storage.updatePolicy(policy);
+            }
+            catch (StorageException ex) {
+                throw ExceptionFactory.systemErrorException(ex);
+            }
         }
         return policy;
     }
@@ -2234,7 +2247,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    public void updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) {
+    public PolicyBean updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) {
         // Make sure the service exists
         ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
         if (svb.getStatus() == ServiceStatus.Retired) {
@@ -2280,6 +2293,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             storage.updatePolicy(policy);
             storage.createAuditEntry(AuditUtils.policyUpdated(policy, PolicyType.Service, data, securityContext));
             log.debug(String.format("Updated service policy %s", policy)); //$NON-NLS-1$
+            return policy;
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -2290,13 +2304,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public void deleteServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         // Make sure the service exists
         ServiceVersionBean service = getServiceVersionInternal(organizationId, serviceId, version);
-        if (service.getStatus() == ServiceStatus.Published || service.getStatus() == ServiceStatus.Retired || service.getStatus() == ServiceStatus.Deprecated) {
+        if (service.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         try {
             PolicyBean policy = this.storage.getPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
             if (policy == null) {
                 throw ExceptionFactory.policyNotFoundException(policyId);
+            }
+            if (service.getStatus() == ServiceStatus.Published || service.getStatus() == ServiceStatus.Deprecated
+                    && !StringUtils.isEmpty(policy.getGatewayId()) && !StringUtils.isEmpty(policy.getKongPluginId())) {
+                IGatewayLink gw = gatewayFacade.createGatewayLink(policy.getGatewayId());
+                gw.deleteApiPlugin(ServiceConventionUtil.generateServiceUniqueName(service), policy.getKongPluginId());
             }
             storage.deletePolicy(policy);
             storage.createAuditEntry(AuditUtils.policyRemoved(policy, PolicyType.Service, securityContext));

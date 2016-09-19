@@ -445,4 +445,9 @@ public class RestGatewayLink implements IGatewayLink {
     public KongPluginConfig getPlugin(String pluginId) {
         return getClient().getPlugin(pluginId);
     }
+
+    @Override
+    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy) {
+        return getClient().createServicePolicy(organizationId, serviceId, version, policy);
+    }
 }

@@ -53,6 +53,7 @@ public class GatewayValidation {
     private static Logger _LOG = LoggerFactory.getLogger(GatewayValidation.class.getName());
     private static String environment;
     private static final String OAUTH_SCOPE_CONCAT = ".";
+    private static final Set<String> ALLOWED_JWT_CLAIMS = new HashSet<>(Arrays.asList("exp", "nbf"));
 
     public GatewayValidation() {}
 
@@ -124,7 +125,12 @@ public class GatewayValidation {
         Gson gson = new Gson();
         JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
         KongPluginJWT kongPluginJWT = new KongPluginJWT();
-        Set<String> claimsToVerify = new HashSet<>();
+        Set<String> claimsToVerify = new HashSet<>(jwtValue.getClaims_to_verify());
+        for (String claim : claimsToVerify) {
+            if (!ALLOWED_JWT_CLAIMS.contains(claim)) {
+                throw ExceptionFactory.invalidPolicyException("Claims to verify must be one of: " + ALLOWED_JWT_CLAIMS.toString());
+            }
+        }
         //if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment
         //--enforce to validate JWT exp
         claimsToVerify.add("exp");
