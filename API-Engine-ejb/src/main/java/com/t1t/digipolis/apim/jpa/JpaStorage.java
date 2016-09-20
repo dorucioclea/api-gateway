@@ -2668,6 +2668,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .getResultList());
     }
 
+    @Override
+    public List<ContractBean> getApplicationVersionContracts(ApplicationVersionBean avb) throws StorageException {
+        String jpql = "SELECT c FROM ContractBean c WHERE c.application = :avb";
+        return getActiveEntityManager().createQuery(jpql).setParameter("avb", avb).getResultList();
+    }
+
     private boolean doNotFilterServices() throws StorageException {
         return getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix());
     }

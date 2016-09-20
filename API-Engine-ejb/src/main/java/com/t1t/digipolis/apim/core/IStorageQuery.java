@@ -917,4 +917,12 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public Set<PolicyBean> getNonServiceACLPoliciesForServiceVersion(ServiceVersionBean svb) throws StorageException;
+
+    /**
+     * Get all contracts for an application version
+     * @param avb
+     * @return
+     * @throws StorageException
+     */
+    public List<ContractBean> getApplicationVersionContracts(ApplicationVersionBean avb) throws StorageException;
 }

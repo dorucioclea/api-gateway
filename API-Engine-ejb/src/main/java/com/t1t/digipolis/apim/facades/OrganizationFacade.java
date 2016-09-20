@@ -1704,8 +1704,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw new SystemErrorException(ex);
             }
             //Revoke admin priviledges if contract was with an admin service
-            if (contract.getService().getService().isAdmin()) {
-                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApikey());
+            if (contract.getService().getService().isAdmin() && query.getApplicationVersionContracts(avb).stream().filter(c -> c.getService().getService().isAdmin()).collect(Collectors.toList()).size() == 1) {
+                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());
                 mab.getApiKeys().remove(contract.getApikey());
                 storage.updateManagedApplication(mab);
             }
