@@ -21,6 +21,7 @@ import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
+import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -879,4 +880,41 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public Set<ManagedApplicationBean> getManagedApplicationsByType(ManagedApplicationTypes type) throws StorageException;
+
+    /**
+     * Get policy definitions that should be applied by default
+     * @return
+     * @throws StorageException
+     */
+    public Set<PolicyDefinitionBean> getDefaultServicePolicyDefs() throws StorageException;
+
+    /**
+     * Get policy definitions that are service scoped
+     * @return
+     * @throws StorageException
+     */
+    public Set<PolicyDefinitionBean> getServiceScopedPolicyDefs() throws StorageException;
+
+    /**
+     * Get policy definitions that are plan scoped
+     * @return
+     * @throws StorageException
+     */
+    public Set<PolicyDefinitionBean> getplanScopedPolicyDefs() throws StorageException;
+
+    /**
+     * Get all application versions that hold a contract with a particular service version
+     * @param svb
+     * @return
+     * @throws StorageException
+     */
+    public Set<ApplicationVersionBean> getAppVersionContractHoldersForServiceVersion(ServiceVersionBean svb) throws StorageException;
+
+    /**
+     * Get all ACL policies that are related to a Service's own ACL policy
+     * @param svb
+     * @return
+     * @throws StorageException
+     */
+    public Set<PolicyBean> getNonServiceACLPoliciesForServiceVersion(ServiceVersionBean svb) throws StorageException;
 }

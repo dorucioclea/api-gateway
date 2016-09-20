@@ -33,6 +33,7 @@ import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
 import com.t1t.digipolis.kong.model.KongPluginTcpLog;
 import com.t1t.digipolis.kong.model.KongPluginUdpLog;
 
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,10 +105,11 @@ public class GatewayValidation {
 
     private Policy validateServiceACL(Policy policy) {
         Gson gson = new Gson();
-        KongPluginACL config = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginACL.class);
+        KongPluginACL config = new KongPluginACL().withWhitelist(Arrays.asList(policy.getEntityId()));
         if (config.getWhitelist().isEmpty() && config.getBlacklist().isEmpty()) {
             throw ExceptionFactory.invalidPolicyException("ACL Policy needs at least one group name in either whitelist or blacklist");
         }
+        policy.setPolicyJsonConfig(new Gson().toJson(config));
         return policy;
     }
 
@@ -126,9 +128,11 @@ public class GatewayValidation {
         JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
         KongPluginJWT kongPluginJWT = new KongPluginJWT();
         Set<String> claimsToVerify = new HashSet<>(jwtValue.getClaims_to_verify());
-        for (String claim : claimsToVerify) {
-            if (!ALLOWED_JWT_CLAIMS.contains(claim)) {
-                throw ExceptionFactory.invalidPolicyException("Claims to verify must be one of: " + ALLOWED_JWT_CLAIMS.toString());
+        if (!claimsToVerify.isEmpty()) {
+            for (String claim : claimsToVerify) {
+                if (!ALLOWED_JWT_CLAIMS.contains(claim)) {
+                    throw ExceptionFactory.invalidPolicyException("Claims to verify must be one of: " + ALLOWED_JWT_CLAIMS.toString());
+                }
             }
         }
         //if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment

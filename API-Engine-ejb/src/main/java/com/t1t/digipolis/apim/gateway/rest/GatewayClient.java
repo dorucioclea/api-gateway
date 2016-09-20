@@ -457,21 +457,6 @@ public class GatewayClient {
 
         //safe publish API
         api = publishAPIWithFallback(api);
-
-        //flag for custom CORS policy
-        boolean customCorsFlag = false;
-        //flag for custom KeyAuth policy
-        boolean customKeyAuth = false;
-        //flag for custom HTTP policy
-        boolean customHttp = false;
-        //flag for OAuth2
-        boolean flagOauth2 = false;
-        //flag for custom Analytics policy
-        boolean customAnalytics = false;
-        //flag for JWT-Up - if applied, skip JWT
-        boolean flagJWT = false;
-        //flag for custom ACL policy
-        boolean customAclflag = false;
         //verify if api creation has been succesfull
         if(!StringUtils.isEmpty(api.getId())){
             try{
@@ -480,34 +465,6 @@ public class GatewayClient {
                     //execute policy
                     Policies type = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
                     createServicePolicy(service.getOrganizationId(), service.getServiceId(), service.getVersion(), policy);
-                    switch(type) {
-                        //all policies can be available here
-                        case CORS:
-                            customCorsFlag=true;
-                            break;
-                        case HTTPLOG:
-                            customHttp=true;
-                            break;
-                        case KEYAUTHENTICATION:
-                            customKeyAuth=true;
-                            break;
-                        //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
-                        case OAUTH2:
-                            //upon transformation we use another enhanced object for json deserialization
-                            flagOauth2=true;
-                            break;
-                        case JWTUP:
-                            //flagJWT=true;
-                            break;
-                        case ANALYTICS:
-                            customAnalytics=true;
-                            break;
-                        case ACL:
-                            customAclflag = true;
-                            break;
-                        default:
-                            break;
-                    }
                 }
             }catch (Exception e){
                 //if anything goes wrong, return exception and rollback api created
@@ -515,36 +472,6 @@ public class GatewayClient {
                     httpClient.deleteApi(api.getId());
                 }
                 throw new SystemErrorException(e);
-            }
-        }
-        //Apply ACL plugin by default. ACL group names are a convention, so they don't need to be persisted
-        if (!customAclflag) {
-            KongPluginConfig plugin = createACLPlugin(service);
-            service.getServicePolicies().add(getCorrectedPolicy(plugin, Policies.ACL));
-        }
-        //add default CORS Policy if no custom CORS defined
-        if(!customCorsFlag) {
-            KongPluginConfig plugin = registerDefaultCORSPolicy(api);
-            service.getServicePolicies().add(getCorrectedPolicy(plugin, Policies.CORS));
-        }
-        //don't apply on the UI a API key if OAuth2 enabled
-        if(!customKeyAuth && !flagOauth2) {
-            KongPluginConfig plugin = registerDefaultKeyAuthPolicy(api);
-            service.getServicePolicies().add(getCorrectedPolicy(plugin, Policies.KEYAUTHENTICATION));
-        }
-        if(!customHttp&&!StringUtils.isEmpty(metricsURI)) {
-            KongPluginConfig plugin = registerDefaultHttpPolicy(api);
-            service.getServicePolicies().add(getCorrectedPolicy(plugin, Policies.HTTPLOG));
-        }
-        //add default Galileo policy
-        /*if (!customAnalytics){
-            KongPluginConfig plugin = registerDefaultAnalyticsPolicy(api);
-            service.getServicePolicies().add(getCorrectedPolicy(plugin, Policies.ANALYTICS));
-        }*/
-        //additional oauth actions
-        if(flagOauth2){
-            if(appConfig.getOAuthEnableGatewayEnpoints()){
-                //addGatewayOAuthScopes(gatewayBean, api);
             }
         }
         return service;

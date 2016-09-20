@@ -13,6 +13,7 @@ public class Policy implements Serializable {
     private String policyJsonConfig; //config_info json str
     private String policyImpl; //Reference to policy def id
     private String kongPluginId;
+    private String entityId;
     private Long policyId;
 
     /**
@@ -21,9 +22,10 @@ public class Policy implements Serializable {
     public Policy() {
     }
 
-    public Policy(String policyImpl, String policyJsonConfig) {
+    public Policy(String policyImpl, String policyJsonConfig, String entityId) {
         this.policyJsonConfig = policyJsonConfig;
         this.policyImpl = policyImpl;
+        this.entityId = entityId;
     }
 
     /**
@@ -82,6 +84,20 @@ public class Policy implements Serializable {
         this.kongPluginId = kongPluginId;
     }
 
+    /**
+     * @return the entity id
+     */
+    public String getEntityId() {
+        return entityId;
+    }
+
+    /**
+     * @param entityId the entity id to set
+     */
+    public void setEntityId(String entityId) {
+        this.entityId = entityId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -113,6 +129,7 @@ public class Policy implements Serializable {
                 "policyJsonConfig='" + policyJsonConfig + '\'' +
                 ", policyImpl='" + policyImpl + '\'' +
                 ", kongPluginId='" + kongPluginId + '\'' +
+                ", entityId='" + entityId + '\'' +
                 ", policyId=" + policyId +
                 '}';
     }

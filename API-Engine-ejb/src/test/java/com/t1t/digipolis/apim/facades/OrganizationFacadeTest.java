@@ -306,7 +306,7 @@ public class OrganizationFacadeTest {
         when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(avb);
         when(storage.getPolicyDefinition(anyString())).thenReturn(pdb);
         when(securityContext.getCurrentUser()).thenReturn("admin");
-        when(gatewayValidation.validate(anyObject(),PolicyType.Application)).thenReturn(new Policy("somepolicy","{}"));
+        when(gatewayValidation.validate(anyObject(),PolicyType.Application)).thenReturn(new Policy("somepolicy","{}", "someorg.someapp.someversion"));
         orgFacade.createAppPolicy("someorg", "someapp", "someversion", npb);
         verify(storage).createPolicy(anyObject());
         verify(storage).createAuditEntry(anyObject());

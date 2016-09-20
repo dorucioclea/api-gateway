@@ -45,6 +45,8 @@ public class PolicyDefinitionBean implements Serializable {
     private Boolean scopeAuto;
     @Column(name="form_override")
     private String formOverride;
+    @Column(name = "default_config")
+    private String defaultConfig;
 
     /**
      * Constructor.
@@ -150,36 +152,74 @@ public class PolicyDefinitionBean implements Serializable {
         this.form = form;
     }
 
+    /**
+     * @return the scope service value
+     */
     public Boolean getScopeService() {
         return scopeService;
     }
 
+    /**
+     * @param scopeService the scope service value to set
+     */
     public void setScopeService(Boolean scopeService) {
         this.scopeService = scopeService;
     }
 
+    /**
+     * @return the scope plan value
+     */
     public Boolean getScopePlan() {
         return scopePlan;
     }
 
+    /**
+     * @param scopePlan the scope plan value to set
+     */
     public void setScopePlan(Boolean scopePlan) {
         this.scopePlan = scopePlan;
     }
 
+    /**
+     * @return the scope auto value
+     */
     public Boolean getScopeAuto() {
         return scopeAuto;
     }
 
+    /**
+     * @param scopeAuto the scope auto value to set
+     */
     public void setScopeAuto(Boolean scopeAuto) {
         this.scopeAuto = scopeAuto;
     }
 
+    /**
+     * @return the form override
+     */
     public String getFormOverride() {
         return formOverride;
     }
 
+    /**
+     * @param formOverride the form override to set
+     */
     public void setFormOverride(String formOverride) {
         this.formOverride = formOverride;
+    }
+
+    /**
+     * @return the default config
+     */
+    public String getDefaultConfig() {
+        return defaultConfig;
+    }
+
+    /**
+     * @param defaultConfig the default config to set
+     */
+    public void setDefaultConfig(String defaultConfig) {
+        this.defaultConfig = defaultConfig;
     }
 
     /**
@@ -226,7 +266,8 @@ public class PolicyDefinitionBean implements Serializable {
                 ", scopeService=" + scopeService +
                 ", scopePlan=" + scopePlan +
                 ", scopeAuto=" + scopeAuto +
-                ", formOverride=" + formOverride +
+                ", formOverride='" + formOverride + '\'' +
+                ", defaultConfig='" + defaultConfig + '\'' +
                 '}';
     }
 
