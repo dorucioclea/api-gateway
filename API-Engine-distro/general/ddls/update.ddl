@@ -653,4 +653,13 @@ UPDATE policydefs SET form = '{
   "properties": {
     "placeholder": {}
   }
-}', scope_auto = TRUE, scope_service = TRUE WHERE id = 'ACL';
+}', scope_auto = TRUE, scope_service = TRUE, icon = 'fa-users' WHERE id = 'ACL';
+
+ALTER TABLE application_versions ADD COLUMN apikey VARCHAR(255) DEFAULT NULL;
+
+UPDATE application_versions
+SET application_versions.apikey = contracts.apikey
+FROM contracts
+WHERE contracts.appv_id = application_versions.id;
+
+ALTER TABLE contracts DROP COLUMN apikey;

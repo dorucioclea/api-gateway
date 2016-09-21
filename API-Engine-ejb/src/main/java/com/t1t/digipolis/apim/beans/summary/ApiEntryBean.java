@@ -26,7 +26,6 @@ public class ApiEntryBean implements Serializable {
     private String planVersion;
 
     private String httpEndpoint;
-    private String apiKey;
 
     private String gatewayId;
 
@@ -163,20 +162,6 @@ public class ApiEntryBean implements Serializable {
     }
 
     /**
-     * @return the apiKey
-     */
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    /**
-     * @param apiKey the apiKey to set
-     */
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
-
-    /**
      * @return the gatewayId
      */
     public String getGatewayId() {
@@ -199,7 +184,7 @@ public class ApiEntryBean implements Serializable {
         return "ApiEntryBean [serviceOrgId=" + serviceOrgId + ", serviceOrgName=" + serviceOrgName
                 + ", serviceId=" + serviceId + ", serviceName=" + serviceName + ", serviceVersion="
                 + serviceVersion + ", planId=" + planId + ", planName=" + planName + ", planVersion="
-                + planVersion + ", httpEndpoint=" + httpEndpoint + ", apiKey=" + apiKey + ", gatewayId="
+                + planVersion + ", httpEndpoint=" + httpEndpoint + ", gatewayId="
                 + gatewayId + "]";
     }
 

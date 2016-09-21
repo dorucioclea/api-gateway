@@ -373,14 +373,14 @@ public class ActionFacade {
         }
 
         // Validate that all apikeys are equal for the scope of one application
-        if(!KeyUtils.validateKeySet(contractBeans)) throw ExceptionFactory.actionException(Messages.i18n.format("ApikeyInconsistency"));
+        if(versionBean.getApikey() == null) throw ExceptionFactory.actionException(Messages.i18n.format("MissingAPIKey"));
 
         //application should have contracts when accessed directly from api.
         String appApiKey;
         if(contractBeans==null||contractBeans.size()==0)throw ExceptionFactory.actionException(Messages.i18n.format("InvalidContractCount"));
         else{
             //we are sure the contracts are not empty and that all apikeys must be equal.
-            appApiKey = contractBeans.get(0).getApikey();
+            appApiKey = versionBean.getApikey();
         }
 
         Application application = new Application();
@@ -510,7 +510,7 @@ public class ActionFacade {
             }
             return policies;
         } catch (StorageException e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getApikey()), e); //$NON-NLS-1$
+            throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getPlanId()), e); //$NON-NLS-1$
         }
     }
 
@@ -582,8 +582,8 @@ public class ActionFacade {
             try {
                 contract = storage.getContract(contractSumBean.getContractId());
                 if (contract.getService().getService().isAdmin()) {
-                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApikey());
-                    mab.getApiKeys().remove(contract.getApikey());
+                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());
+                    mab.getApiKeys().remove(contract.getApplication().getApikey());
                     storage.updateManagedApplication(mab);
                 }
                 storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));

@@ -15,7 +15,6 @@ public class ContractSummaryBean implements Serializable {
     private static final long serialVersionUID = 1412354024017539782L;
 
     private Long contractId;
-    private String apikey;
     private String appOrganizationId;
     private String appOrganizationName;
     private String appId;
@@ -42,7 +41,6 @@ public class ContractSummaryBean implements Serializable {
 
     public ContractSummaryBean(ContractBean c) {
         this.contractId = c.getId();
-        this.apikey = c.getApikey();
         this.appOrganizationId = c.getApplication().getApplication().getOrganization().getId();
         this.appOrganizationName = c.getApplication().getApplication().getOrganization().getName();
         this.appId = c.getApplication().getApplication().getId();
@@ -287,20 +285,6 @@ public class ContractSummaryBean implements Serializable {
     }
 
     /**
-     * @return the apikey
-     */
-    public String getApikey() {
-        return apikey;
-    }
-
-    /**
-     * @param apikey the apikey to set
-     */
-    public void setApikey(String apikey) {
-        this.apikey = apikey;
-    }
-
-    /**
      * @return the provision key
      */
     public String getProvisionKey() {
@@ -365,7 +349,7 @@ public class ContractSummaryBean implements Serializable {
     @Override
     @SuppressWarnings("nls")
     public String toString() {
-        return "ContractSummaryBean [contractId=" + contractId + ", apikey=" + apikey
+        return "ContractSummaryBean [contractId=" + contractId
                 + ", appOrganizationId=" + appOrganizationId + ", appOrganizationName=" + appOrganizationName
                 + ", appId=" + appId + ", appName=" + appName + ", appVersion=" + appVersion
                 + ", serviceOrganizationId=" + serviceOrganizationId + ", serviceOrganizationName="

@@ -1387,7 +1387,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
             ContractSummaryBean csb = new ContractSummaryBean();
             csb.setAppId(application.getId());
-            csb.setApikey(contractBean.getApikey());
             csb.setAppOrganizationId(application.getOrganization().getId());
             csb.setAppOrganizationName(appOrg.getName());
             csb.setAppName(application.getName());
@@ -1534,7 +1533,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
             ContractSummaryBean csb = new ContractSummaryBean();
             csb.setAppId(application.getId());
-            csb.setApikey(contractBean.getApikey());
             csb.setAppOrganizationId(application.getOrganization().getId());
             csb.setAppOrganizationName(appOrg.getName());
             csb.setAppName(application.getName());
@@ -1619,7 +1617,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             entry.setPlanId(plan.getId());
             entry.setPlanName(plan.getName());
             entry.setPlanVersion(contractBean.getPlan().getVersion());
-            entry.setApiKey(contractBean.getApikey());
 
             Set<ServiceGatewayBean> gateways = svb.getGateways();
             if (gateways != null && gateways.size() > 0) {

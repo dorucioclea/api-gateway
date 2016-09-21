@@ -574,11 +574,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ContractBean contract = createContractInternal(organizationId, applicationId, version, bean);
             //If the service is an admin service, the application version must be added as a custom managed app
             if (contract.getService().getService().isAdmin()) {
-                ApplicationVersionBean avb = contract.getApplication();
                 Set<ManagedApplicationBean> mabs = query.getManagedApplicationsByType(ManagedApplicationTypes.Admin);
                 if (mabs != null && !mabs.isEmpty()) {
                     for (ManagedApplicationBean mab : mabs) {
-                        mab.getApiKeys().add(contract.getApikey());
+                        mab.getApiKeys().add(contract.getApplication().getApikey());
                         storage.updateManagedApplication(mab);
                     }
                 }
@@ -588,6 +587,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             String serviceOrgId = contract.getService().getService().getOrganization().getId();
             String serviceId = contract.getService().getService().getId();
             String svcVersion = contract.getService().getVersion();
+
             if (contract.getApplication().getStatus() == ApplicationStatus.Registered) {
                 Application app = getApplicationForNewContractRegistration(contract);
                 Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version));
@@ -611,8 +611,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                 enableContractonGateway(contract, gateway);
             }
+
+            //TODO - Remove the OAuth enabling code
             //verify if the contracting service has OAuth enabled
-            List<PolicySummaryBean> policySummaryBeans = listServicePolicies(serviceOrgId, serviceId, svcVersion);
+
+            /*List<PolicySummaryBean> policySummaryBeans = listServicePolicies(serviceOrgId, serviceId, svcVersion);
             for (PolicySummaryBean summaryBean : policySummaryBeans) {
                 if (summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier())) {
                     ApplicationVersionBean avb = contract.getApplication();
@@ -641,7 +644,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         storage.updateApplicationVersion(avb);
                     }
                 }
-            }
+            }*/
             return contract;
         } catch (AbstractRestException e) {
             throw e;
@@ -669,12 +672,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         String appVersion = contract.getApplication().getVersion();
         if (contract != null) {
             String appConsumerName = ConsumerConventionUtil.createAppUniqueId(contract.getApplication());
-            try {
-                gateway.addConsumerKeyAuth(appConsumerName, contract.getApikey());
-            } catch (Exception e) {
-                //apikey for consumer already exists, but let's log the exception for debugging purposes
-                log.debug("Consumer Key-Auth Exception:{}", e);
-            }
             //Add ACL group membership by default on gateway
             KongPluginACLResponse response = gateway.addConsumerToACL(appConsumerName,
                     generateServiceUniqueName(contract.getService()));
@@ -785,17 +782,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public List<ContractSummaryBean> getApplicationVersionContracts(String organizationId, String applicationId, String version) {
-        boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
         // Try to get the application first - will throw a ApplicationNotFoundException if not found.
         getAppVersion(organizationId, applicationId, version);
         try {
             List<ContractSummaryBean> contracts = query.getApplicationContracts(organizationId, applicationId, version);
             // Hide some stuff if the user doesn't have the appView permission
-            if (!hasPermission) {
-                for (ContractSummaryBean contract : contracts) {
-                    contract.setApikey(null);
-                }
-            }
             return contracts;
         } catch (AbstractRestException e) {
             throw e;
@@ -865,8 +856,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 try {
                     contract = storage.getContract(contractSumBean.getContractId());
                     if (contract.getService().getService().isAdmin()) {
-                        ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApikey());
-                        mab.getApiKeys().remove(contract.getApikey());
+                        ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());
+                        mab.getApiKeys().remove(contract.getApplication().getApikey());
                         storage.updateManagedApplication(mab);
                     }
                     storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
@@ -1609,7 +1600,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.contractNotFoundException(contractId);
             // Hide some data if the user doesn't have the appView permission
             if (!hasPermission) {
-                contract.setApikey(null);
+                contract.getApplication().setApikey(null);
             }
             log.debug(String.format("Got contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
             return contract;
@@ -1665,24 +1656,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.actionException(Messages.i18n.format("ApplicationNotFound"), e); //$NON-NLS-1$
             }
 
-            try {
-                //We delete only the key-auth when no other contracts with the application - pending contracts must not be taken into consideration
-                if (contractBeans.size() == 1) {
-                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                    //this can only be done when no other contracts exist
-                    if (avb.getStatus() == ApplicationStatus.Registered) {
-                        for (IGatewayLink gateway : gateways.values()) {
-                            gateway.deleteConsumerKeyAuth(appConsumerName, contract.getApikey());
-                        }
-                    }
-                    else {
-                        gateways.get(gatewayFacade.getDefaultGateway().getId()).deleteConsumerKeyAuth(appConsumerName, contract.getApikey());
-                    }
-                }
-            } catch (StorageException e) {
-                throw new ApplicationNotFoundException(e.getMessage());
-            }
-
             //Revoke application's contract plugins
             try {
                 if (avb.getStatus() == ApplicationStatus.Registered) {
@@ -1706,7 +1679,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //Revoke admin priviledges if contract was with an admin service
             if (contract.getService().getService().isAdmin() && query.getApplicationVersionContracts(avb).stream().filter(c -> c.getService().getService().isAdmin()).collect(Collectors.toList()).size() == 1) {
                 ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());
-                mab.getApiKeys().remove(contract.getApikey());
+                mab.getApiKeys().remove(contract.getApplication().getApikey());
                 storage.updateManagedApplication(mab);
             }
 
@@ -2399,11 +2372,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             List<ContractSummaryBean> contracts = query.getServiceContracts(organizationId, serviceId, version, page, pageSize);
 
-            for (ContractSummaryBean contract : contracts) {
-                if (!securityContext.hasPermission(PermissionType.appView, contract.getAppOrganizationId())) {
-                    contract.setApikey(null);
-                }
-            }
             log.debug(String.format("Got service %s version %s contracts: %s", serviceId, version, contracts)); //$NON-NLS-1$
             return contracts;
         } catch (StorageException e) {
@@ -2915,18 +2883,26 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setModifiedOn(new Date());
         newVersion.setStatus(ApplicationStatus.Created);
         newVersion.setVersion(bean.getVersion());
+        newVersion.setApikey(apiKeyGenerator.generate());
+        newVersion.setoAuthClientId(apiKeyGenerator.generate());
+        newVersion.setOauthClientSecret(apiKeyGenerator.generate());
         storage.createApplicationVersion(newVersion);
         storage.createAuditEntry(AuditUtils.applicationVersionCreated(newVersion, securityContext));
         //create consumer on gateway
         try {
             //We create the new application version consumer
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            if (newVersion != null) {
+            if (newVersion.getId() != null) {
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId(), newVersion.getVersion());
                 //Applications' customId must contain version otherwise only one version of an application can be available on the gateway at one time
                 //String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
                 gateway.createConsumer(appConsumerName, appConsumerName);
                 gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256);
+                gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
+                gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
+                        .withClientId(newVersion.getoAuthClientId())
+                        .withClientSecret(newVersion.getOauthClientSecret())
+                        .withName(appConsumerName).withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
             }
         } catch (StorageException e) {
             throw new ApplicationNotFoundException(e.getMessage());
@@ -2981,8 +2957,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         if (pvb.getStatus() != PlanStatus.Locked) {
             throw ExceptionFactory.invalidPlanStatusException();
         }
-        //verify contracts - reuse key if multiple
-        final List<ContractSummaryBean> applicationVersionContracts = getApplicationVersionContracts(organizationId, applicationId, version);
         contract = new ContractBean();
         contract.setApplication(avb);
         contract.setService(svb);
@@ -2990,11 +2964,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         contract.setTermsAgreed(bean.getTermsAgreed());
         contract.setCreatedBy(securityContext.getCurrentUser());
         contract.setCreatedOn(new Date());
-        if (applicationVersionContracts.size() > 0) {
-            contract.setApikey(applicationVersionContracts.get(0).getApikey());//use same apikey when already a contract
-        } else {
-            contract.setApikey(apiKeyGenerator.generate());
-        }
         // Validate the state of the application.
         if (avb.getStatus() != ApplicationStatus.Registered && applicationValidator.isReady(avb)) {
             avb.setStatus(ApplicationStatus.Ready);
@@ -3530,13 +3499,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             ApiRegistryBean apiRegistry = query.getApiRegistry(organizationId, applicationId, version);
 
-            // Hide some stuff if the user doesn't have the appView permission
-            if (!hasPermission) {
-                List<ApiEntryBean> apis = apiRegistry.getApis();
-                for (ApiEntryBean api : apis) {
-                    api.setApiKey(null);
-                }
-            }
             List<ApiEntryBean> apis = apiRegistry.getApis();
             txStarted = true;
             for (ApiEntryBean api : apis) {
@@ -4015,57 +3977,51 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             String version = avb.getVersion();
             //Get list of contracts associated with application
             List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(organizationId, applicationId, version);
-            if (contractSummaries != null && !contractSummaries.isEmpty()) {
+            //Generate new API key for contracts
+            String newApiKey = apiKeyGenerator.generate();
 
-                //Generate new API key for contracts
-                String newApiKey = apiKeyGenerator.generate();
-
-                //Keep old API key for auditing purposes and retrieve & delete correct plugin on gateway
-                String revokedKey = contractSummaries.get(0).getApikey();
-                //If the application is registered, change the API key on all relevant gateways
-                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
-                if (avb.getStatus() == ApplicationStatus.Registered) {
-                    try {
-                        Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(contractSummaries);
-                        for (IGatewayLink gatewayLink : gateways.values()) {
-                            try {
-                                gatewayLink.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
-                            } catch (Exception e) {
-                                throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
-                            }
-                            gatewayLink.close();
-                        }
-                    } catch (Exception e) {
-                        throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
-                    }
-                } else {
-                    //If the application isn't retired, it exists only on the default gateway
-                    if (avb.getStatus() != ApplicationStatus.Retired) {
+            //Keep old API key for auditing purposes and retrieve & delete correct plugin on gateway
+            String revokedKey = avb.getApikey();
+            //If the application is registered, change the API key on all relevant gateways
+            String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
+            if (avb.getStatus() == ApplicationStatus.Registered) {
+                try {
+                    Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(contractSummaries);
+                    for (IGatewayLink gatewayLink : gateways.values()) {
                         try {
-                            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                            gateway.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
-                        } catch (Exception ex) {
+                            gatewayLink.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
+                        } catch (Exception e) {
                             throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
                         }
-                    } else {
-                        throw ExceptionFactory.invalidApplicationStatusException();
+                        gatewayLink.close();
                     }
+                } catch (Exception e) {
+                    throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
                 }
-                //Update managed app keys if any
-                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(revokedKey);
-                mab.getApiKeys().remove(revokedKey);
-                mab.getApiKeys().add(newApiKey);
-                storage.updateManagedApplication(mab);
-
-                EntityUpdatedData data = new EntityUpdatedData();
-                data.addChange("apikey", revokedKey, newApiKey);
-                query.updateApplicationVersionApiKey(avb, newApiKey);
-                storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.KeyAuthReissuance, securityContext));
-                return new NewApiKeyBean(organizationId, applicationId, version, revokedKey, newApiKey);
             } else {
-                //Application has no contracts, so return null
-                return null;
+                //If the application isn't retired, it exists only on the default gateway
+                if (avb.getStatus() != ApplicationStatus.Retired) {
+                    try {
+                        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                        gateway.updateConsumerKeyAuthCredentials(appConsumerName, revokedKey, newApiKey);
+                    } catch (Exception ex) {
+                        throw ExceptionFactory.apiKeyAlreadyExistsException(newApiKey);
+                    }
+                } else {
+                    throw ExceptionFactory.invalidApplicationStatusException();
+                }
             }
+            //Update managed app keys if any
+            ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(revokedKey);
+            mab.getApiKeys().remove(revokedKey);
+            mab.getApiKeys().add(newApiKey);
+            storage.updateManagedApplication(mab);
+
+            EntityUpdatedData data = new EntityUpdatedData();
+            data.addChange("apikey", revokedKey, newApiKey);
+            query.updateApplicationVersionApiKey(avb, newApiKey);
+            storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.KeyAuthReissuance, securityContext));
+            return new NewApiKeyBean(organizationId, applicationId, version, revokedKey, newApiKey);
         } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
