@@ -30,6 +30,7 @@ public class ContractSummaryBean implements Serializable {
     private String planId;
     private String planVersion;
     private String provisionKey;
+    private String apikey;
     private Date createdOn;
     private Boolean termsAgreed;
 
@@ -45,6 +46,7 @@ public class ContractSummaryBean implements Serializable {
         this.appOrganizationName = c.getApplication().getApplication().getOrganization().getName();
         this.appId = c.getApplication().getApplication().getId();
         this.appName = c.getApplication().getApplication().getName();
+        this.apikey = c.getApplication().getApikey();
         this.appVersion = c.getApplication().getVersion();
         this.serviceOrganizationId = c.getService().getService().getOrganization().getId();
         this.serviceOrganizationName = c.getService().getService().getOrganization().getName();
@@ -313,6 +315,21 @@ public class ContractSummaryBean implements Serializable {
     }
 
     /**
+     * @return the apikey
+     */
+    public String getApikey() {
+        return apikey;
+    }
+
+    /**
+     * @param apikey the apikey to set
+     */
+    public void setApikey(String apikey) {
+        this.apikey = apikey;
+    }
+
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -349,7 +366,7 @@ public class ContractSummaryBean implements Serializable {
     @Override
     @SuppressWarnings("nls")
     public String toString() {
-        return "ContractSummaryBean [contractId=" + contractId
+        return "ContractSummaryBean [contractId=" + contractId + ", apikey=" + apikey
                 + ", appOrganizationId=" + appOrganizationId + ", appOrganizationName=" + appOrganizationName
                 + ", appId=" + appId + ", appName=" + appName + ", appVersion=" + appVersion
                 + ", serviceOrganizationId=" + serviceOrganizationId + ", serviceOrganizationName="

@@ -658,7 +658,7 @@ UPDATE policydefs SET form = '{
 ALTER TABLE application_versions ADD COLUMN apikey VARCHAR(255) DEFAULT NULL;
 
 UPDATE application_versions
-SET application_versions.apikey = contracts.apikey
+SET apikey = contracts.apikey
 FROM contracts
 WHERE contracts.appv_id = application_versions.id;
 

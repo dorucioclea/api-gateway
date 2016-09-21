@@ -93,6 +93,16 @@ public class MigrationResource implements IMigrationResource {
         migrationFacade.updatePoliciesWithGatewayPluginIds();
     }
 
+    @Override
+    @ApiOperation(value =  "Create/sync application credentials",
+            notes = "Create or sync all necessary application credentials. Currently, this enabled key authentication, OAuth authentication and JWT authentication for all non-retired applications")
+    @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
+    @POST
+    @Path("sync/applications/credentials/create-or-sync")
+    public void syncOrCreateConsumerCredentials() {
+        migrationFacade.syncAndCreateConsumerCredentials();
+    }
+
     //Obsolete should not be used past version 0.8.0
 /*    @Override
     @ApiOperation(value =  "Split orgs by context",
