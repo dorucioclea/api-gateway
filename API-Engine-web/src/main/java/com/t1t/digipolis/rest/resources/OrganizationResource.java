@@ -1062,7 +1062,9 @@ public class OrganizationResource implements IOrganizationResource {
         return servicePlugins;
     }
 
-    @ApiOperation(value = "Enable Service Plugins",
+    //Enabling and disabling plugins is now done through the update service policy endpoint
+
+    /*@ApiOperation(value = "Enable Service Plugins",
                   notes = "Use this endpoint to enable an existing plugin for a service.")
     @ApiResponses({@ApiResponse(code = 200, response = KongPluginConfig.class, message = "Enabled plugin for a service.")})
     @POST
@@ -1092,7 +1094,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(pluginId));
         KongPluginConfig servicePlugin = orgFacade.changeEnabledStateServicePlugin(organizationId, serviceId, version, pluginId,false);
         return servicePlugin;
-    }
+    }*/
 
     @ApiOperation(value = "Get Service Version Activity",
             notes = "Use this endpoint to get audit activity information for a single version of the Service.")
@@ -1237,7 +1239,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void updateServicePolicy(@PathParam("organizationId") String organizationId,
+    public PolicyBean updateServicePolicy(@PathParam("organizationId") String organizationId,
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("version") String version,
                                     @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
@@ -1247,7 +1249,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
+        return orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
     }
 
     @ApiOperation(value = "Remove Service Policy",

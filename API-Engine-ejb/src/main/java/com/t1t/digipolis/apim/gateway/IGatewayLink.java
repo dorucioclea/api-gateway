@@ -77,7 +77,7 @@ public interface IGatewayLink {
      * @throws PublishingException when unable to publish service
      * @throws GatewayAuthenticationException when unable to authenticate with gateway  
      */
-    public void publishService(Service service) throws PublishingException, GatewayAuthenticationException;
+    public Service publishService(Service service) throws PublishingException, GatewayAuthenticationException;
 
     /**
      * Published a centralized OAuth authorization and token endpoint for a gateway.
@@ -473,4 +473,21 @@ public interface IGatewayLink {
      * @param credentialId
      */
     public void deleteConsumerJwtCredential(String consumerId, String credentialId);
+
+    /**
+     * Return a service plugin
+     * @param pluginId
+     * @return
+     */
+    public KongPluginConfig getPlugin(String pluginId);
+
+    /**
+     * Creates a service policy/plugin on the gateway
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @param policy
+     * @return
+     */
+    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy);
 }

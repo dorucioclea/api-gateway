@@ -162,6 +162,7 @@ public class ActionFacade {
                 policyToPublish.setPolicyJsonConfig(servicePolicy.getConfiguration());
                 policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getId());
                 //policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getPolicyImpl());
+                policyToPublish.setPolicyId(policySummaryBean.getId());
                 policiesToPublish.add(policyToPublish);
             }
             gatewaySvc.setServicePolicies(policiesToPublish);
@@ -178,7 +179,7 @@ public class ActionFacade {
             List<ManagedApplicationBean> marketplaces = query.findManagedApplication(ManagedApplicationTypes.Consent);
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
-                gatewayLink.publishService(gatewaySvc);
+                gatewaySvc = gatewayLink.publishService(gatewaySvc);
                 //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
                 for (ManagedApplicationBean marketplace : marketplaces) {
                     KongPluginACLResponse response = gatewayLink.addConsumerToACL(
@@ -190,6 +191,24 @@ public class ActionFacade {
                     npb.setKongPluginId(response.getId());
                     npb.setGatewayId(gatewayLink.getGatewayId());
                     orgFacade.createManagedApplicationPolicy(marketplace, npb);
+                }
+                //update the policies with the Kong plugin id
+                for (Policy policy : gatewaySvc.getServicePolicies()) {
+                    if (policy.getPolicyId() != null) {
+                        PolicyBean pb = storage.getPolicy(PolicyType.Service, gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), policy.getPolicyId());
+                        pb.setGatewayId(gatewayLink.getGatewayId());
+                        pb.setKongPluginId(policy.getKongPluginId());
+                        storage.updatePolicy(pb);
+                    }
+                    else {
+                        NewPolicyBean npb = new NewPolicyBean();
+                        npb.setGatewayId(serviceGatewayBean.getGatewayId());
+                        npb.setKongPluginId(policy.getKongPluginId());
+                        npb.setDefinitionId(policy.getPolicyImpl());
+                        npb.setEnabled(true);
+                        npb.setConfiguration(policy.getPolicyJsonConfig());
+                        orgFacade.doCreatePolicy(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), npb, PolicyType.Service);
+                    }
                 }
                 gatewayLink.close();
             }

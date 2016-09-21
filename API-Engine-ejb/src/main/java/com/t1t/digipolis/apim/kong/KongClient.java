@@ -99,6 +99,7 @@ public interface KongClient {
     /*@PATCH("/apis/{apinameorid}/plugins/{id}")KongPluginConfig updatePlugin(@Path("apinameorid")String apiNameOrId,@Path("id")String pluginId,@Body KongPluginConfig pluginConfig);*/
     @PUT("/apis/{apinameorid}/plugins/")KongPluginConfig updateOrCreatePluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
     @DELETE("/apis/{apinameorid}/plugins/{id}")Object deletePlugin(@Path("apinameorid")String apiNameOrId, @Path("id") String pluginId);
+    @GET("/plugins/{pluginId}") KongPluginConfig getPlugin(@Path("pluginId") String pluginId);
 
     /*********************   OAUTH   *******************/
     @FormUrlEncoded

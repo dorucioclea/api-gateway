@@ -537,3 +537,120 @@ UPDATE policydefs SET form = '{
   },
   "required": []
 }' WHERE id = 'HAL';
+
+ALTER TABLE policies ADD COLUMN enabled BOOL DEFAULT TRUE;
+
+-- Small script in case we want to already support multiple gateways
+
+--CREATE TABLE gateway_policies AS SELECT policies.id AS policy_id, policies.gateway_id, policies.kong_plugin_id, policies.enabled FROM policies;
+--ALTER TABLE policies DROP COLUMN gateway_id;
+--ALTER TABLE policies DROP COLUMN kong_plugin_id;
+--ALTER TABLE policies DROP COLUMN enabled;
+--ALTER TABLE gateway_policies ADD CONSTRAINT FK_gateway_policies_1 FOREIGN KEY (gateway_id) REFERENCES policies(id) ON UPDATE CASCADE;
+--ALTER TABLE gateway_policies ADD CONSTRAINT UK_gateway_policies_1 UNIQUE (gateway_id, kong_plugin_id);
+--CREATE INDEX IDX_gateway_policies_1 ON gateway_policies(gateway_id);
+
+ALTER TABLE policydefs ADD COLUMN default_config VARCHAR(4096) DEFAULT NULL;
+
+UPDATE policydefs SET default_config = '{"key_names":["apikey"],"hide_credentials":false}', form = '{
+  "type": "object",
+  "title": "Key Authentication",
+  "properties": {
+    "key_names": {
+      "title":"Key names",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description":"Describes a name where the plugin will look for a valid credential. The client must send the authentication key in one of the specified key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order)."
+        "default": "apikey"
+      }
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "description":"An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "key_names"
+  ]
+}' WHERE id = 'KeyAuthentication';
+
+UPDATE policydefs SET default_config = '{"methods":["HEAD","DELETE","GET","POST","PUT","PATCH"],"credentials":false,"exposed_headers":[],"max_age":3600.0,"preflight_continue":false,"headers":["Accept","Accept-Version","Content-Length","Content-MD5","Content-Type","Date","apikey","Authorization"]}', form = '{
+  "type": "object",
+  "title": "CORS",
+  "properties": {
+    "methods": {
+      "type": "array",
+      "items": {
+        "title": "Methods",
+        "type": "string",
+        "pattern": "^POST$|^GET$|^HEAD$|^PUT$|^PATCH$|^DELETE$",
+        "validationMessage": "Should be one of: GET,HEAD,PUT,PATCH,POST,DELETE",
+        "description": "Value for the Access-Control-Allow-Methods header, expects a string (e.g. GET or POST). Defaults to the values GET,HEAD,PUT,PATCH,POST,DELETE."
+      }
+    },
+    "credentials": {
+      "title": "Credentials",
+      "description": "Flag to determine whether the Access-Control-Allow-Credentials header should be sent with true as the value.",
+      "type": "boolean",
+      "default": false
+    },
+      "headers": {
+        "type": "array",
+        "items": {
+          "title": "Headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Allow-Headers header (e.g. Origin, Authorization). Defaults to the value of the Access-Control-Request-Headers header."
+        }
+    },
+    "exposed_headers": {
+                "type": "array",
+        "items": {
+          "title": "Exposed headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Expose-Headers header (e.g. Origin, Authorization). If not specified, no custom headers are exposed."
+        }
+    },
+    "origin": {
+      "title": "Origin",
+      "type": "string",
+      "default": "*",
+      "description": "Value for the Access-Control-Allow-Origin header, expects a String. Defaults to *."
+    },
+    "max_age": {
+      "title": "Max age",
+      "type": "number",
+      "description": "Indicated how long the results of the preflight request can be cached, in seconds.",
+      "default": 3600,
+      "minimum": 1
+    },
+    "preflight_continue": {
+      "title": "Preflight continue",
+      "type": "boolean",
+      "description": "A boolean value that instructs the plugin to proxy the OPTIONS preflight request to the upstream API. Defaults to false.",
+      "default": false
+    }
+  }
+}', form_override = '[
+  "methods",
+  "credentials",
+  "headers",
+  {
+    "type": "help",
+    "helpvalue": "<p class=\"text-justified text-warning xsmall\">WARNING: When implementing a custom CORS policy we STRONGLY recommend including the following headers in order to ensure correct functioning of the API Gateway: \"Accept\",\"Accept-Version\",\"Content-Length\",\"Content-MD5\",\"Content-Type\",\"Date\",\"apikey\",\"Authorization\".</p>"
+  },
+  "exposed_headers",
+  "origin",
+  "max_age",
+  "preflight_continue"
+]' WHERE id = 'CORS';
+
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "ACL",
+  "properties": {
+    "placeholder": {}
+  }
+}', scope_auto = TRUE, scope_service = TRUE WHERE id = 'ACL';

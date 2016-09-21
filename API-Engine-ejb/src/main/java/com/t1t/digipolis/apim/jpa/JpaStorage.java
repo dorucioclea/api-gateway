@@ -2018,11 +2018,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         String content = new StringBuilder().append("%")
                 .append(ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version))
                 .append("%").toString();
-        String jpql = "SELECT p FROM PolicyBean p WHERE (p.type = :polType OR p.type = :polType2) AND p.configuration LIKE :content";
+        String jpql = "SELECT p FROM PolicyBean p WHERE (p.type = :polType OR p.type = :polType2) AND p.configuration LIKE :content AND p.definition.id = :def";
         return entityManager.createQuery(jpql)
                 .setParameter("polType", PolicyType.Marketplace)
                 .setParameter("polType2", PolicyType.Consent)
                 .setParameter("content", content)
+                .setParameter("def", Policies.ACL.getPolicyDefId())
                 .getResultList();
     }
 
@@ -2392,9 +2393,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void deleteAclPolicies() throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "DELETE FROM PolicyBean p WHERE p.definition.id = :polDefId";
+        String jpql = "DELETE FROM PolicyBean p WHERE p.definition.id = :polDefId AND p.type <> :polType";
         em.createQuery(jpql)
                 .setParameter("polDefId", Policies.ACL.name())
+                .setParameter("polType", PolicyType.Service)
                 .executeUpdate();
     }
 
@@ -2623,6 +2625,53 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .createQuery(jpql)
                 .setParameter("mType", type)
                 .getResultList());
+    }
+
+    @Override
+    public Set<PolicyDefinitionBean> getDefaultServicePolicyDefs() throws StorageException {
+        String jpql = "SELECT p FROM PolicyDefinitionBean p WHERE p.scopeAuto = TRUE";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql).getResultList());
+    }
+
+    @Override
+    public Set<PolicyDefinitionBean> getServiceScopedPolicyDefs() throws StorageException {
+        String jpql = "SELECT p FROM PolicyDefinitionBean p WHERE p.scopeService = TRUE";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql).getResultList());
+    }
+
+    @Override
+    public Set<PolicyDefinitionBean> getplanScopedPolicyDefs() throws StorageException {
+        String jpql = "SELECT p FROM PolicyDefinitionBean p WHERE p.scopePlan = TRUE";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql).getResultList());
+    }
+
+    @Override
+    public Set<ApplicationVersionBean> getAppVersionContractHoldersForServiceVersion(ServiceVersionBean svb) throws StorageException {
+        String jpql = "SELECT c.application FROM ContractBean c WHERE c.service = :svc";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql)
+                .setParameter("svc", svb)
+                .getResultList());
+    }
+
+    @Override
+    public Set<PolicyBean> getNonServiceACLPoliciesForServiceVersion(ServiceVersionBean svb) throws StorageException {
+        String svcGroup = new StringBuilder("%\"whitelist\":[\"")
+                .append(ServiceConventionUtil.generateServiceUniqueName(svb))
+                .append("\"]%")
+                .toString();
+        String jpql = "SELECT p FROM PolicyBean p WHERE (p.type = :consent OR p.type = :contract) AND p.definition.id = :acl AND p.configuration LIKE :svcGroup";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql)
+                .setParameter("consent", PolicyType.Consent)
+                .setParameter("contract", PolicyType.Contract)
+                .setParameter("acl", Policies.ACL.getPolicyDefId())
+                .setParameter("svcGroup", svcGroup)
+                .getResultList());
+    }
+
+    @Override
+    public List<ContractBean> getApplicationVersionContracts(ApplicationVersionBean avb) throws StorageException {
+        String jpql = "SELECT c FROM ContractBean c WHERE c.application = :avb";
+        return getActiveEntityManager().createQuery(jpql).setParameter("avb", avb).getResultList();
     }
 
     private boolean doNotFilterServices() throws StorageException {

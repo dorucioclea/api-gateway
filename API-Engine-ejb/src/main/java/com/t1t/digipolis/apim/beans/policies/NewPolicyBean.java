@@ -15,6 +15,7 @@ public class NewPolicyBean implements Serializable {
     private String kongPluginId;
     private Long contractId;
     private String gatewayId;
+    private Boolean enabled;
 
     /**
      * Constructor.
@@ -94,6 +95,20 @@ public class NewPolicyBean implements Serializable {
         this.gatewayId = gatewayId;
     }
 
+    /**
+     * @return the enabled value
+     */
+    public Boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * @param enabled the value to set
+     */
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
     @Override
     public String toString() {
         return "NewPolicyBean{" +
@@ -102,6 +117,7 @@ public class NewPolicyBean implements Serializable {
                 ", kongPluginId='" + kongPluginId + '\'' +
                 ", contractId=" + contractId +
                 ", gatewayId='" + gatewayId + '\'' +
+                ", enabled='" + enabled + '\'' +
                 '}';
     }
 }
