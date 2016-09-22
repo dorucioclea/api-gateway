@@ -3114,6 +3114,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
+            log.debug("Failed to create policy {} for {}: {}", def.getId(), ServiceConventionUtil.generateServiceUniqueName(organizationId, entityId, entityVersion), bean);
             throw new SystemErrorException(e);
         }
     }

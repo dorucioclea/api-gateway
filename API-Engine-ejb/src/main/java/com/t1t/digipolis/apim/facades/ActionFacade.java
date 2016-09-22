@@ -200,14 +200,9 @@ public class ActionFacade {
                         pb.setKongPluginId(policy.getKongPluginId());
                         storage.updatePolicy(pb);
                     }
+
                     else {
-                        NewPolicyBean npb = new NewPolicyBean();
-                        npb.setGatewayId(serviceGatewayBean.getGatewayId());
-                        npb.setKongPluginId(policy.getKongPluginId());
-                        npb.setDefinitionId(policy.getPolicyImpl());
-                        npb.setEnabled(true);
-                        npb.setConfiguration(policy.getPolicyJsonConfig());
-                        orgFacade.doCreatePolicy(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), npb, PolicyType.Service);
+                        log.error("Plugin present on service {} but no corresponding policy/missing policy id:{}", ServiceConventionUtil.generateServiceUniqueName(versionBean), policy);
                     }
                 }
                 gatewayLink.close();

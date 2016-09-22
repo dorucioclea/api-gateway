@@ -44,6 +44,7 @@ import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
@@ -86,6 +87,8 @@ public class MigrationFacade {
     private IGatewayLinkFactory gatewayLinkFactory;
     @Inject
     private IApiKeyGenerator apiKeyGenerator;
+    @Inject
+    private ISecurityContext security;
 
     public MigrationFacade() {
     }
@@ -203,7 +206,7 @@ public class MigrationFacade {
     }
 
     /**
-     * TODO this first implementation will sync all apikeys for all applications.
+     * TODO - Obsolete method, see syncAndCreateConsumerCredentials()
      */
     public void syncBusinessModel() throws AbstractRestException {
         //Sync Services
@@ -269,6 +272,7 @@ public class MigrationFacade {
         republishServices();
         syncApplications();
         updatePoliciesWithGatewayPluginIds();
+        syncAndCreateConsumerCredentials();
         //MigrateToAcl is not a sync endpoint. Do not use unless you're migrating a gateway that doesn't have acl policies to a version of the API Engine that does
         //migrateToAcl();
         log.info("====MIGRATION-END======");
@@ -359,6 +363,7 @@ public class MigrationFacade {
                         Policy policyToPublish = new Policy();
                         policyToPublish.setPolicyJsonConfig(servicePolicy.getConfiguration());
                         policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getId());
+                        policyToPublish.setPolicyId(servicePolicy.getId());
                         policiesToPublish.add(policyToPublish);
                     }
                     gatewaySvc.setServicePolicies(policiesToPublish);
@@ -371,7 +376,7 @@ public class MigrationFacade {
                             try {
                                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                                 try {
-                                    gatewayLink.publishService(gatewaySvc);
+                                    gatewaySvc = gatewayLink.publishService(gatewaySvc);
                                 } catch (GatewayAuthenticationException e) {
                                     continue;//next loop cycle
                                 }
@@ -389,6 +394,18 @@ public class MigrationFacade {
                                         orgFacade.createManagedApplicationPolicy(managedApp, npb);
                                     } catch (Exception ex) {
                                         //ignore
+                                    }
+                                }
+                                //update the policies with the Kong plugin id
+                                for (Policy policy : gatewaySvc.getServicePolicies()) {
+                                    if (policy.getPolicyId() != null) {
+                                        PolicyBean pb = storage.getPolicy(PolicyType.Service, gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), policy.getPolicyId());
+                                        pb.setGatewayId(gatewayLink.getGatewayId());
+                                        pb.setKongPluginId(policy.getKongPluginId());
+                                        storage.updatePolicy(pb);
+                                    }
+                                    else {
+                                        log.error("Plugin present on service {} but no corresponding policy:{}", ServiceConventionUtil.generateServiceUniqueName(svb), policy);
                                     }
                                 }
                                 gatewayLink.close();
@@ -869,92 +886,94 @@ public class MigrationFacade {
 
     public void updatePoliciesWithGatewayPluginIds() {
         log.info("======== START plugin/policy sync ========");
-        try {
-            List<ServiceVersionBean> svbs = query.findServiceByStatus(ServiceStatus.Published);
-            svbs.addAll(query.findServiceByStatus(ServiceStatus.Deprecated));
+        if (security.isAdmin()) {
+            try {
+                List<ServiceVersionBean> svbs = query.findServiceByStatus(ServiceStatus.Published);
+                svbs.addAll(query.findServiceByStatus(ServiceStatus.Deprecated));
 
-            Map<ServiceVersionBean, List<PolicyBean>> pols = new HashMap<>();
-            long polAmount = 0;
-            for (ServiceVersionBean svb : svbs) {
-                pols.put(svb, query.listPoliciesForEntity(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service));
-                polAmount += pols.get(svb).size();
-            }
+                Map<ServiceVersionBean, List<PolicyBean>> pols = new HashMap<>();
+                long polAmount = 0;
+                for (ServiceVersionBean svb : svbs) {
+                    pols.put(svb, query.listPoliciesForEntity(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service));
+                    polAmount += pols.get(svb).size();
+                }
 
-            log.info("number of services:{}", pols.keySet().size());
-            log.info("number of policies:{}", polAmount);
+                log.info("number of services:{}", pols.keySet().size());
+                log.info("number of policies:{}", polAmount);
 
-            for (Map.Entry<ServiceVersionBean, List<PolicyBean>> entry : pols.entrySet()) {
-                for (ServiceGatewayBean svcGw : entry.getKey().getGateways()) {
-                    IGatewayLink gw = gatewayFacade.createGatewayLink(svcGw.getGatewayId());
-                    KongPluginConfigList plugins = gw.getServicePlugins(ServiceConventionUtil.generateServiceUniqueName(entry.getKey()));
-                    log.info("plugins found:{}", plugins.getTotal());
-                    for (KongPluginConfig plugin : plugins.getData()) {
+                for (Map.Entry<ServiceVersionBean, List<PolicyBean>> entry : pols.entrySet()) {
+                    for (ServiceGatewayBean svcGw : entry.getKey().getGateways()) {
+                        IGatewayLink gw = gatewayFacade.createGatewayLink(svcGw.getGatewayId());
                         try {
-                            if (StringUtils.isEmpty(plugin.getConsumerId())) {
-                                String policyDefId = GatewayUtils.convertKongPluginNameToPolicy(plugin.getName()).getPolicyDefId();
-                                List<PolicyBean> pol = entry.getValue()
-                                        .stream()
-                                        .filter(policy -> policy.getDefinition().getId().equals(policyDefId))
-                                        .collect(Collectors.toList());
-                                if (pol.size() != 1) {
-                                    if (pol.size() != 0) {
-                                        log.warn("Syncing for plugin failed, multiple or no possible policies:{}", plugin);
-                                    }
-                                    else {
-                                        NewPolicyBean npb = new NewPolicyBean();
-                                        npb.setGatewayId(svcGw.getGatewayId());
-                                        npb.setKongPluginId(plugin.getId());
-                                        npb.setDefinitionId(policyDefId);
-                                        npb.setEnabled(plugin.getEnabled());
-                                        String polConfig = new Gson().toJson(plugin.getConfig());
-                                        log.debug("policy configuration:{}", polConfig);
-                                        npb.setConfiguration(polConfig.replace(":{}", ":[]"));
-                                        try {
-                                            orgFacade.doCreatePolicy(entry.getKey().getService().getOrganization().getId(), entry.getKey().getService().getId(), entry.getKey().getVersion(), npb, PolicyType.Service);
-                                            log.info("policy created for plugin:{}", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()), policyDefId);
-                                        }
-                                        catch (Exception ex) {
-                                            log.warn("creating new policy for plugin failed:{}", plugin);
-                                        }
-                                    }
-                                }
-                                else {
-                                    PolicyBean p = pol.get(0);
-                                    if (!StringUtils.isEmpty(p.getKongPluginId())) {
-                                        if (!p.getKongPluginId().equals(plugin.getId())) {
-                                            if (gw.getPlugin(p.getKongPluginId()) == null) {
+                            KongPluginConfigList plugins = gw.getServicePlugins(ServiceConventionUtil.generateServiceUniqueName(entry.getKey()));
+                            log.info("plugins found:{}", plugins.getTotal());
+                            for (KongPluginConfig plugin : plugins.getData()) {
+                                try {
+                                    if (StringUtils.isEmpty(plugin.getConsumerId())) {
+                                        String policyDefId = GatewayUtils.convertKongPluginNameToPolicy(plugin.getName()).getPolicyDefId();
+                                        List<PolicyBean> pol = entry.getValue()
+                                                .stream()
+                                                .filter(policy -> policy.getDefinition().getId().equals(policyDefId))
+                                                .collect(Collectors.toList());
+                                        if (pol.size() != 1) {
+                                            if (pol.size() != 0) {
+                                                log.warn("Syncing for plugin failed, multiple or no possible policies:{}", plugin);
+                                            } else {
+                                                NewPolicyBean npb = new NewPolicyBean();
+                                                npb.setGatewayId(svcGw.getGatewayId());
+                                                npb.setKongPluginId(plugin.getId());
+                                                npb.setDefinitionId(policyDefId);
+                                                npb.setEnabled(plugin.getEnabled());
+                                                String polConfig = new Gson().toJson(plugin.getConfig());
+                                                log.debug("policy configuration:{}", polConfig);
+                                                npb.setConfiguration(polConfig.replace(":{}", ":[]"));
+                                                try {
+                                                    orgFacade.doCreatePolicy(entry.getKey().getService().getOrganization().getId(), entry.getKey().getService().getId(), entry.getKey().getVersion(), npb, PolicyType.Service);
+                                                    log.info("policy created for plugin:{}", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()), policyDefId);
+                                                } catch (Exception ex) {
+                                                    log.warn("creating new policy for plugin failed:{}", plugin);
+                                                }
+                                            }
+                                        } else {
+                                            PolicyBean p = pol.get(0);
+                                            if (!StringUtils.isEmpty(p.getKongPluginId())) {
+                                                if (!p.getKongPluginId().equals(plugin.getId())) {
+                                                    if (gw.getPlugin(p.getKongPluginId()) == null) {
+                                                        p.setKongPluginId(plugin.getId());
+                                                        storage.updatePolicy(p);
+                                                        log.info("plugin id was outdated, now updated:{}", p.getEntityId(), p.getKongPluginId());
+                                                    } else {
+                                                        log.warn("policy plugin id not saved, already existing id doesn't match new one:{}", p.getKongPluginId(), plugin.getId());
+                                                    }
+                                                } else {
+                                                    log.info("syncing not necessary");
+                                                }
+                                            } else {
                                                 p.setKongPluginId(plugin.getId());
+                                                if (p.getGatewayId() == null) {
+                                                    p.setGatewayId(svcGw.getGatewayId());
+                                                }
                                                 storage.updatePolicy(p);
-                                                log.info("plugin id was outdated, now updated:{}", p.getEntityId(), p.getKongPluginId());
-                                            }
-                                            else {
-                                                log.warn("policy plugin id not saved, already existing id doesn't match new one:{}", p.getKongPluginId(), plugin.getId());
+                                                log.info("policy plugin id updated for:{}", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()));
                                             }
                                         }
-                                        else {
-                                            log.info("syncing not necessary");
-                                        }
                                     }
-                                    else {
-                                        p.setKongPluginId(plugin.getId());
-                                        if (p.getGatewayId() == null) {
-                                            p.setGatewayId(svcGw.getGatewayId());
-                                        }
-                                        storage.updatePolicy(p);
-                                        log.info("policy plugin id updated for:{}", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()));
-                                    }
+                                } catch (Exception ex) {
+                                    log.error("Sync failed unexpectedly:{}", ex);
                                 }
                             }
                         }
-                        catch (Exception ex) {
-                            log.error("Sync failed unexpectedly:{}", ex);
+                        catch (RetrofitError ex) {
+                            log.error("Sync failed for service \"{}\" on gateway \"{}\"", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()), gw.getGatewayId());
                         }
                     }
                 }
+            } catch (StorageException ex) {
+                throw ExceptionFactory.systemErrorException(ex);
             }
         }
-        catch (StorageException ex) {
-            throw ExceptionFactory.systemErrorException(ex);
+        else {
+            log.warn("======== Plugin/policy sync failed: administrator priviledges required. Retry with a valid admin user JWT ========");
         }
         log.info("======== END plugin/policy sync ========");
     }
