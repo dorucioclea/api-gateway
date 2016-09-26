@@ -70,6 +70,7 @@ public class GatewayValidation {
    public Policy validate(Policy policy, PolicyType type, String... optionalPrefixId) throws PolicyViolationException, StorageException {
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
+       _LOG.debug("Validating jsonpolicy:{}", policy.getPolicyJsonConfig());
         switch(policies){
             //all policies can be available here
             case BASICAUTHENTICATION: return validateBasicAuth(policy);

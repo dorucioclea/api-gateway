@@ -56,8 +56,8 @@ public class ApplicationVersionBean implements Serializable {
     @CollectionTable(name="app_oauth_redirect_uris", joinColumns=@JoinColumn(name="application_version_id"))
     @Column(name = "oauth_client_redirect")
     private Set<String> oauthClientRedirects;
-
-
+    @Column(name = "apikey")
+    private String apikey;
 
     /**
      * Constructor.
@@ -205,28 +205,60 @@ public class ApplicationVersionBean implements Serializable {
         this.modifiedOn = modifiedOn;
     }
 
+    /**
+     * @return the OAuth client id
+     */
     public String getoAuthClientId() {
         return oAuthClientId;
     }
 
+    /**
+     * @param oAuthClientId the OAuth client id to set
+     */
     public void setoAuthClientId(String oAuthClientId) {
         this.oAuthClientId = oAuthClientId;
     }
 
+    /**
+     * @return the OAuth client secret
+     */
     public String getOauthClientSecret() {
         return oauthClientSecret;
     }
 
+    /**
+     * @param oauthClientSecret the OAuth client secret to set
+     */
     public void setOauthClientSecret(String oauthClientSecret) {
         this.oauthClientSecret = oauthClientSecret;
     }
 
+    /**
+     * @return the OAuth client redirects
+     */
     public Set<String> getOauthClientRedirects() {
         return oauthClientRedirects;
     }
 
+    /**
+     * @param oauthClientRedirect the OAuth client redirects to set
+     */
     public void setOauthClientRedirects(Set<String> oauthClientRedirect) {
         this.oauthClientRedirects = oauthClientRedirect;
+    }
+
+    /**
+     * @return the API key
+     */
+    public String getApikey() {
+        return apikey;
+    }
+
+    /**
+     * @param apikey the API key to set
+     */
+    public void setApikey(String apikey) {
+        this.apikey = apikey;
     }
 
     /**
@@ -266,10 +298,21 @@ public class ApplicationVersionBean implements Serializable {
     @Override
     @SuppressWarnings("nls")
     public String toString() {
-        return "ApplicationVersionBean [id=" + id + ", application=" + application + ", status=" + status
-                + ", version=" + version + ", createdBy=" + createdBy + ", createdOn=" + createdOn
-                + ", modifiedBy=" + modifiedBy + ", modifiedOn=" + modifiedOn + ", publishedOn="
-                + publishedOn + ", retiredOn=" + retiredOn + "]";
+        return "ApplicationVersionBean{" +
+                "id=" + id +
+                ", application=" + application +
+                ", status=" + status +
+                ", version='" + version + '\'' +
+                ", createdBy='" + createdBy + '\'' +
+                ", createdOn=" + createdOn +
+                ", modifiedBy='" + modifiedBy + '\'' +
+                ", modifiedOn=" + modifiedOn +
+                ", publishedOn=" + publishedOn +
+                ", retiredOn=" + retiredOn +
+                ", oAuthClientId='" + oAuthClientId + '\'' +
+                ", oauthClientSecret='" + oauthClientSecret + '\'' +
+                ", oauthClientRedirects=" + oauthClientRedirects +
+                ", apikey='" + apikey + '\'' +
+                '}';
     }
-
 }

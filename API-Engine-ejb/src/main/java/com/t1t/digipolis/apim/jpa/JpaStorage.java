@@ -16,6 +16,7 @@ import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -1386,8 +1387,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             OrganizationBean svcOrg = entityManager.find(OrganizationBean.class, service.getOrganization().getId());
 
             ContractSummaryBean csb = new ContractSummaryBean();
+            if (security.hasPermission(PermissionType.appView, appOrg.getId())) {
+                csb.setApikey(contractBean.getApplication().getApikey());
+            }
+            if (security.hasPermission(PermissionType.svcView, organizationId) || getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
+                csb.setProvisionKey(contractBean.getService().getProvisionKey());
+            }
             csb.setAppId(application.getId());
-            csb.setApikey(contractBean.getApikey());
             csb.setAppOrganizationId(application.getOrganization().getId());
             csb.setAppOrganizationName(appOrg.getName());
             csb.setAppName(application.getName());
@@ -1534,7 +1540,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
             ContractSummaryBean csb = new ContractSummaryBean();
             csb.setAppId(application.getId());
-            csb.setApikey(contractBean.getApikey());
             csb.setAppOrganizationId(application.getOrganization().getId());
             csb.setAppOrganizationName(appOrg.getName());
             csb.setAppName(application.getName());
@@ -1542,10 +1547,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             csb.setContractId(contractBean.getId());
             csb.setCreatedOn(contractBean.getCreatedOn());
             csb.setPlanId(plan.getId());
-            if (getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
+            if (getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix()) || security.hasPermission(PermissionType.svcView, svcOrg.getId())) {
                 csb.setProvisionKey(contractBean.getService().getProvisionKey());
             }
             csb.setPlanName(plan.getName());
+            if (security.hasPermission(PermissionType.appView, organizationId)) {
+                csb.setApikey(contractBean.getApplication().getApikey());
+            }
             csb.setPlanVersion(contractBean.getPlan().getVersion());
             csb.setServiceDescription(service.getDescription());
             csb.setServiceId(service.getId());
@@ -1619,7 +1627,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             entry.setPlanId(plan.getId());
             entry.setPlanName(plan.getName());
             entry.setPlanVersion(contractBean.getPlan().getVersion());
-            entry.setApiKey(contractBean.getApikey());
 
             Set<ServiceGatewayBean> gateways = svb.getGateways();
             if (gateways != null && gateways.size() > 0) {

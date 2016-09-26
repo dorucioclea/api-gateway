@@ -29,8 +29,8 @@ public interface IMigrationResource {
      *     <li>In case of inconsistency force sync DB->gateways</li>
      *     <li>Zero Downtime Deployment</li>
      * </ul>
-     */
-    public void syncGateways() throws AbstractRestException;
+     *//*
+    public void syncGateways() throws AbstractRestException;*/
 
     /**
      * Rebuild and populate a gateway when empty.
@@ -61,5 +61,10 @@ public interface IMigrationResource {
      * Sync the gateway api plugin id's with corresponding service policies
      */
     public void updatePoliciesWithGatewayPluginIds();
+
+    /**
+     * Sync or create credentials for applications
+     */
+    public void syncOrCreateConsumerCredentials();
 }
 

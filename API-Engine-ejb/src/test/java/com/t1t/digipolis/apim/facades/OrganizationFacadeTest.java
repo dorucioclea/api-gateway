@@ -382,7 +382,6 @@ public class OrganizationFacadeTest {
         when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(avb);
         List<ContractSummaryBean> contractSummaryBeanList = new ArrayList<>();
         ContractSummaryBean csb = new ContractSummaryBean();
-        csb.setApikey("1111");
         contractSummaryBeanList.add(csb);
         when(query.getApplicationContracts(anyString(), anyString(), anyString())).thenReturn(contractSummaryBeanList);
         orgFacade.getApplicationVersionContracts("someorg", "someapp", "someversion");
@@ -399,12 +398,11 @@ public class OrganizationFacadeTest {
         when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(avb);
         List<ContractSummaryBean> contractSummaryBeanList = new ArrayList<>();
         ContractSummaryBean csb = new ContractSummaryBean();
-        csb.setApikey("1111");
         contractSummaryBeanList.add(csb);
         when(query.getApplicationContracts(anyString(), anyString(), anyString())).thenReturn(contractSummaryBeanList);
         orgFacade.getApplicationVersionContracts("someorg", "someapp", "someversion");
         verify(query).getApplicationContracts("someorg", "someapp", "someversion");
-        assertEquals(contractSummaryBeanList.get(0).getApikey(), null);
+        assertEquals(avb.getApikey(), null);
     }
 
     @Test
