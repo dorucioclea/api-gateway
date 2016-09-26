@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.exceptions;
 
 import com.t1t.digipolis.apim.common.plugin.PluginCoordinates;
-import com.t1t.digipolis.apim.exceptions.i18n.JWTInvalidException;
+import com.t1t.digipolis.apim.exceptions.i18n.BrandingNotAvailableException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 
 /**
@@ -567,7 +567,25 @@ public final class ExceptionFactory {
         return new JWTInvalidException(message, ex);
     }
 
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final UserAlreadyAdminException userAlreadyAdminException(String message) {
         return new UserAlreadyAdminException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final BrandingNotFoundException brandingNotFoundException(String message) {
+        return new BrandingNotFoundException(message);
+    }
+
+    public static final BrandingNotAvailableException brandingNotAvailableException(String serviceId, String brandingId) {
+        return new BrandingNotAvailableException(Messages.i18n.format("ServiceBrandingNotAvailable", serviceId, brandingId));
     }
 }

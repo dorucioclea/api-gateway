@@ -663,3 +663,17 @@ FROM contracts
 WHERE contracts.appv_id = application_versions.id;
 
 ALTER TABLE contracts DROP COLUMN apikey;
+
+-- Branding gateway URL's feature
+
+CREATE TABLE branding_domains (id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NUll, base_path VARCHAR(255) NOT NULL);
+ALTER TABLE branding_domains ADD PRIMARY KEY (id);
+ALTER TABLE branding_domains ADD CONSTRAINT UK_branding_domains_1 UNIQUE (name);
+CREATE INDEX IDX_branding_domains_1 ON branding_domains(id);
+
+CREATE TABLE service_brandings (organization_id VARCHAR(255) NOT NULL, service_id VARCHAR(255) NOT NULL, branding_id VARCHAR(255) NOT NULL);
+ALTER TABLE service_brandings ADD CONSTRAINT FK_service_brandings_1 FOREIGN KEY (service_id, organization_id) REFERENCES services(id, organization_id) ON UPDATE CASCADE;
+ALTER TABLE service_brandings ADD CONSTRAINT FK_service_brandings_2 FOREIGN KEY (branding_id) REFERENCES branding_domains(id) ON UPDATE CASCADE;
+ALTER TABLE service_brandings ADD CONSTRAINT UK_service_brandings_1 UNIQUE (service_id, branding_id);
+CREATE INDEX IDX_service_brandings_1 ON service_brandings(organization_id, service_id);
+CREATE INDEX IDX_service_brandings_2 ON service_brandings(branding_id);

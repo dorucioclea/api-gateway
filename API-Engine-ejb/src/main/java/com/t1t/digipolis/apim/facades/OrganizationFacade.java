@@ -13,6 +13,7 @@ import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -1310,6 +1311,19 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             if (query.getServiceByBasepath(organizationId, bean.getBasepath()) != null) {
                 throw ExceptionFactory.serviceBasepathAlreadyInUseException(orgBean.getName(), bean.getBasepath().substring(1));
+            }
+            if (bean.getBrandings() != null && !bean.getBrandings().isEmpty()) {
+                newService.setBrandings(new HashSet<>());
+                for (ServiceBrandingBean branding : bean.getBrandings()) {
+                    ServiceBrandingBean sbb = storage.getBranding(branding.getId());
+                    for (ServiceBean sb : sbb.getServices()) {
+                        if (sb.getId().equals(newService.getId()) && !sb.equals(newService)) {
+                            throw ExceptionFactory.brandingNotAvailableException(newService.getId(), sbb.getId());
+                        }
+                    }
+                    newService.getBrandings().add(sbb);
+                }
+
             }
             newService.setOrganization(orgBean);
             // Store/persist the new service
@@ -4261,20 +4275,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
     }
 
-    /*private ManagedApplicationBean createManagedApplication(NewManagedApplicationBean newManagedApp) {
-        ManagedApplicationBean mab = new ManagedApplicationBean();
-        mab.setName(newManagedApp.getName());
-        mab.setActivated(newManagedApp.getActivated());
-        mab.setApiKey(newManagedApp.getApiKey());
-        mab.setAppId(newManagedApp.getAppId());
-        mab.setGatewayId(newManagedApp.getGatewayId());
-        mab.setGatewayUsername(newManagedApp.getGatewayUsername());
-
-        mab.setRestricted(newManagedApp.getRestricted());
-        mab.setType(newManagedApp.getType());
-        mab.setVersion(newManagedApp.getVersion());
-    }*/
-
     private String[] splitUID(String UID) {
         String[] split = UID.split("\\.");
         if (split.length != 3) {
@@ -4282,6 +4282,28 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         else {
             return split;
+        }
+    }
+
+    public Set<ServiceBrandingBean> getAllServiceBrandings() {
+        try {
+            return storage.getAllBrandings();
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public ServiceBrandingBean getServiceBranding(String id) {
+        try {
+            ServiceBrandingBean rval = storage.getBranding(id);
+            if (rval == null) {
+                throw ExceptionFactory.brandingNotFoundException(id);
+            }
+            return rval;
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 }

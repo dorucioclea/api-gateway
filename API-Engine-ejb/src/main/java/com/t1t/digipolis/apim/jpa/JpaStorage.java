@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.config.ConfigBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.defaults.DefaultsBean;
@@ -2683,5 +2684,31 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     private boolean doNotFilterServices() throws StorageException {
         return getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix());
+    }
+
+    @Override
+    public void createBranding(ServiceBrandingBean branding) throws StorageException {
+        super.create(branding);
+    }
+
+    @Override
+    public void updateBranding(ServiceBrandingBean branding) throws StorageException {
+        super.update(branding);
+    }
+
+    @Override
+    public void deleteBranding(ServiceBrandingBean branding) throws StorageException {
+        super.delete(branding);
+    }
+
+    @Override
+    public ServiceBrandingBean getBranding(String id) throws StorageException {
+        return super.get(id, ServiceBrandingBean.class);
+    }
+
+    @Override
+    public Set<ServiceBrandingBean> getAllBrandings() throws StorageException {
+        String jpql = "SELECT s FROM ServiceBrandingBean s";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql).getResultList());
     }
 }
