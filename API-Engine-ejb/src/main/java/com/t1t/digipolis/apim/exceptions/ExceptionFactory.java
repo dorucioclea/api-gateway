@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.exceptions;
 
 import com.t1t.digipolis.apim.common.plugin.PluginCoordinates;
-import com.t1t.digipolis.apim.exceptions.i18n.BrandingNotAvailableException;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 
 /**
@@ -585,7 +584,22 @@ public final class ExceptionFactory {
         return new BrandingNotFoundException(message);
     }
 
-    public static final BrandingNotAvailableException brandingNotAvailableException(String serviceId, String brandingId) {
-        return new BrandingNotAvailableException(Messages.i18n.format("ServiceBrandingNotAvailable", serviceId, brandingId));
+    /**
+     * Creates an exception
+     * @param messageId
+     * @param args
+     * @return
+     */
+    public static final BrandingNotAvailableException brandingNotAvailableException(String messageId, String... args) {
+        return new BrandingNotAvailableException(Messages.i18n.format(messageId, args));
+    }
+
+    /**
+     * Creates an exception
+     * @param brandingId
+     * @return
+     */
+    public static final BrandingCannotBeDeletedException brandingCannotBeDeletedException(String brandingId) {
+        return new BrandingCannotBeDeletedException(Messages.i18n.format("BrandingStillHasServices", brandingId));
     }
 }

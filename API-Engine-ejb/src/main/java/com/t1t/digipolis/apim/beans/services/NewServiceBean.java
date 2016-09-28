@@ -22,7 +22,7 @@ public class NewServiceBean implements Serializable {
     private Set<String> categories;
     private String base64logo;
     private Boolean admin;
-    private Set<ServiceBrandingBean> brandings;
+    private Set<String> brandings;
 
     /**
      * Constructor.
@@ -131,14 +131,14 @@ public class NewServiceBean implements Serializable {
     /**
      * @return the service brandings
      */
-    public Set<ServiceBrandingBean> getBrandings() {
+    public Set<String> getBrandings() {
         return brandings;
     }
 
     /**
      * @param brandings the service brandings to set
      */
-    public void setBrandings(Set<ServiceBrandingBean> brandings) {
+    public void setBrandings(Set<String> brandings) {
         this.brandings = brandings;
     }
 

@@ -1,4 +1,4 @@
-package com.t1t.digipolis.apim.exceptions.i18n;
+package com.t1t.digipolis.apim.exceptions;
 
 import com.t1t.digipolis.apim.exceptions.AbstractAlreadyExistsException;
 import com.t1t.digipolis.apim.exceptions.ErrorCodes;

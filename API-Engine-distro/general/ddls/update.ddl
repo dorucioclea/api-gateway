@@ -666,7 +666,7 @@ ALTER TABLE contracts DROP COLUMN apikey;
 
 -- Branding gateway URL's feature
 
-CREATE TABLE branding_domains (id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NUll, base_path VARCHAR(255) NOT NULL);
+CREATE TABLE branding_domains (id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NUll);
 ALTER TABLE branding_domains ADD PRIMARY KEY (id);
 ALTER TABLE branding_domains ADD CONSTRAINT UK_branding_domains_1 UNIQUE (name);
 CREATE INDEX IDX_branding_domains_1 ON branding_domains(id);

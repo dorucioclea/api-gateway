@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.JWTException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
+import com.t1t.digipolis.apim.exceptions.BrandingNotAvailableException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
@@ -59,6 +60,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.t1t.digipolis.apim.beans.policies.Policies.*;
 
@@ -443,6 +445,7 @@ public class GatewayClient {
         //create the service using path, and target_url
         KongApi api = new KongApi();
         api.setStripRequestPath(true);
+
         //api.setPublicDns();
         String nameAndDNS = ServiceConventionUtil.generateServiceUniqueName(service);
         //name wil be: organization.application.version
@@ -457,6 +460,7 @@ public class GatewayClient {
 
         //safe publish API
         api = publishAPIWithFallback(api);
+
         //verify if api creation has been succesfull
         if(!StringUtils.isEmpty(api.getId())){
             try{
@@ -474,7 +478,43 @@ public class GatewayClient {
                 throw new SystemErrorException(e);
             }
         }
+
+        //Create branding APIs
+        publishServiceBrandings(service);
+
         return service;
+    }
+
+    public void deleteAPI(String apiName) {
+        KongApi api = httpClient.getApi(apiName);
+        if (api != null && !StringUtils.isEmpty(api.getId())) {
+            httpClient.deleteApi(api.getId());
+        }
+    }
+
+    private void publishServiceBrandings(Service service) {
+        for (String branding : service.getBrandings()) {
+            try {
+                publishServiceBranding(service, branding);
+            }
+            catch (BrandingNotAvailableException ex) {
+
+            }
+        }
+    }
+
+    public void publishServiceBranding(Service service, String branding) {
+        String managedEndpoint = (gatewayBean.getEndpoint().endsWith("\\") ? gatewayBean.getEndpoint().substring(0, gatewayBean.getEndpoint().length() - 1) : gatewayBean.getEndpoint()) +
+                GatewayPathUtilities.generateGatewayContextPath(service);
+        String brandingNameAndDNS = ServiceConventionUtil.generateServiceUniqueName(branding, service.getServiceId(), service.getVersion());
+
+        KongApi brandingApi = new KongApi()
+                .withName(brandingNameAndDNS)
+                .withRequestHost(brandingNameAndDNS)
+                .withStripRequestPath(true)
+                .withRequestPath(GatewayPathUtilities.generateGatewayContextPath(branding, service.getBasepath(), service.getVersion()))
+                .withUpstreamUrl(managedEndpoint);
+        publishAPIWithFallback(brandingApi);
     }
 
     private Policy getCorrectedPolicy(KongPluginConfig config, Policies type) {
@@ -628,24 +668,30 @@ public class GatewayClient {
     /**
      * The retire functionality removes the api and deletes the policies that are applied on the api.
      * The policies are removed as a responsability of Kong gateway.
-     * @param organizationId
-     * @param serviceId
-     * @param version
+     * @param service
      * @throws RegistrationException
      * @throws GatewayAuthenticationException
      */
-    public void retire(String organizationId, String serviceId, String version) throws RegistrationException, GatewayAuthenticationException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+    public void retire(Service service) throws RegistrationException, GatewayAuthenticationException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(service.getOrganizationId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(service.getServiceId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(service.getVersion()));
         //create the service using path, and target_url
-        String nameAndDNS = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
-        //preconditions to fullfill for certain policies (OAuth in first case)
-        KongPluginConfigList servicePlugins = getServicePlugins(nameAndDNS);
+        String nameAndDNS = ServiceConventionUtil.generateServiceUniqueName(service.getOrganizationId(), service.getServiceId(), service.getVersion());
+        Set<String> kongApiNames = new HashSet<>();
+        kongApiNames.add(nameAndDNS);
+        if (service.getBrandings() != null && !service.getBrandings().isEmpty()) {
+            kongApiNames.addAll(service.getBrandings().stream().map(branding -> ServiceConventionUtil.generateServiceUniqueName(branding, service.getServiceId(), service.getVersion())).collect(Collectors.toSet()));
+        }
         if(appConfig.getOAuthEnableGatewayEnpoints()){
             removeGatewayOAuthScopes(gatewayBean,getApi(nameAndDNS));
         }
-        httpClient.deleteApi(nameAndDNS);
+        kongApiNames.stream().forEach(name -> {
+            KongApi existingApi = httpClient.getApi(name);
+            if (existingApi != null && !StringUtils.isEmpty(existingApi.getId())) {
+                httpClient.deleteApi(existingApi.getId());
+            }
+        });
     }
 
     public KongConsumer getConsumer(String id){

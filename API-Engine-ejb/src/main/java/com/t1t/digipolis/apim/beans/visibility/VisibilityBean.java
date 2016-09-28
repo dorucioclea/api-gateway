@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.beans.visibility;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Transient;
@@ -17,6 +19,7 @@ import java.io.Serializable;
  * The service will be exposed on the gateway, but will not be visible on the marketplace.
  */
 @Embeddable
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VisibilityBean implements Serializable {
     @Column(name = "code", nullable=false)
     private String code;

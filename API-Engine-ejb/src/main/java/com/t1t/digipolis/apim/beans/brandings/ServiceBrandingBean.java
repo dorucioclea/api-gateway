@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.beans.brandings;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import org.hibernate.annotations.Columns;
 
@@ -13,16 +15,15 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "branding_domains")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceBrandingBean implements Serializable {
 
     @Id
-    @GeneratedValue
     private String id;
     @Column(name = "name")
     private String name;
-    @Column(name = "base_path")
-    private String basePath;
-    @ManyToMany(mappedBy = "brandings")
+    @ManyToMany(fetch = FetchType.EAGER, mappedBy = "brandings", cascade = CascadeType.MERGE)
+    @JsonIgnore
     private Set<ServiceBean> services;
 
     public ServiceBrandingBean() {
@@ -42,14 +43,6 @@ public class ServiceBrandingBean implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getBasePath() {
-        return basePath;
-    }
-
-    public void setBasePath(String basePath) {
-        this.basePath = basePath;
     }
 
     public Set<ServiceBean> getServices() {
@@ -81,8 +74,6 @@ public class ServiceBrandingBean implements Serializable {
         return "ServiceBrandingBean{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
-                ", basePath='" + basePath + '\'' +
-                ", services=" + services +
                 '}';
     }
 }

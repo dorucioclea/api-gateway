@@ -20,7 +20,6 @@ public class UpdateServiceBean implements Serializable {
     private String base64logo;
     private Set<String> categories;
     private Boolean admin;
-    private Set<ServiceBrandingBean> brandings;
 
     /**
      * Constructor.
@@ -98,18 +97,29 @@ public class UpdateServiceBean implements Serializable {
         this.admin = admin;
     }
 
-    /**
-     * @return the service brandings
-     */
-    public Set<ServiceBrandingBean> getBrandings() {
-        return brandings;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        UpdateServiceBean that = (UpdateServiceBean) o;
+
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (base64logo != null ? !base64logo.equals(that.base64logo) : that.base64logo != null) return false;
+        if (categories != null ? !categories.equals(that.categories) : that.categories != null) return false;
+        return admin != null ? admin.equals(that.admin) : that.admin == null;
+
     }
 
-    /**
-     * @param brandings the service brandings to set
-     */
-    public void setBrandings(Set<ServiceBrandingBean> brandings) {
-        this.brandings = brandings;
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (base64logo != null ? base64logo.hashCode() : 0);
+        result = 31 * result + (categories != null ? categories.hashCode() : 0);
+        result = 31 * result + (admin != null ? admin.hashCode() : 0);
+        return result;
     }
 
     @Override

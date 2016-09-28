@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
@@ -301,7 +302,7 @@ public class RestGatewayLink implements IGatewayLink {
         if (!isGatewayUp()) {
             throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
         }
-        getClient().retire(service.getOrganizationId(), service.getServiceId(), service.getVersion());
+        getClient().retire(service);
     }
 
     /**
@@ -449,5 +450,15 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy) {
         return getClient().createServicePolicy(organizationId, serviceId, version, policy);
+    }
+
+    @Override
+    public void createServiceBranding(Service service, ServiceBrandingBean branding) {
+        getClient().publishServiceBranding(service, branding.getId());
+    }
+
+    @Override
+    public void deleteApi(String apiName) {
+        getClient().deleteAPI(apiName);
     }
 }

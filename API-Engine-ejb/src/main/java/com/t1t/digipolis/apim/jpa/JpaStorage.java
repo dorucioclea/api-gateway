@@ -2711,4 +2711,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         String jpql = "SELECT s FROM ServiceBrandingBean s";
         return new HashSet<>(getActiveEntityManager().createQuery(jpql).getResultList());
     }
+
+    @Override
+    public List<ServiceVersionBean> getServiceVersionByStatusForService(Set<ServiceStatus> status, ServiceBean service) throws StorageException {
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.service = :svc AND s.status IN :stat";
+        return getActiveEntityManager().createQuery(jpql)
+                .setParameter("svc", service)
+                .setParameter("stat", status)
+                .getResultList();
+    }
 }
