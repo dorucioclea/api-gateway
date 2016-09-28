@@ -1,13 +1,16 @@
 package com.t1t.digipolis.apim.beans.services;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import org.apache.commons.codec.binary.Base64;
+import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 
@@ -40,6 +43,9 @@ public class ServiceBean implements Serializable {
     @CollectionTable(name="categories")
     @Column(name="category")
     private Set<String> categories;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "service_brandings", joinColumns = {@JoinColumn(name = "organization_id", referencedColumnName = "organization_id"), @JoinColumn(name = "service_id", referencedColumnName = "id")}, inverseJoinColumns = @JoinColumn(name = "branding_id", referencedColumnName = "id"))
+    private Set<ServiceBrandingBean> brandings;
     @Column(updatable=true, nullable=true, length=512)
     private String description;
     @Column(name = "created_by", updatable=false, nullable=false)
@@ -167,36 +173,93 @@ public class ServiceBean implements Serializable {
         this.organization = organization;
     }
 
+    /**
+     * @return the base path value
+     */
     public String getBasepath() {
         return basepath;
     }
 
+    /**
+     * @param basePath the base path to set
+     */
     public void setBasepath(String basePath) {
         this.basepath = basePath;
     }
 
+    /**
+     * @return the categories
+     */
     public Set<String> getCategories() {
         return categories;
     }
 
+    /**
+     * @param categories the categories to set
+     */
     public void setCategories(Set<String> categories) {
         this.categories = categories;
     }
 
+    /**
+     * @return the base64-encoded logo
+     */
     public String getBase64logo() {
         return Base64.encodeBase64String(base64logo);
     }
 
+    /**
+     * @param base64logo the base64-encoded logo to set
+     */
     public void setBase64logo(String base64logo) {
         this.base64logo = Base64.decodeBase64(base64logo.getBytes());
     }
 
+    /**
+     * @return the admin value
+     */
     public Boolean isAdmin() {
         return admin;
     }
 
+    /**
+     * @param admin the admin value to set
+     */
     public void setAdmin(Boolean admin) {
         this.admin = admin;
+    }
+
+    /**
+     * @return the service branding domains
+     */
+    public Set<ServiceBrandingBean> getBrandings() {
+        return brandings;
+    }
+
+    /**
+     * @param brandings the service branding domains to set
+     */
+    public void setBrandings(Set<ServiceBrandingBean> brandings) {
+        this.brandings = brandings;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ServiceBean that = (ServiceBean) o;
+
+        if (!organization.equals(that.organization)) return false;
+        return id.equals(that.id);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = organization.hashCode();
+        result = 31 * result + id.hashCode();
+        return result;
     }
 
     @Override
@@ -207,9 +270,13 @@ public class ServiceBean implements Serializable {
                 ", name='" + name + '\'' +
                 ", basepath='" + basepath + '\'' +
                 ", categories=" + categories +
+                ", brandings=" + brandings +
                 ", description='" + description + '\'' +
                 ", createdBy='" + createdBy + '\'' +
                 ", createdOn=" + createdOn +
+                ", terms='" + terms + '\'' +
+                ", base64logo=" + Arrays.toString(base64logo) +
+                ", followers=" + followers +
                 ", admin=" + admin +
                 '}';
     }

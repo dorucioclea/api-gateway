@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.gateway;
 
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.gateway.dto.*;
@@ -490,4 +491,16 @@ public interface IGatewayLink {
      * @return
      */
     public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy);
+
+    /**
+     * Create a service branding api on the gateway
+     * @param service
+     */
+    public void createServiceBranding(Service service, ServiceBrandingBean branding);
+
+    /**
+     * Delete an API on the gateway
+     * @param apiName
+     */
+    public void deleteApi(String apiName);
 }

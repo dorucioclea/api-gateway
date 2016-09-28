@@ -6,6 +6,9 @@ import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -2396,4 +2399,35 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version);
     }
 
+    @Override
+    @ApiOperation("Add branding to service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/brandings")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void addBrandingToService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, ServiceBrandingSummaryBean branding) throws NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && branding != null && StringUtils.isNotEmpty(branding.getId()));
+        orgFacade.addServiceBranding(organizationId, serviceId, branding.getId());
+    }
+
+    @Override
+    @ApiOperation("Remove branding from service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/brandings/{brandingId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void removeBrandingFromService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("brandingId") String brandingId) throws NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && StringUtils.isNotEmpty(brandingId));
+        orgFacade.removeServiceBranding(organizationId, serviceId, brandingId);
+    }
 }

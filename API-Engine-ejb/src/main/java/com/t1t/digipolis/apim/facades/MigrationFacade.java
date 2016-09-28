@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
@@ -346,6 +347,7 @@ public class MigrationFacade {
                     gatewaySvc.setBasepath(svb.getService().getBasepath());
                     gatewaySvc.setVersion(svb.getVersion());
                     gatewaySvc.setPublicService(svb.isPublicService());
+                    gatewaySvc.setBrandings(svb.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));
 
                     //enrich with policies to publish
                     List<Policy> policiesToPublish = new ArrayList<>();

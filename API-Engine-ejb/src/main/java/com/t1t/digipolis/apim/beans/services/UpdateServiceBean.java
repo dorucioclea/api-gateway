@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.beans.services;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 
 import java.io.Serializable;
 import java.util.List;
@@ -40,36 +41,85 @@ public class UpdateServiceBean implements Serializable {
         this.description = description;
     }
 
-    public Set<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(Set<String> categories) {
-        this.categories = categories;
-    }
-
-    public String getBase64logo() {
-        return base64logo;
-    }
-
-    public void setBase64logo(String base64logo) {
-        this.base64logo = base64logo;
-    }
-
+    /**
+     * @return the name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * @param name the name to set
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * @return the categories
+     */
+    public Set<String> getCategories() {
+        return categories;
+    }
+
+    /**
+     * @param categories the categories to set
+     */
+    public void setCategories(Set<String> categories) {
+        this.categories = categories;
+    }
+
+    /**
+     * @return the base64-encoded logo
+     */
+    public String getBase64logo() {
+        return base64logo;
+    }
+
+    /**
+     * @param base64logo the base64-encoded logo to set
+     */
+    public void setBase64logo(String base64logo) {
+        this.base64logo = base64logo;
+    }
+
+    /**
+     * @return the admin value
+     */
     public Boolean isAdmin() {
         return admin;
     }
 
+    /**
+     * @param admin the admin value to set
+     */
     public void setAdmin(Boolean admin) {
         this.admin = admin;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        UpdateServiceBean that = (UpdateServiceBean) o;
+
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        if (base64logo != null ? !base64logo.equals(that.base64logo) : that.base64logo != null) return false;
+        if (categories != null ? !categories.equals(that.categories) : that.categories != null) return false;
+        return admin != null ? admin.equals(that.admin) : that.admin == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (base64logo != null ? base64logo.hashCode() : 0);
+        result = 31 * result + (categories != null ? categories.hashCode() : 0);
+        result = 31 * result + (admin != null ? admin.hashCode() : 0);
+        return result;
     }
 
     @Override

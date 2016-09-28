@@ -8,7 +8,7 @@ CREATE SEQUENCE hibernate_sequence START WITH 999;
 
 CREATE TABLE config(id BIGINT NOT NULL, config_path VARCHAR(255) NOT NULL);
 
-CREATE TABLE application_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, app_id VARCHAR(255) NULL, app_org_id VARCHAR(255) NULL, oauth_client_id VARCHAR(255), oauth_client_secret VARCHAR(255));
+CREATE TABLE application_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, app_id VARCHAR(255) NULL, app_org_id VARCHAR(255) NULL, oauth_client_id VARCHAR(255), oauth_client_secret VARCHAR(255), apikey VARCHAR(255));
 
 CREATE TABLE app_oauth_redirect_uris (application_version_id BIGINT NOT NULL, oauth_client_redirect VARCHAR(255) NOT NULL);
 
@@ -22,7 +22,7 @@ CREATE TABLE support (id BIGINT NOT NULL,organization_id VARCHAR(255) NOT NULL, 
 
 CREATE TABLE support_comments (id BIGINT NOT NULL, support_id BIGINT NOT NULL, comment TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL);
 
-CREATE TABLE contracts (id BIGINT NOT NULL, apikey VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, appv_id BIGINT NULL, planv_id BIGINT NULL, svcv_id BIGINT NULL, terms_agreed BOOL DEFAULT FALSE);
+CREATE TABLE contracts (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, appv_id BIGINT NULL, planv_id BIGINT NULL, svcv_id BIGINT NULL, terms_agreed BOOL DEFAULT FALSE);
 
 CREATE TABLE endpoint_properties (service_version_id BIGINT NOT NULL, value VARCHAR(255) NULL, name VARCHAR(255) NOT NULL);
 
@@ -79,6 +79,10 @@ CREATE TABLE events (id BIGINT NOT NULL, origin_id VARCHAR(255) NOT NULL, destin
 CREATE TABLE mail_templates (topic VARCHAR(255) NOT NULL,content TEXT NULL,subject TEXT NULL, created_on TIMESTAMP NULL,updated_on TIMESTAMP NULL) WITHOUT OIDS;
 
 CREATE TABLE key_mapping (from_spec_type VARCHAR(25) NOT NULL,to_spec_type VARCHAR(25) NOT NULL,from_spec_claim VARCHAR(255) NOT NULL,to_spec_claim VARCHAR(255) NULL);
+
+CREATE TABLE brandings (id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NUll);
+
+CREATE TABLE service_brandings (organization_id VARCHAR(255) NOT NULL, service_id VARCHAR(255) NOT NULL, branding_id VARCHAR(255) NOT NULL);
 
 ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic);
 
@@ -146,6 +150,8 @@ ALTER TABLE support_comments ADD PRIMARY KEY (id);
 
 ALTER TABLE managed_applications ADD PRIMARY KEY (id);
 
+ALTER TABLE brandings ADD PRIMARY KEY (id);
+
 ALTER TABLE key_mapping ADD CONSTRAINT pkkey_mapping PRIMARY KEY (from_spec_type, to_spec_type, from_spec_claim);
 
 ALTER TABLE services ADD CONSTRAINT FK_services_1 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
@@ -188,6 +194,10 @@ ALTER TABLE app_oauth_redirect_uris ADD CONSTRAINT FK_app_oauth_redirect_uris_1 
 
 ALTER TABLE managed_application_keys ADD CONSTRAINT FK_managed_app_keys_1 FOREIGN KEY (managed_app_id) REFERENCES managed_applications(id) ON UPDATE CASCADE;
 
+ALTER TABLE service_brandings ADD CONSTRAINT FK_service_brandings_1 FOREIGN KEY (service_id, organization_id) REFERENCES services(id, organization_id) ON UPDATE CASCADE;
+
+ALTER TABLE service_brandings ADD CONSTRAINT FK_service_brandings_2 FOREIGN KEY (branding_id) REFERENCES branding_domains(id) ON UPDATE CASCADE;
+
 ALTER TABLE managed_applications ADD CONSTRAINT UK_managedapp_1 UNIQUE (prefix);
 
 ALTER TABLE plugins ADD CONSTRAINT UK_plugins_1 UNIQUE (group_id, artifact_id);
@@ -207,6 +217,10 @@ ALTER TABLE contracts ADD CONSTRAINT UK_contracts_1 UNIQUE (appv_id, svcv_id, pl
 ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
 
 ALTER TABLE events ADD CONSTRAINT UK_events_1 UNIQUE (origin_id, destination_id, type);
+
+ALTER TABLE brandings ADD CONSTRAINT UK_brandings_1 UNIQUE (name);
+
+ALTER TABLE service_brandings ADD CONSTRAINT UK_service_brandings_1 UNIQUE (service_id, branding_id);
 
 ALTER TABLE managed_application_keys ADD CONSTRAINT UK_managed_app_keys_1 UNIQUE (managed_app_id, api_key);
 
@@ -270,6 +284,11 @@ CREATE INDEX IDX_oauth_scopes_1 ON oauth_scopes (ServiceVersionBean_id);
 
 CREATE INDEX idx_managed_app_keys_1 ON managed_application_keys (managed_app_id);
 
+CREATE INDEX IDX_service_brandings_1 ON service_brandings(organization_id, service_id);
+
+CREATE INDEX IDX_service_brandings_2 ON service_brandings(branding_id);
+
+CREATE INDEX IDX_brandings_1 ON brandings(id);
 
 -- DATA POPULAT... *** SQLINES FOR EVALUATION USE ONLY *** 
 

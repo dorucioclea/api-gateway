@@ -12,7 +12,10 @@ import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -125,6 +128,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     @Inject
     private RoleFacade roleFacade;
     @Inject
+    private BrandingFacade brandingFacade;
+    @Inject
     private AppConfig config;
     @Inject
     private Event<NewEventBean> event;
@@ -187,7 +192,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             //the request comes from a marketplace => prefix the org
             orgUniqueId = managedApp.getPrefix() + MARKET_SEPARATOR + orgUniqueId;
         }
-
         OrganizationBean orgBean = new OrganizationBean();
         orgBean.setName(bean.getName());
         orgBean.setContext(appContext.getApplicationPrefix());
@@ -206,7 +210,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
         try {
             // Store/persist the new organization
-            if (storage.getOrganization(orgBean.getId()) != null) {
+            if (storage.getOrganization(orgBean.getId()) != null || storage.getBranding(orgUniqueId) != null) {
                 throw ExceptionFactory.organizationAlreadyExistsException(bean.getName());
             }
             storage.createOrganization(orgBean);
@@ -1311,6 +1315,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (query.getServiceByBasepath(organizationId, bean.getBasepath()) != null) {
                 throw ExceptionFactory.serviceBasepathAlreadyInUseException(orgBean.getName(), bean.getBasepath().substring(1));
             }
+            newService.setBrandings(validateServiceBrandings(newService, bean.getBrandings()));
             newService.setOrganization(orgBean);
             // Store/persist the new service
             storage.createService(newService);
@@ -1327,6 +1332,35 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    private ServiceBrandingBean validateServiceBranding(ServiceBean service, String branding) {
+        ServiceBrandingBean rval = null;
+        Set<ServiceBrandingBean> validatedBranding =  validateServiceBrandings(service, new HashSet<>(Collections.singleton(branding)));
+        if (!validatedBranding.isEmpty()) {
+            rval = validatedBranding.iterator().next();
+        }
+        return rval;
+    }
+
+    private Set<ServiceBrandingBean> validateServiceBrandings(ServiceBean service, Set<String> brandings) {
+        Set<ServiceBrandingBean> rval = new HashSet<>();
+        log.info("brandings:{}", brandings);
+        if (brandings != null && !brandings.isEmpty()) {
+            for (String branding : brandings) {
+                ServiceBrandingBean sbb = brandingFacade.getServiceBranding(branding);
+                log.info("branding:{}", sbb);
+                if (sbb.getServices() != null) {
+                    for (ServiceBean sb : sbb.getServices()) {
+                        if (sb.getId().equals(service.getId()) && !sb.equals(service)) {
+                            throw ExceptionFactory.brandingNotAvailableException("ServiceBrandingNotAvailable", service.getId(), sbb.getId());
+                        }
+                    }
+                }
+                rval.add(sbb);
+            }
+        }
+        return rval;
     }
 
     private void isServiceVersionPublishedOrDeprecated(ServiceVersionBean svb) {
@@ -2043,6 +2077,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (serviceForUpdate == null) {
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
             }
+
             EntityUpdatedData auditData = new EntityUpdatedData();
             if (AuditUtils.valueChanged(serviceForUpdate.getDescription(), bean.getDescription())) {
                 auditData.addChange("description", serviceForUpdate.getDescription(), bean.getDescription()); //$NON-NLS-1$
@@ -2068,6 +2103,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 if (!securityContext.isAdmin()) {
                     throw ExceptionFactory.notAuthorizedException();
                 }
+                if (!query.getServiceVersionByStatusForService(new HashSet<>(Arrays.asList(ServiceStatus.Published, ServiceStatus.Deprecated)), serviceForUpdate).isEmpty()) {
+                    throw ExceptionFactory.invalidServiceStatusException();
+                }
                 serviceForUpdate.setAdmin(bean.isAdmin());
             }
             storage.updateService(serviceForUpdate);
@@ -2077,6 +2115,74 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (Exception e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    public void addServiceBranding(String organizationId, String serviceId, String brandingId) {
+        try {
+            ServiceBean service = storage.getService(organizationId, serviceId);
+            if (service == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            ServiceBrandingBean newBranding = validateServiceBranding(service, brandingId);
+            if (newBranding != null) {
+                List<ServiceVersionBean> gatewaySvbs = query.getServiceVersionByStatusForService(new HashSet<>(Arrays.asList(ServiceStatus.Published, ServiceStatus.Deprecated)), service);
+                if (!gatewaySvbs.isEmpty()) {
+                    for (ServiceVersionBean svb : gatewaySvbs) {
+                        Service svc = new Service();
+                        svc.setServiceId(serviceId);
+                        svc.setOrganizationId(organizationId);
+                        svc.setVersion(svb.getVersion());
+                        svc.setBasepath(service.getBasepath());
+                        for (ServiceGatewayBean svcGw : svb.getGateways()) {
+                            gatewayFacade.createGatewayLink(svcGw.getGatewayId()).createServiceBranding(svc, newBranding);
+                        }
+                    }
+                }
+                if (service.getBrandings() == null) {
+                    service.setBrandings(new HashSet<>());
+                }
+                String originalSet = service.getBrandings().toString();
+                service.getBrandings().add(newBranding);
+                EntityUpdatedData data = new EntityUpdatedData();
+                data.addChange("brandings", originalSet, service.getBrandings().toString());
+                storage.updateService(service);
+                storage.createAuditEntry(AuditUtils.serviceUpdated(service, data, securityContext));
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public void removeServiceBranding(String organizationId, String serviceId, String brandingId) {
+        try {
+            ServiceBean service = storage.getService(organizationId, serviceId);
+            if (service == null) {
+                throw ExceptionFactory.serviceNotFoundException(serviceId);
+            }
+            ServiceBrandingBean sbb = brandingFacade.getServiceBranding(brandingId);
+            if (service.getBrandings() == null || !service.getBrandings().contains(sbb)) {
+                throw ExceptionFactory.brandingNotFoundException(sbb.getId());
+            }
+            List<ServiceVersionBean> gatewaySvbs = query.getServiceVersionByStatusForService(new HashSet<>(Arrays.asList(ServiceStatus.Published, ServiceStatus.Deprecated)), service);
+            if (!gatewaySvbs.isEmpty()) {
+                for (ServiceVersionBean svb : gatewaySvbs) {
+                    for (ServiceGatewayBean gwBean : svb.getGateways()) {
+                        gatewayFacade.createGatewayLink(gwBean.getGatewayId()).deleteApi(ServiceConventionUtil.generateServiceUniqueName(brandingId, serviceId, svb.getVersion()));
+                    }
+                }
+            }
+            String originalSet = service.getBrandings().toString();
+            service.getBrandings().remove(sbb);
+            EntityUpdatedData data = new EntityUpdatedData();
+            data.addChange("brandings", originalSet, service.getBrandings().toString());
+            storage.updateService(service);
+            storage.createAuditEntry(AuditUtils.serviceUpdated(service, data, securityContext));
+        }
+        catch (StorageException ex) {
+
+        }
+
     }
 
     public ServiceVersionEndpointSummaryBean getServiceVersionEndpointInfo(String organizationId, String serviceId, String version) {
@@ -2093,6 +2199,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             String gatewayEndpoint = ((gateway.getEndpoint().endsWith("\\") ? gateway.getEndpoint().substring(0, gateway.getEndpoint().length() - 1) : gateway.getEndpoint()));
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
             rval.setManagedEndpoint(gatewayEndpoint + GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), version));
+            if (serviceVersion.getService().getBrandings() != null && !serviceVersion.getService().getBrandings().isEmpty()) {
+                rval.setBrandingEndpoints(serviceVersion.getService().getBrandings().stream().map(branding -> new ServiceVersionEndpointSummaryBean().withManagedEndpoint(gatewayEndpoint + GatewayPathUtilities.generateGatewayContextPath(branding.getId(), serviceVersion.getService().getBasepath(), version))).collect(Collectors.toSet()));
+            }
             //get oauth endpoints if needed
             if (!StringUtils.isEmpty(serviceVersion.getProvisionKey())) {
                 //construct the target url
@@ -2101,9 +2210,21 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
                 rval.setOauth2AuthorizeEndpoint(targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_AUTH);
                 rval.setOauth2TokenEndpoint(targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN);
+                if (rval.getBrandingEndpoints() != null && !rval.getBrandingEndpoints().isEmpty()) {
+                    rval.getBrandingEndpoints().forEach(endpoint -> {
+                        StringBuilder brandedURI = new StringBuilder(URIUtils.uriBackslashAppender(endpoint.getManagedEndpoint()))
+                                .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
+                        endpoint.setOauth2AuthorizeEndpoint(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_AUTH).toString());
+                        endpoint.setOauth2TokenEndpoint(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN).toString());
+                    });
+                }
             } else {
                 rval.setOauth2AuthorizeEndpoint("");
                 rval.setOauth2TokenEndpoint("");
+                rval.getBrandingEndpoints().forEach(endpoint -> {
+                    endpoint.setOauth2TokenEndpoint("");
+                    endpoint.setOauth2AuthorizeEndpoint("");
+                });
             }
             return rval;
         } catch (AbstractRestException e) {
@@ -4222,7 +4343,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return rval;
     }
 
-    public void revokeApplicationVersionOAuthToken(OAuth2TokenBean token) {
+    public void revokeApplicationVersionOAuthToken(OAuth2TokenRevokeBean token) {
         IGatewayLink gateway = gatewayFacade.createGatewayLink(token.getGatewayId());
         List<KongPluginOAuthConsumerResponse> appTokens = gateway.getConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(token.getOrganizationId(), token.getApplicationId(), token.getVersion())).getData();
         if (appTokens.stream().filter(appToken -> appToken.getId().equals(token.getCredentialId())).collect(Collectors.toList()).isEmpty()) {
@@ -4261,20 +4382,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
     }
 
-    /*private ManagedApplicationBean createManagedApplication(NewManagedApplicationBean newManagedApp) {
-        ManagedApplicationBean mab = new ManagedApplicationBean();
-        mab.setName(newManagedApp.getName());
-        mab.setActivated(newManagedApp.getActivated());
-        mab.setApiKey(newManagedApp.getApiKey());
-        mab.setAppId(newManagedApp.getAppId());
-        mab.setGatewayId(newManagedApp.getGatewayId());
-        mab.setGatewayUsername(newManagedApp.getGatewayUsername());
-
-        mab.setRestricted(newManagedApp.getRestricted());
-        mab.setType(newManagedApp.getType());
-        mab.setVersion(newManagedApp.getVersion());
-    }*/
-
     private String[] splitUID(String UID) {
         String[] split = UID.split("\\.");
         if (split.length != 3) {
@@ -4284,4 +4391,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             return split;
         }
     }
+
+
 }

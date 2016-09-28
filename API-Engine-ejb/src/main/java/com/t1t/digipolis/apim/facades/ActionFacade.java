@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.actions.ActionBean;
 import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
@@ -57,6 +58,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -149,6 +151,8 @@ public class ActionFacade {
         gatewaySvc.setBasepath(versionBean.getService().getBasepath());
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
+        gatewaySvc.setBrandings(versionBean.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));
+
         try {
             //we don't restrict the application of service policies for only the public services
             /*if (versionBean.isPublicService()) {*/
@@ -265,6 +269,7 @@ public class ActionFacade {
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
         gatewaySvc.setServiceId(versionBean.getService().getId());
         gatewaySvc.setVersion(versionBean.getVersion());
+        gatewaySvc.setBrandings(versionBean.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));
         //Checks if service still has contracts
         try {
             if (!query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 1000).isEmpty()) {

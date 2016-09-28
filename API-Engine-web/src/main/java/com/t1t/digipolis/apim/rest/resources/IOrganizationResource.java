@@ -3,6 +3,9 @@ package com.t1t.digipolis.apim.rest.resources;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -1595,4 +1598,22 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException
      */
     public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version) throws NotAuthorizedException;
+
+    /**
+     * Add a branding to a service
+     * @param organizationId
+     * @param serviceId
+     * @param branding
+     * @throws NotAuthorizedException
+     */
+    public void addBrandingToService(String organizationId, String serviceId, ServiceBrandingSummaryBean branding) throws NotAuthorizedException;
+
+    /**
+     * Remove a branding from a service
+     * @param organizationId
+     * @param serviceId
+     * @param brandingId
+     * @throws NotAuthorizedException
+     */
+    public void removeBrandingFromService(String organizationId, String serviceId, String brandingId) throws NotAuthorizedException;
 }

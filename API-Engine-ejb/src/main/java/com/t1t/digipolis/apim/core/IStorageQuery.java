@@ -100,6 +100,12 @@ public interface IStorageQuery {
      */
     public SearchResultsBean<ServiceSummaryBean> findServices(SearchCriteriaBean criteria) throws StorageException;
 
+    /**
+     * Find published service versions by service name
+     * @param name
+     * @return found service versions
+     * @throws StorageException
+     */
     public List<ServiceVersionBean> findPublishedServiceVersionsByServiceName(String name) throws StorageException;
 
     /**
@@ -925,4 +931,13 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<ContractBean> getApplicationVersionContracts(ApplicationVersionBean avb) throws StorageException;
+
+    /**
+     * Get service versions for a specific service that match the proviced service status
+     * @param status
+     * @param service
+     * @return
+     * @throws StorageException
+     */
+    public List<ServiceVersionBean> getServiceVersionByStatusForService(Set<ServiceStatus> status, ServiceBean service) throws StorageException;
 }

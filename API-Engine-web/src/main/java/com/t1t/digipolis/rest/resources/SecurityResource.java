@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
 import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -157,7 +158,7 @@ public class SecurityResource implements ISecurityResource {
     @POST
     @Path("/oauth2/tokens/revoke")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void revokeApplicationVersionOAuthToken(OAuth2TokenBean token) throws NotAuthorizedException {
+    public void revokeApplicationVersionOAuthToken(OAuth2TokenRevokeBean token) throws NotAuthorizedException {
         Preconditions.checkNotNull(token);
         Preconditions.checkArgument(StringUtils.isNotEmpty(token.getOrganizationId()) && StringUtils.isNotEmpty(token.getApplicationId()) && StringUtils.isNotEmpty(token.getVersion()));
         Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()));
