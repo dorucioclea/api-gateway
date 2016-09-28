@@ -2221,10 +2221,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             } else {
                 rval.setOauth2AuthorizeEndpoint("");
                 rval.setOauth2TokenEndpoint("");
-                rval.getBrandingEndpoints().forEach(endpoint -> {
-                    endpoint.setOauth2TokenEndpoint("");
-                    endpoint.setOauth2AuthorizeEndpoint("");
-                });
+                if (rval.getBrandingEndpoints() != null && !rval.getBrandingEndpoints().isEmpty()) {
+                    rval.getBrandingEndpoints().forEach(endpoint -> {
+                        endpoint.setOauth2TokenEndpoint("");
+                        endpoint.setOauth2AuthorizeEndpoint("");
+                    });
+                }
             }
             return rval;
         } catch (AbstractRestException e) {
