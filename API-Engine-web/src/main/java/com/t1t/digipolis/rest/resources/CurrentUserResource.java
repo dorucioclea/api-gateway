@@ -257,7 +257,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     }
 
     @Override
-    @ApiOperation("Revoke current user's Oauth2 Token")
+    @ApiOperation(value = "Revoke current user's Oauth2 Token", notes = "Deprecated, please use the /security/oauth2/tokens/revoke/{token} DELETE endpoint")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Succesful, no content")
     })

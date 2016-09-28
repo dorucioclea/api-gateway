@@ -20,6 +20,7 @@ import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.apim.security.JWTExpTimeResponse;
 import com.t1t.digipolis.apim.security.OAuthExpTimeResponse;
+import com.t1t.digipolis.kong.model.KongOAuthToken;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 10/04/16.
@@ -151,6 +153,18 @@ public class SecurityFacade {
     private List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() {
         try {
             return query.getAllNonRetiredApplicationVersions();
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public void revokeOAuthToken(String accessToken) {
+        try {
+            query.getAllGateways().stream()
+                    .map(GatewayBean::getId)
+                    .map(gatewayFacade::createGatewayLink)
+                    .forEach(gw -> gw.revokeGatewayOAuthToken(accessToken));
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);

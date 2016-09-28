@@ -1023,6 +1023,30 @@ public class GatewayClient {
         return httpClient.getOAuthToken(tokenId);
     }
 
+    public KongOAuthToken getGatewayOauthToken(String token) {
+        KongOAuthToken rval = null;
+        KongOAuthTokenList tokens = httpClient.getOAuthTokensByAccessToken(token);
+        if (token != null && tokens.getData() != null && !tokens.getData().isEmpty()) {
+            if (tokens.getData().size() == 1) {
+                rval = tokens.getData().get(0);
+            }
+            else {
+                log.error("More than one token found:{}", tokens.getData());
+            }
+        }
+        return rval;
+    }
+
+    public void revokeOAuthTokenByAccessToken(String accessToken) {
+        KongOAuthTokenList tokens = httpClient.getOAuthTokensByAccessToken(accessToken);
+        if (tokens != null && tokens.getData() != null && !tokens.getData().isEmpty()) {
+            if (tokens.getTotal() > 1) {
+                log.warn("Multiple tokens found for access token:{}", accessToken);
+            }
+            tokens.getData().forEach(gwToken -> httpClient.revokeOAuthToken(gwToken.getId()));
+        }
+    }
+
     public void deleteConsumerJwtCredential(String consumerId, String credentialId) {
         httpClient.deleteConsumerJwtCredential(consumerId, credentialId);
     }

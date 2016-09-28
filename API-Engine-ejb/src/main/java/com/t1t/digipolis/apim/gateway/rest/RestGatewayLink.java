@@ -461,4 +461,14 @@ public class RestGatewayLink implements IGatewayLink {
     public void deleteApi(String apiName) {
         getClient().deleteAPI(apiName);
     }
+
+    @Override
+    public KongOAuthToken getGatewayOAuthToken(String token) {
+        return getClient().getGatewayOauthToken(token);
+    }
+
+    @Override
+    public void revokeGatewayOAuthToken(String accessToken) {
+        getClient().revokeOAuthTokenByAccessToken(accessToken);
+    }
 }

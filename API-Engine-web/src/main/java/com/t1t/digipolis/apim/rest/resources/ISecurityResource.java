@@ -22,14 +22,30 @@ public interface ISecurityResource {
      */
     void setOAuthExpTime(OAuthExpTimeRequest request) throws NotAuthorizedException;
 
-    public Set<NewApiKeyBean> reissueAllApiKeys() throws NotAuthorizedException;
+    /**
+     * Reissue all API keys
+     * @return
+     * @throws NotAuthorizedException
+     */
+    Set<NewApiKeyBean> reissueAllApiKeys() throws NotAuthorizedException;
 
-    public Set<NewOAuthCredentialsBean> reissueAllOAuth2Credentials() throws NotAuthorizedException;
+    /**
+     * Reissue all OAuth2 credentials
+     * @return
+     * @throws NotAuthorizedException
+     */
+    Set<NewOAuthCredentialsBean> reissueAllOAuth2Credentials() throws NotAuthorizedException;
 
     /**
      * Revoke an application version's OAuth token
      * @param token
      * @throws NotAuthorizedException
      */
-    public void revokeApplicationVersionOAuthToken(OAuth2TokenRevokeBean token) throws NotAuthorizedException;
+    void revokeApplicationVersionOAuthToken(OAuth2TokenRevokeBean token) throws NotAuthorizedException;
+
+    /**
+     *
+     * @param token
+     */
+    void revokeOAuthToken(String token);
 }

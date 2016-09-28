@@ -503,4 +503,17 @@ public interface IGatewayLink {
      * @param apiName
      */
     public void deleteApi(String apiName);
+
+    /**
+     * Get the gateway OAuth token corresponding to an access token
+     * @param token
+     * @return
+     */
+    public KongOAuthToken getGatewayOAuthToken(String token);
+
+    /**
+     * Revoke an OAuth token on the gateway corresponding to the access token
+     * @param accessToken
+     */
+    public void revokeGatewayOAuthToken(String accessToken);
 }
