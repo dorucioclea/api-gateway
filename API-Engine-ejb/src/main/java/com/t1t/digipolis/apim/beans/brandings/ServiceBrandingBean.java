@@ -14,7 +14,7 @@ import java.util.Set;
  * @since 2016
  */
 @Entity
-@Table(name = "branding_domains")
+@Table(name = "brandings")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceBrandingBean implements Serializable {
 
