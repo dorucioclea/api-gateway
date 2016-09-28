@@ -629,7 +629,7 @@ public class EventFacade {
                             storage.deleteEvent(event);
                         }
                         else {
-                            eabs.add(finishEventAggregateBeanCreation(eab, avb, svb));
+                            eabs.add(finishEventAggregateBeanCreation(eab, avb, svb, null));
                         }
                     }
                     catch (StorageException ex) {
@@ -655,7 +655,7 @@ public class EventFacade {
                             eab.setPlanName(pvsb.getName());
                             eab.setPlanVersion(pvsb.getVersion());
 
-                            eabs.add(finishEventAggregateBeanCreation(eab, avb, svb));
+                            eabs.add(finishEventAggregateBeanCreation(eab, avb, svb, null));
                         }
                     }
                     catch (StorageException ex) {
@@ -686,32 +686,47 @@ public class EventFacade {
                             eab.setServiceOrgId(service.getOrganization().getId());
                             eab.setServiceOrgName(service.getOrganization().getName());
                             eab.setServiceOrgFriendlyName(service.getOrganization().getFriendlyName());
+                            eab.setAnnouncementId(Long.valueOf(event.getBody()));
+                            eabs.add(finishEventAggregateBeanCreation(eab, null, null, service));
                         }
                         catch (StorageException ex) {
                             throw ExceptionFactory.systemErrorException(ex);
                         }
                     }
+                    break;
                     //TODO - events for new announcements
             }
         });
         return eabs;
     }
 
-    private EventAggregateBean finishEventAggregateBeanCreation(EventAggregateBean eab, ApplicationVersionBean avb, ServiceVersionBean svb) {
+    private EventAggregateBean finishEventAggregateBeanCreation(EventAggregateBean eab, ApplicationVersionBean avb, ServiceVersionBean svb, ServiceBean sb) {
 
-        eab.setApplicationOrgId(avb.getApplication().getOrganization().getId());
-        eab.setApplicationOrgName(avb.getApplication().getOrganization().getName());
-        eab.setApplicationOrgFriendlyName(avb.getApplication().getOrganization().getFriendlyName());
-        eab.setApplicationId(avb.getApplication().getId());
-        eab.setApplicationName(avb.getApplication().getName());
-        eab.setApplicationVersion(avb.getVersion());
+        if (avb != null) {
+            eab.setApplicationOrgId(avb.getApplication().getOrganization().getId());
+            eab.setApplicationOrgName(avb.getApplication().getOrganization().getName());
+            eab.setApplicationOrgFriendlyName(avb.getApplication().getOrganization().getFriendlyName());
+            eab.setApplicationId(avb.getApplication().getId());
+            eab.setApplicationName(avb.getApplication().getName());
+            eab.setApplicationVersion(avb.getVersion());
+        }
 
-        eab.setServiceOrgId(svb.getService().getOrganization().getId());
-        eab.setServiceOrgName(svb.getService().getOrganization().getName());
-        eab.setServiceOrgFriendlyName(svb.getService().getOrganization().getFriendlyName());
-        eab.setServiceId(svb.getService().getId());
-        eab.setServiceName(svb.getService().getName());
-        eab.setServiceVersion(svb.getVersion());
+        if (svb != null) {
+            eab.setServiceOrgId(svb.getService().getOrganization().getId());
+            eab.setServiceOrgName(svb.getService().getOrganization().getName());
+            eab.setServiceOrgFriendlyName(svb.getService().getOrganization().getFriendlyName());
+            eab.setServiceId(svb.getService().getId());
+            eab.setServiceName(svb.getService().getName());
+            eab.setServiceVersion(svb.getVersion());
+        }
+
+        if (sb != null) {
+            eab.setServiceOrgId(sb.getOrganization().getId());
+            eab.setServiceOrgName(sb.getOrganization().getName());
+            eab.setServiceOrgFriendlyName(sb.getOrganization().getFriendlyName());
+            eab.setServiceId(sb.getId());
+            eab.setServiceName(sb.getName());
+        }
 
         return eab;
     }

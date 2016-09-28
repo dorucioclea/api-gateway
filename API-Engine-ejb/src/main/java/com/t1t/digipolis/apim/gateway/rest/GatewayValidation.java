@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.jwt.JWTFormBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
@@ -32,6 +33,7 @@ import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
 import com.t1t.digipolis.kong.model.KongPluginTcpLog;
 import com.t1t.digipolis.kong.model.KongPluginUdpLog;
 
+import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,9 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.t1t.digipolis.apim.beans.policies.Policies.JSONTHREATPROTECTION;
+import static com.t1t.digipolis.apim.beans.policies.Policies.LDAPAUTHENTICATION;
+
 /**
  * Created by michallispashidis on 30/09/15.
  */
@@ -49,10 +54,11 @@ public class GatewayValidation {
     private static Logger _LOG = LoggerFactory.getLogger(GatewayValidation.class.getName());
     private static String environment;
     private static final String OAUTH_SCOPE_CONCAT = ".";
+    private static final Set<String> ALLOWED_JWT_CLAIMS = new HashSet<>(Arrays.asList("exp", "nbf"));
 
     public GatewayValidation() {}
 
-    @Inject private IStorageQuery storageQuery;
+    @Inject private IStorageQuery query;
     @Inject private AppConfig config;
     {
         environment = "";
@@ -61,10 +67,10 @@ public class GatewayValidation {
         }
     }
 
-   public Policy validate(Policy policy, String... optionalPrefixId) throws PolicyViolationException, StorageException {
-        _LOG.debug("Valdiate policy:{}", policy);
+   public Policy validate(Policy policy, PolicyType type, String... optionalPrefixId) throws PolicyViolationException, StorageException {
         //verify policy def that applies
         Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
+       _LOG.debug("Validating jsonpolicy:{}", policy.getPolicyJsonConfig());
         switch(policies){
             //all policies can be available here
             case BASICAUTHENTICATION: return validateBasicAuth(policy);
@@ -86,7 +92,11 @@ public class GatewayValidation {
             case ANALYTICS: return validateAnalytics(policy);
             case JWT: return validateJWT(policy);
             case JWTUP: return validateJWTUp(policy);
-            case ACL: return validateACL(policy);
+            case ACL:
+                if (type == PolicyType.Service) return validateServiceACL(policy);
+                else {
+                    return validateACL(policy);
+                }
             case LDAPAUTHENTICATION: return validateLDAP(policy);
             case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
             case HAL: return policy;
@@ -94,8 +104,19 @@ public class GatewayValidation {
         }
     }
 
+    private Policy validateServiceACL(Policy policy) {
+        Gson gson = new Gson();
+        KongPluginACL config = new KongPluginACL().withWhitelist(Arrays.asList(policy.getEntityId()));
+        if (config.getWhitelist().isEmpty() && config.getBlacklist().isEmpty()) {
+            throw ExceptionFactory.invalidPolicyException("ACL Policy needs at least one group name in either whitelist or blacklist");
+        }
+        policy.setPolicyJsonConfig(new Gson().toJson(config));
+        return policy;
+    }
+
     private Policy validateACL(Policy policy) {
         Gson gson = new Gson();
+
         String group = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginACLResponse.class).getGroup();
         Policy pol = new Policy();
         pol.setPolicyImpl(policy.getPolicyImpl());
@@ -107,7 +128,14 @@ public class GatewayValidation {
         Gson gson = new Gson();
         JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
         KongPluginJWT kongPluginJWT = new KongPluginJWT();
-        Set<String> claimsToVerify = new HashSet<>();
+        Set<String> claimsToVerify = new HashSet<>(jwtValue.getClaims_to_verify());
+        if (!claimsToVerify.isEmpty()) {
+            for (String claim : claimsToVerify) {
+                if (!ALLOWED_JWT_CLAIMS.contains(claim)) {
+                    throw ExceptionFactory.invalidPolicyException("Claims to verify must be one of: " + ALLOWED_JWT_CLAIMS.toString());
+                }
+            }
+        }
         //if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment
         //--enforce to validate JWT exp
         claimsToVerify.add("exp");
@@ -123,9 +151,9 @@ public class GatewayValidation {
     private Policy validateJWTUp(Policy policy) throws StorageException {
         Gson gson = new Gson();
         KongPluginJWTUp kongPluginJWTUp = new KongPluginJWTUp();
-        kongPluginJWTUp.setIssuerUrl(storageQuery.getDefaultGateway().getEndpoint());
-        kongPluginJWTUp.setX5uUrl(storageQuery.getDefaultGateway().getEndpoint()+storageQuery.getDefaultGateway().getJWTPubKeyEndpoint());
-        kongPluginJWTUp.setTokenExpiration(storageQuery.getDefaultGateway().getJWTExpTime());
+        kongPluginJWTUp.setIssuerUrl(query.getDefaultGateway().getEndpoint());
+        kongPluginJWTUp.setX5uUrl(query.getDefaultGateway().getEndpoint()+ query.getDefaultGateway().getJWTPubKeyEndpoint());
+        kongPluginJWTUp.setTokenExpiration(query.getDefaultGateway().getJWTExpTime());
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWTUp, KongPluginJWTUp.class));
@@ -160,6 +188,15 @@ public class GatewayValidation {
         //create custom provisionkey - explicitly
         oauthValue.setScopes(responseScopes);
         oauthValue.setProvisionKey(UUID.randomUUID().toString());
+        //If no OAuth token expiration has been set, use the default gateway value
+        if (oauthValue.getTokenExpiration() == null) {
+            try {
+                oauthValue.setTokenExpiration(query.getDefaultGateway().getOAuthExpTime());
+            }
+            catch (StorageException ex) {
+                throw ExceptionFactory.systemErrorException(ex);
+            }
+        }
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(oauthValue,KongPluginOAuth.class));
@@ -267,7 +304,7 @@ public class GatewayValidation {
         req.getHeaders().stream().forEach(val->{if(!StringUtils.isEmpty(val))res.getHeaders().add(val);});
         req.getMethods().stream().forEach(val->{if(val!=null)res.getMethods().add(val);});
         res.setCredentials(req.getCredentials());
-        res.setMaxAge(req.getMaxAge() == 0 ? 3600 : req.getMaxAge());
+        res.setMaxAge(req.getMaxAge() == null || req.getMaxAge() == 0 ? 3600 : req.getMaxAge());
         res.setPreflightContinue(req.getPreflightContinue());
         res.setOrigin(req.getOrigin());
         Policy responsePolicy = new Policy();
@@ -408,6 +445,7 @@ public class GatewayValidation {
     }
 
     public synchronized Policy validateLDAP(Policy policy) {
+        _LOG.info("ldap policy to validate:{}", policy);
         KongPluginLDAP req = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginLDAP.class);
         if (StringUtils.isEmpty(req.getLdapHost()) || StringUtils.isEmpty(req.getBaseDn())) {
             throw new PolicyViolationException("Form was not correctly filled in.");

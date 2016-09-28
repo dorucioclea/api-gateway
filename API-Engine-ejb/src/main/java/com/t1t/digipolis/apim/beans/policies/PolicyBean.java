@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.policies;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -15,7 +15,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "policies")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PolicyBean implements Serializable {
 
     private static final long serialVersionUID = -8534463608508756791L;
@@ -58,6 +58,8 @@ public class PolicyBean implements Serializable {
     private Long contractId;
     @Column(name = "gateway_id")
     private String gatewayId;
+    @Column(name = "enabled")
+    private Boolean enabled;
 
 
     /**
@@ -307,6 +309,20 @@ public class PolicyBean implements Serializable {
     }
 
     /**
+     * @return the enabled value
+     */
+    public Boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * @param enabled the value to set
+     */
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -357,6 +373,7 @@ public class PolicyBean implements Serializable {
                 ", kongPluginId='" + kongPluginId + '\'' +
                 ", contractId=" + contractId +
                 ", gatewayId='" + gatewayId + '\'' +
+                ", enabled='" + enabled + '\'' +
                 '}';
     }
 }

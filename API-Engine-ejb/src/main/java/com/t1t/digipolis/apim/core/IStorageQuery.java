@@ -21,6 +21,7 @@ import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
+import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -99,6 +100,12 @@ public interface IStorageQuery {
      */
     public SearchResultsBean<ServiceSummaryBean> findServices(SearchCriteriaBean criteria) throws StorageException;
 
+    /**
+     * Find published service versions by service name
+     * @param name
+     * @return found service versions
+     * @throws StorageException
+     */
     public List<ServiceVersionBean> findPublishedServiceVersionsByServiceName(String name) throws StorageException;
 
     /**
@@ -871,4 +878,66 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public ServiceBean getServiceByName(String name) throws StorageException;
+
+    /**
+     * Retrieve Managed Applications by Type
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public Set<ManagedApplicationBean> getManagedApplicationsByType(ManagedApplicationTypes type) throws StorageException;
+
+    /**
+     * Get policy definitions that should be applied by default
+     * @return
+     * @throws StorageException
+     */
+    public Set<PolicyDefinitionBean> getDefaultServicePolicyDefs() throws StorageException;
+
+    /**
+     * Get policy definitions that are service scoped
+     * @return
+     * @throws StorageException
+     */
+    public Set<PolicyDefinitionBean> getServiceScopedPolicyDefs() throws StorageException;
+
+    /**
+     * Get policy definitions that are plan scoped
+     * @return
+     * @throws StorageException
+     */
+    public Set<PolicyDefinitionBean> getplanScopedPolicyDefs() throws StorageException;
+
+    /**
+     * Get all application versions that hold a contract with a particular service version
+     * @param svb
+     * @return
+     * @throws StorageException
+     */
+    public Set<ApplicationVersionBean> getAppVersionContractHoldersForServiceVersion(ServiceVersionBean svb) throws StorageException;
+
+    /**
+     * Get all ACL policies that are related to a Service's own ACL policy
+     * @param svb
+     * @return
+     * @throws StorageException
+     */
+    public Set<PolicyBean> getNonServiceACLPoliciesForServiceVersion(ServiceVersionBean svb) throws StorageException;
+
+    /**
+     * Get all contracts for an application version
+     * @param avb
+     * @return
+     * @throws StorageException
+     */
+    public List<ContractBean> getApplicationVersionContracts(ApplicationVersionBean avb) throws StorageException;
+
+    /**
+     * Get service versions for a specific service that match the proviced service status
+     * @param status
+     * @param service
+     * @return
+     * @throws StorageException
+     */
+    public List<ServiceVersionBean> getServiceVersionByStatusForService(Set<ServiceStatus> status, ServiceBean service) throws StorageException;
 }

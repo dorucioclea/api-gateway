@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.plugins;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -12,7 +12,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "plugins", uniqueConstraints = { @UniqueConstraint(columnNames = { "group_id", "artifact_id" }) })
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PluginBean implements Serializable {
 
     private static final long serialVersionUID = 2932636903455749308L;

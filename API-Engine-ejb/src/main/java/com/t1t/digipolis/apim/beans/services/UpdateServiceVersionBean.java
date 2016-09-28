@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.beans.services;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -13,7 +13,7 @@ import java.util.Set;
  * Bean used when updating a version of a service.
  *
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateServiceVersionBean implements Serializable {
 
     private static final long serialVersionUID = 4126848584932708146L;

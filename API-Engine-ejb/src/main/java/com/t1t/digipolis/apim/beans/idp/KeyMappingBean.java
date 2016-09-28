@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.idp;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 @Entity
 @Table(name = "key_mapping", uniqueConstraints = { @UniqueConstraint(columnNames = { "from_spec_type", "to_spec_type", "from_spec_claim" }) })
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class KeyMappingBean implements Serializable{
     @Id @Column(name="from_spec_type", nullable=false)
     private String fromSpecType;

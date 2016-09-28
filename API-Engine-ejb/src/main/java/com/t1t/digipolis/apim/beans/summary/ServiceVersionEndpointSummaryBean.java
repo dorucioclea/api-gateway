@@ -1,11 +1,15 @@
 package com.t1t.digipolis.apim.beans.summary;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * Returns managed endpoint information.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceVersionEndpointSummaryBean implements Serializable {
 
     private static final long serialVersionUID = -4655383228161917800L;
@@ -13,6 +17,7 @@ public class ServiceVersionEndpointSummaryBean implements Serializable {
     private String managedEndpoint;
     private String oauth2AuthorizeEndpoint;
     private String oauth2TokenEndpoint;
+    private Set<ServiceVersionEndpointSummaryBean> brandingEndpoints;
 
     /**
      * Constructor.
@@ -36,6 +41,29 @@ public class ServiceVersionEndpointSummaryBean implements Serializable {
         this.oauth2TokenEndpoint = oauth2TokenEndpoint;
     }
 
+    public Set<ServiceVersionEndpointSummaryBean> getBrandingEndpoints() {
+        return brandingEndpoints;
+    }
+
+    public void setBrandingEndpoints(Set<ServiceVersionEndpointSummaryBean> brandingEndpoints) {
+        this.brandingEndpoints = brandingEndpoints;
+    }
+
+    public ServiceVersionEndpointSummaryBean withManagedEndpoint(String managedEndpoint) {
+        setManagedEndpoint(managedEndpoint);
+        return this;
+    }
+
+    public ServiceVersionEndpointSummaryBean withOauth2AuthorizeEndpoint(String oauth2AuthorizeEndpoint) {
+        setManagedEndpoint(managedEndpoint);
+        return this;
+    }
+
+    public ServiceVersionEndpointSummaryBean withOauth2TokenEndpoint(String oauth2TokenEndpoint) {
+        setManagedEndpoint(managedEndpoint);
+        return this;
+    }
+
     /**
      * @return the managedEndpoint
      */
@@ -56,6 +84,7 @@ public class ServiceVersionEndpointSummaryBean implements Serializable {
                 "managedEndpoint='" + managedEndpoint + '\'' +
                 ", oauth2AuthorizeEndpoint='" + oauth2AuthorizeEndpoint + '\'' +
                 ", oauth2TokenEndpoint='" + oauth2TokenEndpoint + '\'' +
+                ", brandingEndpoints=" + brandingEndpoints +
                 '}';
     }
 }

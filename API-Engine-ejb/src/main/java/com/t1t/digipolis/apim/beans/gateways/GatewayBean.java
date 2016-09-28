@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.gateways;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -13,7 +13,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "gateways")
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class GatewayBean implements Serializable {
 
     private static final long serialVersionUID = 388316225715740602L;

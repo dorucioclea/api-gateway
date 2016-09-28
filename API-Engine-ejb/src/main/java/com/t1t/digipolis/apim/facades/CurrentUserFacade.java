@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
@@ -272,7 +273,7 @@ public class CurrentUserFacade {
         return rval;
     }
 
-    public void revokeCurrentUserOAuth2Token(OAuth2TokenBean token) {
+    public void revokeCurrentUserOAuth2Token(OAuth2TokenRevokeBean token) {
         IGatewayLink gateway = gatewayFacade.createGatewayLink(token.getGatewayId());
         KongOAuthTokenList gwTokenList = gateway.getOAuthToken(token.getId());
         for (KongOAuthToken gwToken : gwTokenList.getData()) {

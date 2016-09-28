@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.config.ConfigBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.defaults.DefaultsBean;
@@ -16,6 +17,7 @@ import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -65,6 +67,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.l;
 
 /**
  * A JPA implementation of the storage interface.
@@ -1254,9 +1258,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             EntityManager entityManager = getActiveEntityManager();
             String jpql = "SELECT v from ServiceVersionBean v JOIN v.service s JOIN s.organization o WHERE o.id = :orgId AND s.id = :serviceId AND v.version = :version"; //$NON-NLS-1$
             Query query = entityManager.createQuery(jpql);
-            query.setParameter("orgId", orgId); //$NON-NLS-1$
-            query.setParameter("serviceId", serviceId); //$NON-NLS-1$
-            query.setParameter("version", version); //$NON-NLS-1$
+            query.setParameter("orgId", orgId.toLowerCase()); //$NON-NLS-1$
+            query.setParameter("serviceId", serviceId.toLowerCase()); //$NON-NLS-1$
+            query.setParameter("version", version.toLowerCase()); //$NON-NLS-1$
 
             return (ServiceVersionBean) query.getSingleResult();
         } catch (NoResultException e) {
@@ -1384,8 +1388,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             OrganizationBean svcOrg = entityManager.find(OrganizationBean.class, service.getOrganization().getId());
 
             ContractSummaryBean csb = new ContractSummaryBean();
+            if (security.hasPermission(PermissionType.appView, appOrg.getId())) {
+                csb.setApikey(contractBean.getApplication().getApikey());
+            }
+            if (security.hasPermission(PermissionType.svcView, organizationId) || getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
+                csb.setProvisionKey(contractBean.getService().getProvisionKey());
+            }
             csb.setAppId(application.getId());
-            csb.setApikey(contractBean.getApikey());
             csb.setAppOrganizationId(application.getOrganization().getId());
             csb.setAppOrganizationName(appOrg.getName());
             csb.setAppName(application.getName());
@@ -1532,7 +1541,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
             ContractSummaryBean csb = new ContractSummaryBean();
             csb.setAppId(application.getId());
-            csb.setApikey(contractBean.getApikey());
             csb.setAppOrganizationId(application.getOrganization().getId());
             csb.setAppOrganizationName(appOrg.getName());
             csb.setAppName(application.getName());
@@ -1540,10 +1548,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             csb.setContractId(contractBean.getId());
             csb.setCreatedOn(contractBean.getCreatedOn());
             csb.setPlanId(plan.getId());
-            if (getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)).contains(appContext.getApplicationPrefix())) {
+            if (getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix()) || security.hasPermission(PermissionType.svcView, svcOrg.getId())) {
                 csb.setProvisionKey(contractBean.getService().getProvisionKey());
             }
             csb.setPlanName(plan.getName());
+            if (security.hasPermission(PermissionType.appView, organizationId)) {
+                csb.setApikey(contractBean.getApplication().getApikey());
+            }
             csb.setPlanVersion(contractBean.getPlan().getVersion());
             csb.setServiceDescription(service.getDescription());
             csb.setServiceId(service.getId());
@@ -1617,7 +1628,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             entry.setPlanId(plan.getId());
             entry.setPlanName(plan.getName());
             entry.setPlanVersion(contractBean.getPlan().getVersion());
-            entry.setApiKey(contractBean.getApikey());
 
             Set<ServiceGatewayBean> gateways = svb.getGateways();
             if (gateways != null && gateways.size() > 0) {
@@ -2016,11 +2026,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         String content = new StringBuilder().append("%")
                 .append(ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version))
                 .append("%").toString();
-        String jpql = "SELECT p FROM PolicyBean p WHERE (p.type = :polType OR p.type = :polType2) AND p.configuration LIKE :content";
+        String jpql = "SELECT p FROM PolicyBean p WHERE (p.type = :polType OR p.type = :polType2) AND p.configuration LIKE :content AND p.definition.id = :def";
         return entityManager.createQuery(jpql)
                 .setParameter("polType", PolicyType.Marketplace)
                 .setParameter("polType2", PolicyType.Consent)
                 .setParameter("content", content)
+                .setParameter("def", Policies.ACL.getPolicyDefId())
                 .getResultList();
     }
 
@@ -2297,7 +2308,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public ManagedApplicationBean resolveManagedApplicationByAPIKey(String apiKey) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.apiKey = :apiKey";
+        String jpql = "SELECT m FROM ManagedApplicationBean m JOIN m.apiKeys a WHERE :apiKey = a";
         try {
             return (ManagedApplicationBean) em.createQuery(jpql)
                     .setParameter("apiKey", apiKey)
@@ -2390,9 +2401,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void deleteAclPolicies() throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "DELETE FROM PolicyBean p WHERE p.definition.id = :polDefId";
+        String jpql = "DELETE FROM PolicyBean p WHERE p.definition.id = :polDefId AND p.type <> :polType";
         em.createQuery(jpql)
                 .setParameter("polDefId", Policies.ACL.name())
+                .setParameter("polType", PolicyType.Service)
                 .executeUpdate();
     }
 
@@ -2614,7 +2626,98 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         }
     }
 
+    @Override
+    public Set<ManagedApplicationBean> getManagedApplicationsByType(ManagedApplicationTypes type) throws StorageException {
+        String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.type = :mType";
+        return new HashSet<ManagedApplicationBean>(getActiveEntityManager()
+                .createQuery(jpql)
+                .setParameter("mType", type)
+                .getResultList());
+    }
+
+    @Override
+    public Set<PolicyDefinitionBean> getDefaultServicePolicyDefs() throws StorageException {
+        String jpql = "SELECT p FROM PolicyDefinitionBean p WHERE p.scopeAuto = TRUE";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql).getResultList());
+    }
+
+    @Override
+    public Set<PolicyDefinitionBean> getServiceScopedPolicyDefs() throws StorageException {
+        String jpql = "SELECT p FROM PolicyDefinitionBean p WHERE p.scopeService = TRUE";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql).getResultList());
+    }
+
+    @Override
+    public Set<PolicyDefinitionBean> getplanScopedPolicyDefs() throws StorageException {
+        String jpql = "SELECT p FROM PolicyDefinitionBean p WHERE p.scopePlan = TRUE";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql).getResultList());
+    }
+
+    @Override
+    public Set<ApplicationVersionBean> getAppVersionContractHoldersForServiceVersion(ServiceVersionBean svb) throws StorageException {
+        String jpql = "SELECT c.application FROM ContractBean c WHERE c.service = :svc";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql)
+                .setParameter("svc", svb)
+                .getResultList());
+    }
+
+    @Override
+    public Set<PolicyBean> getNonServiceACLPoliciesForServiceVersion(ServiceVersionBean svb) throws StorageException {
+        String svcGroup = new StringBuilder("%\"whitelist\":[\"")
+                .append(ServiceConventionUtil.generateServiceUniqueName(svb))
+                .append("\"]%")
+                .toString();
+        String jpql = "SELECT p FROM PolicyBean p WHERE (p.type = :consent OR p.type = :contract) AND p.definition.id = :acl AND p.configuration LIKE :svcGroup";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql)
+                .setParameter("consent", PolicyType.Consent)
+                .setParameter("contract", PolicyType.Contract)
+                .setParameter("acl", Policies.ACL.getPolicyDefId())
+                .setParameter("svcGroup", svcGroup)
+                .getResultList());
+    }
+
+    @Override
+    public List<ContractBean> getApplicationVersionContracts(ApplicationVersionBean avb) throws StorageException {
+        String jpql = "SELECT c FROM ContractBean c WHERE c.application = :avb";
+        return getActiveEntityManager().createQuery(jpql).setParameter("avb", avb).getResultList();
+    }
+
     private boolean doNotFilterServices() throws StorageException {
-        return getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher)).contains(appContext.getApplicationPrefix());
+        return getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix());
+    }
+
+    @Override
+    public void createBranding(ServiceBrandingBean branding) throws StorageException {
+        super.create(branding);
+    }
+
+    @Override
+    public void updateBranding(ServiceBrandingBean branding) throws StorageException {
+        super.update(branding);
+    }
+
+    @Override
+    public void deleteBranding(ServiceBrandingBean branding) throws StorageException {
+        super.delete(branding);
+    }
+
+    @Override
+    public ServiceBrandingBean getBranding(String id) throws StorageException {
+        return super.get(id, ServiceBrandingBean.class);
+    }
+
+    @Override
+    public Set<ServiceBrandingBean> getAllBrandings() throws StorageException {
+        String jpql = "SELECT s FROM ServiceBrandingBean s";
+        return new HashSet<>(getActiveEntityManager().createQuery(jpql).getResultList());
+    }
+
+    @Override
+    public List<ServiceVersionBean> getServiceVersionByStatusForService(Set<ServiceStatus> status, ServiceBean service) throws StorageException {
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.service = :svc AND s.status IN :stat";
+        return getActiveEntityManager().createQuery(jpql)
+                .setParameter("svc", service)
+                .setParameter("stat", status)
+                .getResultList();
     }
 }

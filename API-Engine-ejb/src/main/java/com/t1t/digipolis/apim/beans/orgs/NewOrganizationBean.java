@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.orgs;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
  * Bean used when creating a new organization.
  *
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewOrganizationBean implements Serializable {
 
     private static final long serialVersionUID = 6967624347251134433L;

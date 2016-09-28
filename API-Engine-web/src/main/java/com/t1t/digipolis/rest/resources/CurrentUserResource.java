@@ -2,6 +2,7 @@ package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.*;
@@ -263,10 +264,10 @@ public class CurrentUserResource implements ICurrentUserResource {
     @DELETE
     @Path("/oauth2/tokens")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void revokeCurrentUserOAuthToken(OAuth2TokenBean token) {
+    public void revokeCurrentUserOAuthToken(OAuth2TokenRevokeBean token) {
         Preconditions.checkNotNull(token);
-        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()) && StringUtils.isNotEmpty(token.getAuthenticatedUserid()));
-        if (!token.getAuthenticatedUserid().equals(securityContext.getCurrentUser())) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()) && StringUtils.isNotEmpty(token.getAuthenticatedUserId()));
+        if (!token.getAuthenticatedUserId().equals(securityContext.getCurrentUser())) {
             throw ExceptionFactory.notAuthorizedException();
         }
         currentUserFacade.revokeCurrentUserOAuth2Token(token);

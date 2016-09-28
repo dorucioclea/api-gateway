@@ -6,6 +6,9 @@ import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -1063,7 +1066,9 @@ public class OrganizationResource implements IOrganizationResource {
         return servicePlugins;
     }
 
-    @ApiOperation(value = "Enable Service Plugins",
+    //Enabling and disabling plugins is now done through the update service policy endpoint
+
+    /*@ApiOperation(value = "Enable Service Plugins",
                   notes = "Use this endpoint to enable an existing plugin for a service.")
     @ApiResponses({@ApiResponse(code = 200, response = KongPluginConfig.class, message = "Enabled plugin for a service.")})
     @POST
@@ -1093,7 +1098,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(pluginId));
         KongPluginConfig servicePlugin = orgFacade.changeEnabledStateServicePlugin(organizationId, serviceId, version, pluginId,false);
         return servicePlugin;
-    }
+    }*/
 
     @ApiOperation(value = "Get Service Version Activity",
             notes = "Use this endpoint to get audit activity information for a single version of the Service.")
@@ -1238,7 +1243,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void updateServicePolicy(@PathParam("organizationId") String organizationId,
+    public PolicyBean updateServicePolicy(@PathParam("organizationId") String organizationId,
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("version") String version,
                                     @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
@@ -1248,7 +1253,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
+        return orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
     }
 
     @ApiOperation(value = "Remove Service Policy",
@@ -2395,4 +2400,35 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version);
     }
 
+    @Override
+    @ApiOperation("Add branding to service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/brandings")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void addBrandingToService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, ServiceBrandingSummaryBean branding) throws NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && branding != null && StringUtils.isNotEmpty(branding.getId()));
+        orgFacade.addServiceBranding(organizationId, serviceId, branding.getId());
+    }
+
+    @Override
+    @ApiOperation("Remove branding from service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/brandings/{brandingId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void removeBrandingFromService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("brandingId") String brandingId) throws NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && StringUtils.isNotEmpty(brandingId));
+        orgFacade.removeServiceBranding(organizationId, serviceId, brandingId);
+    }
 }

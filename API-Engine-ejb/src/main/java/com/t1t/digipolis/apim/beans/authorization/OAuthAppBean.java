@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.beans.authorization;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,7 +11,7 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "oauth_apps")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OAuthAppBean implements Serializable {
     private static final long serialVersionUID = -8535544608508756791L;
     @Id @GeneratedValue

@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.policies;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
  * The bean/model used when updating a new policy definition.
  *
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdatePolicyDefinitionBean implements Serializable {
 
     private static final long serialVersionUID = 350049376316732992L;

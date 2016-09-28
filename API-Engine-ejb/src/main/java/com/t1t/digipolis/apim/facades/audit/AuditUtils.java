@@ -596,7 +596,7 @@ public class AuditUtils {
      * @param securityContext the security context
      * @return the audit entry
      */
-    public static AuditEntryBean policyUpdated(PolicyBean bean, PolicyType type,
+    public static AuditEntryBean policyUpdated(PolicyBean bean, PolicyType type, EntityUpdatedData data,
             ISecurityContext securityContext) {
         AuditEntryBean entry = newEntry(bean.getOrganizationId(), null, securityContext);
         entry.setWhat(AuditEntryType.UpdatePolicy);
@@ -613,8 +613,9 @@ public class AuditUtils {
             entry.setEntityType(AuditEntityType.Service);
             break;
         }
-        PolicyData data = new PolicyData();
-        data.setPolicyDefId(bean.getDefinition().getId());
+        PolicyData polData = new PolicyData();
+        polData.setPolicyDefId(bean.getDefinition().getId());
+        polData.setData(data);
         entry.setData(toJSON(data));
         return entry;
     }

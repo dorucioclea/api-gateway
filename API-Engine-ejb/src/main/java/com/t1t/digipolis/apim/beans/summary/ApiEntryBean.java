@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.summary;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
@@ -10,7 +10,7 @@ import java.io.Serializable;
  *
  */
 @XmlRootElement(name = "api")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiEntryBean implements Serializable {
 
     private static final long serialVersionUID = -7578173174922025902L;
@@ -26,7 +26,6 @@ public class ApiEntryBean implements Serializable {
     private String planVersion;
 
     private String httpEndpoint;
-    private String apiKey;
 
     private String gatewayId;
 
@@ -163,20 +162,6 @@ public class ApiEntryBean implements Serializable {
     }
 
     /**
-     * @return the apiKey
-     */
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    /**
-     * @param apiKey the apiKey to set
-     */
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
-    }
-
-    /**
      * @return the gatewayId
      */
     public String getGatewayId() {
@@ -199,7 +184,7 @@ public class ApiEntryBean implements Serializable {
         return "ApiEntryBean [serviceOrgId=" + serviceOrgId + ", serviceOrgName=" + serviceOrgName
                 + ", serviceId=" + serviceId + ", serviceName=" + serviceName + ", serviceVersion="
                 + serviceVersion + ", planId=" + planId + ", planName=" + planName + ", planVersion="
-                + planVersion + ", httpEndpoint=" + httpEndpoint + ", apiKey=" + apiKey + ", gatewayId="
+                + planVersion + ", httpEndpoint=" + httpEndpoint + ", gatewayId="
                 + gatewayId + "]";
     }
 
