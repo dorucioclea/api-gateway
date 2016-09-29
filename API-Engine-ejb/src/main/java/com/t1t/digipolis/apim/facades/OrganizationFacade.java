@@ -3228,7 +3228,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             policy.setOrderIndex(newIdx);
             policy.setKongPluginId(bean.getKongPluginId());
             policy.setContractId(bean.getContractId());
-            policy.setGatewayId(bean.getGatewayId() == null ? null : gatewayFacade.get(bean.getGatewayId()).getId());
+            policy.setGatewayId(bean.getGatewayId() == null ? gatewayFacade.getDefaultGateway().getId() : gatewayFacade.get(bean.getGatewayId()).getId());
             storage.createPolicy(policy);
             storage.createAuditEntry(AuditUtils.policyAdded(policy, type, securityContext));
             //PolicyTemplateUtil.generatePolicyDescription(policy);
