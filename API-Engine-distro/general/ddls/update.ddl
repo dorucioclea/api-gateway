@@ -561,7 +561,7 @@ UPDATE policydefs SET default_config = '{"key_names":["apikey"],"hide_credential
       "type": "array",
       "items": {
         "type": "string",
-        "description":"Describes a name where the plugin will look for a valid credential. The client must send the authentication key in one of the specified key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order)."
+        "description":"Describes a name where the plugin will look for a valid credential. The client must send the authentication key in one of the specified key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order).",
         "default": "apikey"
       }
     },
