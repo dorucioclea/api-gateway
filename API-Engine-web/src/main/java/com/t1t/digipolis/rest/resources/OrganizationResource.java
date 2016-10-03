@@ -975,9 +975,10 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.systemErrorException(ex);
         }
         ServiceVersionBean svb = orgFacade.getServiceVersion(organizationId, serviceId, version);
-        if (!(securityContext.hasPermission(PermissionType.svcEdit, organizationId) || consentPrefixes.contains(appContext.getApplicationPrefix()))) {
+        //TODO - Remove provision key from bean
+        /*if (!(securityContext.hasPermission(PermissionType.svcEdit, organizationId) || consentPrefixes.contains(appContext.getApplicationPrefix()))) {
             svb.setProvisionKey(null);
-        }
+        }*/
         return svb;
     }
 

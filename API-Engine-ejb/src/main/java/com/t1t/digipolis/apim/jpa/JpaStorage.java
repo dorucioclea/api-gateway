@@ -1391,9 +1391,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             if (security.hasPermission(PermissionType.appView, appOrg.getId())) {
                 csb.setApikey(contractBean.getApplication().getApikey());
             }
-            if (security.hasPermission(PermissionType.svcView, organizationId) || getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
+            //TODO - secure who can see the provision key
+            //if (security.hasPermission(PermissionType.svcView, organizationId) || getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
                 csb.setProvisionKey(contractBean.getService().getProvisionKey());
-            }
+            //}
             csb.setAppId(application.getId());
             csb.setAppOrganizationId(application.getOrganization().getId());
             csb.setAppOrganizationName(appOrg.getName());
@@ -1548,9 +1549,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             csb.setContractId(contractBean.getId());
             csb.setCreatedOn(contractBean.getCreatedOn());
             csb.setPlanId(plan.getId());
-            if (getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix()) || security.hasPermission(PermissionType.svcView, svcOrg.getId())) {
+            //TODO -  re-enable security on provision key
+            //if (getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix()) || security.hasPermission(PermissionType.svcView, svcOrg.getId())) {
                 csb.setProvisionKey(contractBean.getService().getProvisionKey());
-            }
+            //}
             csb.setPlanName(plan.getName());
             if (security.hasPermission(PermissionType.appView, organizationId)) {
                 csb.setApikey(contractBean.getApplication().getApikey());
