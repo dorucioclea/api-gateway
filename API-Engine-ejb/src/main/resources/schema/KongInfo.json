@@ -25,9 +25,9 @@
       "type": "object",
       "properties": {
         "available_on_server": {
-          "type": "array",
-          "items": {
-            "type": "string"
+          "type": "object",
+          "additionalProperties" : {
+            "type" : "boolean"
           }
         }
       }
