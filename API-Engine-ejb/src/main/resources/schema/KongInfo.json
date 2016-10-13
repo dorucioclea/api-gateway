@@ -26,8 +26,37 @@
       "properties": {
         "available_on_server": {
           "type": "object",
-          "additionalProperties" : {
-            "type" : "boolean"
+          "properties": {
+            "key-auth": "boolean",
+            "ldap-auth": "boolean",
+            "hal": "boolean",
+            "cors": "boolean",
+            "jwt-up": "boolean",
+            "jwt": "boolean",
+            "request-transformer": "boolean",
+            "json-threat-protection": "boolean",
+            "oauth2": "boolean",
+            "http-log": "boolean",
+            "acl": "boolean",
+            "syslog": "boolean",
+            "rate-limiting": "boolean",
+            "correlation-id": "boolean",
+            "udp-log": "boolean",
+            "runscope": "boolean",
+            "tcp-log": "boolean",
+            "hmac-auth": "boolean",
+            "response-transformer": "boolean",
+            "basic-auth": "boolean",
+            "galileo": "boolean",
+            "file-log": "boolean",
+            "ip-restriction": "boolean",
+            "request-size-limiting": "boolean",
+            "ssl": "boolean",
+            "datadog": "boolean",
+            "loggly": "boolean",
+            "statsd": "boolean",
+            "response-ratelimiting": "boolean",
+            "bot-detection": "boolean"
           }
         }
       }

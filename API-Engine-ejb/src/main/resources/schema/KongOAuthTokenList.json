@@ -3,6 +3,14 @@
   "id": "/",
   "type": "object",
   "properties": {
+    "next": {
+      "id": "next",
+      "type": "string"
+    },
+    "offset": {
+      "id": "offset",
+      "type": "string"
+    },
     "data": {
       "id": "KongOAuthToken",
       "type": "array",

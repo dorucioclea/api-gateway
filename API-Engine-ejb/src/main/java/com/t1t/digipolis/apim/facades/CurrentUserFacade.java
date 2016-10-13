@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -19,6 +20,7 @@ import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongOAuthToken;
 import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
+import com.t1t.digipolis.util.CustomCollectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,7 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -192,19 +195,24 @@ public class CurrentUserFacade {
         Set<OAuth2TokenBean> rval = new HashSet<>();
         try {
             List<GatewayBean> gatewayBeen = query.getAllGateways();
-            List<IGatewayLink> gateways = new ArrayList<>();
             for (GatewayBean gatewayBean : gatewayBeen) {
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayBean.getId());
                 List<KongOAuthToken> tokens = gateway.getConsumerOAuthTokenListByUserId(securityContext.getCurrentUser()).getData();
+                log.info("amount of tokens:{}", tokens.size());
+                Map<String, String> gatewayAppCredentials = new HashMap<>();
+                tokens.stream().map(KongOAuthToken::getCredentialId).distinct().forEach(credId -> {
+                    gatewayAppCredentials.put(credId, gateway.getApplicationOAuthInformationByCredentialId(credId).getData().stream().map(oauth -> gateway.getConsumer(oauth.getConsumerId())).distinct().collect(CustomCollectors.getSingleResult()).getCustomId());
+                });
                 for (KongOAuthToken token : tokens) {
-                    List<KongPluginOAuthConsumerResponse> oauthInfos = gateway.getApplicationOAuthInformationByCredentialId(token.getCredentialId()).getData();
-                    for (KongPluginOAuthConsumerResponse oauthInfo : oauthInfos) {
-                        String[] appId = gateway.getConsumer(oauthInfo.getConsumerId()).getCustomId().split("\\.");
-                        if (appId.length == 3) {
-                            rval.add(new OAuth2TokenBean(token, gatewayBean.getId(), appId[0], appId[1], appId[2]));
+                    String[] appId = gatewayAppCredentials.get(token.getCredentialId()).split("\\.");
+                    if (appId.length == 3) {
+                        ApplicationVersionBean avb = storage.getApplicationVersion(appId[0], appId[1], appId[2]);
+                        if (avb != null) {
+                            rval.add(new OAuth2TokenBean(token, gatewayBean.getId(), avb));
                         }
                     }
                 }
+                log.info("amount of tokens after processing:{}", rval.size());
             }
 
         }

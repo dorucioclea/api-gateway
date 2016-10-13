@@ -4324,20 +4324,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             Map<String, Set<String>> credentialIds =  new HashMap<>();
             //create gatewayclients for every gateway the application is registered on
             Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version));
-            for (IGatewayLink gateway : gateways.values()) {
-                KongPluginOAuthConsumerResponseList response = gateway.getConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb));
-                //retrieve the oauth2 consumer credential ids so that we can retrieve the actual tokens
-                credentialIds.put(gateway.getGatewayId(), response.getData().stream().map(resp -> resp.getId()).collect(Collectors.toSet()));
-            }
-            for (String gatewayId : credentialIds.keySet()) {
-                IGatewayLink gateway = gateways.get(gatewayId);
-                for (String credentialId : credentialIds.get(gatewayId)) {
-                    List<KongOAuthToken> tokens = gateway.getConsumerOAuthTokenList(credentialId).getData();
-                    for (KongOAuthToken token : tokens) {
-                        rval.add(new OAuth2TokenBean(token, gatewayId, avb));
-                    }
-                }
-            }
+            //retrieve the oauth2 consumer credential ids so that we can retrieve the actual tokens
+            gateways.values().forEach(gateway -> credentialIds.put(gateway.getGatewayId(), gateway.getConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb)).getData().stream().map(KongPluginOAuthConsumerResponse::getId).collect(Collectors.toSet())));
+
+            credentialIds.keySet().forEach(gwId ->
+                    credentialIds.get(gwId).forEach(credId -> gateways.get(gwId).getConsumerOAuthTokenList(credId).getData().forEach(tkn -> rval.add(new OAuth2TokenBean(tkn,gwId,avb))))
+            );
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
