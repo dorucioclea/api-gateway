@@ -479,6 +479,8 @@ public interface IStorageQuery {
      */
     public List<PolicyBean> getManagedAppACLPolicies(String organizationId, String serviceId, String version) throws StorageException;
 
+    public List<ServiceVersionBean> getAllNonRetiredServiceVersions() throws StorageException;
+
     /**
      * Returns all application versions
      *
