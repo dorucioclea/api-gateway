@@ -2038,6 +2038,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public List<ServiceVersionBean> getAllNonRetiredServiceVersions() throws StorageException {
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.status <> :retired";
+        return getActiveEntityManager().createQuery(jpql)
+                .setParameter("retired", ServiceStatus.Retired)
+                .getResultList();
+    }
+
+    @Override
     public List<ApplicationVersionBean> findAllApplicationVersions() throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT a FROM ApplicationVersionBean a";

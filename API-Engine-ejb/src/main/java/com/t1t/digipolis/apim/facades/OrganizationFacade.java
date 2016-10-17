@@ -93,6 +93,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.t1t.digipolis.util.ServiceConventionUtil.generateServiceUniqueName;
+import static org.apache.logging.log4j.ThreadContext.isEmpty;
 
 /**
  * Created by michallispashidis on 15/08/15.
@@ -1324,7 +1325,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (bean.getInitialVersion() != null) {
                 NewServiceVersionBean newServiceVersion = new NewServiceVersionBean();
                 newServiceVersion.setVersion(bean.getInitialVersion());
-                createDefaultServicePolicies(createServiceVersionInternal(newServiceVersion, newService, gateway));
+                createDefaultServicePolicies(createServiceVersionInternal(newServiceVersion, newService, gateway), false);
             }
             return newService;
         } catch (AbstractRestException e) {
@@ -1440,7 +1441,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
         }
         else {
-            createDefaultServicePolicies(newVersion);
+            createDefaultServicePolicies(newVersion, false);
         }
         return newVersion;
     }
@@ -3340,58 +3341,65 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * create the default service policies
      * @param svb
      */
-    private void createDefaultServicePolicies(ServiceVersionBean svb) {
+    public void createDefaultServicePolicies(ServiceVersionBean svb, boolean checkForConflicts) {
         try {
             Set<PolicyDefinitionBean> defPolDefs = query.getDefaultServicePolicyDefs();
 
             for (PolicyDefinitionBean polDef : defPolDefs) {
-
                 Policies type = Policies.valueOf(polDef.getId().toUpperCase());
-                String policyJsonConfig = null;
-                Gson gson = new Gson();
-                switch (type) {
-                    case ACL:
-                        policyJsonConfig = gson.toJson(new KongPluginACL()
-                                .withWhitelist(Arrays.asList(generateServiceUniqueName(svb))));
-                        break;
-                    case HTTPLOG:
-                        String metricsURI = new StringBuffer("")
-                                .append(config.getMetricsScheme())
-                                .append("://")
-                                .append(config.getMetricsURI())
-                                .append((!StringUtils.isEmpty(config.getMetricsPort()))?":"+config.getMetricsPort():"")
-                                .append("/").toString();
-                        policyJsonConfig = gson.toJson(new KongPluginHttpLog()
-                                .withHttpEndpoint(metricsURI)
-                                .withMethod(KongPluginHttpLog.Method.POST));
-                        break;
-                    default:
-                        policyJsonConfig = polDef.getDefaultConfig();
-                        break;
+                if (query.getEntityPoliciesByDefinitionId(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service, type).isEmpty()) {
+
+                    if (checkForConflicts) {
+                        if (type == Policies.KEYAUTHENTICATION && !query.getEntityPoliciesByDefinitionId(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service, Policies.OAUTH2).isEmpty()) {
+                            continue;
+                        }
+                    }
+                    String policyJsonConfig = null;
+                    Gson gson = new Gson();
+                    switch (type) {
+                        case ACL:
+                            policyJsonConfig = gson.toJson(new KongPluginACL()
+                                    .withWhitelist(Collections.singletonList(generateServiceUniqueName(svb))));
+                            break;
+                        case HTTPLOG:
+                            String metricsURI = new StringBuffer("")
+                                    .append(config.getMetricsScheme())
+                                    .append("://")
+                                    .append(config.getMetricsURI())
+                                    .append((!StringUtils.isEmpty(config.getMetricsPort())) ? ":" + config.getMetricsPort() : "")
+                                    .append("/").toString();
+                            policyJsonConfig = gson.toJson(new KongPluginHttpLog()
+                                    .withHttpEndpoint(metricsURI)
+                                    .withMethod(KongPluginHttpLog.Method.POST));
+                            break;
+                        default:
+                            policyJsonConfig = polDef.getDefaultConfig();
+                            break;
+                    }
+                    String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(svb);
+
+                    int newIdx = 0;
+                    newIdx = query.getMaxPolicyOrderIndex(ids[0], ids[1], ids[2], PolicyType.Service) + 1;
+
+                    PolicyBean policy = new PolicyBean();
+
+                    policy.setEnabled(true);
+                    policy.setDefinition(polDef);
+                    policy.setName(polDef.getName());
+                    policy.setConfiguration(policyJsonConfig);
+                    policy.setCreatedBy(securityContext.getCurrentUser());
+                    policy.setCreatedOn(new Date());
+                    policy.setModifiedBy(securityContext.getCurrentUser());
+                    policy.setModifiedOn(new Date());
+                    policy.setOrganizationId(ids[0]);
+                    policy.setEntityId(ids[1]);
+                    policy.setEntityVersion(ids[2]);
+                    policy.setType(PolicyType.Service);
+                    policy.setOrderIndex(newIdx);
+
+                    storage.createPolicy(policy);
+                    storage.createAuditEntry(AuditUtils.policyAdded(policy, PolicyType.Service, securityContext));
                 }
-                String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(svb);
-
-                int newIdx = 0;
-                newIdx = query.getMaxPolicyOrderIndex(ids[0], ids[1], ids[2], PolicyType.Service) + 1;
-
-                PolicyBean policy = new PolicyBean();
-
-                policy.setEnabled(true);
-                policy.setDefinition(polDef);
-                policy.setName(polDef.getName());
-                policy.setConfiguration(policyJsonConfig);
-                policy.setCreatedBy(securityContext.getCurrentUser());
-                policy.setCreatedOn(new Date());
-                policy.setModifiedBy(securityContext.getCurrentUser());
-                policy.setModifiedOn(new Date());
-                policy.setOrganizationId(ids[0]);
-                policy.setEntityId(ids[1]);
-                policy.setEntityVersion(ids[2]);
-                policy.setType(PolicyType.Service);
-                policy.setOrderIndex(newIdx);
-
-                storage.createPolicy(policy);
-                storage.createAuditEntry(AuditUtils.policyAdded(policy, PolicyType.Service, securityContext));
             }
         }
         catch (StorageException ex) {

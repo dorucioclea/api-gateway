@@ -117,6 +117,18 @@ public class MigrationFacade {
         }
     }
 
+    public void applyDefaultPolicies() {
+        try {
+            List<ServiceVersionBean> svbs = query.getAllNonRetiredServiceVersions();
+            svbs.forEach(svb -> {
+                orgFacade.createDefaultServicePolicies(svb, true);
+            });
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
     /**
      * Enables ACL plugin on every published service
      */
@@ -379,7 +391,8 @@ public class MigrationFacade {
                                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                                 try {
                                     gatewaySvc = gatewayLink.publishService(gatewaySvc);
-                                } catch (GatewayAuthenticationException e) {
+                                    Thread.sleep(100);
+                                } catch (GatewayAuthenticationException |InterruptedException e) {
                                     continue;//next loop cycle
                                 }
                                 //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
@@ -836,6 +849,9 @@ public class MigrationFacade {
             Map<String, IGatewayLink> links = new HashMap<>();
             for (ContractSummaryBean contract : contractSummaries) {
                 ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion());
+                if (svb == null) {
+                    log.error("Service version not found:{}", ServiceConventionUtil.generateServiceUniqueName(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion()));
+                }
                 Set<ServiceGatewayBean> gateways = svb.getGateways();
                 for (ServiceGatewayBean serviceGatewayBean : gateways) {
                     if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
@@ -985,6 +1001,7 @@ public class MigrationFacade {
         try {
             List<ApplicationVersionBean> allApps = query.findAllApplicationVersions();
             for (ApplicationVersionBean avb : allApps) {
+                log.info("==Beginning Sync for:{}==", ConsumerConventionUtil.createAppUniqueId(avb));
                 String appId = ConsumerConventionUtil.createAppUniqueId(avb);
                 boolean appModified = false;
                 if (avb.getStatus() != ApplicationStatus.Retired) {

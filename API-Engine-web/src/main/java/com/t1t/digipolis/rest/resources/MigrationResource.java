@@ -68,6 +68,19 @@ public class MigrationResource implements IMigrationResource {
         migrationFacade.renameApplicationCustomIds();
     }
 
+    @Override
+    @ApiOperation(value =  "Apply Default Service Policies",
+            notes = "Apply the default service policies to every service version")
+    @ApiResponses({@ApiResponse(code = 204, message = "Rename complete")})
+    @POST
+    @Path("services/default-policies/apply")
+    public void applyDefaultPoliciesToServiceVersions() throws AbstractRestException {
+        if (!security.isAdmin()) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        migrationFacade.applyDefaultPolicies();
+    }
+
     //Obsolete, see "sync/applications/credentials/create-or-sync" endpoint
 
     /*@Override

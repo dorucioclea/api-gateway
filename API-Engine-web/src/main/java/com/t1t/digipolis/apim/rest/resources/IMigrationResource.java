@@ -66,5 +66,11 @@ public interface IMigrationResource {
      * Sync or create credentials for applications
      */
     public void syncOrCreateConsumerCredentials();
+
+    /**
+     * Apply the default service policies to every service version
+     * @throws AbstractRestException
+     */
+    public void applyDefaultPoliciesToServiceVersions() throws AbstractRestException;
 }
 
