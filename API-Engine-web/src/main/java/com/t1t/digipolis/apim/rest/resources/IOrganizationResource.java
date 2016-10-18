@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.rest.resources;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
@@ -1597,7 +1598,7 @@ public interface IOrganizationResource {
      * @return
      * @throws NotAuthorizedException
      */
-    public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version) throws NotAuthorizedException;
+    public OAuth2TokenSet getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, Integer page) throws NotAuthorizedException;
 
     /**
      * Add a branding to a service

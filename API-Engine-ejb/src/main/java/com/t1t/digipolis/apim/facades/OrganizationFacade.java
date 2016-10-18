@@ -13,6 +13,7 @@ import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
@@ -67,6 +68,8 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
+import org.apache.commons.codec.binary.*;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
@@ -93,7 +96,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.t1t.digipolis.util.ServiceConventionUtil.generateServiceUniqueName;
-import static org.apache.logging.log4j.ThreadContext.isEmpty;
 
 /**
  * Created by michallispashidis on 15/08/15.
@@ -4325,8 +4327,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
 
 
-    public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version) {
-        Set<OAuth2TokenBean> rval = new HashSet<>();
+    public OAuth2TokenSet getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, Integer page) {
+        if (page != null) log.info("MALAKA:{}", new String(Base64.encodeBase64(page.toString().getBytes())));
+        OAuth2TokenSet rval = new OAuth2TokenSet();
+        Set<OAuth2TokenBean> tmpResults = new HashSet<>();
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         try {
             Map<String, Set<String>> credentialIds =  new HashMap<>();
@@ -4334,10 +4338,23 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version));
             //retrieve the oauth2 consumer credential ids so that we can retrieve the actual tokens
             gateways.values().forEach(gateway -> credentialIds.put(gateway.getGatewayId(), gateway.getConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb)).getData().stream().map(KongPluginOAuthConsumerResponse::getId).collect(Collectors.toSet())));
-
+            final Long[] totalResults = {0L};
+            final Long[] nextPage = {null};
             credentialIds.keySet().forEach(gwId ->
-                    credentialIds.get(gwId).forEach(credId -> gateways.get(gwId).getConsumerOAuthTokenList(credId).getData().forEach(tkn -> rval.add(new OAuth2TokenBean(tkn,gwId,avb))))
-            );
+                    credentialIds.get(gwId)
+                            .forEach(credId -> {
+                                KongOAuthTokenList gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, page == null ? null : new String(Base64.encodeBase64(page.toString().getBytes())));
+                                totalResults[0] += gwResult.getTotal();
+                                if (!StringUtils.isEmpty(gwResult.getOffset())) {
+                                    nextPage[0] = Long.parseLong(new String(Base64.decodeBase64(gwResult.getOffset())));
+                                }
+                                gwResult.getData().forEach(tkn ->
+                                    tmpResults.add(new OAuth2TokenBean(tkn,gwId,avb)));
+                            }));
+            rval.setTotal(totalResults[0]);
+            rval.setNextPage(nextPage[0]);
+            if (!tmpResults.isEmpty()) rval.setCurrentPage(page == null ? 1L : page);
+            rval.setData(tmpResults);
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);

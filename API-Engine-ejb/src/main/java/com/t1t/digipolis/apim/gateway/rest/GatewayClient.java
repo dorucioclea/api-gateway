@@ -53,6 +53,8 @@ import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.JWTUtils;
 import com.t1t.digipolis.util.ServiceConventionUtil;
+import org.apache.commons.codec.binary.*;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
@@ -1003,12 +1005,18 @@ public class GatewayClient {
         return responsePolicy;
     }
 
-    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId) {
-        return httpClient.getOAuthTokensByCredentialId(consumerOAuthCredentialId);
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId, String offset) {
+        if (StringUtils.isEmpty(offset)) {
+            return httpClient.getOAuthTokensByCredentialId(consumerOAuthCredentialId);
+        }
+        return httpClient.getOAuthTokensByCredentialId(consumerOAuthCredentialId, offset);
     }
 
-    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId) {
-        return httpClient.getOAuthTokensByAuthenticatedUser(authenticatedUserId);
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId, String offset) {
+        if (StringUtils.isEmpty(offset)) {
+            return httpClient.getOAuthTokensByAuthenticatedUser(authenticatedUserId);
+        }
+        return httpClient.getOAuthTokensByAuthenticatedUser(authenticatedUserId, offset);
     }
 
     public void revokeOAuthToken(String tokenId) {

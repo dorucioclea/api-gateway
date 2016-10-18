@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.facades;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
@@ -21,6 +22,8 @@ import com.t1t.digipolis.kong.model.KongOAuthToken;
 import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.util.CustomCollectors;
+import org.apache.commons.codec.binary.*;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,30 +194,36 @@ public class CurrentUserFacade {
      * Returns an authenticated user's oauth2 tokens
      * @return
      */
-    public Set<OAuth2TokenBean> getCurrentUserOAuth2Tokens() {
-        Set<OAuth2TokenBean> rval = new HashSet<>();
+    public OAuth2TokenSet getCurrentUserOAuth2Tokens(Integer page) {
+        OAuth2TokenSet rval = new OAuth2TokenSet();
+        rval.setTotal(0L);
+        Set<OAuth2TokenBean> tmpResult = new HashSet<>();
+
         try {
             List<GatewayBean> gatewayBeen = query.getAllGateways();
             for (GatewayBean gatewayBean : gatewayBeen) {
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayBean.getId());
-                List<KongOAuthToken> tokens = gateway.getConsumerOAuthTokenListByUserId(securityContext.getCurrentUser()).getData();
-                log.info("amount of tokens:{}", tokens.size());
+                KongOAuthTokenList tokens = gateway.getConsumerOAuthTokenListByUserId(securityContext.getCurrentUser(), page == null ? null : new String(Base64.encodeBase64(page.toString().getBytes())));
+                rval.setTotal(rval.getTotal() + tokens.getTotal());
+                if (!StringUtils.isEmpty(tokens.getOffset())) {
+                    rval.setNextPage(StringUtils.isEmpty(tokens.getOffset()) ? rval.getNextPage() : Long.parseLong(new String(Base64.decodeBase64(tokens.getOffset()))));
+                }
                 Map<String, String> gatewayAppCredentials = new HashMap<>();
-                tokens.stream().map(KongOAuthToken::getCredentialId).distinct().forEach(credId -> {
+                tokens.getData().stream().map(KongOAuthToken::getCredentialId).distinct().forEach(credId -> {
                     gatewayAppCredentials.put(credId, gateway.getApplicationOAuthInformationByCredentialId(credId).getData().stream().map(oauth -> gateway.getConsumer(oauth.getConsumerId())).distinct().collect(CustomCollectors.getSingleResult()).getCustomId());
                 });
-                for (KongOAuthToken token : tokens) {
+                for (KongOAuthToken token : tokens.getData()) {
                     String[] appId = gatewayAppCredentials.get(token.getCredentialId()).split("\\.");
                     if (appId.length == 3) {
                         ApplicationVersionBean avb = storage.getApplicationVersion(appId[0], appId[1], appId[2]);
                         if (avb != null) {
-                            rval.add(new OAuth2TokenBean(token, gatewayBean.getId(), avb));
+                            tmpResult.add(new OAuth2TokenBean(token, gatewayBean.getId(), avb));
                         }
                     }
                 }
-                log.info("amount of tokens after processing:{}", rval.size());
             }
-
+            if (!tmpResult.isEmpty()) rval.setCurrentPage(page == null ? 1L : page);
+            rval.setData(tmpResult);
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);

@@ -3,6 +3,7 @@ package com.t1t.digipolis.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.*;
@@ -252,8 +253,8 @@ public class CurrentUserResource implements ICurrentUserResource {
     @GET
     @Path("/oauth2/tokens")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<OAuth2TokenBean> getCurrentUserOAuthTokens() {
-        return currentUserFacade.getCurrentUserOAuth2Tokens();
+    public OAuth2TokenSet getCurrentUserOAuthTokens(@QueryParam("page") Integer page) {
+        return currentUserFacade.getCurrentUserOAuth2Tokens(page);
     }
 
     @Override

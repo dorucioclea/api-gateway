@@ -46,6 +46,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.o;
+
 /**
  * An implementation of a Gateway Link that uses the Gateway's simple REST
  * API to publish Services.
@@ -413,8 +415,8 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId) {
-        return getClient().getConsumerOAuthTokenList(consumerOAuthCredentialId);
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId, String offset) {
+        return getClient().getConsumerOAuthTokenList(consumerOAuthCredentialId, offset);
     }
 
     @Override
@@ -423,8 +425,8 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId) {
-        return getClient().getConsumerOAuthTokenListByUserId(authenticatedUserId);
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId, String offset) {
+        return getClient().getConsumerOAuthTokenListByUserId(authenticatedUserId, offset);
     }
 
     @Override

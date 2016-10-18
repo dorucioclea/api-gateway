@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
@@ -150,7 +151,7 @@ public interface ICurrentUserResource {
      * Retrieve the current user's OAuth2 tokens
      * @return
      */
-    public Set<OAuth2TokenBean> getCurrentUserOAuthTokens();
+    public OAuth2TokenSet getCurrentUserOAuthTokens(Integer page);
 
     /**
      * Revoke a current user's OAuth2 token

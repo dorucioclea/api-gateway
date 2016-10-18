@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
@@ -2392,12 +2393,12 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth2/tokens")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version) throws NotAuthorizedException {
+    public OAuth2TokenSet getApplicationVersionOAuthTokens(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, @QueryParam("page") Integer page) throws NotAuthorizedException {
         Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(applicationId) && StringUtils.isNotEmpty(version));
         if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version);
+        return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version, page);
     }
 
     @Override
