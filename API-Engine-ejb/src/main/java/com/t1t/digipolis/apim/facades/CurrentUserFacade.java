@@ -3,9 +3,10 @@ package com.t1t.digipolis.apim.facades;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
+import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
@@ -17,12 +18,9 @@ import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongOAuthToken;
 import com.t1t.digipolis.kong.model.KongOAuthTokenList;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.util.CustomCollectors;
-import org.apache.commons.codec.binary.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,10 +30,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -194,8 +189,8 @@ public class CurrentUserFacade {
      * Returns an authenticated user's oauth2 tokens
      * @return
      */
-    public OAuth2TokenSet getCurrentUserOAuth2Tokens(Integer page) {
-        OAuth2TokenSet rval = new OAuth2TokenSet();
+    public OAuth2TokenPaginationBean getCurrentUserOAuth2Tokens(Integer page) {
+        OAuth2TokenPaginationBean rval = new OAuth2TokenPaginationBean();
         rval.setTotal(0L);
         Set<OAuth2TokenBean> tmpResult = new HashSet<>();
 

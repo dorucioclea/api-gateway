@@ -7,8 +7,6 @@ import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
-import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
-import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
@@ -25,6 +23,8 @@ import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
+import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
+import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.plans.*;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
@@ -48,7 +48,6 @@ import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
@@ -74,8 +73,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
 
 /**
  * This is the rest endpoint implementation.
@@ -2388,12 +2385,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Override
     @ApiOperation("Retrieve Application Version Oauth2 Tokens")
     @ApiResponses({
-        @ApiResponse(code = 200, responseContainer = "List", response = OAuth2TokenBean.class, message = "OAuth2 Tokens")
+        @ApiResponse(code = 200, response = OAuth2TokenPaginationBean.class, message = "OAuth2 Tokens")
     })
     @GET
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth2/tokens")
     @Produces(MediaType.APPLICATION_JSON)
-    public OAuth2TokenSet getApplicationVersionOAuthTokens(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, @QueryParam("page") Integer page) throws NotAuthorizedException {
+    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, @QueryParam("page") Integer page) throws NotAuthorizedException {
         Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(applicationId) && StringUtils.isNotEmpty(version));
         if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();

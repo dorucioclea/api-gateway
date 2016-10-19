@@ -332,6 +332,13 @@
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
         </dependency>
+        <!--JBoss EJB -->
+        <dependency>
+            <groupId>org.jboss.ejb3</groupId>
+            <artifactId>jboss-ejb3-ext-api</artifactId>
+            <version>RELEASE</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!--Bouncycastle-->
         <dependency>

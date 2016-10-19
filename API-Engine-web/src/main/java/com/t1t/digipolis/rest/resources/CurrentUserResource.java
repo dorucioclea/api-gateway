@@ -3,10 +3,11 @@ package com.t1t.digipolis.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
+import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
@@ -28,7 +29,6 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Implementation of the Current User API.
@@ -248,12 +248,12 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Override
     @ApiOperation("Retrieve current user's Oauth2 tokens")
     @ApiResponses({
-            @ApiResponse(code = 200, responseContainer = "List", response = OAuth2TokenBean.class, message = "OAuth2 Tokens")
+            @ApiResponse(code = 200, response = OAuth2TokenPaginationBean.class, message = "OAuth2 Tokens")
     })
     @GET
     @Path("/oauth2/tokens")
     @Produces(MediaType.APPLICATION_JSON)
-    public OAuth2TokenSet getCurrentUserOAuthTokens(@QueryParam("page") Integer page) {
+    public OAuth2TokenPaginationBean getCurrentUserOAuthTokens(@QueryParam("page") Integer page) {
         return currentUserFacade.getCurrentUserOAuth2Tokens(page);
     }
 

@@ -13,9 +13,7 @@ import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
@@ -37,6 +35,8 @@ import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
+import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
+import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.plans.*;
 import com.t1t.digipolis.apim.beans.policies.*;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
@@ -68,7 +68,6 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
-import org.apache.commons.codec.binary.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -4327,9 +4326,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
 
 
-    public OAuth2TokenSet getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, Integer page) {
+    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, Integer page) {
         if (page != null) log.info("MALAKA:{}", new String(Base64.encodeBase64(page.toString().getBytes())));
-        OAuth2TokenSet rval = new OAuth2TokenSet();
+        OAuth2TokenPaginationBean rval = new OAuth2TokenPaginationBean();
         Set<OAuth2TokenBean> tmpResults = new HashSet<>();
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         try {

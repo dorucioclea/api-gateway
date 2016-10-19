@@ -2,21 +2,18 @@ package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
 import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
+import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
+import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.exceptions.*;
-import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The Current User API.  Returns information about the authenticated
@@ -151,7 +148,7 @@ public interface ICurrentUserResource {
      * Retrieve the current user's OAuth2 tokens
      * @return
      */
-    public OAuth2TokenSet getCurrentUserOAuthTokens(Integer page);
+    public OAuth2TokenPaginationBean getCurrentUserOAuthTokens(Integer page);
 
     /**
      * Revoke a current user's OAuth2 token
