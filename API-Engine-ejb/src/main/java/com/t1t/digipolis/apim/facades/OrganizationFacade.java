@@ -402,6 +402,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             log.debug("Enter updateAppversionURI:{}", uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if (avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
+            for (String redirectURI : uri.getUris()) {
+                if (!ValidationUtils.isValidAbsoluteURI(redirectURI)) throw ExceptionFactory.invalidArgumentException("invalidAbsoluteURI", redirectURI);
+            }
             Set<String> previousURIs = avb.getOauthClientRedirects();
             avb.setOauthClientRedirects(uri.getUris());
             //register application credentials for OAuth2

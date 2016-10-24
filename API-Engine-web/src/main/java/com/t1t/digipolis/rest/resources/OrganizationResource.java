@@ -347,7 +347,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         Preconditions.checkNotNull(updateAppUri);
-        if (updateAppUri.getUris() == null || updateAppUri.getUris().stream().filter(ValidationUtils::isValidAbsoluteURI).collect(Collectors.toSet()).isEmpty()) {
+        if (updateAppUri.getUris() == null || updateAppUri.getUris().stream().filter(StringUtils::isNotEmpty).collect(Collectors.toList()).isEmpty()) {
             throw new IllegalArgumentException();
         }
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
