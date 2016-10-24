@@ -19,6 +19,8 @@ public final class ErrorCodes {
     public static final int HTTP_STATUS_CODE_SYSTEM_ERROR   = 500;
     public static final int HTTP_STATUS_CODE_UNAVAILABLE    = 503;
 
+    public static final String HTTP_STATUS_CODE_INVALID_INPUT_INFO = null;
+
 
     //
     // User API related

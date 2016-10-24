@@ -403,6 +403,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             log.debug("Enter updateAppversionURI:{}", uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if (avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
+            for (String redirectURI : uri.getUris()) {
+                if (!ValidationUtils.isValidAbsoluteURI(redirectURI)) throw ExceptionFactory.invalidArgumentException("invalidAbsoluteURI", redirectURI);
+            }
             Set<String> previousURIs = avb.getOauthClientRedirects();
             avb.setOauthClientRedirects(uri.getUris());
             //register application credentials for OAuth2
@@ -4183,7 +4186,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             avb.setOauthClientSecret(apiKeyGenerator.generate());
             rval.setNewClientId(avb.getoAuthClientId());
             rval.setNewClientSecret(avb.getOauthClientSecret());
-            if (!(avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().stream().filter(uri -> ValidationUtils.isValidURL(uri)).collect(Collectors.toSet()).isEmpty())) {
+            if (!(avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().stream().filter(ValidationUtils::isValidAbsoluteURI).collect(Collectors.toSet()).isEmpty())) {
                 KongPluginOAuthConsumerRequest oAuthConsumerRequest = new KongPluginOAuthConsumerRequest()
                         .withClientId(avb.getoAuthClientId())
                         .withClientSecret(avb.getOauthClientSecret())

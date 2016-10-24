@@ -602,4 +602,8 @@ public final class ExceptionFactory {
     public static final BrandingCannotBeDeletedException brandingCannotBeDeletedException(String brandingId) {
         return new BrandingCannotBeDeletedException(Messages.i18n.format("BrandingStillHasServices", brandingId));
     }
+
+    public static final InvalidArgumentException invalidArgumentException(String message, String... args) {
+        return new InvalidArgumentException(Messages.i18n.format(message, (Object[]) args));
+    }
 }

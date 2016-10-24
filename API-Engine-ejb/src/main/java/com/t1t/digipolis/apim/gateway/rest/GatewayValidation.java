@@ -177,7 +177,12 @@ public class GatewayValidation {
             if (!StringUtils.isEmpty(scope.getScope())) {
                 //add prefix
                 if (StringUtils.isEmpty(scope.getScopeDesc())) scope.setScopeDesc(scope.getScope());
-                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope().toLowerCase());
+                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) {
+                    //In case of cloning policy, strip the prefix of the previous version
+                    String strippedScope = scope.getScope();
+                    if (scope.getScope().contains(".")) strippedScope = scope.getScope().substring(scope.getScope().lastIndexOf(".") + 1);
+                    scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+strippedScope.toLowerCase());
+                }
                 responseScopes.add(scope);
             }
         }
