@@ -1595,7 +1595,7 @@ public interface IOrganizationResource {
      * @return
      * @throws NotAuthorizedException
      */
-    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, Integer page) throws NotAuthorizedException;
+    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, String offset) throws NotAuthorizedException;
 
     /**
      * Add a branding to a service

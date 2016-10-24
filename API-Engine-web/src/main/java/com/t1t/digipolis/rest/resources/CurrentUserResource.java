@@ -253,8 +253,8 @@ public class CurrentUserResource implements ICurrentUserResource {
     @GET
     @Path("/oauth2/tokens")
     @Produces(MediaType.APPLICATION_JSON)
-    public OAuth2TokenPaginationBean getCurrentUserOAuthTokens(@QueryParam("page") Integer page) {
-        return currentUserFacade.getCurrentUserOAuth2Tokens(page);
+    public OAuth2TokenPaginationBean getCurrentUserOAuthTokens(@QueryParam("page") String offset) {
+        return currentUserFacade.getCurrentUserOAuth2Tokens(offset);
     }
 
     @Override

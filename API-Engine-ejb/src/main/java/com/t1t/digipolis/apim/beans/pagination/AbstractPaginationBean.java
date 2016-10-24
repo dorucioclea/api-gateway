@@ -14,8 +14,8 @@ public abstract class AbstractPaginationBean<T> implements Serializable {
 
     private Set<T> data;
     private Long total;
-    private Long nextPage;
-    private Long currentPage;
+    private String nextPage;
+    private String currentPage;
 
     public AbstractPaginationBean() {
     }
@@ -36,19 +36,19 @@ public abstract class AbstractPaginationBean<T> implements Serializable {
         this.total = total;
     }
 
-    public Long getNextPage() {
+    public String getNextPage() {
         return nextPage;
     }
 
-    public void setNextPage(Long nextPage) {
+    public void setNextPage(String nextPage) {
         this.nextPage = nextPage;
     }
 
-    public Long getCurrentPage() {
+    public String getCurrentPage() {
         return currentPage;
     }
 
-    public void setCurrentPage(Long currentPage) {
+    public void setCurrentPage(String currentPage) {
         this.currentPage = currentPage;
     }
 

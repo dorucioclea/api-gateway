@@ -4329,33 +4329,45 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
 
 
-    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, Integer page) {
-        if (page != null) log.info("MALAKA:{}", new String(Base64.encodeBase64(page.toString().getBytes())));
+    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, String offset) {
         OAuth2TokenPaginationBean rval = new OAuth2TokenPaginationBean();
         Set<OAuth2TokenBean> tmpResults = new HashSet<>();
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         try {
             Map<String, Set<String>> credentialIds =  new HashMap<>();
+            Map<String, String> offsets = StringUtils.isEmpty(offset) ? new HashMap<>() : GatewayPaginationUtil.decodeOffsets(offset);
+            Map<String, String> nextOffsets = new HashMap<>();
             //create gatewayclients for every gateway the application is registered on
             Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version));
             //retrieve the oauth2 consumer credential ids so that we can retrieve the actual tokens
             gateways.values().forEach(gateway -> credentialIds.put(gateway.getGatewayId(), gateway.getConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb)).getData().stream().map(KongPluginOAuthConsumerResponse::getId).collect(Collectors.toSet())));
             final Long[] totalResults = {0L};
-            final Long[] nextPage = {null};
             credentialIds.keySet().forEach(gwId ->
                     credentialIds.get(gwId)
                             .forEach(credId -> {
-                                KongOAuthTokenList gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, page == null ? null : new String(Base64.encodeBase64(page.toString().getBytes())));
-                                totalResults[0] += gwResult.getTotal();
-                                if (!StringUtils.isEmpty(gwResult.getOffset())) {
-                                    nextPage[0] = Long.parseLong(new String(Base64.decodeBase64(gwResult.getOffset())));
+                                KongOAuthTokenList gwResult = null;
+                                if (!offsets.isEmpty()) {
+                                    if (offsets.containsKey(gwId))
+                                    gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, offsets.get(gwId));
                                 }
-                                gwResult.getData().forEach(tkn ->
-                                    tmpResults.add(new OAuth2TokenBean(tkn,gwId,avb)));
+                                else {
+                                    gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, null);
+                                }
+                                if (gwResult != null) {
+                                    totalResults[0] += gwResult.getTotal();
+                                    if (!StringUtils.isEmpty(gwResult.getOffset())) {
+                                        nextOffsets.put(gwId, gwResult.getOffset());
+                                    }
+                                    gwResult.getData().forEach(tkn ->
+                                            tmpResults.add(new OAuth2TokenBean(tkn, gwId, avb)));
+                                }
                             }));
             rval.setTotal(totalResults[0]);
-            rval.setNextPage(nextPage[0]);
-            if (!tmpResults.isEmpty()) rval.setCurrentPage(page == null ? 1L : page);
+
+            if (!tmpResults.isEmpty()) {
+                rval.setCurrentPage(offsets.isEmpty() ? null : offset);
+                rval.setNextPage(nextOffsets.isEmpty() ? null : GatewayPaginationUtil.encodeOffsets(nextOffsets));
+            }
             rval.setData(tmpResults);
         }
         catch (StorageException ex) {

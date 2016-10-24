@@ -21,6 +21,7 @@ import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongOAuthToken;
 import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.util.CustomCollectors;
+import com.t1t.digipolis.util.GatewayPaginationUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -189,35 +190,49 @@ public class CurrentUserFacade {
      * Returns an authenticated user's oauth2 tokens
      * @return
      */
-    public OAuth2TokenPaginationBean getCurrentUserOAuth2Tokens(Integer page) {
+    public OAuth2TokenPaginationBean getCurrentUserOAuth2Tokens(String offset) {
         OAuth2TokenPaginationBean rval = new OAuth2TokenPaginationBean();
         rval.setTotal(0L);
         Set<OAuth2TokenBean> tmpResult = new HashSet<>();
-
+        Map<String, String> offsets = StringUtils.isEmpty(offset) ? new HashMap<>() : GatewayPaginationUtil.decodeOffsets(offset);
+        Map<String, String> nextOffsets = new HashMap<>();
         try {
             List<GatewayBean> gatewayBeen = query.getAllGateways();
             for (GatewayBean gatewayBean : gatewayBeen) {
+                KongOAuthTokenList tokens = null;
                 IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayBean.getId());
-                KongOAuthTokenList tokens = gateway.getConsumerOAuthTokenListByUserId(securityContext.getCurrentUser(), page == null ? null : new String(Base64.encodeBase64(page.toString().getBytes())));
-                rval.setTotal(rval.getTotal() + tokens.getTotal());
-                if (!StringUtils.isEmpty(tokens.getOffset())) {
-                    rval.setNextPage(StringUtils.isEmpty(tokens.getOffset()) ? rval.getNextPage() : Long.parseLong(new String(Base64.decodeBase64(tokens.getOffset()))));
+                if (!offsets.isEmpty()) {
+                    if (offsets.containsKey(gatewayBean.getId())) {
+                        tokens = gateway.getConsumerOAuthTokenListByUserId(securityContext.getCurrentUser(), offsets.get(gateway.getGatewayId()));
+                    }
                 }
-                Map<String, String> gatewayAppCredentials = new HashMap<>();
-                tokens.getData().stream().map(KongOAuthToken::getCredentialId).distinct().forEach(credId -> {
-                    gatewayAppCredentials.put(credId, gateway.getApplicationOAuthInformationByCredentialId(credId).getData().stream().map(oauth -> gateway.getConsumer(oauth.getConsumerId())).distinct().collect(CustomCollectors.getSingleResult()).getCustomId());
-                });
-                for (KongOAuthToken token : tokens.getData()) {
-                    String[] appId = gatewayAppCredentials.get(token.getCredentialId()).split("\\.");
-                    if (appId.length == 3) {
-                        ApplicationVersionBean avb = storage.getApplicationVersion(appId[0], appId[1], appId[2]);
-                        if (avb != null) {
-                            tmpResult.add(new OAuth2TokenBean(token, gatewayBean.getId(), avb));
+                else {
+                    tokens = gateway.getConsumerOAuthTokenListByUserId(securityContext.getCurrentUser(), null);
+                }
+                if (tokens != null) {
+                    rval.setTotal(rval.getTotal() + tokens.getTotal());
+                    if (!StringUtils.isEmpty(tokens.getOffset())) {
+                        nextOffsets.put(gateway.getGatewayId(), tokens.getOffset());
+                    }
+                    Map<String, String> gatewayAppCredentials = new HashMap<>();
+                    tokens.getData().stream().map(KongOAuthToken::getCredentialId).distinct().forEach(credId -> {
+                        gatewayAppCredentials.put(credId, gateway.getApplicationOAuthInformationByCredentialId(credId).getData().stream().map(oauth -> gateway.getConsumer(oauth.getConsumerId())).distinct().collect(CustomCollectors.getSingleResult()).getCustomId());
+                    });
+                    for (KongOAuthToken token : tokens.getData()) {
+                        String[] appId = gatewayAppCredentials.get(token.getCredentialId()).split("\\.");
+                        if (appId.length == 3) {
+                            ApplicationVersionBean avb = storage.getApplicationVersion(appId[0], appId[1], appId[2]);
+                            if (avb != null) {
+                                tmpResult.add(new OAuth2TokenBean(token, gatewayBean.getId(), avb));
+                            }
                         }
                     }
                 }
             }
-            if (!tmpResult.isEmpty()) rval.setCurrentPage(page == null ? 1L : page);
+            if (!tmpResult.isEmpty()) {
+                rval.setCurrentPage(offsets.isEmpty() ? null : offset);
+                rval.setNextPage(nextOffsets.isEmpty() ? null : GatewayPaginationUtil.encodeOffsets(nextOffsets));
+            }
             rval.setData(tmpResult);
         }
         catch (StorageException ex) {

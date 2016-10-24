@@ -148,7 +148,7 @@ public interface ICurrentUserResource {
      * Retrieve the current user's OAuth2 tokens
      * @return
      */
-    public OAuth2TokenPaginationBean getCurrentUserOAuthTokens(Integer page);
+    public OAuth2TokenPaginationBean getCurrentUserOAuthTokens(String offset);
 
     /**
      * Revoke a current user's OAuth2 token

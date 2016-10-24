@@ -2385,17 +2385,17 @@ public class OrganizationResource implements IOrganizationResource {
     @Override
     @ApiOperation("Retrieve Application Version Oauth2 Tokens")
     @ApiResponses({
-        @ApiResponse(code = 200, response = OAuth2TokenPaginationBean.class, message = "OAuth2 Tokens")
+        @ApiResponse(code = 200, responseContainer = "List", response = OAuth2TokenPaginationBean.class, message = "OAuth2 Tokens")
     })
     @GET
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth2/tokens")
     @Produces(MediaType.APPLICATION_JSON)
-    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, @QueryParam("page") Integer page) throws NotAuthorizedException {
+    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, @QueryParam("page") String offset) throws NotAuthorizedException {
         Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(applicationId) && StringUtils.isNotEmpty(version));
         if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version, page);
+        return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version, offset);
     }
 
     @Override
