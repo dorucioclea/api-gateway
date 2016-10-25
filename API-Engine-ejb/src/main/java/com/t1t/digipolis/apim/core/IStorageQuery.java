@@ -16,6 +16,7 @@ import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
+import com.t1t.digipolis.apim.beans.operation.OperatingBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -942,4 +943,11 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<ServiceVersionBean> getServiceVersionByStatusForService(Set<ServiceStatus> status, ServiceBean service) throws StorageException;
+
+    /**
+     * Returns a bean with the maintenance mode status and message
+     * @return
+     * @throws StorageException
+     */
+    public OperatingBean getMaintenanceModeStatus() throws StorageException;
 }

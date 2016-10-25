@@ -2,9 +2,12 @@ package com.t1t.digipolis.apim.rest.resources.filter;
 
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.operation.OperatingBean;
+import com.t1t.digipolis.apim.beans.operation.SafeHTTPMethods;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -24,7 +27,10 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import static javafx.scene.input.KeyCode.M;
 
 /**
  * Created by michallispashidis on 20/09/15.
@@ -49,6 +55,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     private static final String SWAGGER_DOC_URI = "API-Engine-web";
     private static final String SWAGGER_DOC_JSON = "/API-Engine-web/v1/swagger.json";
 
+
     //Security context
     @Inject private ISecurityContext securityContext;
     @Inject private ISecurityAppContext securityAppContext;
@@ -58,6 +65,20 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
+        try {
+            OperatingBean maintenanceMode = query.getMaintenanceModeStatus();
+            if (maintenanceMode != null && maintenanceMode.isEnabled()) {
+                try {
+                    SafeHTTPMethods.valueOf(containerRequestContext.getMethod());
+                }
+                catch (IllegalArgumentException ex) {
+                    throw ExceptionFactory.maintenanceException(maintenanceMode.getMessage());
+                }
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
         //dev mode
         LOG.debug("Security context - request:{}", containerRequestContext.getUriInfo().getRequestUri().getPath());
         if (!config.getRestResourceSecurity()) {

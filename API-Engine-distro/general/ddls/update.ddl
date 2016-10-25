@@ -677,3 +677,7 @@ ALTER TABLE service_brandings ADD CONSTRAINT FK_service_brandings_2 FOREIGN KEY 
 ALTER TABLE service_brandings ADD CONSTRAINT UK_service_brandings_1 UNIQUE (service_id, branding_id);
 CREATE INDEX IDX_service_brandings_1 ON service_brandings(organization_id, service_id);
 CREATE INDEX IDX_service_brandings_2 ON service_brandings(branding_id);
+
+-- Table for API engine operating modes
+CREATE TABLE operating_modes (id VARCHAR(255) NOT NULL, enabled BOOL NOT NULL DEFAULT FALSE, message VARCHAR(255));
+INSERT INTO operating_modes VALUES ('MAINTENANCE', false);

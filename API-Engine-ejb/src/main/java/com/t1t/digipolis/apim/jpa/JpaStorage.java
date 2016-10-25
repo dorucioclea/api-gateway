@@ -24,6 +24,8 @@ import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.mail.MailTemplateBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
+import com.t1t.digipolis.apim.beans.operation.OperatingBean;
+import com.t1t.digipolis.apim.beans.operation.OperatingModes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
@@ -2729,5 +2731,18 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("svc", service)
                 .setParameter("stat", status)
                 .getResultList();
+    }
+
+    @Override
+    public OperatingBean getMaintenanceModeStatus() throws StorageException {
+        String jpql = "SELECT o FROM OperatingBean o WHERE o.id = :mode";
+        try {
+            return (OperatingBean) getActiveEntityManager().createQuery(jpql)
+                    .setParameter("mode", OperatingModes.MAINTENANCE)
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
     }
 }

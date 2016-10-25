@@ -603,7 +603,22 @@ public final class ExceptionFactory {
         return new BrandingCannotBeDeletedException(Messages.i18n.format("BrandingStillHasServices", brandingId));
     }
 
+    /**
+     * Creates an exception
+     * @param message
+     * @param args
+     * @return
+     */
     public static final InvalidArgumentException invalidArgumentException(String message, String... args) {
         return new InvalidArgumentException(Messages.i18n.format(message, (Object[]) args));
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final MaintenanceException maintenanceException(String message) {
+        return new MaintenanceException(message);
     }
 }

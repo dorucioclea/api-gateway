@@ -3,9 +3,12 @@ package com.t1t.digipolis.apim.auth.rest.resources.filter;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.auth.rest.JaxRsActivator;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.operation.OperatingBean;
+import com.t1t.digipolis.apim.beans.operation.SafeHTTPMethods;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import org.slf4j.Logger;
@@ -45,6 +48,15 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
         //Get the API key
         String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
         try {
+            OperatingBean maintenanceMode = query.getMaintenanceModeStatus();
+            if (maintenanceMode != null && maintenanceMode.isEnabled()) {
+                try {
+                    SafeHTTPMethods.valueOf(containerRequestContext.getMethod());
+                }
+                catch (IllegalArgumentException ex) {
+                    throw ExceptionFactory.maintenanceException(maintenanceMode.getMessage());
+                }
+            }
             if(!config.getRestAuthResourceSecurity()){
                 securityAppContext.setCurrentApplication("dummyorg.dummyapp.version");
             } else {

@@ -20,6 +20,7 @@ public final class ErrorCodes {
     public static final int HTTP_STATUS_CODE_UNAVAILABLE    = 503;
 
     public static final String HTTP_STATUS_CODE_INVALID_INPUT_INFO = null;
+    public static final String HTTP_STATUS_CODE_UNAVAILABLE_INFO = null;
 
 
     //
@@ -244,4 +245,12 @@ public final class ErrorCodes {
     public static final String SERVICE_BRANDING_NOT_FOUND_INFO  = null;
     public static final String SERVICE_BRANDING_ALREADY_EXISTS_INFO  = null;
     public static final String SERVICE_BRANDING_CANNOT_BE_DELETED_INFO  = null;
+
+    //
+    // System related
+    //
+
+    public static final int SYSTEM_MAINTENANCE                  = 20001;
+
+    public static final String SYSTEM_MAINTENANCE_INFO          = null;
 }
