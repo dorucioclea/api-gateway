@@ -5,7 +5,10 @@
   "properties": {
     "enabled_plugins": {
       "id": "enabled_plugins",
-      "type": "object"
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }
