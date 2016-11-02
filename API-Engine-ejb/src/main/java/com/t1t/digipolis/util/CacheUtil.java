@@ -2,6 +2,7 @@ package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.user.UserSession;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import org.infinispan.Cache;
 import org.infinispan.manager.EmbeddedCacheManager;
@@ -55,7 +56,7 @@ public class CacheUtil implements Serializable {
     public  String getToken(String tokenId){
         final String cachedToken = tokenCache.get(tokenId);
         if (cachedToken == null) {
-            throw new SystemErrorException("Token Cache with id " + tokenId + " does not exist!");
+            throw ExceptionFactory.systemErrorException("Token Cache with id " + tokenId + " does not exist!");
         }
         return cachedToken;
     }

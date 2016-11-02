@@ -3,7 +3,7 @@
 --  ***********...
 --  ***********...
 
-INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type, oauth_authorize, oauth_token, oauth_context,jwt_exp_time) VALUES ('KongGateway', '{"endpoint":"http://accapim.t1t.be:8001","username":"","password":""}','https://accapim.t1t.be:443', '', CURRENT_DATE, 'This is the gateway.', '', CURRENT_DATE, 'Default Kong Gateway', 'REST', '/oauth2/authorize', '/oauth2/token','/secure',7200);
+INSERT INTO gateways (id, configuration,endpoint, created_by, created_on, description, modified_by, modified_on, name, type, oauth_authorize, oauth_token, oauth_context,jwt_exp_time, jwt_pub_key_endpoint) VALUES ('KongGateway', '{"endpoint":"http://accapim.t1t.be:8001","username":"","password":""}','https://accapim.t1t.be:443', '', CURRENT_DATE, 'This is the gateway.', '', CURRENT_DATE, 'Default Kong Gateway', 'REST', '/oauth2/authorize', '/oauth2/token','/secure',7200, '/keys/pub/');
 INSERT INTO users (username, email, full_name, joined_on,admin,pic) VALUES ('admin', 'admin@example.org', 'Admin', CURRENT_DATE,TRUE ,NULL );
 
 INSERT INTO white_ip_restriction(netw_value) VALUES ('192.168.0.0/16');

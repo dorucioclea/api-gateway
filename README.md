@@ -159,6 +159,126 @@ $ docker run --add-host=localhost:84.198.85.191 -d --name konglocal --link cassa
 
 See [Docker-info](https://docs.docker.com/engine/reference/commandline/run/#add-entries-to-container-hosts-file-add-host)
 
+Release Notes - APIe - Version API/SDK engine 0.8.0
+---------------------------------------------------
+
+## Bug
+
+*   [[APIE-827](https://jira.antwerpen.be/browse/APIE-827)] - missing url forward(redirect) in store and pub
+*   [[APIE-841](https://jira.antwerpen.be/browse/APIE-841)] - IP restriction policy not working as expected !
+*   [[APIE-923](https://jira.antwerpen.be/browse/APIE-923)] - cleanup_double_organizations_acc
+*   [[APIE-924](https://jira.antwerpen.be/browse/APIE-924)] - administration screen accessible without admin rights
+*   [[APIE-926](https://jira.antwerpen.be/browse/APIE-926)] - cannot Publish V4orV5 outputgenerator
+*   [[APIE-975](https://jira.antwerpen.be/browse/APIE-975)] - members toevoegen via e-mail lukt niet
+*   [[APIE-994](https://jira.antwerpen.be/browse/APIE-994)] - Een gebruiker kan meermaals worden toegevoegd aan een organisatie met als gevolg dat er telkens ook een mail wordt gestuurd
+
+## Story
+
+*   [[APIE-429](https://jira.antwerpen.be/browse/APIE-429)] - Verschillende versies voor services applicaties weergeven in dashboard
+*   [[APIE-533](https://jira.antwerpen.be/browse/APIE-533)] - As a developer I want to sync Cassandra cluster with data from the API Engine backend - Postgres (cassandra re-initialisation)
+*   [[APIE-534](https://jira.antwerpen.be/browse/APIE-534)] - As a support desk I want to verify the status of the service and it's dependency using a GET request on the API
+*   [[APIE-548](https://jira.antwerpen.be/browse/APIE-548)] - Mogelijk maken om contracten toe te voegen aan al geregistreerde applicaties
+*   [[APIE-708](https://jira.antwerpen.be/browse/APIE-708)] - Proxy for API-GW for external access
+*   [[APIE-727](https://jira.antwerpen.be/browse/APIE-727)] - As a visitor I have an option to register for a new a-stad user
+*   [[APIE-728](https://jira.antwerpen.be/browse/APIE-728)] - As a visitor I can login with my a-stad user or Dgpls account
+*   [[APIE-730](https://jira.antwerpen.be/browse/APIE-730)] - As a logged in user I am guided into the creation of an organisation and app
+*   [[APIE-752](https://jira.antwerpen.be/browse/APIE-752)] - Email validation and resend validation mail functionality
+*   [[APIE-837](https://jira.antwerpen.be/browse/APIE-837)] - Verwijderen Plan in een organisatie
+*   [[APIE-865](https://jira.antwerpen.be/browse/APIE-865)] - Sync PostgresDB -> Cassandra
+*   [[APIE-908](https://jira.antwerpen.be/browse/APIE-908)] - Upgrade Swagger spec to v2.1.4
+*   [[APIE-945](https://jira.antwerpen.be/browse/APIE-945)] - uri niet duidelijk leesbaar
+*   [[APIE-969](https://jira.antwerpen.be/browse/APIE-969)] - As a developer I don't want to see private orgs when 'search orgs'
+*   [[APIE-986](https://jira.antwerpen.be/browse/APIE-986)] - UI tweaks for new layout
+
+Release Notes - APIe - Version API/SDK engine 0.7.1
+---------------------------------------------------
+
+## Test
+
+*   [[APIE-294](https://jira.antwerpen.be/browse/APIE-294)] - [TEST] : Verify Bug fixes - APIe
+
+## Bug
+
+*   [[APIE-97](https://jira.antwerpen.be/browse/APIE-97)] - Notification setting is not saved correctly by the Marketplace & Publisher applications.
+*   [[APIE-403](https://jira.antwerpen.be/browse/APIE-403)] - API store : Request membership button voor een organisatie werkt niet
+*   [[APIE-414](https://jira.antwerpen.be/browse/APIE-414)] - Add Policy - CORS allows incorrect values in form.
+*   [[APIE-415](https://jira.antwerpen.be/browse/APIE-415)] - OAuth2 policy form accepts negative "Token Expiration" values.
+*   [[APIE-418](https://jira.antwerpen.be/browse/APIE-418)] - New Announcement fails to create an announcement and an Unexpected error is thrown.
+*   [[APIE-421](https://jira.antwerpen.be/browse/APIE-421)] - Deleting Applications/Service does not always work correctly
+*   [[APIE-423](https://jira.antwerpen.be/browse/APIE-423)] - Creation of Tickets with redundant names possible.
+*   [[APIE-450](https://jira.antwerpen.be/browse/APIE-450)] - API publisher toegevoegde member (via userid) krijgt organisatie niet te zien
+*   [[APIE-490](https://jira.antwerpen.be/browse/APIE-490)] - A policy with empty values is possible. This leads to malfunction and service cannot be published.
+*   [[APIE-521](https://jira.antwerpen.be/browse/APIE-521)] - Application cannot be deleted.
+*   [[APIE-746](https://jira.antwerpen.be/browse/APIE-746)] - Hidden-External marketplace service is available on marketplace.
+*   [[APIE-747](https://jira.antwerpen.be/browse/APIE-747)] - Something gone wrong page shown when contract is created with a deleted service.
+*   [[APIE-763](https://jira.antwerpen.be/browse/APIE-763)] - creation of new version not possible
+*   [[APIE-774](https://jira.antwerpen.be/browse/APIE-774)] - OAuth client credential demands scope which is useless
+*   [[APIE-783](https://jira.antwerpen.be/browse/APIE-783)] - Contract cannot be created via marketplace application link.(see video)
+*   [[APIE-796](https://jira.antwerpen.be/browse/APIE-796)] - developer kan een plan aanmaken maar niet locken
+*   [[APIE-799](https://jira.antwerpen.be/browse/APIE-799)] - rare situatie bij definitie van endpoint in service
+*   [[APIE-811](https://jira.antwerpen.be/browse/APIE-811)] - publisher : delete service is not possible name already in use
+*   [[APIE-828](https://jira.antwerpen.be/browse/APIE-828)] - inconsistent organisation names
+*   [[APIE-830](https://jira.antwerpen.be/browse/APIE-830)] - IP restriction Policy –allowing empty –null values
+*   [[APIE-831](https://jira.antwerpen.be/browse/APIE-831)] - User's "My organizations" shows friendly names, not organization names
+*   [[APIE-832](https://jira.antwerpen.be/browse/APIE-832)] - pub : service cannot be deleted
+*   [[APIE-833](https://jira.antwerpen.be/browse/APIE-833)] - duplicate ip ranges possible in ip restriction
+*   [[APIE-834](https://jira.antwerpen.be/browse/APIE-834)] - administration expiration change possible but not saved
+*   [[APIE-835](https://jira.antwerpen.be/browse/APIE-835)] - error could not create contract name already in use
+*   [[APIE-839](https://jira.antwerpen.be/browse/APIE-839)] - Service version 1 was published in External but it is available in Internal
+*   [[APIE-844](https://jira.antwerpen.be/browse/APIE-844)] - service identifier should be unique in 1 organisation
+*   [[APIE-850](https://jira.antwerpen.be/browse/APIE-850)] - nginx config and SSL cert/key path should not be exposed via the system/status endpoint
+*   [[APIE-870](https://jira.antwerpen.be/browse/APIE-870)] - api store : number of applications not correct
+*   [[APIE-879](https://jira.antwerpen.be/browse/APIE-879)] - Pending contracts application images are rounded but should not be
+*   [[APIE-880](https://jira.antwerpen.be/browse/APIE-880)] - Categories are alphabetically sorted, but captials are sorted first
+*   [[APIE-886](https://jira.antwerpen.be/browse/APIE-886)] - Publisher : '*' in filter bij 'my organizations' geeft foutmelding
+*   [[APIE-892](https://jira.antwerpen.be/browse/APIE-892)] - Overzicht organization members : 'joined on' zonder datum
+*   [[APIE-920](https://jira.antwerpen.be/browse/APIE-920)] - Invalid authentication credentials met geldige apikey
+
+## Story
+
+*   [[APIE-400](https://jira.antwerpen.be/browse/APIE-400)] - Verwijderen van niet gepubliceerde services
+*   [[APIE-401](https://jira.antwerpen.be/browse/APIE-401)] - Verwijderen van een applicatie indien deze nog niet geregistreerd is voor gebruik
+*   [[APIE-406](https://jira.antwerpen.be/browse/APIE-406)] - Als service provider voorzien we ACL policies op de geregistreerde services
+*   [[APIE-413](https://jira.antwerpen.be/browse/APIE-413)] - redundante API key niet meenemen in de applicatie configuratie van zodra OAuth2 client credential geactiveerd is op een service
+*   [[APIE-597](https://jira.antwerpen.be/browse/APIE-597)] - Backend service token validatie : API engine endpoint voorzien
+*   [[APIE-599](https://jira.antwerpen.be/browse/APIE-599)] - Backend service token refresh : endpoint voorzien
+*   [[APIE-762](https://jira.antwerpen.be/browse/APIE-762)] - SAML login endpoint should check on query params and return with query extension
+*   [[APIE-813](https://jira.antwerpen.be/browse/APIE-813)] - Update status info admin
+*   [[APIE-814](https://jira.antwerpen.be/browse/APIE-814)] - OAuth provide UI for revoke, revoke all
+*   [[APIE-842](https://jira.antwerpen.be/browse/APIE-842)] - Migration to Kong 8.1
+*   [[APIE-874](https://jira.antwerpen.be/browse/APIE-874)] - Move JWT refresh endpoint to JWT protected API
+
+Release Notes - APIe - Version API/SDK engine 0.7.0
+---------------------------------------------------
+
+## Story
+
+*   [[APIE-806](https://jira.antwerpen.be/browse/APIE-806)] - Remodel Organization concept
+*   [[APIE-812](https://jira.antwerpen.be/browse/APIE-812)] - Default to internal marketplace for service publication
+*   [[APIE-815](https://jira.antwerpen.be/browse/APIE-815)] - Integrate consent page
+*   [[APIE-816](https://jira.antwerpen.be/browse/APIE-816)] - Introduce token issuance flow
+
+Release Notes - APIe - Version API/SDK engine 0.6.4
+---------------------------------------------------
+
+## Bug
+
+*   [[APIE-492](https://jira.antwerpen.be/browse/APIE-492)] - Application is shown as RETIRED (although 2 versions are Registered) Marketplace
+*   [[APIE-511](https://jira.antwerpen.be/browse/APIE-511)] - Confirm Contract enabled when no application exists. clicking at confirm contract results in nothing.
+*   [[APIE-518](https://jira.antwerpen.be/browse/APIE-518)] - Error- Service definition type not supported
+*   [[APIE-527](https://jira.antwerpen.be/browse/APIE-527)] - Application deleted but still the Api key is available for testing in marketplace.
+*   [[APIE-678](https://jira.antwerpen.be/browse/APIE-678)] - Identityserver-a.antwerpen.be Login mechanism security issue. [see video attached.]
+*   [[APIE-731](https://jira.antwerpen.be/browse/APIE-731)] - Organisaties zijn Case sensitive --> er kunnen dus meerdere keren dezelfde organisatie worden aangemaakt met verschillende casing
+*   [[APIE-836](https://jira.antwerpen.be/browse/APIE-836)] - No results in API Metrics Manager
+
+## Story
+
+*   [[APIE-110](https://jira.antwerpen.be/browse/APIE-110)] - De Oauth grants opvragen en kunnen revoken via een endpoint
+*   [[APIE-350](https://jira.antwerpen.be/browse/APIE-350)] - Service endpoint van een API veranderen nadat die werd gepubliceerd
+*   [[APIE-446](https://jira.antwerpen.be/browse/APIE-446)] - Max grootte Avatar/iconen
+*   [[APIE-468](https://jira.antwerpen.be/browse/APIE-468)] - Extra info over de consumers van mijn service
+*   [[APIE-565](https://jira.antwerpen.be/browse/APIE-565)] - Gateway policy - OAuth -> JWT
+
 Release Notes - APIe - Version API/SDK engine 0.6.3
 ---------------------------------------------------
 

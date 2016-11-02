@@ -3,33 +3,101 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "total_requests": {
-      "id": "total_requests",
-      "type": "integer"
+    "server": {
+      "id": "server",
+      "type": "object",
+      "properties": {
+        "total_requests": {
+          "id": "total_requests",
+          "type": "integer"
+        },
+        "connections_active": {
+          "id": "connections_active",
+          "type": "integer"
+        },
+        "connections_accepted": {
+          "id": "connections_accepted",
+          "type": "integer"
+        },
+        "connections_handled": {
+          "id": "connections_handled",
+          "type": "integer"
+        },
+        "connections_reading": {
+          "id": "connections_reading",
+          "type": "integer"
+        },
+        "connections_writing": {
+          "id": "connections_writing",
+          "type": "integer"
+        },
+        "connections_waiting": {
+          "id": "connections_waiting",
+          "type": "integer"
+        }
+      }
     },
-    "connections_active": {
-      "id": "connections_active",
-      "type": "integer"
-    },
-    "connections_accepted": {
-      "id": "connections_accepted",
-      "type": "integer"
-    },
-    "connections_handled": {
-      "id": "connections_handled",
-      "type": "integer"
-    },
-    "connections_reading": {
-      "id": "connections_reading",
-      "type": "integer"
-    },
-    "connections_writing": {
-      "id": "connections_writing",
-      "type": "integer"
-    },
-    "connections_waiting": {
-      "id": "connections_waiting",
-      "type": "integer"
+    "database": {
+      "id": "database",
+      "type": "object",
+      "properties": {
+        "oauth2_credentials": {
+          "id": "oauth2_credentials",
+          "type": "integer"
+        },
+        "jwt_secrets": {
+          "id": "jwt_secrets",
+          "type": "integer"
+        },
+        "response_ratelimiting_metrics": {
+          "id": "response_ratelimiting_metrics",
+          "type": "integer"
+        },
+        "keyauth_credentials": {
+          "id": "keyauth_credentials",
+          "type": "integer"
+        },
+        "oauth2_authorization_codes": {
+          "id": "oauth2_authorization_codes",
+          "type": "integer"
+        },
+        "acls": {
+          "id": "acls",
+          "type": "integer"
+        },
+        "apis": {
+          "id": "apis",
+          "type": "integer"
+        },
+        "basicauth_credentials": {
+          "id": "basicauth_credentials",
+          "type": "integer"
+        },
+        "consumers": {
+          "id": "consumers",
+          "type": "integer"
+        },
+        "ratelimiting_metrics": {
+          "id": "ratelimiting_metrics",
+          "type": "integer"
+        },
+        "oauth2_tokens": {
+          "id": "oauth2_tokens",
+          "type": "integer"
+        },
+        "nodes": {
+          "id": "nodes",
+          "type": "integer"
+        },
+        "hmacauth_credentials": {
+          "id": "hmacauth_credentials",
+          "type": "integer"
+        },
+        "plugins": {
+          "id": "plugins",
+          "type": "integer"
+        }
+      }
     }
   }
 }

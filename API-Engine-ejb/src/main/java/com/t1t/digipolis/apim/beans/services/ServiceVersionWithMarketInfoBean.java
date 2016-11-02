@@ -30,7 +30,6 @@ public class ServiceVersionWithMarketInfoBean extends ServiceVersionBean {
         this.setVisibility(svb.getVisibility());
         this.setStatus(svb.getStatus());
         this.setPlans(svb.getPlans());
-        this.setProvisionKey(svb.getProvisionKey());
         this.setPublicService(svb.isPublicService());
         this.setPublishedOn(svb.getPublishedOn());
         this.setRetiredOn(svb.getRetiredOn());

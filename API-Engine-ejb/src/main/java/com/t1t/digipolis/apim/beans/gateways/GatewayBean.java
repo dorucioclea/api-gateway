@@ -35,15 +35,16 @@ public class GatewayBean implements Serializable {
     private String modifiedBy;
     @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
-    @Column(name = "oauth_token", nullable = true)
-    private String oauthTokenPath;
-    @Column(name = "oauth_authorize", nullable = true)
-    private String oauthAuthPath;
-    @Column(name = "oauth_context", nullable = true)
-    private String oauthContext;
+    @Column(name = "oauth_exp_time", nullable = true)
+    private Integer OAuthExpTime;
     @Column(name = "jwt_exp_time", nullable = true)
     private Integer JWTExpTime;
-
+    @Column(name = "jwt_pub_key", nullable = true)
+    private String JWTPubKey;
+    @Column(name = "jwt_pub_key_endpoint", nullable = true)
+    private String JWTPubKeyEndpoint;
+    @Column(name = "jwt_priv_key", nullable = true)
+    private String JWTPrivKey;
     @Column(updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private GatewayType type;
@@ -70,154 +71,24 @@ public class GatewayBean implements Serializable {
         configuration = AesEncrypter.decrypt(configuration);
     }*/
 
-    /**
-     * @return the id
-     */
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
     public String getId() {
         return id;
     }
 
-    /**
-     * @param id the id to set
-     */
     public void setId(String id) {
         this.id = id;
     }
 
-    /**
-     * @return the name
-     */
     public String getName() {
         return name;
     }
 
-    /**
-     * @param name the name to set
-     */
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * @return the description
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * @param description the description to set
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    /**
-     * @return the createdBy
-     */
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    /**
-     * @param createdBy the createdBy to set
-     */
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    /**
-     * @return the createdOn
-     */
-    public Date getCreatedOn() {
-        return createdOn;
-    }
-
-    /**
-     * @param createdOn the createdOn to set
-     */
-    public void setCreatedOn(Date createdOn) {
-        this.createdOn = createdOn;
-    }
-
-    /**
-     * @return the modifiedBy
-     */
-    public String getModifiedBy() {
-        return modifiedBy;
-    }
-
-    /**
-     * @param modifiedBy the modifiedBy to set
-     */
-    public void setModifiedBy(String modifiedBy) {
-        this.modifiedBy = modifiedBy;
-    }
-
-    /**
-     * @return the modifiedOn
-     */
-    public Date getModifiedOn() {
-        return modifiedOn;
-    }
-
-    /**
-     * @param modifiedOn the modifiedOn to set
-     */
-    public void setModifiedOn(Date modifiedOn) {
-        this.modifiedOn = modifiedOn;
-    }
-
-    /**
-     * @return the type
-     */
-    public GatewayType getType() {
-        return type;
-    }
-
-    /**
-     * @param type the type to set
-     */
-    public void setType(GatewayType type) {
-        this.type = type;
-    }
-
-    /**
-     * @return the configuration
-     */
-    public String getConfiguration() {
-        return configuration;
-    }
-
-    public String getOauthTokenPath() {
-        return oauthTokenPath;
-    }
-
-    public void setOauthTokenPath(String oauthTokenPath) {
-        this.oauthTokenPath = oauthTokenPath;
-    }
-
-    public String getOauthAuthPath() {
-        return oauthAuthPath;
-    }
-
-    public void setOauthAuthPath(String oauthAuthPath) {
-        this.oauthAuthPath = oauthAuthPath;
-    }
-
-    public String getOauthContext() {
-        return oauthContext;
-    }
-
-    public void setOauthContext(String oauthContext) {
-        this.oauthContext = oauthContext;
-    }
-
-    /**
-     * @param configuration the configuration to set
-     */
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
     }
 
     public String getEndpoint() {
@@ -228,6 +99,54 @@ public class GatewayBean implements Serializable {
         this.endpoint = endpoint;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Date getCreatedOn() {
+        return createdOn;
+    }
+
+    public void setCreatedOn(Date createdOn) {
+        this.createdOn = createdOn;
+    }
+
+    public String getModifiedBy() {
+        return modifiedBy;
+    }
+
+    public void setModifiedBy(String modifiedBy) {
+        this.modifiedBy = modifiedBy;
+    }
+
+    public Date getModifiedOn() {
+        return modifiedOn;
+    }
+
+    public void setModifiedOn(Date modifiedOn) {
+        this.modifiedOn = modifiedOn;
+    }
+
+    public Integer getOAuthExpTime() {
+        return OAuthExpTime;
+    }
+
+    public void setOAuthExpTime(Integer OAuthExpTime) {
+        this.OAuthExpTime = OAuthExpTime;
+    }
+
     public Integer getJWTExpTime() {
         return JWTExpTime;
     }
@@ -235,6 +154,42 @@ public class GatewayBean implements Serializable {
     public void setJWTExpTime(Integer JWTExpTime) {
         this.JWTExpTime = JWTExpTime;
     }
+
+    public String getJWTPubKey() {
+        return JWTPubKey;
+    }
+
+    public void setJWTPubKey(String JWTPubKey) {
+        this.JWTPubKey = JWTPubKey;
+    }
+
+    public GatewayType getType() {
+        return type;
+    }
+
+    public void setType(GatewayType type) {
+        this.type = type;
+    }
+
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    public String getJWTPubKeyEndpoint() {
+        return JWTPubKeyEndpoint;
+    }
+
+    public void setJWTPubKeyEndpoint(String JWTPubKeyEndpoint) {
+        this.JWTPubKeyEndpoint = JWTPubKeyEndpoint;
+    }
+
+    public String getJWTPrivKey() {return JWTPrivKey;}
+
+    public void setJWTPrivKey(String JWTPrivKeyEndpoint) {this.JWTPrivKey = JWTPrivKeyEndpoint;}
 
     @Override
     public String toString() {
@@ -247,11 +202,12 @@ public class GatewayBean implements Serializable {
                 ", createdOn=" + createdOn +
                 ", modifiedBy='" + modifiedBy + '\'' +
                 ", modifiedOn=" + modifiedOn +
-                ", oauthTokenPath='" + oauthTokenPath + '\'' +
-                ", oauthAuthPath='" + oauthAuthPath + '\'' +
-                ", oauthContext='" + oauthContext + '\'' +
-                ", jwtExpTime='" + JWTExpTime + '\'' +
+                ", OAuthExpTime=" + OAuthExpTime +
+                ", JWTExpTime=" + JWTExpTime +
+                ", JWTPubKey='" + JWTPubKey + '\'' +
+                ", JWTPubKeyEndpoint='" + JWTPubKeyEndpoint + '\'' +
                 ", type=" + type +
+                ", configuration='" + configuration + '\'' +
                 '}';
     }
 }

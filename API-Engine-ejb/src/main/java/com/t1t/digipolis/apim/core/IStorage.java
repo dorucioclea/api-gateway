@@ -6,7 +6,9 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
+import com.t1t.digipolis.apim.beans.config.ConfigBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.defaults.DefaultsBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
@@ -64,6 +66,8 @@ public interface IStorage {
     public void createMailTemplate(MailTemplateBean mailTemplateBean) throws Exception;
     public void createManagedApplication(ManagedApplicationBean manapp)throws Exception;
     public void createKeyMapping(KeyMappingBean keyMappingBean) throws Exception;
+    public void createDefaults(DefaultsBean defaultsBean) throws StorageException;
+    public void createConfig(ConfigBean config) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -90,6 +94,8 @@ public interface IStorage {
     public void updateManagedApplication(ManagedApplicationBean manapp) throws StorageException;
     public void updateAuditEntry(AuditEntryBean audit) throws StorageException;
     public void updateKeyMapping(KeyMappingBean keyMappingBean) throws StorageException;
+    public void updateDefaults(DefaultsBean defaultsBean) throws StorageException;
+    public void updateConfig(ConfigBean config) throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
@@ -118,6 +124,8 @@ public interface IStorage {
     public void deleteMailTemplate (MailTemplateBean mailTemplateBean) throws StorageException;
     public void deleteManagedApplication(ManagedApplicationBean manapp)throws StorageException;
     public void deleteKeyMapping(KeyMappingBean keyMappingBean) throws StorageException;
+    public void deleteDefaults(DefaultsBean defaultsBean) throws StorageException;
+    public void deleteConfig(ConfigBean configBean) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -148,6 +156,8 @@ public interface IStorage {
     public ManagedApplicationBean getManagedApplicationBean(Long id) throws StorageException;
     public ManagedApplicationBean getManagedApplicationBean (AppIdentifier app) throws StorageException;
     public KeyMappingBean getKeyMappingBean(String fromSpecType, String toSpecType, String fromSpecClaim)throws StorageException;
+    public DefaultsBean getDefaults(String id) throws StorageException;
+    public List<ConfigBean> getDefaultConfig() throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

@@ -28,6 +28,8 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
     private static final String HEADER_CONSUMER_USERNAME = "x-consumer-username";//here the consumer should be an application consumer
     private static final String SWAGGER_DOC_URI = "API-Engine-auth";
     private static final String SWAGGER_DOC_JSON = "/API-Engine-auth/v1/swagger.json";
+    //exclusions
+    private static final String JWT_PUB_KEY_PATH = "/gtw/tokens/pub";
 
     //Security context
     @Inject private ISecurityAppContext securityAppContext;
@@ -40,7 +42,7 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
         try {
             if(!config.getRestAuthResourceSecurity()){
                 securityAppContext.setCurrentApplication("dummyorg.dummyapp.version");
-            }else {
+            } else {
                 securityAppContext.setCurrentApplication(appId);
             }
         } catch (ApplicationNotFoundException|StorageException ex) {
@@ -51,6 +53,7 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
                     .build());
             return;
         }
+        return;
     }
 }
 

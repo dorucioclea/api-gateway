@@ -878,11 +878,11 @@ public class AuditUtils {
                 return p1.compareTo(p2);
             }
         });
-        sortedPlans.addAll(plans);
 
         StringBuilder builder = new StringBuilder();
         boolean first = true;
         if (plans != null) {
+            sortedPlans.addAll(plans);
             for (ServicePlanBean plan : sortedPlans) {
                 if (!first) {
                     builder.append(", "); //$NON-NLS-1$
@@ -907,11 +907,11 @@ public class AuditUtils {
                 return o1.getGatewayId().compareTo(o2.getGatewayId());
             }
         });
-        sortedGateways.addAll(gateways);
 
         StringBuilder builder = new StringBuilder();
         boolean first = true;
         if (gateways != null) {
+            sortedGateways.addAll(gateways);
             for (ServiceGatewayBean gateway : sortedGateways) {
                 if (!first) {
                     builder.append(", "); //$NON-NLS-1$

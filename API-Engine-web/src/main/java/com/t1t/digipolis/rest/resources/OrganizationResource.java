@@ -5,12 +5,16 @@ import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
+import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
@@ -36,6 +40,7 @@ import com.t1t.digipolis.apim.rest.impl.util.FieldValidator;
 import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
@@ -60,7 +65,10 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This is the rest endpoint implementation.
@@ -92,6 +100,8 @@ public class OrganizationResource implements IOrganizationResource {
     private OrganizationFacade orgFacade;
     @Inject
     private EventFacade eventFacade;
+    @Inject
+    private ISecurityAppContext appContext;
 
     @Inject
     IApplicationValidator applicationValidator;
@@ -331,7 +341,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         Preconditions.checkNotNull(updateAppUri);
-        if (!ValidationUtils.isValidURL(updateAppUri.getUri())) {
+        if (updateAppUri.getUris() == null || updateAppUri.getUris().stream().filter(uri -> ValidationUtils.isValidURL(uri)).collect(Collectors.toSet()).isEmpty()) {
             throw new IllegalArgumentException();
         }
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
@@ -797,7 +807,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/terms")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceBean updateServiceTerms(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, UpdateServiceTearmsBean serviceTerms) throws ServiceNotFoundException, NotAuthorizedException{
+    public ServiceBean updateServiceTerms(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, UpdateServiceTermsBean serviceTerms) throws ServiceNotFoundException, NotAuthorizedException{
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkNotNull(serviceTerms);
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceTerms.getTerms()));
@@ -951,7 +961,18 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.getServiceVersion(organizationId, serviceId, version);
+        Set<String> consentPrefixes = new HashSet<>();
+        try {
+            consentPrefixes.addAll(query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)));
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+        ServiceVersionBean svb = orgFacade.getServiceVersion(organizationId, serviceId, version);
+        if (!(securityContext.hasPermission(PermissionType.svcEdit, organizationId) || consentPrefixes.contains(appContext.getApplicationPrefix()))) {
+            svb.setProvisionKey(null);
+        }
+        return svb;
     }
 
     @ApiOperation(value = "Get Service Definition",
@@ -2172,7 +2193,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Request a Service Contract",
             notes = "Use this endpoint to request a Contract between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Contract requested")
+            @ApiResponse(code = 204, response = ContractBean.class, message = "Contract requested")
     })
     @POST
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/request")
@@ -2214,7 +2235,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Accept an Application's Contract Request",
             notes = "Use this endpoint to accpet a Contract request between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Contract rejected")
+            @ApiResponse(code = 204, response = ContractBean.class, message = "Contract Accepted")
     })
     @POST
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/accept")
@@ -2247,4 +2268,89 @@ public class OrganizationResource implements IOrganizationResource {
         }
         orgFacade.deleteServiceVersion(organizationId, serviceId, version);
     }
+
+    @Override
+    @ApiOperation(value = "Get Service tags")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceTagsBean.class, message = "Service tags")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ServiceTagsBean getTags(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        return orgFacade.getServiceTags(organizationId, serviceId);
+    }
+
+    @Override
+    @ApiOperation("Update Service Tags")
+    @ApiResponses({
+        @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @PUT
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void updateTags(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, ServiceTagsBean tags) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkNotNull(tags);
+        orgFacade.updateServiceTags(organizationId, serviceId, tags);
+    }
+
+    @Override
+    @ApiOperation("Delete Service Tag")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void deleteTag(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, TagBean tag) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkNotNull(tag);
+        orgFacade.deleteServiceTag(organizationId, serviceId, tag);
+    }
+
+    @Override
+    @ApiOperation("Add Service Tag")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/tags")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void addTag(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, TagBean tag) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkNotNull(tag);
+        orgFacade.addServiceTag(organizationId, serviceId, tag);
+    }
+
+    @Override
+    @ApiOperation("Retrieve Application Version Oauth2 Tokens")
+    @ApiResponses({
+        @ApiResponse(code = 200, responseContainer = "List", response = OAuth2TokenBean.class, message = "OAuth2 Tokens")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth2/tokens")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(applicationId) && StringUtils.isNotEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version);
+    }
+
 }

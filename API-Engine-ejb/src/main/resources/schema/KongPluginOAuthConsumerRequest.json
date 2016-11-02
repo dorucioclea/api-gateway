@@ -18,7 +18,11 @@
     },
     "redirect_uri": {
       "id": "redirect_uri",
-      "type": "string"
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

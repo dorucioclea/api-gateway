@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.security.Key;
+import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 
@@ -29,8 +30,8 @@ import java.util.*;
  */
 public class JWTUtils {
     private static Logger _LOG = LoggerFactory.getLogger(JWTUtils.class.getName());
-    public static String JWT_HS256 = "HS256";
-    public static String JWT_RS256 = "RS256";
+    public static final String JWT_HS256 = "HS256";
+    public static final String JWT_RS256 = "RS256";
 
     /**
      * Validate token signed with RSA algorithm.
@@ -126,23 +127,24 @@ public class JWTUtils {
         return jwtContext;
     }
 
-    public static String refreshJWT(JWTRefreshRequestBean jwtRefreshRequestBean, JwtClaims jwtClaims ,String secret,Integer jwtExpirationTime)throws JoseException, UnsupportedEncodingException{
+    public static String refreshJWT(JWTRefreshRequestBean jwtRefreshRequestBean, JwtClaims jwtClaims ,String secret ,Integer jwtExpirationTime, PrivateKey privateKey,String pubKeyEndpoint)throws JoseException, UnsupportedEncodingException{
         //add optional claims
-        jwtClaims.setExpirationTimeMinutesInTheFuture(jwtExpirationTime); // time when the token will expire (10 minutes from now)
-        jwtClaims.setNotBeforeMinutesInThePast(180);//TODO fix this issue on the gateway
+        jwtClaims.setExpirationTimeMinutesInTheFuture(jwtExpirationTime.floatValue() / 60); // time when the token will expire (10 minutes from now)
+        jwtClaims.setNotBeforeMinutesInThePast(2);//TODO fix this issue on the gateway
         addOptionalClaims(jwtClaims,jwtRefreshRequestBean.getOptionalClaims());
-        return composeJWT(secret, jwtClaims);
+        return composeJWT(secret, jwtClaims, privateKey, pubKeyEndpoint);
     }
 
-    public static String composeJWT(String secret,JwtClaims jwtClaims)throws JoseException, UnsupportedEncodingException{
+    public static String composeJWT(String secret, JwtClaims jwtClaims, PrivateKey privateKey, String pubKeyEndpoint)throws JoseException, UnsupportedEncodingException{
         // The JWT is signed using the private key
         Key key = new HmacKey(secret.getBytes("UTF-8"));
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
         JsonWebSignature jws = new JsonWebSignature();
         // The payload of the JWS is JSON content of the JWT Claims
         jws.setPayload(jwtClaims.toJson());
-        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
-        jws.setKey(key);
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+        jws.setKey(privateKey);
+        jws.setHeader(IJWT.HEADER_X5U,pubKeyEndpoint);
         jws.setHeader(IJWT.HEADER_TYPE,IJWT.HEADER_TYPE_VALUE);
         jws.setDoKeyValidation(false); // relaxes the key length requirement
 
@@ -151,7 +153,7 @@ public class JWTUtils {
         return issuedJwt;
     }
 
-    public static String composeJWT(JWTRequestBean jwtRequestBean, String secret, Integer jwtExpTime) throws JoseException, UnsupportedEncodingException {
+    public static String composeJWT(JWTRequestBean jwtRequestBean, String secret, Integer jwtExpTime, PrivateKey privateKey,String pubKeyEnpoint) throws JoseException, UnsupportedEncodingException {
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
         //add optional claims
@@ -161,17 +163,17 @@ public class JWTUtils {
         //It's important to set the optional claims before, otherwise fix claims can be overriden
         claims.setIssuer(jwtRequestBean.getIssuer());  // who creates the token and signs it
         claims.setAudience(jwtRequestBean.getAudience()); // to whom the token is intended to be sent
-        claims.setExpirationTimeMinutesInTheFuture(jwtExpTime); // time when the token will expire (60 minutes from now by default)
+        claims.setExpirationTimeMinutesInTheFuture(jwtExpTime.floatValue() / 60); // time when the token will expire (60 minutes from now by default)
         claims.setGeneratedJwtId(); // a unique identifier for the token
         claims.setIssuedAtToNow();  // when the token was issued/created (now)
         //TODO fix this issue on the gateway
-        claims.setNotBeforeMinutesInThePast(180); // time before which the token is not yet valid (2 minutes ago)
+        claims.setNotBeforeMinutesInThePast(2); // time before which the token is not yet valid (2 minutes ago)
         //Custom fields
         claims.setSubject(jwtRequestBean.getSubject()); // the subject/principal is whom the token is about
         claims.setClaim(IJWT.NAME, jwtRequestBean.getName());//unique username
         claims.setClaim(IJWT.SURNAME, jwtRequestBean.getSurname());
         claims.setClaim(IJWT.GIVEN_NAME, jwtRequestBean.getGivenName());
-        return composeJWT(secret, claims);
+        return composeJWT(secret, claims, privateKey, pubKeyEnpoint);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.facades;
 
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -62,7 +63,16 @@ public class SearchFacade {
     public SearchResultsBean<OrganizationSummaryBean> searchOrgs(SearchCriteriaBean criteria) {
         try {
             criteria.getFilters().add(getAppContextFilter());
-            return query.findOrganizations(criteria);
+            SearchResultsBean<OrganizationSummaryBean> results = query.findOrganizations(criteria);
+            //Enrich the beans with counters
+            for (OrganizationSummaryBean summary : results.getBeans()) {
+                summary.setNumApps(query.getRegisteredApplicationCountForOrg(summary.getId()));
+                summary.setNumPlans(query.getLockedPlanCountForOrg(summary.getId()));
+                summary.setNumMembers(query.getMemberCountForOrg(summary.getId()));
+                summary.setNumServices(query.getPublishedServiceCountForOrg(summary.getId()));
+                summary.setNumEvents(query.getEventCountForOrg(summary.getId()));
+            }
+            return results;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
@@ -135,6 +145,14 @@ public class SearchFacade {
 
     public List<ServiceVersionBean> searchServicesPublishedInCategories(List<String> categories){
         try {
+            Set<String> consentPrefixes = new HashSet<>();
+            consentPrefixes.addAll(query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)));
+            List<ServiceVersionBean> rval = query.findAllServicesWithCategory(categories);
+            for (ServiceVersionBean svb : rval) {
+                if (!(securityContext.hasPermission(PermissionType.svcEdit, svb.getService().getOrganization().getId()) || consentPrefixes.contains(appContext.getApplicationPrefix()))) {
+                    svb.setProvisionKey(null);
+                }
+            }
             return query.findAllServicesWithCategory(categories);
         } catch (StorageException e) {
             throw new SystemErrorException();

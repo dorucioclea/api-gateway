@@ -44,6 +44,8 @@ public class ContractBean implements Serializable {
     private Date createdOn;
     @Column(updatable=false, nullable=false)
     private String apikey;
+    @Column(name = "terms_agreed")
+    private Boolean termsAgreed;
 
     /**
      * Constructor.
@@ -149,9 +151,23 @@ public class ContractBean implements Serializable {
         this.apikey = apikey;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
+    /**
+     * @return the value of termsAgreed
      */
+    public Boolean getTermsAgreed() {
+        return termsAgreed;
+    }
+
+    /**
+     * @param termsAgreed the value to set
+     */
+    public void setTermsAgreed(Boolean termsAgreed) {
+        this.termsAgreed = termsAgreed;
+    }
+
+    /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
     @Override
     @SuppressWarnings("nls")
     public String toString() {

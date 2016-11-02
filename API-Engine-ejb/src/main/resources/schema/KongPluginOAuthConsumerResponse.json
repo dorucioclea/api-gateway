@@ -26,7 +26,11 @@
     },
     "redirect_uri": {
       "id": "redirect_uri",
-      "type": "string"
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type":"string"
+      }
     },
     "created_at": {
       "id": "created_at",

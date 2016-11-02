@@ -1,6 +1,7 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.*;
@@ -25,6 +26,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Implementation of the Current User API.
@@ -72,7 +74,7 @@ public class CurrentUserResource implements ICurrentUserResource {
             Preconditions.checkArgument(info.getPic().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         }
         if (info.getBio() != null) {
-            Preconditions.checkArgument(info.getBio().length() <= 1_000_000, "Bio should not exceed 1,000,000 characters: " + info.getBio().length());
+            Preconditions.checkArgument(info.getBio().length() <= 100_000, "Bio should not exceed 1,00,000 characters: " + info.getBio().length());
         }
         currentUserFacade.updateInfo(info);
     }
@@ -239,5 +241,34 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Path("/notifications/incoming/")
     public void deleteAll() {
         eventFacade.deleteAllEvents(currentUserFacade.getInfo());
+    }
+
+    @Override
+    @ApiOperation("Retrieve current user's Oauth2 tokens")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = OAuth2TokenBean.class, message = "OAuth2 Tokens")
+    })
+    @GET
+    @Path("/oauth2/tokens")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<OAuth2TokenBean> getCurrentUserOAuthTokens() {
+        return currentUserFacade.getCurrentUserOAuth2Tokens();
+    }
+
+    @Override
+    @ApiOperation("Revoke current user's Oauth2 Token")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @DELETE
+    @Path("/oauth2/tokens")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void revokeCurrentUserOAuthToken(OAuth2TokenBean token) {
+        Preconditions.checkNotNull(token);
+        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()) && StringUtils.isNotEmpty(token.getAuthenticatedUserid()));
+        if (!token.getAuthenticatedUserid().equals(securityContext.getCurrentUser())) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        currentUserFacade.revokeCurrentUserOAuth2Token(token);
     }
 }

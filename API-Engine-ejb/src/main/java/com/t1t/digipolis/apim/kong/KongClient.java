@@ -27,6 +27,8 @@ import com.t1t.digipolis.kong.model.KongPluginACLRequest;
 import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
 import retrofit.http.*;
 
+import java.util.Collection;
+
 /**
  * Created by michallispashidis on 7/08/15.
  */
@@ -77,6 +79,8 @@ public interface KongClient {
     KongPluginJWTResponse createConsumerJWTCredentials(@Path("id") String id, @Body KongPluginJWTRequest kongPluginJWTRequest);
     @GET("/consumers/{id}/jwt")
     KongPluginJWTResponseList getConsumerJWTCredentials(@Path("id")String id);
+    @DELETE("/consumers/{consumerId}/jwt/{credentialId}")
+    Object deleteConsumerJwtCredential(@Path("consumerId") String consumerId, @Path("credentialId") String credentialId);
     @POST("/consumers/{id}/acls")
     KongPluginACLResponse addConsumerToACL(@Path("id") String id, @Body  KongPluginACLRequest request);
     @GET("/consumers/{id}/acls")
@@ -98,10 +102,16 @@ public interface KongClient {
 
     /*********************   OAUTH   *******************/
     @FormUrlEncoded
-    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path(value = "consumerId", encode = false)String consumerId,@Field("name") String name, @Field("client_id")String clientId, @Field("client_secret")String clientSecret,@Field("redirect_uri")String redirectURL);
+    @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path(value = "consumerId", encode = false)String consumerId,@Field("name") String name, @Field("client_id")String clientId, @Field("client_secret")String clientSecret,@Field("redirect_uri")Iterable<String> redirectURL);
     @GET("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(@Path(value = "consumerId", encode = false)String consumerId);
     @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(@Query("client_id")String clientId);
+    @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(@Query("id") String credentialId);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens();
-    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens(@Query("client_id")String clientId);
+    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokensByCredentialId(@Query("credential_id")String credentialId);
+    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokensByAuthenticatedUser(@Query("authenticated_userid") String authenticatedUserId);
+    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthToken(@Query("id") String tokenId);
+    @DELETE("/oauth2_tokens/{tokenId}") Object revokeOAuthToken(@Path("tokenId") String tokenId);
     @DELETE("/consumers/{consumerId}/oauth2/{pluginId}")Object deleteOAuth2Credential(@Path(value = "consumerId", encode = false)String consumerId, @Path("pluginId")String pluginId);
+
+    /*********************   JWT   *******************/
 }

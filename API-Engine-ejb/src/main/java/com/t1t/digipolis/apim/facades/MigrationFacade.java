@@ -8,7 +8,6 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.digipolis.apim.beans.events.Event;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
@@ -44,11 +43,14 @@ import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.kong.model.*;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.GatewayUtils;
-import com.t1t.digipolis.util.ObjectCloner;
-import com.t1t.digipolis.util.ServiceConventionUtil;
+import com.t1t.digipolis.kong.model.KongConsumer;
+import com.t1t.digipolis.kong.model.KongPluginACLResponse;
+import com.t1t.digipolis.kong.model.KongPluginConfig;
+import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
+import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
+import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
+import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -299,7 +301,7 @@ public class MigrationFacade {
                         gatewayLink.createConsumerWithKongId(user.getKongUsername(), ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
                         Thread.sleep(100);
                         //create jwt token
-                        gatewayLink.addConsumerJWT(user.getKongUsername());
+                        gatewayLink.addConsumerJWT(user.getKongUsername(), JWTUtils.JWT_RS256);
                     } catch (RetrofitError rte) {
                         _LOG.error("-->no sync executed for kong id {} and username {}", user.getKongUsername(), user.getUsername());
                         continue;
@@ -469,11 +471,11 @@ public class MigrationFacade {
                             gateway.addConsumerKeyAuth(appConsumerName, apikey);
                         }
                         //create jwt token
-                        gateway.addConsumerJWT(appConsumerName);
+                        gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256);
                         //sync oauth info
                         if (!StringUtils.isEmpty(avb.getoAuthClientId()) && !StringUtils.isEmpty(avb.getOauthClientSecret())) {//redirect may be empty
-                            if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
-                                avb.setOauthClientRedirect(OrganizationFacade.PLACEHOLDER_CALLBACK_URI);
+                            if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())
+                                avb.setOauthClientRedirects(new HashSet<>(Arrays.asList(OrganizationFacade.PLACEHOLDER_CALLBACK_URI)));
                             //apply oauth
                             OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
                             requestBean.setUniqueUserName(appConsumerName);
@@ -484,7 +486,7 @@ public class MigrationFacade {
                                     .withClientId(requestBean.getAppOAuthId())
                                     .withClientSecret(requestBean.getAppOAuthSecret());
                             oauthRequest.setName(avb.getApplication().getName());
-                            oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
+                            oauthRequest.setRedirectUri(avb.getOauthClientRedirects());
                             try {
 
                             } catch (Exception e) {
@@ -828,6 +830,42 @@ public class MigrationFacade {
             return links;
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public void issueJWT() throws StorageException {
+        //Issue new JWT credentials with RS256 algorithm
+        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+
+        final List<ApplicationVersionBean> allApplicationVersions = query.findAllApplicationVersions();
+        final List<UserBean> users = idmStorage.getAllUsers();
+
+        Set<String> consumerIds = new HashSet<>();
+
+        consumerIds.addAll(allApplicationVersions.stream().filter(avb -> avb.getStatus() != ApplicationStatus.Retired).map(ConsumerConventionUtil::createAppUniqueId).collect(Collectors.toList()));
+        consumerIds.addAll(users.stream().map(UserBean::getKongUsername).collect(Collectors.toList()));
+
+        for (String consumerId : consumerIds) {
+            //get default gateway
+            try{
+                KongPluginJWTResponseList response = gateway.getConsumerJWT(consumerId);
+                if (response.getData().size() > 0) {
+                    for (KongPluginJWTResponse resp : response.getData()) {
+                        try {
+                            gateway.deleteConsumerJwtCredential(resp.getConsumerId(), resp.getId());
+                        }
+                        catch (RetrofitError ex) {
+                            _LOG.info("Consumer '{}' JWT credentials not deleted ({},{})",resp.getKey(), resp.getSecret());
+                        }
+                    }
+                }
+                final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(consumerId,JWTUtils.JWT_RS256);
+                final String key = kongPluginJWTResponse.getKey();
+                final String secret = kongPluginJWTResponse.getSecret();
+                _LOG.info("Consumer '{}' JWT credentials generated ({},{})",consumerId,key,secret);
+            }catch (RetrofitError rte) {
+                _LOG.error("-->no sync executed for application {}", consumerId);
+            }
         }
     }
 }

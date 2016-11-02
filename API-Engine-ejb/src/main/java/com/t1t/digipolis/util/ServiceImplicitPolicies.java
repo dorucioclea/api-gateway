@@ -21,10 +21,12 @@ public class ServiceImplicitPolicies {
      * @param svb
      * @return
      */
-    public static boolean verifyIfIPRestrictionShouldBeSet(ServiceVersionBean svb){
+    public static boolean verifyIfIPRestrictionShouldBeSet(ServiceVersionBean svb, boolean admin){
         Set<VisibilityBean> visibilities = svb.getVisibility();
         if(visibilities!=null && visibilities.size()>0){
-            List<VisibilityBean> filteredCollection = visibilities.stream().filter(vs -> vs.getCode().trim().equalsIgnoreCase(EXTERNAL_MKT_PREFIX)&& !vs.getShow()).collect(Collectors.toList());
+            List<VisibilityBean> filteredCollection = visibilities.stream().filter(vs ->
+                vs.getCode().trim().equalsIgnoreCase(EXTERNAL_MKT_PREFIX) && (!vs.getShow() || admin)
+            ).collect(Collectors.toList());
             if(filteredCollection.size()>0)return true;
         }
         return false;

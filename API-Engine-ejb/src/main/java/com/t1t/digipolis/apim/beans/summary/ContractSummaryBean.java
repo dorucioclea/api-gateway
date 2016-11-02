@@ -32,6 +32,7 @@ public class ContractSummaryBean implements Serializable {
     private String planVersion;
     private String provisionKey;
     private Date createdOn;
+    private Boolean termsAgreed;
 
     /**
      * Constructor.
@@ -58,6 +59,7 @@ public class ContractSummaryBean implements Serializable {
         this.planVersion = c.getPlan().getVersion();
         this.provisionKey = c.getService().getProvisionKey();
         this.createdOn = c.getCreatedOn();
+        this.termsAgreed = c.getTermsAgreed();
     }
 
     /**
@@ -298,12 +300,32 @@ public class ContractSummaryBean implements Serializable {
         this.apikey = apikey;
     }
 
+    /**
+     * @return the provision key
+     */
     public String getProvisionKey() {
         return provisionKey;
     }
 
+    /**
+     * @param provisionKey the provision key to set
+     */
     public void setProvisionKey(String provisionKey) {
         this.provisionKey = provisionKey;
+    }
+
+    /**
+     * @return the value of termsAgreed
+     */
+    public Boolean getTermsAgreed() {
+        return termsAgreed;
+    }
+
+    /**
+     * @param termsAgreed the value to set
+     */
+    public void setTermsAgreed(Boolean termsAgreed) {
+        this.termsAgreed = termsAgreed;
     }
 
     /**

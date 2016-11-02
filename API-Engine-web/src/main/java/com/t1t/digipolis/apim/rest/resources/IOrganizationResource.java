@@ -2,13 +2,14 @@ package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
+import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
-import com.t1t.digipolis.apim.beans.events.ContractRequest;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.GrantRoleBean;
-import com.t1t.digipolis.apim.beans.idm.GrantRolesBean;
 import com.t1t.digipolis.apim.beans.idm.TransferOwnershipBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.metrics.*;
@@ -30,9 +31,9 @@ import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The Organization API.
@@ -1527,4 +1528,49 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException
      */
     public void deleteServiceVersion(String organizationId, String serviceId, String version) throws NotAuthorizedException;
+
+    /**
+     * Get a service's tags
+     * @param organizationId
+     * @param serviceId
+     * @return
+     */
+    public ServiceTagsBean getTags(String organizationId, String serviceId);
+
+    /**
+     * update a service's tags
+     * @param organizationId
+     * @param serviceId
+     * @param tags
+     * @throws NotAuthorizedException
+     */
+    public void updateTags(String organizationId, String serviceId, ServiceTagsBean tags) throws NotAuthorizedException;
+
+    /**
+     * Delete a service's tag
+     * @param organizationId
+     * @param serviceId
+     * @param tag
+     * @throws NotAuthorizedException
+     */
+    public void deleteTag(String organizationId, String serviceId, TagBean tag) throws NotAuthorizedException;
+
+    /**
+     * Add a tag to a service
+     * @param organizationId
+     * @param serviceId
+     * @param tag
+     * @throws NotAuthorizedException
+     */
+    public void addTag(String organizationId, String serviceId, TagBean tag) throws NotAuthorizedException;
+
+    /**
+     * Retrieve an application version's OAuth tokens
+     * @param organizationId
+     * @param applicationId
+     * @param version
+     * @return
+     * @throws NotAuthorizedException
+     */
+    public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version) throws NotAuthorizedException;
 }

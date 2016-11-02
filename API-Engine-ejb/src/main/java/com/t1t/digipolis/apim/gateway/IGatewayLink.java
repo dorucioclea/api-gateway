@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -247,7 +248,7 @@ public interface IGatewayLink {
      * @return
      * @throws ConsumerException
      */
-    public KongPluginJWTResponse addConsumerJWT(String id) throws ConsumerException;
+    public KongPluginJWTResponse addConsumerJWT(String id, String encoding) throws ConsumerException;
 
     /**
      * Retrieve a consumer information with it's JWT key.
@@ -431,4 +432,45 @@ public interface IGatewayLink {
      * @return
      */
     public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer);
+
+    /**
+     * Retrieve a consumer's OAuth2 tokens
+     * @param consumerOAuthCredentialId
+     * @return
+     */
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId);
+
+    /**
+     * Delete a token on the gateway corresponding to the id
+     * @param tokenId
+     */
+    public void revokeOAuthToken(String tokenId);
+
+    /**
+     * Retrieve oauth tokens by authenticated user id
+     * @param authenticatedUserId
+     * @return
+     */
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId);
+
+    /**
+     * Retrieve OAuth information based on credential id
+     * @param credentialId
+     * @return
+     */
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(String credentialId);
+
+    /**
+     * Retrieve an OAuth token from the gateway
+     * @param tokenId
+     * @return
+     */
+    public KongOAuthTokenList getOAuthToken(String tokenId);
+
+    /**
+     * Delete a consumer's JWT credential
+     * @param consumerId
+     * @param credentialId
+     */
+    public void deleteConsumerJwtCredential(String consumerId, String credentialId);
 }

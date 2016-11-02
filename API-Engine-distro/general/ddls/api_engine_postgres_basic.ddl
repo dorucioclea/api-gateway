@@ -6,7 +6,11 @@
 
 CREATE SEQUENCE hibernate_sequence START WITH 999;
 
-CREATE TABLE application_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, app_id VARCHAR(255) NULL, app_org_id VARCHAR(255) NULL, oauth_client_id VARCHAR(255), oauth_client_secret VARCHAR(255), oauth_client_redirect VARCHAR(255));
+CREATE TABLE config(id BIGINT NOT NULL, config_path VARCHAR(255) NOT NULL);
+
+CREATE TABLE application_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, app_id VARCHAR(255) NULL, app_org_id VARCHAR(255) NULL, oauth_client_id VARCHAR(255), oauth_client_secret VARCHAR(255));
+
+CREATE TABLE app_oauth_redirect_uris (application_version_id BIGINT NOT NULL, oauth_client_redirect VARCHAR(255) NOT NULL);
 
 CREATE TABLE applications (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, context VARCHAR(255) NOT NULL DEFAULT '', name VARCHAR(255) NOT NULL, organization_id VARCHAR(255) NOT NULL, logo OID);
 
@@ -18,11 +22,11 @@ CREATE TABLE support (id BIGINT NOT NULL,organization_id VARCHAR(255) NOT NULL, 
 
 CREATE TABLE support_comments (id BIGINT NOT NULL, support_id BIGINT NOT NULL, comment TEXT,created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, created_by VARCHAR(255) NOT NULL);
 
-CREATE TABLE contracts (id BIGINT NOT NULL, apikey VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, appv_id BIGINT NULL, planv_id BIGINT NULL, svcv_id BIGINT NULL);
+CREATE TABLE contracts (id BIGINT NOT NULL, apikey VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, appv_id BIGINT NULL, planv_id BIGINT NULL, svcv_id BIGINT NULL, terms_agreed BOOL DEFAULT FALSE);
 
 CREATE TABLE endpoint_properties (service_version_id BIGINT NOT NULL, value VARCHAR(255) NULL, name VARCHAR(255) NOT NULL);
 
-CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, oauth_token VARCHAR(255) NULL,oauth_authorize VARCHAR(255) NULL, oauth_context VARCHAR(255) NULL, jwt_exp_time INT NULL DEFAULT 7200);
+CREATE TABLE gateways (id VARCHAR(255) NOT NULL, configuration TEXT NOT NULL, endpoint VARCHAR(255) NOT NULL , created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, name VARCHAR(255) NOT NULL, type VARCHAR(255) NOT NULL, jwt_exp_time INT NULL DEFAULT 7200, oauth_exp_time INT NULL DEFAULT 7200, jwt_pub_key TEXT NULL DEFAULT '', jwt_pub_key_endpoint VARCHAR(255) NULL DEFAULT '');
 
 CREATE TABLE memberships (id BIGINT NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NULL, org_id VARCHAR(255) NULL, role_id VARCHAR(255) NULL, user_id VARCHAR(255) NULL);
 
@@ -33,6 +37,8 @@ CREATE TABLE permissions (role_id VARCHAR(255) NOT NULL, permissions INT NULL);
 CREATE TABLE white_ip_restriction (netw_value VARCHAR(255));
 
 CREATE TABLE black_ip_restriction (netw_value VARCHAR(255));
+
+CREATE TABLE defaults (id VARCHAR(255) NOT NULL, service_terms TEXT NULL);
 
 CREATE TABLE managed_applications (id BIGINT NOT NULL, name VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, gateway_id VARCHAR(255) NULL, app_id VARCHAR(255) NULL, type VARCHAR(255) NOT NULL, prefix VARCHAR(255) NOT NULL, gateway_username VARCHAR(255) NULL, api_key VARCHAR(255) NOT NULL, activated BOOLEAN DEFAULT TRUE, restricted BOOLEAN DEFAULT FALSE );
 
@@ -52,7 +58,7 @@ CREATE TABLE roles (id VARCHAR(255) NOT NULL, auto_grant BOOLEAN NULL, created_b
 
 CREATE TABLE service_defs (id BIGINT NOT NULL, data OID, service_version_id BIGINT NULL);
 
-CREATE TABLE service_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, definition_type VARCHAR(255) NULL, endpoint VARCHAR(255) NULL, endpoint_type VARCHAR(255) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, public_service BOOLEAN NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, deprecated_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NULL, service_id VARCHAR(255) NULL, service_org_id VARCHAR(255) NULL, provision_key VARCHAR(255), onlinedoc VARCHAR(255), auto_accept_contracts BOOL DEFAULT TRUE);
+CREATE TABLE service_versions (id BIGINT NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, definition_type VARCHAR(255) NULL, endpoint VARCHAR(255) NULL, endpoint_type VARCHAR(255) NULL, modified_by VARCHAR(255) NOT NULL, modified_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, public_service BOOLEAN NOT NULL, published_on TIMESTAMP WITHOUT TIME ZONE NULL, retired_on TIMESTAMP WITHOUT TIME ZONE NULL, deprecated_on TIMESTAMP WITHOUT TIME ZONE NULL, status VARCHAR(255) NOT NULL, version VARCHAR(255) NULL, service_id VARCHAR(255) NULL, service_org_id VARCHAR(255) NULL, provision_key VARCHAR(255), onlinedoc VARCHAR(255), auto_accept_contracts BOOL DEFAULT TRUE, readme TEXT NULL, terms_agreement_required BOOL DEFAULT FALSE);
 
 CREATE TABLE services (id VARCHAR(255) NOT NULL, created_by VARCHAR(255) NOT NULL, created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL, description VARCHAR(512) NULL, name VARCHAR(255) NOT NULL, basepath VARCHAR(255) NOT NULL, organization_id VARCHAR(255) NOT NULL,terms TEXT , logo OID);
 
@@ -74,7 +80,11 @@ CREATE TABLE key_mapping (from_spec_type VARCHAR(25) NOT NULL,to_spec_type VARCH
 
 ALTER TABLE mail_templates ADD CONSTRAINT pksb_mail_templates PRIMARY KEY (topic);
 
+ALTER TABLE config ADD PRIMARY KEY (id);
+
 ALTER TABLE events ADD PRIMARY KEY (id);
+
+ALTER TABLE defaults ADD PRIMARY KEY (id);
 
 ALTER TABLE followers ADD PRIMARY KEY (ServiceBean_id,ServiceBean_organization_id,user_id);
 
@@ -172,6 +182,8 @@ ALTER TABLE plan_versions ADD CONSTRAINT FK_tonylvm2ypnq3efxqr1g0m9fs FOREIGN KE
 
 ALTER TABLE followers ADD CONSTRAINT FK_29hj3xmhp1wedxjh1bklnlg15 FOREIGN KEY (ServiceBean_id,ServiceBean_organization_id) REFERENCES services (id,organization_id) ON UPDATE CASCADE;
 
+ALTER TABLE app_oauth_redirect_uris ADD CONSTRAINT FK_app_oauth_redirect_uris_1 FOREIGN KEY (application_version_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
+
 ALTER TABLE managed_applications ADD CONSTRAINT UK_managedapp_1 UNIQUE (prefix);
 
 ALTER TABLE plugins ADD CONSTRAINT UK_plugins_1 UNIQUE (group_id, artifact_id);
@@ -191,6 +203,8 @@ ALTER TABLE contracts ADD CONSTRAINT UK_contracts_1 UNIQUE (appv_id, svcv_id, pl
 ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
 
 ALTER TABLE events ADD CONSTRAINT UK_events_1 UNIQUE (origin_id, destination_id, type);
+
+ALTER TABLE app_oauth_redirect_uris ADD CONSTRAINT UK_app_oauth_redirect_uris UNIQUE (application_version_id, oauth_client_redirect);
 
 CREATE INDEX IDX_auditlog_1 ON auditlog(who);
 
@@ -237,6 +251,8 @@ CREATE INDEX IDX_FK_followers_a ON followers(ServiceBean_id,ServiceBean_organiza
 CREATE INDEX IDX_support_1 ON support(organization_id,service_id);
 
 CREATE INDEX IDX_support_comments_1 ON support(id);
+
+CREATE INDEX IDX_app_oauth_redirect_uris_1 ON app_oauth_redirect_uris(application_version_id);
 
 CREATE TABLE categories(ServiceBean_id VARCHAR(255) NOT NULL,ServiceBean_organization_id VARCHAR(255) NOT NULL,category VARCHAR(255),FOREIGN KEY (ServiceBean_id, ServiceBean_organization_id) REFERENCES services (id, organization_id));
 
@@ -566,9 +582,13 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "title": "Allowed payload size",
       "description": "Allowed request payload size in megabytes, default is 128 (128 000 000 Bytes)",
       "type": "number",
-      "default": 128
+      "default": 128,
+      "minimum": 0
     }
-  }
+  },
+  "required": [
+    "allowed_payload_size"
+  ]
 }', 'JsonSchema', 'fa-compress', 'Request Size Limiting Policy', NULL ,TRUE ,TRUE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
@@ -587,7 +607,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
                 "description": "Parameter name to remove from the request querystring."
               }
           },
-          "form": {
+          "body": {
               "type": "array",
               "items": {
                 "title": "Form",
@@ -617,7 +637,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
                 "description": "Paramname:value to add to the request querystring."
               }
           },
-          "form": {
+          "body": {
               "type": "array",
               "items": {
                 "title": "Form",
@@ -795,7 +815,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   ]
 }', 'JsonSchema', 'fa-file-text-o', 'File Log Policy', NULL ,FALSE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('Analytics', 'View API analytics in Mashape analytics - retention 1 day', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('Galileo', 'View API analytics in Mashape analytics - retention 1 day', '{
   "type": "object",
   "title": "File Log",
   "properties": {
@@ -808,23 +828,21 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "required": [
     "service_token"
   ]
-}', 'JsonSchema', 'fa-line-chart', 'Mashape Analytics Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-line-chart', 'Galileo Analytics Policy', NULL ,TRUE ,FALSE ,FALSE );
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT', 'Enable the service to accept Json Web Tokens', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT', 'Enable the service to accept and validate Json Web Tokens towards the upstream API.', '{
   "type": "object",
   "title": "JWT Token",
-  "properties": {
-    "claims_to_verify": {
-      "title": "Validate expiration time",
-      "description":"When set to false, the expiration validation will be skipped, not the validation of the token itself.",
-      "type": "boolean",
-      "required": true
-    }
-  },
-  "required": [
-    "claims_to_verify"
-  ]
+  "properties": {},
+  "required": []
 }', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWTUp', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
+  "type": "object",
+  "title": "JWT-Upstream",
+  "properties": {},
+  "required": []
+}', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', NULL ,TRUE ,FALSE ,FALSE );
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
   "type": "object",
@@ -841,3 +859,131 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "group"
   ]
 }', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto) VALUES ('JSONThreatProtection', 'Protect your API from JSON content-level attack attempts that use structures that overwhelm JSON Parsers.', '{
+  "type": "object",
+  "title": "JSON Threat Protection",
+  "properties": {
+    "source": {
+      "title": "Source",
+      "type": "string",
+      "pattern": "^request$|^response$|^message$",
+      "validationMessage": "Should be one of: request,response,message",
+      "description": "The sources that should be protected"
+    },
+    "container_depth": {
+      "title": "Container Depth",
+      "description": "Specifies the maximum allowed containment depth, where the containers are objects or arrays. For example, an array containing an object which contains an object would result in a containment depth of 3. If you do not specify this element, or if you specify a negative integer, the system does not enforce any limit.",
+      "type": "number",
+      "default": 0
+    },
+    "string_value_length": {
+      "title": "String Value Length",
+      "description": "Specifies the maximum length allowed for a string value. If you do not specify this element, or if you specify a negative integer, the system does not enforce a limit.",
+      "type": "number",
+      "default": 0
+    },
+    "array_element_count": {
+      "title": "Array Element Count",
+      "description": "Specifies the maximum number of elements allowed in an array. If you do not specify this element, or if you specify a negative integer, the system does not enforce a limit.",
+      "type": "number",
+      "default": 0
+    },
+    "object_entry_count": {
+      "title": "Object Entry Count",
+      "description": "Specifies the maximum number of entries allowed in an object. If you do not specify this element, or if you specify a negative integer, the system does not enforce any limit.",
+      "type": "number",
+      "default": 0
+    },
+    "object_entry_name_length": {
+      "title": "Object Entry Name Length",
+      "description": "Specifies the maximum string length allowed for a property name within an object. If you do not specify this element, or if you specify a negative integer, the system does not enforce any limit.",
+      "type": "number",
+      "default": 0
+    }
+  }
+}', 'JsonSchema', 'fa-shield', 'JSON Threat Protection', NULL, TRUE, FALSE, FALSE);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto) VALUES ('LDAP', 'Add LDAP Bind Authentication to your APIs, with username and password protection.', '{
+  "type": "object",
+  "title": "LDAP Authentication",
+  "properties": {
+    "ldap_host": {
+      "title": "LDAP Host",
+      "description": "Host on which the LDAP server is running.",
+      "type": "string"
+    },
+    "ldap_port": {
+      "title": "LDAP Port",
+      "description": "TCP port where the LDAP server is listening.",
+      "type": "number",
+      "default": 636
+    },
+    "base_dn": {
+      "title": "Base DN",
+      "description": "Base DN as the starting point for the search.",
+      "type": "string"
+    },
+    "attribute": {
+      "title": "Attribute",
+      "description": "Attribute to be used to search the user.",
+      "type": "string"
+    },
+    "cache_ttl": {
+      "title": "Cache TTL",
+      "description": "Cache expiry time",
+      "type": "number",
+      "default": 60
+    },
+    "timeout": {
+      "title": "Timeout",
+      "description": "An optional timeout in milliseconds when waiting for connection with LDAP server.",
+      "type": "number",
+      "default": 10000
+    },
+    "keepalive": {
+      "title": "Keep Alive",
+      "description": "An optional value in milliseconds that defines for how long an idle connection to LDAP server will live before being closed.",
+      "type": "number",
+      "default": 60000
+    },
+    "verify_ldap_host": {
+      "title": "Verify LDAP Host",
+      "description": "Set it to true to authenticate LDAP server.",
+      "type": "boolean",
+      "default": false
+    },
+    "start_tls": {
+      "title": "Start TLS",
+      "description": "Set it to true to issue StartTLS (Transport Layer Security) extended operation over ldap connection.",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "ldap_host",
+    "cache_ttl"
+    "ldap_port",
+    "base_dn"
+  ]
+}', 'JsonSchema', 'fa-database', 'LDAP Policy', NULL, TRUE, FALSE, FALSE);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('HAL', 'The HAL policy rewrites currie-values from hal/json bodies.', '{
+  "type": "object",
+  "title": "HAL",
+  "properties": {},
+  "required": []
+}', 'JsonSchema', 'fa-paw', 'HAL Policy', NULL ,TRUE ,FALSE ,FALSE );
+
+INSERT INTO config(config_path) VALUES ('/opt/wildfly/standalone/configuration/application.conf');
+
+ALTER TABLE public.organizations ADD COLUMN context VARCHAR(255);
+UPDATE public.organizations SET context = 'pub';
+ALTER TABLE public.organizations ALTER COLUMN context SET DEFAULT 'pub';
+ALTER TABLE public.organizations ALTER COLUMN context SET NOT NULL;

@@ -6,10 +6,10 @@ import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
-import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.JWTException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
@@ -18,6 +18,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongExtraInfo;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginACLRequest;
 import com.t1t.digipolis.kong.model.KongPluginACL;
@@ -25,7 +26,6 @@ import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongInfo;
 import com.t1t.digipolis.kong.model.KongConsumerList;
-import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
 import com.t1t.digipolis.kong.model.KongPluginAnalytics;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
@@ -356,7 +356,13 @@ public class GatewayClient {
 
     public void removeGatewayOAuthScopes(GatewayBean gtw, KongApi api){
         Gson gson = new Gson();
-        final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        KongPluginConfigList gtwPluginConfigList = null;
+        try {
+            gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
+        }
+        catch (RetrofitError ex) {
+            log.debug("Error retrieving oauth2 configs:{}", ex);
+        }
         if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
             KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
             KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString()
@@ -457,6 +463,8 @@ public class GatewayClient {
         boolean flagOauth2 = false;
         //flag for custom Analytics policy
         boolean customAnalytics = false;
+        //flag for JWT-Up - if applied, skip JWT
+        boolean flagJWT = false;
         //flag for custom ACL policy
         boolean customAclflag = false;
         //verify if api creation has been succesfull
@@ -477,16 +485,20 @@ public class GatewayClient {
                         case IPRESTRICTION: createServicePolicy(api, policy, Policies.IPRESTRICTION.getKongIdentifier(),Policies.IPRESTRICTION.getClazz());break;
                         case KEYAUTHENTICATION: createServicePolicy(api, policy, Policies.KEYAUTHENTICATION.getKongIdentifier(),Policies.KEYAUTHENTICATION.getClazz());customKeyAuth=true;break;
                         //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
-                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, GatewayValidation.validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
+                        case OAUTH2: KongPluginConfig config = createServicePolicy(api, validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
                             log.info("start post oauth2 actions");flagOauth2=true;postOAuth2Actions(service, policy, config, api);break;//upon transformation we use another enhanced object for json deserialization
                         case RATELIMITING: createServicePolicy(api, policy, Policies.RATELIMITING.getKongIdentifier(),Policies.RATELIMITING.getClazz());break;
-                        case JWT: createServicePolicy(api,policy,Policies.JWT.getKongIdentifier(),Policies.JWT.getClazz());break;
+                        case JWTUP: createServicePolicy(api,policy,Policies.JWTUP.getKongIdentifier(),Policies.JWTUP.getClazz());flagJWT=true;break;
+                        case JWT: if(!flagJWT){createServicePolicy(api,policy,Policies.JWT.getKongIdentifier(),Policies.JWT.getClazz());}break;//skip JWT if JWT-UP is applied
                         case REQUESTSIZELIMITING: createServicePolicy(api, policy, Policies.REQUESTSIZELIMITING.getKongIdentifier(),Policies.REQUESTSIZELIMITING.getClazz());break;
                         case REQUESTTRANSFORMER: createServicePolicy(api, policy, Policies.REQUESTTRANSFORMER.getKongIdentifier(),Policies.REQUESTTRANSFORMER.getClazz());break;
                         case RESPONSETRANSFORMER: createServicePolicy(api, policy, Policies.RESPONSETRANSFORMER.getKongIdentifier(),Policies.RESPONSETRANSFORMER.getClazz());break;
-                        case SSL: createServicePolicy(api, policy, Policies.CORS.getKongIdentifier(),Policies.SSL.getClazz());break;
+                        case SSL: createServicePolicy(api, policy, Policies.SSL.getKongIdentifier(),Policies.SSL.getClazz());break;
                         case ANALYTICS: createServicePolicy(api,policy,Policies.ANALYTICS.getKongIdentifier(),Policies.ANALYTICS.getClazz());customAnalytics=true;break;
                         case ACL: createServicePolicy(api, policy, Policies.ACL.getKongIdentifier(), Policies.ACL.getClazz()); customAclflag = true; break;
+                        case JSONTHREATPROTECTION: createServicePolicy(api, policy, Policies.JSONTHREATPROTECTION.getKongIdentifier(), Policies.JSONTHREATPROTECTION.getClazz());break;
+                        case LDAPAUTHENTICATION: createServicePolicy(api, policy, Policies.LDAPAUTHENTICATION.getKongIdentifier(), Policies.LDAPAUTHENTICATION.getClazz());break;
+                        case HAL: createServicePolicy(api, policy, Policies.HAL.getKongIdentifier(), Policies.HAL.getClazz()); break;
                         default:break;
                     }
                 }
@@ -510,7 +522,7 @@ public class GatewayClient {
         //additional oauth actions
         if(flagOauth2){
             if(appConfig.getOAuthEnableGatewayEnpoints()){
-                addGatewayOAuthScopes(gatewayBean, api);
+                //addGatewayOAuthScopes(gatewayBean, api);
             }
         }
     }
@@ -567,21 +579,22 @@ public class GatewayClient {
     }
 
     private void registerDefaultAnalyticsPolicy(KongApi api){
-        if(appConfig.getAnalyticsEnabled()){
             KongPluginAnalytics analyticsPolicy = new KongPluginAnalytics()
-                    .withBatchSize(appConfig.getAnalyticsBatchSize())
-                    .withDelay(appConfig.getAnalyticsDelay())
+                    .withConnectionTimeout(appConfig.getAnalyticsConnTimeout())
+                    .withServiceToken(appConfig.getAnalyticsServiceToken())
                     .withEnvironment(appConfig.getAnalyticsEnvironment())
+                    .withRetryCount(appConfig.getAnalyticsRetryCount())
+                    .withQueueSize(appConfig.getAnalyticsQueueSize())
+                    .withFlushTimeout(appConfig.getAnalyticsFlushTimeout())
+                    .withLogBodies(appConfig.getAnalyticsLogBodies())
                     .withHost(appConfig.getAnalyticsHost())
                     .withPort(appConfig.getAnalyticsPort())
-                    .withLogBody(appConfig.getAnalyticsLogBody())
-                    .withMaxSendingQueueSize(appConfig.getAnalyticsMaxSendingQueue())
-                    .withServiceToken(appConfig.getAnalyticsServiceToken());
+                    .withHttps(appConfig.getAnalyticsHttps())
+                    .withHttpsVerify(appConfig.getAnalyticsHttpsVerify());
             KongPluginConfig config = new KongPluginConfig()
                     .withName(Policies.ANALYTICS.getKongIdentifier())
                     .withConfig(analyticsPolicy);
             httpClient.createPluginConfig(api.getId(),config);
-        }
     }
 
     /**
@@ -714,12 +727,24 @@ public class GatewayClient {
         return httpClient.createConsumerKeyAuthCredentials(id, new KongPluginKeyAuthRequest().withKey(apiKey));
     }
 
-    public KongPluginJWTResponse createConsumerJWT(String id){
-        //default the JWT request supported should be a HS256
+    public KongPluginJWTResponse createConsumerJWT(String id,String encoding){
         KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest();
-        jwtRequest.setAlgorithm(JWTUtils.JWT_HS256);
-        //TODO support RS356
-        return httpClient.createConsumerJWTCredentials(id, new KongPluginJWTRequest());
+        jwtRequest.setAlgorithm(encoding);
+        switch (encoding){
+            case JWTUtils.JWT_HS256 : {
+                KongPluginJWTRequest request = new KongPluginJWTRequest();
+                request.setAlgorithm(JWTUtils.JWT_HS256);
+                request.setRsaPublicKey(gatewayBean.getJWTPubKey());
+                return httpClient.createConsumerJWTCredentials(id, request);
+            }
+            case JWTUtils.JWT_RS256 : {
+                KongPluginJWTRequest request = new KongPluginJWTRequest();
+                request.setAlgorithm(JWTUtils.JWT_RS256);
+                request.setRsaPublicKey(gatewayBean.getJWTPubKey());
+                return httpClient.createConsumerJWTCredentials(id, request);
+            }
+        }
+        throw new JWTException();
     }
 
     public KongPluginJWTResponseList getConsumerJWT(String id){
@@ -938,5 +963,61 @@ public class GatewayClient {
 
     public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer) {
         return httpClient.updateConsumer(kongConsumerId, updatedConsumer);
+    }
+
+    /**
+     * Validate OAuth plugin values and if necessary transform.
+     *
+     * @param policy    OAuth policy
+     * @return
+     */
+    public synchronized Policy validateExplicitOAuth(Policy policy) {
+        //we can be sure this is an OAuth Policy
+        Gson gson = new Gson();
+        KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        KongPluginOAuthEnhanced newOAuthValue = new KongPluginOAuthEnhanced();
+        newOAuthValue.setEnableImplicitGrant(oauthValue.getEnableImplicitGrant());
+        newOAuthValue.setEnableAuthorizationCode(oauthValue.getEnableAuthorizationCode());
+        newOAuthValue.setEnableClientCredentials(oauthValue.getEnableClientCredentials());
+        newOAuthValue.setEnablePasswordGrant(oauthValue.getEnablePasswordGrant());
+        newOAuthValue.setHideCredentials(oauthValue.getHideCredentials());
+        newOAuthValue.setMandatoryScope(oauthValue.getMandatoryScope());
+        newOAuthValue.setProvisionKey(oauthValue.getProvisionKey());
+        newOAuthValue.setTokenExpiration(oauthValue.getTokenExpiration());
+        List<KongPluginOAuthScope> scopeObjects = oauthValue.getScopes();
+        List<Object>scopes = new ArrayList<>();
+        for(KongPluginOAuthScope scope:scopeObjects){
+            scopes.add(scope.getScope());
+        }
+        newOAuthValue.setScopes(scopes);
+        //perform enhancements
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
+        return responsePolicy;
+    }
+
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId) {
+        return httpClient.getOAuthTokensByCredentialId(consumerOAuthCredentialId);
+    }
+
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId) {
+        return httpClient.getOAuthTokensByAuthenticatedUser(authenticatedUserId);
+    }
+
+    public void revokeOAuthToken(String tokenId) {
+        httpClient.revokeOAuthToken(tokenId);
+    }
+
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(String credentialId) {
+        return httpClient.getApplicationOAuthInformationByCredentialId(credentialId);
+    }
+
+    public KongOAuthTokenList getOAuthToken(String tokenId) {
+        return httpClient.getOAuthToken(tokenId);
+    }
+
+    public void deleteConsumerJwtCredential(String consumerId, String credentialId) {
+        httpClient.deleteConsumerJwtCredential(consumerId, credentialId);
     }
 }
