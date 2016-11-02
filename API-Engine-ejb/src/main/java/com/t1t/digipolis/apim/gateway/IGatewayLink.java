@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.gateway;
 
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.gateway.dto.*;
@@ -77,7 +78,7 @@ public interface IGatewayLink {
      * @throws PublishingException when unable to publish service
      * @throws GatewayAuthenticationException when unable to authenticate with gateway  
      */
-    public void publishService(Service service) throws PublishingException, GatewayAuthenticationException;
+    public Service publishService(Service service) throws PublishingException, GatewayAuthenticationException;
 
     /**
      * Published a centralized OAuth authorization and token endpoint for a gateway.
@@ -473,4 +474,46 @@ public interface IGatewayLink {
      * @param credentialId
      */
     public void deleteConsumerJwtCredential(String consumerId, String credentialId);
+
+    /**
+     * Return a service plugin
+     * @param pluginId
+     * @return
+     */
+    public KongPluginConfig getPlugin(String pluginId);
+
+    /**
+     * Creates a service policy/plugin on the gateway
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @param policy
+     * @return
+     */
+    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy);
+
+    /**
+     * Create a service branding api on the gateway
+     * @param service
+     */
+    public void createServiceBranding(Service service, ServiceBrandingBean branding);
+
+    /**
+     * Delete an API on the gateway
+     * @param apiName
+     */
+    public void deleteApi(String apiName);
+
+    /**
+     * Get the gateway OAuth token corresponding to an access token
+     * @param token
+     * @return
+     */
+    public KongOAuthToken getGatewayOAuthToken(String token);
+
+    /**
+     * Revoke an OAuth token on the gateway corresponding to the access token
+     * @param accessToken
+     */
+    public void revokeGatewayOAuthToken(String accessToken);
 }

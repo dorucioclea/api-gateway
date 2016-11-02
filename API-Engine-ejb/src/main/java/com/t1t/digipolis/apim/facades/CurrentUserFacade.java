@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
@@ -31,14 +32,14 @@ import javax.persistence.PersistenceContext;
 import java.util.*;
 
 /**
- * Created by michallispashidis on 17/08/15.
+ *
+ * @author  michallispashidis
+ * @since 2015
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class CurrentUserFacade {
-    private static Logger log = LoggerFactory.getLogger(CurrentUserFacade.class.getName());
-    @PersistenceContext
-    private EntityManager em;
+    private static final Logger log = LoggerFactory.getLogger(CurrentUserFacade.class.getName());
     @Inject private ISecurityContext securityContext;
     @Inject private IStorageQuery query;
     @Inject private IIdmStorage idmStorage;
@@ -113,99 +114,40 @@ public class CurrentUserFacade {
     }
 
     public List<OrganizationSummaryBean> getAppOrganizations(){
-        log.debug("Getting organizations");
-        String currentUser = securityContext.getCurrentUser();
-        Set<String> permittedOrganizations = new TreeSet<>();
         try {
-            log.debug("currentuser:{}",currentUser);
-            log.debug("isadmin:{}",idmStorage.getUser(currentUser).getAdmin());
-            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
-                permittedOrganizations = storage.getAllOrganizations();
-            }else{
-                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appView);
-            }
-        } catch (StorageException e) {
-            throw ExceptionFactory.userNotFoundException(currentUser);
-        }
-        try {
-            log.debug("Permitted organizations:"+permittedOrganizations);
-            return enrichOrgCounters(query.getOrgs(permittedOrganizations));
+            return enrichOrgCounters(query.getOrgs(getPermittedOrganizations(PermissionType.appView)));
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
     }
 
     public List<OrganizationSummaryBean> getPlanOrganizations(){
-        String currentUser = securityContext.getCurrentUser();
-        Set<String> permittedOrganizations = new TreeSet<>();
         try {
-            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
-                permittedOrganizations = storage.getAllOrganizations();
-            }else{
-                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.planView);
-            }
-        } catch (StorageException e) {
-            throw ExceptionFactory.userNotFoundException(currentUser);
-        }
-        try {
-            return query.getOrgs(permittedOrganizations);
+            return query.getOrgs(getPermittedOrganizations(PermissionType.planView));
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
     }
 
     public List<OrganizationSummaryBean> getServiceOrganizations(){
-        String currentUser = securityContext.getCurrentUser();
-        Set<String> permittedOrganizations = new TreeSet<>();
         try {
-            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
-                permittedOrganizations = storage.getAllOrganizations();
-            }else{
-                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcView);
-            }
-        } catch (StorageException e) {
-            throw ExceptionFactory.userNotFoundException(currentUser);
-        }
-        try {
-            return enrichOrgCounters(query.getOrgs(permittedOrganizations));
+            return enrichOrgCounters(query.getOrgs(getPermittedOrganizations(PermissionType.svcView)));
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
     }
 
     public List<ApplicationSummaryBean> getApplications(){
-        String currentUser = securityContext.getCurrentUser();
-        Set<String> permittedOrganizations = new TreeSet<>();
         try {
-            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
-                permittedOrganizations = storage.getAllOrganizations();
-            }else{
-                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.appView);
-            }
-        } catch (StorageException e) {
-            throw ExceptionFactory.userNotFoundException(currentUser);
-        }
-        try {
-            return query.getApplicationsInOrgs(permittedOrganizations);
+            return query.getApplicationsInOrgs(getPermittedOrganizations(PermissionType.appView));
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
     }
 
     public List<ServiceSummaryBean> getServices(){
-        String currentUser = securityContext.getCurrentUser();
-        Set<String> permittedOrganizations = new TreeSet<>();
         try {
-            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
-                permittedOrganizations = storage.getAllOrganizations();
-            }else{
-                permittedOrganizations = securityContext.getPermittedOrganizations(PermissionType.svcView);
-            }
-        } catch (StorageException e) {
-            throw ExceptionFactory.userNotFoundException(currentUser);
-        }
-        try {
-            return query.getServicesInOrgs(permittedOrganizations);
+            return query.getServicesInOrgs(getPermittedOrganizations(PermissionType.svcView));
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
@@ -272,7 +214,7 @@ public class CurrentUserFacade {
         return rval;
     }
 
-    public void revokeCurrentUserOAuth2Token(OAuth2TokenBean token) {
+    public void revokeCurrentUserOAuth2Token(OAuth2TokenRevokeBean token) {
         IGatewayLink gateway = gatewayFacade.createGatewayLink(token.getGatewayId());
         KongOAuthTokenList gwTokenList = gateway.getOAuthToken(token.getId());
         for (KongOAuthToken gwToken : gwTokenList.getData()) {
@@ -281,5 +223,20 @@ public class CurrentUserFacade {
             }
             else throw ExceptionFactory.notAuthorizedException();
         }
+    }
+
+    private Set<String> getPermittedOrganizations(PermissionType type) {
+        String currentUser = securityContext.getCurrentUser();
+        Set<String> rval;
+        try {
+            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
+                rval = storage.getAllOrganizations();
+            }else{
+                rval = securityContext.getPermittedOrganizations(type);
+            }
+        } catch (StorageException e) {
+            throw ExceptionFactory.userNotFoundException(currentUser);
+        }
+        return rval == null ? new TreeSet<>() : rval;
     }
 }

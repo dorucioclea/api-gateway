@@ -1,13 +1,13 @@
 package com.t1t.digipolis.apim.beans.categories;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.util.List;
 
 /**
  * Created by michallispashidis on 21/08/15.
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CategorySearchBean {
     public CategorySearchBean() {
     }

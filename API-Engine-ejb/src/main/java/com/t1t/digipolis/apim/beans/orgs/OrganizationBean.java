@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.beans.orgs;
 
-import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,7 +16,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "organizations")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrganizationBean implements Serializable {
 
     private static final long serialVersionUID = -506427154633682906L;

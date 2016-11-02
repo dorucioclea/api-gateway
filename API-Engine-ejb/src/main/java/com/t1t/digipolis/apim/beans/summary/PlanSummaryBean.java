@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.beans.summary;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
 
@@ -9,7 +9,7 @@ import java.io.Serializable;
  * plans in an org.
  *
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PlanSummaryBean implements Serializable {
 
     private static final long serialVersionUID = -8380665445108131206L;

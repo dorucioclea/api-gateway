@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
 import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -146,18 +147,19 @@ public class SecurityResource implements ISecurityResource {
     @Produces(MediaType.APPLICATION_JSON)
     public SystemStatusBean getAdminStatus() throws GatewayAuthenticationException, StorageException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        SystemStatusBean rval = systemFacade.getAdminStatus();
-        return rval;
+        return systemFacade.getAdminStatus();
     }
 
-    @ApiOperation("Revoke Application Version Oauth2 Token")
+    @Override
+    @ApiOperation(value = "Revoke Application Version Oauth2 Token",
+                  notes = "Deprecated, please use the DELETE method")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Succesful, no content")
     })
     @POST
     @Path("/oauth2/tokens/revoke")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void revokeApplicationVersionOAuthToken(OAuth2TokenBean token) throws NotAuthorizedException {
+    public void revokeApplicationVersionOAuthToken(OAuth2TokenRevokeBean token) throws NotAuthorizedException {
         Preconditions.checkNotNull(token);
         Preconditions.checkArgument(StringUtils.isNotEmpty(token.getOrganizationId()) && StringUtils.isNotEmpty(token.getApplicationId()) && StringUtils.isNotEmpty(token.getVersion()));
         Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()));
@@ -165,5 +167,17 @@ public class SecurityResource implements ISecurityResource {
             throw ExceptionFactory.notAuthorizedException();
         }
         orgFacade.revokeApplicationVersionOAuthToken(token);
+    }
+
+    @Override
+    @ApiOperation(value = "Revoke Oauth2 Token")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @DELETE
+    @Path("/oauth2/tokens/revoke")
+    public void revokeOAuthToken(@QueryParam("token") String token) {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(token));
+        securityFacade.revokeOAuthToken(token);
     }
 }

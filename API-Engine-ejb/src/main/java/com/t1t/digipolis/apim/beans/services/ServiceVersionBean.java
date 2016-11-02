@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.beans.services;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -23,7 +23,7 @@ import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
  */
 @Entity
 @Table(name = "service_versions", uniqueConstraints = { @UniqueConstraint(columnNames = { "service_id", "service_org_id", "version" }) })
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceVersionBean implements Serializable {
 
     private static final long serialVersionUID = -2218697175049442690L;

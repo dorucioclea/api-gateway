@@ -12,10 +12,7 @@ import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
-import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
-import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
+import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
@@ -105,7 +102,7 @@ public class AuthorizationFacade {
         Set<Contract> contracts = new HashSet<>();
         for (ContractSummaryBean contractBean : appContracts) {
             Contract contract = new Contract();
-            contract.setApiKey(contractBean.getApikey());
+            //contract.setApiKey(contractBean.getApikey());
             contract.setPlan(contractBean.getPlanId());
             contract.setServiceId(contractBean.getServiceId());
             contract.setServiceOrgId(contractBean.getServiceOrganizationId());
@@ -188,7 +185,7 @@ public class AuthorizationFacade {
         Set<Contract> contracts = new HashSet<>();
         for (ContractSummaryBean contractBean : appContracts) {
             Contract contract = new Contract();
-            contract.setApiKey(contractBean.getApikey());
+            //contract.setApiKey(contractBean.getApikey());
             contract.setPlan(contractBean.getPlanId());
             contract.setServiceId(contractBean.getServiceId());
             contract.setServiceOrgId(contractBean.getServiceOrganizationId());
@@ -319,18 +316,17 @@ public class AuthorizationFacade {
             }
             return policies;
         } catch (StorageException e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getApikey()), e); //$NON-NLS-1$
+            throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getPlanId()), e); //$NON-NLS-1$
         }
     }
 
     private boolean isApiKeyValid(List<ContractSummaryBean> contracts, String apiKey) {
-        boolean apiValid = false;
-        ContractBean selectedContract = null;
-        for (ContractSummaryBean contract : contracts) {
-            if (contract.getApikey().equals(apiKey)) {
-                apiValid = true;
-            }
+        try {
+            return contracts.size() > 0 && storage.getApplicationVersion(contracts.get(0).getAppOrganizationId(), contracts.get(0).getAppId(), contracts.get(0).getAppVersion())
+                    .getApikey().equals(apiKey);
         }
-        return apiValid;
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 }

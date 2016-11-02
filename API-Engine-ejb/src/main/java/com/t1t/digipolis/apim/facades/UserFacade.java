@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
+import com.t1t.digipolis.apim.beans.events.EventType;
+import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
@@ -80,6 +82,7 @@ import org.xml.sax.SAXException;
 
 import javax.crypto.SecretKey;
 import javax.ejb.*;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -128,7 +131,7 @@ public class UserFacade implements Serializable {
     @Inject
     private AppConfig config;
     @Inject
-    private MailService mailService;
+    private Event<NewEventBean> event;
 
     public UserBean get(String userId) {
         try {
@@ -213,18 +216,7 @@ public class UserFacade implements Serializable {
         if(user==null)throw new UserNotFoundException("User unknow in the application: " + userId);
         user.setAdmin(false);
         idmStorage.updateUser(user);
-        //send email
-        try{
-            final UserBean userBean = get(userId);
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
-                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
-                updateAdminMailBean.setTo(userBean.getEmail());
-                updateAdminMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
-                mailService.sendUpdateAdmin(updateAdminMailBean);
-            }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
-        }
+        fireEvent(securityContext.getCurrentUser(), userId, EventType.ADMIN_REVOKED, null);
     }
 
     public void addAdminPriviledges(String userId)throws StorageException{
@@ -246,18 +238,7 @@ public class UserFacade implements Serializable {
             user.setAdmin(true);
             idmStorage.updateUser(user);
         }
-        //send email
-        try{
-            final UserBean userBean = get(userId);
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
-                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
-                updateAdminMailBean.setTo(userBean.getEmail());
-                updateAdminMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
-                mailService.sendUpdateAdmin(updateAdminMailBean);
-            }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
-        }
+        fireEvent(securityContext.getCurrentUser(), userId, EventType.ADMIN_GRANTED, null);
     }
 
     public List<OrganizationSummaryBean> getOrganizations(String userId) {
@@ -501,6 +482,9 @@ public class UserFacade implements Serializable {
             sIndex = cacheUtil.getSessionIndex(userId);
             sessionIndex.setSessionIndex(sIndex.getSessionIndex());
         }
+        else {
+            throw ExceptionFactory.cachingException("User session Cache with id " + userId + " does not exist!");
+        }
         NameID nameId = (new NameIDBuilder()).buildObject();
         nameId.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
         nameId.setValue(sIndex.getSubjectId());
@@ -561,6 +545,9 @@ public class UserFacade implements Serializable {
         utilPrintCache();
         String urlEncodedRelaystate = URLEncoder.encode(relayState, "UTF-8");
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(urlEncodedRelaystate.trim());
+        if (webClientCacheBean == null) {
+            throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
+        }
         try {
             assertion = processSSOResponse(samlResponse);
             //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
@@ -937,26 +924,23 @@ public class UserFacade implements Serializable {
      * @return
      */
     private String getSecretFromTokenCache(String key, String userName) {
-        String secret;
-        try {
-            secret = cacheUtil.getToken(key);
-        }
-        catch (Exception e) {
+        String secret = cacheUtil.getToken(key);
+        if (secret == null) {
             //retrieve from Kong
             String gatewayId = null;
             try {
                 gatewayId = gatewayFacade.getDefaultGateway().getId();
                 IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-                List<KongPluginJWTResponse> data = gatewayLink.getConsumerJWT(userName).getData();
+                List<KongPluginJWTResponse> data = gatewayLink.getConsumerJWT(get(userName).getKongUsername()).getData();
                 if (data != null && data.size() > 0) {
                     secret = data.get(0).getSecret();
                 } else throw new StorageException("Refresh JWT - somehow the user is not known");
-            } catch (StorageException ex) {
+            } catch (Exception ex) {
                 throw new GatewayException("Error connection to gateway:{}" + ex.getMessage());
             }
             //We've done all we could to retrieve the secret
             if (secret == null) {
-                throw ExceptionFactory.cachingException(e.getMessage());
+                throw ExceptionFactory.cachingException("Token Cache with id " + key + " does not exist!");
             }
         }
         return secret;
@@ -1068,4 +1052,19 @@ public class UserFacade implements Serializable {
         return identityAttributes;
     }
 
+    /**
+     * Fires a new event with the following parameters
+     * @param origin
+     * @param destination
+     * @param type
+     * @param body
+     */
+    private void fireEvent(String origin, String destination, EventType type, String body) {
+        NewEventBean neb = new NewEventBean()
+                .withOriginId(origin)
+                .withDestinationId(destination)
+                .withType(type)
+                .withBody(body);
+        event.fire(neb);
+    }
 }

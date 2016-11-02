@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.beans.policies;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.List;
  * via a particular plan.
  *
  */
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PolicyChainBean implements Serializable {
 
     private static final long serialVersionUID = -497197512733345793L;

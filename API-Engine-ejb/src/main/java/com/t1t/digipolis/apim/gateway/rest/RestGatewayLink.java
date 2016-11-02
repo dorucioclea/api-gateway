@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
@@ -42,6 +43,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -265,11 +267,11 @@ public class RestGatewayLink implements IGatewayLink {
      * @see IGatewayLink#publishService(Service)
      */
     @Override
-    public void publishService(Service service) throws PublishingException, GatewayAuthenticationException {
+    public Service publishService(Service service) throws PublishingException, GatewayAuthenticationException {
         if (!isGatewayUp()) {
             throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
         }
-        getClient().publish(service);
+        return getClient().publish(service);
     }
 
     @Override
@@ -300,7 +302,7 @@ public class RestGatewayLink implements IGatewayLink {
         if (!isGatewayUp()) {
             throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
         }
-        getClient().retire(service.getOrganizationId(), service.getServiceId(), service.getVersion());
+        getClient().retire(service);
     }
 
     /**
@@ -438,5 +440,35 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void deleteConsumerJwtCredential(String consumerId, String credentialId) {
         getClient().deleteConsumerJwtCredential(consumerId, credentialId);
+    }
+
+    @Override
+    public KongPluginConfig getPlugin(String pluginId) {
+        return getClient().getPlugin(pluginId);
+    }
+
+    @Override
+    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy) {
+        return getClient().createServicePolicy(organizationId, serviceId, version, policy);
+    }
+
+    @Override
+    public void createServiceBranding(Service service, ServiceBrandingBean branding) {
+        getClient().publishServiceBranding(service, branding.getId());
+    }
+
+    @Override
+    public void deleteApi(String apiName) {
+        getClient().deleteAPI(apiName);
+    }
+
+    @Override
+    public KongOAuthToken getGatewayOAuthToken(String token) {
+        return getClient().getGatewayOauthToken(token);
+    }
+
+    @Override
+    public void revokeGatewayOAuthToken(String accessToken) {
+        getClient().revokeOAuthTokenByAccessToken(accessToken);
     }
 }

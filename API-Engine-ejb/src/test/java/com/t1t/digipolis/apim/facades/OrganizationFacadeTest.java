@@ -306,7 +306,7 @@ public class OrganizationFacadeTest {
         when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(avb);
         when(storage.getPolicyDefinition(anyString())).thenReturn(pdb);
         when(securityContext.getCurrentUser()).thenReturn("admin");
-        when(gatewayValidation.validate(anyObject())).thenReturn(new Policy("somepolicy","{}"));
+        when(gatewayValidation.validate(anyObject(),PolicyType.Application)).thenReturn(new Policy("somepolicy","{}", "someorg.someapp.someversion"));
         orgFacade.createAppPolicy("someorg", "someapp", "someversion", npb);
         verify(storage).createPolicy(anyObject());
         verify(storage).createAuditEntry(anyObject());
@@ -382,7 +382,6 @@ public class OrganizationFacadeTest {
         when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(avb);
         List<ContractSummaryBean> contractSummaryBeanList = new ArrayList<>();
         ContractSummaryBean csb = new ContractSummaryBean();
-        csb.setApikey("1111");
         contractSummaryBeanList.add(csb);
         when(query.getApplicationContracts(anyString(), anyString(), anyString())).thenReturn(contractSummaryBeanList);
         orgFacade.getApplicationVersionContracts("someorg", "someapp", "someversion");
@@ -399,12 +398,11 @@ public class OrganizationFacadeTest {
         when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(avb);
         List<ContractSummaryBean> contractSummaryBeanList = new ArrayList<>();
         ContractSummaryBean csb = new ContractSummaryBean();
-        csb.setApikey("1111");
         contractSummaryBeanList.add(csb);
         when(query.getApplicationContracts(anyString(), anyString(), anyString())).thenReturn(contractSummaryBeanList);
         orgFacade.getApplicationVersionContracts("someorg", "someapp", "someversion");
         verify(query).getApplicationContracts("someorg", "someapp", "someversion");
-        assertEquals(contractSummaryBeanList.get(0).getApikey(), null);
+        assertEquals(avb.getApikey(), null);
     }
 
     @Test
@@ -530,8 +528,8 @@ public class OrganizationFacadeTest {
         planVersionBean.setStatus(PlanStatus.Created);
         when(Policies.valueOf(anyString())).thenReturn(Policies.BASICAUTHENTICATION);
         when(gValidation.validateBasicAuth(anyObject())).thenReturn(new Policy());
-        when(gValidation.validate(anyObject())).thenReturn(new Policy());
-        when(gValidation.validate(anyObject())).thenReturn(new Policy());
+        when(gValidation.validate(anyObject(), PolicyType.Plan)).thenReturn(new Policy());
+        when(gValidation.validate(anyObject(),PolicyType.Plan)).thenReturn(new Policy());
         when(query.getMaxPolicyOrderIndex(anyString(), anyString(), anyString(), anyObject())).thenReturn(0);
         when(storage.getPlanVersion(anyString(), anyString(), anyString())).thenReturn(new PlanVersionBean());
         when(storage.getPolicyDefinition(anyString())).thenReturn(new PolicyDefinitionBean());

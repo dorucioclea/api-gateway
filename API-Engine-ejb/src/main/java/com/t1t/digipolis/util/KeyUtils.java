@@ -35,25 +35,6 @@ public class KeyUtils {
     }
 
     /**
-     * Method to validate if all contractbeans have the same apikey. This method can be
-     * executed before application registraiton in order to be sure the apikey convention
-     * has been maintained. When that's not the case, a sync of apikeys can be performed
-     * from the API Manager db towards all targeted gateways.
-     *
-     * @param contractBeans
-     * @return
-     */
-    public static boolean validateKeySet(List<ContractSummaryBean> contractBeans){
-        if(contractBeans.size()>0){
-            String refApiKey = contractBeans.get(0).getApikey().toString();
-            for(ContractSummaryBean bean:contractBeans){
-                if(!refApiKey.equalsIgnoreCase(bean.getApikey().toString()))return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Get private key from DER file.
      *
      * @param file

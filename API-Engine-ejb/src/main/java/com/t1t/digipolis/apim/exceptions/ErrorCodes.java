@@ -19,6 +19,8 @@ public final class ErrorCodes {
     public static final int HTTP_STATUS_CODE_SYSTEM_ERROR   = 500;
     public static final int HTTP_STATUS_CODE_UNAVAILABLE    = 503;
 
+    public static final String HTTP_STATUS_CODE_INVALID_INPUT_INFO = null;
+
 
     //
     // User API related
@@ -229,4 +231,17 @@ public final class ErrorCodes {
     //
     public static final int JWT_PUB_KEY_ERROR               = 18001;
     public static final String JWT_PUB_KEY_INFO             = null;
+
+    //
+    // Branding related
+    //
+
+    public static final int SERVICE_BRANDING_NOT_FOUND          = 19001;
+    public static final int SERVICE_BRANDING_ALREADY_EXISTS     = 19002;
+    public static final int SERVICE_BRANDING_CANNOT_BE_DELETED  = 19003;
+
+
+    public static final String SERVICE_BRANDING_NOT_FOUND_INFO  = null;
+    public static final String SERVICE_BRANDING_ALREADY_EXISTS_INFO  = null;
+    public static final String SERVICE_BRANDING_CANNOT_BE_DELETED_INFO  = null;
 }

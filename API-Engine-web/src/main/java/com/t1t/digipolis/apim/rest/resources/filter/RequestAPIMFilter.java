@@ -36,8 +36,8 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
      * Logger: is not possible to inject logger in filters
      */
     private static final Logger LOG = LoggerFactory.getLogger(RequestAPIMFilter.class.getName());
-    private static final String HEADER_CONSUMER_USERNAME = "x-consumer-username";//considerred to be an application consumer - we use this to setup an application context
-    private static final String HEADER_CONSUMER_ID = "x-consumer-id";
+    //private static final String HEADER_CONSUMER_USERNAME = "x-consumer-username";//considerred to be an application consumer - we use this to setup an application context
+    //private static final String HEADER_CONSUMER_ID = "x-consumer-id";
     private static final String HEADER_USER_AUTHORIZATION = "Authorization"; // will contain the JWT user token
     private static final String HEADER_CREDENTIAL_USERNAME = "X-Credential-Username";
     private static final String HEADER_API_KEY = "apikey";
@@ -77,14 +77,13 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             ;//allow from idp
         } else {
             //Get apikey - app context - SHOULD BE ALWAYS PROVIDED
-            String appId = containerRequestContext.getHeaderString(HEADER_CONSUMER_USERNAME);
             try {
-                if (appId == null) {
-                    String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
-                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
-                    appId = mab == null ? "" : ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
-                }
-                securityAppContext.setCurrentApplication(appId);
+                //We shouldn't resolve the application context based on the X-Consumer-id header
+                //We do require the apikey in order to resolve which managed application is linked to the 
+                String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
+                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
+                String managedAppId = mab == null ? "" : ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
+                securityAppContext.setCurrentApplication(managedAppId);
             } catch (StorageException e) {
                 throw new IOException(e);
             }

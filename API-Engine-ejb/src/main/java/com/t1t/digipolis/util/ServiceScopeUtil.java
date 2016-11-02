@@ -23,10 +23,8 @@ public class ServiceScopeUtil {
         List<ServiceVersionBean> allServicesByStatusFiltered = new ArrayList<>();
         if(!StringUtils.isEmpty(consumerType)){
             for(ServiceVersionBean svb:svbList){
-                if((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(consumerType) && (admin || svbVis.getShow()))).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
+                if((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(consumerType) && (svbVis.getShow() || (!svbVis.getShow() && admin)))).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
             }
-        }else{
-            allServicesByStatusFiltered = svbList;
         }
         return allServicesByStatusFiltered;
     }
