@@ -13,8 +13,6 @@ import com.t1t.digipolis.apim.beans.idp.KeyMappingTypes;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
-import com.t1t.digipolis.apim.beans.mail.MembershipAction;
-import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -34,7 +32,6 @@ import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.saml2.ISAML2;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -806,11 +803,17 @@ public class UserFacade implements Serializable {
             if (!StringUtils.isEmpty(user.getKongUsername()))
                 consumer = gatewayLink.getConsumer(user.getKongUsername());
             if (consumer == null) {
-                //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
-                consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
-                //update kong username in local userbean
-                user.setKongUsername(consumer.getId());
-                idmStorage.updateUser(user);
+                if (StringUtils.isNotEmpty(user.getKongUsername())) {
+                    //The user already had a kong username, and same kong username will be used
+                    consumer = gatewayLink.createConsumerWithKongId(user.getKongUsername(), ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+                }
+                else {
+                    //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
+                    consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+                    //update kong username in local userbean
+                    user.setKongUsername(consumer.getId());
+                    idmStorage.updateUser(user);
+                }
                 KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
                 jwtKey = jwtResponse.getKey();//JWT "iss"
                 jwtSecret = jwtResponse.getSecret();
