@@ -42,6 +42,7 @@ UPDATE service_versions SET status = 'Created' WHERE terms_agreement_required = 
 ALTER TABLE contracts ADD COLUMN terms_agreed BOOL DEFAULT FALSE;
 CREATE TABLE defaults (id VARCHAR(255) NOT NULL, service_terms TEXT NULL);
 ALTER TABLE defaults ADD PRIMARY KEY (id);
+INSERT INTO defaults (id, service_terms) VALUES ('ACC', 'This is a placeholder for the default terms & conditions\n========================================================\n');
 
 -- add config in db
 CREATE TABLE config(id BIGINT NOT NULL, config_path VARCHAR(255) NOT NULL);
@@ -400,6 +401,7 @@ DELETE FROM svc_gateways WHERE service_version_id = 9662;
 DELETE FROM svc_plans WHERE service_version_id = 9662;
 DELETE FROM svc_visibility WHERE service_version_id = 9662;
 DELETE FROM contracts WHERE svcv_id = 9662;
+DELETE FROM service_defs WHERE service_version_id = 9662;
 DELETE FROM service_versions WHERE service_id = 'test_service_name';
 DELETE FROM services WHERE id = 'test_service_name';
 

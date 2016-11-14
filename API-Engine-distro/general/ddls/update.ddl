@@ -423,7 +423,6 @@ INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_c
 
 ALTER TABLE services ADD COLUMN admin BOOL DEFAULT FALSE;
 CREATE TABLE managed_application_keys AS SELECT managed_applications.id, managed_applications.api_key FROM managed_applications;
-ALTER TABLE managed_applications DROP COLUMN api_key;
 ALTER TABLE managed_application_keys ADD CONSTRAINT UK_managed_app_keys_1 UNIQUE (id, api_key);
 ALTER TABLE managed_application_keys RENAME COLUMN id TO managed_app_id;
 ALTER TABLE managed_application_keys ADD CONSTRAINT FK_managed_app_keys_1 FOREIGN KEY (managed_app_id) REFERENCES managed_applications(id);
@@ -662,8 +661,6 @@ SET apikey = contracts.apikey
 FROM contracts
 WHERE contracts.appv_id = application_versions.id;
 
-ALTER TABLE contracts DROP COLUMN apikey;
-
 -- Branding gateway URL's feature
 
 CREATE TABLE brandings (id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NUll);
@@ -677,3 +674,8 @@ ALTER TABLE service_brandings ADD CONSTRAINT FK_service_brandings_2 FOREIGN KEY 
 ALTER TABLE service_brandings ADD CONSTRAINT UK_service_brandings_1 UNIQUE (service_id, branding_id);
 CREATE INDEX IDX_service_brandings_1 ON service_brandings(organization_id, service_id);
 CREATE INDEX IDX_service_brandings_2 ON service_brandings(branding_id);
+
+-- UPDATE FROM 0.8.2 -> 0.9.3 --
+
+ALTER TABLE managed_applications DROP COLUMN api_key;
+ALTER TABLE contracts DROP COLUMN apikey;
