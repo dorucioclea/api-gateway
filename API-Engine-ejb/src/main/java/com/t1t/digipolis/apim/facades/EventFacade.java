@@ -888,15 +888,15 @@ public class EventFacade {
                 case MEMBERSHIP_REVOKED_ROLE:
                 case MEMBERSHIP_UPDATED:
                 case MEMBERSHIP_TRANSFER:
-                    String roleName = null;
+                    /*String roleName = null;
                     if (!StringUtils.isEmpty(event.getBody())) {
                         roleName = roleFacade.get(event.getBody()).getName();
-                    }
+                    }*/
                     UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
                     updateMemberMailBean.setTo(user.getEmail());
                     updateMemberMailBean.setOrgName(org.getName());
                     updateMemberMailBean.setOrgFriendlyName(org.getFriendlyName());
-                    updateMemberMailBean.setRole(roleName);
+                    updateMemberMailBean.setRole(Role.OWNER.toString().toLowerCase());
                     switch (event.getType()) {
                         case MEMBERSHIP_REVOKED_ROLE:
                         case MEMBERSHIP_REVOKED:
