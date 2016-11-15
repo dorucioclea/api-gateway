@@ -2493,7 +2493,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             page = 1;
         }
         if (pageSize == 0) {
-            pageSize = 20;
+            pageSize = 200;
         }
         // Try to get the service first - will throw an exception if not found.
         getServiceVersionInternal(organizationId, serviceId, version);
