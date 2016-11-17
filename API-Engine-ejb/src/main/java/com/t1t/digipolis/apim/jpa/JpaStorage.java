@@ -68,6 +68,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
 import static org.bouncycastle.asn1.x500.style.RFC4519Style.l;
 
 /**
@@ -1589,6 +1590,23 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         }
     }
 
+    @Override
+    public ApplicationVersionBean getApplicationForOAuth(String clientId) throws StorageException {
+        try {
+            EntityManager entityManager = getActiveEntityManager();
+            String jpql = "SELECT v from ApplicationVersionBean v WHERE v.oAuthClientId = :clientId";
+            Query query = entityManager.createQuery(jpql);
+            query.setParameter("clientId", clientId); //$NON-NLS-1$
+
+            return (ApplicationVersionBean) query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        } catch (Throwable t) {
+            logger.error(t.getMessage(), t);
+            throw new StorageException(t);
+        }
+    }
+
     /**
      * @see IStorageQuery#getApiRegistry(String, String, String)
      */
@@ -2729,5 +2747,30 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("svc", service)
                 .setParameter("stat", status)
                 .getResultList();
+    }
+
+    @Override
+    public ContractBean getContractByServiceVersionAndOAuthClientId(String orgId, String serviceId, String version, String clientId) throws StorageException {
+        String jpql = "SELECT c FROM ContractBean c " +
+                "JOIN c.service sv " +
+                "JOIN sv.service s " +
+                "JOIN s.organization o " +
+                "JOIN c.application av " +
+                "WHERE o.id = :orgId " +
+                "AND s.id = :svcId " +
+                "AND sv.version = :version  " +
+                "AND av.oAuthClientId = :clientId";
+        try {
+            return (ContractBean) getActiveEntityManager()
+                    .createQuery(jpql)
+                    .setParameter("orgId", orgId)
+                    .setParameter("svcId", serviceId)
+                    .setParameter("version", version)
+                    .setParameter("clientId", clientId)
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
     }
 }

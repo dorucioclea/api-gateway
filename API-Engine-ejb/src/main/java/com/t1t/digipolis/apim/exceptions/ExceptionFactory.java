@@ -606,4 +606,14 @@ public final class ExceptionFactory {
     public static final InvalidArgumentException invalidArgumentException(String message, String... args) {
         return new InvalidArgumentException(Messages.i18n.format(message, (Object[]) args));
     }
+
+    /**
+     * Creates an exception
+     * @param clientId
+     * @param serviceId
+     * @return
+     */
+    public static final ApplicationOAuthInformationNotFoundException applicationOAuthInformationNotFoundException(String clientId, String serviceId) {
+        return new ApplicationOAuthInformationNotFoundException(Messages.i18n.format("AppOAuthInfoNotFound", clientId, serviceId));
+    }
 }

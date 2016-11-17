@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.*;
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
@@ -104,6 +105,10 @@ public class OAuthFacade {
         OAuthApplicationResponse response = new OAuthApplicationResponse();
         try {
             //there must be a gateway
+            ContractBean contract = query.getContractByServiceVersionAndOAuthClientId(orgId, serviceId, version, clientId);
+            if (contract == null) {
+                throw ExceptionFactory.applicationOAuthInformationNotFoundException(clientId, serviceId + " " + version);
+            }
             Preconditions.checkNotNull(query.listGateways().size() > 0);
             String defaultGateway = query.listGateways().get(0).getId();
             response.setAuthorizationUrl(getOAuth2AuthorizeEndpoint(orgId, serviceId, version));
@@ -136,7 +141,7 @@ public class OAuthFacade {
                 //add scope information to the response
                 if (response.getConsumer() != null && response.getConsumerResponse() != null) {
                     //retrieve scopes for targeted service
-                    ServiceVersionBean serviceVersion = storage.getServiceVersion(orgId, serviceId, version);
+                    ServiceVersionBean serviceVersion = contract.getService();
                     //verify if it's an OAuth enabled service
                     response.setScopes(serviceVersion.getOauthScopes());
                     response.setServiceProvisionKey(serviceVersion.getProvisionKey());
