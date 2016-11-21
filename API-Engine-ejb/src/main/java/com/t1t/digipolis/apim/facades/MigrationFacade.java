@@ -49,6 +49,7 @@ import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.ejb3.annotation.TransactionTimeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
@@ -56,6 +57,7 @@ import retrofit.RetrofitError;
 import javax.ejb.*;
 import javax.inject.Inject;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.t1t.digipolis.apim.beans.user.ClientTokeType.jwt;
@@ -277,6 +279,7 @@ public class MigrationFacade {
     //initialize unregistered consumer
     //register consumers
     //TODO: impact service request events?
+    @TransactionTimeout(value = 15, unit = TimeUnit.MINUTES)
     public void rebuildGtw() {
         log.info("====MIGRATION-START====");
         removeACLsFromDB();

@@ -3,8 +3,6 @@ package com.t1t.digipolis.apim.rest.resources;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
-import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
-import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
@@ -20,6 +18,8 @@ import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
+import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
+import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.plans.*;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
@@ -35,10 +35,8 @@ import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
 
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The Organization API.
@@ -1597,7 +1595,7 @@ public interface IOrganizationResource {
      * @return
      * @throws NotAuthorizedException
      */
-    public Set<OAuth2TokenBean> getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version) throws NotAuthorizedException;
+    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, String offset) throws NotAuthorizedException;
 
     /**
      * Add a branding to a service

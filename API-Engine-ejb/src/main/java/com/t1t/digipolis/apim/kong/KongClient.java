@@ -108,8 +108,11 @@ public interface KongClient {
     @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(@Query("client_id")String clientId);
     @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(@Query("id") String credentialId);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens();
+    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens(@Query("offset") String offset);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokensByCredentialId(@Query("credential_id")String credentialId);
+    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokensByCredentialId(@Query("credential_id")String credentialId, @Query("offset") String offset);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokensByAuthenticatedUser(@Query("authenticated_userid") String authenticatedUserId);
+    @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokensByAuthenticatedUser(@Query("authenticated_userid") String authenticatedUserId, @Query("offset") String offset);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokensByAccessToken(@Query("access_token") String accessToken);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthToken(@Query("id") String tokenId);
     @DELETE("/oauth2_tokens/{tokenId}") Object revokeOAuthToken(@Path("tokenId") String tokenId);

@@ -128,7 +128,10 @@ public class GatewayValidation {
         Gson gson = new Gson();
         JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
         KongPluginJWT kongPluginJWT = new KongPluginJWT();
-        Set<String> claimsToVerify = new HashSet<>(jwtValue.getClaims_to_verify());
+        Set<String> claimsToVerify = new HashSet<>();
+        if (jwtValue.getClaims_to_verify() != null && !jwtValue.getClaims_to_verify().isEmpty()) {
+            claimsToVerify.addAll(jwtValue.getClaims_to_verify());
+        }
         if (!claimsToVerify.isEmpty()) {
             for (String claim : claimsToVerify) {
                 if (!ALLOWED_JWT_CLAIMS.contains(claim)) {

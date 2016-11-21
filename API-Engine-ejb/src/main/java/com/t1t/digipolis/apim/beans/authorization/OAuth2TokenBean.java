@@ -28,11 +28,12 @@ public class OAuth2TokenBean implements Serializable {
     private String organizationId;
     private String applicationId;
     private String version;
+    private String applicationName;
 
     public OAuth2TokenBean() {
     }
 
-    public OAuth2TokenBean(String scope, String accessToken, String authenticatedUserid, String id, String tokenType, String credentialId, Date createdAt, Integer expiresIn, String refreshToken, String gatewayId, String organizationId, String applicationId, String version) {
+    public OAuth2TokenBean(String scope, String accessToken, String authenticatedUserid, String id, String tokenType, String credentialId, Date createdAt, Integer expiresIn, String refreshToken, String gatewayId, String organizationId, String applicationId, String version, String applicationName) {
         this.scope = scope;
         this.accessToken = accessToken;
         this.authenticatedUserid = authenticatedUserid;
@@ -47,6 +48,7 @@ public class OAuth2TokenBean implements Serializable {
         this.organizationId = organizationId;
         this.applicationId = applicationId;
         this.version = version;
+        this.applicationName = applicationName;
     }
 
     public OAuth2TokenBean(KongOAuthToken token, String gatewayId, ApplicationVersionBean avb) {
@@ -64,6 +66,7 @@ public class OAuth2TokenBean implements Serializable {
         this.organizationId = avb.getApplication().getOrganization().getId();
         this.applicationId = avb.getApplication().getId();
         this.version = avb.getVersion();
+        this.applicationName = avb.getApplication().getName();
     }
 
     public OAuth2TokenBean(KongOAuthToken token, String gatewayId, String organizationId, String applicationId, String version) {
@@ -187,6 +190,14 @@ public class OAuth2TokenBean implements Serializable {
         this.createdAt = createdAt;
     }
 
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -215,13 +226,14 @@ public class OAuth2TokenBean implements Serializable {
                 ", id='" + id + '\'' +
                 ", tokenType='" + tokenType + '\'' +
                 ", credentialId='" + credentialId + '\'' +
-                ", createdAt=" + createdAt + '\'' +
+                ", createdAt=" + createdAt +
                 ", expirationDate=" + expirationDate +
                 ", refreshToken='" + refreshToken + '\'' +
                 ", gatewayId='" + gatewayId + '\'' +
                 ", organizationId='" + organizationId + '\'' +
                 ", applicationId='" + applicationId + '\'' +
                 ", version='" + version + '\'' +
+                ", applicationName='" + applicationName + '\'' +
                 '}';
     }
 }

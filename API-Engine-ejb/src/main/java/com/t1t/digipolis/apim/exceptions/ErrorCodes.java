@@ -77,6 +77,7 @@ public final class ErrorCodes {
     public static final int APP_VERSION_ALREADY_EXISTS      = 4007;
     public static final int CONTRACT_ALREADY_REQUESTED      = 4008;
     public static final int TERMS_AGREEMENT_MISSING         = 4009;
+    public static final int APP_OAUTH_INFO_NOT_FOUND        = 4010;
 
     public static final String APP_ALREADY_EXISTS_INFO      = null;
     public static final String APP_NOT_FOUND_INFO           = null;
@@ -86,6 +87,8 @@ public final class ErrorCodes {
     public static final String APP_STATUS_ERROR_INFO        = null;
     public static final String APP_VERSION_ALREADY_EXISTS_INFO = null;
     public static final String TERMS_AGREEMENT_MISSING_INFO = null;
+    public static final String APP_OAUTH_INFO_NOT_FOUND_INFO= null;
+
 
 
     //

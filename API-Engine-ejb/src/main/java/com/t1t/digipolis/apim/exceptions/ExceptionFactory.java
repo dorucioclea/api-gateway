@@ -615,6 +615,16 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     * @param clientId
+     * @param serviceId
+     * @return
+     */
+    public static final ApplicationOAuthInformationNotFoundException applicationOAuthInformationNotFoundException(String clientId, String serviceId) {
+        return new ApplicationOAuthInformationNotFoundException(Messages.i18n.format("AppOAuthInfoNotFound", clientId, serviceId));
+    }
+
+    /**
+     * Creates an exception
      * @param message
      * @return
      */
