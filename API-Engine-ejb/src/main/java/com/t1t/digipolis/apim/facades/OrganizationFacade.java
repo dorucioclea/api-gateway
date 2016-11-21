@@ -3014,6 +3014,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setApikey(apiKeyGenerator.generate());
         newVersion.setoAuthClientId(apiKeyGenerator.generate());
         newVersion.setOauthClientSecret(apiKeyGenerator.generate());
+        newVersion.setOauthClientRedirects(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI)));
         storage.createApplicationVersion(newVersion);
         storage.createAuditEntry(AuditUtils.applicationVersionCreated(newVersion, securityContext));
         //create consumer on gateway
