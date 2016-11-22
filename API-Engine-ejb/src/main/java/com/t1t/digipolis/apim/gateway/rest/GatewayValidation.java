@@ -55,6 +55,8 @@ public class GatewayValidation {
     private static String environment;
     private static final String OAUTH_SCOPE_CONCAT = ".";
     private static final Set<String> ALLOWED_JWT_CLAIMS = new HashSet<>(Arrays.asList("exp", "nbf"));
+    private static final String CLAIM_TO_VERIFY = "exp";
+    private static final String JWT_URI_PARAM_NAME = "jwt";
 
     public GatewayValidation() {}
 
@@ -141,8 +143,9 @@ public class GatewayValidation {
         }
         //if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment
         //--enforce to validate JWT exp
-        claimsToVerify.add("exp");
+        claimsToVerify.add(CLAIM_TO_VERIFY);
         kongPluginJWT.setClaimsToVerify(new ArrayList<>(claimsToVerify));
+        kongPluginJWT.setUriParamNames(Collections.singletonList(JWT_URI_PARAM_NAME));
         //perform enhancements
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
