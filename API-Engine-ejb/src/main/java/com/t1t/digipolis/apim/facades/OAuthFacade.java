@@ -208,7 +208,9 @@ public class OAuthFacade {
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
             ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);
-            Preconditions.checkNotNull(svb);
+            if (svb == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
             //construct the target url
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
                     .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))
@@ -228,7 +230,9 @@ public class OAuthFacade {
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
             ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);
-            Preconditions.checkNotNull(svb);
+            if (svb == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
             //construct the target url
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
                     .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))
