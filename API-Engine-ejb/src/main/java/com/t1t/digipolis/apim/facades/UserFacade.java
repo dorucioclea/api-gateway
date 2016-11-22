@@ -1085,16 +1085,6 @@ public class UserFacade implements Serializable {
         if (assertion.getIssuer() != null && !assertion.getIssuer().getValue().equals(config.getIDPEntityId())) {
             throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlIdpEntity", assertion.getIssuer().getValue(), config.getIDPEntityId()));
         }
-        String clientAppName = null;
-        try {
-            clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI();
-        }
-        catch (NullPointerException ex) {
-            //do nothing
-        }
-        if (clientAppName != null && !config.getIDPAudienceURI().equals(clientAppName)) {
-            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlAudienceInvalid", config.getIDPAudienceURI(), clientAppName));
-        }
         //Validate assertion signature
         try {
             String certByte = response.getSignature().getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue();
