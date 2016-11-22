@@ -73,6 +73,8 @@ public class AppConfig implements Serializable {
             _LOG.info("Kong host: {}",getKongHost());
             _LOG.info("Kong endpoint: {}",getKongEndpoint());
             _LOG.info("Kong management endpoint: {}",getKongManagementEndpoint());
+            _LOG.info("IDP Entity ID: {}", getIDPEntityId());
+            _LOG.info("IDP Audience URI: {}", getIDPAudienceURI());
             _LOG.info("IDP SAML2 endpoint: {}",getIDPSAMLEndpoint());
             _LOG.info("IDP NameID format: {}",getIDPSAMLNameIdFormat());
             _LOG.info("IDP OAUTH token endpoint: {}",getIDPOAuthTokenEndpoint());
@@ -98,6 +100,7 @@ public class AppConfig implements Serializable {
             _LOG.info("=============================================================");
         };
     }
+
 
     public String getEnvironment(){return config.getString(IConfig.APP_ENVIRONMENT);}
     public String getKongHost(){return config.getString(IConfig.KONG_HOST);}
@@ -141,4 +144,6 @@ public class AppConfig implements Serializable {
     public String getNotificationMailFrom(){return config.getString(IConfig.NOTIFICATION_MAIL_FROM);}
     public Integer getHystrixMetricsTimeout() {return config.getInt(IConfig.HYSTRIX_METRICS_TIMEOUT_VALUE);}
     public String getLocalFilePath() {return config.getString(IConfig.FILEPATH_LOCAL);}
+    public String getIDPEntityId(){return config.getString(IConfig.IDP_ENTITY_ID);}
+    public String getIDPAudienceURI(){return config.getString(IConfig.IDP_AUDIENCE_URI);}
 }
