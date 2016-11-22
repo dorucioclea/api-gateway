@@ -8,7 +8,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.digipolis.apim.beans.events.Event;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.RoleMembershipBean;
@@ -27,6 +27,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
+import com.t1t.digipolis.apim.core.IApiKeyGenerator;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -44,12 +45,11 @@ import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.GatewayUtils;
-import com.t1t.digipolis.util.ObjectCloner;
-import com.t1t.digipolis.util.ServiceConventionUtil;
+import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.ejb3.annotation.TransactionTimeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
@@ -57,7 +57,11 @@ import retrofit.RetrofitError;
 import javax.ejb.*;
 import javax.inject.Inject;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static com.t1t.digipolis.apim.beans.user.ClientTokeType.jwt;
+import static com.t1t.digipolis.util.JWTUtils.JWT_RS256;
 
 /**
  * @author Guillaume Vandecasteele
@@ -67,7 +71,9 @@ import java.util.stream.Collectors;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class MigrationFacade {
 
-    private static final Logger _LOG = LoggerFactory.getLogger(MigrationFacade.class);
+    private static final Logger log = LoggerFactory.getLogger(MigrationFacade.class);
+    public static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
+
     @Inject
     private IStorage storage;
     @Inject
@@ -82,6 +88,10 @@ public class MigrationFacade {
     private OrganizationFacade orgFacade;
     @Inject
     private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject
+    private IApiKeyGenerator apiKeyGenerator;
+    @Inject
+    private ISecurityContext security;
 
     public MigrationFacade() {
     }
@@ -90,7 +100,7 @@ public class MigrationFacade {
         List<ServiceVersionWithMarketInfoBean> publishedServices = searchFacade.searchServicesByStatus(ServiceStatus.Published);
         enableAclOnPublishedServices(publishedServices);
         enableAclOnApplications();
-        _LOG.info("Migration ACL finished");
+        log.info("Migration ACL finished");
     }
 
     public void renameApplicationCustomIds() {
@@ -109,6 +119,18 @@ public class MigrationFacade {
         }
     }
 
+    public void applyDefaultPolicies() {
+        try {
+            List<ServiceVersionBean> svbs = query.getAllNonRetiredServiceVersions();
+            svbs.forEach(svb -> {
+                orgFacade.createDefaultServicePolicies(svb, true);
+            });
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
     /**
      * Enables ACL plugin on every published service
      */
@@ -124,7 +146,7 @@ public class MigrationFacade {
                 gatewaySvc.setVersion(versionBean.getVersion());
                 //Create plugin on Kong api
                 try {
-                    _LOG.info("ACL plugin:{}", gateway.createACLPlugin(gatewaySvc));
+                    log.info("ACL plugin:{}", gateway.createACLPlugin(gatewaySvc));
                 } catch (Exception ex) {
                     ;//ignore
                 }
@@ -134,13 +156,13 @@ public class MigrationFacade {
                         KongPluginACLResponse response = gateway.addConsumerToACL(
                                 ConsumerConventionUtil.createManagedApplicationConsumerName(managedApp),
                                 ServiceConventionUtil.generateServiceUniqueName(gatewaySvc));
-                        _LOG.info("Marketplace ACL:{}", response);
+                        log.info("Marketplace ACL:{}", response);
                         NewPolicyBean npb = new NewPolicyBean();
                         npb.setDefinitionId(Policies.ACL.name());
                         npb.setConfiguration(new Gson().toJson(response));
                         npb.setKongPluginId(response.getId());
                         npb.setGatewayId(gateway.getGatewayId());
-                        _LOG.info("Marketplace policy:{}", orgFacade.createManagedApplicationPolicy(managedApp, npb));
+                        log.info("Marketplace policy:{}", orgFacade.createManagedApplicationPolicy(managedApp, npb));
                     } catch (Exception ex) {
                         //ignore
                     }
@@ -171,7 +193,7 @@ public class MigrationFacade {
                             npb.setContractId(summary.getContractId());
                             npb.setConfiguration(new Gson().toJson(conf));
                             npb.setGatewayId(gateway.getGatewayId());
-                            _LOG.info("Policy " + applicationName + ":{}", orgFacade.doCreatePolicy(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion(), npb, PolicyType.Contract));
+                            log.info("Policy " + applicationName + ":{}", orgFacade.doCreatePolicy(appVersion.getApplication().getOrganization().getId(), appVersion.getApplication().getId(), appVersion.getVersion(), npb, PolicyType.Contract));
                         } catch (Exception ex) {
                             ;//ignore
                         }
@@ -199,7 +221,7 @@ public class MigrationFacade {
     }
 
     /**
-     * TODO this first implementation will sync all apikeys for all applications.
+     * TODO - Obsolete method, see syncAndCreateConsumerCredentials()
      */
     public void syncBusinessModel() throws AbstractRestException {
         //Sync Services
@@ -207,19 +229,14 @@ public class MigrationFacade {
         //Sync apikeys
         try {
             final List<ApplicationVersionBean> applicationVersions = query.findAllApplicationVersions();
-            _LOG.info("=== SYNC::Applications Apikeys(" + applicationVersions.size() + ")");
+            log.info("=== SYNC::Applications Apikeys(" + applicationVersions.size() + ")");
             for (ApplicationVersionBean avb : applicationVersions) {
                 //Keep track of service gateways
                 Map<String, IGatewayLink> links = new HashMap<>();
                 //Get contracts
                 final List<ContractSummaryBean> applicationContracts = query.getApplicationContracts(avb.getApplication().getOrganization().getId(), avb.getApplication().getId(), avb.getVersion());
-                String appApiKey = null;
+                String appApiKey = avb.getApikey();
                 for (ContractSummaryBean contractSummaryBean : applicationContracts) {
-                    //all apikeys should be the same
-                    if (StringUtils.isEmpty(appApiKey) && StringUtils.isNotEmpty(contractSummaryBean.getApikey())) {
-                        appApiKey = contractSummaryBean.getApikey();
-                    }
-                    //get all gateways where application should be registered
                     ServiceVersionBean svb = storage.getServiceVersion(contractSummaryBean.getServiceOrganizationId(), contractSummaryBean.getServiceId(), contractSummaryBean.getServiceVersion());
                     Set<ServiceGatewayBean> gateways = svb.getGateways();
                     for (ServiceGatewayBean serviceGatewayBean : gateways) {
@@ -230,11 +247,11 @@ public class MigrationFacade {
                     }
                 }
                 //log info
-                _LOG.info("Sync application orgId:" + avb.getApplication().getOrganization().getId());
-                _LOG.info("Sync application appId:" + avb.getApplication().getId());
-                _LOG.info("Sync application version:" + avb.getVersion());
-                _LOG.info("===> apikey:" + appApiKey);
-                _LOG.info("===> gateways:" + links);
+                log.info("Sync application orgId:" + avb.getApplication().getOrganization().getId());
+                log.info("Sync application appId:" + avb.getApplication().getId());
+                log.info("Sync application version:" + avb.getVersion());
+                log.info("===> apikey:" + appApiKey);
+                log.info("===> gateways:" + links);
                 //sync apikey
                 if (StringUtils.isNotEmpty(appApiKey)) {
                     for (IGatewayLink gatewayLink : links.values()) {
@@ -249,7 +266,7 @@ public class MigrationFacade {
                     }
                 }
             }
-            _LOG.info("=== FINISHED SYNC::Applications Apikeys(" + applicationVersions.size() + ")");
+            log.info("=== FINISHED SYNC::Applications Apikeys(" + applicationVersions.size() + ")");
         } catch (StorageException e) {
             throw new SystemErrorException("Error accessing datastore");
         }
@@ -262,16 +279,19 @@ public class MigrationFacade {
     //initialize unregistered consumer
     //register consumers
     //TODO: impact service request events?
+    @TransactionTimeout(value = 15, unit = TimeUnit.MINUTES)
     public void rebuildGtw() {
-        _LOG.info("====MIGRATION-START====");
+        log.info("====MIGRATION-START====");
         removeACLsFromDB();
         removeContractPoliciesFromDB();
         syncUsers();
         republishServices();
         syncApplications();
+        updatePoliciesWithGatewayPluginIds();
+        syncAndCreateConsumerCredentials();
         //MigrateToAcl is not a sync endpoint. Do not use unless you're migrating a gateway that doesn't have acl policies to a version of the API Engine that does
         //migrateToAcl();
-        _LOG.info("====MIGRATION-END======");
+        log.info("====MIGRATION-END======");
     }
 
     /**
@@ -280,7 +300,7 @@ public class MigrationFacade {
      * All users must have JWT credentials generated.
      */
     private void syncUsers() {
-        _LOG.info("Synchronize Users::START");
+        log.info("Synchronize Users::START");
         try {
             //get all users
             final List<UserBean> allUsers = idmStorage.getAllUsers();
@@ -291,7 +311,7 @@ public class MigrationFacade {
             IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
 
             for (UserBean user : allUsers) {
-                _LOG.info("->sync user with kong id {} and username {}...", user.getKongUsername(), user.getUsername());
+                log.info("->sync user with kong id {} and username {}...", user.getKongUsername(), user.getUsername());
                 //verify a kong user id exists - if not we don't need to create it on Kong, this will happen upon next login (user init)
                 if (!StringUtils.isEmpty(user.getKongUsername())) {
                     try {
@@ -299,19 +319,19 @@ public class MigrationFacade {
                         gatewayLink.createConsumerWithKongId(user.getKongUsername(), ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
                         Thread.sleep(100);
                         //create jwt token
-                        gatewayLink.addConsumerJWT(user.getKongUsername());
+                        gatewayLink.addConsumerJWT(user.getKongUsername(), JWT_RS256);
                     } catch (RetrofitError rte) {
-                        _LOG.error("-->no sync executed for kong id {} and username {}", user.getKongUsername(), user.getUsername());
+                        log.error("-->no sync executed for kong id {} and username {}", user.getKongUsername(), user.getUsername());
                         continue;
                     }
-                } else _LOG.info("no sync needed - kong username missing in db");
-                _LOG.info("-->sync end");
+                } else log.info("no sync needed - kong username missing in db");
+                log.info("-->sync end");
             }
         } catch (InterruptedException | StorageException e) {
-            _LOG.error("Synchronize Users failed due to:" + e.getMessage());
+            log.error("Synchronize Users failed due to:" + e.getMessage());
             e.printStackTrace();
         }
-        _LOG.info("Synchronize Users::END");
+        log.info("Synchronize Users::END");
     }
 
     /**
@@ -322,12 +342,12 @@ public class MigrationFacade {
      * - verification of default policies
      */
     private void republishServices() {
-        _LOG.info("Publish Services::START");
+        log.info("Publish Services::START");
         try {
             //get all published services, including the deprecated ones
             final List<ServiceVersionBean> services = query.findGatewayServiceVersions();
             for (ServiceVersionBean svb : services) {
-                _LOG.info("-->sync org:{} service:{} version:{} ...",
+                log.info("-->sync org:{} service:{} version:{} ...",
                         svb.getService().getOrganization().getId(),
                         svb.getService().getId(),
                         svb.getVersion());
@@ -342,6 +362,7 @@ public class MigrationFacade {
                     gatewaySvc.setBasepath(svb.getService().getBasepath());
                     gatewaySvc.setVersion(svb.getVersion());
                     gatewaySvc.setPublicService(svb.isPublicService());
+                    gatewaySvc.setBrandings(svb.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));
 
                     //enrich with policies to publish
                     List<Policy> policiesToPublish = new ArrayList<>();
@@ -359,6 +380,7 @@ public class MigrationFacade {
                         Policy policyToPublish = new Policy();
                         policyToPublish.setPolicyJsonConfig(servicePolicy.getConfiguration());
                         policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getId());
+                        policyToPublish.setPolicyId(servicePolicy.getId());
                         policiesToPublish.add(policyToPublish);
                     }
                     gatewaySvc.setServicePolicies(policiesToPublish);
@@ -371,8 +393,9 @@ public class MigrationFacade {
                             try {
                                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                                 try {
-                                    gatewayLink.publishService(gatewaySvc);
-                                } catch (GatewayAuthenticationException e) {
+                                    gatewaySvc = gatewayLink.publishService(gatewaySvc);
+                                    Thread.sleep(100);
+                                } catch (GatewayAuthenticationException |InterruptedException e) {
                                     continue;//next loop cycle
                                 }
                                 //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
@@ -391,9 +414,21 @@ public class MigrationFacade {
                                         //ignore
                                     }
                                 }
+                                //update the policies with the Kong plugin id
+                                for (Policy policy : gatewaySvc.getServicePolicies()) {
+                                    if (policy.getPolicyId() != null) {
+                                        PolicyBean pb = storage.getPolicy(PolicyType.Service, gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), policy.getPolicyId());
+                                        pb.setGatewayId(gatewayLink.getGatewayId());
+                                        pb.setKongPluginId(policy.getKongPluginId());
+                                        storage.updatePolicy(pb);
+                                    }
+                                    else {
+                                        log.error("Plugin present on service {} but no corresponding policy:{}", ServiceConventionUtil.generateServiceUniqueName(svb), policy);
+                                    }
+                                }
                                 gatewayLink.close();
                             } catch (RetrofitError |  SystemErrorException ex) {
-                                _LOG.error("-->no sync executed for org:{} service:{} version:{} ...",
+                                log.error("-->no sync executed for org:{} service:{} version:{} ...",
                                         svb.getService().getOrganization().getId(),
                                         svb.getService().getId(),
                                         svb.getVersion());
@@ -401,38 +436,38 @@ public class MigrationFacade {
                             }
                         }
                     }
-                    _LOG.info("-->sync end");
+                    log.info("-->sync end");
                 } else {
-                    _LOG.info("-->sync end (nothing done - service retired)");
+                    log.info("-->sync end (nothing done - service retired)");
                 }
             }
         } catch (StorageException e) {
-            _LOG.error("Synchronize Users failed due to:" + e.getMessage());
+            log.error("Synchronize Users failed due to:" + e.getMessage());
             e.printStackTrace();
         }
-        _LOG.info("Publish Services::END");
+        log.info("Publish Services::END");
     }
 
     private void removeACLsFromDB() {
-        _LOG.info("Remove DB ACLs::BEGIN");
+        log.info("Remove DB ACLs::BEGIN");
         try {
             query.deleteAclPolicies();
         } catch (StorageException e) {
-            _LOG.error("Delete ACL policies failed:" + e.getMessage());
+            log.error("Delete ACL policies failed:" + e.getMessage());
             e.printStackTrace();
         }
-        _LOG.info("Remove DB ACL::END");
+        log.info("Remove DB ACL::END");
     }
 
     private void removeContractPoliciesFromDB() {
-        _LOG.info("Remove Contract policies::BEGIN");
+        log.info("Remove Contract policies::BEGIN");
         try {
             query.deleteContractPolicies();
         } catch (StorageException e) {
-            _LOG.error("Delete Contract policies failed:" + e.getMessage());
+            log.error("Delete Contract policies failed:" + e.getMessage());
             e.printStackTrace();
         }
-        _LOG.info("Remove Contract policies::END");
+        log.info("Remove Contract policies::END");
     }
 
     /**
@@ -443,7 +478,7 @@ public class MigrationFacade {
      * - oauth credentials + callback url (+ oauth name)
      */
     private void syncApplications() {
-        _LOG.info("Synchronize Consumers::START");
+        log.info("Synchronize Consumers::START");
         try {
             final List<ApplicationVersionBean> appversions = query.findAllApplicationVersions();
             //for all contracted applications create the consumer with key-auth and jwt values
@@ -464,16 +499,16 @@ public class MigrationFacade {
                         //create consumer
                         gateway.createConsumer(appConsumerName, appConsumerName);
                         //when one or more contract exists - apply apikey and ACLs else no apikey or ACL is set
-                        if (avbContracts != null && avbContracts.size() > 0) {
-                            String apikey = avbContracts.get(0).getApikey();//same apikey for all contracts
-                            gateway.addConsumerKeyAuth(appConsumerName, apikey);
-                        }
+
+                        String apikey = avb.getApikey();//same apikey for all contracts
+                        gateway.addConsumerKeyAuth(appConsumerName, apikey);
+
                         //create jwt token
-                        gateway.addConsumerJWT(appConsumerName);
+                        gateway.addConsumerJWT(appConsumerName, JWT_RS256);
                         //sync oauth info
                         if (!StringUtils.isEmpty(avb.getoAuthClientId()) && !StringUtils.isEmpty(avb.getOauthClientSecret())) {//redirect may be empty
-                            if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
-                                avb.setOauthClientRedirect(OrganizationFacade.PLACEHOLDER_CALLBACK_URI);
+                            if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())
+                                avb.setOauthClientRedirects(new HashSet<>(Arrays.asList(OrganizationFacade.PLACEHOLDER_CALLBACK_URI)));
                             //apply oauth
                             OAuthConsumerRequestBean requestBean = new OAuthConsumerRequestBean();
                             requestBean.setUniqueUserName(appConsumerName);
@@ -484,11 +519,11 @@ public class MigrationFacade {
                                     .withClientId(requestBean.getAppOAuthId())
                                     .withClientSecret(requestBean.getAppOAuthSecret());
                             oauthRequest.setName(avb.getApplication().getName());
-                            oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
+                            oauthRequest.setRedirectUri(avb.getOauthClientRedirects());
                             try {
 
                             } catch (Exception e) {
-                                _LOG.info("OAuth sync skipped for {}", avb);
+                                log.info("OAuth sync skipped for {}", avb);
                                 continue;//don't do anything
                             }
                             gateway.enableConsumerForOAuth(appConsumerName, oauthRequest);
@@ -496,7 +531,7 @@ public class MigrationFacade {
                         //if app registered - apply additionally plugins
                         gateway.close();
                     } catch (RetrofitError rte) {
-                        _LOG.error("-->no sync executed for org:{} app:{} version:{} ...",
+                        log.error("-->no sync executed for org:{} app:{} version:{} ...",
                                 avb.getApplication().getOrganization().getId(),
                                 avb.getApplication().getId(),
                                 avb.getVersion());
@@ -563,25 +598,25 @@ public class MigrationFacade {
                                 gateway.close();
                             }
                         } catch (Exception e) {
-                            _LOG.error("-->no sync for additional policies applied for org:{} app:{} version:{} ...",
+                            log.error("-->no sync for additional policies applied for org:{} app:{} version:{} ...",
                                     avb.getApplication().getOrganization().getId(),
                                     avb.getApplication().getId(),
                                     avb.getVersion());
                             continue;
                         }
                     }
-                    _LOG.info("-->sync end");
+                    log.info("-->sync end");
                 } else {
-                    _LOG.info("-->sync end (nothing done - application retired)");
+                    log.info("-->sync end (nothing done - application retired)");
                 }
             }
         } catch (StorageException e) {
-            _LOG.error("Synchronize Consumers failed due to:" + e.getMessage());
+            log.error("Synchronize Consumers failed due to:" + e.getMessage());
             e.printStackTrace();
         }
         //contract
         //contract policies
-        _LOG.info("Synchronize Consumers::END");
+        log.info("Synchronize Consumers::END");
     }
 
     /**
@@ -622,7 +657,7 @@ public class MigrationFacade {
             }
             return policies;
         } catch (StorageException e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getApikey()), e);
+            throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getPlanId()), e);
         }
     }
 
@@ -646,7 +681,7 @@ public class MigrationFacade {
      * @throws StorageException
      */
     public void splitOrgs() throws Exception {
-        _LOG.info("Split Orgs::START");
+        log.info("Split Orgs::START");
         final String APP_DEF_CONTEXT = "int";
         //get all applications
         List<ApplicationBean> allApplications = query.findAllApplications();
@@ -680,17 +715,17 @@ public class MigrationFacade {
             storage.deleteApplication(app);
         }
         migrateToSplitOrgs();
-        _LOG.info("Split Orgs::END");
+        log.info("Split Orgs::END");
     }
 
     //MEMBERSHIPS UPDATE
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private String splitUsingApp(OrganizationBean originalOrg,ApplicationBean app) throws Exception {
-        _LOG.info("Split {}", app.getName());
+        log.info("Split {}", app.getName());
         ManagedApplicationBean marketplaceManagedApp = query.findManagedApplication(app.getContext());
         if (marketplaceManagedApp != null) {
-            _LOG.info("App context {} with prefix ({})", marketplaceManagedApp.getName(), marketplaceManagedApp.getPrefix());
+            log.info("App context {} with prefix ({})", marketplaceManagedApp.getName(), marketplaceManagedApp.getPrefix());
             //create org name - already formatted, just append the prefix
             String newOrgId = marketplaceManagedApp.getPrefix() + OrganizationFacade.MARKET_SEPARATOR + originalOrg.getId();
             //verify if org exists, if non-existant -> create new org with deep copy of original
@@ -706,12 +741,12 @@ public class MigrationFacade {
                     newRmb.setOrganizationId(newOrgId);
                     newRmb.setId(null);
                     idmStorage.createMembership(newRmb);
-                    _LOG.info("-->member created:{} - '{}' with role '{}'", destOrg.getId(),newRmb.getUserId(),newRmb.getRoleId());
+                    log.info("-->member created:{} - '{}' with role '{}'", destOrg.getId(),newRmb.getUserId(),newRmb.getRoleId());
                 }
             }
             return destOrg.getId();
         } else {
-            _LOG.info("Ignored Application (must be publisher or consent app):{}", app);
+            log.info("Ignored Application (must be publisher or consent app):{}", app);
             return null;
         }
     }
@@ -734,7 +769,7 @@ public class MigrationFacade {
             tobecreatedOrg.setModifiedOn(originalOrg.getModifiedOn());
             tobecreatedOrg.setId(newOrgId);
             storage.createOrganization(tobecreatedOrg);
-            _LOG.info("-->org created:{}", tobecreatedOrg.getId());
+            log.info("-->org created:{}", tobecreatedOrg.getId());
             return tobecreatedOrg;
         } else return targetOrg;
     }
@@ -817,6 +852,9 @@ public class MigrationFacade {
             Map<String, IGatewayLink> links = new HashMap<>();
             for (ContractSummaryBean contract : contractSummaries) {
                 ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion());
+                if (svb == null) {
+                    log.error("Service version not found:{}", ServiceConventionUtil.generateServiceUniqueName(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion()));
+                }
                 Set<ServiceGatewayBean> gateways = svb.getGateways();
                 for (ServiceGatewayBean serviceGatewayBean : gateways) {
                     if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
@@ -829,5 +867,264 @@ public class MigrationFacade {
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
+    }
+
+    public void issueJWT() throws StorageException {
+        //Issue new JWT credentials with RS256 algorithm
+        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+
+        final List<ApplicationVersionBean> allApplicationVersions = query.findAllApplicationVersions();
+        final List<UserBean> users = idmStorage.getAllUsers();
+
+        Set<String> consumerIds = new HashSet<>();
+
+        consumerIds.addAll(allApplicationVersions.stream().filter(avb -> avb.getStatus() != ApplicationStatus.Retired).map(ConsumerConventionUtil::createAppUniqueId).collect(Collectors.toList()));
+        consumerIds.addAll(users.stream().map(UserBean::getKongUsername).collect(Collectors.toList()));
+
+        for (String consumerId : consumerIds) {
+            //get default gateway
+            try{
+                KongPluginJWTResponseList response = gateway.getConsumerJWT(consumerId);
+                if (response.getData().size() > 0) {
+                    for (KongPluginJWTResponse resp : response.getData()) {
+                        try {
+                            gateway.deleteConsumerJwtCredential(resp.getConsumerId(), resp.getId());
+                        }
+                        catch (RetrofitError ex) {
+                            log.info("Consumer '{}' JWT credentials not deleted ({},{})",resp.getKey(), resp.getSecret());
+                        }
+                    }
+                }
+                final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(consumerId, JWT_RS256);
+                final String key = kongPluginJWTResponse.getKey();
+                final String secret = kongPluginJWTResponse.getSecret();
+                log.info("Consumer '{}' JWT credentials generated ({},{})",consumerId,key,secret);
+            }catch (RetrofitError rte) {
+                log.error("-->no sync executed for application {}", consumerId);
+            }
+        }
+    }
+
+    public void updatePoliciesWithGatewayPluginIds() {
+        log.info("======== START plugin/policy sync ========");
+        if (security.isAdmin()) {
+            try {
+                List<ServiceVersionBean> svbs = query.findServiceByStatus(ServiceStatus.Published);
+                svbs.addAll(query.findServiceByStatus(ServiceStatus.Deprecated));
+
+                Map<ServiceVersionBean, List<PolicyBean>> pols = new HashMap<>();
+                long polAmount = 0;
+                for (ServiceVersionBean svb : svbs) {
+                    pols.put(svb, query.listPoliciesForEntity(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service));
+                    polAmount += pols.get(svb).size();
+                }
+
+                log.info("number of services:{}", pols.keySet().size());
+                log.info("number of policies:{}", polAmount);
+
+                for (Map.Entry<ServiceVersionBean, List<PolicyBean>> entry : pols.entrySet()) {
+                    for (ServiceGatewayBean svcGw : entry.getKey().getGateways()) {
+                        IGatewayLink gw = gatewayFacade.createGatewayLink(svcGw.getGatewayId());
+                        try {
+                            KongPluginConfigList plugins = gw.getServicePlugins(ServiceConventionUtil.generateServiceUniqueName(entry.getKey()));
+                            log.info("plugins found:{}", plugins.getTotal());
+                            for (KongPluginConfig plugin : plugins.getData()) {
+                                try {
+                                    if (StringUtils.isEmpty(plugin.getConsumerId())) {
+                                        String policyDefId = GatewayUtils.convertKongPluginNameToPolicy(plugin.getName()).getPolicyDefId();
+                                        List<PolicyBean> pol = entry.getValue()
+                                                .stream()
+                                                .filter(policy -> policy.getDefinition().getId().equals(policyDefId))
+                                                .collect(Collectors.toList());
+                                        if (pol.size() != 1) {
+                                            if (pol.size() != 0) {
+                                                log.warn("Syncing for plugin failed, multiple or no possible policies:{}", plugin);
+                                            } else {
+                                                NewPolicyBean npb = new NewPolicyBean();
+                                                npb.setGatewayId(svcGw.getGatewayId());
+                                                npb.setKongPluginId(plugin.getId());
+                                                npb.setDefinitionId(policyDefId);
+                                                npb.setEnabled(plugin.getEnabled());
+                                                String polConfig = new Gson().toJson(plugin.getConfig());
+                                                log.debug("policy configuration:{}", polConfig);
+                                                npb.setConfiguration(polConfig.replace(":{}", ":[]"));
+                                                try {
+                                                    orgFacade.doCreatePolicy(entry.getKey().getService().getOrganization().getId(), entry.getKey().getService().getId(), entry.getKey().getVersion(), npb, PolicyType.Service);
+                                                    log.info("policy created for plugin:{}", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()), policyDefId);
+                                                } catch (Exception ex) {
+                                                    log.warn("creating new policy for plugin failed:{}", plugin);
+                                                }
+                                            }
+                                        } else {
+                                            PolicyBean p = pol.get(0);
+                                            if (!StringUtils.isEmpty(p.getKongPluginId())) {
+                                                if (!p.getKongPluginId().equals(plugin.getId())) {
+                                                    if (gw.getPlugin(p.getKongPluginId()) == null) {
+                                                        p.setKongPluginId(plugin.getId());
+                                                        storage.updatePolicy(p);
+                                                        log.info("plugin id was outdated, now updated:{}", p.getEntityId(), p.getKongPluginId());
+                                                    } else {
+                                                        log.warn("policy plugin id not saved, already existing id doesn't match new one:{}", p.getKongPluginId(), plugin.getId());
+                                                    }
+                                                } else {
+                                                    log.info("syncing not necessary");
+                                                }
+                                            } else {
+                                                p.setKongPluginId(plugin.getId());
+                                                if (p.getGatewayId() == null) {
+                                                    p.setGatewayId(svcGw.getGatewayId());
+                                                }
+                                                storage.updatePolicy(p);
+                                                log.info("policy plugin id updated for:{}", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()));
+                                            }
+                                        }
+                                    }
+                                } catch (Exception ex) {
+                                    log.error("Sync failed unexpectedly:{}", ex);
+                                }
+                            }
+                        }
+                        catch (RetrofitError ex) {
+                            log.error("Sync failed for service \"{}\" on gateway \"{}\"", ServiceConventionUtil.generateServiceUniqueName(entry.getKey()), gw.getGatewayId());
+                        }
+                    }
+                }
+            } catch (StorageException ex) {
+                throw ExceptionFactory.systemErrorException(ex);
+            }
+        }
+        else {
+            log.warn("======== Plugin/policy sync failed: administrator priviledges required. Retry with a valid admin user JWT ========");
+        }
+        log.info("======== END plugin/policy sync ========");
+    }
+
+    public void syncAndCreateConsumerCredentials() {
+        log.info("======== START Enabling Consumers for all auth methods ========");
+        try {
+            List<ApplicationVersionBean> allApps = query.findAllApplicationVersions();
+            for (ApplicationVersionBean avb : allApps) {
+                log.info("==Beginning Sync for:{}==", ConsumerConventionUtil.createAppUniqueId(avb));
+                String appId = ConsumerConventionUtil.createAppUniqueId(avb);
+                boolean appModified = false;
+                if (avb.getStatus() != ApplicationStatus.Retired) {
+                    Set<IGatewayLink> gateways = new HashSet<>();
+                    if (avb.getStatus() != ApplicationStatus.Registered) {
+                        gateways.add(gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId()));
+                    }
+                    else {
+                        gateways.addAll(getApplicationGatewayLinks(query.getApplicationContracts(avb.getApplication().getOrganization().getId(), avb.getApplication().getId(), avb.getVersion())).values());
+                    }
+
+                    if (StringUtils.isEmpty(avb.getoAuthClientId())) {
+                        avb.setoAuthClientId(apiKeyGenerator.generate());
+                        appModified = true;
+                    }
+                    if (StringUtils.isEmpty(avb.getOauthClientSecret())) {
+                        avb.setOauthClientSecret(apiKeyGenerator.generate());
+                        appModified = true;
+                    }
+                    if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty()) {
+                        avb.setOauthClientRedirects(new HashSet<>(Collections.singleton(PLACEHOLDER_CALLBACK_URI)));
+                        appModified = true;
+                    }
+                    if (StringUtils.isEmpty(avb.getApikey())) {
+                        avb.setApikey(apiKeyGenerator.generate());
+                        appModified = true;
+                    }
+
+                    for (IGatewayLink gw : gateways) {
+                        String gwId = gw.getGatewayId();
+                        try {
+                            try {
+                                //Sync or create OAuth2 credentials
+                                KongPluginOAuthConsumerResponseList oauthCreds = gw.getConsumerOAuthCredentials(appId);
+                                if (!oauthCreds.getData().isEmpty()) {
+                                    //delete the credentials that do not match the stored credentials
+                                    oauthCreds.getData().stream().filter(oauth -> !oauth.getRedirectUri().equals(avb.getOauthClientRedirects())
+                                            || !oauth.getClientId().equals(avb.getoAuthClientId())
+                                            || !oauth.getClientSecret().equals(avb.getOauthClientSecret())).forEach(oauth -> {
+                                        //delete the credentials that do not match the stored credentials
+                                        gw.deleteOAuthConsumerPlugin(appId, oauth.getId());
+                                    });
+                                    oauthCreds = gw.getConsumerOAuthCredentials(appId);
+                                } else {
+                                    log.info("No OAuth credentials for app \"{}\" on gateway \"{}\"", appId, gwId);
+                                }
+                                if (oauthCreds.getData().isEmpty()) {
+                                    gw.enableConsumerForOAuth(appId, new KongPluginOAuthConsumerRequest()
+                                            .withClientId(avb.getoAuthClientId())
+                                            .withClientSecret(avb.getOauthClientSecret())
+                                            .withRedirectUri(avb.getOauthClientRedirects())
+                                            .withName(appId));
+                                    log.info("OAuth enabled for app \"{}\" on gateway \"{}\"", appId, gwId);
+                                } else {
+                                    log.info("No oauth sync necessary for app \"{}\" on gateway \"{}\"", appId, gwId);
+                                }
+                            }
+                            catch (Exception ex) {
+                                log.error("OAuth sync failed for app \"{}\" on gateway \"{}\"", appId, gwId);
+                            }
+
+                            try {
+                                //Sync or create Key Auth credentials
+                                KongPluginKeyAuthResponseList keyAuthCreds = gw.getConsumerKeyAuth(appId);
+                                if (!keyAuthCreds.getData().isEmpty()) {
+                                    keyAuthCreds.getData().stream().filter(key -> !key.getKey().equals(avb.getApikey())).forEach(key -> {
+                                        gw.deleteConsumerKeyAuth(appId, key.getKey());
+                                    });
+                                    keyAuthCreds = gw.getConsumerKeyAuth(appId);
+                                } else {
+                                    log.info("No key authentication for app \"{}\" on gateway \"{}\"", appId, gwId);
+                                }
+                                if (keyAuthCreds.getData().isEmpty()) {
+                                    gw.addConsumerKeyAuth(appId, avb.getApikey());
+                                    log.info("Key Auth enabled for app \"{}\" on gateway \"{}\"", appId, gwId);
+                                } else {
+                                    log.info("No key auth sync necessary for app \"{}\" on gateway \"{}\"", appId, gwId);
+                                }
+                            }
+                            catch (Exception ex) {
+                                log.error("Key auth sync failed for app \"{}\" on gateway \"{}\"", appId, gwId);
+                            }
+
+                            try {
+                                //Sync or create JWT credentials
+                                KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(appId);
+                                if (!jwtCreds.getData().isEmpty()) {
+                                    jwtCreds.getData().stream().filter(jwt -> !jwt.getAlgorithm().equals(JWTUtils.JWT_RS256)).forEach(jwt -> {
+                                        gw.deleteConsumerJwtCredential(appId, jwt.getId());
+                                    });
+                                    jwtCreds = gw.getConsumerJWT(appId);
+                                } else {
+                                    log.info("No JWT credentials for app \"{}\" on gateway \"{}\"", appId, gwId);
+                                }
+                                if (jwtCreds.getData().isEmpty()) {
+                                    gw.addConsumerJWT(appId, JWT_RS256);
+                                    log.info("JWT credentials created for app \"{}\" on gateway \"{}\"", appId, gwId);
+                                } else {
+                                    log.info("No JWT sync necessary for app \"{}\" on gateway \"{}\"", appId, gwId);
+                                }
+                            }
+                            catch (Exception ex) {
+                                log.error("OAuth sync failed for app \"{}\" on gateway \"{}\"", appId, gwId);
+                            }
+
+                            //TODO - Add Basic Auth once plugin/policy is enabled
+                        }
+                        catch (Exception ex) {
+                            log.error("Credential sync/creation failed for app \"{}\" on gateway \"{}\"", appId, gwId);
+                        }
+                    }
+                }
+                if (appModified) {
+                    storage.updateApplicationVersion(avb);
+                }
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+        log.info("======== END Enabling Consumers for all auth methods ========");
     }
 }

@@ -2,7 +2,6 @@ package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.user.UserSession;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import org.infinispan.Cache;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.slf4j.Logger;
@@ -45,27 +44,18 @@ public class CacheUtil implements Serializable {
     @Lock(LockType.READ)
     public  WebClientCacheBean getWebCacheBean(String webCacheId){
         final WebClientCacheBean webClientCacheBean = ssoCache.get(webCacheId);
-        if (webClientCacheBean == null) {
-            throw new SystemErrorException("SSO Cache with id " + webCacheId + " does not exist!");
-        }
         return webClientCacheBean;
     }
 
     @Lock(LockType.READ)
     public  String getToken(String tokenId){
         final String cachedToken = tokenCache.get(tokenId);
-        if (cachedToken == null) {
-            throw new SystemErrorException("Token Cache with id " + tokenId + " does not exist!");
-        }
         return cachedToken;
     }
 
     @Lock(LockType.READ)
     public  UserSession getSessionIndex(String userId){
         final UserSession session = sessionCache.get(userId);
-        if (session == null) {
-            throw new SystemErrorException("User session Cache with id " + userId + " does not exist!");
-        }
         return session;
     }
 

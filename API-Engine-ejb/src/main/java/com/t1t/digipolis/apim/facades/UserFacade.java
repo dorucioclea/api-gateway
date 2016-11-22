@@ -2,9 +2,10 @@ package com.t1t.digipolis.apim.facades;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
+import com.t1t.digipolis.apim.beans.events.EventType;
+import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
@@ -41,10 +42,7 @@ import com.t1t.digipolis.apim.security.IdentityAttributes;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
-import com.t1t.digipolis.util.CacheUtil;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.JWTUtils;
-import com.t1t.digipolis.util.ValidationUtils;
+import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
@@ -65,17 +63,24 @@ import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.encryption.EncryptedKey;
 import org.opensaml.xml.encryption.EncryptedKeyResolver;
+import org.opensaml.xml.encryption.P;
 import org.opensaml.xml.io.*;
 import org.opensaml.xml.schema.XSAny;
 import org.opensaml.xml.schema.impl.XSAnyBuilder;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.BasicCredential;
+import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
 import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
+import org.opensaml.xml.security.x509.BasicX509Credential;
 import org.opensaml.xml.security.x509.X509Credential;
+import org.opensaml.xml.signature.SignatureValidator;
+
+import org.opensaml.xml.signature.impl.X509CertificateImpl;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.IDIndex;
 import org.opensaml.xml.util.XMLHelper;
+import org.opensaml.xml.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -84,6 +89,7 @@ import org.xml.sax.SAXException;
 
 import javax.crypto.SecretKey;
 import javax.ejb.*;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -93,6 +99,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.KeyFactory;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -130,7 +146,7 @@ public class UserFacade implements Serializable {
     @Inject
     private AppConfig config;
     @Inject
-    private MailService mailService;
+    private Event<NewEventBean> event;
 
     public UserBean get(String userId) {
         try {
@@ -215,18 +231,7 @@ public class UserFacade implements Serializable {
         if(user==null)throw new UserNotFoundException("User unknow in the application: " + userId);
         user.setAdmin(false);
         idmStorage.updateUser(user);
-        //send email
-        try{
-            final UserBean userBean = get(userId);
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
-                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
-                updateAdminMailBean.setTo(userBean.getEmail());
-                updateAdminMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
-                mailService.sendUpdateAdmin(updateAdminMailBean);
-            }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
-        }
+        fireEvent(securityContext.getCurrentUser(), userId, EventType.ADMIN_REVOKED, null);
     }
 
     public void addAdminPriviledges(String userId)throws StorageException{
@@ -239,21 +244,16 @@ public class UserFacade implements Serializable {
             newUserBean.setAdmin(true);
             initNewUser(newUserBean);
         }else{
+            if (user.getAdmin()) {
+                String message = new StringBuilder(StringUtils.isEmpty(user.getFullName()) ? user.getUsername() : user.getFullName())
+                        .append(" is already an administrator")
+                        .toString();
+                throw ExceptionFactory.userAlreadyAdminException(message);
+            }
             user.setAdmin(true);
             idmStorage.updateUser(user);
         }
-        //send email
-        try{
-            final UserBean userBean = get(userId);
-            if(userBean!=null && !StringUtils.isEmpty(userBean.getEmail())){
-                UpdateAdminMailBean updateAdminMailBean = new UpdateAdminMailBean();
-                updateAdminMailBean.setTo(userBean.getEmail());
-                updateAdminMailBean.setMembershipAction(MembershipAction.NEW_MEMBERSHIP);
-                mailService.sendUpdateAdmin(updateAdminMailBean);
-            }
-        }catch(Exception e){
-            log.error("Error sending mail:{}",e.getMessage());
-        }
+        fireEvent(securityContext.getCurrentUser(), userId, EventType.ADMIN_GRANTED, null);
     }
 
     public List<OrganizationSummaryBean> getOrganizations(String userId) {
@@ -352,9 +352,9 @@ public class UserFacade implements Serializable {
         webCache.setToken(samlRequest.getToken());
         webCache.setClientAppRedirect(samlRequest.getClientAppRedirect());
         if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
-            webCache.setTokenExpirationTimeMinutes(gatewayBean.getJWTExpTime());
+            webCache.setTokenExpirationTimeSeconds(gatewayBean.getJWTExpTime());
         }else{
-            webCache.setTokenExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+            webCache.setTokenExpirationTimeSeconds(config.getJWTDefaultTokenExpInSeconds());
         }
         webCache.setOptionalClaimset(samlRequest.getOptionalClaimMap());
         webCache.setAppRequester(securityAppContext.getApplicationIdentifier());
@@ -497,6 +497,9 @@ public class UserFacade implements Serializable {
             sIndex = cacheUtil.getSessionIndex(userId);
             sessionIndex.setSessionIndex(sIndex.getSessionIndex());
         }
+        else {
+            throw ExceptionFactory.cachingException("User session Cache with id " + userId + " does not exist!");
+        }
         NameID nameId = (new NameIDBuilder()).buildObject();
         nameId.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
         nameId.setValue(sIndex.getSubjectId());
@@ -557,13 +560,15 @@ public class UserFacade implements Serializable {
         utilPrintCache();
         String urlEncodedRelaystate = URLEncoder.encode(relayState, "UTF-8");
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(urlEncodedRelaystate.trim());
+        if (webClientCacheBean == null) {
+            throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
+        }
         try {
             assertion = processSSOResponse(samlResponse);
-            //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());
             //preempt if restricted mode and user is not admin; be carefull to scope the application, non api-engine applications uses this endpoint as well.
-            final ManagedApplicationBean managedApplicationBean = storage.getManagedApplicationBean(webClientCacheBean.getAppRequester());
+            ManagedApplicationBean managedApplicationBean = storage.getManagedApplicationBean(webClientCacheBean.getAppRequester());
             if (managedApplicationBean != null && managedApplicationBean.getActivated() && managedApplicationBean.getRestricted()) {
                 final UserBean user = idmStorage.getUser(userId);
                 if (user == null || !user.getAdmin()) {
@@ -719,12 +724,9 @@ public class UserFacade implements Serializable {
         Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
         Response response = (Response) unmarshaller.unmarshall(element);
 
-        //TODO validate signature - see SSOAgent example of WSO2
-        //String certificate = response.getSignature().getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue();
-        //get assertion
-        Assertion assertion = response.getAssertions().get(0);
-        //Return base64url encoded assertion
-        return assertion;
+        validateSAMLResponse(response);
+
+        return response.getAssertions().get(0);
     }
 
     /**
@@ -820,7 +822,7 @@ public class UserFacade implements Serializable {
                 //update kong username in local userbean
                 user.setKongUsername(consumer.getId());
                 idmStorage.updateUser(user);
-                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
+                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
                 jwtKey = jwtResponse.getKey();//JWT "iss"
                 jwtSecret = jwtResponse.getSecret();
             } else {
@@ -830,7 +832,7 @@ public class UserFacade implements Serializable {
                     jwtSecret = response.getData().get(0).getSecret();
                 } else {
                     //create jwt credentials
-                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId());
+                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
                     jwtKey = jwtResponse.getKey();//JWT "iss"
                     jwtSecret = jwtResponse.getSecret();
                 }
@@ -841,13 +843,13 @@ public class UserFacade implements Serializable {
             JWTRequestBean jwtRequestBean = new JWTRequestBean();
             jwtRequestBean.setIssuer(jwtKey);
             if (cacheBean != null) {
-                if (cacheBean.getTokenExpirationTimeMinutes() != null)
-                    jwtRequestBean.setExpirationTimeMinutes(cacheBean.getTokenExpirationTimeMinutes());
-                else jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+                if (cacheBean.getTokenExpirationTimeSeconds() != null)
+                    jwtRequestBean.setExpirationTimeSeconds(cacheBean.getTokenExpirationTimeSeconds());
+                else jwtRequestBean.setExpirationTimeSeconds(config.getJWTDefaultTokenExpInSeconds());
                 jwtRequestBean.setAudience(cacheBean.getClientAppRedirect());//callback serves as audience
                 jwtRequestBean.setOptionalClaims(cacheBean.getOptionalClaimset());
             } else {
-                jwtRequestBean.setExpirationTimeMinutes(config.getJWTDefaultTokenExpInMinutes());
+                jwtRequestBean.setExpirationTimeSeconds(config.getJWTDefaultTokenExpInSeconds());
             }
             jwtRequestBean.setName(identityAttributes.getUserName());
             jwtRequestBean.setGivenName(identityAttributes.getGivenName());
@@ -855,11 +857,11 @@ public class UserFacade implements Serializable {
             jwtRequestBean.setSubject(identityAttributes.getId());
             jwtRequestBean.setOptionalClaims(identityAttributes.getOptionalMap());
             final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
-            Integer jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
+            Integer jwtExpirationTime = config.getJWTDefaultTokenExpInSeconds();
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
                 jwtExpirationTime = gatewayBean.getJWTExpTime();
             }
-            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret, jwtExpirationTime);
+            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint());
             log.debug("==>JWT:{}",issuedJWT);
             //close gateway
             gatewayLink.close();
@@ -933,47 +935,54 @@ public class UserFacade implements Serializable {
      * @return
      */
     private String getSecretFromTokenCache(String key, String userName) {
-        String secret;
-        try {
-            secret = cacheUtil.getToken(key);
-        }
-        catch (Exception e) {
-            throw ExceptionFactory.cachingException(e.getMessage());
-        }
-        if (StringUtils.isEmpty(secret)) {
+        String secret = cacheUtil.getToken(key);
+        if (secret == null) {
             //retrieve from Kong
             String gatewayId = null;
             try {
                 gatewayId = gatewayFacade.getDefaultGateway().getId();
                 IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-                List<KongPluginJWTResponse> data = gatewayLink.getConsumerJWT(userName).getData();
+                List<KongPluginJWTResponse> data = gatewayLink.getConsumerJWT(get(userName).getKongUsername()).getData();
                 if (data != null && data.size() > 0) {
                     secret = data.get(0).getSecret();
                 } else throw new StorageException("Refresh JWT - somehow the user is not known");
-            } catch (StorageException e) {
-                throw new GatewayException("Error connection to gateway:{}" + e.getMessage());
+            } catch (Exception ex) {
+                throw new GatewayException("Error connection to gateway:{}" + ex.getMessage());
+            }
+            //We've done all we could to retrieve the secret
+            if (secret == null) {
+                throw ExceptionFactory.cachingException("Token Cache with id " + key + " does not exist!");
             }
         }
         return secret;
     }
 
-    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) throws UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JoseException, StorageException {
+    public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
         //get body
-        JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
-        JwtClaims jwtClaims = jwtContext.getJwtClaims();
-        //get gateway default expiration time for JWT
-        final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
-        Integer jwtExpirationTime = 60;//default 60min.
-        if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
-            jwtExpirationTime = gatewayBean.getJWTExpTime();
-        }else{
-            jwtExpirationTime = config.getJWTDefaultTokenExpInMinutes();
+        try {
+            JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
+            JwtClaims jwtClaims = jwtContext.getJwtClaims();
+            //get gateway default expiration time for JWT
+            final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+            Integer jwtExpirationTime = 60;//default 60min.
+            String pubKeyEndpoint = gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
+            if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
+                jwtExpirationTime = gatewayBean.getJWTExpTime();
+            }else{
+                jwtExpirationTime = config.getJWTDefaultTokenExpInSeconds();
+            }
+            //get secret based on iss/username - cached
+            String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
+            JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
+            jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()),pubKeyEndpoint));
+            return jwtRefreshResponseBean;
         }
-        //get secret based on iss/username - cached
-        String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
-        JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-        jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime));
-        return jwtRefreshResponseBean;
+        catch (InvalidJwtException | UnsupportedEncodingException | MalformedClaimException ex) {
+            throw ExceptionFactory.jwtInvalidException("Cannot parse JWT", ex);
+        }
+        catch (StorageException | JoseException | InvalidKeySpecException | NoSuchAlgorithmException | IOException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 
     /**
@@ -1054,4 +1063,55 @@ public class UserFacade implements Serializable {
         return identityAttributes;
     }
 
+    /**
+     * Fires a new event with the following parameters
+     * @param origin
+     * @param destination
+     * @param type
+     * @param body
+     */
+    private void fireEvent(String origin, String destination, EventType type, String body) {
+        NewEventBean neb = new NewEventBean()
+                .withOriginId(origin)
+                .withDestinationId(destination)
+                .withType(type)
+                .withBody(body);
+        event.fire(neb);
+    }
+
+    private void validateSAMLResponse(Response response) {
+
+        Assertion assertion = response.getAssertions().get(0);
+        if (assertion.getIssuer() != null && !assertion.getIssuer().getValue().equals(config.getIDPEntityId())) {
+            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlIdpEntity", assertion.getIssuer().getValue(), config.getIDPEntityId()));
+        }
+        //Validate assertion signature
+        try {
+            String certByte = response.getSignature().getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue();
+            InputStream ss = new ByteArrayInputStream(Base64.decode(certByte));
+            Certificate myCert = CertificateFactory
+                    .getInstance("X509").generateCertificate(ss);
+
+            X509Certificate cert = (X509Certificate) myCert;
+
+            BasicX509Credential x509Credential = new BasicX509Credential();
+            x509Credential.setPublicKey(cert.getPublicKey());
+            x509Credential.setEntityCertificate(cert);
+            x509Credential.getEntityCertificateChain().add(cert);
+            Credential credential = x509Credential;
+            SignatureValidator sigValidator = new SignatureValidator(
+                    credential);
+            sigValidator.validate(assertion.getSignature());
+        } catch (ValidationException | CertificateException ex) {
+            throw ExceptionFactory.samlAuthException(ex.getMessage());
+        }
+        //Validate assertion conditions
+        if (assertion.getConditions().getNotBefore() != null && assertion.getConditions().getNotBefore().isAfterNow()) {
+            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlNotBefore"));
+        }
+        if (assertion.getConditions().getNotOnOrAfter() != null
+                && (assertion.getConditions().getNotOnOrAfter().isBeforeNow() || assertion.getConditions().getNotOnOrAfter().isEqualNow())) {
+            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlNotAfter"));
+        }
+    }
 }

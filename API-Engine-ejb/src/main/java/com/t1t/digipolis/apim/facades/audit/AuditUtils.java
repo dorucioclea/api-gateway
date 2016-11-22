@@ -596,7 +596,7 @@ public class AuditUtils {
      * @param securityContext the security context
      * @return the audit entry
      */
-    public static AuditEntryBean policyUpdated(PolicyBean bean, PolicyType type,
+    public static AuditEntryBean policyUpdated(PolicyBean bean, PolicyType type, EntityUpdatedData data,
             ISecurityContext securityContext) {
         AuditEntryBean entry = newEntry(bean.getOrganizationId(), null, securityContext);
         entry.setWhat(AuditEntryType.UpdatePolicy);
@@ -613,8 +613,9 @@ public class AuditUtils {
             entry.setEntityType(AuditEntityType.Service);
             break;
         }
-        PolicyData data = new PolicyData();
-        data.setPolicyDefId(bean.getDefinition().getId());
+        PolicyData polData = new PolicyData();
+        polData.setPolicyDefId(bean.getDefinition().getId());
+        polData.setData(data);
         entry.setData(toJSON(data));
         return entry;
     }
@@ -878,11 +879,11 @@ public class AuditUtils {
                 return p1.compareTo(p2);
             }
         });
-        sortedPlans.addAll(plans);
 
         StringBuilder builder = new StringBuilder();
         boolean first = true;
         if (plans != null) {
+            sortedPlans.addAll(plans);
             for (ServicePlanBean plan : sortedPlans) {
                 if (!first) {
                     builder.append(", "); //$NON-NLS-1$
@@ -907,11 +908,11 @@ public class AuditUtils {
                 return o1.getGatewayId().compareTo(o2.getGatewayId());
             }
         });
-        sortedGateways.addAll(gateways);
 
         StringBuilder builder = new StringBuilder();
         boolean first = true;
         if (gateways != null) {
+            sortedGateways.addAll(gateways);
             for (ServiceGatewayBean gateway : sortedGateways) {
                 if (!first) {
                     builder.append(", "); //$NON-NLS-1$

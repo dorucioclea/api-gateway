@@ -516,6 +516,15 @@ public final class ExceptionFactory {
      * @param message
      * @return
      */
+    public static final SystemErrorException systemErrorException(String message) {
+        return new SystemErrorException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final MemberShipAlreadyExistsException membershipAlreadyExists(String message) {
         return new MemberShipAlreadyExistsException(message);
     }
@@ -546,5 +555,80 @@ public final class ExceptionFactory {
      */
     public static final ServiceVersionNotAvailableException serviceVersionNotAvailableException(String serviceId, String version) {
         return new ServiceVersionNotAvailableException(Messages.i18n.format("ServiceVersionNotAvailable", serviceId, version));
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final JWTInvalidException jwtInvalidException(String message, Throwable ex) {
+        return new JWTInvalidException(message, ex);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final UserAlreadyAdminException userAlreadyAdminException(String message) {
+        return new UserAlreadyAdminException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final BrandingNotFoundException brandingNotFoundException(String message) {
+        return new BrandingNotFoundException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param messageId
+     * @param args
+     * @return
+     */
+    public static final BrandingNotAvailableException brandingNotAvailableException(String messageId, String... args) {
+        return new BrandingNotAvailableException(Messages.i18n.format(messageId, args));
+    }
+
+    /**
+     * Creates an exception
+     * @param brandingId
+     * @return
+     */
+    public static final BrandingCannotBeDeletedException brandingCannotBeDeletedException(String brandingId) {
+        return new BrandingCannotBeDeletedException(Messages.i18n.format("BrandingStillHasServices", brandingId));
+    }
+
+    /**
+     * Creates an Exception
+     * @param message
+     * @param args
+     * @return
+     */
+    public static final InvalidArgumentException invalidArgumentException(String message, String... args) {
+        return new InvalidArgumentException(Messages.i18n.format(message, (Object[]) args));
+    }
+
+    /**
+     * Creates an exception
+     * @param clientId
+     * @param serviceId
+     * @return
+     */
+    public static final ApplicationOAuthInformationNotFoundException applicationOAuthInformationNotFoundException(String clientId, String serviceId) {
+        return new ApplicationOAuthInformationNotFoundException(Messages.i18n.format("AppOAuthInfoNotFound", clientId, serviceId));
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final SAMLAuthException samlAuthException(String message) {
+        return new SAMLAuthException(message);
     }
 }

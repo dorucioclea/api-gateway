@@ -1,10 +1,7 @@
 package com.t1t.digipolis.apim.gateway.dto;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Models a Service published to the API Management runtime.
@@ -23,6 +20,7 @@ public class Service implements Serializable {
     private String basepath;
     private Map<String, String> endpointProperties = new HashMap<>();
     private List<Policy> servicePolicies = new ArrayList<>();
+    private Set<String> brandings;
     
     /**
      * Constructor.
@@ -154,12 +152,32 @@ public class Service implements Serializable {
         this.servicePolicies = servicePolicies;
     }
 
+    /**
+     * @return the basepath
+     */
     public String getBasepath() {
         return basepath;
     }
 
+    /**
+     * @param basepath the basepath to set
+     */
     public void setBasepath(String basepath) {
         this.basepath = basepath;
+    }
+
+    /**
+     * @return the brandings
+     */
+    public Set<String> getBrandings() {
+        return brandings;
+    }
+
+    /**
+     * @param brandings the brandings to set
+     */
+    public void setBrandings(Set<String> brandings) {
+        this.brandings = brandings;
     }
 
     /**
@@ -217,6 +235,7 @@ public class Service implements Serializable {
                 ", basepath='" + basepath + '\'' +
                 ", endpointProperties=" + endpointProperties +
                 ", servicePolicies=" + servicePolicies +
+                ", brandings=" + brandings +
                 '}';
     }
 }

@@ -42,8 +42,6 @@ public class ContractBean implements Serializable {
     private String createdBy;
     @Column(name = "created_on", updatable=false, nullable=false)
     private Date createdOn;
-    @Column(updatable=false, nullable=false)
-    private String apikey;
     @Column(name = "terms_agreed")
     private Boolean termsAgreed;
 
@@ -138,20 +136,6 @@ public class ContractBean implements Serializable {
     }
 
     /**
-     * @return the apikey
-     */
-    public String getApikey() {
-        return apikey;
-    }
-
-    /**
-     * @param apikey the apikey to set
-     */
-    public void setApikey(String apikey) {
-        this.apikey = apikey;
-    }
-
-    /**
      * @return the value of termsAgreed
      */
     public Boolean getTermsAgreed() {
@@ -172,7 +156,7 @@ public class ContractBean implements Serializable {
     @SuppressWarnings("nls")
     public String toString() {
         return "ContractBean [id=" + id + ", application=" + application + ", service=" + service + ", plan="
-                + plan + ", createdBy=" + createdBy + ", createdOn=" + createdOn + ", apikey=" + apikey + "]";
+                + plan + ", createdBy=" + createdBy + ", createdOn=" + createdOn + "]";
     }
 
 }

@@ -41,8 +41,11 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 /**
  * Created by michallispashidis on 26/11/15.
@@ -177,13 +180,7 @@ public class LoginResource implements ILoginResource {
     public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
         Preconditions.checkNotNull(jwtRefreshRequestBean);
         Preconditions.checkArgument(!StringUtils.isEmpty(jwtRefreshRequestBean.getOriginalJWT()));
-        JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-        try {
-            jwtRefreshResponseBean = userFacade.refreshToken(jwtRefreshRequestBean);
-        } catch (UnsupportedEncodingException | InvalidJwtException | MalformedClaimException | JoseException |StorageException e) {
-            new SystemErrorException(e);
-        }
-        return jwtRefreshResponseBean;
+        return userFacade.refreshToken(jwtRefreshRequestBean);
     }
 
     @ApiOperation(value = "The service provider for the SAML2 Authentication request",
@@ -331,7 +328,7 @@ public class LoginResource implements ILoginResource {
         URI redirectURL = null;
         try {
             redirectURL = new URL(URLDecoder.decode(relayState, "UTF-8")).toURI();
-        } catch (URISyntaxException | MalformedURLException | UnsupportedEncodingException e) {
+        } catch (URISyntaxException | MalformedURLException | UnsupportedEncodingException | NullPointerException e) {
             try {
                 redirectURL = new URL(fallBackUrl).toURI();
             }

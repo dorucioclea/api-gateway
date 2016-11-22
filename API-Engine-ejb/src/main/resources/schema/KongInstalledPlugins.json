@@ -7,7 +7,6 @@
       "id": "enabled_plugins",
       "type": "array",
       "items": {
-        "id": "0",
         "type": "string"
       }
     }

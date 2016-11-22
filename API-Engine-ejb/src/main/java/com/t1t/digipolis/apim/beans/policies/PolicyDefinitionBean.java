@@ -1,14 +1,12 @@
 package com.t1t.digipolis.apim.beans.policies;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.summary.PolicyFormType;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * A Policy Definition describes a type of policy that can be added to
@@ -18,7 +16,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "policydefs")
-@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PolicyDefinitionBean implements Serializable {
 
     private static final long serialVersionUID = 1801150127602136865L;
@@ -45,6 +43,10 @@ public class PolicyDefinitionBean implements Serializable {
     private Boolean scopePlan;
     @Column(name="scope_auto")
     private Boolean scopeAuto;
+    @Column(name="form_override")
+    private String formOverride;
+    @Column(name = "default_config")
+    private String defaultConfig;
 
     /**
      * Constructor.
@@ -150,28 +152,74 @@ public class PolicyDefinitionBean implements Serializable {
         this.form = form;
     }
 
+    /**
+     * @return the scope service value
+     */
     public Boolean getScopeService() {
         return scopeService;
     }
 
+    /**
+     * @param scopeService the scope service value to set
+     */
     public void setScopeService(Boolean scopeService) {
         this.scopeService = scopeService;
     }
 
+    /**
+     * @return the scope plan value
+     */
     public Boolean getScopePlan() {
         return scopePlan;
     }
 
+    /**
+     * @param scopePlan the scope plan value to set
+     */
     public void setScopePlan(Boolean scopePlan) {
         this.scopePlan = scopePlan;
     }
 
+    /**
+     * @return the scope auto value
+     */
     public Boolean getScopeAuto() {
         return scopeAuto;
     }
 
+    /**
+     * @param scopeAuto the scope auto value to set
+     */
     public void setScopeAuto(Boolean scopeAuto) {
         this.scopeAuto = scopeAuto;
+    }
+
+    /**
+     * @return the form override
+     */
+    public String getFormOverride() {
+        return formOverride;
+    }
+
+    /**
+     * @param formOverride the form override to set
+     */
+    public void setFormOverride(String formOverride) {
+        this.formOverride = formOverride;
+    }
+
+    /**
+     * @return the default config
+     */
+    public String getDefaultConfig() {
+        return defaultConfig;
+    }
+
+    /**
+     * @param defaultConfig the default config to set
+     */
+    public void setDefaultConfig(String defaultConfig) {
+        this.defaultConfig = defaultConfig;
     }
 
     /**
@@ -218,6 +266,8 @@ public class PolicyDefinitionBean implements Serializable {
                 ", scopeService=" + scopeService +
                 ", scopePlan=" + scopePlan +
                 ", scopeAuto=" + scopeAuto +
+                ", formOverride='" + formOverride + '\'' +
+                ", defaultConfig='" + defaultConfig + '\'' +
                 '}';
     }
 

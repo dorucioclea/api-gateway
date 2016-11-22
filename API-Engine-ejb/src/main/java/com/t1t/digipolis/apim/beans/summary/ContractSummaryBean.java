@@ -15,7 +15,6 @@ public class ContractSummaryBean implements Serializable {
     private static final long serialVersionUID = 1412354024017539782L;
 
     private Long contractId;
-    private String apikey;
     private String appOrganizationId;
     private String appOrganizationName;
     private String appId;
@@ -31,6 +30,7 @@ public class ContractSummaryBean implements Serializable {
     private String planId;
     private String planVersion;
     private String provisionKey;
+    private String apikey;
     private Date createdOn;
     private Boolean termsAgreed;
 
@@ -42,11 +42,11 @@ public class ContractSummaryBean implements Serializable {
 
     public ContractSummaryBean(ContractBean c) {
         this.contractId = c.getId();
-        this.apikey = c.getApikey();
         this.appOrganizationId = c.getApplication().getApplication().getOrganization().getId();
         this.appOrganizationName = c.getApplication().getApplication().getOrganization().getName();
         this.appId = c.getApplication().getApplication().getId();
         this.appName = c.getApplication().getApplication().getName();
+        this.apikey = c.getApplication().getApikey();
         this.appVersion = c.getApplication().getVersion();
         this.serviceOrganizationId = c.getService().getService().getOrganization().getId();
         this.serviceOrganizationName = c.getService().getService().getOrganization().getName();
@@ -287,20 +287,6 @@ public class ContractSummaryBean implements Serializable {
     }
 
     /**
-     * @return the apikey
-     */
-    public String getApikey() {
-        return apikey;
-    }
-
-    /**
-     * @param apikey the apikey to set
-     */
-    public void setApikey(String apikey) {
-        this.apikey = apikey;
-    }
-
-    /**
      * @return the provision key
      */
     public String getProvisionKey() {
@@ -327,6 +313,21 @@ public class ContractSummaryBean implements Serializable {
     public void setTermsAgreed(Boolean termsAgreed) {
         this.termsAgreed = termsAgreed;
     }
+
+    /**
+     * @return the apikey
+     */
+    public String getApikey() {
+        return apikey;
+    }
+
+    /**
+     * @param apikey the apikey to set
+     */
+    public void setApikey(String apikey) {
+        this.apikey = apikey;
+    }
+
 
     /**
      * @see Object#hashCode()

@@ -6,8 +6,8 @@ import com.t1t.digipolis.apim.beans.actions.ActionBean;
 import com.t1t.digipolis.apim.beans.actions.SwaggerDocBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
-import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
@@ -58,6 +58,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -127,7 +128,7 @@ public class ActionFacade {
             throw ExceptionFactory.notAuthorizedException();
         ServiceVersionBean versionBean = null;
         try {
-            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
+            versionBean = orgFacade.getServiceVersionInternal(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (ServiceVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
         }
@@ -150,6 +151,8 @@ public class ActionFacade {
         gatewaySvc.setBasepath(versionBean.getService().getBasepath());
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
+        gatewaySvc.setBrandings(versionBean.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));
+
         try {
             //we don't restrict the application of service policies for only the public services
             /*if (versionBean.isPublicService()) {*/
@@ -163,6 +166,7 @@ public class ActionFacade {
                 policyToPublish.setPolicyJsonConfig(servicePolicy.getConfiguration());
                 policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getId());
                 //policyToPublish.setPolicyImpl(servicePolicy.getDefinition().getPolicyImpl());
+                policyToPublish.setPolicyId(policySummaryBean.getId());
                 policiesToPublish.add(policyToPublish);
             }
             gatewaySvc.setServicePolicies(policiesToPublish);
@@ -179,7 +183,7 @@ public class ActionFacade {
             List<ManagedApplicationBean> marketplaces = query.findManagedApplication(ManagedApplicationTypes.Consent);
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
-                gatewayLink.publishService(gatewaySvc);
+                gatewaySvc = gatewayLink.publishService(gatewaySvc);
                 //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
                 for (ManagedApplicationBean marketplace : marketplaces) {
                     KongPluginACLResponse response = gatewayLink.addConsumerToACL(
@@ -191,6 +195,19 @@ public class ActionFacade {
                     npb.setKongPluginId(response.getId());
                     npb.setGatewayId(gatewayLink.getGatewayId());
                     orgFacade.createManagedApplicationPolicy(marketplace, npb);
+                }
+                //update the policies with the Kong plugin id
+                for (Policy policy : gatewaySvc.getServicePolicies()) {
+                    if (policy.getPolicyId() != null) {
+                        PolicyBean pb = storage.getPolicy(PolicyType.Service, gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), policy.getPolicyId());
+                        pb.setGatewayId(gatewayLink.getGatewayId());
+                        pb.setKongPluginId(policy.getKongPluginId());
+                        storage.updatePolicy(pb);
+                    }
+
+                    else {
+                        log.error("Plugin present on service {} but no corresponding policy/missing policy id:{}", ServiceConventionUtil.generateServiceUniqueName(versionBean), policy);
+                    }
                 }
                 gatewayLink.close();
             }
@@ -239,7 +256,7 @@ public class ActionFacade {
 
         ServiceVersionBean versionBean = null;
         try {
-            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
+            versionBean = orgFacade.getServiceVersionInternal(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (ServiceVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
         }
@@ -252,6 +269,7 @@ public class ActionFacade {
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
         gatewaySvc.setServiceId(versionBean.getService().getId());
         gatewaySvc.setVersion(versionBean.getVersion());
+        gatewaySvc.setBrandings(versionBean.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));
         //Checks if service still has contracts
         try {
             if (!query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 1000).isEmpty()) {
@@ -300,7 +318,7 @@ public class ActionFacade {
 
         ServiceVersionBean versionBean = null;
         try {
-            versionBean = orgFacade.getServiceVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
+            versionBean = orgFacade.getServiceVersionInternal(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (ServiceVersionNotFoundException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("ServiceNotFound")); //$NON-NLS-1$
         }
@@ -355,14 +373,14 @@ public class ActionFacade {
         }
 
         // Validate that all apikeys are equal for the scope of one application
-        if(!KeyUtils.validateKeySet(contractBeans)) throw ExceptionFactory.actionException(Messages.i18n.format("ApikeyInconsistency"));
+        if(versionBean.getApikey() == null) throw ExceptionFactory.actionException(Messages.i18n.format("MissingAPIKey"));
 
         //application should have contracts when accessed directly from api.
         String appApiKey;
         if(contractBeans==null||contractBeans.size()==0)throw ExceptionFactory.actionException(Messages.i18n.format("InvalidContractCount"));
         else{
             //we are sure the contracts are not empty and that all apikeys must be equal.
-            appApiKey = contractBeans.get(0).getApikey();
+            appApiKey = versionBean.getApikey();
         }
 
         Application application = new Application();
@@ -457,7 +475,7 @@ public class ActionFacade {
                 String org, id, ver;
                 switch (policyType) {
 /*                    case Application: {
-                        org = contractBean.getAppOrganizationId();
+                        org = contractBean.getOrganizationId();
                         id = contractBean.getAppId();
                         ver = contractBean.getAppVersion();
                         break;
@@ -492,7 +510,7 @@ public class ActionFacade {
             }
             return policies;
         } catch (StorageException e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getApikey()), e); //$NON-NLS-1$
+            throw ExceptionFactory.actionException(Messages.i18n.format("PolicyPublishError", contractBean.getPlanId()), e); //$NON-NLS-1$
         }
     }
 
@@ -563,6 +581,11 @@ public class ActionFacade {
             ContractBean contract = null;
             try {
                 contract = storage.getContract(contractSumBean.getContractId());
+                if (contract.getService().getService().isAdmin()) {
+                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());
+                    mab.getApiKeys().remove(contract.getApplication().getApikey());
+                    storage.updateManagedApplication(mab);
+                }
                 storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
                 storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
                 storage.deleteContract(contract);

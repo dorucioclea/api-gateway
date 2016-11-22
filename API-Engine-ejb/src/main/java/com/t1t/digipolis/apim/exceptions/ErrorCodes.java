@@ -19,6 +19,8 @@ public final class ErrorCodes {
     public static final int HTTP_STATUS_CODE_SYSTEM_ERROR   = 500;
     public static final int HTTP_STATUS_CODE_UNAVAILABLE    = 503;
 
+    public static final String HTTP_STATUS_CODE_INVALID_INPUT_INFO = null;
+
 
     //
     // User API related
@@ -27,11 +29,15 @@ public final class ErrorCodes {
     public static final int USER_ALREADY_EXISTS             = 1002;
     public static final int USER_STILL_OWNER                = 1003;
     public static final int USER_ALREADY_A_MEMBER           = 1004;
+    public static final int JWT_INVALID                     = 1005;
+    public static final int USER_ALREADY_ADMIN              = 1006;
 
     public static final String USER_NOT_FOUND_INFO          = null;
     public static final String USER_ALREADY_EXISTS_INFO     = null;
     public static final String USER_STILL_OWNER_INFO        = null;
     public static final String USER_ALREADY_A_MEMBER_INFO   = null;
+    public static final String JWT_INVALID_INFO             = null;
+    public static final String USER_ALREADY_ADMIN_INFO      = null;
 
 
     //
@@ -70,6 +76,7 @@ public final class ErrorCodes {
     public static final int APP_VERSION_ALREADY_EXISTS      = 4007;
     public static final int CONTRACT_ALREADY_REQUESTED      = 4008;
     public static final int TERMS_AGREEMENT_MISSING         = 4009;
+    public static final int APP_OAUTH_INFO_NOT_FOUND        = 4010;
 
     public static final String APP_ALREADY_EXISTS_INFO      = null;
     public static final String APP_NOT_FOUND_INFO           = null;
@@ -79,6 +86,8 @@ public final class ErrorCodes {
     public static final String APP_STATUS_ERROR_INFO        = null;
     public static final String APP_VERSION_ALREADY_EXISTS_INFO = null;
     public static final String TERMS_AGREEMENT_MISSING_INFO = null;
+    public static final String APP_OAUTH_INFO_NOT_FOUND_INFO= null;
+
 
 
     //
@@ -133,7 +142,6 @@ public final class ErrorCodes {
     // Action API related
     //
     public static final int ACTION_ERROR                      = 8001;
-
     public static final String ACTION_ERROR_INFO              = null;
 
 
@@ -220,4 +228,23 @@ public final class ErrorCodes {
     //
 
     public static final int CACHING_ERROR             = 17001;
+
+    //
+    // Security related
+    //
+    public static final int JWT_PUB_KEY_ERROR               = 18001;
+    public static final String JWT_PUB_KEY_INFO             = null;
+
+    //
+    // Branding related
+    //
+
+    public static final int SERVICE_BRANDING_NOT_FOUND          = 19001;
+    public static final int SERVICE_BRANDING_ALREADY_EXISTS     = 19002;
+    public static final int SERVICE_BRANDING_CANNOT_BE_DELETED  = 19003;
+
+
+    public static final String SERVICE_BRANDING_NOT_FOUND_INFO  = null;
+    public static final String SERVICE_BRANDING_ALREADY_EXISTS_INFO  = null;
+    public static final String SERVICE_BRANDING_CANNOT_BE_DELETED_INFO  = null;
 }

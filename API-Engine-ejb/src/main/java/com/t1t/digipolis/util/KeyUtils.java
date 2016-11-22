@@ -2,9 +2,17 @@ package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.io.pem.PemReader;
 
+import java.io.*;
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.List;
 
@@ -27,21 +35,76 @@ public class KeyUtils {
     }
 
     /**
-     * Method to validate if all contractbeans have the same apikey. This method can be
-     * executed before application registraiton in order to be sure the apikey convention
-     * has been maintained. When that's not the case, a sync of apikeys can be performed
-     * from the API Manager db towards all targeted gateways.
+     * Get private key from DER file.
      *
-     * @param contractBeans
+     * @param file
      * @return
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
      */
-    public static boolean validateKeySet(List<ContractSummaryBean> contractBeans){
-        if(contractBeans.size()>0){
-            String refApiKey = contractBeans.get(0).getApikey().toString();
-            for(ContractSummaryBean bean:contractBeans){
-                if(!refApiKey.equalsIgnoreCase(bean.getApikey().toString()))return false;
-            }
-        }
-        return true;
+    public static PrivateKey getPrivateKey(File file) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        FileInputStream fis = new FileInputStream(file);
+        DataInputStream dis = new DataInputStream(fis);
+        byte[] keyBytes = new byte[(int)file.length()];
+        dis.readFully(keyBytes);
+        dis.close();
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePrivate(spec);
+    }
+
+    /**
+     * Get Public key from DER file.
+     *
+     * @param file
+     * @return
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
+    public static PublicKey getPublicKey(File file) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException  {
+        FileInputStream fis = new FileInputStream(file);
+        DataInputStream dis = new DataInputStream(fis);
+        byte[] keyBytes = new byte[(int)file.length()];
+        dis.readFully(keyBytes);
+        dis.close();
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePublic(spec);
+    }
+
+    /**
+     * Get private key from PEM string.
+     *
+     * @param privKey
+     * @return
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
+    public static PrivateKey getPrivateKey(String privKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        PemReader pemReader = new PemReader(new StringReader(privKey));
+        byte[] content = pemReader.readPemObject().getContent();
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(content);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePrivate(spec);
+    }
+
+    /**
+     * Get Public key from PEM string.
+     *
+     * @param pubKey
+     * @return
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
+    public static PublicKey getPublicKey(String pubKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException  {
+        PemReader pemReader = new PemReader(new StringReader(pubKey));
+        byte[] content = pemReader.readPemObject().getContent();
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(content);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePublic(spec);
     }
 }

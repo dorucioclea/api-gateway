@@ -16,7 +16,6 @@ public class Contract implements Serializable {
     private static final long serialVersionUID = 8344360785926823601L;
 
     private Long id;
-    private String apiKey;
     private String serviceOrgId;
     private String serviceId;
     private String serviceVersion;
@@ -31,7 +30,6 @@ public class Contract implements Serializable {
 
     public Contract(ContractBean contract) {
         this.id = contract.getId();
-        this.apiKey = contract.getApikey();
         this.serviceOrgId = contract.getService().getService().getOrganization().getId();
         this.serviceId = contract.getService().getService().getId();
         this.serviceVersion = contract.getService().getVersion();
@@ -40,7 +38,6 @@ public class Contract implements Serializable {
 
     public Contract(ContractSummaryBean c) {
         this.id = c.getContractId();
-        this.apiKey = c.getApikey();
         this.serviceOrgId = c.getServiceOrganizationId();
         this.serviceId = c.getServiceId();
         this.serviceVersion = c.getServiceVersion();
@@ -59,20 +56,6 @@ public class Contract implements Serializable {
      */
     public void setId(Long id) {
         this.id = id;
-    }
-
-    /**
-     * @return the apiKey
-     */
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    /**
-     * @param apiKey the apiKey to set
-     */
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
     }
 
     /**
@@ -153,7 +136,6 @@ public class Contract implements Serializable {
         Contract contract = (Contract) o;
 
         if (id != null ? !id.equals(contract.id) : contract.id != null) return false;
-        if (apiKey != null ? !apiKey.equals(contract.apiKey) : contract.apiKey != null) return false;
         if (serviceOrgId != null ? !serviceOrgId.equals(contract.serviceOrgId) : contract.serviceOrgId != null)
             return false;
         if (serviceId != null ? !serviceId.equals(contract.serviceId) : contract.serviceId != null) return false;
@@ -167,7 +149,6 @@ public class Contract implements Serializable {
     @Override
     public int hashCode() {
         int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (apiKey != null ? apiKey.hashCode() : 0);
         result = 31 * result + (serviceOrgId != null ? serviceOrgId.hashCode() : 0);
         result = 31 * result + (serviceId != null ? serviceId.hashCode() : 0);
         result = 31 * result + (serviceVersion != null ? serviceVersion.hashCode() : 0);
@@ -180,7 +161,6 @@ public class Contract implements Serializable {
     public String toString() {
         return "Contract{" +
                 "id=" + id +
-                ", apiKey='" + apiKey + '\'' +
                 ", serviceOrgId='" + serviceOrgId + '\'' +
                 ", serviceId='" + serviceId + '\'' +
                 ", serviceVersion='" + serviceVersion + '\'' +

@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
@@ -18,6 +19,7 @@ import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.apim.kong.KongServiceBuilder;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -41,7 +43,10 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.o;
 
 /**
  * An implementation of a Gateway Link that uses the Gateway's simple REST
@@ -145,8 +150,8 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongPluginJWTResponse addConsumerJWT(String id) throws ConsumerException {
-        return getClient().createConsumerJWT(id);
+    public KongPluginJWTResponse addConsumerJWT(String id,String encoding) throws ConsumerException {
+        return getClient().createConsumerJWT(id,encoding);
     }
 
     @Override
@@ -264,11 +269,11 @@ public class RestGatewayLink implements IGatewayLink {
      * @see IGatewayLink#publishService(Service)
      */
     @Override
-    public void publishService(Service service) throws PublishingException, GatewayAuthenticationException {
+    public Service publishService(Service service) throws PublishingException, GatewayAuthenticationException {
         if (!isGatewayUp()) {
             throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
         }
-        getClient().publish(service);
+        return getClient().publish(service);
     }
 
     @Override
@@ -299,7 +304,7 @@ public class RestGatewayLink implements IGatewayLink {
         if (!isGatewayUp()) {
             throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
         }
-        getClient().retire(service.getOrganizationId(), service.getServiceId(), service.getVersion());
+        getClient().retire(service);
     }
 
     /**
@@ -407,5 +412,65 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer) {
         return getClient().updateConsumer(kongConsumerId, updatedConsumer);
+    }
+
+    @Override
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId, String offset) {
+        return getClient().getConsumerOAuthTokenList(consumerOAuthCredentialId, offset);
+    }
+
+    @Override
+    public void revokeOAuthToken(String tokenId) {
+        getClient().revokeOAuthToken(tokenId);
+    }
+
+    @Override
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId, String offset) {
+        return getClient().getConsumerOAuthTokenListByUserId(authenticatedUserId, offset);
+    }
+
+    @Override
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(String credentialId) {
+        return getClient().getApplicationOAuthInformationByCredentialId(credentialId);
+    }
+
+    @Override
+    public KongOAuthTokenList getOAuthToken(String tokenId) {
+        return getClient().getOAuthToken(tokenId);
+    }
+
+    @Override
+    public void deleteConsumerJwtCredential(String consumerId, String credentialId) {
+        getClient().deleteConsumerJwtCredential(consumerId, credentialId);
+    }
+
+    @Override
+    public KongPluginConfig getPlugin(String pluginId) {
+        return getClient().getPlugin(pluginId);
+    }
+
+    @Override
+    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy) {
+        return getClient().createServicePolicy(organizationId, serviceId, version, policy);
+    }
+
+    @Override
+    public void createServiceBranding(Service service, ServiceBrandingBean branding) {
+        getClient().publishServiceBranding(service, branding.getId());
+    }
+
+    @Override
+    public void deleteApi(String apiName) {
+        getClient().deleteAPI(apiName);
+    }
+
+    @Override
+    public KongOAuthToken getGatewayOAuthToken(String token) {
+        return getClient().getGatewayOauthToken(token);
+    }
+
+    @Override
+    public void revokeGatewayOAuthToken(String accessToken) {
+        getClient().revokeOAuthTokenByAccessToken(accessToken);
     }
 }

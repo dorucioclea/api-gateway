@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.rest.JaxRsActivator;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.JWTUtils;
+import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtContext;
@@ -35,9 +36,10 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
      * Logger: is not possible to inject logger in filters
      */
     private static final Logger LOG = LoggerFactory.getLogger(RequestAPIMFilter.class.getName());
-    private static final String HEADER_CONSUMER_USERNAME = "x-consumer-username";//considerred to be an application consumer - we use this to setup an application context
-    private static final String HEADER_CONSUMER_ID = "x-consumer-id";
+    //private static final String HEADER_CONSUMER_USERNAME = "x-consumer-username";//considerred to be an application consumer - we use this to setup an application context
+    //private static final String HEADER_CONSUMER_ID = "x-consumer-id";
     private static final String HEADER_USER_AUTHORIZATION = "Authorization"; // will contain the JWT user token
+    private static final String HEADER_CREDENTIAL_USERNAME = "X-Credential-Username";
     private static final String HEADER_API_KEY = "apikey";
     //exclusions
     private static final String REDIRECT_PATH = "/users/idp/redirect";
@@ -75,14 +77,13 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             ;//allow from idp
         } else {
             //Get apikey - app context - SHOULD BE ALWAYS PROVIDED
-            String appId = containerRequestContext.getHeaderString(HEADER_CONSUMER_USERNAME);
             try {
-                if (appId == null) {
-                    String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
-                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
-                    appId = mab == null ? "" : ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
-                }
-                securityAppContext.setCurrentApplication(appId);
+                //We shouldn't resolve the application context based on the X-Consumer-id header
+                //We do require the apikey in order to resolve which managed application is linked to the 
+                String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
+                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
+                String managedAppId = mab == null ? "" : ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
+                securityAppContext.setCurrentApplication(managedAppId);
             } catch (StorageException e) {
                 throw new IOException(e);
             }
@@ -93,8 +94,11 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
                 jwt = jwt.replaceFirst("Bearer", "").trim();
                 String validatedUser = "";
                 try {
-                    JwtContext jwtContext = JWTUtils.validateHMACToken(jwt);
-                    validatedUser = jwtContext.getJwtClaims().getSubject();
+                    JwtClaims jwtClaims = JWTUtils.validateHMACToken(jwt).getJwtClaims();
+                    //Check if the JWT comes from a user that authenticated using LDAP
+                    validatedUser = jwtClaims.getSubject() != null ?
+                            jwtClaims.getSubject() : jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) != null ?
+                            jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) : "";
                     validatedUser = securityContext.setCurrentUser(ConsumerConventionUtil.createUserUniqueId(validatedUser));
                 } catch (InvalidJwtException | UserNotFoundException | MalformedClaimException ex) {
                     //this shouldnt be thrown because of implicit user creation during initial user intake (saml2 provider and JWT issuance)

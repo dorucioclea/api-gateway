@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.mail;
 import com.t1t.digipolis.apim.beans.mail.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.MailServiceException;
+import com.t1t.digipolis.apim.gateway.dto.Contract;
 
 /**
  * Created by michallispashidis on 8/04/16.
@@ -27,15 +28,15 @@ public interface MailService {
 
     /**
      * Send approval for request membership.
-     * @param membershipApproveMailBean
+     * @param bean
      */
-    void approveRequestMembership(MembershipApproveMailBean membershipApproveMailBean)throws MailServiceException;
+    void approveRequestMembership(MembershipRequestMailBean bean)throws MailServiceException;
 
     /**
      * Send reject for request membership.
-     * @param membershipRejectMailBean
+     * @param bean
      */
-    void rejectRequestMembership(MembershipRejectMailBean membershipRejectMailBean)throws MailServiceException;
+    void rejectRequestMembership(MembershipRequestMailBean bean)throws MailServiceException;
 
     /**
      * Send update membership information.
@@ -66,5 +67,19 @@ public interface MailService {
      * @param contractMailBean
      */
     void rejectContractRequest(ContractMailBean contractMailBean)throws MailServiceException;
+
+    /**
+     * Send cancellation mail for membership request
+     * @param bean
+     * @throws MailServiceException
+     */
+    void cancelMembershipRequest(MembershipRequestMailBean bean) throws MailServiceException;
+
+    /**
+     * Send cancellation mail for contract request
+     * @param bean
+     * @throws MailServiceException
+     */
+    void cancelContractRequest(ContractMailBean bean) throws MailServiceException;
 
 }

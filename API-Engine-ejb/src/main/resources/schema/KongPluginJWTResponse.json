@@ -7,7 +7,7 @@
       "id": "id",
       "type": "string"
     },
-    "custom_id": {
+    "consumer_id": {
       "id": "consumer_id",
       "type": "string"
     },
@@ -22,6 +22,14 @@
     "created_at": {
       "id": "created_at",
       "type": "number"
+    },
+    "rsa_public_key": {
+      "id": "rsa_public_key",
+      "type": "string"
+    },
+    "algorithm": {
+      "id": "algorithm",
+      "type": "string"
     }
   }
 }

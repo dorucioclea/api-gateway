@@ -10,9 +10,9 @@
         "$ref":"KongApi.json"
       }
     },
-    "next": {
-      "id": "next",
-      "type": "string"
+    "total": {
+      "id": "total",
+      "type": "number"
     }
   }
 }

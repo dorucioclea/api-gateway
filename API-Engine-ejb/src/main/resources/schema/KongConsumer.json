@@ -15,10 +15,6 @@
       "id": "custom_id",
       "type": "string"
     },
-    "key": {
-      "id": "key",
-      "type": "string"
-    },
     "created_at": {
       "id": "created_at",
       "type": "number"

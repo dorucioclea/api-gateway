@@ -31,4 +31,16 @@ public class ServiceConventionUtil {
         return generateServiceUniqueName(svb.getService().getOrganization().getId(),
                 svb.getService().getId(), svb.getVersion());
     }
+
+    public static String[] getOrgSvcVersionIds(ServiceVersionBean svb) {
+        return new String[]{svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()};
+    }
+
+    public static String[] getOrgSvcVersionIdsFromUniqueName(String uniqueName) {
+        String[] rval = uniqueName.split("\\.");
+        if (rval.length != 3) {
+            throw new IllegalArgumentException("Unique name must contain 3 substrings separated by 2 periods");
+        }
+        return rval;
+    }
 }

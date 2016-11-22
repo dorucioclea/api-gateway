@@ -5,19 +5,26 @@ import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.announcements.NewAnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenSet;
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.contracts.ContractCancellationBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
+import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
+import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.plans.*;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
@@ -38,9 +45,9 @@ import com.t1t.digipolis.apim.rest.impl.util.FieldValidator;
 import com.t1t.digipolis.apim.rest.resources.IOrganizationResource;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
+import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
 import com.t1t.digipolis.kong.model.MetricsUsageList;
@@ -62,7 +69,10 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This is the rest endpoint implementation.
@@ -94,6 +104,8 @@ public class OrganizationResource implements IOrganizationResource {
     private OrganizationFacade orgFacade;
     @Inject
     private EventFacade eventFacade;
+    @Inject
+    private ISecurityAppContext appContext;
 
     @Inject
     IApplicationValidator applicationValidator;
@@ -333,7 +345,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(appId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
         Preconditions.checkNotNull(updateAppUri);
-        if (!ValidationUtils.isValidURL(updateAppUri.getUri())) {
+        if (updateAppUri.getUris() == null || updateAppUri.getUris().stream().filter(StringUtils::isNotEmpty).collect(Collectors.toList()).isEmpty()) {
             throw new IllegalArgumentException();
         }
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
@@ -953,7 +965,19 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return orgFacade.getServiceVersion(organizationId, serviceId, version);
+        Set<String> consentPrefixes = new HashSet<>();
+        try {
+            consentPrefixes.addAll(query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)));
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+        ServiceVersionBean svb = orgFacade.getServiceVersion(organizationId, serviceId, version);
+        //TODO - Remove provision key from bean
+        /*if (!(securityContext.hasPermission(PermissionType.svcEdit, organizationId) || consentPrefixes.contains(appContext.getApplicationPrefix()))) {
+            svb.setProvisionKey(null);
+        }*/
+        return svb;
     }
 
     @ApiOperation(value = "Get Service Definition",
@@ -1040,7 +1064,9 @@ public class OrganizationResource implements IOrganizationResource {
         return servicePlugins;
     }
 
-    @ApiOperation(value = "Enable Service Plugins",
+    //Enabling and disabling plugins is now done through the update service policy endpoint
+
+    /*@ApiOperation(value = "Enable Service Plugins",
                   notes = "Use this endpoint to enable an existing plugin for a service.")
     @ApiResponses({@ApiResponse(code = 200, response = KongPluginConfig.class, message = "Enabled plugin for a service.")})
     @POST
@@ -1070,7 +1096,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(pluginId));
         KongPluginConfig servicePlugin = orgFacade.changeEnabledStateServicePlugin(organizationId, serviceId, version, pluginId,false);
         return servicePlugin;
-    }
+    }*/
 
     @ApiOperation(value = "Get Service Version Activity",
             notes = "Use this endpoint to get audit activity information for a single version of the Service.")
@@ -1215,7 +1241,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void updateServicePolicy(@PathParam("organizationId") String organizationId,
+    public PolicyBean updateServicePolicy(@PathParam("organizationId") String organizationId,
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("version") String version,
                                     @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
@@ -1225,7 +1251,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
+        return orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
     }
 
     @ApiOperation(value = "Remove Service Policy",
@@ -2171,6 +2197,44 @@ public class OrganizationResource implements IOrganizationResource {
     }
 
     @Override
+    @ApiOperation(value = "Cancel an pending contract request",
+            notes = "Call this endpoint to cancel a pending contract request.")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Pending request deleted")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/requests/cancel")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void cancelContractRequest(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version, ContractCancellationBean request) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkNotNull(request);
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getOrganizationId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getApplicationId()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getVersion()));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, request.getOrganizationId())) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        orgFacade.cancelContractRequest(organizationId, serviceId, version, request.getOrganizationId(), request.getApplicationId(), request.getVersion());
+    }
+
+    @Override
+    @ApiOperation(value = "Cancel a pending membership request",
+            notes = "Call this endpoint to cancel a pending membership request")
+    @ApiResponses({
+        @ApiResponse(code = 204, message = "Pending request deleted")
+    })
+    @POST
+    @Path("/{organizationId}/membership-requests/cancel")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void cancelMembershipRequest(@PathParam("organizationId") String organizationId) throws InvalidEventException, EventNotFoundException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(securityContext.getCurrentUser()));
+        orgFacade.cancelMembershipRequest(organizationId);
+    }
+
+    @Override
     @ApiOperation(value = "Request a Service Contract",
             notes = "Use this endpoint to request a Contract between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
@@ -2316,5 +2380,53 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
         Preconditions.checkNotNull(tag);
         orgFacade.addServiceTag(organizationId, serviceId, tag);
+    }
+
+    @Override
+    @ApiOperation("Retrieve Application Version Oauth2 Tokens")
+    @ApiResponses({
+        @ApiResponse(code = 200, responseContainer = "List", response = OAuth2TokenPaginationBean.class, message = "OAuth2 Tokens")
+    })
+    @GET
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth2/tokens")
+    @Produces(MediaType.APPLICATION_JSON)
+    public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, @QueryParam("page") String offset) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(applicationId) && StringUtils.isNotEmpty(version));
+        if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version, offset);
+    }
+
+    @Override
+    @ApiOperation("Add branding to service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/brandings")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void addBrandingToService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, ServiceBrandingSummaryBean branding) throws NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && branding != null && StringUtils.isNotEmpty(branding.getId()));
+        orgFacade.addServiceBranding(organizationId, serviceId, branding.getId());
+    }
+
+    @Override
+    @ApiOperation("Remove branding from service")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succesful, no content")
+    })
+    @DELETE
+    @Path("/{organizationId}/services/{serviceId}/brandings/{brandingId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void removeBrandingFromService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("brandingId") String brandingId) throws NotAuthorizedException {
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && StringUtils.isNotEmpty(brandingId));
+        orgFacade.removeServiceBranding(organizationId, serviceId, brandingId);
     }
 }

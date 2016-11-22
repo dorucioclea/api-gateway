@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.gateway;
 
+import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.gateway.dto.*;
@@ -9,6 +10,7 @@ import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.kong.model.KongConsumerList;
+import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
@@ -76,7 +78,7 @@ public interface IGatewayLink {
      * @throws PublishingException when unable to publish service
      * @throws GatewayAuthenticationException when unable to authenticate with gateway  
      */
-    public void publishService(Service service) throws PublishingException, GatewayAuthenticationException;
+    public Service publishService(Service service) throws PublishingException, GatewayAuthenticationException;
 
     /**
      * Published a centralized OAuth authorization and token endpoint for a gateway.
@@ -247,7 +249,7 @@ public interface IGatewayLink {
      * @return
      * @throws ConsumerException
      */
-    public KongPluginJWTResponse addConsumerJWT(String id) throws ConsumerException;
+    public KongPluginJWTResponse addConsumerJWT(String id, String encoding) throws ConsumerException;
 
     /**
      * Retrieve a consumer information with it's JWT key.
@@ -431,4 +433,89 @@ public interface IGatewayLink {
      * @return
      */
     public KongConsumer updateConsumer(String kongConsumerId, KongConsumer updatedConsumer);
+
+    /**
+     * Retrieve a consumer's OAuth2 tokens
+     * @param consumerOAuthCredentialId
+     * @param offset base64 encoded page number
+     * @return
+     */
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId, String offset);
+
+    /**
+     * Delete a token on the gateway corresponding to the id
+     * @param tokenId
+     */
+    public void revokeOAuthToken(String tokenId);
+
+    /**
+     * Retrieve oauth tokens by authenticated user id
+     * @param authenticatedUserId
+     * @param offset base64 encoded page number
+     * @return
+     */
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId, String offset);
+
+    /**
+     * Retrieve OAuth information based on credential id
+     * @param credentialId
+     * @return
+     */
+    public KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(String credentialId);
+
+    /**
+     * Retrieve an OAuth token from the gateway
+     * @param tokenId
+     * @return
+     */
+    public KongOAuthTokenList getOAuthToken(String tokenId);
+
+    /**
+     * Delete a consumer's JWT credential
+     * @param consumerId
+     * @param credentialId
+     */
+    public void deleteConsumerJwtCredential(String consumerId, String credentialId);
+
+    /**
+     * Return a service plugin
+     * @param pluginId
+     * @return
+     */
+    public KongPluginConfig getPlugin(String pluginId);
+
+    /**
+     * Creates a service policy/plugin on the gateway
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @param policy
+     * @return
+     */
+    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy);
+
+    /**
+     * Create a service branding api on the gateway
+     * @param service
+     */
+    public void createServiceBranding(Service service, ServiceBrandingBean branding);
+
+    /**
+     * Delete an API on the gateway
+     * @param apiName
+     */
+    public void deleteApi(String apiName);
+
+    /**
+     * Get the gateway OAuth token corresponding to an access token
+     * @param token
+     * @return
+     */
+    public KongOAuthToken getGatewayOAuthToken(String token);
+
+    /**
+     * Revoke an OAuth token on the gateway corresponding to the access token
+     * @param accessToken
+     */
+    public void revokeGatewayOAuthToken(String accessToken);
 }

@@ -4,8 +4,8 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.authorization.*;
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
-import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
@@ -20,28 +20,22 @@ import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.apim.idp.IDPClient;
-import com.t1t.digipolis.apim.idp.IDPRestServiceBuilder;
-import com.t1t.digipolis.apim.idp.RestIDPConfigBean;
 import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
-import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.URIUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
 import org.elasticsearch.gateway.GatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+
 import javax.ejb.*;
 import javax.inject.Inject;
-import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 23/09/15.
@@ -76,9 +70,9 @@ public class OAuthFacade {
             if (avb == null)
                 throw new ApplicationNotFoundException("Application not found with given OAuth2 clientId and clientSecret.");
             oauthRequest.setName(avb.getApplication().getName());
-            if (StringUtils.isEmpty(avb.getOauthClientRedirect()))
+            if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())
                 throw new OAuthException("The application must provide an OAuth2 redirect URL");
-            oauthRequest.setRedirectUri(avb.getOauthClientRedirect());
+            oauthRequest.setRedirectUri(avb.getOauthClientRedirects());
             String defaultGateway = query.listGateways().get(0).getId();
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
@@ -111,6 +105,10 @@ public class OAuthFacade {
         OAuthApplicationResponse response = new OAuthApplicationResponse();
         try {
             //there must be a gateway
+            ContractBean contract = query.getContractByServiceVersionAndOAuthClientId(orgId, serviceId, version, clientId);
+            if (contract == null) {
+                throw ExceptionFactory.applicationOAuthInformationNotFoundException(clientId, serviceId + " " + version);
+            }
             Preconditions.checkNotNull(query.listGateways().size() > 0);
             String defaultGateway = query.listGateways().get(0).getId();
             response.setAuthorizationUrl(getOAuth2AuthorizeEndpoint(orgId, serviceId, version));
@@ -143,7 +141,7 @@ public class OAuthFacade {
                 //add scope information to the response
                 if (response.getConsumer() != null && response.getConsumerResponse() != null) {
                     //retrieve scopes for targeted service
-                    ServiceVersionBean serviceVersion = storage.getServiceVersion(orgId, serviceId, version);
+                    ServiceVersionBean serviceVersion = contract.getService();
                     //verify if it's an OAuth enabled service
                     response.setScopes(serviceVersion.getOauthScopes());
                     response.setServiceProvisionKey(serviceVersion.getProvisionKey());
@@ -210,7 +208,9 @@ public class OAuthFacade {
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
             ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);
-            Preconditions.checkNotNull(svb);
+            if (svb == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
             //construct the target url
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
                     .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))
@@ -230,7 +230,9 @@ public class OAuthFacade {
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
             ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);
-            Preconditions.checkNotNull(svb);
+            if (svb == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
             //construct the target url
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
                     .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))
