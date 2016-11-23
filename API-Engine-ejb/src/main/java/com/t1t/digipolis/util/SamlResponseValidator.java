@@ -30,8 +30,6 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 
-import static com.sun.tools.javac.jvm.ByteCodes.ret;
-
 /**
  * Created by michallispashidis on 15/12/15.
  */
