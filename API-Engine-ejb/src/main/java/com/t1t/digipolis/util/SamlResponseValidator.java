@@ -73,7 +73,8 @@ public class SamlResponseValidator {
                     .generateCertificate(new ByteArrayInputStream(decodedCert));
         }
         catch (Exception ex) {
-            throw ExceptionFactory.samlAuthException("samlSignatureCertificate");
+            _LOG.error("Parsing certificate error:{}", ex);
+            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlSignatureCertificate"));
         }
     }
 
