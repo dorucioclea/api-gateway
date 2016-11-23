@@ -561,7 +561,7 @@ public class UserFacade implements Serializable {
         String urlEncodedRelaystate = URLEncoder.encode(relayState, "UTF-8");
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(urlEncodedRelaystate.trim());
         if (webClientCacheBean == null) {
-            //throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
+            throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
         }
         try {
             assertion = processSSOResponse(samlResponse);
