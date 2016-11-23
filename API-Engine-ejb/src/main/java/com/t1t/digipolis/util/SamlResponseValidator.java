@@ -22,6 +22,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.List;
 
 /**
  * Created by michallispashidis on 15/12/15.
@@ -30,15 +31,17 @@ public class SamlResponseValidator {
 
     private static Logger _LOG = LoggerFactory.getLogger(SamlResponseValidator.class.getName());
 
-    public static void validateSAMLResponse(Response response, String idpEntityId) throws SAMLAuthException {
+    public static void validateSAMLResponse(Response response, List<String> idpEntityIds) throws SAMLAuthException {
 
-        if (response.getIssuer() != null && !response.getIssuer().getValue().equals(idpEntityId)) {
-            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlIdpEntity", response.getIssuer().getValue(), idpEntityId));
+        if (response.getIssuer() != null && !idpEntityIds.contains(response.getIssuer().getValue())) {
+            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlIdpEntity", response.getIssuer().getValue(), idpEntityIds.toString()));
         }
 
         validateSignature(response.getSignature(), getCertificate(response));
 
-        response.getAssertions().forEach(assertion -> validateSAMLAssertion(assertion, idpEntityId));
+        response.getAssertions().forEach(assertion -> validateSAMLAssertion(assertion, idpEntityIds));
+
+        _LOG.info("SAML Response is valid");
     }
 
     private static void validateSignature(Signature signature, X509Certificate certificate) {
@@ -79,13 +82,13 @@ public class SamlResponseValidator {
     }
 
 
-    private static void validateSAMLAssertion(Assertion assertion, String idpEntityId) throws SAMLAuthException {
+    private static void validateSAMLAssertion(Assertion assertion, List<String> idpEntityIds) throws SAMLAuthException {
         //Validate IDP EntityID
-        if (assertion.getIssuer() != null && !assertion.getIssuer().getValue().equals(idpEntityId)) {
-            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlIdpEntity", assertion.getIssuer().getValue(), idpEntityId));
+        if (assertion.getIssuer() != null && !idpEntityIds.contains(assertion.getIssuer().getValue())) {
+            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlIdpEntity", assertion.getIssuer().getValue(), idpEntityIds.toString()));
         }
         //Validate assertion conditions
-        if (assertion.getConditions().getNotBefore() != null && assertion.getConditions().getNotBefore().isAfterNow()) {
+        if (assertion.getConditions().getNotBefore() != null && assertion.getConditions().getNotBefore().minusSeconds(5).isAfterNow()) {
             throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlNotBefore"));
         }
         if (assertion.getConditions().getNotOnOrAfter() != null
@@ -93,6 +96,17 @@ public class SamlResponseValidator {
             throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlNotAfter"));
         }
         //Validate assertion signature
-        validateSignature(assertion.getSignature(), getCertificate(assertion));
+        if (assertion.getSignature() != null) {
+            X509Certificate certificate = getCertificate(assertion);
+            if (certificate != null) {
+                validateSignature(assertion.getSignature(), getCertificate(assertion));
+            }
+            else {
+                _LOG.info("Assertion signature doesn't contain certificate");
+            }
+        }
+        else {
+            _LOG.info("Assertion is not signed");
+        }
     }
 }
