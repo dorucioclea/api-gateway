@@ -561,7 +561,7 @@ public class UserFacade implements Serializable {
         String urlEncodedRelaystate = URLEncoder.encode(relayState, "UTF-8");
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(urlEncodedRelaystate.trim());
         if (webClientCacheBean == null) {
-            throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
+            //throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
         }
         try {
             assertion = processSSOResponse(samlResponse);
@@ -724,7 +724,7 @@ public class UserFacade implements Serializable {
         Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
         Response response = (Response) unmarshaller.unmarshall(element);
 
-        validateSAMLResponse(response);
+        SamlResponseValidator.validateSAMLResponse(response, config.getIDPEntityId());
 
         return response.getAssertions().get(0);
     }
@@ -1077,41 +1077,5 @@ public class UserFacade implements Serializable {
                 .withType(type)
                 .withBody(body);
         event.fire(neb);
-    }
-
-    private void validateSAMLResponse(Response response) {
-
-        Assertion assertion = response.getAssertions().get(0);
-        if (assertion.getIssuer() != null && !assertion.getIssuer().getValue().equals(config.getIDPEntityId())) {
-            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlIdpEntity", assertion.getIssuer().getValue(), config.getIDPEntityId()));
-        }
-        //Validate assertion signature
-        try {
-            String certByte = response.getSignature().getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue();
-            InputStream ss = new ByteArrayInputStream(Base64.decode(certByte));
-            Certificate myCert = CertificateFactory
-                    .getInstance("X509").generateCertificate(ss);
-
-            X509Certificate cert = (X509Certificate) myCert;
-
-            BasicX509Credential x509Credential = new BasicX509Credential();
-            x509Credential.setPublicKey(cert.getPublicKey());
-            x509Credential.setEntityCertificate(cert);
-            x509Credential.getEntityCertificateChain().add(cert);
-            Credential credential = x509Credential;
-            SignatureValidator sigValidator = new SignatureValidator(
-                    credential);
-            sigValidator.validate(assertion.getSignature());
-        } catch (ValidationException | CertificateException ex) {
-            throw ExceptionFactory.samlAuthException(ex.getMessage());
-        }
-        //Validate assertion conditions
-        if (assertion.getConditions().getNotBefore() != null && assertion.getConditions().getNotBefore().isAfterNow()) {
-            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlNotBefore"));
-        }
-        if (assertion.getConditions().getNotOnOrAfter() != null
-                && (assertion.getConditions().getNotOnOrAfter().isBeforeNow() || assertion.getConditions().getNotOnOrAfter().isEqualNow())) {
-            throw ExceptionFactory.samlAuthException(Messages.i18n.format("samlNotAfter"));
-        }
     }
 }
