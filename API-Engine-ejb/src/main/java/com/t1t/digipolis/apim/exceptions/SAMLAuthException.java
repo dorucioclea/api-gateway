@@ -1,7 +1,7 @@
 package com.t1t.digipolis.apim.exceptions;
 
 /**
- * Created by michallispashidis on 4/09/15.
+ * Created by michallispashidis on 4/09/15.U
  */
 public class SAMLAuthException extends AbstractUserException {
     /**
@@ -17,7 +17,7 @@ public class SAMLAuthException extends AbstractUserException {
      */
     @Override
     public int getHttpCode() {
-        return ErrorCodes.HTTP_STATUS_CODE_SYSTEM_ERROR;
+        return ErrorCodes.HTTP_STATUS_CODE_UNAUTHORIZED;
     }
 
     /**
@@ -25,7 +25,7 @@ public class SAMLAuthException extends AbstractUserException {
      */
     @Override
     public int getErrorCode() {
-        return -1;
+        return ErrorCodes.INVALID_SAML;
     }
 
     /**
@@ -33,6 +33,6 @@ public class SAMLAuthException extends AbstractUserException {
      */
     @Override
     public String getMoreInfoUrl() {
-        return null;
+        return ErrorCodes.INVALID_SAML_INFO;
     }
 }

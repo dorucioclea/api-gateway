@@ -125,7 +125,6 @@ public class UserFacade implements Serializable {
     private static final String SAML2_KEY_RELAY_STATE = "RelayState=";
     private static final String SAML2_KEY_RESPONSE = "SAMLResponse=";
     private static final String SAML2_KEY_REQUEST = "SAMLRequest=";
-    private static final String SEPARATOR_CHAR = ",";
     @Inject
     private ISecurityContext securityContext;
     @Inject
@@ -724,15 +723,8 @@ public class UserFacade implements Serializable {
         UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
         Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
         Response response = (Response) unmarshaller.unmarshall(element);
-        List<String> idpEntityIds;
-        if (config.getIDPEntityId().contains(SEPARATOR_CHAR)) {
-            idpEntityIds = Arrays.asList(config.getIDPEntityId().split(SEPARATOR_CHAR));
-        }
-        else {
-            idpEntityIds = Arrays.asList(config.getIDPEntityId());
-        }
 
-        SamlResponseValidator.validateSAMLResponse(response, idpEntityIds);
+        SamlResponseValidator.validateSAMLResponse(response, config);
 
         return response.getAssertions().get(0);
     }

@@ -49,4 +49,5 @@ public interface IConfig {
     String NOTIFICATION_MAIL_FROM = "apiapp.notifications.mail_from";
     String HYSTRIX_METRICS_TIMEOUT_VALUE = "apiapp.hystrix.metrics";
     String FILEPATH_LOCAL = "apiapp.filepaths.local";
+    String IDP_NOTBEFORE_DELAY = "apiapp.idp.not_before_delay";
 }

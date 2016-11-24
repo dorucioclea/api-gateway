@@ -12,6 +12,7 @@ public final class ErrorCodes {
     // HTTP status codes
     //
     public static final int HTTP_STATUS_CODE_INVALID_INPUT  = 400;
+    public static final int HTTP_STATUS_CODE_UNAUTHORIZED   = 401;
     public static final int HTTP_STATUS_CODE_FORBIDDEN      = 403;
     public static final int HTTP_STATUS_CODE_NOT_FOUND      = 404;
     public static final int HTTP_STATUS_CODE_ALREADY_EXISTS = 409;
@@ -31,6 +32,7 @@ public final class ErrorCodes {
     public static final int USER_ALREADY_A_MEMBER           = 1004;
     public static final int JWT_INVALID                     = 1005;
     public static final int USER_ALREADY_ADMIN              = 1006;
+    public static final int INVALID_SAML                    = 1007;
 
     public static final String USER_NOT_FOUND_INFO          = null;
     public static final String USER_ALREADY_EXISTS_INFO     = null;
@@ -38,6 +40,7 @@ public final class ErrorCodes {
     public static final String USER_ALREADY_A_MEMBER_INFO   = null;
     public static final String JWT_INVALID_INFO             = null;
     public static final String USER_ALREADY_ADMIN_INFO      = null;
+    public static final String INVALID_SAML_INFO            = null;
 
 
     //

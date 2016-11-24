@@ -79,6 +79,7 @@ public class AppConfig implements Serializable {
             _LOG.info("IDP OAUTH token endpoint: {}",getIDPOAuthTokenEndpoint());
             _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
             _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
+            _LOG.info("IDP Not Before Delay: {}",getIDPNotBeforeDelay());
             _LOG.info("REST resource security: {}", getRestResourceSecurity());
             _LOG.info("REST AUTH resource security: {}", getRestAuthResourceSecurity());
             _LOG.info("Metrics schema: {}",getMetricsScheme());
@@ -144,4 +145,5 @@ public class AppConfig implements Serializable {
     public Integer getHystrixMetricsTimeout() {return config.getInt(IConfig.HYSTRIX_METRICS_TIMEOUT_VALUE);}
     public String getLocalFilePath() {return config.getString(IConfig.FILEPATH_LOCAL);}
     public String getIDPEntityId(){return config.getString(IConfig.IDP_ENTITY_ID);}
+    public Integer getIDPNotBeforeDelay(){return config.getInt(IConfig.IDP_NOTBEFORE_DELAY);}
 }
