@@ -2331,11 +2331,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration(), svcId), PolicyType.Service, svcId).getPolicyJsonConfig());
                 if (plugin != null) {
                     log.info("policy new_config:{}", bean.getConfiguration());
-                    log.info("policy val_config:{}", policy.getConfiguration());
-                    log.info("plugin old_config:{}", plugin.getConfig());
                     plugin.setConfig(new Gson().fromJson(policy.getConfiguration(), Policies.valueOf(policy.getDefinition().getId().toUpperCase()).getClazz()));
-                    log.info("plugin new_config:{}", plugin.getConfig());
                 }
+                data.addChange("config", policy.getConfiguration(), bean.getConfiguration());
             }
             if (bean.isEnabled() != null && AuditUtils.valueChanged(policy.isEnabled(), bean.isEnabled())) {
                 policy.setEnabled(bean.isEnabled());
