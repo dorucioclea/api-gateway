@@ -35,10 +35,14 @@ local function ldap_authenticate(given_username, given_password, conf)
     local error, suppressed_err, ok
     local who
 
-    if(conf.attribute ~= nil) then
-        who = conf.attribute.."="..given_username..","..conf.base_dn
+    if(conf.attribute ~= nil and conf.attribute ~= '') then
+        who = conf.attribute.."="..given_username
     else
         who = given_username
+    end
+
+    if(conf.base_dn ~= nil and conf.base_dn ~= '') then
+        who = who..","..conf.base_dn
     end
 
     local sock = ngx_socket_tcp()

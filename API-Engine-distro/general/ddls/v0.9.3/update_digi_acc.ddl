@@ -17,14 +17,12 @@ UPDATE policydefs SET form = '{
     "base_dn": {
       "title": "Base DN",
       "description": "Base DN as the starting point for the search.",
-      "type": "string",
-      "default": "DC=antwerpen,DC=local"
+      "type": "string"
     },
     "attribute": {
       "title": "Attribute",
       "description": "Attribute to be used to search the user.",
-      "type": "string",
-      "default": "sAMAccountName"
+      "type": "string"
     },
     "cache_ttl": {
       "title": "Cache TTL",
@@ -66,7 +64,6 @@ UPDATE policydefs SET form = '{
   "required": [
     "ldap_host",
     "cache_ttl",
-    "ldap_port",
-    "base_dn"
+    "ldap_port"
   ]
 }' WHERE id = 'LDAPAuthentication';
