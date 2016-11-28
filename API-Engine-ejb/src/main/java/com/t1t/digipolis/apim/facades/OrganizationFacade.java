@@ -4110,9 +4110,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             //Update managed app keys if any
             ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(revokedKey);
-            mab.getApiKeys().remove(revokedKey);
-            mab.getApiKeys().add(newApiKey);
-            storage.updateManagedApplication(mab);
+            if (mab != null) {
+                mab.getApiKeys().remove(revokedKey);
+                mab.getApiKeys().add(newApiKey);
+                storage.updateManagedApplication(mab);
+            }
 
             EntityUpdatedData data = new EntityUpdatedData();
             data.addChange("apikey", revokedKey, newApiKey);
