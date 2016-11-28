@@ -11,7 +11,7 @@ UPDATE policydefs SET form = '{
     "ldap_port": {
       "title": "LDAP Port",
       "description": "TCP port where the LDAP server is listening.",
-      "type": "number",
+      "type": "integer",
       "default": 389
     },
     "base_dn": {
@@ -29,19 +29,19 @@ UPDATE policydefs SET form = '{
     "cache_ttl": {
       "title": "Cache TTL",
       "description": "Cache expiry time",
-      "type": "number",
+      "type": "integer",
       "default": 60
     },
     "timeout": {
       "title": "Timeout",
       "description": "An optional timeout in milliseconds when waiting for connection with LDAP server.",
-      "type": "number",
+      "type": "integer",
       "default": 10000
     },
     "keepalive": {
       "title": "Keep Alive",
       "description": "An optional value in milliseconds that defines for how long an idle connection to LDAP server will live before being closed.",
-      "type": "number",
+      "type": "integer",
       "default": 60000
     },
     "verify_ldap_host": {

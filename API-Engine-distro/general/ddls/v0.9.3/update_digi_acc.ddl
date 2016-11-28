@@ -67,3 +67,40 @@ UPDATE policydefs SET form = '{
     "ldap_port"
   ]
 }' WHERE id = 'LDAPAuthentication';
+
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "Rate Limiting",
+  "properties": {
+    "day": {
+      "title": "Day(s)",
+      "description": "The amount of HTTP requests the developer can make per day. At least one limit must exist.",
+      "type": "integer"
+    },
+    "minute": {
+      "title": "Minute(s)",
+      "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
+      "type": "integer"
+    },
+    "second": {
+      "title": "Second(s)",
+      "description": "The amount of HTTP requests the developer can make per second. At least one limit must exist.",
+      "type": "integer"
+    },
+    "hour": {
+      "title": "Hour(s)",
+      "description": "The amount of HTTP requests the developer can make per hour. At least one limit must exist.",
+      "type": "integer"
+    },
+    "month": {
+      "title": "Month(s)",
+      "description": "The amount of HTTP requests the developer can make per month. At least one limit must exist.",
+      "type": "integer"
+    },
+    "year": {
+      "title": "Year(s)",
+      "description": "The amount of HTTP requests the developer can make per year. At least one limit must exist.",
+      "type": "integer"
+    }
+  }
+}' WHERE id = 'RateLimiting';
