@@ -1733,44 +1733,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
             storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
             log.debug(String.format("Deleted contract: %s", contract));
-            //verify if application still needs OAuth credentials?
-            int oauthEnabledServices = 0;
-            List<ContractSummaryBean> contracts = query.getApplicationContracts(organizationId, applicationId, version);
-            if (contracts != null && contracts.size() > 0) {
-                //verify if other contracts still need OAuth properties
-                for (ContractSummaryBean ctr : contracts) {
-                    List<PolicySummaryBean> policySummaryBeans = listServicePolicies(ctr.getServiceOrganizationId(), ctr.getServiceId(), ctr.getServiceVersion());
-                    for (PolicySummaryBean summaryBean : policySummaryBeans)
-                        if (summaryBean.getPolicyDefinitionId().toLowerCase().equals(Policies.OAUTH2.getKongIdentifier()))
-                            oauthEnabledServices++;
-                }
-            } else if (contracts != null && contracts.size() == 0) {
-                //be sure no oauth data is present
-                oauthEnabledServices = 0;
-            }
-            if (oauthEnabledServices == 0) {
-                //remove OAuth credential for consumer
-                try {
-                    //We create the new application version consumer
-                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                    //upon filling redirect URI the OAuth credential has been made, check if callback is there, otherwise 405 gateway exception.
-                    if (contract != null && !(avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())) {
-                        String uniqueUserId = securityContext.getCurrentUser();
-                        UserBean user = idmStorage.getUser(uniqueUserId);
-                        KongPluginOAuthConsumerResponseList info = gateway.getApplicationOAuthInformation(avb.getoAuthClientId());
-                        if (info.getData().size() > 0) {
-                            gateway.deleteOAuthConsumerPlugin(user.getKongUsername(), ((KongPluginOAuthConsumerResponse) info.getData().get(0)).getId());
-                        }
-                    }
-                } catch (StorageException e) {
-                    throw new ApplicationNotFoundException(e.getMessage());
-                }
-                //clear application version OAuth information
-                avb.setoAuthClientId("");
-                avb.setOauthClientSecret("");
-                avb.setOauthClientRedirects(Collections.EMPTY_SET);
-                storage.updateApplicationVersion(avb);
-            }
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
@@ -2369,11 +2331,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 policy.setConfiguration(gatewayValidation.validate(new Policy(policy.getDefinition().getId(), bean.getConfiguration(), svcId), PolicyType.Service, svcId).getPolicyJsonConfig());
                 if (plugin != null) {
                     log.info("policy new_config:{}", bean.getConfiguration());
-                    log.info("policy val_config:{}", policy.getConfiguration());
-                    log.info("plugin old_config:{}", plugin.getConfig());
                     plugin.setConfig(new Gson().fromJson(policy.getConfiguration(), Policies.valueOf(policy.getDefinition().getId().toUpperCase()).getClazz()));
-                    log.info("plugin new_config:{}", plugin.getConfig());
                 }
+                data.addChange("config", policy.getConfiguration(), bean.getConfiguration());
             }
             if (bean.isEnabled() != null && AuditUtils.valueChanged(policy.isEnabled(), bean.isEnabled())) {
                 policy.setEnabled(bean.isEnabled());
@@ -3014,6 +2974,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setApikey(apiKeyGenerator.generate());
         newVersion.setoAuthClientId(apiKeyGenerator.generate());
         newVersion.setOauthClientSecret(apiKeyGenerator.generate());
+        newVersion.setOauthClientRedirects(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI)));
         storage.createApplicationVersion(newVersion);
         storage.createAuditEntry(AuditUtils.applicationVersionCreated(newVersion, securityContext));
         //create consumer on gateway
@@ -4149,9 +4110,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             //Update managed app keys if any
             ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(revokedKey);
-            mab.getApiKeys().remove(revokedKey);
-            mab.getApiKeys().add(newApiKey);
-            storage.updateManagedApplication(mab);
+            if (mab != null) {
+                mab.getApiKeys().remove(revokedKey);
+                mab.getApiKeys().add(newApiKey);
+                storage.updateManagedApplication(mab);
+            }
 
             EntityUpdatedData data = new EntityUpdatedData();
             data.addChange("apikey", revokedKey, newApiKey);

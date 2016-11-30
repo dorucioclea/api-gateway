@@ -678,7 +678,44 @@ CREATE INDEX IDX_service_brandings_2 ON service_brandings(branding_id);
 -- UPDATE FROM 0.8.2 -> 0.9.3 --
 
 ALTER TABLE managed_applications DROP COLUMN api_key;
-ALTER TABLE contracts DROP COLUMN apikey;CREATE INDEX IDX_service_brandings_2 ON service_brandings(branding_id);
+ALTER TABLE contracts DROP COLUMN apikey;
+
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "Rate Limiting",
+  "properties": {
+    "day": {
+      "title": "Day(s)",
+      "description": "The amount of HTTP requests the developer can make per day. At least one limit must exist.",
+      "type": "integer"
+    },
+    "minute": {
+      "title": "Minute(s)",
+      "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
+      "type": "integer"
+    },
+    "second": {
+      "title": "Second(s)",
+      "description": "The amount of HTTP requests the developer can make per second. At least one limit must exist.",
+      "type": "integer"
+    },
+    "hour": {
+      "title": "Hour(s)",
+      "description": "The amount of HTTP requests the developer can make per hour. At least one limit must exist.",
+      "type": "integer"
+    },
+    "month": {
+      "title": "Month(s)",
+      "description": "The amount of HTTP requests the developer can make per month. At least one limit must exist.",
+      "type": "integer"
+    },
+    "year": {
+      "title": "Year(s)",
+      "description": "The amount of HTTP requests the developer can make per year. At least one limit must exist.",
+      "type": "integer"
+    }
+  }
+}' WHERE id = 'RateLimiting';
 
 -- Table for API engine operating modes
 CREATE TABLE operating_modes (id VARCHAR(255) NOT NULL, enabled BOOL NOT NULL DEFAULT FALSE, message VARCHAR(255));

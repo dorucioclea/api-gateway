@@ -10,6 +10,7 @@ public interface IConfig {
     String KONG_URL = "apiapp.kong.endpoint_url";
     String KONG_HOST = "apiapp.kong.host";
     String KONG_URL_MANAGEMENT = "apiapp.kong.management_url";
+    String IDP_ENTITY_ID = "apiapp.idp.entity_id";
     String IDP_SAML_ENDPOINT = "apiapp.idp.saml_endpoint_url";
     String IDP_NAMEID_FORMAT = "apiapp.idp.nameid_format";
     String IDP_SCIM_ENDPOINT= "apiapp.idp.scim_endpoint_url";
@@ -48,4 +49,5 @@ public interface IConfig {
     String NOTIFICATION_MAIL_FROM = "apiapp.notifications.mail_from";
     String HYSTRIX_METRICS_TIMEOUT_VALUE = "apiapp.hystrix.metrics";
     String FILEPATH_LOCAL = "apiapp.filepaths.local";
+    String IDP_NOTBEFORE_DELAY = "apiapp.idp.not_before_delay";
 }

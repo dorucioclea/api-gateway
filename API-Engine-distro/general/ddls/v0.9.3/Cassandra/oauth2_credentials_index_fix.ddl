@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS ON oauth2_authorization_codes(credential_id);

@@ -831,7 +831,8 @@ public class EventFacade {
                                 contractMailBean.setServiceVersion(svb.getVersion());
                                 Gson gson = new Gson();
                                 PlanVersionSummaryBean pvsb = gson.fromJson(event.getBody(), PlanVersionSummaryBean.class);
-                                contractMailBean.setPlanName(new Gson().fromJson(event.getBody(), PlanVersionSummaryBean.class).getName());
+                                contractMailBean.setPlanName(pvsb.getName());
+                                contractMailBean.setPlanVersion(pvsb.getVersion());
                                 switch (event.getType()) {
                                     case CONTRACT_PENDING:
                                         mailService.sendContractRequest(contractMailBean);
