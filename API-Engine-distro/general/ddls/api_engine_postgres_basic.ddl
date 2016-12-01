@@ -347,7 +347,7 @@ INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 9);
 INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 10);
 
 -- In order to ... *** SQLINES FOR EVALUATION USE ONLY *** 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('BasicAuthentication', 'Add Basic Authentication to your APIs', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('BasicAuthentication', 'Add Basic Authentication to your APIs', '{
   "type": "object",
   "title": "Basic Authentication",
   "properties": {
@@ -358,91 +358,9 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "default": false
     }
   }
-}', 'JsonSchema', 'fa-user', 'Basic Authentication Policy', NULL ,FALSE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-user', 'Basic Authentication Policy', null, false, false, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('KeyAuthentication', 'Add Key Authentication to your APIs', '{
-  "type": "object",
-  "title": "Key Authentication",
-  "properties": {
-    "key_names": {
-      "title":"Key names",
-      "type": "array",
-      "items": {
-        "type": "string",
-        "description":"Describes a name where the plugin will look for a valid credential. The client must send the authentication key in one of the specified key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order)."
-      }
-    },
-    "hide_credentials": {
-      "title": "Hide credentials",
-      "description":"An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
-      "type": "boolean",
-      "default": false
-    }
-  },
-  "required": [
-    "key_names"
-  ]
-}', 'JsonSchema', 'fa-key', 'Key Authentication Policy', NULL ,TRUE ,FALSE ,TRUE );
-
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('CORS', 'Allow consumers to make requests from browsers to your APIs', '{
-  "type": "object",
-  "title": "CORS",
-  "properties": {
-    "methods": {
-      "type": "array",
-      "items": {
-        "title": "Methods",
-        "type": "string",
-        "pattern": "^POST$|^GET$|^HEAD$|^PUT$|^PATCH$|^DELETE$",
-        "validationMessage": "Should be one of: GET,HEAD,PUT,PATCH,POST,DELETE",
-        "description": "Value for the Access-Control-Allow-Methods header, expects a string (e.g. GET or POST). Defaults to the values GET,HEAD,PUT,PATCH,POST,DELETE."
-      }
-    },
-    "credentials": {
-      "title": "Credentials",
-      "description": "Flag to determine whether the Access-Control-Allow-Credentials header should be sent with true as the value.",
-      "type": "boolean",
-      "default": false
-    },
-      "headers": {
-        "type": "array",
-        "items": {
-          "title": "Headers",
-          "type": "string",
-          "description": "Value for the Access-Control-Allow-Headers header (e.g. Origin, Authorization). Defaults to the value of the Access-Control-Request-Headers header."
-        }
-    },
-    "exposed_headers": {
-                "type": "array",
-        "items": {
-          "title": "Exposed headers",
-          "type": "string",
-          "description": "Value for the Access-Control-Expose-Headers header (e.g. Origin, Authorization). If not specified, no custom headers are exposed."
-        }
-    },
-    "origin": {
-      "title": "Origin",
-      "type": "string",
-      "default": "*",
-      "description": "Value for the Access-Control-Allow-Origin header, expects a String. Defaults to *."
-    },
-    "max_age": {
-      "title": "Max age",
-      "type": "number",
-      "description": "Indicated how long the results of the preflight request can be cached, in seconds.",
-      "default": 3600,
-      "minimum": 1
-    },
-    "preflight_continue": {
-      "title": "Preflight continue",
-      "type": "boolean",
-      "description": "A boolean value that instructs the plugin to proxy the OPTIONS preflight request to the upstream API. Defaults to false.",
-      "default": false
-    }
-  }
-}', 'JsonSchema', 'fa-code', 'CORS Policy', NULL ,TRUE ,FALSE ,TRUE );
-
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('SSL', 'Add an SSL certificate for an underlying service', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('SSL', 'Add an SSL certificate for an underlying service', '{
   "type": "object",
   "title": "SSL",
   "properties": {
@@ -467,169 +385,60 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "cert",
     "key"
   ]
-}', 'JsonSchema', 'fa-lock', 'SSL Policy', NULL ,FALSE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-lock', 'SSL Policy', null, false, false, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('IPRestriction', 'Whitelist or Blacklist IPs that can make requests', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('ResponseTransformer', 'Modify the upstream response before returning it to the client', '{
   "type": "object",
-  "title": "IP Restriction",
+  "title": "Response Transformer",
   "properties": {
-    "blacklist": {
-        "type": "array",
-        "items":{
-               "type": "string",
-               "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
-                "description": "List of IPs or CIDR ranges to blacklist. You cannot set blacklist values if you have already whitelist values specified!",
-                "validationMessage":"IP or CIDR required"
-        }
-    },
-    "whitelist": {
-        "type": "array",
-        "items":{
-            "type": "string",
-            "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
-            "description": "List of IPs or CIDR ranges to whitelist. You cannot set whitelist values if you have already blacklist values specified.",
-            "validationMessage":"IP or CIDR required"
-        }
-    }
-  }
-}', 'JsonSchema', 'fa-table', 'IP Restriction Policy', NULL ,TRUE ,TRUE ,FALSE );
-
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto, form_override) VALUES ('OAuth2', 'Add an OAuth2 Authentication to your APIs', '{
-  "type": "object",
-  "title": "OAuth2",
-  "properties": {
-    "scopes": {
-      "type": "array",
-      "items": {
-          "type": "object",
-          "properties":{
-            "scope":{
-                "title": "Scope",
+    "remove": {
+      "title": "Remove from request",
+      "type": "object",
+      "properties": {
+          "headers": {
+              "type": "array",
+              "items": {
+                    "title": "Header",
+                    "type": "string",
+                    "description": "Header name to remove from the response headers."
+              }
+          },
+          "json": {
+              "type": "array",
+              "items": {
+                "title": "JSON",
                 "type": "string",
-                "pattern": "^[a-z,A-Z]+$",
-                "description": "Provide the scope identifier that will be available to the end user (use only lowercase characters and no special characters)."
-            },
-            "scope_desc":{
-                "title": "Scope Description",
-                "type": "string",
-                "description": "Describes the scope that will be available to the end user."
-            }
+                "description": "JSON key name to remove from a JSON response body."
+              }
           }
       }
     },
-    "mandatory_scope": {
-      "title": "Mandatory scope",
-      "type": "boolean",
-      "func": "function",
-      "default": false,
-      "description": "An optional boolean value telling the plugin to require at least one scope to be authorized by the end user."
-    },
-    "token_expiration": {
-      "title": "Token expiration",
-      "type": "number",
-      "minimum": 0,
-      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration."
-    },
-    "enable_authorization_code": {
-      "title": "Enable Authorization Code Grant",
-      "type": "boolean",
-      "default": true,
-      "description": "An optional boolean value to enable the three-legged Authorization Code flow (RFC 6742 Section 4.1)."
-    },
-    "enable_implicit_grant": {
-      "title": "Enable Implicit Grant",
-      "type": "boolean",
-      "default": false,
-      "description": "An optional boolean value to enable the Implicit Grant flow which allows to provision a token as a result of the authorization process (RFC 6742 Section 4.2)."
-    },
-    "enable_client_credentials": {
-      "title": "Enable Client Credentials Grant",
-      "type": "boolean",
-      "default": false,
-      "description": "An optional boolean value to enable the Client Credentials Grant flow (RFC 6742 Section 4.4)."
-    },
-    "hide_credentials": {
-      "title": "Hide credentials",
-      "type": "boolean",
-      "default": false,
-      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by Kong before proxying the request."
+    "add": {
+      "title": "Add to request",
+      "type": "object",
+      "properties": {
+          "headers": {
+              "type": "array",
+              "items": {
+                "title": "Header",
+                "type": "string",
+                "description": "Headername:value to add to the response headers."
+              }
+          },
+          "json": {
+              "type": "array",
+              "items": {
+                "title": "JSON",
+                "type": "string",
+                "description": "Jsonkey:value to add to a JSON response body."
+              }
+          }
+      }
     }
   }
-}', 'JsonSchema', 'fa-sign-in', 'OAuth2 Policy', NULL ,TRUE ,FALSE ,FALSE, '[
-  "scopes",
-  "mandatory_scope",
-  "token_expiration",
-  "enable_authorization_code",
-  "enable_implicit_grant",
-  {
-    "type":"help",
-    "helpvalue":"<p class=\"text-justified text-warning xsmall\">WARNING: The Implicit Grant flow is necessary for try-out functionality in the marketplace, but also prohibits the usage of refresh tokens.</p>"
-  },
-  "enable_client_credentials",
-  "hide_credentials"
-]');
+}', 'JsonSchema', 'fa-chevron-circle-left', 'Response Transformer Policy', null, true, false, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RateLimiting', 'Rate-limit how many HTTP requests a consumer can make', '{
-  "type": "object",
-  "title": "Rate Limiting",
-  "properties": {
-    "day": {
-      "title": "Day(s)",
-      "description": "The amount of HTTP requests the developer can make per day. At least one limit must exist.",
-      "pattern": "^[1-9][0-9]*$",
-      "type": "string"
-    },
-    "minute": {
-      "title": "Minute(s)",
-      "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
-      "pattern": "^[1-9][0-9]*$",
-      "type": "number"
-    },
-    "second": {
-      "title": "Second(s)",
-      "description": "The amount of HTTP requests the developer can make per second. At least one limit must exist.",
-      "pattern": "^[1-9][0-9]*$",
-      "type": "string"
-    },
-    "hour": {
-      "title": "Hour(s)",
-      "description": "The amount of HTTP requests the developer can make per hour. At least one limit must exist.",
-      "pattern": "^[1-9][0-9]*$",
-      "type": "string"
-    },
-    "month": {
-      "title": "Month(s)",
-      "description": "The amount of HTTP requests the developer can make per month. At least one limit must exist.",
-      "pattern": "^[1-9][0-9]*$",
-      "type": "string"
-    },
-    "year": {
-      "title": "Year(s)",
-      "description": "The amount of HTTP requests the developer can make per year. At least one limit must exist.",
-      "pattern": "^[1-9][0-9]*$",
-      "type": "string"
-    }
-  }
-}', 'JsonSchema', 'fa-tachometer', 'Rate Limiting Policy', NULL ,TRUE ,TRUE ,FALSE );
-
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RequestSizeLimiting', 'Block requests with bodies greater than a specific size', '{
-  "type": "object",
-  "title": "Request Size Limiting",
-  "properties": {
-    "allowed_payload_size": {
-      "title": "Allowed payload size",
-      "description": "Allowed request payload size in megabytes, default is 128 (128 000 000 Bytes)",
-      "type": "number",
-      "default": 128,
-      "minimum": 0
-    }
-  },
-  "required": [
-    "allowed_payload_size"
-  ]
-}', 'JsonSchema', 'fa-compress', 'Request Size Limiting Policy', NULL ,TRUE ,TRUE ,FALSE );
-
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
   "type": "object",
   "title": "Request Transformer",
   "properties": {
@@ -694,60 +503,26 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       }
     }
   }
-}', 'JsonSchema', 'fa-chevron-circle-right', 'Request Transformer Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-chevron-circle-right', 'Request Transformer Policy', null, true, false, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ResponseTransformer', 'Modify the upstream response before returning it to the client', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('RequestSizeLimiting', 'Block requests with bodies greater than a specific size', '{
   "type": "object",
-  "title": "Response Transformer",
+  "title": "Request Size Limiting",
   "properties": {
-    "remove": {
-      "title": "Remove from request",
-      "type": "object",
-      "properties": {
-          "headers": {
-              "type": "array",
-              "items": {
-                    "title": "Header",
-                    "type": "string",
-                    "description": "Header name to remove from the response headers."
-              }
-          },
-          "json": {
-              "type": "array",
-              "items": {
-                "title": "JSON",
-                "type": "string",
-                "description": "JSON key name to remove from a JSON response body."
-              }
-          }
-      }
-    },
-    "add": {
-      "title": "Add to request",
-      "type": "object",
-      "properties": {
-          "headers": {
-              "type": "array",
-              "items": {
-                "title": "Header",
-                "type": "string",
-                "description": "Headername:value to add to the response headers."
-              }
-          },
-          "json": {
-              "type": "array",
-              "items": {
-                "title": "JSON",
-                "type": "string",
-                "description": "Jsonkey:value to add to a JSON response body."
-              }
-          }
-      }
+    "allowed_payload_size": {
+      "title": "Allowed payload size",
+      "description": "Allowed request payload size in megabytes, default is 128 (128 000 000 Bytes)",
+      "type": "number",
+      "default": 128,
+      "minimum": 0
     }
-  }
-}', 'JsonSchema', 'fa-chevron-circle-left', 'Response Transformer Policy', NULL ,TRUE ,FALSE ,FALSE );
+  },
+  "required": [
+    "allowed_payload_size"
+  ]
+}', 'JsonSchema', 'fa-compress', 'Request Size Limiting Policy', null, true, true, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('TCPLog', 'Send request and response logs to a TCP server', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('TCPLog', 'Send request and response logs to a TCP server', '{
   "type": "object",
   "title": "TCP Log",
   "properties": {
@@ -777,9 +552,9 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "required": [
     "host","port"
   ]
-}', 'JsonSchema', 'fa-random', 'TCP Log Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-random', 'TCP Log Policy', null, true, false, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('UDPLog', 'Send request and response logs to a UDP server', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('UDPLog', 'Send request and response logs to a UDP server', '{
   "type": "object",
   "title": "UDP Log",
   "properties": {
@@ -803,9 +578,9 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "required": [
     "host","port"
   ]
-}', 'JsonSchema', 'fa-crosshairs', 'UDP Log Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-crosshairs', 'UDP Log Policy', null, true, false, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('HTTPLog', 'Send request and response logs to a HTTP server', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('HTTPLog', 'Send request and response logs to a HTTP server', '{
   "type": "object",
   "title": "HTTP Log",
   "properties": {
@@ -836,9 +611,9 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "required": [
     "http_endpoint"
   ]
-}', 'JsonSchema', 'fa-exchange', 'HTTP Log Policy', NULL ,FALSE ,FALSE ,TRUE );
+}', 'JsonSchema', 'fa-exchange', 'HTTP Log Policy', null, false, false, true, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('FileLog', 'Append request and response data to a log file on disk', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('FileLog', 'Append request and response data to a log file on disk', '{
   "type": "object",
   "title": "File Log",
   "properties": {
@@ -851,9 +626,9 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "required": [
     "path"
   ]
-}', 'JsonSchema', 'fa-file-text-o', 'File Log Policy', NULL ,FALSE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-file-text-o', 'File Log Policy', null, false, false, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('Galileo', 'View API analytics in Mashape analytics - retention 1 day', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('Analytics', 'View API analytics in Mashape analytics - retention 1 day', '{
   "type": "object",
   "title": "File Log",
   "properties": {
@@ -866,43 +641,34 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "required": [
     "service_token"
   ]
-}', 'JsonSchema', 'fa-line-chart', 'Galileo Analytics Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-line-chart', 'Mashape Analytics Policy', null, true, false, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWT', 'Enable the service to accept and validate Json Web Tokens towards the upstream API.', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('IPRestriction', 'Whitelist or Blacklist IPs that can make requests', '{
   "type": "object",
-  "title": "JWT Token",
+  "title": "IP Restriction",
   "properties": {
-    "placeholder" :{}
-  },
-  "required": []
-}', 'JsonSchema', 'fa-certificate', 'JWT Policy', NULL ,TRUE ,FALSE ,FALSE );
-
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('JWTUp', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
-  "type": "object",
-  "title": "JWT-Upstream",
-  "properties": {
-    "placeholder" :{}
-  },
-  "required": []
-}', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', NULL ,TRUE ,FALSE ,FALSE );
-
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
-  "type": "object",
-  "title": "ACL",
-  "properties": {
-    "group": {
-      "title": "ACL group name",
-      "description":"Name of the ACL group belonging to the service",
-      "type": "string",
-      "required": true
+    "blacklist": {
+        "type": "array",
+        "items":{
+               "type": "string",
+               "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
+                "description": "List of IPs or CIDR ranges to blacklist. You cannot set blacklist values if you have already whitelist values specified!",
+                "validationMessage":"IP or CIDR required"
+        }
+    },
+    "whitelist": {
+        "type": "array",
+        "items":{
+            "type": "string",
+            "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
+            "description": "List of IPs or CIDR ranges to whitelist. You cannot set whitelist values if you have already blacklist values specified.",
+            "validationMessage":"IP or CIDR required"
+        }
     }
-  },
-  "required": [
-    "group"
-  ]
-}', 'JsonSchema', 'fa-acl', 'ACL Policy', NULL ,FALSE ,FALSE ,FALSE );
+  }
+}', 'JsonSchema', 'fa-table', 'IP Restriction Policy', null, true, true, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto) VALUES ('JSONThreatProtection', 'Protect your API from JSON content-level attack attempts that use structures that overwhelm JSON Parsers.', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('JSONThreatProtection', 'Protect your API from JSON content-level attack attempts that use structures that overwhelm JSON Parsers.', '{
   "type": "object",
   "title": "JSON Threat Protection",
   "properties": {
@@ -944,9 +710,251 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "default": 0
     }
   }
-}', 'JsonSchema', 'fa-shield', 'JSON Threat Protection', NULL, TRUE, FALSE, FALSE);
+}', 'JsonSchema', 'fa-shield', 'JSON Threat Protection', null, false, false, false, null, null);
 
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto) VALUES ('LDAP', 'Add LDAP Bind Authentication to your APIs, with username and password protection.', '{
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('JWTUp', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
+  "type": "object",
+  "title": "JWT-Upstream",
+  "properties": {
+    "placeholder" :{}
+  },
+  "required": []
+}', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('JWT', 'Enable the service to accept and validate Json Web Tokens towards the upstream API.', '{
+  "type": "object",
+  "title": "JWT Token",
+  "properties": {
+    "placeholder" :{}
+  },
+  "required": []
+}', 'JsonSchema', 'fa-certificate', 'JWT Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
+  "type": "object",
+  "title": "ACL",
+  "properties": {
+    "placeholder": {}
+  }
+}', 'JsonSchema', 'fa-users', 'ACL Policy', null, true, false, true, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('RateLimiting', 'Rate-limit how many HTTP requests a consumer can make', '{
+  "type": "object",
+  "title": "Rate Limiting",
+  "properties": {
+    "day": {
+      "title": "Day(s)",
+      "description": "The amount of HTTP requests the developer can make per day. At least one limit must exist.",
+      "type": "integer"
+    },
+    "minute": {
+      "title": "Minute(s)",
+      "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
+      "type": "integer"
+    },
+    "second": {
+      "title": "Second(s)",
+      "description": "The amount of HTTP requests the developer can make per second. At least one limit must exist.",
+      "type": "integer"
+    },
+    "hour": {
+      "title": "Hour(s)",
+      "description": "The amount of HTTP requests the developer can make per hour. At least one limit must exist.",
+      "type": "integer"
+    },
+    "month": {
+      "title": "Month(s)",
+      "description": "The amount of HTTP requests the developer can make per month. At least one limit must exist.",
+      "type": "integer"
+    },
+    "year": {
+      "title": "Year(s)",
+      "description": "The amount of HTTP requests the developer can make per year. At least one limit must exist.",
+      "type": "integer"
+    }
+  }
+}', 'JsonSchema', 'fa-tachometer', 'Rate Limiting Policy', null, true, true, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('OAuth2', 'Add an OAuth2 Authentication to your APIs', '{
+  "type": "object",
+  "title": "OAuth2",
+  "properties": {
+    "scopes": {
+      "type": "array",
+      "items": {
+          "type": "object",
+          "properties":{
+            "scope":{
+                "title": "Scope",
+                "type": "string",
+                "pattern": "^[a-z,A-Z]+$",
+                "description": "Provide the scope identifier that will be available to the end user (use only lowercase characters and no special characters)."
+            },
+            "scope_desc":{
+                "title": "Scope Description",
+                "type": "string",
+                "description": "Describes the scope that will be available to the end user."
+            }
+          }
+      }
+    },
+    "mandatory_scope": {
+      "title": "Mandatory scope",
+      "type": "boolean",
+      "func": "function",
+      "default": false,
+      "description": "An optional boolean value telling the plugin to require at least one scope to be authorized by the end user."
+    },
+    "token_expiration": {
+      "title": "Token expiration",
+      "type": "number",
+      "minimum": 0,
+      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration."
+    },
+    "enable_authorization_code": {
+      "title": "Enable Authorization Code Grant",
+      "type": "boolean",
+      "default": true,
+      "description": "An optional boolean value to enable the three-legged Authorization Code flow (RFC 6742 Section 4.1)."
+    },
+    "enable_implicit_grant": {
+      "title": "Enable Implicit Grant",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value to enable the Implicit Grant flow which allows to provision a token as a result of the authorization process (RFC 6742 Section 4.2)."
+    },
+    "enable_client_credentials": {
+      "title": "Enable Client Credentials Grant",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value to enable the Client Credentials Grant flow (RFC 6742 Section 4.4)."
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by Kong before proxying the request."
+    }
+  }
+}', 'JsonSchema', 'fa-sign-in', 'OAuth2 Policy', null, true, false, false, '[
+  "scopes",
+  "mandatory_scope",
+  "token_expiration",
+  "enable_authorization_code",
+  "enable_implicit_grant",
+  {
+    "type":"help",
+    "helpvalue":"<p class=\"text-justified text-warning xsmall\">WARNING: The Implicit Grant flow is necessary for try-out functionality in the marketplace, but also prohibits the usage of refresh tokens.</p>"
+  },
+  "enable_client_credentials",
+  "hide_credentials"
+]', null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('HAL', 'The HAL policy rewrites currie-values from hal/json bodies.', '{
+  "type": "object",
+  "title": "HAL Authentication",
+  "properties": {
+    "placeholder" :{}
+  },
+  "required": []
+}', 'JsonSchema', 'fa-paw', 'HAL Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('KeyAuthentication', 'Add Key Authentication to your APIs', '{
+  "type": "object",
+  "title": "Key Authentication",
+  "properties": {
+    "key_names": {
+      "title":"Key names",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description":"Describes a name where the plugin will look for a valid credential. The client must send the authentication key in one of the specified key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order).",
+        "default": "apikey"
+      }
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "description":"An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "key_names"
+  ]
+}', 'JsonSchema', 'fa-key', 'Key Authentication Policy', null, true, false, true, null, '{"key_names":["apikey"],"hide_credentials":false}');
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('CORS', 'Allow consumers to make requests from browsers to your APIs', '{
+  "type": "object",
+  "title": "CORS",
+  "properties": {
+    "methods": {
+      "type": "array",
+      "items": {
+        "title": "Methods",
+        "type": "string",
+        "pattern": "^POST$|^GET$|^HEAD$|^PUT$|^PATCH$|^DELETE$",
+        "validationMessage": "Should be one of: GET,HEAD,PUT,PATCH,POST,DELETE",
+        "description": "Value for the Access-Control-Allow-Methods header, expects a string (e.g. GET or POST). Defaults to the values GET,HEAD,PUT,PATCH,POST,DELETE."
+      }
+    },
+    "credentials": {
+      "title": "Credentials",
+      "description": "Flag to determine whether the Access-Control-Allow-Credentials header should be sent with true as the value.",
+      "type": "boolean",
+      "default": false
+    },
+      "headers": {
+        "type": "array",
+        "items": {
+          "title": "Headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Allow-Headers header (e.g. Origin, Authorization). Defaults to the value of the Access-Control-Request-Headers header."
+        }
+    },
+    "exposed_headers": {
+                "type": "array",
+        "items": {
+          "title": "Exposed headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Expose-Headers header (e.g. Origin, Authorization). If not specified, no custom headers are exposed."
+        }
+    },
+    "origin": {
+      "title": "Origin",
+      "type": "string",
+      "default": "*",
+      "description": "Value for the Access-Control-Allow-Origin header, expects a String. Defaults to *."
+    },
+    "max_age": {
+      "title": "Max age",
+      "type": "number",
+      "description": "Indicated how long the results of the preflight request can be cached, in seconds.",
+      "default": 3600,
+      "minimum": 1
+    },
+    "preflight_continue": {
+      "title": "Preflight continue",
+      "type": "boolean",
+      "description": "A boolean value that instructs the plugin to proxy the OPTIONS preflight request to the upstream API. Defaults to false.",
+      "default": false
+    }
+  }
+}', 'JsonSchema', 'fa-code', 'CORS Policy', null, true, false, true, '[
+  "methods",
+  "credentials",
+  "headers",
+  {
+    "type": "help",
+    "helpvalue": "<p class=\"text-justified text-warning xsmall\">WARNING: When implementing a custom CORS policy we STRONGLY recommend including the following headers in order to ensure correct functioning of the API Gateway: \"Accept\",\"Accept-Version\",\"Content-Length\",\"Content-MD5\",\"Content-Type\",\"Date\",\"apikey\",\"Authorization\".</p>"
+  },
+  "exposed_headers",
+  "origin",
+  "max_age",
+  "preflight_continue"
+]', '{"methods":["HEAD","DELETE","GET","POST","PUT","PATCH"],"credentials":false,"exposed_headers":[],"max_age":3600.0,"preflight_continue":false,"headers":["Accept","Accept-Version","Content-Length","Content-MD5","Content-Type","Date","apikey","Authorization"]}');
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('LDAPAuthentication', 'Add LDAP Bind Authentication to your APIs, with username and password protection.', '{
   "type": "object",
   "title": "LDAP Authentication",
   "properties": {
@@ -958,8 +966,8 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "ldap_port": {
       "title": "LDAP Port",
       "description": "TCP port where the LDAP server is listening.",
-      "type": "number",
-      "default": 636
+      "type": "integer",
+      "default": 389
     },
     "base_dn": {
       "title": "Base DN",
@@ -974,19 +982,19 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "cache_ttl": {
       "title": "Cache TTL",
       "description": "Cache expiry time",
-      "type": "number",
+      "type": "integer",
       "default": 60
     },
     "timeout": {
       "title": "Timeout",
       "description": "An optional timeout in milliseconds when waiting for connection with LDAP server.",
-      "type": "number",
+      "type": "integer",
       "default": 10000
     },
     "keepalive": {
       "title": "Keep Alive",
       "description": "An optional value in milliseconds that defines for how long an idle connection to LDAP server will live before being closed.",
-      "type": "number",
+      "type": "integer",
       "default": 60000
     },
     "verify_ldap_host": {
@@ -1005,25 +1013,15 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
       "title": "Hide credentials",
       "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
       "type": "boolean",
-      "default": false
+      "default": true
     }
   },
   "required": [
     "ldap_host",
-    "cache_ttl"
-    "ldap_port",
-    "base_dn"
+    "cache_ttl",
+    "ldap_port"
   ]
-}', 'JsonSchema', 'fa-database', 'LDAP Policy', NULL, TRUE, FALSE, FALSE);
-
-INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,scope_service,scope_plan,scope_auto) VALUES ('HAL', 'The HAL policy rewrites currie-values from hal/json bodies.', '{
-  "type": "object",
-  "title": "HAL Authentication",
-  "properties": {
-    "placeholder" :{}
-  },
-  "required": []
-}', 'JsonSchema', 'fa-paw', 'HAL Policy', NULL ,TRUE ,FALSE ,FALSE );
+}', 'JsonSchema', 'fa-database', 'LDAP Authentication Policy', null, true, false, false, null, null);
 
 INSERT INTO config(config_path) VALUES ('/opt/wildfly/standalone/configuration/application.conf');
 

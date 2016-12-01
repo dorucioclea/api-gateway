@@ -65,7 +65,7 @@ public class OAuthResource implements IOAuth2Authorization {
         Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
         Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return new OAuthApplicationResponseDTO(oAuthFacade.getApplicationOAuthInformation(oauthClientId, orgId, serviceId, version));
+        return new OAuthApplicationResponseDTO(oAuthFacade.getApplicationOAuthInformation(oauthClientId, orgId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase()));
     }
 
     @ApiOperation(value = "Utility endpoint to composes a redirect request for user authorization.",

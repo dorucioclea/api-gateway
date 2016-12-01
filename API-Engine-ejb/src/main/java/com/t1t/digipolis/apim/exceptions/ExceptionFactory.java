@@ -603,6 +603,12 @@ public final class ExceptionFactory {
         return new BrandingCannotBeDeletedException(Messages.i18n.format("BrandingStillHasServices", brandingId));
     }
 
+    /**
+     * Creates an Exception
+     * @param message
+     * @param args
+     * @return
+     */
     public static final InvalidArgumentException invalidArgumentException(String message, String... args) {
         return new InvalidArgumentException(Messages.i18n.format(message, (Object[]) args));
     }
@@ -615,5 +621,14 @@ public final class ExceptionFactory {
      */
     public static final ApplicationOAuthInformationNotFoundException applicationOAuthInformationNotFoundException(String clientId, String serviceId) {
         return new ApplicationOAuthInformationNotFoundException(Messages.i18n.format("AppOAuthInfoNotFound", clientId, serviceId));
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final SAMLAuthException samlAuthException(String message) {
+        return new SAMLAuthException(message);
     }
 }

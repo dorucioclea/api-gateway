@@ -2448,7 +2448,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void updateApplicationVersionApiKey(ApplicationVersionBean avb, String apiKey) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "UPDATE ContractBean c SET c.apikey = :newKey WHERE c.application = :avb";
+        String jpql = "UPDATE ApplicationVersionBean a SET a.apikey = :newKey WHERE a = :avb";
         em.createQuery(jpql)
                 .setParameter("newKey", apiKey)
                 .setParameter("avb", avb)

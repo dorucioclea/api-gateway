@@ -63,17 +63,24 @@ import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.encryption.EncryptedKey;
 import org.opensaml.xml.encryption.EncryptedKeyResolver;
+import org.opensaml.xml.encryption.P;
 import org.opensaml.xml.io.*;
 import org.opensaml.xml.schema.XSAny;
 import org.opensaml.xml.schema.impl.XSAnyBuilder;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.BasicCredential;
+import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
 import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
+import org.opensaml.xml.security.x509.BasicX509Credential;
 import org.opensaml.xml.security.x509.X509Credential;
+import org.opensaml.xml.signature.SignatureValidator;
+
+import org.opensaml.xml.signature.impl.X509CertificateImpl;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.IDIndex;
 import org.opensaml.xml.util.XMLHelper;
+import org.opensaml.xml.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -92,8 +99,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.KeyFactory;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -550,7 +565,6 @@ public class UserFacade implements Serializable {
         }
         try {
             assertion = processSSOResponse(samlResponse);
-            //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());
             //preempt if restricted mode and user is not admin; be carefull to scope the application, non api-engine applications uses this endpoint as well.
@@ -710,12 +724,9 @@ public class UserFacade implements Serializable {
         Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
         Response response = (Response) unmarshaller.unmarshall(element);
 
-        //TODO validate signature - see SSOAgent example of WSO2
-        //String certificate = response.getSignature().getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue();
-        //get assertion
-        Assertion assertion = response.getAssertions().get(0);
-        //Return base64url encoded assertion
-        return assertion;
+        SamlResponseValidator.validateSAMLResponse(response, config);
+
+        return response.getAssertions().get(0);
     }
 
     /**

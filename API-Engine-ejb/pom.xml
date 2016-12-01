@@ -22,7 +22,7 @@
     <parent>
         <artifactId>API-Engine</artifactId>
         <groupId>com.t1t.digipolis</groupId>
-        <version>0.8.2</version>
+        <version>0.9.3</version>
     </parent>
 
     <artifactId>API-Engine-ejb</artifactId>
@@ -331,6 +331,13 @@
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
+        </dependency>
+        <!--JBoss EJB -->
+        <dependency>
+            <groupId>org.jboss.ejb3</groupId>
+            <artifactId>jboss-ejb3-ext-api</artifactId>
+            <version>RELEASE</version>
+            <scope>provided</scope>
         </dependency>
 
         <!--Bouncycastle-->

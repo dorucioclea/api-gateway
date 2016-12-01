@@ -437,9 +437,10 @@ public interface IGatewayLink {
     /**
      * Retrieve a consumer's OAuth2 tokens
      * @param consumerOAuthCredentialId
+     * @param offset base64 encoded page number
      * @return
      */
-    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId);
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId, String offset);
 
     /**
      * Delete a token on the gateway corresponding to the id
@@ -450,9 +451,10 @@ public interface IGatewayLink {
     /**
      * Retrieve oauth tokens by authenticated user id
      * @param authenticatedUserId
+     * @param offset base64 encoded page number
      * @return
      */
-    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId);
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId, String offset);
 
     /**
      * Retrieve OAuth information based on credential id
