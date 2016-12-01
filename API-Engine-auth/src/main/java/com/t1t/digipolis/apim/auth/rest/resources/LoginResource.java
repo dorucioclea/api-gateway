@@ -24,6 +24,7 @@ import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.util.CacheUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -61,6 +62,7 @@ public class LoginResource implements ILoginResource {
     @Inject private UserFacade userFacade;
     @Inject private OAuthFacade oAuthFacade;
     @Inject private AppConfig config;
+    @Inject private CacheUtil cacheUtil;
     private static final Logger log = LoggerFactory.getLogger(LoginResource.class.getName());
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
@@ -235,7 +237,14 @@ public class LoginResource implements ILoginResource {
             e.printStackTrace();
         } catch (Exception e) {
             log.error("Grant Error:{}",e.getMessage());
-            throw new SAMLAuthException(e.getMessage());
+            try {
+                URI redirect = new URL(cacheUtil.getWebCacheBean(URLEncoder.encode(relayState, "UTF-8")).getClientAppRedirect()).toURI();
+                log.debug("Redirect URI:{}", redirect.toString());
+                return Response.seeOther(redirect).entity(e).build();
+            }
+            catch (Exception ex) {
+                throw new SAMLAuthException(e.getMessage());
+            }
         }
         if (uri != null) return Response.seeOther(uri).build();
         return Response.status(500).entity("Could not parse the initial consumer URI").build();

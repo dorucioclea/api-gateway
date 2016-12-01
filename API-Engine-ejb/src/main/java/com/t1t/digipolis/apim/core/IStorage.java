@@ -17,6 +17,7 @@ import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.mail.MailTemplateBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.operation.OperatingBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
@@ -99,6 +100,7 @@ public interface IStorage {
     public void updateDefaults(DefaultsBean defaultsBean) throws StorageException;
     public void updateConfig(ConfigBean config) throws StorageException;
     public void updateBranding(ServiceBrandingBean branding) throws StorageException;
+    public void updateOperatingBean(OperatingBean operatingBean) throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
@@ -163,6 +165,7 @@ public interface IStorage {
     public DefaultsBean getDefaults(String id) throws StorageException;
     public List<ConfigBean> getDefaultConfig() throws StorageException;
     public ServiceBrandingBean getBranding(String id) throws StorageException;
+
 
     /*
      * Anything that doesn't fall into the above categories!

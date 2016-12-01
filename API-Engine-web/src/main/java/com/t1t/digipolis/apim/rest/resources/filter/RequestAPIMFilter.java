@@ -9,6 +9,7 @@ import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.maintenance.MaintenanceController;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.rest.JaxRsActivator;
@@ -48,10 +49,14 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     private static final String HEADER_CREDENTIAL_USERNAME = "X-Credential-Username";
     private static final String HEADER_API_KEY = "apikey";
     //exclusions
+
+    private static final String BASE_PATH = "/API-Engine-web/v1";
     private static final String REDIRECT_PATH = "/users/idp/redirect";
     private static final String IDP_CALLBACK = "/users/idp/callback";
     private static final String IDP_SLO = "/users/idp/slo";
     private static final String SYSTEM_INFO = "API-Engine-web/v1/system";
+    private static final String MAINTENANCE_PATH = "/admin/maintenance/";
+    private static final String SEARCH_PATH = "/search/";
     private static final String SWAGGER_DOC_URI = "API-Engine-web";
     private static final String SWAGGER_DOC_JSON = "/API-Engine-web/v1/swagger.json";
 
@@ -61,23 +66,21 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     @Inject private ISecurityAppContext securityAppContext;
     @Inject private AppConfig config;
     @Inject private IStorageQuery query;
+    @Inject private MaintenanceController maintenance;
 
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
-        try {
-            OperatingBean maintenanceMode = query.getMaintenanceModeStatus();
-            if (maintenanceMode != null && maintenanceMode.isEnabled()) {
-                try {
-                    SafeHTTPMethods.valueOf(containerRequestContext.getMethod());
-                }
-                catch (IllegalArgumentException ex) {
-                    throw ExceptionFactory.maintenanceException(maintenanceMode.getMessage());
-                }
+        String path = containerRequestContext.getUriInfo().getRequestUri().getPath();
+        if (maintenance.isEnabled()
+                && !path.startsWith(BASE_PATH + MAINTENANCE_PATH)
+                && !path.startsWith(BASE_PATH + SEARCH_PATH)) {
+            try {
+                SafeHTTPMethods.valueOf(containerRequestContext.getMethod());
             }
-        }
-        catch (StorageException ex) {
-            throw ExceptionFactory.systemErrorException(ex);
+            catch (IllegalArgumentException ex) {
+                throw ExceptionFactory.maintenanceException(maintenance.getMessage());
+            }
         }
         //dev mode
         LOG.debug("Security context - request:{}", containerRequestContext.getUriInfo().getRequestUri().getPath());

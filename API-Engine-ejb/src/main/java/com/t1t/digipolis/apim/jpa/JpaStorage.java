@@ -2724,6 +2724,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public void updateOperatingBean(OperatingBean operatingBean) throws StorageException {
+        super.update(operatingBean);
+    }
+
+    @Override
     public void deleteBranding(ServiceBrandingBean branding) throws StorageException {
         super.delete(branding);
     }

@@ -32,6 +32,7 @@ import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.maintenance.MaintenanceController;
 import com.t1t.digipolis.apim.saml2.ISAML2;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -144,6 +145,8 @@ public class UserFacade implements Serializable {
     private AppConfig config;
     @Inject
     private Event<NewEventBean> event;
+    @Inject
+    private MaintenanceController maintenance;
 
     public UserBean get(String userId) {
         try {
@@ -807,6 +810,10 @@ public class UserFacade implements Serializable {
             //get user from local DB - if doesn't exists -> create new consumer
             UserBean user = idmStorage.getUser(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));
             if (user == null) {//exists already
+                //If maintenance mode is turned on, do not create a new user.
+                if (maintenance.isEnabled()) {
+                    throw ExceptionFactory.maintenanceException(Messages.i18n.format("maintenanceUserCreation", maintenance.getMessage()));
+                }
                 user = initNewUser(identityAttributes);
             }
             log.info("User found:{}", user);
@@ -870,7 +877,10 @@ public class UserFacade implements Serializable {
             gatewayLink.close();
         } catch (PublishingException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
-        } catch (Exception e) {
+
+        } catch (MaintenanceException ex) {
+            throw ex;
+        }catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
         return issuedJWT;
