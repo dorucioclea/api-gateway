@@ -22,7 +22,7 @@
     <parent>
         <artifactId>API-Engine</artifactId>
         <groupId>com.t1t.digipolis</groupId>
-        <version>0.9.3-SNAPSHOT</version>
+        <version>0.9.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>API-Engine-ejb</artifactId>

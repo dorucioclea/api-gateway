@@ -1046,9 +1046,11 @@ public interface IStorageQuery {
 
     /**
      * Returns a bean with the maintenance mode status and message
-     * 
+     *
      * @return
      * @throws StorageException
      */
     public OperatingBean getMaintenanceModeStatus() throws StorageException;
+
+    public List<PolicyBean> getDefaultUnpublishedPolicies() throws StorageException;
 }

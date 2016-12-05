@@ -141,5 +141,15 @@ public class MigrationResource implements IMigrationResource {
     @Path("sync/split-orgs")
     public void splitOrgs() throws Exception {
         //migrationFacade.splitOrgs();
+    }
+
+    @Override
+    @ApiOperation(value =  "Create/sync def pols",
+            notes = "Create or sync all necessary application credentials. Currently, this enabled key authentication, OAuth authentication and JWT authentication for all non-retired applications")
+    @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
+    @POST
+    @Path("sync/services/syncpolicies")
+    public void applydefPol() {
+        migrationFacade.syncEmptyKongPluginIds();
     }*/
 }
