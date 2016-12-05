@@ -2773,4 +2773,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return null;
         }
     }
+
+    @Override
+    public List<PolicyBean> getDefaultUnpublishedPolicies() throws StorageException {
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.kongPluginId IS NULL";
+        return getActiveEntityManager().createQuery(jpql).getResultList();
+    }
 }
