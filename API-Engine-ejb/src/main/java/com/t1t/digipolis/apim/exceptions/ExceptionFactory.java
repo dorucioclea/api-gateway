@@ -571,6 +571,15 @@ public final class ExceptionFactory {
      * @param message
      * @return
      */
+    public static final JWTInvalidException jwtInvalidException(String message) {
+        return new JWTInvalidException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final UserAlreadyAdminException userAlreadyAdminException(String message) {
         return new UserAlreadyAdminException(message);
     }
