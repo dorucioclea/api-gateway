@@ -126,6 +126,14 @@ public final class ExceptionFactory {
     }
 
     /**
+     * Creates an exception
+     * @return the exception
+     */
+    public static final ApplicationVersionNotFoundException applicationVersionNotFoundException(String message) {
+        return new ApplicationVersionNotFoundException(message); //$NON-NLS-1$
+    }
+
+    /**
      * Creates an invalid service status exception.
      * @return the exception
      */
@@ -564,6 +572,15 @@ public final class ExceptionFactory {
      */
     public static final JWTInvalidException jwtInvalidException(String message, Throwable ex) {
         return new JWTInvalidException(message, ex);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final JWTInvalidException jwtInvalidException(String message) {
+        return new JWTInvalidException(message);
     }
 
     /**

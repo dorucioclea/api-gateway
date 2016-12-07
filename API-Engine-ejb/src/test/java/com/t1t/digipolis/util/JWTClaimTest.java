@@ -14,6 +14,7 @@ import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.jwx.JsonWebStructure;
+import org.jose4j.keys.HmacKey;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
 import org.jose4j.lang.JoseException;
 import org.junit.Test;
@@ -181,7 +182,7 @@ public class JWTClaimTest {
         jwtRequestBean.setSubject("ex02393");
         String jwt = null;
         try {
-            jwt = JWTUtils.composeJWT(jwtRequestBean,JWT_SECRET,60, privateKey,"somenedpoint");
+            jwt = JWTUtils.composeJWT(jwtRequestBean, 60, new HmacKey(JWT_SECRET.getBytes("UTF-8")), "somenendpoint");
         } catch (JoseException e) {
             fail();
         }

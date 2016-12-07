@@ -21,5 +21,7 @@ public interface ISecurityAppContext {
     public String setCurrentApplication(String application) throws StorageException;
     public AppIdentifier getApplicationIdentifier();
     public String getApplicationPrefix();
+    public String getNonManagedApplication();
+    public String setNonManagedApplication(String application);
 
 }

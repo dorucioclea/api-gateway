@@ -21,4 +21,16 @@ public class CustomCollectors {
         );
     }
 
+    public static <T> Collector<T, ?, T> getFirstResult() {
+        return Collectors.collectingAndThen(
+                Collectors.toList(),
+                list -> {
+                    if (list.size() < 1) {
+                        throw new IllegalStateException("No Results");
+                    }
+                    return list.get(0);
+                }
+        );
+    }
+
 }
