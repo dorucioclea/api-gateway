@@ -3,7 +3,6 @@ package com.t1t.digipolis.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
 import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
@@ -26,7 +25,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.List;
 import java.util.Set;
 
 /**

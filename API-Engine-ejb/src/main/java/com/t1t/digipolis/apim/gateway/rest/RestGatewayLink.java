@@ -185,8 +185,8 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request) {
-        return getClient().updateConsumerOAuthCredentials(consumerId, oldClientId, oldClientSecret, request);
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, KongPluginOAuthConsumerRequest request) {
+        return getClient().updateConsumerOAuthCredentials(consumerId, request);
     }
 
     @Override
@@ -472,5 +472,10 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void revokeGatewayOAuthToken(String accessToken) {
         getClient().revokeOAuthTokenByAccessToken(accessToken);
+    }
+
+    @Override
+    public KongOAuthTokenList getAllOAuth2Tokens(String offset) {
+        return getClient().getAllOAuth2Tokens(offset);
     }
 }

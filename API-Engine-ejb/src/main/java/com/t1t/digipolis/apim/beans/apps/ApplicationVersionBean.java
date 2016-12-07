@@ -58,6 +58,8 @@ public class ApplicationVersionBean implements Serializable {
     private Set<String> oauthClientRedirects;
     @Column(name = "apikey")
     private String apikey;
+    @Column(name = "oauth_credential_id")
+    private String oauthCredentialId;
 
     /**
      * Constructor.
@@ -248,6 +250,20 @@ public class ApplicationVersionBean implements Serializable {
     }
 
     /**
+     * @return the oauth credential id
+     */
+    public String getOauthCredentialId() {
+        return oauthCredentialId;
+    }
+
+    /**
+     * @param oauthCredentialId the oauth credential id to set
+     */
+    public void setOauthCredentialId(String oauthCredentialId) {
+        this.oauthCredentialId = oauthCredentialId;
+    }
+
+    /**
      * @return the API key
      */
     public String getApikey() {
@@ -313,6 +329,7 @@ public class ApplicationVersionBean implements Serializable {
                 ", oauthClientSecret='" + oauthClientSecret + '\'' +
                 ", oauthClientRedirects=" + oauthClientRedirects +
                 ", apikey='" + apikey + '\'' +
+                ", oauthCredentialId='" + oauthCredentialId + '\'' +
                 '}';
     }
 }

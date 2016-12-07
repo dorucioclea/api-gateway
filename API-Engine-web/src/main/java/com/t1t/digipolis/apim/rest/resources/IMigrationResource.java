@@ -72,5 +72,7 @@ public interface IMigrationResource {
      * @throws AbstractRestException
      */
     public void applyDefaultPoliciesToServiceVersions() throws AbstractRestException;
+
+    public void backupTokens();
 }
 

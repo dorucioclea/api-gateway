@@ -323,7 +323,7 @@ public interface IGatewayLink {
      * @param request
      * @return
      */
-    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request);
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, KongPluginOAuthConsumerRequest request);
 
     /**
      * Get application specific information for OAuth.
@@ -518,4 +518,10 @@ public interface IGatewayLink {
      * @param accessToken
      */
     public void revokeGatewayOAuthToken(String accessToken);
+
+    /**
+     * Retrieve all oauth tokens on the gateway
+     * @param offset
+     */
+    public KongOAuthTokenList getAllOAuth2Tokens(String offset);
 }

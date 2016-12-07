@@ -1052,5 +1052,16 @@ public interface IStorageQuery {
      */
     public OperatingBean getMaintenanceModeStatus() throws StorageException;
 
+    /**
+     * Returns a list of all unpublished policies (i.e. policies that do not have a kong plugin id value)
+     * @return
+     * @throws StorageException
+     */
     public List<PolicyBean> getDefaultUnpublishedPolicies() throws StorageException;
+
+    /**
+     * Delete all tokens that are backed up
+     * @throws StorageException
+     */
+    public void deleteAllOAuthTokens() throws StorageException;
 }

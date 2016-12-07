@@ -114,6 +114,16 @@ public class MigrationResource implements IMigrationResource {
         migrationFacade.syncAndCreateConsumerCredentials();
     }
 
+    @Override
+    @ApiOperation(value =  "Backup tokens for rebuild",
+            notes = "Create or sync all necessary application credentials. Currently, this enabled key authentication, OAuth authentication and JWT authentication for all non-retired applications")
+    @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
+    @POST
+    @Path("sync/oauth/tokens/backup")
+    public void backupTokens() {
+        migrationFacade.backUpOAuthTokens();
+    }
+
     //Obsolete should not be used past version 0.8.0
 /*    @Override
     @ApiOperation(value =  "Split orgs by context",

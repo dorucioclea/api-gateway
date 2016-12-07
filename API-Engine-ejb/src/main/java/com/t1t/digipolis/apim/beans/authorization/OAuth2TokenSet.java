@@ -10,7 +10,7 @@ import java.util.Set;
  */
 public class OAuth2TokenSet extends AbstractPaginationBean {
 
-    private Set<OAuth2TokenBean> data;
+    private Set<OAuth2Token> data;
 
 
 }

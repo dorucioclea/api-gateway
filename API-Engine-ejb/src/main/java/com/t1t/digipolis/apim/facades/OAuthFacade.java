@@ -78,6 +78,8 @@ public class OAuthFacade {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
                     response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
+                    avb.setOauthCredentialId(response.getId());
+                    storage.updateApplicationVersion(avb);
                 } catch (Exception e) {
                     ;//don't do anything
                 }

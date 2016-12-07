@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
@@ -517,12 +518,7 @@ public class MigrationFacade {
                                     .withClientSecret(requestBean.getAppOAuthSecret());
                             oauthRequest.setName(avb.getApplication().getName());
                             oauthRequest.setRedirectUri(avb.getOauthClientRedirects());
-                            try {
-
-                            } catch (Exception e) {
-                                log.info("OAuth sync skipped for {}", avb);
-                                continue;//don't do anything
-                            }
+                            oauthRequest.setId(avb.getOauthCredentialId());
                             gateway.enableConsumerForOAuth(appConsumerName, oauthRequest);
                         }
                         //if app registered - apply additionally plugins
@@ -1049,13 +1045,15 @@ public class MigrationFacade {
                                     log.info("No OAuth credentials for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 }
                                 if (oauthCreds.getData().isEmpty()) {
-                                    gw.enableConsumerForOAuth(appId, new KongPluginOAuthConsumerRequest()
+                                    KongPluginOAuthConsumerResponse response = gw.enableConsumerForOAuth(appId, new KongPluginOAuthConsumerRequest()
                                             .withClientId(avb.getoAuthClientId())
                                             .withClientSecret(avb.getOauthClientSecret())
                                             .withRedirectUri(avb.getOauthClientRedirects())
                                             .withName(appId));
+                                    avb.setOauthCredentialId(response.getId());
                                     log.info("OAuth enabled for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 } else {
+                                    avb.setOauthCredentialId(oauthCreds.getData().get(0).getId());
                                     log.info("No oauth sync necessary for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 }
                             }
@@ -1175,6 +1173,37 @@ public class MigrationFacade {
                 }
                 catch (Exception ex) {
                     //do nothing
+                }
+            });
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public void backUpOAuthTokens() {
+        try {
+            query.deleteAllOAuthTokens();
+            Set<OAuth2TokenBean> tokens = new HashSet<>();
+            query.getAllGateways().stream().map(gatewayBean -> gatewayFacade.createGatewayLink(gatewayBean.getId())).forEach(gateway -> {
+                KongOAuthTokenList tokenList = gateway.getAllOAuth2Tokens(null);
+                long total = tokenList.getTotal().longValue();
+                log.info("initial total of tokens:{}", total);
+                long i = 0;
+                tokens.addAll(tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).collect(Collectors.toList()));
+                while (tokenList.getOffset() != null && i < total/100) {
+                    tokenList = gateway.getAllOAuth2Tokens(tokenList.getOffset());
+                    tokens.addAll(tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).collect(Collectors.toList()));
+                    i++;
+                }
+            });
+            log.info("final tally of tokens:{}", tokens.size());
+            tokens.forEach(token -> {
+                try {
+                    storage.updateOAuth2TokenBean(token);
+                }
+                catch (StorageException ex) {
+                    throw ExceptionFactory.systemErrorException(ex);
                 }
             });
         }

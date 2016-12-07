@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.config.ConfigBean;
@@ -2729,8 +2730,23 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public void updateOAuth2TokenBean(OAuth2TokenBean token) throws StorageException {
+        super.update(token);
+    }
+
+    @Override
     public void deleteBranding(ServiceBrandingBean branding) throws StorageException {
         super.delete(branding);
+    }
+
+    @Override
+    public void createOAuth2Token(OAuth2TokenBean token) throws StorageException {
+        super.create(token);
+    }
+
+    @Override
+    public void deleteOAuth2Token(OAuth2TokenBean token) throws StorageException {
+        super.delete(token);
     }
 
     @Override
@@ -2795,5 +2811,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public List<PolicyBean> getDefaultUnpublishedPolicies() throws StorageException {
         String jpql = "SELECT p FROM PolicyBean p WHERE p.kongPluginId IS NULL";
         return getActiveEntityManager().createQuery(jpql).getResultList();
+    }
+
+    @Override
+    public void deleteAllOAuthTokens() throws StorageException {
+        String jpql = "DELETE FROM OAuth2TokenBean o";
+        getActiveEntityManager().createQuery(jpql).executeUpdate();
     }
 }

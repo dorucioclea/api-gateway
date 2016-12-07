@@ -807,16 +807,8 @@ public class GatewayClient {
         return httpClient.enableOAuthForConsumer(consumerId,request.getName(),request.getClientId(),request.getClientSecret(),request.getRedirectUri());
     }
 
-    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request) {
-        KongPluginOAuthConsumerResponse rval = null;
-        KongPluginOAuthConsumerResponseList plugins = httpClient.getConsumerOAuthCredentials(consumerId);
-        //Delete the plugin with the old credentials
-        for (KongPluginOAuthConsumerResponse credentials : plugins.getData()) {
-            if (credentials.getClientId().equals(oldClientId) && credentials.getClientSecret().equals(oldClientSecret)) {
-                httpClient.deleteOAuth2Credential(consumerId, credentials.getId());
-            }
-        }
-        return httpClient.enableOAuthForConsumer(consumerId, request.getName(), request.getClientId(), request.getClientSecret(), request.getRedirectUri());
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, KongPluginOAuthConsumerRequest request) {
+        return httpClient.updateConsumerOAuthCredentials(consumerId, request);
     }
 
     public KongPluginKeyAuthResponse updateConsumerKeyAuthCredentials(String consumerId, String oldApiKey, String newApiKey) {
@@ -1153,5 +1145,14 @@ public class GatewayClient {
             policy.setPolicyJsonConfig(new Gson().toJson(plugin.getConfig()).replace(":{}", ":[]"));
         }
         return policy;
+    }
+
+    public KongOAuthTokenList getAllOAuth2Tokens(String offset) {
+        if (StringUtils.isEmpty(offset)) {
+            return httpClient.getOAuthTokens();
+        }
+        else {
+            return httpClient.getOAuthTokens(offset);
+        }
     }
 }

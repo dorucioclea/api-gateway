@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.config.ConfigBean;
@@ -71,6 +72,7 @@ public interface IStorage {
     public void createDefaults(DefaultsBean defaultsBean) throws StorageException;
     public void createConfig(ConfigBean config) throws StorageException;
     public void createBranding(ServiceBrandingBean branding) throws StorageException;
+    public void createOAuth2Token(OAuth2TokenBean token) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -101,6 +103,8 @@ public interface IStorage {
     public void updateConfig(ConfigBean config) throws StorageException;
     public void updateBranding(ServiceBrandingBean branding) throws StorageException;
     public void updateOperatingBean(OperatingBean operatingBean) throws StorageException;
+    public void updateOAuth2TokenBean(OAuth2TokenBean token) throws StorageException;
+
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
@@ -132,6 +136,7 @@ public interface IStorage {
     public void deleteDefaults(DefaultsBean defaultsBean) throws StorageException;
     public void deleteConfig(ConfigBean configBean) throws StorageException;
     public void deleteBranding(ServiceBrandingBean branding) throws StorageException;
+    public void deleteOAuth2Token(OAuth2TokenBean token) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.

@@ -105,6 +105,7 @@ public interface KongClient {
     @FormUrlEncoded
     @POST("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse enableOAuthForConsumer(@Path(value = "consumerId", encode = false)String consumerId,@Field("name") String name, @Field("client_id")String clientId, @Field("client_secret")String clientSecret,@Field("redirect_uri")Iterable<String> redirectURL);
     @GET("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponseList getConsumerOAuthCredentials(@Path(value = "consumerId", encode = false)String consumerId);
+    @PUT("/consumers/{consumerId}/oauth2") KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(@Path(value = "consumerId", encode = false) String consumerId, @Body KongPluginOAuthConsumerRequest request);
     @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformation(@Query("client_id")String clientId);
     @GET("/oauth2")KongPluginOAuthConsumerResponseList getApplicationOAuthInformationByCredentialId(@Query("id") String credentialId);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokens();
