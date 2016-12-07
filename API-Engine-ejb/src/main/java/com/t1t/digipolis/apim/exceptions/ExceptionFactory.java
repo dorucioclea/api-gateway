@@ -126,6 +126,14 @@ public final class ExceptionFactory {
     }
 
     /**
+     * Creates an exception
+     * @return the exception
+     */
+    public static final ApplicationVersionNotFoundException applicationVersionNotFoundException(String message) {
+        return new ApplicationVersionNotFoundException(message); //$NON-NLS-1$
+    }
+
+    /**
      * Creates an invalid service status exception.
      * @return the exception
      */

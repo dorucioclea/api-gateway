@@ -1,11 +1,12 @@
 package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.jwt.IJWT;
-import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
+
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+
+
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
-import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jwk.RsaJwkGenerator;
@@ -21,6 +22,7 @@ import org.jose4j.jwx.JsonWebStructure;
 import org.jose4j.keys.HmacKey;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
 import org.jose4j.lang.JoseException;
+import org.opensaml.xml.signature.J;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,21 +95,38 @@ public class JWTUtils {
     }
 
     public static JwtContext validateRSAToken(String jwt, String expectedIssuer, Set<String> publicKeys) throws InvalidJwtException {
+        JwtContext context = null;
         JsonWebKeySet jsonWebKeySet = new JsonWebKeySet();
-
-        publicKeys.stream()
-                .map(pubKey -> new RsaJsonWebKey((RSAPublicKey) KeyUtils.getPublicKey(pubKey)))
-                .forEach(jsonWebKeySet::addJsonWebKey);
-        return new JwtConsumerBuilder()
+        JwtConsumerBuilder builder = new JwtConsumerBuilder()
                 .setExpectedIssuer(expectedIssuer)
                 .setRequireSubject()
                 .setAllowedClockSkewInSeconds(30)
                 .setRequireExpirationTime()
                 .setSkipDefaultAudienceValidation()
-                .setRelaxVerificationKeyValidation()
-                .setVerificationKeyResolver(new JwksVerificationKeyResolver(jsonWebKeySet.getJsonWebKeys()))
-                .build()
-                .process(jwt);
+                .setVerificationKeyResolver(new JwksVerificationKeyResolver(jsonWebKeySet.getJsonWebKeys()));
+        Iterator<String> it = publicKeys.iterator();
+        //Try all available public keys until the signature validates
+        while (context == null && it.hasNext()) {
+            String pubkey =  it.next();
+            try {
+                context = builder.setVerificationKeyResolver(
+                        new JwksVerificationKeyResolver(
+                                new JsonWebKeySet(
+                                        new RsaJsonWebKey((RSAPublicKey) KeyUtils.getPublicKey(pubkey))).getJsonWebKeys()
+                        ))
+                        .build()
+                        .process(jwt);
+                _LOG.debug("Key used for verification:{}", pubkey);
+            }
+            catch (Exception ex) {
+                _LOG.debug("Failed to verify signature with key:{}", pubkey);
+                ex.printStackTrace();
+            }
+        }
+        if (context == null) {
+            throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("JWTsignatureVerificationFailure"));
+        }
+        return context;
     }
 
     /**
@@ -118,8 +137,8 @@ public class JWTUtils {
      * @throws InvalidJwtException
      * @throws UnsupportedEncodingException
      */
-    public static JwtContext validateHMACToken(String jwtToken)throws InvalidJwtException,UnsupportedEncodingException{
-        return validateHMACToken(jwtToken,null,null,null,true);
+    public static JwtContext consumeUnvalidatedToken(String jwtToken)throws InvalidJwtException,UnsupportedEncodingException,MalformedClaimException{
+        return getUnvalidatedContext(jwtToken);
     }
 
     public static JwtContext validateHMACToken(String jwt, String secret, String expectedIssuer) throws InvalidJwtException, UnsupportedEncodingException {
@@ -133,6 +152,8 @@ public class JWTUtils {
                 .setExpectedIssuer(expectedIssuer)
                 .build().process(jwt);
     }
+
+
 
     public static JwtContext validateHMACToken(String jwtToken, String secret, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException, UnsupportedEncodingException {
         JwtConsumer jwtConsumer = null;
@@ -162,7 +183,7 @@ public class JWTUtils {
         return jwtContext;
     }
 
-    public static String refreshJWT(JwtClaims jwtClaims, Integer jwtExpirationTime, Key privateKey,String pubKeyEndpoint, String algorithm)throws JoseException, UnsupportedEncodingException{
+    public static String getJwtWithExpirationTime(JwtClaims jwtClaims, Integer jwtExpirationTime, Key privateKey, String pubKeyEndpoint, String algorithm)throws JoseException, UnsupportedEncodingException{
         //add optional claims
         jwtClaims.setExpirationTimeMinutesInTheFuture(jwtExpirationTime.floatValue() / 60); // time when the token will expire (10 minutes from now)
         jwtClaims.setNotBeforeMinutesInThePast(2);//TODO fix this issue on the gateway
@@ -226,13 +247,17 @@ public class JWTUtils {
         }
     }
 
-    public static JwtClaims getClaims(String jwt) throws InvalidJwtException, MalformedClaimException {
-        JwtConsumer firstPassJwtConsumer = new JwtConsumerBuilder()
+    public static JwtClaims getUnvalidatedClaims(String jwt) throws InvalidJwtException, MalformedClaimException {
+        return getUnvalidatedContext(jwt).getJwtClaims();
+    }
+
+    private static JwtContext getUnvalidatedContext(String jwt) throws InvalidJwtException, MalformedClaimException {
+        return new JwtConsumerBuilder()
                 .setSkipAllValidators()
                 .setDisableRequireSignature()
                 .setSkipSignatureVerification()
-                .build();
-        return firstPassJwtConsumer.processToClaims(jwt);
+                .build()
+                .process(jwt);
     }
 
     //TODO don't do this hard coded and unfinished - roles with XACML :-)

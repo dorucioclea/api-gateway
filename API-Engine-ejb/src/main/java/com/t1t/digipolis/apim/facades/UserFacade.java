@@ -13,8 +13,6 @@ import com.t1t.digipolis.apim.beans.idp.KeyMappingTypes;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
-import com.t1t.digipolis.apim.beans.mail.MembershipAction;
-import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -34,7 +32,6 @@ import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.apim.saml2.ISAML2;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -44,16 +41,12 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
-import org.jose4j.jwt.consumer.JwtConsumer;
-import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.JwtContext;
-import org.jose4j.jwx.JsonWebStructure;
 import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
 import org.opensaml.Configuration;
@@ -68,24 +61,18 @@ import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.encryption.EncryptedKey;
 import org.opensaml.xml.encryption.EncryptedKeyResolver;
-import org.opensaml.xml.encryption.P;
 import org.opensaml.xml.io.*;
 import org.opensaml.xml.schema.XSAny;
 import org.opensaml.xml.schema.impl.XSAnyBuilder;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.BasicCredential;
-import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
 import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
-import org.opensaml.xml.security.x509.BasicX509Credential;
 import org.opensaml.xml.security.x509.X509Credential;
-import org.opensaml.xml.signature.SignatureValidator;
 
-import org.opensaml.xml.signature.impl.X509CertificateImpl;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.IDIndex;
 import org.opensaml.xml.util.XMLHelper;
-import org.opensaml.xml.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -105,12 +92,6 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.*;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -956,7 +937,7 @@ public class UserFacade implements Serializable {
 
             final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
             String algorithm = JsonWebSignature.fromCompactSerialization(jwtRefreshRequestBean.getOriginalJWT()).getAlgorithmHeaderValue();
-            JwtContext jwtContext = validateJWT(jwtRefreshRequestBean.getOriginalJWT(), algorithm);
+            JwtContext jwtContext = validateJWT(jwtRefreshRequestBean.getOriginalJWT());
             JwtClaims jwtClaims = jwtContext.getJwtClaims();
             //get gateway default expiration time for JWT
 
@@ -981,7 +962,7 @@ public class UserFacade implements Serializable {
             }
 
             JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-            jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtClaims, jwtExpirationTime, key ,pubKeyEndpoint, algorithm));
+            jwtRefreshResponseBean.setJwt(JWTUtils.getJwtWithExpirationTime(jwtClaims, jwtExpirationTime, key ,pubKeyEndpoint, algorithm));
             return jwtRefreshResponseBean;
         }
         catch (InvalidJwtException | UnsupportedEncodingException | MalformedClaimException ex) {
@@ -992,17 +973,32 @@ public class UserFacade implements Serializable {
         }
     }
 
-    private JwtContext validateJWT(String jwt, String algorithm) throws JoseException, UnsupportedEncodingException, InvalidJwtException, MalformedClaimException {
+    public JwtContext validateJWT(String jwt) throws JoseException, UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JWTInvalidException {
         try {
+            String algorithm = JsonWebSignature.fromCompactSerialization(jwt).getAlgorithmHeaderValue();
             JwtContext rval;
-            JwtClaims firstPass = JWTUtils.getClaims(jwt);
+            JwtClaims firstPass = JWTUtils.getUnvalidatedClaims(jwt);
+            String issuer = firstPass.getIssuer();
+            String subject = firstPass.getSubject();
             switch (algorithm) {
                 case JWTUtils.JWT_HS256:
                     //Get secret from cache if it exists
-                    rval = JWTUtils.validateHMACToken(jwt, getSecretFromTokenCache(firstPass.getIssuer(), firstPass.getSubject()), firstPass.getIssuer());
+                    rval = JWTUtils.validateHMACToken(jwt, getSecretFromTokenCache(issuer, subject), issuer);
                     break;
                 case JWTUtils.JWT_RS256:
-                    rval = JWTUtils.validateRSAToken(jwt, firstPass.getIssuer(), query.getAllGateways().stream().map(GatewayBean::getJWTPubKey).collect(Collectors.toSet()));
+                    Set<String> pubKeys = new LinkedHashSet<>();
+
+                    //First add the default gateway's credential's pub key. It's possible the private key is unknown to the gateway
+                    String pubKey = getJWTCredentials(subject).getData().stream().filter(cred -> cred.getKey().equals(issuer)).map(KongPluginJWTResponse::getRsaPublicKey).collect(CustomCollectors.getSingleResult());
+
+                    if (StringUtils.isNotEmpty(pubKey)) {
+                        pubKeys.add(pubKey);
+                    }
+
+                    //Add the various gateways' public keys in case the credentials don't come from the default gateway
+                    pubKeys.addAll(query.getAllGateways().stream().map(GatewayBean::getJWTPubKey).collect(Collectors.toSet()));
+
+                    rval = JWTUtils.validateRSAToken(jwt, issuer, pubKeys);
                     break;
                 default:
                     throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("unsupportedJwtAlgorithm", algorithm));
