@@ -42,12 +42,13 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
+import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtContext;
+import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
@@ -61,24 +62,18 @@ import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.encryption.EncryptedKey;
 import org.opensaml.xml.encryption.EncryptedKeyResolver;
-import org.opensaml.xml.encryption.P;
 import org.opensaml.xml.io.*;
 import org.opensaml.xml.schema.XSAny;
 import org.opensaml.xml.schema.impl.XSAnyBuilder;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.BasicCredential;
-import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
 import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
-import org.opensaml.xml.security.x509.BasicX509Credential;
 import org.opensaml.xml.security.x509.X509Credential;
-import org.opensaml.xml.signature.SignatureValidator;
 
-import org.opensaml.xml.signature.impl.X509CertificateImpl;
 import org.opensaml.xml.util.Base64;
 import org.opensaml.xml.util.IDIndex;
 import org.opensaml.xml.util.XMLHelper;
-import org.opensaml.xml.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -97,19 +92,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.security.KeyFactory;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -871,7 +858,7 @@ public class UserFacade implements Serializable {
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
                 jwtExpirationTime = gatewayBean.getJWTExpTime();
             }
-            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint());
+            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint());
             log.debug("==>JWT:{}",issuedJWT);
             //close gateway
             gatewayLink.close();
@@ -944,27 +931,17 @@ public class UserFacade implements Serializable {
     /**
      * Retrieves the secret for a given subject, if the key is not found in the cache, a Kong request will be sent to retrieve the value;.
      *
-     * @param key
+     * @param issuer
+     * @param subject
      * @return
      */
-    private String getSecretFromTokenCache(String key, String userName) {
-        String secret = cacheUtil.getToken(key);
+    private String getSecretFromTokenCache(String issuer, String subject) {
+        String secret = cacheUtil.getToken(issuer);
         if (secret == null) {
-            //retrieve from Kong
-            String gatewayId = null;
-            try {
-                gatewayId = gatewayFacade.getDefaultGateway().getId();
-                IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-                List<KongPluginJWTResponse> data = gatewayLink.getConsumerJWT(get(userName).getKongUsername()).getData();
-                if (data != null && data.size() > 0) {
-                    secret = data.get(0).getSecret();
-                } else throw new StorageException("Refresh JWT - somehow the user is not known");
-            } catch (Exception ex) {
-                throw new GatewayException("Error connection to gateway:{}" + ex.getMessage());
-            }
-            //We've done all we could to retrieve the secret
+            //retrieve secret from gateway if not present in cache
+            secret = getJWTCredentials(subject).getData().stream().filter(cred -> cred.getKey().equals(issuer)).map(KongPluginJWTResponse::getSecret).collect(CustomCollectors.getSingleResult());
             if (secret == null) {
-                throw ExceptionFactory.cachingException("Token Cache with id " + key + " does not exist!");
+                throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("jwtCredentialsNotFound", subject));
             }
         }
         return secret;
@@ -973,10 +950,13 @@ public class UserFacade implements Serializable {
     public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
         //get body
         try {
-            JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
+
+            final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+            String algorithm = JsonWebSignature.fromCompactSerialization(jwtRefreshRequestBean.getOriginalJWT()).getAlgorithmHeaderValue();
+            JwtContext jwtContext = validateJWT(jwtRefreshRequestBean.getOriginalJWT());
             JwtClaims jwtClaims = jwtContext.getJwtClaims();
             //get gateway default expiration time for JWT
-            final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+
             Integer jwtExpirationTime = 60;//default 60min.
             String pubKeyEndpoint = gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
@@ -985,15 +965,79 @@ public class UserFacade implements Serializable {
                 jwtExpirationTime = config.getJWTDefaultTokenExpInSeconds();
             }
             //get secret based on iss/username - cached
-            String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
+            Key key;
+            switch (algorithm) {
+                case JWTUtils.JWT_HS256:
+                    key = new HmacKey(getSecretFromTokenCache(jwtClaims.getIssuer(), jwtClaims.getSubject()).getBytes("UTF-8"));
+                    break;
+                case JWTUtils.JWT_RS256:
+                    key = KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey());
+                    break;
+                default:
+                    throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("unsupportedJwtAlgorithm", algorithm));
+            }
+
             JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-            jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()),pubKeyEndpoint));
+            jwtRefreshResponseBean.setJwt(JWTUtils.getJwtWithExpirationTime(jwtClaims, jwtExpirationTime, key ,pubKeyEndpoint, algorithm));
             return jwtRefreshResponseBean;
         }
         catch (InvalidJwtException | UnsupportedEncodingException | MalformedClaimException ex) {
-            throw ExceptionFactory.jwtInvalidException("Cannot parse JWT", ex);
+            throw ExceptionFactory.jwtInvalidException("JWT is invalid", ex);
         }
-        catch (StorageException | JoseException | InvalidKeySpecException | NoSuchAlgorithmException | IOException ex) {
+        catch (StorageException | JoseException | IOException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public JwtContext validateJWT(String jwt) throws JoseException, UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JWTInvalidException {
+        try {
+            String algorithm = JsonWebSignature.fromCompactSerialization(jwt).getAlgorithmHeaderValue();
+            JwtContext rval;
+            JwtClaims firstPass = JWTUtils.getUnvalidatedClaims(jwt);
+            String issuer = firstPass.getIssuer();
+            String subject = firstPass.getSubject();
+            switch (algorithm) {
+                case JWTUtils.JWT_HS256:
+                    //Get secret from cache if it exists
+                    rval = JWTUtils.validateHMACToken(jwt, getSecretFromTokenCache(issuer, subject), issuer);
+                    break;
+                case JWTUtils.JWT_RS256:
+                    Set<String> pubKeys = new LinkedHashSet<>();
+
+                    //First add the default gateway's credential's pub key. It's possible the private key is unknown to the gateway
+                    String pubKey = getJWTCredentials(subject).getData().stream().filter(cred -> cred.getKey().equals(issuer)).map(KongPluginJWTResponse::getRsaPublicKey).collect(CustomCollectors.getSingleResult());
+
+                    if (StringUtils.isNotEmpty(pubKey)) {
+                        pubKeys.add(pubKey);
+                    }
+
+                    //Add the various gateways' public keys in case the credentials don't come from the default gateway
+                    pubKeys.addAll(query.getAllGateways().stream().map(GatewayBean::getJWTPubKey).collect(Collectors.toSet()));
+
+                    rval = JWTUtils.validateRSAToken(jwt, issuer, pubKeys);
+                    break;
+                default:
+                    throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("unsupportedJwtAlgorithm", algorithm));
+            }
+            log.info("JWT is valid:{}", jwt);
+            return rval;
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private KongPluginJWTResponseList getJWTCredentials(String subject) {
+        try {
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            UserBean user = get(subject);
+            KongPluginJWTResponseList creds = gateway.getConsumerJWT(user.getKongUsername());
+            if (creds == null || creds.getData() == null || creds.getData().isEmpty()) {
+                throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("userHasNoJwtCredentials", subject));
+            }
+            return creds;
+        }
+        catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

@@ -19,6 +19,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.util.KeyUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.security.PrivateKey;
 import java.util.Date;
 import java.util.List;
 
@@ -238,6 +240,59 @@ public class GatewayFacade {
             throw e;
         } catch (Exception e) {
             throw new PublishingException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Returns the private key of the default gateway
+     * @return
+     */
+    public PrivateKey getDefaultGatewayPrivateKey() {
+        try {
+            return KeyUtils.getPrivateKey(get(getDefaultGateway().getId()).getJWTPrivKey());
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    /**
+     * Returns the public key of the default gateway
+     * @return
+     */
+    public String getDefaultGatewayPublicKey() {
+        try {
+            return get(getDefaultGateway().getId()).getJWTPubKey();
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    /**
+     * Returns the public key endpoint for the default gateway
+     * @return
+     */
+    public String getDefaultGatewayPublicKeyEnpoint() {
+        try {
+            GatewayBean gatewayBean = get(getDefaultGateway().getId());
+            return gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    /**
+     * Returns a gatewaylink for the default gateway
+     * @return
+     */
+    public IGatewayLink getDefaultGatewayLink(){
+        try {
+            return createGatewayLink(getDefaultGateway().getId());
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 }

@@ -22,6 +22,7 @@ import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
+import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.util.CacheUtil;
@@ -63,6 +64,7 @@ public class LoginResource implements ILoginResource {
     @Inject private OAuthFacade oAuthFacade;
     @Inject private AppConfig config;
     @Inject private CacheUtil cacheUtil;
+    @Inject private OrganizationFacade orgFacade;
     private static final Logger log = LoggerFactory.getLogger(LoginResource.class.getName());
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
@@ -170,7 +172,7 @@ public class LoginResource implements ILoginResource {
     }
 
     @ApiOperation(value = "Refresh an existing valid JWT",
-            notes = "Use this endpoint to refresh and prolong your JWT expiration time. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter. If 0 is provided as expiration configuration, the JWT will be indefinitely valid. The consuming application can at that point optionally provide a custom claim map.")
+            notes = "Use this endpoint to refresh and prolong your JWT expiration time. When no expiration time is provided, default applies. If 0 is provided as expiration configuration, the JWT will be indefinitely valid.")
     @ApiResponses({
             @ApiResponse(code = 200, response = JWTRefreshResponseBean.class, message = "Refreshed JWT."),
             @ApiResponse(code = 500, response = String.class, message = "Server error while refreshing token")
@@ -382,4 +384,15 @@ public class LoginResource implements ILoginResource {
         return Response.ok().entity(userByEmail).build();
     }
 
+    @ApiOperation(value = "Retrieve a JWT for an application",
+            notes = "This endpoint can be used to to generate a JWT for an application based on it's API key")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = JWTResponse.class, message = "Application JWT")
+    })
+    @GET
+    @Path("/application/token")
+    @Produces(MediaType.APPLICATION_JSON)
+    public JWTResponse getAppJWT() {
+        return orgFacade.getApplicationJWT();
+    }
 }

@@ -118,7 +118,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
                 jwt = jwt.replaceFirst("Bearer", "").trim();
                 String validatedUser = "";
                 try {
-                    JwtClaims jwtClaims = JWTUtils.validateHMACToken(jwt).getJwtClaims();
+                    JwtClaims jwtClaims = JWTUtils.getUnvalidatedClaims(jwt);
                     //Check if the JWT comes from a user that authenticated using LDAP
                     validatedUser = jwtClaims.getSubject() != null ?
                             jwtClaims.getSubject() : jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) != null ?

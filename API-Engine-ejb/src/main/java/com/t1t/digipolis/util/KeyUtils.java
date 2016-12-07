@@ -79,16 +79,18 @@ public class KeyUtils {
      *
      * @param privKey
      * @return
-     * @throws IOException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
      */
-    public static PrivateKey getPrivateKey(String privKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        PemReader pemReader = new PemReader(new StringReader(privKey));
-        byte[] content = pemReader.readPemObject().getContent();
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(content);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePrivate(spec);
+    public static PrivateKey getPrivateKey(String privKey) {
+        try {
+            PemReader pemReader = new PemReader(new StringReader(privKey));
+            byte[] content = pemReader.readPemObject().getContent();
+            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(content);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return kf.generatePrivate(spec);
+        }
+        catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+            return null;
+        }
     }
 
     /**
@@ -96,15 +98,17 @@ public class KeyUtils {
      *
      * @param pubKey
      * @return
-     * @throws IOException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
      */
-    public static PublicKey getPublicKey(String pubKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException  {
-        PemReader pemReader = new PemReader(new StringReader(pubKey));
-        byte[] content = pemReader.readPemObject().getContent();
-        X509EncodedKeySpec spec = new X509EncodedKeySpec(content);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePublic(spec);
+    public static PublicKey getPublicKey(String pubKey) {
+        try {
+            PemReader pemReader = new PemReader(new StringReader(pubKey));
+            byte[] content = pemReader.readPemObject().getContent();
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(content);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return kf.generatePublic(spec);
+        }
+        catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+            return null;
+        }
     }
 }

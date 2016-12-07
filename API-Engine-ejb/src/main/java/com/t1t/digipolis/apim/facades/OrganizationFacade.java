@@ -25,6 +25,8 @@ import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.jwt.IJWT;
+import com.t1t.digipolis.apim.beans.jwt.JWTResponse;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -75,6 +77,8 @@ import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.lang.JoseException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -90,6 +94,8 @@ import javax.persistence.PersistenceContext;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.rmi.server.UID;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -4378,6 +4384,29 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
     }
 
+    public JWTResponse getApplicationJWT() {
+        try {
+            log.info("Non-managed app context:{}", appContext.getNonManagedApplication());
+            if (StringUtils.isNotEmpty(appContext.getNonManagedApplication())) {
+                JWTResponse rval = new JWTResponse();
+                GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+                IGatewayLink gateway = gatewayFacade.getDefaultGatewayLink();
+                JwtClaims claims = new JwtClaims();
+                claims.setClaim(IJWT.SERVICE_ACCOUNT, true);
+                claims.setSubject(appContext.getNonManagedApplication());
+                claims.setIssuer(gateway.getConsumerJWT(appContext.getNonManagedApplication()).getData().stream().filter(cred -> cred.getRsaPublicKey().equals(gatewayBean.getJWTPubKey())).map(KongPluginJWTResponse::getKey).collect(CustomCollectors.getFirstResult()));
+                rval.setToken(JWTUtils.getJwtWithExpirationTime(claims, gatewayBean.getJWTExpTime(), KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint(), JWTUtils.JWT_RS256));
+                return rval;
+            }
+            else {
+                throw ExceptionFactory.actionException(Messages.i18n.format("ResolveApiKeyError"));
+            }
+        }
+        catch (UnsupportedEncodingException | JoseException | StorageException ex){
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
     private String[] splitUID(String UID) {
         String[] split = UID.split("\\.");
         if (split.length != 3) {
@@ -4387,6 +4416,4 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             return split;
         }
     }
-
-
 }

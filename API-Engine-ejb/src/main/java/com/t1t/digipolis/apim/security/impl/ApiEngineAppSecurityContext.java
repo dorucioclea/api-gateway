@@ -29,6 +29,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     @Inject private UserFacade userFacade;
     @Inject private IStorageQuery query;
 
+    private String nonManagedApplication;
     private String currentApplication;
     private AppIdentifier appIdentifier;
 
@@ -84,5 +85,16 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
         if(appIdentifier!=null && !StringUtils.isEmpty(appIdentifier.getPrefix())){
             return appIdentifier.getPrefix();
         }return "";
+    }
+
+    @Override
+    public String getNonManagedApplication() {
+        return this.nonManagedApplication;
+    }
+
+    @Override
+    public String setNonManagedApplication(String application) {
+        this.nonManagedApplication = application;
+        return getNonManagedApplication();
     }
 }
