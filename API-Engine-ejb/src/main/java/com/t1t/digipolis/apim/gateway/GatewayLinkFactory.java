@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
 import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.apim.gateway.rest.RestGatewayLink;
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,6 +18,7 @@ import javax.inject.Inject;
 public class GatewayLinkFactory implements IGatewayLinkFactory {
     @Inject private IStorage storage;
     @Inject private AppConfig config;
+    @Inject private GatewayValidation gatewayValidation;
     /**
      * Constructor.
      */
@@ -35,7 +37,7 @@ public class GatewayLinkFactory implements IGatewayLinkFactory {
                     .append(config.getMetricsURI())
                     .append((!StringUtils.isEmpty(config.getMetricsPort()))?":"+config.getMetricsPort():"")
                     .append("/").toString();
-            return new RestGatewayLink(gateway,storage,metricsURI,config);
+            return new RestGatewayLink(gateway,storage,metricsURI,config,gatewayValidation);
         } else {
             throw new IllegalArgumentException();
         }

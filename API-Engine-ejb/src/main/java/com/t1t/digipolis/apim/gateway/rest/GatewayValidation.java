@@ -197,8 +197,11 @@ public class GatewayValidation {
             throw ExceptionFactory.invalidPolicyException("If \"Mandatory Scopes\" is checked, at least one scope/scope description must be provided in order to apply OAuth2");
         }
         //create custom provisionkey - explicitly
+        //Unless the policy already has a provision key
         oauthValue.setScopes(responseScopes);
-        oauthValue.setProvisionKey(UUID.randomUUID().toString());
+        if (StringUtils.isEmpty(oauthValue.getProvisionKey())) {
+            oauthValue.setProvisionKey(UUID.randomUUID().toString());
+        }
         //If no OAuth token expiration has been set, use the default gateway value
         if (oauthValue.getTokenExpiration() == null) {
             try {
@@ -467,6 +470,43 @@ public class GatewayValidation {
     public synchronized Policy validateJsonThreatProtection(Policy policy) {
         //Do nothing, it's fine
         return policy;
+    }
+
+    /**
+     * Validate OAuth plugin values and if necessary transform.
+     *
+     * @param policy    OAuth policy
+     * @return
+     */
+    public synchronized Policy validateExplicitOAuth(Policy policy) {
+        //we can be sure this is an OAuth Policy
+        Gson gson = new Gson();
+        KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        KongPluginOAuthEnhanced newOAuthValue = validateExplicitOAuth(oauthValue);
+        //perform enhancements
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
+        return responsePolicy;
+    }
+
+    public synchronized KongPluginOAuthEnhanced validateExplicitOAuth(KongPluginOAuth config) {
+        KongPluginOAuthEnhanced newOAuthValue = new KongPluginOAuthEnhanced();
+        newOAuthValue.setEnableImplicitGrant(config.getEnableImplicitGrant());
+        newOAuthValue.setEnableAuthorizationCode(config.getEnableAuthorizationCode());
+        newOAuthValue.setEnableClientCredentials(config.getEnableClientCredentials());
+        newOAuthValue.setEnablePasswordGrant(config.getEnablePasswordGrant());
+        newOAuthValue.setHideCredentials(config.getHideCredentials());
+        newOAuthValue.setMandatoryScope(config.getMandatoryScope());
+        newOAuthValue.setProvisionKey(config.getProvisionKey());
+        newOAuthValue.setTokenExpiration(config.getTokenExpiration());
+        List<KongPluginOAuthScope> scopeObjects = config.getScopes();
+        List<Object>scopes = new ArrayList<>();
+        for(KongPluginOAuthScope scope:scopeObjects){
+            scopes.add(scope.getScope());
+        }
+        newOAuthValue.setScopes(scopes);
+        return newOAuthValue;
     }
 
     private static boolean isEmptyList(List list){

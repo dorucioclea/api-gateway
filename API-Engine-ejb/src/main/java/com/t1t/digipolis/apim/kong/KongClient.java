@@ -94,7 +94,7 @@ public interface KongClient {
     @POST("/apis/{apinameorid}/plugins/")KongPluginConfig createPluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
     @GET("/apis/{apinameorid}/plugins/")KongPluginConfigList getKongPluginConfigList(@Path("apinameorid")String apiNameOrId);
     @GET("/apis/{apinameorid}/plugins/")KongPluginConfigList getKongPluginConfig(@Path("apinameorid")String apiNameOrId,@Query("name") String pluginId);
-    @PUT("/apis/{apinameorid}/plugins/") Object updateKongPluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig config);
+    @PUT("/apis/{apinameorid}/plugins/") KongPluginConfig updateKongPluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig config);
     @GET("/plugins/")KongPluginConfigList getAllPlugins();
     /*@PATCH("/apis/{apinameorid}/plugins/{id}")KongPluginConfig updatePlugin(@Path("apinameorid")String apiNameOrId,@Path("id")String pluginId,@Body KongPluginConfig pluginConfig);*/
     @PUT("/apis/{apinameorid}/plugins/")KongPluginConfig updateOrCreatePluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
