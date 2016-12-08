@@ -257,6 +257,7 @@ public final class ErrorCodes {
     //
 
     public static final int SYSTEM_MAINTENANCE                  = 20001;
+    public static final int SYSTEM_MAINTENANCE_LOGIN            = 20002;
 
     public static final String SYSTEM_MAINTENANCE_INFO          = null;
 }

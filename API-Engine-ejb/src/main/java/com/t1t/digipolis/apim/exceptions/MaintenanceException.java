@@ -9,8 +9,15 @@ import org.slf4j.LoggerFactory;
  */
 public class MaintenanceException extends AbstractSystemException {
 
+    private Integer errorCode;
+
     public MaintenanceException(String message) {
         super(message);
+    }
+
+    public MaintenanceException(String message, Integer errorCode) {
+        super(message);
+        this.errorCode = errorCode;
     }
 
     @Override
@@ -20,7 +27,7 @@ public class MaintenanceException extends AbstractSystemException {
 
     @Override
     public int getErrorCode() {
-        return ErrorCodes.SYSTEM_MAINTENANCE;
+        return this.errorCode == null ? ErrorCodes.SYSTEM_MAINTENANCE : this.errorCode;
     }
 
     @Override
