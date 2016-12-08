@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryType;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
@@ -1064,4 +1065,10 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public void deleteAllOAuthTokens() throws StorageException;
+
+    /**
+     * Retrieves all oauth tokens
+     * @throws StorageException
+     */
+    public List<OAuth2TokenBean> getAllOAuthTokens() throws StorageException;
 }

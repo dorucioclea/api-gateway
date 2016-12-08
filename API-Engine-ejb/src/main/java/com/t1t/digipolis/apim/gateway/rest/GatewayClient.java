@@ -3,12 +3,15 @@ package com.t1t.digipolis.apim.gateway.rest;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.summary.ServiceVersionSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.JWTException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.exceptions.BrandingNotAvailableException;
@@ -49,10 +52,7 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
 import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
 import com.t1t.digipolis.kong.model.Method;
-import com.t1t.digipolis.util.ConsumerConventionUtil;
-import com.t1t.digipolis.util.GatewayPathUtilities;
-import com.t1t.digipolis.util.JWTUtils;
-import com.t1t.digipolis.util.ServiceConventionUtil;
+import com.t1t.digipolis.util.*;
 import org.apache.commons.codec.binary.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -76,6 +76,7 @@ public class GatewayClient {
     private GatewayBean gatewayBean;
     private IStorage storage;
     private AppConfig appConfig;
+    private GatewayValidation gatewayValidation;
     private static final ObjectMapper mapper = new ObjectMapper();
     private static String metricsURI;
     private static String AUTH_API_KEY = "apikey";
@@ -86,7 +87,7 @@ public class GatewayClient {
      *
      * @param httpClient the http client
      */
-    public GatewayClient(KongClient httpClient, GatewayBean gateway, IStorage storage, String metricsURI, AppConfig appConfig) {
+    public GatewayClient(KongClient httpClient, GatewayBean gateway, IStorage storage, String metricsURI, AppConfig appConfig, GatewayValidation gatewayValidation) {
         Preconditions.checkNotNull(httpClient);
         Preconditions.checkNotNull(storage);
         Preconditions.checkNotNull(gateway);
@@ -96,6 +97,7 @@ public class GatewayClient {
         this.storage = storage;
         this.metricsURI = metricsURI;
         this.appConfig = appConfig;
+        this.gatewayValidation = gatewayValidation;
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {
@@ -533,7 +535,7 @@ public class GatewayClient {
      *
      * @param policy
      */
-    private void postOAuth2Actions(String organizationId, String serviceId, String version, Policy policy, KongPluginConfig config) {
+    public void postOAuth2Actions(String organizationId, String serviceId, String version, Policy policy, KongPluginConfig config) {
         Preconditions.checkNotNull(organizationId);
         Preconditions.checkNotNull(serviceId);
         Preconditions.checkNotNull(version);
@@ -562,6 +564,24 @@ public class GatewayClient {
             storage.updateServiceVersion(svb);
         } catch (StorageException e) {
             throw new GatewayException("Error update service version bean with OAuth2 info:"+e.getMessage());
+        }
+    }
+
+    public void postOAuth2Actions(KongPluginOAuth engineConfig, String provisionKey, String api) {
+        try {
+            ServiceVersionSummaryBean svsb = ServiceConventionUtil.getServiceVersionSummaryFromUniqueName(api);
+            ServiceVersionBean svb = storage.getServiceVersion(svsb.getOrganizationId(), svsb.getId(), svsb.getVersion());
+            svb.setProvisionKey(provisionKey);
+            Map<String,String> scopeMap = new HashMap<>();
+            List<KongPluginOAuthScope> scopeObjects = engineConfig.getScopes();
+            for(KongPluginOAuthScope scope:scopeObjects){
+                scopeMap.put(scope.getScope(), scope.getScopeDesc());
+            }
+            svb.setOauthScopes(scopeMap);
+            storage.updateServiceVersion(svb);
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
@@ -767,11 +787,6 @@ public class GatewayClient {
         return httpClient.getKongPluginConfig(serviceId, pluginId);
     }
 
-    public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config){
-        httpClient.updateKongPluginConfig(serviceId,config);
-        return config;
-    }
-
     public void deleteConsumerKeyAuth(String id, String apikey){
         //get all registered api key values for a consumer
         KongPluginKeyAuthResponseList keyAuthCredentials = httpClient.getConsumerKeyAuthCredentials(id);
@@ -965,38 +980,6 @@ public class GatewayClient {
         return httpClient.updateConsumer(kongConsumerId, updatedConsumer);
     }
 
-    /**
-     * Validate OAuth plugin values and if necessary transform.
-     *
-     * @param policy    OAuth policy
-     * @return
-     */
-    public synchronized Policy validateExplicitOAuth(Policy policy) {
-        //we can be sure this is an OAuth Policy
-        Gson gson = new Gson();
-        KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
-        KongPluginOAuthEnhanced newOAuthValue = new KongPluginOAuthEnhanced();
-        newOAuthValue.setEnableImplicitGrant(oauthValue.getEnableImplicitGrant());
-        newOAuthValue.setEnableAuthorizationCode(oauthValue.getEnableAuthorizationCode());
-        newOAuthValue.setEnableClientCredentials(oauthValue.getEnableClientCredentials());
-        newOAuthValue.setEnablePasswordGrant(oauthValue.getEnablePasswordGrant());
-        newOAuthValue.setHideCredentials(oauthValue.getHideCredentials());
-        newOAuthValue.setMandatoryScope(oauthValue.getMandatoryScope());
-        newOAuthValue.setProvisionKey(oauthValue.getProvisionKey());
-        newOAuthValue.setTokenExpiration(oauthValue.getTokenExpiration());
-        List<KongPluginOAuthScope> scopeObjects = oauthValue.getScopes();
-        List<Object>scopes = new ArrayList<>();
-        for(KongPluginOAuthScope scope:scopeObjects){
-            scopes.add(scope.getScope());
-        }
-        newOAuthValue.setScopes(scopes);
-        //perform enhancements
-        Policy responsePolicy = new Policy();
-        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
-        responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
-        return responsePolicy;
-    }
-
     public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId, String offset) {
         if (StringUtils.isEmpty(offset)) {
             return httpClient.getOAuthTokensByCredentialId(consumerOAuthCredentialId);
@@ -1092,7 +1075,7 @@ public class GatewayClient {
                 break;
             //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
             case OAUTH2:
-                plugin = createServicePolicyInternal(api, validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
+                plugin = createServicePolicyInternal(api, gatewayValidation.validateExplicitOAuth(policy), Policies.OAUTH2.getKongIdentifier(), KongPluginOAuthEnhanced.class);
                 log.info("start post oauth2 actions");
                 //upon transformation we use another enhanced object for json deserialization
                 postOAuth2Actions(organizationId, serviceId, version, policy, plugin);
@@ -1154,5 +1137,37 @@ public class GatewayClient {
         else {
             return httpClient.getOAuthTokens(offset);
         }
+    }
+
+    public KongPluginConfig updateServicePlugin(String api, KongPluginConfig plugin) {
+        Gson gson = new Gson();
+        Policies policies = GatewayUtils.convertKongPluginNameToPolicy(plugin.getName());
+
+        switch(policies){
+            //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
+            case OAUTH2:
+                KongPluginOAuth engineConfig = (KongPluginOAuth) plugin.getConfig();
+                KongPluginOAuthEnhanced gwConfig = gatewayValidation.validateExplicitOAuth(engineConfig);
+                plugin = httpClient.updateKongPluginConfig(api, plugin.withConfig(gwConfig));
+                log.info("start post oauth2 actions");
+                //upon transformation we use another enhanced object for json deserialization
+                postOAuth2Actions(engineConfig, gwConfig.getProvisionKey(), api);
+                break;
+            default:
+                plugin = httpClient.updateKongPluginConfig(api, plugin);
+                break;
+        }
+        return plugin;
+    }
+
+    public KongOAuthToken createOAuthToken(OAuth2TokenBean token) {
+        return httpClient.createOAuthToken(new KongOAuthToken()
+                .withAccessToken(token.getAccessToken())
+                .withAuthenticatedUserid(token.getAuthenticatedUserId())
+                .withExpiresIn(token.getExpiresIn().intValue())
+                .withId(token.getId())
+                .withScope(token.getScope())
+                .withRefreshToken(token.getRefreshToken())
+                .withTokenType(token.getTokenType()));
     }
 }

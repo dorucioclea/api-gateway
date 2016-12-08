@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2Token;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
@@ -287,8 +288,7 @@ public class MigrationFacade {
         syncApplications();
         updatePoliciesWithGatewayPluginIds();
         syncAndCreateConsumerCredentials();
-        //MigrateToAcl is not a sync endpoint. Do not use unless you're migrating a gateway that doesn't have acl policies to a version of the API Engine that does
-        //migrateToAcl();
+        migrateBackedUpTokens();
         log.info("====MIGRATION-END======");
     }
 
@@ -1208,6 +1208,29 @@ public class MigrationFacade {
             });
         }
         catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private void migrateBackedUpTokens() {
+        try {
+            query.getAllOAuthTokens().forEach(this::migrateBackedUpToken);
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    private void migrateBackedUpToken(OAuth2TokenBean token) {
+        try {
+            KongOAuthToken gwToken = gatewayFacade.createGatewayLink(token.getGatewayId()).createOAuthToken(token);
+            if (gwToken != null) {
+                storage.deleteOAuth2Token(token);
+            }
+        }
+        catch (StorageException ex) {
+            gatewayFacade.createGatewayLink(token.getGatewayId()).revokeOAuthToken(token.getId());
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

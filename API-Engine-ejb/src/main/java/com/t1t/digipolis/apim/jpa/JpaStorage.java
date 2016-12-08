@@ -2818,4 +2818,10 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         String jpql = "DELETE FROM OAuth2TokenBean o";
         getActiveEntityManager().createQuery(jpql).executeUpdate();
     }
+
+    @Override
+    public List<OAuth2TokenBean> getAllOAuthTokens() throws StorageException {
+        String jpql = "SELECT o FROM OAuth2TokenBean o";
+        return getActiveEntityManager().createQuery(jpql).getResultList();
+    }
 }

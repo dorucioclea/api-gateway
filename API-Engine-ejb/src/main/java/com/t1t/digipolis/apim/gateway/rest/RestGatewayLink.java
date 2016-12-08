@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -23,11 +24,9 @@ import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
@@ -43,10 +42,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.o;
 
 /**
  * An implementation of a Gateway Link that uses the Gateway's simple REST
@@ -68,13 +64,14 @@ public class RestGatewayLink implements IGatewayLink {
     private RestGatewayConfigBean config;
     private AppConfig appConfig;
     private IStorage storage;
+    private GatewayValidation gatewayValidation;
 
     /**
      * Constructor.
      *
      * @param gateway the gateway
      */
-    public RestGatewayLink(final GatewayBean gateway, final IStorage storage, final String metricsURI, final AppConfig appConfig) {
+    public RestGatewayLink(final GatewayBean gateway, final IStorage storage, final String metricsURI, final AppConfig appConfig, final GatewayValidation gatewayValidation) {
         try {
             this.gateway = gateway;
             this.storage = storage;
@@ -85,6 +82,7 @@ public class RestGatewayLink implements IGatewayLink {
             getConfig().setPassword(AesEncrypter.decrypt(getConfig().getPassword()));
             //setup http client with applicable interfaces
             httpClient = kongServiceBuilder.getService(config, KongClient.class);
+            this.gatewayValidation = gatewayValidation;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -344,7 +342,7 @@ public class RestGatewayLink implements IGatewayLink {
      */
     private GatewayClient createClient() {
         String gatewayEndpoint = getConfig().getEndpoint();
-        return new GatewayClient(httpClient, gateway, storage, metricsURI, appConfig);
+        return new GatewayClient(httpClient, gateway, storage, metricsURI, appConfig, gatewayValidation);
     }
 
     /**
@@ -477,5 +475,10 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public KongOAuthTokenList getAllOAuth2Tokens(String offset) {
         return getClient().getAllOAuth2Tokens(offset);
+    }
+
+    @Override
+    public KongOAuthToken createOAuthToken(OAuth2TokenBean token) {
+        return getClient().createOAuthToken(token);
     }
 }

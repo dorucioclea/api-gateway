@@ -94,7 +94,7 @@ public interface KongClient {
     @POST("/apis/{apinameorid}/plugins/")KongPluginConfig createPluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
     @GET("/apis/{apinameorid}/plugins/")KongPluginConfigList getKongPluginConfigList(@Path("apinameorid")String apiNameOrId);
     @GET("/apis/{apinameorid}/plugins/")KongPluginConfigList getKongPluginConfig(@Path("apinameorid")String apiNameOrId,@Query("name") String pluginId);
-    @PUT("/apis/{apinameorid}/plugins/") Object updateKongPluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig config);
+    @PUT("/apis/{apinameorid}/plugins/") KongPluginConfig updateKongPluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig config);
     @GET("/plugins/")KongPluginConfigList getAllPlugins();
     /*@PATCH("/apis/{apinameorid}/plugins/{id}")KongPluginConfig updatePlugin(@Path("apinameorid")String apiNameOrId,@Path("id")String pluginId,@Body KongPluginConfig pluginConfig);*/
     @PUT("/apis/{apinameorid}/plugins/")KongPluginConfig updateOrCreatePluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
@@ -116,6 +116,7 @@ public interface KongClient {
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokensByAuthenticatedUser(@Query("authenticated_userid") String authenticatedUserId, @Query("offset") String offset);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthTokensByAccessToken(@Query("access_token") String accessToken);
     @GET("/oauth2_tokens")KongOAuthTokenList getOAuthToken(@Query("id") String tokenId);
+    @POST("/oauth2_tokens") KongOAuthToken createOAuthToken(@Body KongOAuthToken token);
     @DELETE("/oauth2_tokens/{tokenId}") Object revokeOAuthToken(@Path("tokenId") String tokenId);
     @DELETE("/consumers/{consumerId}/oauth2/{pluginId}")Object deleteOAuth2Credential(@Path(value = "consumerId", encode = false)String consumerId, @Path("pluginId")String pluginId);
 

@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.gateway;
 
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -492,7 +493,8 @@ public interface IGatewayLink {
      * @param policy
      * @return
      */
-    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy);
+    public Policy createServicePolicy(String organizationId, String serviceId, String
+            version, Policy policy);
 
     /**
      * Create a service branding api on the gateway
@@ -524,4 +526,11 @@ public interface IGatewayLink {
      * @param offset
      */
     public KongOAuthTokenList getAllOAuth2Tokens(String offset);
+
+    /**
+     * Create a token on the gateway
+     * @param token
+     * @return
+     */
+    public KongOAuthToken createOAuthToken(OAuth2TokenBean token);
 }
