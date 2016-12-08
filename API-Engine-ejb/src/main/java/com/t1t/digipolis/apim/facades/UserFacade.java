@@ -981,10 +981,10 @@ public class UserFacade implements Serializable {
             jwtRefreshResponseBean.setJwt(JWTUtils.getJwtWithExpirationTime(jwtClaims, jwtExpirationTime, key ,pubKeyEndpoint, algorithm));
             return jwtRefreshResponseBean;
         }
-        catch (InvalidJwtException | UnsupportedEncodingException | MalformedClaimException ex) {
+        catch (InvalidJwtException | IOException | MalformedClaimException | JoseException ex) {
             throw ExceptionFactory.jwtInvalidException("JWT is invalid", ex);
         }
-        catch (StorageException | JoseException | IOException ex) {
+        catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
