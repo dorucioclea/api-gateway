@@ -37,9 +37,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("/gtw/rebuild")
     public void rebuild() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.rebuildGtw();
     }
 
@@ -62,9 +59,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("applications/rename")
     public void updateConsumersCustomId() throws AbstractRestException {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.renameApplicationCustomIds();
     }
 
@@ -75,9 +69,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("services/default-policies/apply")
     public void applyDefaultPoliciesToServiceVersions() throws AbstractRestException {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.applyDefaultPolicies();
     }
 
@@ -100,9 +91,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("sync/jwt-issuance")
     public void issueJWT() throws AbstractRestException, StorageException {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.issueJWT();
     }
 
@@ -113,9 +101,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("sync/service-policies")
     public void updatePoliciesWithGatewayPluginIds() {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.updatePoliciesWithGatewayPluginIds();
     }
 
@@ -126,9 +111,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("sync/applications/credentials/create-or-sync")
     public void syncOrCreateConsumerCredentials() {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.syncAndCreateConsumerCredentials();
     }
 
@@ -141,5 +123,15 @@ public class MigrationResource implements IMigrationResource {
     @Path("sync/split-orgs")
     public void splitOrgs() throws Exception {
         //migrationFacade.splitOrgs();
+    }
+
+    @Override
+    @ApiOperation(value =  "Create/sync def pols",
+            notes = "Create or sync all necessary application credentials. Currently, this enabled key authentication, OAuth authentication and JWT authentication for all non-retired applications")
+    @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
+    @POST
+    @Path("sync/services/syncpolicies")
+    public void applydefPol() {
+        migrationFacade.syncEmptyKongPluginIds();
     }*/
 }

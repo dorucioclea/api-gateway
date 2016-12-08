@@ -2404,7 +2404,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public ApplicationVersionSummaryBean resolveApplicationVersionByAPIKey(String apiKey) throws StorageException {
         ApplicationVersionSummaryBean rval = null;
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT a FROM ApplicationVersionBean a WHERE a IN (SELECT c.application FROM ContractBean c WHERE c.apikey = :apiKey)";
+        String jpql = "SELECT a FROM ApplicationVersionBean a WHERE a.apikey = :apiKey";
         ApplicationVersionBean result = null;
         try {
             result = (ApplicationVersionBean) em.createQuery(jpql)
@@ -2772,5 +2772,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         catch (NoResultException ex) {
             return null;
         }
+    }
+
+    @Override
+    public List<PolicyBean> getDefaultUnpublishedPolicies() throws StorageException {
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.kongPluginId IS NULL";
+        return getActiveEntityManager().createQuery(jpql).getResultList();
     }
 }

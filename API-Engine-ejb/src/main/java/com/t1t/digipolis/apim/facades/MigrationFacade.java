@@ -40,10 +40,7 @@ import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
-import com.t1t.digipolis.apim.gateway.dto.Application;
-import com.t1t.digipolis.apim.gateway.dto.Contract;
-import com.t1t.digipolis.apim.gateway.dto.Policy;
-import com.t1t.digipolis.apim.gateway.dto.Service;
+import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
@@ -279,7 +276,7 @@ public class MigrationFacade {
     //initialize unregistered consumer
     //register consumers
     //TODO: impact service request events?
-    @TransactionTimeout(value = 15, unit = TimeUnit.MINUTES)
+    @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
     public void rebuildGtw() {
         log.info("====MIGRATION-START====");
         removeACLsFromDB();
@@ -317,7 +314,7 @@ public class MigrationFacade {
                     try {
                         //create user on gateway using existing kong_username
                         gatewayLink.createConsumerWithKongId(user.getKongUsername(), ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
-                        Thread.sleep(100);
+                        Thread.sleep(50);
                         //create jwt token
                         gatewayLink.addConsumerJWT(user.getKongUsername(), JWT_RS256);
                     } catch (RetrofitError rte) {
@@ -1126,5 +1123,63 @@ public class MigrationFacade {
             throw ExceptionFactory.systemErrorException(ex);
         }
         log.info("======== END Enabling Consumers for all auth methods ========");
+    }
+
+    public void syncEmptyKongPluginIds() {
+        try{
+            List<PolicyBean> policies = query.getDefaultUnpublishedPolicies();
+            policies.forEach(policy -> {
+                try {
+                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                    KongPluginConfigList plugins = gateway.getServicePlugins(ServiceConventionUtil.generateServiceUniqueName(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()));
+                    for (KongPluginConfig plg : plugins.getData()) {
+                        String plgDef = GatewayUtils.convertKongPluginNameToPolicy(plg.getName()).getPolicyDefId();
+                        if (plgDef.equals(policy.getDefinition().getId())) {
+                            policy.setKongPluginId(plg.getId());
+                            policy.setGatewayId(gateway.getGatewayId());
+                            storage.updatePolicy(policy);
+                        }
+                    }
+                }
+                catch (StorageException ex) {
+                    throw ExceptionFactory.systemErrorException(ex);
+                }
+                catch (Exception ex) {
+                    //do nothing
+                }
+            });
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public void createDefaultPoliciesOnGateway() {
+        try{
+            List<PolicyBean> policies = query.getDefaultUnpublishedPolicies();
+            policies.forEach(policy -> {
+                try {
+                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                    Policy pol = new Policy();
+                    pol.setEntityId(ServiceConventionUtil.generateServiceUniqueName(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()));
+                    pol.setPolicyId(policy.getId());
+                    pol.setPolicyImpl(policy.getDefinition().getId());
+                    pol.setPolicyJsonConfig(policy.getConfiguration());
+                    Policy returnPol = gateway.createServicePolicy(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion(), pol);
+                    policy.setGatewayId(gateway.getGatewayId());
+                    policy.setKongPluginId(returnPol.getKongPluginId());
+                    storage.updatePolicy(policy);
+                }
+                catch (StorageException ex) {
+                    throw ExceptionFactory.systemErrorException(ex);
+                }
+                catch (Exception ex) {
+                    //do nothing
+                }
+            });
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 }

@@ -1039,4 +1039,6 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public ContractBean getContractByServiceVersionAndOAuthClientId(String orgId, String serviceId, String version, String clientId) throws StorageException;
+
+    public List<PolicyBean> getDefaultUnpublishedPolicies() throws StorageException;
 }

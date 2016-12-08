@@ -68,13 +68,14 @@ public class RestGatewayLink implements IGatewayLink {
     private RestGatewayConfigBean config;
     private AppConfig appConfig;
     private IStorage storage;
+    private GatewayValidation gatewayValidation;
 
     /**
      * Constructor.
      *
      * @param gateway the gateway
      */
-    public RestGatewayLink(final GatewayBean gateway, final IStorage storage, final String metricsURI, final AppConfig appConfig) {
+    public RestGatewayLink(final GatewayBean gateway, final IStorage storage, final String metricsURI, final AppConfig appConfig, final GatewayValidation gatewayValidation) {
         try {
             this.gateway = gateway;
             this.storage = storage;
@@ -85,6 +86,7 @@ public class RestGatewayLink implements IGatewayLink {
             getConfig().setPassword(AesEncrypter.decrypt(getConfig().getPassword()));
             //setup http client with applicable interfaces
             httpClient = kongServiceBuilder.getService(config, KongClient.class);
+            this.gatewayValidation = gatewayValidation;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -344,7 +346,7 @@ public class RestGatewayLink implements IGatewayLink {
      */
     private GatewayClient createClient() {
         String gatewayEndpoint = getConfig().getEndpoint();
-        return new GatewayClient(httpClient, gateway, storage, metricsURI, appConfig);
+        return new GatewayClient(httpClient, gateway, storage, metricsURI, appConfig, gatewayValidation);
     }
 
     /**
