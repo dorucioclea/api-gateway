@@ -28,11 +28,7 @@ import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import org.elasticsearch.gateway.GatewayException;
 
-import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
 
 /**
  * Links the design time API with a Gateway.  This allows the design time API
@@ -397,6 +393,13 @@ public interface IGatewayLink {
      * @return KongConsumerList
      */
     public KongConsumerList getConsumers();
+
+    /**
+     * Get a list of consumers
+     * @param offset
+     * @return
+     */
+    public KongConsumerList getConsumers(String offset);
 
     /**
      * Update or create a consumer

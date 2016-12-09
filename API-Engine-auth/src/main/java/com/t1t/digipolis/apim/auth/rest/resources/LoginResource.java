@@ -17,10 +17,7 @@ import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.OAuthException;
-import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
-import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
@@ -233,19 +230,25 @@ public class LoginResource implements ILoginResource {
             }else{
                 uri = new URL(response.getClientUrl() + "?jwt=" + jwtToken).toURI();
             }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
+        } catch (URISyntaxException | StorageException | MalformedURLException | UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (Exception e) {
-            log.error("Grant Error:{}",e.getMessage());
-            try {
-                URI redirect = new URL(cacheUtil.getWebCacheBean(URLEncoder.encode(relayState, "UTF-8")).getClientAppRedirect()).toURI();
-                log.debug("Redirect URI:{}", redirect.toString());
-                return Response.seeOther(redirect).entity(e).build();
-            }
-            catch (Exception ex) {
-                throw new SAMLAuthException(e.getMessage());
+            //Catch the exception check if there's an underlying AbstractRestException and create an error message for the redirect
+            if (e.getCause() != null && AbstractRestException.class.isAssignableFrom(e.getCause().getClass()) ) {
+                AbstractRestException ex = (AbstractRestException) e.getCause();
+                try {
+                    StringBuilder clientURLString = new StringBuilder(cacheUtil.getWebCacheBean(URLEncoder.encode(relayState, "UTF-8")).getClientAppRedirect());
+                    URI clientURL = new URI(clientURLString.toString());
+                    clientURLString
+                            .append(clientURL.getQuery() != null ? "&" : "?")
+                            .append("errorcode=").append(ex.getErrorCode())
+                            .append("&errormessage=")
+                            .append(URLEncoder.encode(ex.getMessage(), "UTF-8"));
+                    return Response.seeOther(new URL(clientURLString.toString())
+                            .toURI()).build();
+                } catch (MalformedURLException | URISyntaxException | UnsupportedEncodingException exception) {
+                    //do nothing at this point
+                }
             }
         }
         if (uri != null) return Response.seeOther(uri).build();

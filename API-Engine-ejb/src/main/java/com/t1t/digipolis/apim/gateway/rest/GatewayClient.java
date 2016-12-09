@@ -958,7 +958,10 @@ public class GatewayClient {
         return metricsURI;
     }
 
-    public KongConsumerList getConsumers() {
+    public KongConsumerList getConsumers(String offset) {
+        if (StringUtils.isNotEmpty(offset)) {
+            return httpClient.getConsumers(offset);
+        }
         return httpClient.getConsumers();
     }
 

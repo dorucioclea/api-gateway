@@ -384,7 +384,12 @@ public class RestGatewayLink implements IGatewayLink {
 
     @Override
     public KongConsumerList getConsumers() {
-        return getClient().getConsumers();
+        return getClient().getConsumers(null);
+    }
+
+    @Override
+    public KongConsumerList getConsumers(String offset) {
+        return getClient().getConsumers(offset);
     }
 
     @Override

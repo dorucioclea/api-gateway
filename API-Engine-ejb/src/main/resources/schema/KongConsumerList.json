@@ -13,6 +13,14 @@
     "next": {
       "id": "next",
       "type": "string"
+    },
+    "offset": {
+      "id": "offset",
+      "type": "string"
+    },
+    "total": {
+      "id": "total",
+      "type": "integer"
     }
   }
 }

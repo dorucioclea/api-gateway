@@ -538,7 +538,7 @@ public class UserFacade implements Serializable {
      *
      * @return
      */
-    public SAMLResponseRedirect processSAML2Response(String samlResponse, String relaystate) throws Exception {
+    public SAMLResponseRedirect processSAML2Response(String samlResponse, String relaystate) throws StorageException, UnsupportedEncodingException {
 
         String relayState = relaystate;
         StringBuffer clientUrl = new StringBuffer("");

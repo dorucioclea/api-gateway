@@ -60,6 +60,7 @@ public interface KongClient {
     @GET("/consumers/{id}") KongConsumer getConsumer(@Path("id")String id);
     @GET("/consumers/")
     KongConsumerList getConsumers();
+    @GET("/consumers") KongConsumerList getConsumers(@Query("offset") String offset);
     /*@PATCH("/consumers/{id}") KongConsumer updateConsumer(@Path("id")String id,@Body KongConsumer consumer);*/
     @PUT("/consumers/")KongConsumer updateOrCreateConsumer(@Body KongConsumer consumer);
     @PATCH("/consumers/{consumerId}")

@@ -102,6 +102,7 @@ public class MigrationFacade {
         log.info("Migration ACL finished");
     }
 
+    //TODO - this doesn't work anymore because the returned object is paginated
     public void renameApplicationCustomIds() {
         try {
             IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
