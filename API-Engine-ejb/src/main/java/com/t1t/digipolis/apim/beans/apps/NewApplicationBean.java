@@ -17,6 +17,7 @@ public class NewApplicationBean implements Serializable {
     private String description;
     private String initialVersion;
     private String base64logo;
+    private String email;
 
     /**
      * Constructor.
@@ -66,12 +67,32 @@ public class NewApplicationBean implements Serializable {
         this.initialVersion = initialVersion;
     }
 
+    /**
+     * @return the base 64 logo
+     */
     public String getBase64logo() {
         return base64logo;
     }
 
+    /**
+     * @param base64logo the base 64 logo to set
+     */
     public void setBase64logo(String base64logo) {
         this.base64logo = base64logo;
+    }
+
+    /**
+     * @return the email
+     */
+    public String getEmail() {
+        return email;
+    }
+
+    /**
+     * @param email the email to set
+     */
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override
@@ -81,7 +102,7 @@ public class NewApplicationBean implements Serializable {
                 ", description='" + description + '\'' +
                 ", initialVersion='" + initialVersion + '\'' +
                 ", base64logo='" + base64logo + '\'' +
+                ", email='" + email + '\'' +
                 '}';
     }
-
 }

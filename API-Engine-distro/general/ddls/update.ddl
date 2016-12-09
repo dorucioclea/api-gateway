@@ -717,6 +717,10 @@ UPDATE policydefs SET form = '{
   }
 }' WHERE id = 'RateLimiting';
 
+--Application emails
+
+ALTER TABLE applications ADD COLUMN email VARCHAR(255) DEFAULT NULL;
+
 -- Table for API engine operating modes
 -- 0.9.4 SNAPSHOT
 CREATE TABLE operating_modes (id VARCHAR(255) NOT NULL, enabled BOOL NOT NULL DEFAULT FALSE, message VARCHAR(255));
