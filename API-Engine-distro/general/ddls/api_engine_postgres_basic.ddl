@@ -214,8 +214,6 @@ ALTER TABLE service_defs ADD CONSTRAINT UK_service_defs_1 UNIQUE (service_versio
 
 ALTER TABLE contracts ADD CONSTRAINT UK_contracts_1 UNIQUE (appv_id, svcv_id, planv_id);
 
-ALTER TABLE users ADD CONSTRAINT UK_users_unique_email UNIQUE (email);
-
 ALTER TABLE events ADD CONSTRAINT UK_events_1 UNIQUE (origin_id, destination_id, type);
 
 ALTER TABLE brandings ADD CONSTRAINT UK_brandings_1 UNIQUE (name);
