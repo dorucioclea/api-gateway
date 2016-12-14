@@ -10,6 +10,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingTypes;
+import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
@@ -935,11 +936,11 @@ public class UserFacade implements Serializable {
      * @param subject
      * @return
      */
-    private String getSecretFromTokenCache(String issuer, String subject) {
+    private String getSecretFromTokenCache(String issuer, String subject, boolean isServiceAccount) {
         String secret = cacheUtil.getToken(issuer);
         if (secret == null) {
             //retrieve secret from gateway if not present in cache
-            secret = getJWTCredentials(subject).getData().stream().filter(cred -> cred.getKey().equals(issuer)).map(KongPluginJWTResponse::getSecret).collect(CustomCollectors.getSingleResult());
+            secret = getJWTCredentials(subject, isServiceAccount).getData().stream().filter(cred -> cred.getKey().equals(issuer)).map(KongPluginJWTResponse::getSecret).collect(CustomCollectors.getSingleResult());
             if (secret == null) {
                 throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("jwtCredentialsNotFound", subject));
             }
@@ -955,6 +956,7 @@ public class UserFacade implements Serializable {
             String algorithm = JsonWebSignature.fromCompactSerialization(jwtRefreshRequestBean.getOriginalJWT()).getAlgorithmHeaderValue();
             JwtContext jwtContext = validateJWT(jwtRefreshRequestBean.getOriginalJWT());
             JwtClaims jwtClaims = jwtContext.getJwtClaims();
+            boolean isServiceAccount = jwtClaims.hasClaim(IJWT.SERVICE_ACCOUNT) && (Boolean) jwtClaims.getClaimValue(IJWT.SERVICE_ACCOUNT);
             //get gateway default expiration time for JWT
 
             Integer jwtExpirationTime = 60;//default 60min.
@@ -968,7 +970,7 @@ public class UserFacade implements Serializable {
             Key key;
             switch (algorithm) {
                 case JWTUtils.JWT_HS256:
-                    key = new HmacKey(getSecretFromTokenCache(jwtClaims.getIssuer(), jwtClaims.getSubject()).getBytes("UTF-8"));
+                    key = new HmacKey(getSecretFromTokenCache(jwtClaims.getIssuer(), jwtClaims.getSubject(), isServiceAccount).getBytes("UTF-8"));
                     break;
                 case JWTUtils.JWT_RS256:
                     key = KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey());
@@ -996,16 +998,17 @@ public class UserFacade implements Serializable {
             JwtClaims firstPass = JWTUtils.getUnvalidatedClaims(jwt);
             String issuer = firstPass.getIssuer();
             String subject = firstPass.getSubject();
+            boolean isServiceAccount = firstPass.hasClaim(IJWT.SERVICE_ACCOUNT) && (Boolean) firstPass.getClaimValue(IJWT.SERVICE_ACCOUNT);
             switch (algorithm) {
                 case JWTUtils.JWT_HS256:
                     //Get secret from cache if it exists
-                    rval = JWTUtils.validateHMACToken(jwt, getSecretFromTokenCache(issuer, subject), issuer);
+                    rval = JWTUtils.validateHMACToken(jwt, getSecretFromTokenCache(issuer, subject, isServiceAccount), issuer);
                     break;
                 case JWTUtils.JWT_RS256:
                     Set<String> pubKeys = new LinkedHashSet<>();
 
                     //First add the default gateway's credential's pub key. It's possible the private key is unknown to the gateway
-                    String pubKey = getJWTCredentials(subject).getData().stream().filter(cred -> cred.getKey().equals(issuer)).map(KongPluginJWTResponse::getRsaPublicKey).collect(CustomCollectors.getSingleResult());
+                    String pubKey = getJWTCredentials(subject, isServiceAccount).getData().stream().filter(cred -> cred.getKey().equals(issuer)).map(KongPluginJWTResponse::getRsaPublicKey).collect(CustomCollectors.getSingleResult());
 
                     if (StringUtils.isNotEmpty(pubKey)) {
                         pubKeys.add(pubKey);
@@ -1027,11 +1030,17 @@ public class UserFacade implements Serializable {
         }
     }
 
-    private KongPluginJWTResponseList getJWTCredentials(String subject) {
+    private KongPluginJWTResponseList getJWTCredentials(String subject, boolean isServiceAccount) {
         try {
+            String consumerId = null;
             IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            UserBean user = get(subject);
-            KongPluginJWTResponseList creds = gateway.getConsumerJWT(user.getKongUsername());
+            if (isServiceAccount) {
+                consumerId = subject;
+            }
+            else {
+                consumerId = get(subject).getKongUsername();
+            }
+            KongPluginJWTResponseList creds = gateway.getConsumerJWT(consumerId);
             if (creds == null || creds.getData() == null || creds.getData().isEmpty()) {
                 throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("userHasNoJwtCredentials", subject));
             }
