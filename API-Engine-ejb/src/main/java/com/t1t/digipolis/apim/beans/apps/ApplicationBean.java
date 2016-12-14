@@ -45,6 +45,8 @@ public class ApplicationBean implements Comparable<ApplicationBean>,Serializable
     @Lob
     @Basic(fetch=FetchType.EAGER)
     private byte[] base64logo;
+    @Column(name = "email")
+    private String email;
 
     /**
      * @return the id
@@ -123,6 +125,9 @@ public class ApplicationBean implements Comparable<ApplicationBean>,Serializable
         return createdBy;
     }
 
+    /**
+     * @return the context
+     */
     public String getContext() {
         return context;
     }
@@ -138,12 +143,32 @@ public class ApplicationBean implements Comparable<ApplicationBean>,Serializable
         this.createdBy = createdBy;
     }
 
+    /**
+     * @return the base 64 logo
+     */
     public String getBase64logo() {
         return Base64.encodeBase64String(base64logo);
     }
 
+    /**
+     * @param base64logo the base 65 logo to set
+     */
     public void setBase64logo(String base64logo) {
         this.base64logo = Base64.decodeBase64(base64logo.getBytes());
+    }
+
+    /**
+     * @return the email
+     */
+    public String getEmail() {
+        return email;
+    }
+
+    /**
+     * @param email the email to set
+     */
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override
@@ -175,6 +200,8 @@ public class ApplicationBean implements Comparable<ApplicationBean>,Serializable
                 ", context='" + context + '\'' +
                 ", createdBy='" + createdBy + '\'' +
                 ", createdOn=" + createdOn +
+                ", base64logo=" + Arrays.toString(base64logo) +
+                ", email='" + email + '\'' +
                 '}';
     }
 
