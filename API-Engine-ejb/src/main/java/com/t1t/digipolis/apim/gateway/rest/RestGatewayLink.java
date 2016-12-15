@@ -222,6 +222,11 @@ public class RestGatewayLink implements IGatewayLink {
         return getClient().updateServicePlugin(serviceId, config);
     }
 
+    @Override
+    public KongPluginConfig updateServicePlugin(KongPluginConfig config) {
+        return getClient().updatePlugin(config);
+    }
+
     /**
      * Checks that the gateway is up.
      */
@@ -485,5 +490,55 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public KongOAuthToken createOAuthToken(OAuth2TokenBean token) {
         return getClient().createOAuthToken(token);
+    }
+
+    @Override
+    public KongApi createApi(KongApi api) {
+        return getClient().createApi(api);
+    }
+
+    @Override
+    public KongApi updateOrCreateApi(KongApi api) {
+        return getClient().updateApi(api);
+    }
+
+    @Override
+    public KongPluginConfig createApiPlugin(String apiId, KongPluginConfig plugin) {
+        return getClient().createApiPlugin(apiId, plugin);
+    }
+
+    @Override
+    public KongPluginACLResponse updateConsumerACL(KongPluginACLResponse acl) {
+        return getClient().updateConsumerAcl(acl);
+    }
+
+    @Override
+    public KongPluginACLResponse getConsumerACL(String consumerId, String kongPluginId) {
+        return getClient().getConsumerAcl(consumerId, kongPluginId);
+    }
+
+    @Override
+    public KongConsumer getConsumerByCustomId(String customId) {
+        return getClient().getConsumerByCustomId(customId);
+    }
+
+    @Override
+    public KongPluginConfig updatePlugin(KongPluginConfig plugin) {
+        return getClient().updatePlugin(plugin);
+    }
+
+    @Override
+    public KongPluginConfigList getConsumerPlugins(String consumerId) {
+        return getClient().getConsumerPlugins(consumerId);
+    }
+
+    @Override
+    public KongPluginACLResponseList getAllConsumerAcls(String consumerId) {
+        return getClient().getAllConsumerAcls(consumerId);
+    }
+
+    @Override
+    public KongPluginConfigList getConsumerSpecificApiPlugins(String consumerId, String apiId) {
+        return getClient().getConsumerSpecificApiPlugins(consumerId, apiId);
     }
 }

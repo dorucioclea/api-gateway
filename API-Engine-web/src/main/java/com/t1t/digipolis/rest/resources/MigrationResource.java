@@ -1,5 +1,8 @@
 package com.t1t.digipolis.rest.resources;
 
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.facades.MigrationFacade;
@@ -14,8 +17,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 /**
  * @author Guillaume Vandecasteele
@@ -52,7 +56,7 @@ public class MigrationResource implements IMigrationResource {
         migrationFacade.migrateToAcl();
     }*/
 
-    @Override
+    /*@Override
     @ApiOperation(value =  "Rename Application CustomId",
             notes = "Update applications custom Id's to contain version")
     @ApiResponses({@ApiResponse(code = 204, message = "Rename complete")})
@@ -60,7 +64,7 @@ public class MigrationResource implements IMigrationResource {
     @Path("applications/rename")
     public void updateConsumersCustomId() throws AbstractRestException {
         migrationFacade.renameApplicationCustomIds();
-    }
+    }*/
 
     @Override
     @ApiOperation(value =  "Apply Default Service Policies",
@@ -111,37 +115,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("sync/applications/credentials/create-or-sync")
     public void syncOrCreateConsumerCredentials() {
-        migrationFacade.syncAndCreateConsumerCredentials();
+        //migrationFacade.syncAndCreateConsumerCredentials();
     }
-
-    @Override
-    @ApiOperation(value =  "Backup tokens for rebuild",
-            notes = "Create or sync all necessary application credentials. Currently, this enabled key authentication, OAuth authentication and JWT authentication for all non-retired applications")
-    @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
-    @POST
-    @Path("sync/oauth/tokens/backup")
-    public void backupTokens() {
-        migrationFacade.backUpOAuthTokens();
-    }
-
-    //Obsolete should not be used past version 0.8.0
-/*    @Override
-    @ApiOperation(value =  "Split orgs by context",
-            notes = "Use this endpoint in order to split orgs from v0.7x to v0.8.0")
-    @ApiResponses({@ApiResponse(code = 204, message = "Split completed")})
-    @POST
-    @Path("sync/split-orgs")
-    public void splitOrgs() throws Exception {
-        //migrationFacade.splitOrgs();
-    }
-
-    @Override
-    @ApiOperation(value =  "Create/sync def pols",
-            notes = "Create or sync all necessary application credentials. Currently, this enabled key authentication, OAuth authentication and JWT authentication for all non-retired applications")
-    @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
-    @POST
-    @Path("sync/services/syncpolicies")
-    public void applydefPol() {
-        migrationFacade.syncEmptyKongPluginIds();
-    }*/
 }

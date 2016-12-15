@@ -800,7 +800,7 @@ public class UserFacade implements Serializable {
             if (user == null) {//exists already
                 //If maintenance mode is turned on, do not create a new user.
                 if (maintenance.isEnabled()) {
-                    throw ExceptionFactory.maintenanceException(Messages.i18n.format("maintenanceUserCreation", maintenance.getMessage(), ErrorCodes.SYSTEM_MAINTENANCE_LOGIN));
+                    throw ExceptionFactory.maintenanceException(Messages.i18n.format("maintenanceUserCreation", maintenance.getMessage()), ErrorCodes.SYSTEM_MAINTENANCE_LOGIN);
                 }
                 user = initNewUser(identityAttributes);
             }

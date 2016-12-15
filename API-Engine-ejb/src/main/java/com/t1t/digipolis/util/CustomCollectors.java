@@ -13,10 +13,13 @@ public class CustomCollectors {
         return Collectors.collectingAndThen(
                 Collectors.toList(),
                 list -> {
-                    if (list.size() != 1) {
-                        throw new IllegalStateException("Multiple results");
+                    if (list.size() == 1) {
+                        return list.get(0);
                     }
-                    return list.get(0);
+                    if (list.size() == 0) {
+                        return null;
+                    }
+                    throw new IllegalStateException("Multiple results");
                 }
         );
     }
@@ -26,7 +29,7 @@ public class CustomCollectors {
                 Collectors.toList(),
                 list -> {
                     if (list.size() < 1) {
-                        throw new IllegalStateException("No Results");
+                        return null;
                     }
                     return list.get(0);
                 }

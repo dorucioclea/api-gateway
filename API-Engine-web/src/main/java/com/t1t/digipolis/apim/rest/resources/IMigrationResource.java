@@ -1,10 +1,15 @@
 package com.t1t.digipolis.apim.rest.resources;
 
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
+import com.t1t.digipolis.apim.beans.policies.Policies;
+import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.AbstractRestException;
 import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
+
+import java.util.List;
 
 /**
  * @author Guillaume Vandecasteele
@@ -21,7 +26,7 @@ public interface IMigrationResource {
     /**
      * Use this endpoint to change applications' versionless customId's to match their usernames
      */
-    public void updateConsumersCustomId() throws AbstractRestException;
+    //public void updateConsumersCustomId() throws AbstractRestException;
 
     /**
      * Sync the local db with the Kong gateway in case of:
@@ -73,6 +78,5 @@ public interface IMigrationResource {
      */
     public void applyDefaultPoliciesToServiceVersions() throws AbstractRestException;
 
-    public void backupTokens();
 }
 

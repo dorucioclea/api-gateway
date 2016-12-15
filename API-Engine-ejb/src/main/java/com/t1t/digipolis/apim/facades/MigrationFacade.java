@@ -7,8 +7,6 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2Token;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
@@ -102,7 +100,6 @@ public class MigrationFacade {
         log.info("Migration ACL finished");
     }
 
-    //TODO - this doesn't work anymore because the returned object is paginated
     public void renameApplicationCustomIds() {
         try {
             IGatewayLink gateway = createGatewayLink(gatewayFacade.getDefaultGateway().getId());
@@ -289,7 +286,8 @@ public class MigrationFacade {
         syncApplications();
         updatePoliciesWithGatewayPluginIds();
         syncAndCreateConsumerCredentials();
-        migrateBackedUpTokens();
+        //MigrateToAcl is not a sync endpoint. Do not use unless you're migrating a gateway that doesn't have acl policies to a version of the API Engine that does
+        //migrateToAcl();
         log.info("====MIGRATION-END======");
     }
 
@@ -519,7 +517,12 @@ public class MigrationFacade {
                                     .withClientSecret(requestBean.getAppOAuthSecret());
                             oauthRequest.setName(avb.getApplication().getName());
                             oauthRequest.setRedirectUri(avb.getOauthClientRedirects());
-                            oauthRequest.setId(avb.getOauthCredentialId());
+                            try {
+
+                            } catch (Exception e) {
+                                log.info("OAuth sync skipped for {}", avb);
+                                continue;//don't do anything
+                            }
                             gateway.enableConsumerForOAuth(appConsumerName, oauthRequest);
                         }
                         //if app registered - apply additionally plugins
@@ -803,11 +806,11 @@ public class MigrationFacade {
                                 continue;
                             }
                             event.setDestinationId(new StringBuilder(org.getId())
-                                                        .append(".")
-                                                        .append(dest[1])
-                                                        .append(".")
-                                                        .append(dest[2])
-                                                        .toString());
+                                    .append(".")
+                                    .append(dest[1])
+                                    .append(".")
+                                    .append(dest[2])
+                                    .toString());
                             storage.updateEvent(event);
                             break;
                     }
@@ -1046,15 +1049,13 @@ public class MigrationFacade {
                                     log.info("No OAuth credentials for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 }
                                 if (oauthCreds.getData().isEmpty()) {
-                                    KongPluginOAuthConsumerResponse response = gw.enableConsumerForOAuth(appId, new KongPluginOAuthConsumerRequest()
+                                    gw.enableConsumerForOAuth(appId, new KongPluginOAuthConsumerRequest()
                                             .withClientId(avb.getoAuthClientId())
                                             .withClientSecret(avb.getOauthClientSecret())
                                             .withRedirectUri(avb.getOauthClientRedirects())
                                             .withName(appId));
-                                    avb.setOauthCredentialId(response.getId());
                                     log.info("OAuth enabled for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 } else {
-                                    avb.setOauthCredentialId(oauthCreds.getData().get(0).getId());
                                     log.info("No oauth sync necessary for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 }
                             }
@@ -1124,35 +1125,6 @@ public class MigrationFacade {
         log.info("======== END Enabling Consumers for all auth methods ========");
     }
 
-    public void syncEmptyKongPluginIds() {
-        try{
-            List<PolicyBean> policies = query.getDefaultUnpublishedPolicies();
-            policies.forEach(policy -> {
-                try {
-                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                    KongPluginConfigList plugins = gateway.getServicePlugins(ServiceConventionUtil.generateServiceUniqueName(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()));
-                    for (KongPluginConfig plg : plugins.getData()) {
-                        String plgDef = GatewayUtils.convertKongPluginNameToPolicy(plg.getName()).getPolicyDefId();
-                        if (plgDef.equals(policy.getDefinition().getId())) {
-                            policy.setKongPluginId(plg.getId());
-                            policy.setGatewayId(gateway.getGatewayId());
-                            storage.updatePolicy(policy);
-                        }
-                    }
-                }
-                catch (StorageException ex) {
-                    throw ExceptionFactory.systemErrorException(ex);
-                }
-                catch (Exception ex) {
-                    //do nothing
-                }
-            });
-        }
-        catch (StorageException ex) {
-            throw ExceptionFactory.systemErrorException(ex);
-        }
-    }
-
     public void createDefaultPoliciesOnGateway() {
         try{
             List<PolicyBean> policies = query.getDefaultUnpublishedPolicies();
@@ -1178,60 +1150,6 @@ public class MigrationFacade {
             });
         }
         catch (StorageException ex) {
-            throw ExceptionFactory.systemErrorException(ex);
-        }
-    }
-
-    public void backUpOAuthTokens() {
-        try {
-            query.deleteAllOAuthTokens();
-            Set<OAuth2TokenBean> tokens = new HashSet<>();
-            query.getAllGateways().stream().map(gatewayBean -> gatewayFacade.createGatewayLink(gatewayBean.getId())).forEach(gateway -> {
-                KongOAuthTokenList tokenList = gateway.getAllOAuth2Tokens(null);
-                long total = tokenList.getTotal().longValue();
-                log.info("initial total of tokens:{}", total);
-                long i = 0;
-                tokens.addAll(tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).collect(Collectors.toList()));
-                while (tokenList.getOffset() != null && i < total/100) {
-                    tokenList = gateway.getAllOAuth2Tokens(tokenList.getOffset());
-                    tokens.addAll(tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).collect(Collectors.toList()));
-                    i++;
-                }
-            });
-            log.info("final tally of tokens:{}", tokens.size());
-            tokens.forEach(token -> {
-                try {
-                    storage.updateOAuth2TokenBean(token);
-                }
-                catch (StorageException ex) {
-                    throw ExceptionFactory.systemErrorException(ex);
-                }
-            });
-        }
-        catch (StorageException ex) {
-            throw ExceptionFactory.systemErrorException(ex);
-        }
-    }
-
-    private void migrateBackedUpTokens() {
-        try {
-            query.getAllOAuthTokens().forEach(this::migrateBackedUpToken);
-        }
-        catch (StorageException ex) {
-            throw ExceptionFactory.systemErrorException(ex);
-        }
-    }
-
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    private void migrateBackedUpToken(OAuth2TokenBean token) {
-        try {
-            KongOAuthToken gwToken = gatewayFacade.createGatewayLink(token.getGatewayId()).createOAuthToken(token);
-            if (gwToken != null) {
-                storage.deleteOAuth2Token(token);
-            }
-        }
-        catch (StorageException ex) {
-            gatewayFacade.createGatewayLink(token.getGatewayId()).revokeOAuthToken(token.getId());
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

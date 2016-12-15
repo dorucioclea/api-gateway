@@ -29,12 +29,16 @@ import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceBean;
+import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.SupportBean;
 import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.gateway.dto.Contract;
+import com.t1t.digipolis.apim.gateway.dto.Policy;
+import org.opensaml.xml.encryption.Public;
 
 import java.util.List;
 import java.util.Map;
@@ -524,6 +528,11 @@ public interface IStorageQuery {
      */
     public List<PolicyBean> getManagedAppACLPolicies(String organizationId, String serviceId, String version) throws StorageException;
 
+    /**
+     * Returns a list of all non-retired service versions
+     * @return
+     * @throws StorageException
+     */
     public List<ServiceVersionBean> getAllNonRetiredServiceVersions() throws StorageException;
 
     /**
@@ -1071,4 +1080,86 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<OAuth2TokenBean> getAllOAuthTokens() throws StorageException;
+
+    /**
+     * Returns a list of services that are either published or deprecated
+     * @return
+     * @throws StorageException
+     */
+    public List<ServiceVersionBean> getPublishedServiceVersions() throws StorageException;
+
+    /**
+     * Retrieves a list of acl policies for consent apps
+     * @return
+     * @throws StorageException
+     */
+    public List<PolicyBean> getConsentACLPolicies() throws StorageException;
+
+    /**
+     * Returns a list of gateways with services  where an application
+     * @param avb
+     * @return
+     * @throws StorageException
+     */
+    public Set<String> getRegisteredApplicationVersionGatewayIds(ApplicationVersionBean avb) throws StorageException;
+
+    /**
+     * Retrieves all policies for a given type
+     * @param type
+     * @return
+     * @throws StorageException
+     */
+    public List<PolicyBean> getAllPoliciesByType(PolicyType type) throws StorageException;
+
+    /**
+     * Retrieve policies associated with a contract
+     * @param contractId
+     * @return
+     * @throws StorageException
+     */
+    public List<PolicyBean> getContractPolicies(Long contractId) throws StorageException;
+
+    /**
+     * Retrieve a list of contract policies that correspond to a plan policy
+     * @param planPolicyId
+     * @param policyDefinition
+     * @return
+     * @throws StorageException
+     */
+    public List<PolicyBean> getContractPoliciesForPlanPolicy(Long planPolicyId, Policies policyDefinition) throws StorageException;
+
+    /**
+     * Retrtieve a map of plan versions and the contracts that use the plan
+     * @return
+     * @throws StorageException
+     */
+    public Map<PlanVersionBean, List<ContractBean>> getPlanVersionContractMap() throws StorageException;
+
+    /**
+     * Get all policies for a given plan
+     * @param pvb
+     * @return
+     * @throws StorageException
+     */
+    public List<PolicyBean> getPlanPolicies(PlanVersionBean pvb) throws StorageException;
+
+    /**
+     * Returns a list of all contracts
+     * @return
+     * @throws StorageException
+     */
+    public List<ContractBean> getAllContracts() throws StorageException;
+
+    /**
+     * Get a policy for an entity based on contract id and definition
+     * @param organizationId
+     * @param entityId
+     * @param version
+     * @param polDef
+     * @param contractId
+     * @param gatewayId
+     * @return
+     * @throws StorageException
+     */
+    public PolicyBean getPolicyByContractIdAndDefinitionForEntity(String organizationId, String entityId, String version, String polDef, Long contractId, String gatewayId) throws StorageException;
 }

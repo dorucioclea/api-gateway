@@ -44,6 +44,7 @@ import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.mail.MailTopic;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -70,6 +71,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A JPA implementation of the storage interface.
@@ -2823,5 +2825,118 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public List<OAuth2TokenBean> getAllOAuthTokens() throws StorageException {
         String jpql = "SELECT o FROM OAuth2TokenBean o";
         return getActiveEntityManager().createQuery(jpql).getResultList();
+    }
+
+    @Override
+    public List<ServiceVersionBean> getPublishedServiceVersions() throws StorageException {
+        String jpql = "SELECT s FROM ServiceVersionBean s WHERE s.status = :ready OR s.status = :published";
+        return getActiveEntityManager().createQuery(jpql)
+                .setParameter("ready", ServiceStatus.Deprecated)
+                .setParameter("published", ServiceStatus.Published)
+                .getResultList();
+    }
+
+    @Override
+    public List<PolicyBean> getConsentACLPolicies() throws StorageException {
+        String jpql = "SELECT p FROM PolicyBean p JOIN p.definition d WHERE d.id = :acl AND p.type = :polType";
+        return getActiveEntityManager().createQuery(jpql)
+                .setParameter("acl", Policies.ACL.getPolicyDefId())
+                .setParameter("polType", PolicyType.Consent)
+                .getResultList();
+    }
+
+    @Override
+    public Set<String> getRegisteredApplicationVersionGatewayIds(ApplicationVersionBean avb) throws StorageException {
+        String jpql = "SELECT s FROM ContractBean c JOIN c.service s JOIN c.application a WHERE a = :avb";
+        List<ServiceVersionBean> resultList = getActiveEntityManager().createQuery(jpql)
+                .setParameter("avb", avb)
+                .getResultList();
+
+        return resultList.stream().map(ServiceVersionBean::getGateways).flatMap(Collection::stream).map(ServiceGatewayBean::getGatewayId).collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<PolicyBean> getAllPoliciesByType(PolicyType type) throws StorageException {
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.type = :polType";
+        return getActiveEntityManager().createQuery(jpql).setParameter("polType", type).getResultList();
+    }
+
+    @Override
+    public List<PolicyBean> getContractPolicies(Long contractId) throws StorageException {
+        String jpql = "SELECT p FROM PolicyBean p WHERE p.contractId = :id AND p.type = :polType";
+        return getActiveEntityManager().createQuery(jpql)
+                .setParameter("id", contractId)
+                .setParameter("polType", PolicyType.Contract)
+                .getResultList();
+    }
+
+    @Override
+    public List<PolicyBean> getContractPoliciesForPlanPolicy(Long planPolicyId, Policies policyDefinition) throws StorageException {
+        String jpql = "SELECT cp FROM PolicyBean cp JOIN cp.definition cpd WHERE cpd.id = :polDef AND cp.contractId IN " +
+                "(SELECT cb.id FROM ContractBean cb WHERE cb.plan = " +
+                "(SELECT pv FROM PlanVersionBean pv JOIN pv.plan p  JOIN p.organization po WHERE pv.version = " +
+                "(SELECT pp.entityVersion FROM PolicyBean pp WHERE pp.id = :planPolId) AND p.id = " +
+                "(SELECT pp.entityId FROM PolicyBean pp WHERE pp.id = :planPolId) AND po.id = " +
+                "(SELECT pp.organizationId FROM PolicyBean pp WHERE pp.id = :planPolId)))";
+        return getActiveEntityManager().createQuery(jpql)
+                .setParameter("polDef", policyDefinition.getPolicyDefId())
+                .setParameter("planPolId", planPolicyId)
+                .getResultList();
+    }
+
+    @Override
+    public Map<PlanVersionBean, List<ContractBean>> getPlanVersionContractMap() throws StorageException {
+        Map<PlanVersionBean, List<ContractBean>> rval = new HashMap<>();
+        getAllContracts().stream()
+                .filter(contract -> !contract.getApplication().getStatus().equals(ApplicationStatus.Retired))
+                .forEach(contract -> {
+            if (rval.containsKey(contract.getPlan())) {
+                if (!rval.get(contract.getPlan()).contains(contract)) {
+                    rval.get(contract.getPlan()).add(contract);
+                }
+            }
+            else {
+                rval.put(contract.getPlan(), new ArrayList<>(Arrays.asList(contract)));
+            }
+        });
+        return rval;
+    }
+
+    @Override
+    public PolicyBean getPolicyByContractIdAndDefinitionForEntity(String organizationId, String entityId, String version, String polDef, Long contractId, String gatewayId) throws StorageException {
+        try {
+            return (PolicyBean) getActiveEntityManager().createQuery("SELECT p FROM PolicyBean p JOIN p.definition pd " +
+                    "WHERE p.organizationId = :orgId AND p.entityId = :entId AND p.entityVersion = :vsn AND pd.id = :polDef " +
+                    "AND p.contractId = :cId AND p.gatewayId = :gwId")
+                    .setParameter("orgId", organizationId)
+                    .setParameter("entId", entityId)
+                    .setParameter("vsn", version)
+                    .setParameter("polDef", polDef)
+                    .setParameter("cId", contractId)
+                    .setParameter("gwId", gatewayId)
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public List<PolicyBean> getPlanPolicies(PlanVersionBean pvb) throws StorageException {
+        return getActiveEntityManager()
+                .createQuery("SElECT p FROM PolicyBean p WHERE p.entityId = :planID AND p.organizationId = :orgId AND p.entityVersion = :version AND p.type = :polType")
+                .setParameter("planID", pvb.getPlan().getId())
+                .setParameter("orgId", pvb.getPlan().getOrganization().getId())
+                .setParameter("version", pvb.getVersion())
+                .setParameter("polType", PolicyType.Plan)
+                .getResultList();
+    }
+
+
+
+    @Override
+    public List<ContractBean> getAllContracts() throws StorageException {
+        return getActiveEntityManager().createQuery("SELECT c FROM ContractBean c").getResultList();
     }
 }

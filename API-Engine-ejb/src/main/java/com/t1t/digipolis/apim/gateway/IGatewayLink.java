@@ -373,6 +373,13 @@ public interface IGatewayLink {
     public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config);
 
     /**
+     * Updates a plugin on the gateway
+     * @param config
+     * @return
+     */
+    public KongPluginConfig updateServicePlugin(KongPluginConfig config);
+
+    /**
      * Adds a consumer to a service ACL
      *
      * @param consumerId
@@ -536,4 +543,79 @@ public interface IGatewayLink {
      * @return
      */
     public KongOAuthToken createOAuthToken(OAuth2TokenBean token);
+
+    /**
+     * Create an api on the gateway
+     * @param api
+     * @return
+     */
+    public KongApi createApi(KongApi api);
+
+    /**
+     * Create or update the api on the gateway
+     * @param api
+     * @return
+     */
+    public KongApi updateOrCreateApi(KongApi api);
+
+    /**
+     * Create an api plugin on the gateway
+     * @param apiId
+     * @param plugin
+     * @return
+     */
+    public KongPluginConfig createApiPlugin(String apiId, KongPluginConfig plugin);
+
+    /**
+     * Update an consumer acl plugin on the gateway
+     * @param acl
+     * @return
+     */
+    public KongPluginACLResponse updateConsumerACL(KongPluginACLResponse acl);
+
+    /**
+     * Retrieve a consumer's acl plugin
+     * @param consumerId
+     * @param kongPluginId
+     * @return
+     */
+    public KongPluginACLResponse getConsumerACL(String consumerId, String kongPluginId);
+
+    /**
+     * Return a consumer based on it's custom id. Returns null if no consumer is found, returns the consumer with the latest
+     * creation date if multiple are present
+     * @param customId
+     * @return
+     */
+    public KongConsumer getConsumerByCustomId(String customId);
+
+    /**
+     * Update a plugin on the gateway
+     * @param plugin
+     * @return
+     */
+    public KongPluginConfig updatePlugin(KongPluginConfig plugin);
+
+    /**
+     * Retrieves plugins for a given consumer id
+     * @param consumerId
+     * @return
+     */
+    public KongPluginConfigList getConsumerPlugins(String consumerId);
+
+    /**
+     * Retrieves all consumer acl groups
+     * @param consumerId
+     * @return
+     */
+    public KongPluginACLResponseList getAllConsumerAcls(String consumerId);
+
+    /**
+     * Retrieve consumer-specific api plugin
+     * @param consumerId
+     * @param apiId
+     * @return
+     */
+    public KongPluginConfigList getConsumerSpecificApiPlugins(String consumerId, String apiId);
+
 }

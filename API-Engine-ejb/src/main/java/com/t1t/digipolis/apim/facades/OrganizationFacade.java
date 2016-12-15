@@ -1057,7 +1057,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             newPolicy.setPolicyId(policy.getId());
             newPolicy = gw.createServicePolicy(organizationId, serviceId, version, newPolicy);
             policy.setKongPluginId(newPolicy.getKongPluginId());
-            policy.setConfiguration(newPolicy.getPolicyJsonConfig());
+            policy.setGatewayId(gw.getGatewayId());
             try {
                 storage.updatePolicy(policy);
             }
@@ -2988,25 +2988,20 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setOauthClientSecret(apiKeyGenerator.generate());
         newVersion.setOauthClientRedirects(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI)));
         //create consumer on gateway
-        try {
-            //We create the new application version consumer
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            if (newVersion.getId() != null) {
-                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId(), newVersion.getVersion());
-                //Applications' customId must contain version otherwise only one version of an application can be available on the gateway at one time
-                //String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
-                gateway.createConsumer(appConsumerName, appConsumerName);
-                gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256);
-                gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
-                KongPluginOAuthConsumerResponse response = gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
-                        .withClientId(newVersion.getoAuthClientId())
-                        .withClientSecret(newVersion.getOauthClientSecret())
-                        .withName(appConsumerName).withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
-                newVersion.setOauthCredentialId(response.getId());
-            }
-        } catch (StorageException e) {
-            throw new ApplicationNotFoundException(e.getMessage());
-        }
+        //We create the new application version consumer
+        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+
+        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId(), newVersion.getVersion());
+        //Applications' customId must contain version otherwise only one version of an application can be available on the gateway at one time
+        //String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
+        gateway.createConsumer(appConsumerName, appConsumerName);
+        gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256);
+        gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
+        KongPluginOAuthConsumerResponse response = gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
+                .withClientId(newVersion.getoAuthClientId())
+                .withClientSecret(newVersion.getOauthClientSecret())
+                .withName(appConsumerName).withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
+        newVersion.setOauthCredentialId(response.getId());
         storage.createApplicationVersion(newVersion);
         storage.createAuditEntry(AuditUtils.applicationVersionCreated(newVersion, securityContext));
         log.debug(String.format("Created new application version %s: %s", newVersion.getApplication().getName(), newVersion)); //$NON-NLS-1$

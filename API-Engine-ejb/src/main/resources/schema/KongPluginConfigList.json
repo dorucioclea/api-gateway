@@ -17,6 +17,10 @@
     "total": {
       "id": "total",
       "type": "integer"
+    },
+    "offset": {
+      "id": "offset",
+      "type": "string"
     }
   }
 }
