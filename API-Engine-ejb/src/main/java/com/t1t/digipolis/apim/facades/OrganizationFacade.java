@@ -3061,13 +3061,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         contract.setTermsAgreed(bean.getTermsAgreed());
         contract.setCreatedBy(securityContext.getCurrentUser());
         contract.setCreatedOn(new Date());
-        // Validate the state of the application.
-        if (avb.getStatus() != ApplicationStatus.Registered && applicationValidator.isReady(avb)) {
-            avb.setStatus(ApplicationStatus.Ready);
-        }
         storage.createContract(contract);
         storage.createAuditEntry(AuditUtils.contractCreatedFromApp(contract, securityContext));
         storage.createAuditEntry(AuditUtils.contractCreatedToService(contract, securityContext));
+        // Validate the state of the application.
+        if (!avb.getStatus().equals(ApplicationStatus.Registered) && applicationValidator.isReady(avb)) {
+            avb.setStatus(ApplicationStatus.Ready);
+        }
         // Update the version with new meta-data (e.g. modified-by)
         avb.setModifiedBy(securityContext.getCurrentUser());
         avb.setModifiedOn(new Date());

@@ -46,7 +46,8 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
             if (contracts.isEmpty()) {
                 ready = false;
             }
-            else {
+            //We no longer need to check if the oauth credentials are correctly filled in, they're automatically created now
+            /*else {
                 boolean requiresCallback = false;
                 for (ContractSummaryBean summary : contracts) {
                     if (!storageQuery.getEntityPoliciesByDefinitionId(summary.getServiceOrganizationId(), summary.getServiceId(), summary.getServiceVersion(), PolicyType.Service, Policies.OAUTH2).isEmpty()) {
@@ -56,7 +57,7 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
                 if (requiresCallback) {
                     ready = !StringUtils.isEmpty(application.getoAuthClientId()) && !application.getOauthClientRedirects().isEmpty();
                 }
-            }
+            }*/
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
