@@ -2599,6 +2599,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
+    public List<ManagedApplicationBean> getManagedAppForTypes(List<ManagedApplicationTypes> types) throws StorageException {
+        return getActiveEntityManager().createQuery("SELECT m FROM ManagedApplicationBean m WHERE m.type IN :types")
+                .setParameter("types", types)
+                .getResultList();
+    }
+
+    @Override
     public List<GatewayBean> getAllGateways() throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT g FROM GatewayBean g";
@@ -2933,7 +2940,15 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .getResultList();
     }
 
-
+    @Override
+    public Map<ManagedApplicationTypes, List<ManagedApplicationBean>> getAllManagedAppsOrderedByType() throws StorageException {
+        Map<ManagedApplicationTypes, List<ManagedApplicationBean>> rval = Arrays.stream(ManagedApplicationTypes.values())
+                .collect(Collectors.toMap(t -> t, t -> new ArrayList<ManagedApplicationBean>()));
+        ((List<ManagedApplicationBean>)getActiveEntityManager()
+                .createQuery("SELECT m FROM ManagedApplicationBean m")
+                .getResultList()).forEach(mab -> rval.get(mab.getType()).add(mab));
+        return rval;
+    }
 
     @Override
     public List<ContractBean> getAllContracts() throws StorageException {

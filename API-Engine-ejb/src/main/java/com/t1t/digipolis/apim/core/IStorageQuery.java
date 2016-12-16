@@ -926,6 +926,14 @@ public interface IStorageQuery {
     public Set<String> getManagedAppPrefixesForTypes(List<ManagedApplicationTypes> types) throws StorageException;
 
     /**
+     * Returns managed applications for give types
+     * @param types
+     * @return
+     * @throws StorageException
+     */
+    public List<ManagedApplicationBean> getManagedAppForTypes(List<ManagedApplicationTypes> types) throws StorageException;
+
+    /**
      * Returns all gateways
      *
      * @return
@@ -1162,4 +1170,11 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public PolicyBean getPolicyByContractIdAndDefinitionForEntity(String organizationId, String entityId, String version, String polDef, Long contractId, String gatewayId) throws StorageException;
+
+    /**
+     * Returns a map with a list of managed applications with the type as key
+     * @return
+     * @throws StorageException
+     */
+    public Map<ManagedApplicationTypes, List<ManagedApplicationBean>> getAllManagedAppsOrderedByType() throws StorageException;
 }

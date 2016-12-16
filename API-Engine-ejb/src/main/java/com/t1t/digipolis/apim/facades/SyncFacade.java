@@ -192,7 +192,7 @@ public class SyncFacade {
                 try {
                     log.info("== SYNC START FOR {} ==", appId);
 
-                    getApplicationVersionGatewayLinks(avb).forEach(gw -> {
+                    gatewayFacade.getApplicationVersionGatewayLinks(avb).forEach(gw -> {
                         String gwId = gw.getGatewayId();
                         try {
                             KongConsumer consumer = gw.getConsumer(appId);
@@ -436,10 +436,12 @@ public class SyncFacade {
                     }
                     else {
                         contract = storage.getContract(policy.getContractId());
-                        contracts.put(contract.getId(), contract);
-                    }
-                    if (contract == null) {
-                        throw ExceptionFactory.contractNotFoundException();
+                        if (contract == null) {
+                            throw ExceptionFactory.contractNotFoundException();
+                        }
+                        else {
+                            contracts.put(contract.getId(), contract);
+                        }
                     }
                     String appId = ConsumerConventionUtil.createAppUniqueId(contract.getApplication());
                     String serviceId = ServiceConventionUtil.generateServiceUniqueName(contract.getService());
@@ -505,7 +507,7 @@ public class SyncFacade {
                 }
                 catch (Exception ex) {
                     ex.printStackTrace();
-                    log.error("== SYNC FAILED FOR CONTRACT POLICY {} ==", policy.getName());
+                    log.error("== SYNC FAILED FOR CONTRACT POLICY {} DUE TO {} ==", policy.getName(), ex.getMessage());
                 }
             });
         }
@@ -764,22 +766,5 @@ public class SyncFacade {
             log.error("=== FAILED TO SYNC TOKEN {} ===", token.getAccessToken());
             ex.printStackTrace();
         }
-    }
-
-    private Set<IGatewayLink> getApplicationVersionGatewayLinks(ApplicationVersionBean avb) throws StorageException {
-        Set<IGatewayLink> gateways = new HashSet<>();
-        switch (avb.getStatus()) {
-            case Ready:
-            case Created:
-                gateways.add(gatewayFacade.getDefaultGatewayLink());
-                break;
-            case Registered:
-                gateways.addAll(query.getRegisteredApplicationVersionGatewayIds(avb).stream().map(gw -> gatewayFacade.createGatewayLink(gw)).collect(Collectors.toSet()));
-                break;
-            case Retired:
-                log.info("== Application {} is in status {}, no gateways ==", ConsumerConventionUtil.createAppUniqueId(avb), avb.getStatus());
-                break;
-        }
-        return gateways;
     }
 }
