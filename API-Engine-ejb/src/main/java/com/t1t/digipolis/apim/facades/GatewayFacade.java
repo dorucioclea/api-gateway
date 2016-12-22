@@ -309,7 +309,7 @@ public class GatewayFacade {
                 gateways.add(getDefaultGatewayLink());
                 break;
             case Registered:
-                gateways.addAll(query.getRegisteredApplicationVersionGatewayIds(avb).stream().map(this::createGatewayLink).collect(Collectors.toSet()));
+                gateways.addAll(query.getGatewayIdsForApplicationVersionContracts(avb).stream().map(this::createGatewayLink).collect(Collectors.toSet()));
                 break;
             case Retired:
                 log.info("== Application {} is in status {}, no gateways ==", ConsumerConventionUtil.createAppUniqueId(avb), avb.getStatus());

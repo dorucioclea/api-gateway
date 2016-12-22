@@ -3,6 +3,7 @@ package com.t1t.digipolis.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.services.DefaultServiceTermsBean;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
@@ -54,8 +55,8 @@ public class AdminResource implements IAdminResource, IMaintenanceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public DefaultServiceTermsBean updateDefaultServiceTerms(DefaultServiceTermsBean bean) throws NotAuthorizedException {
         isAdmin();
-        Preconditions.checkNotNull(bean);
-        Preconditions.checkArgument(StringUtils.isNotEmpty(bean.getTerms()));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("emptyValue", "Service terms"));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(bean.getTerms()), Messages.i18n.format("emptyValue", "Service terms"));
         return defFacade.updateDefaultServiceTerms(bean);
     }
 
@@ -69,7 +70,7 @@ public class AdminResource implements IAdminResource, IMaintenanceResource {
     @Path("maintenance/enable")
     public void enableMaintenanceMode(String message) throws NotAuthorizedException {
         isAdmin();
-        Preconditions.checkArgument(StringUtils.isNotEmpty(message));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(message), Messages.i18n.format("emptyValue", "Message"));
         maintenance.enableMaintenanceMode(message);
     }
 
@@ -94,7 +95,7 @@ public class AdminResource implements IAdminResource, IMaintenanceResource {
     @Path("maintenance/message")
     public void updateMaintenanceMessage(String message) throws NotAuthorizedException {
         isAdmin();
-        Preconditions.checkArgument(StringUtils.isNotEmpty(message));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(message), Messages.i18n.format("emptyValue", "Message"));
         maintenance.updateMaintenanceMessage(message);
     }
 

@@ -598,22 +598,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 }
             }
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
-            //for contract add keyauth to application consumer
-            String serviceOrgId = contract.getService().getService().getOrganization().getId();
-            String serviceId = contract.getService().getService().getId();
-            String svcVersion = contract.getService().getVersion();
 
-            if (contract.getApplication().getStatus() == ApplicationStatus.Registered) {
-                Application app = getApplicationForNewContractRegistration(contract);
-                Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version));
-                for (IGatewayLink gateway : gateways.values()) {
-                    enableContractonGateway(contract, gateway);
+            Application app = getApplicationForNewContractRegistration(contract);
+            gatewayFacade.getApplicationVersionGatewayLinks(contract.getApplication()).forEach(gw -> {
+                try {
+                    enableContractonGateway(contract, gw);
                     //persist the new contract policies
-                    Map<Contract, KongPluginConfigList> response = gateway.registerApplication(app);
+                    Map<Contract, KongPluginConfigList> response = gw.registerApplication(app);
                     for (Map.Entry<Contract, KongPluginConfigList> entry : response.entrySet()) {
                         for (KongPluginConfig config : entry.getValue().getData()) {
                             NewPolicyBean npb = new NewPolicyBean();
-                            npb.setGatewayId(gateway.getGatewayId());
+                            npb.setGatewayId(gw.getGatewayId());
                             npb.setConfiguration(new Gson().toJson(config.getConfig()));
                             npb.setContractId(contract.getId());
                             npb.setKongPluginId(config.getId());
@@ -622,10 +617,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         }
                     }
                 }
-            } else {
-                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                enableContractonGateway(contract, gateway);
-            }
+                catch (StorageException | GatewayAuthenticationException ex) {
+                    throw ExceptionFactory.systemErrorException(ex);
+                }
+            });
+
 
             //TODO - Remove the OAuth enabling code
             //verify if the contracting service has OAuth enabled
@@ -1708,25 +1704,24 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
 
             //Revoke application's contract plugins
-            try {
-                if (avb.getStatus() == ApplicationStatus.Registered) {
-                    for (IGatewayLink gateway : gateways.values()) {
-                        List<PolicyBean> policies = query.getApplicationVersionContractPolicies(organizationId, applicationId, version, contractId);
-                        for (PolicyBean policy : policies) {
-                            if (policy.getGatewayId().equals(gateway.getGatewayId())) {
-                                deleteContractPolicy(contract, policy, gateway);
-                            }
+
+            gatewayFacade.getApplicationVersionGatewayLinks(avb).forEach(gw -> {
+                try {
+                    query.getApplicationVersionContractPolicies(organizationId, applicationId, version, contractId)
+                            .stream().filter(policy -> policy.getGatewayId().equals(gw.getGatewayId()))
+                            .forEach(policy -> {
+                        try {
+                            deleteContractPolicy(contract, policy, gw);
                         }
-                    }
+                        catch (StorageException ex) {
+                            throw ExceptionFactory.systemErrorException(ex);
+                        }
+                    });
                 }
-                else {
-                    IGatewayLink gateway = gateways.get(gatewayFacade.getDefaultGateway().getId());
-                    PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId, gateway.getGatewayId());
-                    deleteContractPolicy(contract, policy, gateway);
+                catch (StorageException ex) {
+                    throw ExceptionFactory.systemErrorException(ex);
                 }
-            } catch (StorageException ex) {
-                throw new SystemErrorException(ex);
-            }
+            });
             //Revoke admin priviledges if contract was with an admin service
             if (contract.getService().getService().isAdmin() && query.getApplicationVersionContracts(avb).stream().filter(c -> c.getService().getService().isAdmin()).collect(Collectors.toList()).size() == 1) {
                 ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());

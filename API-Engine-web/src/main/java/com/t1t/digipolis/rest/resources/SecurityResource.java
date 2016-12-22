@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
@@ -51,9 +52,9 @@ public class SecurityResource implements ISecurityResource {
     public void setOAuthExpTime(OAuthExpTimeRequest request) throws NotAuthorizedException {
         //only admin can perform this action
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(request);
-        Preconditions.checkNotNull(request.getExpirationTime());
-        Preconditions.checkArgument(request.getExpirationTime()>0);
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "OAuth expiration time request"));
+        Preconditions.checkNotNull(request.getExpirationTime(), Messages.i18n.format("emptyValue", "Expiration time"));
+        Preconditions.checkArgument(request.getExpirationTime()>=0, "Expiration time must be equal to or greater than 0.");
         securityFacade.setOAuthExpTime(request.getExpirationTime());
     }
 
@@ -84,9 +85,9 @@ public class SecurityResource implements ISecurityResource {
     public void setJWTExpTime(JWTExpTimeRequest request) throws NotAuthorizedException {
         //only admin can perform this action
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(request);
-        Preconditions.checkNotNull(request.getExpirationTime());
-        Preconditions.checkArgument(request.getExpirationTime()>0);
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "JWT expiration time request"));
+        Preconditions.checkNotNull(request.getExpirationTime(), Messages.i18n.format("", "Expiration time"));
+        Preconditions.checkArgument(request.getExpirationTime()>=0, "Expiration time must be equal to or greater than 0.");
         securityFacade.setJWTExpTime(request.getExpirationTime());
     }
 
@@ -158,9 +159,9 @@ public class SecurityResource implements ISecurityResource {
     @Path("/oauth2/tokens/revoke")
     @Consumes(MediaType.APPLICATION_JSON)
     public void revokeApplicationVersionOAuthToken(OAuth2TokenRevokeBean token) throws NotAuthorizedException {
-        Preconditions.checkNotNull(token);
-        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getOrganizationId()) && StringUtils.isNotEmpty(token.getApplicationId()) && StringUtils.isNotEmpty(token.getVersion()));
-        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()));
+        Preconditions.checkNotNull(token, Messages.i18n.format("nullValue", "Token"));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getOrganizationId()) && StringUtils.isNotEmpty(token.getApplicationId()) && StringUtils.isNotEmpty(token.getVersion()), Messages.i18n.format("emptyValue", "Organization ID, application ID & version"));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()), Messages.i18n.format("emptyValue", "Token ID & gateway ID"));
         if (!securityContext.hasPermission(PermissionType.appAdmin, token.getOrganizationId())) {
             throw ExceptionFactory.notAuthorizedException();
         }
@@ -175,7 +176,7 @@ public class SecurityResource implements ISecurityResource {
     @DELETE
     @Path("/oauth2/tokens/revoke")
     public void revokeOAuthToken(@QueryParam("token") String token) {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(token));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(token), Messages.i18n.format("emptyValue", "Token"));
         securityFacade.revokeOAuthToken(token);
     }
 }

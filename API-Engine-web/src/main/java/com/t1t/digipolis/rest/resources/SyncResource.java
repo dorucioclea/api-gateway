@@ -44,7 +44,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync users")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("users")
+    @Path("/users")
     public void syncUsers() {
         syncFacade.syncUsers();
     }
@@ -54,7 +54,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync services")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("services")
+    @Path("/services")
     public void syncServices() {
         syncFacade.syncServices();
     }
@@ -64,7 +64,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync applications")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("applications")
+    @Path("/applications")
     public void syncApplications() {
         syncFacade.syncApplications();
     }
@@ -74,7 +74,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync all policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("policies")
+    @Path("/policies")
     public void syncAllPolicies() {
         syncFacade.syncPolicies();
     }
@@ -84,7 +84,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync service policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("policies/services")
+    @Path("/policies/services")
     public void syncServicePolicies() {
         syncFacade.syncServicePolicies();
     }
@@ -94,7 +94,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync contracts policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("policies/contracts")
+    @Path("/policies/contracts")
     public void syncContractPolicies() {
         syncFacade.syncContractPolicies();
     }
@@ -104,7 +104,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync consent policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("policies/consent")
+    @Path("/policies/consent")
     public void syncConsentPolicies() {
         syncFacade.syncConsentPolicies();
     }
@@ -114,7 +114,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync plan policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("policies/plans")
+    @Path("/policies/plans")
     public void syncPlanPolicies() {
         syncFacade.syncPlanPolicies();
     }
@@ -124,7 +124,7 @@ public class SyncResource implements ISyncResource {
             notes = "Backup oauth tokens prior to a gateway rebuild")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("oauth/tokens/backup")
+    @Path("/oauth/tokens/backup")
     public void backupTokens() {
         syncFacade.backUpOAuthTokens();
     }
@@ -134,7 +134,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync tokens")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("oauth/tokens/restore")
+    @Path("/oauth/tokens/restore")
     public void syncTokens() {
         syncFacade.syncTokens();
     }
@@ -144,7 +144,7 @@ public class SyncResource implements ISyncResource {
             notes = "Sync everything")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @DELETE
-    @Path("oauth/tokens")
+    @Path("/oauth/tokens")
     public void deleteTokenBackup() {
         syncFacade.deleteBackedUpTokens();
     }

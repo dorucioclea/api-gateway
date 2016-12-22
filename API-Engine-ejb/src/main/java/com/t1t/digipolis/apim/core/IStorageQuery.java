@@ -1109,7 +1109,7 @@ public interface IStorageQuery {
      * @return
      * @throws StorageException
      */
-    public Set<String> getRegisteredApplicationVersionGatewayIds(ApplicationVersionBean avb) throws StorageException;
+    public Set<String> getGatewayIdsForApplicationVersionContracts(ApplicationVersionBean avb) throws StorageException;
 
     /**
      * Retrieves all policies for a given type
@@ -1171,10 +1171,5 @@ public interface IStorageQuery {
      */
     public PolicyBean getPolicyByContractIdAndDefinitionForEntity(String organizationId, String entityId, String version, String polDef, Long contractId, String gatewayId) throws StorageException;
 
-    /**
-     * Returns a map with a list of managed applications with the type as key
-     * @return
-     * @throws StorageException
-     */
-    public Map<ManagedApplicationTypes, List<ManagedApplicationBean>> getAllManagedAppsOrderedByType() throws StorageException;
+    public PolicyBean getPolicyByKongPluginId(String kongPluginId) throws StorageException;
 }

@@ -2853,12 +2853,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public Set<String> getRegisteredApplicationVersionGatewayIds(ApplicationVersionBean avb) throws StorageException {
+    public Set<String> getGatewayIdsForApplicationVersionContracts(ApplicationVersionBean avb) throws StorageException {
         String jpql = "SELECT s FROM ContractBean c JOIN c.service s JOIN c.application a WHERE a = :avb";
         List<ServiceVersionBean> resultList = getActiveEntityManager().createQuery(jpql)
                 .setParameter("avb", avb)
                 .getResultList();
-
+        //Transform the list of service versions to a collection of the serviceGateway id's
         return resultList.stream().map(ServiceVersionBean::getGateways).flatMap(Collection::stream).map(ServiceGatewayBean::getGatewayId).collect(Collectors.toSet());
     }
 
@@ -2941,17 +2941,20 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public Map<ManagedApplicationTypes, List<ManagedApplicationBean>> getAllManagedAppsOrderedByType() throws StorageException {
-        Map<ManagedApplicationTypes, List<ManagedApplicationBean>> rval = Arrays.stream(ManagedApplicationTypes.values())
-                .collect(Collectors.toMap(t -> t, t -> new ArrayList<ManagedApplicationBean>()));
-        ((List<ManagedApplicationBean>)getActiveEntityManager()
-                .createQuery("SELECT m FROM ManagedApplicationBean m")
-                .getResultList()).forEach(mab -> rval.get(mab.getType()).add(mab));
-        return rval;
+    public List<ContractBean> getAllContracts() throws StorageException {
+        return getActiveEntityManager().createQuery("SELECT c FROM ContractBean c").getResultList();
     }
 
     @Override
-    public List<ContractBean> getAllContracts() throws StorageException {
-        return getActiveEntityManager().createQuery("SELECT c FROM ContractBean c").getResultList();
+    public PolicyBean getPolicyByKongPluginId(String kongPluginId) throws StorageException {
+        try {
+            return (PolicyBean) getActiveEntityManager()
+                    .createQuery("SELECT p FROM PolicyBean p WHERE p.kongPluginId = :plId")
+                    .setParameter("plId", kongPluginId)
+                    .getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
     }
 }

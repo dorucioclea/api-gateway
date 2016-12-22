@@ -42,6 +42,7 @@ public class GatewayUtils {
             case "ssl":
                 return Policies.SSL;
             case "mashape-analytics":
+            case "galileo":
                 return Policies.ANALYTICS;
             case "jwt":
                 return Policies.JWT;

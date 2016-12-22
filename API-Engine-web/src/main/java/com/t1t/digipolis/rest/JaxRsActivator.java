@@ -1,5 +1,6 @@
 package com.t1t.digipolis.rest;
 
+import com.t1t.digipolis.apim.rest.impl.mappers.IllegalArgumentExceptionMapper;
 import com.t1t.digipolis.apim.rest.impl.mappers.RestExceptionMapper;
 import com.t1t.digipolis.apim.rest.resources.filter.RequestAPIMFilter;
 import com.t1t.digipolis.rest.resources.*;
@@ -49,6 +50,7 @@ public class JaxRsActivator extends Application {
         resources.add(SecurityResource.class);
         resources.add(MigrationResource.class);
         resources.add(RestExceptionMapper.class);
+        resources.add(IllegalArgumentExceptionMapper.class);
         resources.add(AdminResource.class);
         resources.add(DefaultsResource.class);
         resources.add(BrandingResource.class);

@@ -56,7 +56,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     private static final String IDP_SLO = "/users/idp/slo";
     private static final String SYSTEM_INFO = "API-Engine-web/v1/system";
     private static final String MAINTENANCE_PATH = "/admin/maintenance/";
-    private static final String SYNC_PATH = "/migration/sync";
+    private static final String SYNC_PATH = "/sync";
     private static final String SEARCH_PATH = "/search/";
     private static final String SWAGGER_DOC_URI = "API-Engine-web";
     private static final String SWAGGER_DOC_JSON = "/API-Engine-web/v1/swagger.json";

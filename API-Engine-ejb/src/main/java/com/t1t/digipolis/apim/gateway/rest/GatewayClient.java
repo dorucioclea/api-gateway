@@ -168,6 +168,7 @@ public class GatewayClient {
         //create consumer
         String consumerId = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
         KongConsumer consumer = httpClient.getConsumer(consumerId);
+
         KongApi api;
         //context of API
         for(Contract contract:application.getContracts()){
@@ -177,21 +178,17 @@ public class GatewayClient {
             List<KongPluginConfig> data = new ArrayList<>();
             for(Policy policy:contract.getPolicies()){
                 //execute policy
-                Policies policies = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
-                switch(policies){
-                    //all policies can be available here
-                    case IPRESTRICTION:
-                        data.add(createPlanPolicy(api, consumer, policy, Policies.IPRESTRICTION.getKongIdentifier(), Policies.IPRESTRICTION.getClazz()));
-                        break;
-                    case RATELIMITING:
-                        data.add(createPlanPolicy(api, consumer, policy, Policies.RATELIMITING.getKongIdentifier(), Policies.RATELIMITING.getClazz()));
-                        break;
-                    case REQUESTSIZELIMITING:
-                        data.add(createPlanPolicy(api, consumer, policy, REQUESTSIZELIMITING.getKongIdentifier(), REQUESTSIZELIMITING.getClazz()));
-                        break;
-                    default:
-                        break;
+                Policies polDef = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
+                //Check if there isn't already a policy on the gateway for that contract
+                KongPluginConfigList plugins = getConsumerSpecificApiPlugins(consumer.getId(), api.getId());
+                KongPluginConfig plugin = null;
+                if (plugins != null && !plugins.getData().isEmpty()) {
+                    plugin = plugins.getData().stream().filter(plgn -> plgn.getName().equals(polDef.getKongIdentifier())).collect(CustomCollectors.getSingleResult());
                 }
+                if (plugin == null) {
+                    plugin = createPlanPolicy(api, consumer, policy, polDef.getKongIdentifier(), polDef.getClazz());
+                }
+                data.add(plugin);
             }
             KongPluginConfigList plugins = new KongPluginConfigList();
             plugins.setData(data);

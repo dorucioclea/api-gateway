@@ -8,7 +8,6 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationStatus;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
-import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
@@ -31,6 +30,7 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
+import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.Application;
@@ -39,12 +39,10 @@ import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
+import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayUtils;
-import com.t1t.digipolis.util.KeyUtils;
+import com.t1t.digipolis.util.JWTUtils;
 import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
@@ -75,6 +73,7 @@ public class ActionFacade {
     @Inject private OrganizationFacade orgFacade;
     @Inject private IServiceValidator serviceValidator;
     @Inject private IApplicationValidator applicationValidator;
+    @Inject private GatewayFacade gatewayFacade;
 
     public void performAction(ActionBean action){
         switch (action.getType()) {
@@ -182,7 +181,7 @@ public class ActionFacade {
             }
             List<ManagedApplicationBean> marketplaces = query.findManagedApplication(ManagedApplicationTypes.Consent);
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
-                IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(serviceGatewayBean.getGatewayId());
                 gatewaySvc = gatewayLink.publishService(gatewaySvc);
                 //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
                 for (ManagedApplicationBean marketplace : marketplaces) {
@@ -223,26 +222,6 @@ public class ActionFacade {
         }
         log.debug(String.format("Successfully published Service %s on specified gateways: %s", //$NON-NLS-1$
                 versionBean.getService().getName(), versionBean.getService()));
-    }
-
-    /**
-     * Creates a gateway link given a gateway id.
-     *
-     * @param gatewayId
-     */
-    private IGatewayLink createGatewayLink(String gatewayId) throws PublishingException {
-        try {
-            GatewayBean gateway = storage.getGateway(gatewayId);
-            if (gateway == null) {
-                throw new GatewayNotFoundException();
-            }
-            IGatewayLink link = gatewayLinkFactory.create(gateway);
-            return link;
-        } catch (GatewayNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new PublishingException(e.getMessage(), e);
-        }
     }
 
     /**
@@ -287,7 +266,7 @@ public class ActionFacade {
                 throw new PublishingException("No gateways specified for service!"); //$NON-NLS-1$
             }
             for (ServiceGatewayBean serviceGatewayBean : gateways) {
-                IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(serviceGatewayBean.getGatewayId());
                 gatewayLink.retireService(gatewaySvc);
                 //Revoke marketplace ACL memberships
                 List<PolicyBean> aclPolicies = query.getManagedAppACLPolicies(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion());
@@ -347,10 +326,8 @@ public class ActionFacade {
         if (!securityContext.hasPermission(PermissionType.appAdmin, action.getOrganizationId()))
             throw ExceptionFactory.notAuthorizedException();
 
-        //TODO validate if consumer with given consumer name exists?
-
-        ApplicationVersionBean versionBean = null;
-        List<ContractSummaryBean> contractBeans = null;
+        ApplicationVersionBean versionBean;
+        List<ContractSummaryBean> contractBeans;
         try {
             versionBean = orgFacade.getAppVersion(action.getOrganizationId(), action.getEntityId(), action.getEntityVersion());
         } catch (ApplicationVersionNotFoundException e) {
@@ -372,7 +349,7 @@ public class ActionFacade {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidApplicationStatus"), e); //$NON-NLS-1$
         }
 
-        // Validate that all apikeys are equal for the scope of one application
+        /*// Validate that all apikeys are equal for the scope of one application
         if(versionBean.getApikey() == null) throw ExceptionFactory.actionException(Messages.i18n.format("MissingAPIKey"));
 
         //application should have contracts when accessed directly from api.
@@ -381,7 +358,7 @@ public class ActionFacade {
         else{
             //we are sure the contracts are not empty and that all apikeys must be equal.
             appApiKey = versionBean.getApikey();
-        }
+        }*/
 
         Application application = new Application();
         application.setOrganizationId(versionBean.getApplication().getOrganization().getId());
@@ -397,55 +374,66 @@ public class ActionFacade {
         }
         application.setContracts(contracts);
 
+        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
+
         // Next, register the application with *all* relevant gateways.  This is done by
         // looking up all referenced services and getting the gateway information for them.
         // Each of those gateways must be told about the application.
         try {
-            Map<String, IGatewayLink> links = new HashMap<>();
-            for (Contract contract : application.getContracts()) {
-                ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrgId(), contract.getServiceId(), contract.getServiceVersion());
-                Set<ServiceGatewayBean> gateways = svb.getGateways();
-                if (gateways == null) {
-                    throw new PublishingException("No gateways specified for service: " + svb.getService().getName()); //$NON-NLS-1$
-                }
-                for (ServiceGatewayBean serviceGatewayBean : gateways) {
-                    if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
-                        IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
-                        links.put(serviceGatewayBean.getGatewayId(), gatewayLink);
-                    }
-                }
+            //Set the application status to registered in order to get all the relevant gateway links
+            versionBean.setStatus(ApplicationStatus.Registered);
+            Set<String> gatewayIds = query.getGatewayIdsForApplicationVersionContracts(versionBean);
+            if (gatewayIds == null || gatewayIds.isEmpty()) {
+                throw new PublishingException("Contracted services have no defined gateways for application: " + versionBean.getApplication().getName()); //$NON-NLS-1$
             }
-            for (IGatewayLink gatewayLink : links.values()) {
-                // Validate that the application has a key-auth apikey available on the gateway - fallback scenario
+
+            gatewayIds.stream().map(gatewayFacade::createGatewayLink).forEach(gw -> {
                 try {
-                    String appConsumerName = ConsumerConventionUtil.createAppUniqueId(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
-                    gatewayLink.addConsumerKeyAuth(appConsumerName, appApiKey);
-                } catch (Exception e) {
-                    //apikey for consumer already exists
-                }
-                Map<Contract, KongPluginConfigList> response = gatewayLink.registerApplication(application);
-                for (Map.Entry<Contract, KongPluginConfigList> entry : response.entrySet()) {
-                    for (KongPluginConfig config : entry.getValue().getData()) {
-                        NewPolicyBean npb = new NewPolicyBean();
-                        npb.setGatewayId(gatewayLink.getGatewayId());
-                        npb.setConfiguration(new Gson().toJson(config.getConfig()));
-                        npb.setContractId(entry.getKey().getId());
-                        npb.setKongPluginId(config.getId());
-                        npb.setDefinitionId(GatewayUtils.convertKongPluginNameToPolicy(config.getName()).getPolicyDefId());
-                        //save the policy as a contract policy on the service
-                        orgFacade.doCreatePolicy(application.getOrganizationId(), application.getApplicationId(), application.getVersion(), npb, PolicyType.Contract);
+                    //First, make sure the Application exists on the various gateways and create it, with the necessary credentials, if not
+                    KongConsumer gwApp = gw.getConsumer(appConsumerName);
+                    if (gwApp == null) {
+                        try {
+                            gw.createConsumer(appConsumerName);
+                            gw.addConsumerKeyAuth(appConsumerName, versionBean.getApikey());
+                            gw.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
+                                    .withClientId(versionBean.getoAuthClientId())
+                                    .withClientSecret(versionBean.getOauthClientSecret())
+                                    .withName(versionBean.getApplication().getName())
+                                    .withId(versionBean.getOauthCredentialId())
+                                    .withRedirectUri(versionBean.getOauthClientRedirects()));
+                            gw.addConsumerJWT(appConsumerName, JWTUtils.JWT_RS256);
+                        } catch (Exception ex) {
+                            //Delete the consumer on the gateway so the gateway and engine remain in sync
+                            gw.deleteConsumer(appConsumerName);
+                            throw ex;
+                        }
                     }
+                    Map<Contract, KongPluginConfigList> response = gw.registerApplication(application);
+                    response.entrySet().forEach(entry -> entry.getValue().getData().forEach(plugin -> {
+                        try {
+                            if (query.getPolicyByKongPluginId(plugin.getId()) == null) {
+                                NewPolicyBean npb = new NewPolicyBean();
+                                npb.setGatewayId(gw.getGatewayId());
+                                npb.setConfiguration(new Gson().toJson(plugin.getConfig()));
+                                npb.setContractId(entry.getKey().getId());
+                                npb.setKongPluginId(plugin.getId());
+                                npb.setDefinitionId(GatewayUtils.convertKongPluginNameToPolicy(plugin.getName()).getPolicyDefId());
+                                //save the policy as a contract policy on the service
+                                orgFacade.doCreatePolicy(application.getOrganizationId(), application.getApplicationId(), application.getVersion(), npb, PolicyType.Contract);
+                            }
+                        } catch (StorageException ex) {
+                            throw ExceptionFactory.systemErrorException(ex);
+                        }
+                    }));
                 }
-                gatewayLink.close();
-            }
-        } catch (Exception e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), e); //$NON-NLS-1$
-        }
+                catch (GatewayAuthenticationException ex) {
+                    throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), ex); //$NON-NLS-1$
+                }
+            });
 
-        versionBean.setStatus(ApplicationStatus.Registered);
-        versionBean.setPublishedOn(new Date());
+            versionBean.setStatus(ApplicationStatus.Registered);
+            versionBean.setPublishedOn(new Date());
 
-        try {
             storage.updateApplicationVersion(versionBean);
             storage.createAuditEntry(AuditUtils.applicationRegistered(versionBean, securityContext));
         } catch (Exception e) {
@@ -466,6 +454,7 @@ public class ActionFacade {
      */
     private List<Policy> aggregateContractPolicies(ContractSummaryBean contractBean) {
         try {
+
             List<Policy> policies = new ArrayList<>();
             PolicyType[] types = new PolicyType[1];
             types[0] = PolicyType.Plan;
@@ -560,7 +549,7 @@ public class ActionFacade {
                 }
                 for (ServiceGatewayBean serviceGatewayBean : gateways) {
                     if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
-                        IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
+                        IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(serviceGatewayBean.getGatewayId());
                         links.put(serviceGatewayBean.getGatewayId(), gatewayLink);
                     }
                 }

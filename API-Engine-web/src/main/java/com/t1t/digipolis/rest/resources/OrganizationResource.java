@@ -33,6 +33,7 @@ import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.EventFacade;
@@ -144,7 +145,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException, StorageException {
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New organization"));
         FieldValidator.validateName(bean.getName());
         return orgFacade.create(bean);
     }
@@ -159,7 +160,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Override
     public OrganizationBean get(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         return orgFacade.get(organizationId);
     }
 
@@ -173,8 +174,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void update(@PathParam("organizationId") String organizationId, UpdateOrganizationBean bean)
             throws OrganizationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Updated organization"));
         orgFacade.update(organizationId, bean);
     }
 
@@ -188,7 +189,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public SearchResultsBean<AuditEntryBean> activity(@PathParam("organizationId") String organizationId, @QueryParam("page") int page, @QueryParam("count") int pageSize)
             throws OrganizationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         return orgFacade.activity(organizationId, page, pageSize);
     }
 
@@ -205,8 +206,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationBean createApp(@PathParam("organizationId") String organizationId, NewApplicationBean bean) throws OrganizationNotFoundException, ApplicationAlreadyExistsException, NotAuthorizedException, InvalidNameException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New application"));
         Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createApp(organizationId, bean);
@@ -222,8 +223,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationBean getApp(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId)
             throws ApplicationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
         return orgFacade.getApp(organizationId, applicationId);
     }
 
@@ -237,8 +238,8 @@ public class OrganizationResource implements IOrganizationResource {
     public void deleteApp(@PathParam("organizationId") String organizationId,
                                   @PathParam("applicationId") String applicationId)
             throws ApplicationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Application organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
         orgFacade.deleteApp(organizationId, applicationId);
     }
 
@@ -253,8 +254,9 @@ public class OrganizationResource implements IOrganizationResource {
                                  @PathParam("applicationId") String applicationId,
                                  @PathParam("version") String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Application organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Application version"));
         if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
@@ -270,8 +272,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/applications/{applicationId}/activity")
     @Produces(MediaType.APPLICATION_JSON)
     public SearchResultsBean<AuditEntryBean> getAppActivity(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @QueryParam("page") int page, @QueryParam("count") int pageSize) throws ApplicationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
         return orgFacade.getAppActivity(organizationId, applicationId, page, pageSize);
     }
 
@@ -285,7 +287,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<ApplicationSummaryBean> listApps(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException,
             NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         return orgFacade.listApps(organizationId);
     }
 
@@ -300,11 +302,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public void updateApp(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, UpdateApplicationBean bean)
             throws ApplicationNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkNotNull(bean);
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Updated application"));
         orgFacade.updateApp(organizationId, applicationId, bean);
     }
 
@@ -318,11 +321,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationVersionBean createAppVersion(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, NewApplicationVersionBean bean) throws ApplicationNotFoundException, NotAuthorizedException, InvalidVersionException, ApplicationVersionAlreadyExistsException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkNotNull(bean);
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New application version"));
         FieldValidator.validateVersion(bean.getVersion());
         return orgFacade.createAppVersion(organizationId, applicationId, bean);
     }
@@ -338,10 +342,10 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationVersionBean updateAppVersionCallbackURI(@PathParam("organizationId") String orgId, @PathParam("applicationId")String appId, @PathParam("version") String version, UpdateApplicationVersionURIBean updateAppUri) {
         if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(appId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkNotNull(updateAppUri);
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(appId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
+        Preconditions.checkNotNull(updateAppUri, Messages.i18n.format("nullValue", "Updated redirect URI"));
         if (updateAppUri.getUris() == null || updateAppUri.getUris().stream().filter(StringUtils::isNotEmpty).collect(Collectors.toList()).isEmpty()) {
             throw new IllegalArgumentException();
         }
@@ -359,9 +363,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public NewApiKeyBean reissueAppVersionApiKey(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
         if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(appId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(appId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.reissueApplicationVersionApiKey(orgId, appId, version);
     }
 
@@ -376,9 +380,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public NewOAuthCredentialsBean reissueAppVersionOAuthCredentials(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version) {
         if (!securityContext.hasPermission(PermissionType.appEdit, orgId)) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(appId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(appId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.reissueApplicationVersionOAuthCredentials(orgId, appId, version);
     }
 
@@ -392,9 +396,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationVersionBean getAppVersion(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version)
             throws ApplicationVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getAppVersion(organizationId, applicationId, version);
     }
 
@@ -411,9 +415,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                                    @PathParam("version") String version,
                                                                    @QueryParam("page") int page,
                                                                    @QueryParam("count") int pageSize) throws ApplicationVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getAppVersionActivity(organizationId, applicationId, version, page, pageSize);
     }
 
@@ -433,13 +437,13 @@ public class OrganizationResource implements IOrganizationResource {
                                                         @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.appView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
-        Preconditions.checkNotNull(interval);
-        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate), Messages.i18n.format("emptyValue", "From date"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(toDate), Messages.i18n.format("emptyValue", "To date"));
+        Preconditions.checkNotNull(interval, Messages.i18n.format("nullValue", "Interval"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()), Messages.i18n.format("emptyValue", "Interval"));
         return orgFacade.getAppUsagePerService(organizationId, applicationId, version, interval, fromDate, toDate);
     }
 
@@ -453,8 +457,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<ApplicationVersionSummaryBean> listAppVersions(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId)
             throws ApplicationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
         return orgFacade.listAppVersions(organizationId, applicationId);
     }
 
@@ -476,9 +480,9 @@ public class OrganizationResource implements IOrganizationResource {
                                        NewContractBean bean) throws OrganizationNotFoundException, ApplicationNotFoundException,
             ServiceNotFoundException, PlanNotFoundException, ContractAlreadyExistsException, NotAuthorizedException {
         Preconditions.checkNotNull(bean);
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.createContract(organizationId, applicationId, version, bean);
@@ -496,9 +500,9 @@ public class OrganizationResource implements IOrganizationResource {
                                     @PathParam("applicationId") String applicationId,
                                     @PathParam("version") String version,
                                     @PathParam("contractId") Long contractId) throws ApplicationNotFoundException, ContractNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getContract(organizationId, applicationId, version, contractId);
     }
 
@@ -512,11 +516,12 @@ public class OrganizationResource implements IOrganizationResource {
     public void deleteAllContracts(@PathParam("organizationId") String organizationId,
                                    @PathParam("applicationId") String applicationId,
                                    @PathParam("version") String version) throws ApplicationNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Application organization ID"));
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Application version"));
         orgFacade.deleteAllContracts(organizationId, applicationId, version);
     }
 
@@ -531,11 +536,12 @@ public class OrganizationResource implements IOrganizationResource {
                                @PathParam("applicationId") String applicationId,
                                @PathParam("version") String version,
                                @PathParam("contractId") Long contractId) throws ApplicationNotFoundException, ContractNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Application organization ID"));
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Application version"));
         orgFacade.deleteContract(organizationId, applicationId, version, contractId);
     }
 
@@ -551,9 +557,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                                     @PathParam("applicationId") String applicationId,
                                                                     @PathParam("version") String version)
             throws ApplicationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Application organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Application version"));
         return orgFacade.getApplicationVersionContracts(organizationId, applicationId, version);
     }
 
@@ -568,9 +574,9 @@ public class OrganizationResource implements IOrganizationResource {
     public ApiRegistryBean getApiRegistryJSON(@PathParam("organizationId") String organizationId,
                                               @PathParam("applicationId") String applicationId,
                                               @PathParam("version") String version) throws ApplicationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getApiRegistryJSON(organizationId, applicationId, version);
     }
 
@@ -585,9 +591,9 @@ public class OrganizationResource implements IOrganizationResource {
     public ApiRegistryBean getApiRegistryXML(@PathParam("organizationId") String organizationId,
                                              @PathParam("applicationId") String applicationId,
                                              @PathParam("version") String version) throws ApplicationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getApiRegistryXML(organizationId, applicationId, version);
     }
 
@@ -605,6 +611,9 @@ public class OrganizationResource implements IOrganizationResource {
                                       @PathParam("version") String version,
                                       NewPolicyBean bean) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.createAppPolicy(organizationId, applicationId, version, bean);
@@ -622,9 +631,9 @@ public class OrganizationResource implements IOrganizationResource {
                                    @PathParam("applicationId") String applicationId,
                                    @PathParam("version") String version,
                                    @PathParam("policyId") long policyId) throws OrganizationNotFoundException, ApplicationVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getAppPolicy(organizationId, applicationId, version, policyId);
     }
 
@@ -642,11 +651,12 @@ public class OrganizationResource implements IOrganizationResource {
                                 @PathParam("version") String version,
                                 @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
             ApplicationVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         orgFacade.updateAppPolicy(organizationId, applicationId, version, policyId, bean);
     }
 
@@ -661,11 +671,12 @@ public class OrganizationResource implements IOrganizationResource {
                                 @PathParam("applicationId") String applicationId, @PathParam("version") String version, @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Application organization ID"));
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Application version"));
         orgFacade.deleteAppPolicy(organizationId, applicationId, version, policyId);
     }
 
@@ -681,9 +692,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                    @PathParam("applicationId") String applicationId,
                                                    @PathParam("version") String version)
             throws OrganizationNotFoundException, ApplicationVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Application organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Application version"));
         return orgFacade.listAppPolicies(organizationId, applicationId, version);
     }
 
@@ -700,11 +711,12 @@ public class OrganizationResource implements IOrganizationResource {
                                            @PathParam("version") String version,
                                            PolicyChainBean policyChain) throws OrganizationNotFoundException,
             ApplicationVersionNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         orgFacade.reorderApplicationPolicies(organizationId, applicationId, version, policyChain);
     }
 
@@ -720,10 +732,11 @@ public class OrganizationResource implements IOrganizationResource {
     public ServiceBean createService(@PathParam("organizationId") String organizationId, NewServiceBean bean)
             throws OrganizationNotFoundException, ServiceAlreadyExistsException, NotAuthorizedException,
             InvalidNameException {
-        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(bean);
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        }
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New service"));
         Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createService(organizationId, bean);
@@ -739,12 +752,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public AnnouncementBean createServiceAnnouncement(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, NewAnnouncementBean announcementBean) throws ServiceNotFoundException, NotAuthorizedException{
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkNotNull(announcementBean);
-        Preconditions.checkArgument(!StringUtils.isEmpty(announcementBean.getDescription()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(announcementBean.getTitle()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkNotNull(announcementBean, Messages.i18n.format("nullValue", "New announcement"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(announcementBean.getDescription()), Messages.i18n.format("emptyValue", "Description"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(announcementBean.getTitle()), Messages.i18n.format("emptyValue", "Title"));
         return orgFacade.createServiceAnnouncement(organizationId, serviceId, announcementBean);
     }
 
@@ -758,11 +771,11 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public AnnouncementBean getServiceAnnouncement(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("announcementId")String announcementId) throws ServiceNotFoundException, NotAuthorizedException{
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(announcementId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(announcementId), Messages.i18n.format("emptyValue", "Announcement ID"));
         Long id = Long.parseLong(announcementId.trim(), 10);
-    return orgFacade.getServiceAnnouncement(organizationId, serviceId, id);
+        return orgFacade.getServiceAnnouncement(organizationId, serviceId, id);
     }
 
     @ApiOperation(value = "Retrieve all announcement for given service.",
@@ -777,8 +790,8 @@ public class OrganizationResource implements IOrganizationResource {
     public List<AnnouncementBean> getServiceAnnouncements(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException{
         //This endpoint is also available as an API-Engine-auth endpoint, so security check seems superfluous
         //if (!securityContext.hasPermission(PermissionType.svcView, organizationId)) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         return orgFacade.getServiceAnnouncements(organizationId, serviceId);
     }
 
@@ -792,10 +805,10 @@ public class OrganizationResource implements IOrganizationResource {
     public void deleteServiceAnnouncement(@PathParam("organizationId") String organizationId,
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("announcementId") String announcementId) throws OrganizationNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId)) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(announcementId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(announcementId), Messages.i18n.format("emptyValue", "Announcement ID"));
         orgFacade.deleteServiceAnnouncement(organizationId, serviceId, Long.parseLong(announcementId.trim(), 10));
     }
 
@@ -809,9 +822,10 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceBean updateServiceTerms(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, UpdateServiceTermsBean serviceTerms) throws ServiceNotFoundException, NotAuthorizedException{
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(serviceTerms);
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceTerms.getTerms()));
+        Preconditions.checkNotNull(serviceTerms, Messages.i18n.format("nullValue", "Service terms"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceTerms.getTerms()), Messages.i18n.format("emptyValue", "Service terms"));
         return orgFacade.updateServiceTerms(organizationId, serviceId, serviceTerms);
     }
 
@@ -825,8 +839,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceBean getService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId)
             throws ServiceNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         return orgFacade.getService(organizationId, serviceId);
     }
 
@@ -839,8 +853,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/plans/{planId}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deletePlan(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId) throws ServiceNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
         orgFacade.deletePlan(organizationId, planId);
     }
 
@@ -853,9 +867,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/plans/{planId}/versions/{version}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deletePlanVersion(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId, @PathParam("version") String version) throws ServiceNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         orgFacade.deletePlanVersion(organizationId, planId, version);
     }
 
@@ -870,8 +884,8 @@ public class OrganizationResource implements IOrganizationResource {
     public void deleteService(@PathParam("organizationId") String organizationId,
                           @PathParam("serviceId") String serviceId)
             throws ServiceNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         orgFacade.deleteService(organizationId, serviceId);
     }
 
@@ -887,8 +901,8 @@ public class OrganizationResource implements IOrganizationResource {
                                                                 @PathParam("serviceId") String serviceId,
                                                                 @QueryParam("page") int page,
                                                                 @QueryParam("count") int pageSize) throws ServiceNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         return orgFacade.getServiceActivity(organizationId, serviceId, page, pageSize);
     }
 
@@ -901,7 +915,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceSummaryBean> listServices(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         return orgFacade.listServices(organizationId);
     }
 
@@ -918,10 +932,10 @@ public class OrganizationResource implements IOrganizationResource {
                               @PathParam("serviceId") String serviceId,
                               UpdateServiceBean bean)
             throws ServiceNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         orgFacade.updateService(organizationId, serviceId, bean);
 
     }
@@ -939,11 +953,12 @@ public class OrganizationResource implements IOrganizationResource {
                                                    @PathParam("serviceId") String serviceId,
                                                    NewServiceVersionBean bean) throws ServiceNotFoundException, NotAuthorizedException,
             InvalidVersionException, ServiceVersionAlreadyExistsException {
-        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkNotNull(bean);
+        }
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New service version"));
         FieldValidator.validateVersion(bean.getVersion());
         return orgFacade.createServiceVersion(organizationId, serviceId, bean);
     }
@@ -959,9 +974,9 @@ public class OrganizationResource implements IOrganizationResource {
     public ServiceVersionBean getServiceVersion(@PathParam("organizationId") String organizationId,
                                                 @PathParam("serviceId") String serviceId,
                                                 @PathParam("version") String version) throws ServiceVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         Set<String> consentPrefixes = new HashSet<>();
         try {
             consentPrefixes.addAll(query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)));
@@ -990,6 +1005,9 @@ public class OrganizationResource implements IOrganizationResource {
                                          @PathParam("version") String version)
             throws ServiceVersionNotFoundException, NotAuthorizedException {
         try {
+            Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Service organization ID"));
+            Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+            Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
             ServiceVersionBean serviceVersion = getServiceVersion(organizationId, serviceId, version);
             InputStream definition = orgFacade.getServiceDefinition(organizationId, serviceId, version);
             if (definition == null) return null;
@@ -1023,9 +1041,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                                            @PathParam("serviceId") String serviceId,
                                                                            @PathParam("version") String version) throws ServiceVersionNotFoundException,
             InvalidServiceStatusException, GatewayNotFoundException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getServiceVersionEndpointInfo(organizationId, serviceId, version);
     }
 
@@ -1037,9 +1055,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceVersionVisibilityBean getServiceVersionAvailabilityInfo(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
                                                                            @PathParam("version") String version) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         ServiceVersionVisibilityBean svab = new ServiceVersionVisibilityBean();
         //TODO do this for a service
         svab.setAvailableMarketplaces(orgFacade.getServiceVersionAvailabilityInfo(organizationId, serviceId, version));
@@ -1054,9 +1072,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public KongPluginConfigList getServiceVersionPluginInfo(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
                                                                           @PathParam("version") String version) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         KongPluginConfigList servicePlugins = orgFacade.getServicePlugins(organizationId, serviceId, version);
         return servicePlugins;
     }
@@ -1071,9 +1089,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public KongPluginConfig enableServicePlugin(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
                                                             @PathParam("version") String version, @PathParam("pluginId") String pluginId) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         Preconditions.checkArgument(!StringUtils.isEmpty(pluginId));
         KongPluginConfig servicePlugin = orgFacade.changeEnabledStateServicePlugin(organizationId, serviceId, version, pluginId,true);
         return servicePlugin;
@@ -1087,9 +1105,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public KongPluginConfig disableServicePlugin(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,
                                                 @PathParam("version") String version, @PathParam("pluginId") String pluginId) throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         Preconditions.checkArgument(!StringUtils.isEmpty(pluginId));
         KongPluginConfig servicePlugin = orgFacade.changeEnabledStateServicePlugin(organizationId, serviceId, version, pluginId,false);
         return servicePlugin;
@@ -1108,9 +1126,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                                        @PathParam("version") String version,
                                                                        @QueryParam("page") int page,
                                                                        @QueryParam("count") int pageSize) throws ServiceVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getServiceVersionActivity(organizationId, serviceId, version, page, pageSize);
     }
 
@@ -1127,12 +1145,12 @@ public class OrganizationResource implements IOrganizationResource {
                                                    UpdateServiceVersionBean bean) throws ServiceVersionNotFoundException, NotAuthorizedException, StorageException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Updated service version"));
         //it's possible not to provide the endpoint directly
-        if(!StringUtils.isEmpty(bean.getEndpoint())) Preconditions.checkArgument(ValidationUtils.isValidURL(bean.getEndpoint()));
+        if(!StringUtils.isEmpty(bean.getEndpoint())) Preconditions.checkArgument(ValidationUtils.isValidURL(bean.getEndpoint()), Messages.i18n.format("InvalidURL", bean.getEndpoint()));
         return orgFacade.updateServiceVersion(organizationId, serviceId, version, bean);
     }
 
@@ -1167,8 +1185,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceVersionSummaryBean> listServiceVersions(@PathParam("organizationId") String organizationId,
                                                                @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         return orgFacade.listServiceVersions(organizationId, serviceId);
     }
 
@@ -1183,9 +1201,9 @@ public class OrganizationResource implements IOrganizationResource {
     public List<ServicePlanSummaryBean> getServiceVersionPlans(@PathParam("organizationId") String organizationId,
                                                                @PathParam("serviceId") String serviceId,
                                                                @PathParam("version") String version) throws ServiceVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getServiceVersionPlans(organizationId, serviceId, version);
     }
 
@@ -1202,9 +1220,9 @@ public class OrganizationResource implements IOrganizationResource {
                                           @PathParam("serviceId") String serviceId,
                                           @PathParam("version") String version,
                                           NewPolicyBean bean) throws OrganizationNotFoundException, ServiceVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Service organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.createServicePolicy(organizationId, serviceId, version, bean);
@@ -1223,9 +1241,9 @@ public class OrganizationResource implements IOrganizationResource {
                                        @PathParam("version") String version,
                                        @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, ServiceVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Service organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
         return orgFacade.getServicePolicy(organizationId, serviceId, version, policyId);
     }
 
@@ -1245,9 +1263,9 @@ public class OrganizationResource implements IOrganizationResource {
             ServiceVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Service organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
         return orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
     }
 
@@ -1266,9 +1284,9 @@ public class OrganizationResource implements IOrganizationResource {
             PolicyNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         orgFacade.deleteServicePolicy(organizationId, serviceId, version, policyId);
     }
 
@@ -1285,9 +1303,9 @@ public class OrganizationResource implements IOrganizationResource {
             throws OrganizationNotFoundException, ServiceVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         orgFacade.deleteServiceDefinition(organizationId, serviceId, version);
 
     }
@@ -1304,9 +1322,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                        @PathParam("serviceId") String serviceId,
                                                        @PathParam("version") String version)
             throws OrganizationNotFoundException, ServiceVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.listServicePolicies(organizationId, serviceId, version);
     }
 
@@ -1325,9 +1343,9 @@ public class OrganizationResource implements IOrganizationResource {
             ServiceVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         orgFacade.reorderServicePolicies(organizationId, serviceId, version, policyChain);
     }
 
@@ -1343,9 +1361,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                  @PathParam("serviceId") String serviceId,
                                                  @PathParam("version") String version,
                                                  @PathParam("planId") String planId) throws ServiceVersionNotFoundException, PlanNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getServicePolicyChain(organizationId, serviceId, version, planId);
     }
 
@@ -1362,9 +1380,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                                 @PathParam("version") String version,
                                                                 @QueryParam("page") int page,
                                                                 @QueryParam("count") int pageSize) throws ServiceVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getServiceVersionContracts(organizationId, serviceId, version, page, pageSize);
     }
 
@@ -1380,9 +1398,9 @@ public class OrganizationResource implements IOrganizationResource {
             @PathParam("organizationId") String organizationId,
             @PathParam("serviceId") String serviceId,
             @PathParam("version") String version) throws InvalidMetricCriteriaException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getMarketInfo(organizationId, serviceId, version);
     }
 
@@ -1396,9 +1414,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public ServiceBean addServiceFollower(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("userId") String userId) throws ServiceNotFoundException, javax.ws.rs.NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         return orgFacade.addServiceFollower(organizationId, serviceId, userId);
     }
 
@@ -1412,9 +1430,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public ServiceBean removeServiceFollower(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("userId") String userId) throws ServiceNotFoundException, javax.ws.rs.NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         return orgFacade.removeServiceFollower(organizationId, serviceId, userId);
     }
 
@@ -1428,8 +1446,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public ServiceFollowers getServiceFollowers(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, javax.ws.rs.NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         return orgFacade.getServiceFollowers(organizationId, serviceId);
     }
 
@@ -1444,11 +1462,11 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public SupportBean createServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, NewSupportBean bean) throws ServiceNotFoundException, NotAuthorizedException {
         //Permissions: everybody can create a ticket
-        Preconditions.checkNotNull(bean);
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getTitle()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getDescription()));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New support ticket"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Service organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getTitle()), Messages.i18n.format("emptyValue", "Title"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getDescription()), Messages.i18n.format("emptyValue", "Description"));
         return orgFacade.createServiceSupportTicket(organizationId, serviceId, bean);
     }
 
@@ -1464,11 +1482,11 @@ public class OrganizationResource implements IOrganizationResource {
     public SupportBean updateServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("supportId") String supportId, UpdateSupportBean bean) throws ServiceNotFoundException, NotAuthorizedException {
         //Permissions: everybody can create a ticket
         Preconditions.checkNotNull(bean);
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getTitle()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getDescription()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId), Messages.i18n.format("emptyValue", "Support ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getTitle()), Messages.i18n.format("emptyValue", "Ticket title"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getDescription()), Messages.i18n.format("emptyValue", "Ticket description"));
         return orgFacade.updateServiceSupportTicket(organizationId, serviceId, Long.parseLong(supportId.trim(), 10), bean);
     }
 
@@ -1482,9 +1500,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public SupportBean getServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("supportId") String supportId) throws ServiceNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId), Messages.i18n.format("emptyValue", "Support ID"));
         return orgFacade.getServiceSupportTicket(organizationId, serviceId, Long.parseLong(supportId.trim(), 10));
     }
 
@@ -1500,9 +1518,9 @@ public class OrganizationResource implements IOrganizationResource {
     public void deleteServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("supportId") String supportId) throws ServiceNotFoundException, NotAuthorizedException {
         //Permissions: only admin can remove tickets
         if (!securityContext.hasPermission(PermissionType.svcAdmin, organizationId)) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId), Messages.i18n.format("emptyValue", "Support ID"));
         orgFacade.deleteSupportTicket(organizationId, serviceId, Long.parseLong(supportId.trim(), 10));
     }
 
@@ -1516,8 +1534,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public List<SupportBean> listServiceSupportTickets(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         return orgFacade.listServiceSupportTickets(organizationId, serviceId);
     }
 
@@ -1532,9 +1550,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public SupportComment addServiceSupportComment(@PathParam("supportId") String supportId, NewSupportComment bean) throws NotAuthorizedException {
         //Permissions: everybody can create a ticket
-        Preconditions.checkNotNull(bean);
-        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getComment()));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Support comment"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId), Messages.i18n.format("emptyValue", "Support ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getComment()), Messages.i18n.format("emptyValue", "Support comment"));
         return orgFacade.addServiceSupportComment(Long.parseLong(supportId.trim(), 10), bean);
     }
 
@@ -1549,10 +1567,10 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public SupportComment updateServiceSupportComment(@PathParam("supportId") String supportId, @PathParam("commentId") String commentId, UpdateSupportComment bean) throws NotAuthorizedException {
         //Permissions: everybody can create a ticket
-        Preconditions.checkNotNull(bean);
-        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(commentId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getComment()));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Comment update"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId), Messages.i18n.format("emptyValue", "Support ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(commentId), Messages.i18n.format("emptyValue", "Comment ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(bean.getComment()), Messages.i18n.format("emptyValue", "Support comment"));
         return orgFacade.updateServiceSupportComment(Long.parseLong(supportId.trim(), 10), Long.parseLong(commentId.trim(), 10), bean);
     }
 
@@ -1567,8 +1585,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void deleteServiceSupportComment(@PathParam("supportId") String supportId, @PathParam("commentId") String commentId) throws NotAuthorizedException {
         //TODO Permissions: only the user created the ticket can remove his own comment
-        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(commentId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId), Messages.i18n.format("emptyValue", "Support ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(commentId), Messages.i18n.format("emptyValue", "Comment ID"));
         orgFacade.deleteServiceSupportComment(Long.parseLong(supportId.trim(), 10), Long.parseLong(commentId.trim(), 10));
     }
 
@@ -1582,8 +1600,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public SupportComment getServiceSupportComment(@PathParam("supportId")String supportId ,@PathParam("commentId")String commentId) throws NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(commentId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId), Messages.i18n.format("emptyValue", "Support ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(commentId), Messages.i18n.format("emptyValue", "Comment ID"));
         return orgFacade.getServiceSupportComment(Long.parseLong(supportId.trim(),10),Long.parseLong(commentId.trim(),10));
     }
 
@@ -1597,7 +1615,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public List<SupportComment> listServiceSupportComments(@PathParam("supportId")String supportId) throws NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(supportId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(supportId), Messages.i18n.format("emptyValue", "Support ID"));
         return orgFacade.listServiceSupportTicketComments(Long.parseLong(supportId.trim(), 10));
     }
 
@@ -1618,13 +1636,13 @@ public class OrganizationResource implements IOrganizationResource {
             @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
-        Preconditions.checkNotNull(interval);
-        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate), Messages.i18n.format("emptyValue", "From date"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(toDate), Messages.i18n.format("emptyValue", "To date"));
+        Preconditions.checkNotNull(interval, Messages.i18n.format("nullValue", "Interval"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()), Messages.i18n.format("emptyValue", "Interval"));
         return orgFacade.getUsage(organizationId, serviceId, version, interval, fromDate, toDate);
     }
 
@@ -1644,13 +1662,13 @@ public class OrganizationResource implements IOrganizationResource {
                                                        @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
-        Preconditions.checkNotNull(interval);
-        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate), Messages.i18n.format("emptyValue", "From date"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(toDate), Messages.i18n.format("emptyValue", "To date"));
+        Preconditions.checkNotNull(interval, Messages.i18n.format("nullValue", "Interval"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()), Messages.i18n.format("emptyValue", "Interval"));
         return orgFacade.getResponseStats(organizationId, serviceId, version, interval, fromDate, toDate);
     }
 
@@ -1669,11 +1687,11 @@ public class OrganizationResource implements IOrganizationResource {
                                                             @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate), Messages.i18n.format("emptyValue", "From date"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(toDate), Messages.i18n.format("emptyValue", "To date"));
         return orgFacade.getResponseStatsSummary(organizationId, serviceId, version, fromDate, toDate);
     }
 
@@ -1691,8 +1709,8 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         FieldValidator.validateName(bean.getName());
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New plan"));
         return orgFacade.createPlan(organizationId, bean);
     }
 
@@ -1706,8 +1724,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public PlanBean getPlan(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId)
             throws PlanNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
         return orgFacade.getPlan(organizationId, planId);
     }
 
@@ -1723,8 +1741,8 @@ public class OrganizationResource implements IOrganizationResource {
                                                              @PathParam("planId") String planId,
                                                              @QueryParam("page") int page,
                                                              @QueryParam("count") int pageSize) throws PlanNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
         return orgFacade.getPlanActivity(organizationId, planId, page, pageSize);
 
     }
@@ -1739,7 +1757,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<PlanSummaryBean> listPlans(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException,
             NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         return orgFacade.listPlans(organizationId);
     }
 
@@ -1755,8 +1773,8 @@ public class OrganizationResource implements IOrganizationResource {
     public void updatePlan(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId, UpdatePlanBean bean) throws PlanNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
         orgFacade.updatePlan(organizationId, planId, bean);
     }
 
@@ -1773,8 +1791,8 @@ public class OrganizationResource implements IOrganizationResource {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         FieldValidator.validateVersion(bean.getVersion());
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
         return orgFacade.createPlanVersion(organizationId, planId, bean);
     }
 
@@ -1790,9 +1808,9 @@ public class OrganizationResource implements IOrganizationResource {
                                           @PathParam("planId") String planId,
                                           @PathParam("version") String version)
             throws PlanVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getPlanVersion(organizationId, planId, version);
     }
 
@@ -1810,9 +1828,9 @@ public class OrganizationResource implements IOrganizationResource {
             @PathParam("version") String version,
             @QueryParam("page") int page,
             @QueryParam("count") int pageSize) throws PlanVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getPlanVersionActivity(organizationId, planId, version, page, pageSize);
     }
 
@@ -1826,8 +1844,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<PlanVersionSummaryBean> listPlanVersions(@PathParam("organizationId") String organizationId,
                                                          @PathParam("planId") String planId) throws PlanNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
         return orgFacade.listPlanVersions(organizationId, planId);
     }
 
@@ -1845,9 +1863,9 @@ public class OrganizationResource implements IOrganizationResource {
                                        @PathParam("version") String version,
                                        NewPolicyBean bean) throws OrganizationNotFoundException, PlanVersionNotFoundException,
             NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Plan version"));
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.createPlanPolicy(organizationId, planId, version, bean);
@@ -1866,9 +1884,9 @@ public class OrganizationResource implements IOrganizationResource {
                                     @PathParam("version") String version,
                                     @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, PlanVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.getPlanPolicy(organizationId, planId, version, policyId);
     }
 
@@ -1888,9 +1906,9 @@ public class OrganizationResource implements IOrganizationResource {
             PlanVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         orgFacade.updatePlanPolicy(organizationId, planId, version, policyId, bean);
     }
 
@@ -1909,9 +1927,9 @@ public class OrganizationResource implements IOrganizationResource {
             PolicyNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         orgFacade.deletePlanPolicy(organizationId, planId, version, policyId);
     }
 
@@ -1927,9 +1945,9 @@ public class OrganizationResource implements IOrganizationResource {
                                                     @PathParam("planId") String planId,
                                                     @PathParam("version") String version)
             throws OrganizationNotFoundException, PlanVersionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         return orgFacade.listPlanPolicies(organizationId, planId, version);
     }
 
@@ -1948,9 +1966,9 @@ public class OrganizationResource implements IOrganizationResource {
             PlanVersionNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(planId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         orgFacade.reorderPlanPolicies(organizationId, planId, version, policyChain);
     }
 
@@ -1967,7 +1985,7 @@ public class OrganizationResource implements IOrganizationResource {
             RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         orgFacade.grant(organizationId, bean);
     }
 
@@ -1984,9 +2002,9 @@ public class OrganizationResource implements IOrganizationResource {
             throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(roleId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(roleId), Messages.i18n.format("emptyValue", "Role ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         orgFacade.revoke(organizationId, roleId, userId);
     }
 
@@ -2003,8 +2021,8 @@ public class OrganizationResource implements IOrganizationResource {
             throws OrganizationNotFoundException, RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         orgFacade.updateMembership(organizationId, userId, bean);
     }
 
@@ -2019,8 +2037,8 @@ public class OrganizationResource implements IOrganizationResource {
             RoleNotFoundException, UserNotFoundException, NotAuthorizedException {
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         orgFacade.revokeAll(organizationId, userId);
     }
 
@@ -2035,9 +2053,10 @@ public class OrganizationResource implements IOrganizationResource {
     public void transferOrgOwnership(@PathParam("organizationId") String organizationId,
                                      TransferOwnershipBean bean) throws OrganizationNotFoundException,
             MemberNotFoundException, NotAuthorizedException {
-        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId))
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        }
         orgFacade.transferOrgOwnership(organizationId, bean);
     }
 
@@ -2050,7 +2069,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/members")
     @Produces(MediaType.APPLICATION_JSON)
     public List<MemberBean> listMembers(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         return orgFacade.listMembers(organizationId);
     }
 
@@ -2063,7 +2082,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteOrganization(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
@@ -2080,7 +2099,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void requestMembership(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         orgFacade.requestMembership(organizationId);
     }
 
@@ -2095,8 +2114,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void rejectMembershipRequest(@PathParam("organizationId") String organizationId, @PathParam("userId") String userId) throws NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
@@ -2113,7 +2132,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/notifications/incoming")
     @Produces(MediaType.APPLICATION_JSON)
     public List<EventBean> getOrganizationAllIncomingEvents(@PathParam("organizationId") String organizationId) throws NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
             //If user doesn't have correct permission, don't throw unauthorized, but return empty list
             return Collections.emptyList();
@@ -2131,7 +2150,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/notifications/outgoing")
     @Produces(MediaType.APPLICATION_JSON)
     public List<EventBean> getOrganizationAllOutgoingEvents(@PathParam("organizationId") String organizationId) throws NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
             //If user doesn't have correct permission, don't throw unauthorized, but return empty list
             return Collections.emptyList();
@@ -2149,12 +2168,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/notifications/incoming/{eventType}")
     @Produces(MediaType.APPLICATION_JSON)
     public <T> List<T> getOrganizationIncomingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
             //If user doesn't have correct permission, don't throw unauthorized, but return empty list
             return Collections.emptyList();
         }
-        Preconditions.checkArgument(!StringUtils.isEmpty(type));
+        Preconditions.checkArgument(!StringUtils.isEmpty(type), Messages.i18n.format("emptyValue", "Event type"));
         return eventFacade.getOrganizationIncomingEventsByType(organizationId, type);
     }
 
@@ -2168,12 +2187,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/notifications/outgoing/{eventType}")
     @Produces(MediaType.APPLICATION_JSON)
     public <T> List<T> getOrganizationOutgoingEventsByTypeAndStatus(@PathParam("organizationId") String organizationId, @PathParam("eventType") String type) throws NotAuthorizedException, InvalidEventException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.orgEdit, organizationId)) {
             //If user doesn't have correct permission, don't throw unauthorized, but return empty list
             return Collections.emptyList();
         }
-        Preconditions.checkArgument(!StringUtils.isEmpty(type));
+        Preconditions.checkArgument(!StringUtils.isEmpty(type), Messages.i18n.format("emptyValue", "Event type"));
         return eventFacade.getOrganizationOutgoingEventsByType(organizationId, type);
     }
 
@@ -2186,7 +2205,7 @@ public class OrganizationResource implements IOrganizationResource {
     @DELETE
     @Path("/{organizationId}/notifications/incoming/{notificationId}")
     public void deleteEvent(@PathParam("organizationId") String organizationId, @PathParam("notificationId") Long id) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
@@ -2203,13 +2222,13 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/contracts/requests/cancel")
     @Consumes(MediaType.APPLICATION_JSON)
     public void cancelContractRequest(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version, ContractCancellationBean request) throws NotAuthorizedException, InvalidEventException, EventNotFoundException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkNotNull(request);
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getOrganizationId()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getApplicationId()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getVersion()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Service organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "Contract cancellation request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getOrganizationId()), Messages.i18n.format("emptyValue", "Application organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getApplicationId()), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getVersion()), Messages.i18n.format("emptyValue", "Application version"));
         if (!securityContext.hasPermission(PermissionType.orgAdmin, request.getOrganizationId())) {
             throw ExceptionFactory.notAuthorizedException();
         }
@@ -2226,8 +2245,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/membership-requests/cancel")
     @Consumes(MediaType.APPLICATION_JSON)
     public void cancelMembershipRequest(@PathParam("organizationId") String organizationId) throws InvalidEventException, EventNotFoundException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(securityContext.getCurrentUser()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(securityContext.getCurrentUser()), Messages.i18n.format("emptyValue", "User ID"));
         orgFacade.cancelMembershipRequest(organizationId);
     }
 
@@ -2245,10 +2264,10 @@ public class OrganizationResource implements IOrganizationResource {
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("version") String version,
                                     NewContractRequestBean bean) throws AbstractRestException {
-        Preconditions.checkNotNull(bean);
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Contract request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         if (!securityContext.hasPermission(PermissionType.appEdit, bean.getApplicationOrg()))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.requestContract(organizationId, serviceId, version, bean);
@@ -2264,10 +2283,11 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/contracts/reject")
     @Consumes(MediaType.APPLICATION_JSON)
     public void rejectContractRequest(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, NewContractBean response) throws NotAuthorizedException {
-        Preconditions.checkNotNull(request);
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkNotNull(response, Messages.i18n.format("nullValue", "Contract request rejection"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(response.getServiceOrgId()), Messages.i18n.format("emptyValue", "Service organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         if (!securityContext.hasPermission(PermissionType.svcAdmin, response.getServiceOrgId()))
             throw ExceptionFactory.notAuthorizedException();
         orgFacade.rejectContractRequest(organizationId, applicationId, version, response);
@@ -2284,10 +2304,11 @@ public class OrganizationResource implements IOrganizationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public ContractBean acceptContractRequest(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, NewContractBean response) throws NotAuthorizedException {
-        Preconditions.checkNotNull(request);
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkNotNull(response, Messages.i18n.format("nullValue", "Contract request acceptance"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Application version"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(response.getServiceOrgId()), Messages.i18n.format("emptyValue", "Service organization ID"));
         if (!securityContext.hasPermission(PermissionType.svcAdmin, response.getServiceOrgId()))
             throw ExceptionFactory.notAuthorizedException();
         return orgFacade.acceptContractRequest(organizationId, applicationId, version, response);
@@ -2302,9 +2323,9 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteServiceVersion(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version) throws NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
@@ -2320,8 +2341,8 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/tags")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceTagsBean getTags(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
-        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         return orgFacade.getServiceTags(organizationId, serviceId);
     }
 
@@ -2334,12 +2355,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/tags")
     @Consumes(MediaType.APPLICATION_JSON)
     public void updateTags(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, ServiceTagsBean tags) throws NotAuthorizedException {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
-        Preconditions.checkNotNull(tags);
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkNotNull(tags, Messages.i18n.format("nullValue", "Tags"));
         orgFacade.updateServiceTags(organizationId, serviceId, tags);
     }
 
@@ -2352,12 +2373,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/tags")
     @Consumes(MediaType.APPLICATION_JSON)
     public void deleteTag(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, TagBean tag) throws NotAuthorizedException {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
-        Preconditions.checkNotNull(tag);
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkNotNull(tag, Messages.i18n.format("nullValue", "Tags"));
         orgFacade.deleteServiceTag(organizationId, serviceId, tag);
     }
 
@@ -2370,12 +2391,12 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/tags")
     @Consumes(MediaType.APPLICATION_JSON)
     public void addTag(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, TagBean tag) throws NotAuthorizedException {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId));
-        Preconditions.checkNotNull(tag);
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkNotNull(tag, Messages.i18n.format("nullValue", "Tag"));
         orgFacade.addServiceTag(organizationId, serviceId, tag);
     }
 
@@ -2388,7 +2409,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/oauth2/tokens")
     @Produces(MediaType.APPLICATION_JSON)
     public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(@PathParam("organizationId") String organizationId, @PathParam("applicationId") String applicationId, @PathParam("version") String version, @QueryParam("page") String offset) throws NotAuthorizedException {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(applicationId) && StringUtils.isNotEmpty(version));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(applicationId) && StringUtils.isNotEmpty(version), Messages.i18n.format("emptyValue", "Organization ID, application ID & version"));
         if (!securityContext.hasPermission(PermissionType.appAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
@@ -2404,10 +2425,10 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/brandings")
     @Consumes(MediaType.APPLICATION_JSON)
     public void addBrandingToService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, ServiceBrandingSummaryBean branding) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && branding != null && StringUtils.isNotEmpty(branding.getId()), Messages.i18n.format("emptyValue", "Organization ID, service ID & branding ID"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && branding != null && StringUtils.isNotEmpty(branding.getId()));
         orgFacade.addServiceBranding(organizationId, serviceId, branding.getId());
     }
 
@@ -2420,10 +2441,10 @@ public class OrganizationResource implements IOrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/brandings/{brandingId}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void removeBrandingFromService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("brandingId") String brandingId) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && StringUtils.isNotEmpty(brandingId), Messages.i18n.format("emptyValue", "Organization ID, service ID & branding ID"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && StringUtils.isNotEmpty(brandingId));
         orgFacade.removeServiceBranding(organizationId, serviceId, brandingId);
     }
 }
