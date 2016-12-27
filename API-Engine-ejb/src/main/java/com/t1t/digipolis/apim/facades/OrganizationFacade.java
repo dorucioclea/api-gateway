@@ -1054,6 +1054,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             newPolicy = gw.createServicePolicy(organizationId, serviceId, version, newPolicy);
             policy.setKongPluginId(newPolicy.getKongPluginId());
             policy.setGatewayId(gw.getGatewayId());
+            //policy.setConfiguration(newPolicy.getPolicyJsonConfig());
             try {
                 storage.updatePolicy(policy);
             }
