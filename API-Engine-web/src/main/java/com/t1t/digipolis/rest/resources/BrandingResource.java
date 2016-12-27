@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.BrandingFacade;
@@ -49,7 +50,7 @@ public class BrandingResource implements IBrandingResource {
     @Path("/services/{brandingId}")
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceBrandingBean getServiceBranding(@PathParam("brandingId") String id) {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(id));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(id), Messages.i18n.format("emptyValue", "Branding ID"));
         return brandingFacade.getServiceBranding(id);
     }
 
@@ -66,8 +67,8 @@ public class BrandingResource implements IBrandingResource {
         if (!security.isAdmin()) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        Preconditions.checkNotNull(branding);
-        Preconditions.checkArgument(StringUtils.isNotEmpty(branding.getName()));
+        Preconditions.checkNotNull(branding, Messages.i18n.format("nullValue", "New branding"));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(branding.getName()), Messages.i18n.format("emptyValue", "Branding name"));
         return brandingFacade.createServiceBranding(branding);
     }
 
@@ -84,7 +85,7 @@ public class BrandingResource implements IBrandingResource {
         if (!security.isAdmin()) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        Preconditions.checkArgument(StringUtils.isNotEmpty(id));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(id), Messages.i18n.format("emptyValue", "Branding ID"));
         brandingFacade.deleteServiceBranding(id);
     }
 

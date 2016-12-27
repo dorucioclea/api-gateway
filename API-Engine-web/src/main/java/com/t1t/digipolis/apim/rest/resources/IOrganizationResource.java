@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.apps.*;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
 import com.t1t.digipolis.apim.beans.categories.ServiceTagsBean;
 import com.t1t.digipolis.apim.beans.categories.TagBean;
@@ -18,7 +17,6 @@ import com.t1t.digipolis.apim.beans.metrics.*;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
-import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
 import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.plans.*;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;

@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.beans.idm.UpdateRoleBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
@@ -52,7 +53,7 @@ public class RoleResource implements IRoleResource {
     @Produces(MediaType.APPLICATION_JSON)
     public RoleBean create(NewRoleBean bean) throws RoleAlreadyExistsException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New role"));
         return roleFacade.create(bean);
     }
 
@@ -65,7 +66,7 @@ public class RoleResource implements IRoleResource {
     @Path("/{roleId}")
     @Produces(MediaType.APPLICATION_JSON)
     public RoleBean get(@PathParam("roleId") String roleId) throws RoleNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(roleId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(roleId), Messages.i18n.format("emptyValue", "Role ID"));
         return roleFacade.get(roleId);
     }
 
@@ -79,7 +80,7 @@ public class RoleResource implements IRoleResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void update(@PathParam("roleId") String roleId, UpdateRoleBean bean) throws RoleNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(roleId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(roleId), Messages.i18n.format("emptyValue", "Role ID"));
         roleFacade.update(roleId, bean);
     }
 
@@ -92,7 +93,7 @@ public class RoleResource implements IRoleResource {
     @Path("/{roleId}")
     public void delete(@PathParam("roleId") String roleId) throws RoleNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(roleId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(roleId), Messages.i18n.format("emptyValue", "Role ID"));
         roleFacade.delete(roleId);
     }
 

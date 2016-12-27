@@ -13,6 +13,7 @@ import com.t1t.digipolis.apim.beans.services.ServiceVersionWithMarketInfoBean;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.SearchFacade;
@@ -100,7 +101,7 @@ public class SearchResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceVersionWithMarketInfoBean> searchServicesByLifecycle(@PathParam("status") ServiceStatus status) {
-        Preconditions.checkNotNull(status);
+        Preconditions.checkNotNull(status, Messages.i18n.format("nullValue", "Service status"));
         return searchFacade.searchServicesByStatus(status);
     }
 
@@ -154,9 +155,9 @@ public class SearchResource {
             @PathParam("organizationId") String organizationId,
             @PathParam("serviceId") String serviceId,
             @PathParam("version") String version) throws InvalidMetricCriteriaException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
         return orgFacade.getMarketInfo(organizationId, serviceId, version);
     }
 
@@ -171,9 +172,9 @@ public class SearchResource {
     public ServiceVersionBean getServiceVersion(@PathParam("organizationId") String organizationId,
                                                 @PathParam("serviceId") String serviceId,
                                                 @PathParam("version") String version) throws ServiceVersionNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
         return orgFacade.getServiceVersion(organizationId, serviceId, version);
     }
 
@@ -187,8 +188,8 @@ public class SearchResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceVersionSummaryBean> listServiceVersions(@PathParam("organizationId") String organizationId,
                                                                @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         return orgFacade.listServiceVersions(organizationId, serviceId);
     }
 
@@ -202,8 +203,8 @@ public class SearchResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationBeanList listServiceConsumers(@PathParam("organizationId") String organizationId,
                                                          @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         ApplicationBeanList appList = new ApplicationBeanList();
         appList.setApps(orgFacade.listServiceConsumers(organizationId,serviceId));
         return appList;
@@ -218,7 +219,7 @@ public class SearchResource {
     @Path("/availabilities/{availability}/services/versions")
     @Produces(MediaType.APPLICATION_JSON)
     public List<String> listServiceVersionEndpointsForMarketplaceType(@PathParam("availability") ManagedApplicationTypes type) throws ServiceNotFoundException, com.t1t.digipolis.apim.exceptions.NotAuthorizedException {
-        Preconditions.checkNotNull(type);
+        Preconditions.checkNotNull(type, Messages.i18n.format("nullValue", "Marketplace type"));
         return searchFacade.findServiceVersionEndpointsForMarketplaceType(type);
     }
 

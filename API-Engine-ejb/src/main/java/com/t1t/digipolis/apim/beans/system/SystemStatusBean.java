@@ -1,11 +1,14 @@
 package com.t1t.digipolis.apim.beans.system;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.io.Serializable;
 
 /**
  * A simple bean used to return system status information.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SystemStatusBean implements Serializable {
 
     private static final long serialVersionUID = -7099876167335105162L;
@@ -20,6 +23,8 @@ public class SystemStatusBean implements Serializable {
     private String kongInfo;
     private String kongStatus;
     private String kongCluster;
+    private Boolean maintenanceModeEnabled;
+    private String maintenanceMessage;
     private boolean up;
 
     /**
@@ -147,6 +152,22 @@ public class SystemStatusBean implements Serializable {
         this.kongCluster = kongCluster;
     }
 
+    public Boolean getMaintenanceModeEnabled() {
+        return maintenanceModeEnabled;
+    }
+
+    public void setMaintenanceModeEnabled(Boolean maintenanceModeEnabled) {
+        this.maintenanceModeEnabled = maintenanceModeEnabled;
+    }
+
+    public String getMaintenanceMessage() {
+        return maintenanceMessage;
+    }
+
+    public void setMaintenanceMessage(String maintenanceMessage) {
+        this.maintenanceMessage = maintenanceMessage;
+    }
+
     /**
      * @param moreInfo the moreInfo to set
      */
@@ -172,6 +193,11 @@ public class SystemStatusBean implements Serializable {
                 ", version='" + version + '\'' +
                 ", environment='" + environment + '\'' +
                 ", builtOn='" + builtOn + '\'' +
+                ", kongInfo='" + kongInfo + '\'' +
+                ", kongStatus='" + kongStatus + '\'' +
+                ", kongCluster='" + kongCluster + '\'' +
+                ", maintenanceModeEnabled=" + maintenanceModeEnabled +
+                ", maintenanceMessage='" + maintenanceMessage + '\'' +
                 ", up=" + up +
                 '}';
     }

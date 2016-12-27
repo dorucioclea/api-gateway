@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.policies.UpdatePolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.summary.PolicyDefinitionSummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.exceptions.PolicyDefinitionAlreadyExistsException;
@@ -66,7 +67,7 @@ public class PolicyDefinitionResource implements IPolicyDefinitionResource {
     @Produces(MediaType.APPLICATION_JSON)
     public PolicyDefinitionBean create(PolicyDefinitionBean bean) throws PolicyDefinitionAlreadyExistsException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New policy definition"));
         return policyDefinitionFacade.create(bean);
     }
 
@@ -79,7 +80,7 @@ public class PolicyDefinitionResource implements IPolicyDefinitionResource {
     @Path("/{policyDefinitionId}")
     @Produces(MediaType.APPLICATION_JSON)
     public PolicyDefinitionBean get(@PathParam("policyDefinitionId") String policyDefinitionId) throws PolicyDefinitionNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(policyDefinitionId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(policyDefinitionId), Messages.i18n.format("emptyValue", "Policy definition ID"));
         return policyDefinitionFacade.get(policyDefinitionId);
     }
 
@@ -93,8 +94,8 @@ public class PolicyDefinitionResource implements IPolicyDefinitionResource {
     public void update(@PathParam("policyDefinitionId") String policyDefinitionId, UpdatePolicyDefinitionBean bean)
             throws PolicyDefinitionNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(policyDefinitionId));
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(policyDefinitionId), Messages.i18n.format("emptyValue", "Policy definition ID"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Updated policy definition"));
         policyDefinitionFacade.update(policyDefinitionId, bean);
     }
 
@@ -108,7 +109,7 @@ public class PolicyDefinitionResource implements IPolicyDefinitionResource {
     public void delete(@PathParam("policyDefinitionId") String policyDefinitionId) throws PolicyDefinitionNotFoundException,
             NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(policyDefinitionId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(policyDefinitionId), Messages.i18n.format("emptyValue", "Policy definition ID"));
         policyDefinitionFacade.delete(policyDefinitionId);
     }
 }

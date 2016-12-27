@@ -50,6 +50,10 @@ public class UserBean implements Serializable {
     @Lob
     @Basic(fetch=FetchType.EAGER)
     private byte[] base64pic;
+    @Column(name="jwt_key")
+    private String jwtKey;
+    @Column(name="jwt_secret")
+    private String jwtSecret;
 
 
     /**
@@ -164,6 +168,22 @@ public class UserBean implements Serializable {
         this.kongUsername = kongUsername;
     }
 
+    public String getJwtKey() {
+        return jwtKey;
+    }
+
+    public void setJwtKey(String jwtKey) {
+        this.jwtKey = jwtKey;
+    }
+
+    public String getJwtSecret() {
+        return jwtSecret;
+    }
+
+    public void setJwtSecret(String jwtSecret) {
+        this.jwtSecret = jwtSecret;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -216,6 +236,9 @@ public class UserBean implements Serializable {
                 ", location='" + location + '\'' +
                 ", website='" + website + '\'' +
                 ", bio='" + bio + '\'' +
+                ", base64pic=" + Arrays.toString(base64pic) +
+                ", jwtKey='" + jwtKey + '\'' +
+                ", jwtSecret='" + jwtSecret + '\'' +
                 '}';
     }
 }

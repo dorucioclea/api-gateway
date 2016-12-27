@@ -18,6 +18,7 @@ import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.UserFacade;
@@ -78,7 +79,7 @@ public class UserResource implements IUserResource {
     @Path("/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     public UserBean get(@PathParam("userId") String userId) throws UserNotFoundException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         return userFacade.get(userId);
     }
 
@@ -135,8 +136,8 @@ public class UserResource implements IUserResource {
     public void update(@PathParam("userId") String userId, UpdateUserBean user) throws UserNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin() && !securityContext.getCurrentUser().equals(userId))
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
-        Preconditions.checkNotNull(user);
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
+        Preconditions.checkNotNull(user, Messages.i18n.format("nullValue", "Updated user"));
         Preconditions.checkArgument(user.getPic().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         userFacade.update(userId, user);
     }
@@ -163,7 +164,7 @@ public class UserResource implements IUserResource {
     @Path("/{userId}/organizations")
     @Produces(MediaType.APPLICATION_JSON)
     public List<OrganizationSummaryBean> getOrganizations(@PathParam("userId") String userId) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         return userFacade.getOrganizations(userId);
     }
 
@@ -176,7 +177,7 @@ public class UserResource implements IUserResource {
     @Path("/{userId}/applications")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ApplicationSummaryBean> getApplications(@PathParam("userId") String userId) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         return userFacade.getApplications(userId);
     }
 
@@ -189,7 +190,7 @@ public class UserResource implements IUserResource {
     @Path("/{userId}/services")
     @Produces(MediaType.APPLICATION_JSON)
     public List<ServiceSummaryBean> getServices(@PathParam("userId") String userId) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         return userFacade.getServices(userId);
     }
 
@@ -202,7 +203,7 @@ public class UserResource implements IUserResource {
     @Path("/{userId}/activity")
     @Produces(MediaType.APPLICATION_JSON)
     public SearchResultsBean<AuditEntryBean> getActivity(@PathParam("userId") String userId, @QueryParam("page") int page, @QueryParam("count") int pageSize) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         return userFacade.getActivity(userId, page, pageSize);
     }
 
@@ -217,8 +218,8 @@ public class UserResource implements IUserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(NewUserBean user) throws UserAlreadyExistsException, StorageException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(user);
-        Preconditions.checkArgument(!StringUtils.isEmpty(user.getUsername()), "Username must be provided and must be an unique identifier");
+        Preconditions.checkNotNull(user, Messages.i18n.format("nullValue", "New user"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(user.getUsername()), Messages.i18n.format("emptyValue", "User name"));
         userFacade.initNewUser(user);
         return Response.ok().status(204).build();
     }
@@ -233,7 +234,7 @@ public class UserResource implements IUserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response delete(String userId) throws UserAlreadyExistsException, StorageException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId), "Username must be provided and must be an unique identifier");
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         userFacade.deleteUser(userId);
         return Response.ok().status(204).build();
     }

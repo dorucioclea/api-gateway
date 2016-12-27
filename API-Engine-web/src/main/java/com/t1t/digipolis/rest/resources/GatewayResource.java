@@ -6,6 +6,7 @@ import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.GatewayTestResultBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.GatewayFacade;
@@ -57,7 +58,7 @@ public class GatewayResource implements IGatewayResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public GatewayTestResultBean test(NewGatewayBean bean) throws NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New gateway"));
         return gatewayFacade.test(bean);
     }
 
@@ -82,7 +83,7 @@ public class GatewayResource implements IGatewayResource {
     @Produces(MediaType.APPLICATION_JSON)
     public GatewayBean create(NewGatewayBean bean) throws GatewayAlreadyExistsException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New gateway"));
         return gatewayFacade.create(bean);
     }
 
@@ -95,7 +96,7 @@ public class GatewayResource implements IGatewayResource {
     @Path("/{gatewayId}")
     @Produces(MediaType.APPLICATION_JSON)
     public GatewayBean get(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId), Messages.i18n.format("emptyValue", "Gateway ID"));
         return gatewayFacade.get(gatewayId);
     }
 
@@ -109,8 +110,8 @@ public class GatewayResource implements IGatewayResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void update(@PathParam("gatewayId") String gatewayId, UpdateGatewayBean bean) throws GatewayNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId), Messages.i18n.format("emptyValue", "Gateway ID"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Updated gateway"));
         gatewayFacade.update(gatewayId,bean);
     }
 
@@ -123,7 +124,7 @@ public class GatewayResource implements IGatewayResource {
     @Path("/{gatewayId}")
     public void remove(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId), Messages.i18n.format("emptyValue", "Gateway ID"));
         gatewayFacade.remove(gatewayId);
     }
 }

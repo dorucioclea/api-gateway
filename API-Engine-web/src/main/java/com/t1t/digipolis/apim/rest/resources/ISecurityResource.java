@@ -2,13 +2,10 @@ package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
 import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
-import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.security.OAuthExpTimeRequest;
 
-import javax.ws.rs.PathParam;
 import java.util.Set;
 
 /**

@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.BeanUtils;
+import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.gateways.*;
 import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.GatewayTestResultBean;
@@ -19,6 +20,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.KeyUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -32,7 +34,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.security.PrivateKey;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 17/08/15.
@@ -294,5 +299,22 @@ public class GatewayFacade {
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
+    }
+
+    public Set<IGatewayLink> getApplicationVersionGatewayLinks(ApplicationVersionBean avb) throws StorageException {
+        Set<IGatewayLink> gateways = new HashSet<>();
+        switch (avb.getStatus()) {
+            case Ready:
+            case Created:
+                gateways.add(getDefaultGatewayLink());
+                break;
+            case Registered:
+                gateways.addAll(query.getGatewayIdsForApplicationVersionContracts(avb).stream().map(this::createGatewayLink).collect(Collectors.toSet()));
+                break;
+            case Retired:
+                log.info("== Application {} is in status {}, no gateways ==", ConsumerConventionUtil.createAppUniqueId(avb), avb.getStatus());
+                break;
+        }
+        return gateways;
     }
 }

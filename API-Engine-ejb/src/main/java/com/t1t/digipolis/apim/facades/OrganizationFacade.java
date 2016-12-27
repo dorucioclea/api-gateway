@@ -11,7 +11,7 @@ import com.t1t.digipolis.apim.beans.audit.AuditEntryType;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.audit.data.MembershipData;
 import com.t1t.digipolis.apim.beans.audit.data.OwnershipTransferData;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2Token;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
@@ -37,7 +37,6 @@ import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
-import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
 import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.plans.*;
 import com.t1t.digipolis.apim.beans.policies.*;
@@ -70,7 +69,6 @@ import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.util.Json;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
@@ -424,17 +422,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .withClientId(avb.getoAuthClientId())
                         .withClientSecret(avb.getOauthClientSecret())
                         .withName(avb.getApplication().getName())
-                        .withRedirectUri(avb.getOauthClientRedirects());
+                        .withRedirectUri(avb.getOauthClientRedirects())
+                        .withId(avb.getOauthCredentialId());
                 if (avb.getStatus() == ApplicationStatus.Registered) {
                     List<ContractSummaryBean> csb = query.getApplicationContracts(organizationId, applicationId, version);
                     Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(csb);
                     for (IGatewayLink gateway : gateways.values()) {
-                        gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
+                        gateway.updateConsumerOAuthCredentials(appConsumerName, OAuthRequest);
                     }
                 } else {
                     if (avb.getStatus() != ApplicationStatus.Retired) {
                         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                        gateway.updateConsumerOAuthCredentials(appConsumerName, avb.getoAuthClientId(), avb.getOauthClientSecret(), OAuthRequest);
+                        gateway.updateConsumerOAuthCredentials(appConsumerName, OAuthRequest);
                     } else {
                         throw ExceptionFactory.invalidApplicationStatusException();
                     }
@@ -599,22 +598,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 }
             }
             log.debug(String.format("Created new contract %s: %s", contract.getId(), contract)); //$NON-NLS-1$
-            //for contract add keyauth to application consumer
-            String serviceOrgId = contract.getService().getService().getOrganization().getId();
-            String serviceId = contract.getService().getService().getId();
-            String svcVersion = contract.getService().getVersion();
 
-            if (contract.getApplication().getStatus() == ApplicationStatus.Registered) {
-                Application app = getApplicationForNewContractRegistration(contract);
-                Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(query.getApplicationContracts(organizationId, applicationId, version));
-                for (IGatewayLink gateway : gateways.values()) {
-                    enableContractonGateway(contract, gateway);
+            Application app = getApplicationForNewContractRegistration(contract);
+            gatewayFacade.getApplicationVersionGatewayLinks(contract.getApplication()).forEach(gw -> {
+                try {
+                    enableContractonGateway(contract, gw);
                     //persist the new contract policies
-                    Map<Contract, KongPluginConfigList> response = gateway.registerApplication(app);
+                    Map<Contract, KongPluginConfigList> response = gw.registerApplication(app);
                     for (Map.Entry<Contract, KongPluginConfigList> entry : response.entrySet()) {
                         for (KongPluginConfig config : entry.getValue().getData()) {
                             NewPolicyBean npb = new NewPolicyBean();
-                            npb.setGatewayId(gateway.getGatewayId());
+                            npb.setGatewayId(gw.getGatewayId());
                             npb.setConfiguration(new Gson().toJson(config.getConfig()));
                             npb.setContractId(contract.getId());
                             npb.setKongPluginId(config.getId());
@@ -623,10 +617,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         }
                     }
                 }
-            } else {
-                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                enableContractonGateway(contract, gateway);
-            }
+                catch (StorageException | GatewayAuthenticationException ex) {
+                    throw ExceptionFactory.systemErrorException(ex);
+                }
+            });
+
 
             //TODO - Remove the OAuth enabling code
             //verify if the contracting service has OAuth enabled
@@ -752,6 +747,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
                     log.info("Enable consumer for oauth:{} with values: {}", appUniqueName, oauthRequest);
                     response = gatewayLink.enableConsumerForOAuth(appUniqueName, oauthRequest);
+                    avb.setOauthCredentialId(response.getId());
+                    storage.updateApplicationVersion(avb);
                 } catch (Exception e) {
                     log.debug("Error enabling application for oauth:{}", e.getStackTrace());
                     ;//don't do anything
@@ -1056,7 +1053,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             newPolicy.setPolicyId(policy.getId());
             newPolicy = gw.createServicePolicy(organizationId, serviceId, version, newPolicy);
             policy.setKongPluginId(newPolicy.getKongPluginId());
-            policy.setConfiguration(newPolicy.getPolicyJsonConfig());
+            policy.setGatewayId(gw.getGatewayId());
             try {
                 storage.updatePolicy(policy);
             }
@@ -1707,25 +1704,24 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
 
             //Revoke application's contract plugins
-            try {
-                if (avb.getStatus() == ApplicationStatus.Registered) {
-                    for (IGatewayLink gateway : gateways.values()) {
-                        List<PolicyBean> policies = query.getApplicationVersionContractPolicies(organizationId, applicationId, version, contractId);
-                        for (PolicyBean policy : policies) {
-                            if (policy.getGatewayId().equals(gateway.getGatewayId())) {
-                                deleteContractPolicy(contract, policy, gateway);
-                            }
+
+            gatewayFacade.getApplicationVersionGatewayLinks(avb).forEach(gw -> {
+                try {
+                    query.getApplicationVersionContractPolicies(organizationId, applicationId, version, contractId)
+                            .stream().filter(policy -> policy.getGatewayId().equals(gw.getGatewayId()))
+                            .forEach(policy -> {
+                        try {
+                            deleteContractPolicy(contract, policy, gw);
                         }
-                    }
+                        catch (StorageException ex) {
+                            throw ExceptionFactory.systemErrorException(ex);
+                        }
+                    });
                 }
-                else {
-                    IGatewayLink gateway = gateways.get(gatewayFacade.getDefaultGateway().getId());
-                    PolicyBean policy = query.getApplicationACLPolicy(organizationId, applicationId, version, contractId, gateway.getGatewayId());
-                    deleteContractPolicy(contract, policy, gateway);
+                catch (StorageException ex) {
+                    throw ExceptionFactory.systemErrorException(ex);
                 }
-            } catch (StorageException ex) {
-                throw new SystemErrorException(ex);
-            }
+            });
             //Revoke admin priviledges if contract was with an admin service
             if (contract.getService().getService().isAdmin() && query.getApplicationVersionContracts(avb).stream().filter(c -> c.getService().getService().isAdmin()).collect(Collectors.toList()).size() == 1) {
                 ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());
@@ -2986,27 +2982,25 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setoAuthClientId(apiKeyGenerator.generate());
         newVersion.setOauthClientSecret(apiKeyGenerator.generate());
         newVersion.setOauthClientRedirects(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI)));
+        //create consumer on gateway
+        //We create the new application version consumer
+        IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+
+        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId(), newVersion.getVersion());
+        //Applications' customId must contain version otherwise only one version of an application can be available on the gateway at one time
+        //String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
+        gateway.createConsumer(appConsumerName, appConsumerName);
+        KongPluginJWTResponse jwtCred = gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256, null, null);
+        newVersion.setJwtKey(jwtCred.getKey());
+        newVersion.setJwtSecret(jwtCred.getSecret());
+        gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
+        KongPluginOAuthConsumerResponse response = gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
+                .withClientId(newVersion.getoAuthClientId())
+                .withClientSecret(newVersion.getOauthClientSecret())
+                .withName(appConsumerName).withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
+        newVersion.setOauthCredentialId(response.getId());
         storage.createApplicationVersion(newVersion);
         storage.createAuditEntry(AuditUtils.applicationVersionCreated(newVersion, securityContext));
-        //create consumer on gateway
-        try {
-            //We create the new application version consumer
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-            if (newVersion.getId() != null) {
-                String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId(), newVersion.getVersion());
-                //Applications' customId must contain version otherwise only one version of an application can be available on the gateway at one time
-                //String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
-                gateway.createConsumer(appConsumerName, appConsumerName);
-                gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256);
-                gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
-                gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
-                        .withClientId(newVersion.getoAuthClientId())
-                        .withClientSecret(newVersion.getOauthClientSecret())
-                        .withName(appConsumerName).withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
-            }
-        } catch (StorageException e) {
-            throw new ApplicationNotFoundException(e.getMessage());
-        }
         log.debug(String.format("Created new application version %s: %s", newVersion.getApplication().getName(), newVersion)); //$NON-NLS-1$
         return newVersion;
     }
@@ -3064,13 +3058,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         contract.setTermsAgreed(bean.getTermsAgreed());
         contract.setCreatedBy(securityContext.getCurrentUser());
         contract.setCreatedOn(new Date());
-        // Validate the state of the application.
-        if (avb.getStatus() != ApplicationStatus.Registered && applicationValidator.isReady(avb)) {
-            avb.setStatus(ApplicationStatus.Ready);
-        }
         storage.createContract(contract);
         storage.createAuditEntry(AuditUtils.contractCreatedFromApp(contract, securityContext));
         storage.createAuditEntry(AuditUtils.contractCreatedToService(contract, securityContext));
+        // Validate the state of the application.
+        if (!avb.getStatus().equals(ApplicationStatus.Registered) && applicationValidator.isReady(avb)) {
+            avb.setStatus(ApplicationStatus.Ready);
+        }
         // Update the version with new meta-data (e.g. modified-by)
         avb.setModifiedBy(securityContext.getCurrentUser());
         avb.setModifiedOn(new Date());
@@ -4165,14 +4159,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                         .withClientId(avb.getoAuthClientId())
                         .withClientSecret(avb.getOauthClientSecret())
                         .withRedirectUri(avb.getOauthClientRedirects())
-                        .withName(avb.getApplication().getName());
+                        .withName(avb.getApplication().getName())
+                        .withId(avb.getOauthCredentialId());
                 if (avb.getStatus() == ApplicationStatus.Registered) {
                     try {
                         List<ContractSummaryBean> contractSummaries = query.getApplicationContracts(rval.getOrganizationId(), rval.getApplicationId(), rval.getVersion());
                         Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(contractSummaries);
                         for (IGatewayLink gatewayLink : gateways.values()) {
                             try {
-                                gatewayLink.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
+                                gatewayLink.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), oAuthConsumerRequest);
                             } catch (Exception e) {
                                 throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
                             }
@@ -4185,7 +4180,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     if (avb.getStatus() != ApplicationStatus.Retired) {
                         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
                         try {
-                            gateway.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), rval.getRevokedClientId(), rval.getRevokedClientSecret(), oAuthConsumerRequest);
+                            gateway.updateConsumerOAuthCredentials(ConsumerConventionUtil.createAppUniqueId(avb), oAuthConsumerRequest);
                         } catch (Exception e) {
                             throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e);
                         }
@@ -4305,7 +4300,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, String offset) {
         OAuth2TokenPaginationBean rval = new OAuth2TokenPaginationBean();
-        Set<OAuth2TokenBean> tmpResults = new HashSet<>();
+        Set<OAuth2Token> tmpResults = new HashSet<>();
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         try {
             Map<String, Set<String>> credentialIds =  new HashMap<>();
@@ -4333,7 +4328,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                                         nextOffsets.put(gwId, gwResult.getOffset());
                                     }
                                     gwResult.getData().forEach(tkn ->
-                                            tmpResults.add(new OAuth2TokenBean(tkn, gwId, avb)));
+                                            tmpResults.add(new OAuth2Token(tkn, gwId, avb)));
                                 }
                             }));
             rval.setTotal(totalResults[0]);

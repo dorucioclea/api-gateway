@@ -8,6 +8,7 @@ import com.t1t.digipolis.apim.beans.summary.PolicyDefinitionSummaryBean;
 import com.t1t.digipolis.apim.core.IPluginRegistry;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.PluginFacade;
@@ -68,7 +69,7 @@ public class PluginResource implements IPluginResource {
     public PluginBean create(NewPluginBean bean) throws PluginAlreadyExistsException, PluginNotFoundException {
         if (!securityContext.isAdmin())
             throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New plugin"));
         return pluginFacade.create(bean);
     }
 
@@ -82,7 +83,7 @@ public class PluginResource implements IPluginResource {
     @Produces(MediaType.APPLICATION_JSON)
     public PluginBean get(@PathParam("pluginId") Long pluginId) throws PluginNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(pluginId);
+        Preconditions.checkNotNull(pluginId, Messages.i18n.format("nullValue", "Plugin ID"));
         return pluginFacade.get(pluginId);
     }
 
@@ -96,7 +97,7 @@ public class PluginResource implements IPluginResource {
     public void delete(@PathParam("pluginId") Long pluginId) throws PluginNotFoundException,
             NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(pluginId);
+        Preconditions.checkNotNull(pluginId, Messages.i18n.format("nullValue", "Plugin ID"));
         pluginFacade.delete(pluginId);
     }
 
@@ -109,7 +110,7 @@ public class PluginResource implements IPluginResource {
     @Path("/{pluginId}/policyDefs")
     @Produces(MediaType.APPLICATION_JSON)
     public List<PolicyDefinitionSummaryBean> getPolicyDefs(@PathParam("pluginId") Long pluginId) throws PluginNotFoundException {
-        Preconditions.checkNotNull(pluginId);
+        Preconditions.checkNotNull(pluginId, Messages.i18n.format("nullValue", "Plugin ID"));
         return pluginFacade.getPolicyDefs(pluginId);
     }
 

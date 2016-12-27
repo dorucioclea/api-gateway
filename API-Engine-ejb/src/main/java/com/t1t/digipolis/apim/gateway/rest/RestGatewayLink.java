@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.gateway.rest;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
@@ -23,11 +24,9 @@ import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongApi;
 import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
 import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
 import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
 import com.t1t.digipolis.kong.model.KongPluginConfigList;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
@@ -43,10 +42,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.o;
 
 /**
  * An implementation of a Gateway Link that uses the Gateway's simple REST
@@ -152,8 +148,8 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongPluginJWTResponse addConsumerJWT(String id,String encoding) throws ConsumerException {
-        return getClient().createConsumerJWT(id,encoding);
+    public KongPluginJWTResponse addConsumerJWT(String id,String encoding,String key,String secret) throws ConsumerException {
+        return getClient().createConsumerJWT(id,encoding,key,secret);
     }
 
     @Override
@@ -187,8 +183,8 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request) {
-        return getClient().updateConsumerOAuthCredentials(consumerId, oldClientId, oldClientSecret, request);
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, KongPluginOAuthConsumerRequest request) {
+        return getClient().updateConsumerOAuthCredentials(consumerId, request);
     }
 
     @Override
@@ -224,6 +220,11 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config) {
         return getClient().updateServicePlugin(serviceId, config);
+    }
+
+    @Override
+    public KongPluginConfig updateServicePlugin(KongPluginConfig config) {
+        return getClient().updatePlugin(config);
     }
 
     /**
@@ -388,7 +389,12 @@ public class RestGatewayLink implements IGatewayLink {
 
     @Override
     public KongConsumerList getConsumers() {
-        return getClient().getConsumers();
+        return getClient().getConsumers(null);
+    }
+
+    @Override
+    public KongConsumerList getConsumers(String offset) {
+        return getClient().getConsumers(offset);
     }
 
     @Override
@@ -474,5 +480,65 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void revokeGatewayOAuthToken(String accessToken) {
         getClient().revokeOAuthTokenByAccessToken(accessToken);
+    }
+
+    @Override
+    public KongOAuthTokenList getAllOAuth2Tokens(String offset) {
+        return getClient().getAllOAuth2Tokens(offset);
+    }
+
+    @Override
+    public KongOAuthToken createOAuthToken(OAuth2TokenBean token) {
+        return getClient().createOAuthToken(token);
+    }
+
+    @Override
+    public KongApi createApi(KongApi api) {
+        return getClient().createApi(api);
+    }
+
+    @Override
+    public KongApi updateOrCreateApi(KongApi api) {
+        return getClient().updateApi(api);
+    }
+
+    @Override
+    public KongPluginConfig createApiPlugin(String apiId, KongPluginConfig plugin) {
+        return getClient().createApiPlugin(apiId, plugin);
+    }
+
+    @Override
+    public KongPluginACLResponse updateConsumerACL(KongPluginACLResponse acl) {
+        return getClient().updateConsumerAcl(acl);
+    }
+
+    @Override
+    public KongPluginACLResponse getConsumerACL(String consumerId, String kongPluginId) {
+        return getClient().getConsumerAcl(consumerId, kongPluginId);
+    }
+
+    @Override
+    public KongConsumer getConsumerByCustomId(String customId) {
+        return getClient().getConsumerByCustomId(customId);
+    }
+
+    @Override
+    public KongPluginConfig updatePlugin(KongPluginConfig plugin) {
+        return getClient().updatePlugin(plugin);
+    }
+
+    @Override
+    public KongPluginConfigList getConsumerPlugins(String consumerId) {
+        return getClient().getConsumerPlugins(consumerId);
+    }
+
+    @Override
+    public KongPluginACLResponseList getAllConsumerAcls(String consumerId) {
+        return getClient().getAllConsumerAcls(consumerId);
+    }
+
+    @Override
+    public KongPluginConfigList getConsumerSpecificApiPlugins(String consumerId, String apiId) {
+        return getClient().getConsumerSpecificApiPlugins(consumerId, apiId);
     }
 }

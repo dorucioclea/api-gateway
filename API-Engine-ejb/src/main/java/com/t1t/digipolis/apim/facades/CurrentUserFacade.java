@@ -1,11 +1,10 @@
 package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuth2Token;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
-import com.t1t.digipolis.apim.beans.pagination.AbstractPaginationBean;
 import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
@@ -22,7 +21,6 @@ import com.t1t.digipolis.kong.model.KongOAuthToken;
 import com.t1t.digipolis.kong.model.KongOAuthTokenList;
 import com.t1t.digipolis.util.CustomCollectors;
 import com.t1t.digipolis.util.GatewayPaginationUtil;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -193,7 +191,7 @@ public class CurrentUserFacade {
     public OAuth2TokenPaginationBean getCurrentUserOAuth2Tokens(String offset) {
         OAuth2TokenPaginationBean rval = new OAuth2TokenPaginationBean();
         rval.setTotal(0L);
-        Set<OAuth2TokenBean> tmpResult = new HashSet<>();
+        Set<OAuth2Token> tmpResult = new HashSet<>();
         Map<String, String> offsets = StringUtils.isEmpty(offset) ? new HashMap<>() : GatewayPaginationUtil.decodeOffsets(offset);
         Map<String, String> nextOffsets = new HashMap<>();
         try {
@@ -223,7 +221,7 @@ public class CurrentUserFacade {
                         if (appId.length == 3) {
                             ApplicationVersionBean avb = storage.getApplicationVersion(appId[0], appId[1], appId[2]);
                             if (avb != null) {
-                                tmpResult.add(new OAuth2TokenBean(token, gatewayBean.getId(), avb));
+                                tmpResult.add(new OAuth2Token(token, gatewayBean.getId(), avb));
                             }
                         }
                     }
