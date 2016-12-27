@@ -2990,7 +2990,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         //Applications' customId must contain version otherwise only one version of an application can be available on the gateway at one time
         //String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
         gateway.createConsumer(appConsumerName, appConsumerName);
-        gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256);
+        KongPluginJWTResponse jwtCred = gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256, null, null);
+        newVersion.setJwtKey(jwtCred.getKey());
+        newVersion.setJwtSecret(jwtCred.getSecret());
         gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
         KongPluginOAuthConsumerResponse response = gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
                 .withClientId(newVersion.getoAuthClientId())

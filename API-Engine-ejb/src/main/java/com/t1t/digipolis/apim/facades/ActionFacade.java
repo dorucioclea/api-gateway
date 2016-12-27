@@ -401,7 +401,7 @@ public class ActionFacade {
                                     .withName(versionBean.getApplication().getName())
                                     .withId(versionBean.getOauthCredentialId())
                                     .withRedirectUri(versionBean.getOauthClientRedirects()));
-                            gw.addConsumerJWT(appConsumerName, JWTUtils.JWT_RS256);
+                            gw.addConsumerJWT(appConsumerName, JWTUtils.JWT_RS256, versionBean.getJwtKey(), versionBean.getJwtSecret());
                         } catch (Exception ex) {
                             //Delete the consumer on the gateway so the gateway and engine remain in sync
                             gw.deleteConsumer(appConsumerName);

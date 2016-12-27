@@ -51,6 +51,7 @@ import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
+import org.jose4j.lang.StringUtil;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
@@ -820,7 +821,7 @@ public class UserFacade implements Serializable {
                     user.setKongUsername(consumer.getId());
                     idmStorage.updateUser(user);
                 }
-                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
+                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                 jwtKey = jwtResponse.getKey();//JWT "iss"
                 jwtSecret = jwtResponse.getSecret();
             } else {
@@ -830,10 +831,15 @@ public class UserFacade implements Serializable {
                     jwtSecret = response.getData().get(0).getSecret();
                 } else {
                     //create jwt credentials
-                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
+                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                     jwtKey = jwtResponse.getKey();//JWT "iss"
                     jwtSecret = jwtResponse.getSecret();
                 }
+            }
+            if (StringUtils.isEmpty(user.getJwtKey()) && StringUtils.isEmpty(user.getJwtSecret()) && StringUtils.isNotEmpty(jwtKey) && StringUtils.isNotEmpty(jwtSecret)) {
+                user.setJwtKey(jwtKey);
+                user.setJwtSecret(jwtSecret);
+                idmStorage.updateUser(user);
             }
             //set the cache for performance and resilience
             setTokenCache(jwtKey, jwtSecret);

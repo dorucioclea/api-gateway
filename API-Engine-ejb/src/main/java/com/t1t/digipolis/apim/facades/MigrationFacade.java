@@ -316,7 +316,7 @@ public class MigrationFacade {
                         gatewayLink.createConsumerWithKongId(user.getKongUsername(), ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
                         Thread.sleep(50);
                         //create jwt token
-                        gatewayLink.addConsumerJWT(user.getKongUsername(), JWT_RS256);
+                        gatewayLink.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                     } catch (RetrofitError rte) {
                         log.error("-->no sync executed for kong id {} and username {}", user.getKongUsername(), user.getUsername());
                         continue;
@@ -501,7 +501,7 @@ public class MigrationFacade {
                         gateway.addConsumerKeyAuth(appConsumerName, apikey);
 
                         //create jwt token
-                        gateway.addConsumerJWT(appConsumerName, JWT_RS256);
+                        gateway.addConsumerJWT(appConsumerName, JWT_RS256, avb.getJwtKey(), avb.getJwtSecret());
                         //sync oauth info
                         if (!StringUtils.isEmpty(avb.getoAuthClientId()) && !StringUtils.isEmpty(avb.getOauthClientSecret())) {//redirect may be empty
                             if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())
@@ -892,7 +892,7 @@ public class MigrationFacade {
                         }
                     }
                 }
-                final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(consumerId, JWT_RS256);
+                final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(consumerId, JWT_RS256, null, null);
                 final String key = kongPluginJWTResponse.getKey();
                 final String secret = kongPluginJWTResponse.getSecret();
                 log.info("Consumer '{}' JWT credentials generated ({},{})",consumerId,key,secret);
@@ -1097,7 +1097,7 @@ public class MigrationFacade {
                                     log.info("No JWT credentials for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 }
                                 if (jwtCreds.getData().isEmpty()) {
-                                    gw.addConsumerJWT(appId, JWT_RS256);
+                                    gw.addConsumerJWT(appId, JWT_RS256, avb.getJwtKey(), avb.getJwtSecret());
                                     log.info("JWT credentials created for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 } else {
                                     log.info("No JWT sync necessary for app \"{}\" on gateway \"{}\"", appId, gwId);

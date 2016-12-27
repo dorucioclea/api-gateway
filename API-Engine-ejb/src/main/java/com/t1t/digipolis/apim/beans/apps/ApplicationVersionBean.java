@@ -60,6 +60,11 @@ public class ApplicationVersionBean implements Serializable {
     private String apikey;
     @Column(name = "oauth_credential_id")
     private String oauthCredentialId;
+    @Column(name="jwt_key")
+    private String jwtKey;
+    @Column(name="jwt_secret")
+    private String jwtSecret;
+
 
     /**
      * Constructor.
@@ -277,6 +282,22 @@ public class ApplicationVersionBean implements Serializable {
         this.apikey = apikey;
     }
 
+    public String getJwtKey() {
+        return jwtKey;
+    }
+
+    public void setJwtKey(String jwtKey) {
+        this.jwtKey = jwtKey;
+    }
+
+    public String getJwtSecret() {
+        return jwtSecret;
+    }
+
+    public void setJwtSecret(String jwtSecret) {
+        this.jwtSecret = jwtSecret;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -308,11 +329,7 @@ public class ApplicationVersionBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
         return "ApplicationVersionBean{" +
                 "id=" + id +
@@ -330,6 +347,8 @@ public class ApplicationVersionBean implements Serializable {
                 ", oauthClientRedirects=" + oauthClientRedirects +
                 ", apikey='" + apikey + '\'' +
                 ", oauthCredentialId='" + oauthCredentialId + '\'' +
+                ", jwtKey='" + jwtKey + '\'' +
+                ", jwtSecret='" + jwtSecret + '\'' +
                 '}';
     }
 }

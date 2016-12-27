@@ -87,28 +87,57 @@ public class SyncFacade {
                 String customId = ConsumerConventionUtil.createUserUniqueId(user.getUsername());
                 gateways.forEach(gw -> {
                     try {
+                        boolean changed = false;
+                        KongPluginJWTResponse jwtCred = null;
+                        KongConsumer gwUser = null;
                         if (StringUtils.isNotEmpty(user.getKongUsername())) {
-                            KongConsumer gwUser = gw.getConsumer(user.getKongUsername());
-                            if (gwUser == null) {
-                                gw.createConsumerWithKongId(user.getKongUsername(), customId);
-                                gw.addConsumerJWT(user.getKongUsername(), JWT_RS256);
-                                log.info("== SYNC USER WITH KONG ID {} AND USERNAME {} AND CREATED JWT CREDENTIALS ==", user.getKongUsername(), customId);
-                            } else if (gw.getConsumerJWT(gwUser.getId()).getData().stream().filter(jwt -> jwt.getAlgorithm().equals(JWT_RS256)).collect(Collectors.toList()).isEmpty()) {
-                                gw.addConsumerJWT(user.getKongUsername(), JWT_RS256);
+                            gwUser = gw.getConsumer(user.getKongUsername());
+                        }
+                        if (gwUser == null) {
+                            gwUser = gw.getConsumerByCustomId(customId);
+                        }
+                        if (gwUser == null) {
+                            gwUser = StringUtils.isEmpty(user.getKongUsername()) ? gw.createConsumerWithCustomId(customId) : gw.createConsumerWithKongId(user.getKongUsername(), customId);
+                            jwtCred = gw.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
+                            log.info("== SYNC USER WITH KONG ID {} AND USERNAME {} AND CREATED JWT CREDENTIALS ==", user.getKongUsername(), customId);
+                        }
+                        else {
+                            List<KongPluginJWTResponse> jwtCreds = gw.getConsumerJWT(gwUser.getId()).getData().stream().filter(jwt -> jwt.getAlgorithm().equals(JWT_RS256)).collect(Collectors.toList());
+                            if (jwtCreds.isEmpty()) {
+                                jwtCred = gw.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                                 log.info("== CREATED JWT CREDENTIALS FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
                             }
                             else {
+                                jwtCred = jwtCreds.get(0);
                                 log.info("== NO SYNC NEED FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
                             }
-                        } else {
-                            KongConsumer consumer = gw.getConsumerByCustomId(customId);
-                            if (consumer != null) {
-                                user.setKongUsername(consumer.getId());
+                        }
+                        /*} else {
+                            KongConsumer gwUser = gw.getConsumerByCustomId(customId);
+                            if (gwUser != null) {
+                                user.setKongUsername(gwUser.getId());
+                                changed = true;
                                 log.info("== SYNCED USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
                             } else {
                                 user.setKongUsername(gw.createConsumerWithCustomId(customId).getId());
+                                changed = true;
                                 log.info("== CREATED USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
                             }
+                            if (gw.getConsumerJWT(gwUser.getId()).getData().stream().filter(jwt -> jwt.getAlgorithm().equals(JWT_RS256)).collect(Collectors.toList()).isEmpty()) {
+                                jwtCred = gw.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
+                                log.info("== CREATED JWT CREDENTIALS FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
+                            }
+                        }*/
+                        if (StringUtils.isEmpty(user.getKongUsername()) && gwUser != null) {
+                            user.setKongUsername(gwUser.getId());
+                            changed = true;
+                        }
+                        if ((StringUtils.isEmpty(user.getJwtKey()) || StringUtils.isEmpty(user.getJwtSecret())) && jwtCred != null) {
+                            user.setJwtKey(jwtCred.getKey());
+                            user.setJwtSecret(jwtCred.getSecret());
+                            changed = true;
+                        }
+                        if (changed) {
                             try {
                                 idmStorage.updateUser(user);
                             } catch (StorageException ex) {
@@ -281,6 +310,7 @@ public class SyncFacade {
                             try {
                                 //Sync or create JWT credentials
                                 KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(appId);
+                                KongPluginJWTResponse jwtCred = null;
                                 if (!jwtCreds.getData().isEmpty()) {
                                     jwtCreds.getData().stream().filter(jwt -> !jwt.getAlgorithm().equals(JWTUtils.JWT_RS256)).forEach(jwt -> {
                                         gw.deleteConsumerJwtCredential(appId, jwt.getId());
@@ -290,10 +320,16 @@ public class SyncFacade {
                                     log.info("= NO JWT CREDENTIALS FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
                                 }
                                 if (jwtCreds.getData().isEmpty()) {
-                                    gw.addConsumerJWT(appId, JWT_RS256);
+                                    jwtCred = gw.addConsumerJWT(appId, JWT_RS256, avb.getJwtKey(), avb.getJwtSecret());
                                     log.info("= NO JWT CREDENTIALS FOUND FOR APPLICATION \"{}\" ON GATEWAY \"{}\", CREATED =", appId, gwId);
                                 } else {
+                                    jwtCred = jwtCreds.getData().get(0);
                                     log.info("= NO JWT SYNC NECESSARY FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
+                                }
+                                if ((StringUtils.isEmpty(avb.getJwtKey()) || StringUtils.isEmpty(avb.getJwtSecret())) && jwtCred != null) {
+                                    avb.setJwtKey(jwtCred.getKey());
+                                    avb.setJwtSecret(jwtCred.getSecret());
+                                    appModified = true;
                                 }
                             }
                             catch (Exception ex) {
@@ -484,7 +520,7 @@ public class SyncFacade {
                                     policy.setKongPluginId(plugin.getId());
                                     storage.updatePolicy(policy);
                                     log.info("== CONTRACT {} POLICY OUT OF SYNC FOR {}, SYNCED ==", policy.getName(), entityId);
-                                } else if (gw.updatePlugin(new KongPluginConfig()
+                                } else if (gw.createApiPlugin(apiId, new KongPluginConfig()
                                         .withConfig(gson.fromJson(policy.getConfiguration(),  polDef.getClazz()))
                                         .withApiId(apiId)
                                         .withConsumerId(consumerId)

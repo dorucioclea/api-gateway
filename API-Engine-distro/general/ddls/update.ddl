@@ -731,3 +731,9 @@ ALTER TABLE application_versions ADD COLUMN oauth_credential_id VARCHAR(255) DEF
 CREATE TABLE oauth2_tokens (id VARCHAR(255) NOT NULL, credential_id VARCHAR(255) NOT NULL, token_type VARCHAR(255) NOT NULL, access_token VARCHAR(255) NOT NULL, refresh_token VARCHAR(255) DEFAULT NULL, expires_in BIGINT NOT NULL, authenticated_userid VARCHAR(255) NOT NULL, scope VARCHAR(4096) DEFAULT NULL, gateway_id VARCHAR(255) NOT NULL);
 ALTER TABLE oauth2_tokens ADD PRIMARY KEY (id);
 CREATE INDEX idx_oauth2_tokens_1 ON oauth2_tokens(credential_id);
+
+ALTER TABLE users ADD COLUMN jwt_key VARCHAR(255) DEFAULT NULL;
+ALTER TABLE users ADD COLUMN jwt_secret VARCHAR(255) DEFAULT NULL;
+
+ALTER TABLE application_versions ADD COLUMN jwt_key VARCHAR(255) DEFAULT NULL;
+ALTER TABLE application_versions ADD COLUMN jwt_secret VARCHAR(255) DEFAULT NULL;

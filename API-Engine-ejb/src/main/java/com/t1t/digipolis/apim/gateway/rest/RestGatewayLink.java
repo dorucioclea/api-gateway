@@ -148,8 +148,8 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongPluginJWTResponse addConsumerJWT(String id,String encoding) throws ConsumerException {
-        return getClient().createConsumerJWT(id,encoding);
+    public KongPluginJWTResponse addConsumerJWT(String id,String encoding,String key,String secret) throws ConsumerException {
+        return getClient().createConsumerJWT(id,encoding,key,secret);
     }
 
     @Override

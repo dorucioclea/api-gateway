@@ -751,14 +751,13 @@ public class GatewayClient {
         return httpClient.createConsumerKeyAuthCredentials(id, new KongPluginKeyAuthRequest().withKey(apiKey));
     }
 
-    public KongPluginJWTResponse createConsumerJWT(String id,String encoding){
-        KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest();
+    public KongPluginJWTResponse createConsumerJWT(String id,String encoding,String key,String secret){
+        KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest().withKey(key).withSecret(secret);
         jwtRequest.setAlgorithm(encoding);
         switch (encoding){
             case JWTUtils.JWT_HS256 : {
                 KongPluginJWTRequest request = new KongPluginJWTRequest();
                 request.setAlgorithm(JWTUtils.JWT_HS256);
-                //request.setRsaPublicKey(gatewayBean.getJWTPubKey());
                 return httpClient.createConsumerJWTCredentials(id, request);
             }
             case JWTUtils.JWT_RS256 : {

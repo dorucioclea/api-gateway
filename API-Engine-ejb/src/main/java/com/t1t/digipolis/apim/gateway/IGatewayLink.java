@@ -246,7 +246,7 @@ public interface IGatewayLink {
      * @return
      * @throws ConsumerException
      */
-    public KongPluginJWTResponse addConsumerJWT(String id, String encoding) throws ConsumerException;
+    public KongPluginJWTResponse addConsumerJWT(String id, String encoding, String key, String secret) throws ConsumerException;
 
     /**
      * Retrieve a consumer information with it's JWT key.
