@@ -323,6 +323,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newApp.setCreatedBy(securityContext.getCurrentUser());
         newApp.setCreatedOn(new Date());
         newApp.setContext(appContext.getApplicationIdentifier().getPrefix());
+        newApp.setEmail(bean.getEmail());
         try {
             // Store/persist the new application
             OrganizationBean org = storage.getOrganization(organizationId);
@@ -956,8 +957,12 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 appForUpdate.setDescription(bean.getDescription());
             }
             if (AuditUtils.valueChanged(appForUpdate.getBase64logo(), bean.getBase64logo())) {
-                auditData.addChange("logo", appForUpdate.getBase64logo(), bean.getDescription());
+                auditData.addChange("logo", appForUpdate.getBase64logo(), bean.getBase64logo());
                 appForUpdate.setBase64logo(bean.getBase64logo());
+            }
+            if (AuditUtils.valueChanged(appForUpdate.getEmail(), bean.getEmail())) {
+                auditData.addChange("email", appForUpdate.getEmail(), bean.getEmail());
+                appForUpdate.setEmail(bean.getEmail());
             }
             storage.updateApplication(appForUpdate);
             storage.createAuditEntry(AuditUtils.applicationUpdated(appForUpdate, auditData, securityContext));
@@ -1051,7 +1056,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             newPolicy.setPolicyId(policy.getId());
             newPolicy = gw.createServicePolicy(organizationId, serviceId, version, newPolicy);
             policy.setKongPluginId(newPolicy.getKongPluginId());
-            policy.setConfiguration(newPolicy.getPolicyJsonConfig());
+            //policy.setConfiguration(newPolicy.getPolicyJsonConfig());
             try {
                 storage.updatePolicy(policy);
             }
@@ -4388,11 +4393,15 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         try {
             log.info("Non-managed app context:{}", appContext.getNonManagedApplication());
             if (StringUtils.isNotEmpty(appContext.getNonManagedApplication())) {
+                ApplicationVersionBean avb = getApplicationVersionByUniqueId(appContext.getNonManagedApplication());
                 JWTResponse rval = new JWTResponse();
                 GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
                 IGatewayLink gateway = gatewayFacade.getDefaultGatewayLink();
                 JwtClaims claims = new JwtClaims();
                 claims.setClaim(IJWT.SERVICE_ACCOUNT, true);
+                if (StringUtils.isNotEmpty(avb.getApplication().getEmail())) {
+                    claims.setClaim(IJWT.EMAIL, avb.getApplication().getEmail());
+                }
                 claims.setSubject(appContext.getNonManagedApplication());
                 claims.setIssuer(gateway.getConsumerJWT(appContext.getNonManagedApplication()).getData().stream().filter(cred -> cred.getRsaPublicKey().equals(gatewayBean.getJWTPubKey())).map(KongPluginJWTResponse::getKey).collect(CustomCollectors.getFirstResult()));
                 rval.setToken(JWTUtils.getJwtWithExpirationTime(claims, gatewayBean.getJWTExpTime(), KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint(), JWTUtils.JWT_RS256));

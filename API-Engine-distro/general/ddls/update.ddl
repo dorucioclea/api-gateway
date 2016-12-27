@@ -716,3 +716,7 @@ UPDATE policydefs SET form = '{
     }
   }
 }' WHERE id = 'RateLimiting';
+
+--Application emails
+
+ALTER TABLE applications ADD COLUMN email VARCHAR(255) DEFAULT NULL;
