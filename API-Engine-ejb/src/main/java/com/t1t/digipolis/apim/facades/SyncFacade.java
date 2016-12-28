@@ -475,7 +475,7 @@ public class SyncFacade {
                     else {
                         contract = storage.getContract(policy.getContractId());
                         if (contract == null) {
-                            throw ExceptionFactory.contractNotFoundException();
+                            throw ExceptionFactory.contractNotFoundException(policy.getContractId());
                         }
                         else {
                             contracts.put(contract.getId(), contract);
