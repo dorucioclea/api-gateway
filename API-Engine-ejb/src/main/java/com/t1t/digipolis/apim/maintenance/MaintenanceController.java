@@ -29,13 +29,11 @@ public class MaintenanceController {
     private OperatingBean maintenanceMode;
 
     public void getStatus() {
-        if (maintenanceMode == null) {
-            try {
-                maintenanceMode = query.getMaintenanceModeStatus();
-            }
-            catch (StorageException ex) {
-                throw ExceptionFactory.systemErrorException(ex);
-            }
+        try {
+            maintenanceMode = query.getMaintenanceModeStatus();
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
