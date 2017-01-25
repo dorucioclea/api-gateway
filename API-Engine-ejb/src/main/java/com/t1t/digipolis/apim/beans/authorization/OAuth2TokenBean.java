@@ -134,32 +134,33 @@ public class OAuth2TokenBean {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof OAuth2TokenBean)) return false;
 
         OAuth2TokenBean that = (OAuth2TokenBean) o;
 
-        if (!id.equals(that.id)) return false;
-        if (!credentialId.equals(that.credentialId)) return false;
-        if (!tokenType.equals(that.tokenType)) return false;
-        if (!accessToken.equals(that.accessToken)) return false;
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (credentialId != null ? !credentialId.equals(that.credentialId) : that.credentialId != null) return false;
+        if (tokenType != null ? !tokenType.equals(that.tokenType) : that.tokenType != null) return false;
+        if (accessToken != null ? !accessToken.equals(that.accessToken) : that.accessToken != null) return false;
         if (refreshToken != null ? !refreshToken.equals(that.refreshToken) : that.refreshToken != null) return false;
-        if (!expiresIn.equals(that.expiresIn)) return false;
-        if (!authenticatedUserId.equals(that.authenticatedUserId)) return false;
-        if (!scope.equals(that.scope)) return false;
-        return gatewayId.equals(that.gatewayId);
+        if (expiresIn != null ? !expiresIn.equals(that.expiresIn) : that.expiresIn != null) return false;
+        if (authenticatedUserId != null ? !authenticatedUserId.equals(that.authenticatedUserId) : that.authenticatedUserId != null)
+            return false;
+        if (scope != null ? !scope.equals(that.scope) : that.scope != null) return false;
+        return gatewayId != null ? gatewayId.equals(that.gatewayId) : that.gatewayId == null;
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + credentialId.hashCode();
-        result = 31 * result + tokenType.hashCode();
-        result = 31 * result + accessToken.hashCode();
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (credentialId != null ? credentialId.hashCode() : 0);
+        result = 31 * result + (tokenType != null ? tokenType.hashCode() : 0);
+        result = 31 * result + (accessToken != null ? accessToken.hashCode() : 0);
         result = 31 * result + (refreshToken != null ? refreshToken.hashCode() : 0);
-        result = 31 * result + expiresIn.hashCode();
-        result = 31 * result + authenticatedUserId.hashCode();
-        result = 31 * result + scope.hashCode();
-        result = 31 * result + gatewayId.hashCode();
+        result = 31 * result + (expiresIn != null ? expiresIn.hashCode() : 0);
+        result = 31 * result + (authenticatedUserId != null ? authenticatedUserId.hashCode() : 0);
+        result = 31 * result + (scope != null ? scope.hashCode() : 0);
+        result = 31 * result + (gatewayId != null ? gatewayId.hashCode() : 0);
         return result;
     }
 

@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
+import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
@@ -225,6 +226,9 @@ public class LoginResource implements ILoginResource {
         try {
             SAMLResponseRedirect response = userFacade.processSAML2Response(samlResponse,relayState);
             String jwtToken = response.getToken();
+            if (!response.getClientUrl().startsWith("http")) {
+                response.setClientUrl("https://" + response.getClientUrl());
+            }
             URI clientUrl = new URI(response.getClientUrl());
             if(clientUrl.getQuery()!=null){
                 uri = new URL(response.getClientUrl() + "&jwt=" + jwtToken).toURI();
@@ -238,7 +242,8 @@ public class LoginResource implements ILoginResource {
             if (e.getCause() != null && AbstractRestException.class.isAssignableFrom(e.getCause().getClass()) ) {
                 AbstractRestException ex = (AbstractRestException) e.getCause();
                 try {
-                    StringBuilder clientURLString = new StringBuilder(cacheUtil.getWebCacheBean(URLEncoder.encode(relayState, "UTF-8")).getClientAppRedirect());
+                    WebClientCacheBean webCache = cacheUtil.getWebCacheBean(URLEncoder.encode(relayState, "UTF-8"));
+                    StringBuilder clientURLString = new StringBuilder(webCache == null ? new URI("https://" + URLEncoder.encode(relayState, "UTF-8")).toString() : webCache.getClientAppRedirect());
                     URI clientURL = new URI(clientURLString.toString());
                     clientURLString
                             .append(clientURL.getQuery() != null ? "&" : "?")
@@ -249,6 +254,7 @@ public class LoginResource implements ILoginResource {
                             .toURI()).build();
                 } catch (MalformedURLException | URISyntaxException | UnsupportedEncodingException exception) {
                     //do nothing at this point
+                    ex.printStackTrace();
                 }
             }
         }

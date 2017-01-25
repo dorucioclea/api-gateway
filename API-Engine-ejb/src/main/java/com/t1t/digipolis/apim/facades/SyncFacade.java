@@ -87,7 +87,9 @@ public class SyncFacade {
                 String customId = ConsumerConventionUtil.createUserUniqueId(user.getUsername());
                 gateways.forEach(gw -> {
                     try {
+                        String pubKey = gatewayFacade.get(gw.getGatewayId()).getJWTPubKey();
                         boolean changed = false;
+                        boolean needsJWtCreds = StringUtils.isEmpty(user.getJwtKey()) || StringUtils.isEmpty(user.getJwtSecret());
                         KongPluginJWTResponse jwtCred = null;
                         KongConsumer gwUser = null;
                         if (StringUtils.isNotEmpty(user.getKongUsername())) {
@@ -102,7 +104,17 @@ public class SyncFacade {
                             log.info("== SYNC USER WITH KONG ID {} AND USERNAME {} AND CREATED JWT CREDENTIALS ==", user.getKongUsername(), customId);
                         }
                         else {
-                            List<KongPluginJWTResponse> jwtCreds = gw.getConsumerJWT(gwUser.getId()).getData().stream().filter(jwt -> jwt.getAlgorithm().equals(JWT_RS256)).collect(Collectors.toList());
+                            List<KongPluginJWTResponse> jwtCreds = gw.getConsumerJWT(gwUser.getId()).getData();
+                            if (!jwtCreds.isEmpty()) {
+                                jwtCreds.stream().filter(jwt -> {
+                                    boolean baseMatch = !jwt.getAlgorithm().equals(JWT_RS256) || !jwt.getRsaPublicKey().equals(pubKey);
+                                    if (!needsJWtCreds) {
+                                        baseMatch = baseMatch || !jwt.getKey().equals(user.getJwtKey()) || !jwt.getSecret().equals(user.getJwtSecret());
+                                    }
+                                    return baseMatch;
+                                }).forEach(jwt -> gw.deleteConsumerJwtCredential(user.getKongUsername(), jwt.getId()));
+                                jwtCreds = gw.getConsumerJWT(gwUser.getId()).getData();
+                            }
                             if (jwtCreds.isEmpty()) {
                                 jwtCred = gw.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                                 log.info("== CREATED JWT CREDENTIALS FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
@@ -112,27 +124,11 @@ public class SyncFacade {
                                 log.info("== NO SYNC NEED FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
                             }
                         }
-                        /*} else {
-                            KongConsumer gwUser = gw.getConsumerByCustomId(customId);
-                            if (gwUser != null) {
-                                user.setKongUsername(gwUser.getId());
-                                changed = true;
-                                log.info("== SYNCED USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
-                            } else {
-                                user.setKongUsername(gw.createConsumerWithCustomId(customId).getId());
-                                changed = true;
-                                log.info("== CREATED USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
-                            }
-                            if (gw.getConsumerJWT(gwUser.getId()).getData().stream().filter(jwt -> jwt.getAlgorithm().equals(JWT_RS256)).collect(Collectors.toList()).isEmpty()) {
-                                jwtCred = gw.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
-                                log.info("== CREATED JWT CREDENTIALS FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
-                            }
-                        }*/
                         if (StringUtils.isEmpty(user.getKongUsername()) && gwUser != null) {
                             user.setKongUsername(gwUser.getId());
                             changed = true;
                         }
-                        if ((StringUtils.isEmpty(user.getJwtKey()) || StringUtils.isEmpty(user.getJwtSecret())) && jwtCred != null) {
+                        if (needsJWtCreds && jwtCred != null) {
                             user.setJwtKey(jwtCred.getKey());
                             user.setJwtSecret(jwtCred.getSecret());
                             changed = true;
@@ -235,6 +231,8 @@ public class SyncFacade {
                                 log.info("== NO SYNC NECESSARY FOR APPLICATION {} ON GATEWAY {} ==", appId, gwId);
                             }
                             boolean appModified = false;
+                            boolean needsOAuthCredId = StringUtils.isEmpty(avb.getOauthCredentialId());
+                            boolean needsJWTcreds = StringUtils.isEmpty(avb.getJwtKey()) || StringUtils.isEmpty(avb.getJwtSecret());
 
                             if (StringUtils.isEmpty(avb.getoAuthClientId())) {
                                 avb.setoAuthClientId(apiKeyGenerator.generate());
@@ -252,32 +250,42 @@ public class SyncFacade {
                                 avb.setApikey(apiKeyGenerator.generate());
                                 appModified = true;
                             }
-
                             try {
                                 //Sync or create OAuth2 credentials
                                 KongPluginOAuthConsumerResponseList oauthCreds = gw.getConsumerOAuthCredentials(appId);
                                 if (!oauthCreds.getData().isEmpty()) {
-                                    //delete the credentials that do not match the stored credentials
-                                    oauthCreds.getData().stream().filter(oauth -> !oauth.getRedirectUri().equals(avb.getOauthClientRedirects())
-                                            || !oauth.getClientId().equals(avb.getoAuthClientId())
-                                            || !oauth.getClientSecret().equals(avb.getOauthClientSecret())).forEach(oauth -> {
+                                    oauthCreds.getData().stream()
+                                            .filter(oauth -> !oauth.getRedirectUri().equals(avb.getOauthClientRedirects())
+                                                || !oauth.getClientId().equals(avb.getoAuthClientId())
+                                                || !oauth.getClientSecret().equals(avb.getOauthClientSecret()))
+                                            .forEach(oauth -> {
                                         //delete the credentials that do not match the stored credentials
                                         gw.deleteOAuthConsumerPlugin(appId, oauth.getId());
                                     });
                                     oauthCreds = gw.getConsumerOAuthCredentials(appId);
                                 }
                                 if (oauthCreds.getData().isEmpty()) {
-                                    KongPluginOAuthConsumerResponse response = gw.enableConsumerForOAuth(appId, new KongPluginOAuthConsumerRequest()
+                                    KongPluginOAuthConsumerRequest request = new KongPluginOAuthConsumerRequest()
                                             .withClientId(avb.getoAuthClientId())
                                             .withClientSecret(avb.getOauthClientSecret())
                                             .withRedirectUri(avb.getOauthClientRedirects())
-                                            .withName(appId));
-                                    avb.setOauthCredentialId(response.getId());
-                                    appModified = true;
+                                            .withName(appId);
+                                    if (!needsOAuthCredId) {
+                                        request.setId(avb.getOauthCredentialId());
+                                    }
+                                    KongPluginOAuthConsumerResponse response = gw.enableConsumerForOAuth(appId, request);
+
+                                    if (needsOAuthCredId) {
+                                        avb.setOauthCredentialId(response.getId());
+                                        appModified = true;
+                                    }
                                     log.info("= NO OAUTH CREDENTIALS FOUND FOR APPLICATION \"{}\" ON GATEWAY \"{}\", CREATED =", appId, gwId);
-                                } else {
-                                    avb.setOauthCredentialId(oauthCreds.getData().get(0).getId());
-                                    appModified = true;
+                                }
+                                else {
+                                    if (needsOAuthCredId || !avb.getOauthCredentialId().equals(oauthCreds.getData().get(0).getId())) {
+                                        avb.setOauthCredentialId(oauthCreds.getData().get(0).getId());
+                                        appModified = true;
+                                    }
                                     log.info("= NO OAUTH SYNC NECESSARY FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
                                 }
                             }
@@ -308,16 +316,19 @@ public class SyncFacade {
                             }
 
                             try {
+                                String pubKey = gatewayFacade.get(gw.getGatewayId()).getJWTPubKey();
                                 //Sync or create JWT credentials
                                 KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(appId);
                                 KongPluginJWTResponse jwtCred = null;
                                 if (!jwtCreds.getData().isEmpty()) {
-                                    jwtCreds.getData().stream().filter(jwt -> !jwt.getAlgorithm().equals(JWTUtils.JWT_RS256)).forEach(jwt -> {
-                                        gw.deleteConsumerJwtCredential(appId, jwt.getId());
-                                    });
+                                    jwtCreds.getData().stream().filter(jwt -> {
+                                        boolean baseMatch = !jwt.getAlgorithm().equals(JWT_RS256) || !jwt.getRsaPublicKey().equals(pubKey);
+                                        if (!needsJWTcreds) {
+                                            baseMatch = baseMatch || !jwt.getKey().equals(avb.getJwtKey()) || !jwt.getSecret().equals(avb.getJwtSecret());
+                                        }
+                                        return baseMatch;
+                                    }).forEach(jwt -> gw.deleteConsumerJwtCredential(appId, jwt.getId()));
                                     jwtCreds = gw.getConsumerJWT(appId);
-                                } else {
-                                    log.info("= NO JWT CREDENTIALS FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
                                 }
                                 if (jwtCreds.getData().isEmpty()) {
                                     jwtCred = gw.addConsumerJWT(appId, JWT_RS256, avb.getJwtKey(), avb.getJwtSecret());
@@ -326,7 +337,7 @@ public class SyncFacade {
                                     jwtCred = jwtCreds.getData().get(0);
                                     log.info("= NO JWT SYNC NECESSARY FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
                                 }
-                                if ((StringUtils.isEmpty(avb.getJwtKey()) || StringUtils.isEmpty(avb.getJwtSecret())) && jwtCred != null) {
+                                if (needsJWTcreds && jwtCred != null) {
                                     avb.setJwtKey(jwtCred.getKey());
                                     avb.setJwtSecret(jwtCred.getSecret());
                                     appModified = true;
