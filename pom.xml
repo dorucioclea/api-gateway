@@ -807,15 +807,24 @@
         </pluginManagement>
     </build>
 
-    <!-- repository to deploy to -->
+
+    <!--Repositories -->
+    <repositories>
+        <repository>
+            <id>nexus</id>
+            <url>https://repo.t1t.be/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+    <!-- repository to deploy to JAVA -->
     <distributionManagement>
         <repository>
             <id>Releases</id>
-            <url>http://oasis.t1t.be/content/repositories/releases</url>
+            <url>https://repo.t1t.be/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
             <id>Snapshots</id>
-            <url>http://oasis.t1t.be/content/repositories/snapshots</url>
+            <url>https://repo.t1t.be/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
