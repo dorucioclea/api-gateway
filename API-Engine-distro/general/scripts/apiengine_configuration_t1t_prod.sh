@@ -36,11 +36,11 @@ curl -X POST http://apim.t1t.be:8001/consumers \
 
 #enable keyauth for marketplace and return API key, result should be captured and is the API key for the given consumer
 curl -X POST http://apim.t1t.be:8001/consumers/all.marketplace.v1/key-auth \
-    --data "key=6b8406cc81fe4ca3cc9cd4a0abfb97c2"
+    --data "key=6b8406cc81fe4ca3cc9cd4a0abfb97p2"
 curl -X POST http://apim.t1t.be:8001/consumers/int.marketplace.v1/key-auth \
-    --data "key=***REMOVED***"
+    --data "key=6b8406cc81fe4ca3cc9cd4a0abfb97p1"
 curl -X POST http://apim.t1t.be:8001/consumers/ext.marketplace.v1/key-auth \
-    --data "key=***REMOVED***"
+    --data "key=6b8406cc81fe4ca3cc9cd4a0abfb97p3"
 
 #create publisher consumer
 curl -X POST http://apim.t1t.be:8001/consumers \
