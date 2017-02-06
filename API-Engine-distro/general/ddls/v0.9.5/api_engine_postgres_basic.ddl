@@ -1414,4 +1414,4 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
 
 -- CONFIG
 
-INSERT INTO config(config_path) VALUES ('/opt/wildfly/standalone/configuration/application.conf');
+INSERT INTO config(id, config_path) VALUES (7, '/opt/wildfly/standalone/configuration/application.conf');
