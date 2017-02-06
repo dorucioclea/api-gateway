@@ -33,6 +33,7 @@ import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.maintenance.MaintenanceController;
 import com.t1t.digipolis.apim.saml2.ISAML2;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -50,6 +51,7 @@ import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
+import org.jose4j.lang.StringUtil;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.common.SAMLVersion;
@@ -132,6 +134,8 @@ public class UserFacade implements Serializable {
     private AppConfig config;
     @Inject
     private Event<NewEventBean> event;
+    @Inject
+    private MaintenanceController maintenance;
 
     public UserBean get(String userId) {
         try {
@@ -536,7 +540,7 @@ public class UserFacade implements Serializable {
      *
      * @return
      */
-    public SAMLResponseRedirect processSAML2Response(String samlResponse, String relaystate) throws Exception {
+    public SAMLResponseRedirect processSAML2Response(String samlResponse, String relaystate) throws StorageException, UnsupportedEncodingException {
 
         String relayState = relaystate;
         StringBuffer clientUrl = new StringBuffer("");
@@ -546,7 +550,13 @@ public class UserFacade implements Serializable {
         String urlEncodedRelaystate = URLEncoder.encode(relayState, "UTF-8");
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(urlEncodedRelaystate.trim());
         if (webClientCacheBean == null) {
-            throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
+            webClientCacheBean = new WebClientCacheBean();
+            try {
+                webClientCacheBean.setClientAppRedirect(new URI(urlEncodedRelaystate).toString());
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+            //throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
         }
         try {
             assertion = processSSOResponse(samlResponse);
@@ -795,6 +805,10 @@ public class UserFacade implements Serializable {
             //get user from local DB - if doesn't exists -> create new consumer
             UserBean user = idmStorage.getUser(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));
             if (user == null) {//exists already
+                //If maintenance mode is turned on, do not create a new user.
+                if (maintenance.isEnabled()) {
+                    throw ExceptionFactory.maintenanceException(Messages.i18n.format("maintenanceUserCreation", maintenance.getMessage()), ErrorCodes.SYSTEM_MAINTENANCE_LOGIN);
+                }
                 user = initNewUser(identityAttributes);
             }
             log.info("User found:{}", user);
@@ -802,12 +816,18 @@ public class UserFacade implements Serializable {
             if (!StringUtils.isEmpty(user.getKongUsername()))
                 consumer = gatewayLink.getConsumer(user.getKongUsername());
             if (consumer == null) {
-                //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
-                consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
-                //update kong username in local userbean
-                user.setKongUsername(consumer.getId());
-                idmStorage.updateUser(user);
-                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
+                if (StringUtils.isNotEmpty(user.getKongUsername())) {
+                    //The user already had a kong username, and same kong username will be used
+                    consumer = gatewayLink.createConsumerWithKongId(user.getKongUsername(), ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+                }
+                else {
+                    //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
+                    consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+                    //update kong username in local userbean
+                    user.setKongUsername(consumer.getId());
+                    idmStorage.updateUser(user);
+                }
+                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                 jwtKey = jwtResponse.getKey();//JWT "iss"
                 jwtSecret = jwtResponse.getSecret();
             } else {
@@ -817,10 +837,15 @@ public class UserFacade implements Serializable {
                     jwtSecret = response.getData().get(0).getSecret();
                 } else {
                     //create jwt credentials
-                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
+                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                     jwtKey = jwtResponse.getKey();//JWT "iss"
                     jwtSecret = jwtResponse.getSecret();
                 }
+            }
+            if (StringUtils.isEmpty(user.getJwtKey()) && StringUtils.isEmpty(user.getJwtSecret()) && StringUtils.isNotEmpty(jwtKey) && StringUtils.isNotEmpty(jwtSecret)) {
+                user.setJwtKey(jwtKey);
+                user.setJwtSecret(jwtSecret);
+                idmStorage.updateUser(user);
             }
             //set the cache for performance and resilience
             setTokenCache(jwtKey, jwtSecret);
@@ -852,7 +877,10 @@ public class UserFacade implements Serializable {
             gatewayLink.close();
         } catch (PublishingException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
-        } catch (Exception e) {
+
+        } catch (MaintenanceException ex) {
+            throw ex;
+        }catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
         return issuedJWT;
@@ -967,10 +995,10 @@ public class UserFacade implements Serializable {
             jwtRefreshResponseBean.setJwt(JWTUtils.getJwtWithExpirationTime(jwtClaims, jwtExpirationTime, key ,pubKeyEndpoint, algorithm));
             return jwtRefreshResponseBean;
         }
-        catch (InvalidJwtException | UnsupportedEncodingException | MalformedClaimException ex) {
+        catch (InvalidJwtException | IOException | MalformedClaimException | JoseException ex) {
             throw ExceptionFactory.jwtInvalidException("JWT is invalid", ex);
         }
-        catch (StorageException | JoseException | IOException ex) {
+        catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

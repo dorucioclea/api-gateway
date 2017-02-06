@@ -8,6 +8,9 @@ import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
+import javax.ejb.DependsOn;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.IOException;
@@ -23,13 +26,13 @@ import java.util.Properties;
  * This will load the configuration for a specific environment and produce the config throughout the application.
  * More information about the config Typesafe approach can be found: https://github.com/typesafehub/config#essential-information
  */
-@ApplicationScoped
+@Singleton(name = "AppConfig")
+@Startup
 public class AppConfig implements Serializable {
     private static Config config;
     private static Properties properties;
     private static Logger _LOG = LoggerFactory.getLogger(AppConfig.class.getName());
     @Inject private IStorage storageService;
-    @Inject private StartupService startupService;
 
     @PostConstruct
     public void postInit() {
@@ -65,40 +68,51 @@ public class AppConfig implements Serializable {
         //config = ConfigFactory.load(getConfigurationFile());
         if(config==null) throw new RuntimeException("API Engine log not found");
         else{
-            _LOG.info("===== API Engine configuration ==============================");
-            _LOG.info("Using configuration file: {}",getConfigurationFile());
-            _LOG.info("Build: {}",getBuildDate());
-            _LOG.info("version: {}",getVersion());
-            _LOG.info("environment: {}",getEnvironment());
-            _LOG.info("Kong host: {}",getKongHost());
-            _LOG.info("Kong endpoint: {}",getKongEndpoint());
-            _LOG.info("Kong management endpoint: {}",getKongManagementEndpoint());
-            _LOG.info("IDP Entity ID: {}", getIDPEntityId());
-            _LOG.info("IDP SAML2 endpoint: {}",getIDPSAMLEndpoint());
-            _LOG.info("IDP NameID format: {}",getIDPSAMLNameIdFormat());
-            _LOG.info("IDP OAUTH token endpoint: {}",getIDPOAuthTokenEndpoint());
-            _LOG.info("IDP OAUTH client-id: {}",getIDPOAuthClientId());
-            _LOG.info("IDP OAUTH client-secret: {}",getIDPOAuthClientSecret());
-            _LOG.info("IDP Not Before Delay: {}",getIDPNotBeforeDelay());
-            _LOG.info("REST resource security: {}", getRestResourceSecurity());
-            _LOG.info("REST AUTH resource security: {}", getRestAuthResourceSecurity());
-            _LOG.info("Metrics schema: {}",getMetricsScheme());
-            _LOG.info("Metrics URI: {}",getMetricsURI());
-            _LOG.info("Metrics port: {}",getMetricsPort());
-            _LOG.info("Default user organization: {}",getDefaultOrganization());
-            _LOG.info("Default user roles: {}",getDefaultUserRoles());
-            _LOG.info("Consent page: {}",getOAuthConsentURI());
-            _LOG.info("Enable centralized OAuth2 token/authorization endpoints: {}",getOAuthEnableGatewayEnpoints());
-            _LOG.info("JWT default token expiration (in minutes):{}", getJWTDefaultTokenExpInSeconds());
-            _LOG.info("Analytics enables: {}",getAnalyticsHost());
-            _LOG.info("Analytics send towards {} with port {} and service token {}",getAnalyticsHost(),getAnalyticsPort(),getAnalyticsServiceToken());
-            _LOG.info("Notifications: debug enabled? {}", getNotificationsEnableDebug());
-            _LOG.info("Notifications: startup mail will be sent to {}", getNotificationStartupMail());
-            _LOG.info("Notifications: mail will be send from {}", getNotificationMailFrom());
-            _LOG.info("Metrics engine timeout value: {}", getHystrixMetricsTimeout());
-            _LOG.info("Local file path: {}", getLocalFilePath());
-            _LOG.info("=============================================================");
-        };
+            try {
+                _LOG.info("===== API Engine configuration ==============================");
+                _LOG.info("Using configuration file: {}", getConfigurationFile());
+                _LOG.info("Build: {}", getBuildDate());
+                _LOG.info("version: {}", getVersion());
+                _LOG.info("environment: {}", getEnvironment());
+                _LOG.info("Kong host: {}", getKongHost());
+                _LOG.info("Kong endpoint: {}", getKongEndpoint());
+                _LOG.info("Kong management endpoint: {}", getKongManagementEndpoint());
+                _LOG.info("IDP Entity ID: {}", getIDPEntityId());
+                _LOG.info("IDP SAML2 endpoint: {}", getIDPSAMLEndpoint());
+                _LOG.info("IDP NameID format: {}", getIDPSAMLNameIdFormat());
+                _LOG.info("IDP OAUTH token endpoint: {}", getIDPOAuthTokenEndpoint());
+                _LOG.info("IDP OAUTH client-id: {}", getIDPOAuthClientId());
+                _LOG.info("IDP OAUTH client-secret: {}", getIDPOAuthClientSecret());
+                _LOG.info("IDP Not Before Delay: {}", getIDPNotBeforeDelay());
+                _LOG.info("REST resource security: {}", getRestResourceSecurity());
+                _LOG.info("REST AUTH resource security: {}", getRestAuthResourceSecurity());
+                _LOG.info("Metrics schema: {}", getMetricsScheme());
+                _LOG.info("Metrics URI: {}", getMetricsURI());
+                _LOG.info("Metrics port: {}", getMetricsPort());
+                _LOG.info("Default user organization: {}", getDefaultOrganization());
+                _LOG.info("Default user roles: {}", getDefaultUserRoles());
+                _LOG.info("Consent page: {}", getOAuthConsentURI());
+                _LOG.info("Enable centralized OAuth2 token/authorization endpoints: {}", getOAuthEnableGatewayEnpoints());
+                _LOG.info("JWT default token expiration (in minutes):{}", getJWTDefaultTokenExpInSeconds());
+                _LOG.info("Analytics enables: {}", getAnalyticsHost());
+                _LOG.info("Analytics send towards {} with port {} and service token {}", getAnalyticsHost(), getAnalyticsPort(), getAnalyticsServiceToken());
+                _LOG.info("Notifications: debug enabled? {}", getNotificationsEnableDebug());
+                _LOG.info("Notifications: startup mail will be sent to {}", getNotificationStartupMail());
+                _LOG.info("Notifications: mail will be send from {}", getNotificationMailFrom());
+                _LOG.info("Metrics engine timeout value: {}", getHystrixMetricsTimeout());
+                _LOG.info("Local file path: {}", getLocalFilePath());
+                _LOG.info("API Engine web upstream url: {}", getApiEngineUpstream());
+                _LOG.info("API Engine web request path: {}", getApiEngineRequestPath());
+                _LOG.info("API Engine auth upstream url: {}", getApiEngineAuthUpstreamUrl());
+                _LOG.info("API Engine auth request path: {}", getApiEngineAuthRequestPath());
+                _LOG.info("Gateway keys upstream url: {}", getGatewaykeysUpstreamUrl());
+                _LOG.info("Gateway keys request path: {}", getGatewaykeysRequestPath());
+                _LOG.info("=============================================================");
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
 
@@ -146,4 +160,17 @@ public class AppConfig implements Serializable {
     public String getLocalFilePath() {return config.getString(IConfig.FILEPATH_LOCAL);}
     public String getIDPEntityId(){return config.getString(IConfig.IDP_ENTITY_ID);}
     public Integer getIDPNotBeforeDelay(){return config.getInt(IConfig.IDP_NOTBEFORE_DELAY);}
+    public String getApiEngineName(){return config.getString(IConfig.GWD_APIENGINE_NAME);}
+    public String getApiEngineRequestPath(){return config.getString(IConfig.GWD_APIENGINE_REQUEST_PATH);}
+    public Boolean getApiEngineStripRequestPath(){return config.getBoolean(IConfig.GWD_APIENGINE_STRIP_REQUEST_PATH);}
+    public String getApiEngineUpstream(){return config.getString(IConfig.GWD_APIENGINE_UPSTREAM_URL);}
+    public String getApiEngineAuthName(){return config.getString(IConfig.GWD_APIENGINEAUTH_NAME);}
+    public Boolean getApiEngineAuthStripRequestPath(){return config.getBoolean(IConfig.GWD_APIENGINEAUTH_STRIP_REQUEST_PATH);}
+    public String getApiEngineAuthUpstreamUrl(){return config.getString(IConfig.GWD_APIENGINEAUTH_UPSTREAM_URL);}
+    public String getApiEngineAuthRequestPath(){return config.getString(IConfig.GWD_APIENGINEAUTH_REQUEST_PATH);}
+    public String getGatewaykeysName(){return config.getString(IConfig.GWD_GATEWAYKEYS_NAME);}
+    public Boolean getGatewaykeysStripRequestPath(){return config.getBoolean(IConfig.GWD_GATEWAYKEYS_STRIP_REQUEST_PATH);}
+    public String getGatewaykeysUpstreamUrl(){return config.getString(IConfig.GWD_GATEWAYKEYS_UPSTREAM_URL);}
+    public String getGatewaykeysRequestPath(){return config.getString(IConfig.GWD_GATEWAYKEYS_REQUEST_PATH);}
+
 }

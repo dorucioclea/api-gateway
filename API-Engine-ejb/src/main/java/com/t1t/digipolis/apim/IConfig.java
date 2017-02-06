@@ -50,4 +50,16 @@ public interface IConfig {
     String HYSTRIX_METRICS_TIMEOUT_VALUE = "apiapp.hystrix.metrics";
     String FILEPATH_LOCAL = "apiapp.filepaths.local";
     String IDP_NOTBEFORE_DELAY = "apiapp.idp.not_before_delay";
+    String GWD_APIENGINE_NAME = "apiapp.gateway_dependencies.apiengine.name";
+    String GWD_APIENGINE_REQUEST_PATH = "apiapp.gateway_dependencies.apiengine.request_path";
+    String GWD_APIENGINE_UPSTREAM_URL = "apiapp.gateway_dependencies.apiengine.upstream_url";
+    String GWD_APIENGINE_STRIP_REQUEST_PATH = "apiapp.gateway_dependencies.apiengine.strip_request_path";
+    String GWD_APIENGINEAUTH_NAME = "apiapp.gateway_dependencies.apiengineauth.name";
+    String GWD_APIENGINEAUTH_REQUEST_PATH = "apiapp.gateway_dependencies.apiengineauth.request_path";
+    String GWD_APIENGINEAUTH_UPSTREAM_URL = "apiapp.gateway_dependencies.apiengineauth.upstream_url";
+    String GWD_APIENGINEAUTH_STRIP_REQUEST_PATH = "apiapp.gateway_dependencies.apiengineauth.strip_request_path";
+    String GWD_GATEWAYKEYS_NAME = "apiapp.gateway_dependencies.gatewaykeys.name";
+    String GWD_GATEWAYKEYS_REQUEST_PATH = "apiapp.gateway_dependencies.gatewaykeys.request_path";
+    String GWD_GATEWAYKEYS_UPSTREAM_URL = "apiapp.gateway_dependencies.gatewaykeys.upstream_url";
+    String GWD_GATEWAYKEYS_STRIP_REQUEST_PATH = "apiapp.gateway_dependencies.gatewaykeys.strip_request_path";
 }

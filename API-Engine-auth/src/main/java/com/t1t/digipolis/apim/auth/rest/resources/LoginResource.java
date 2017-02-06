@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
+import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
@@ -17,14 +18,13 @@ import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.OAuthException;
-import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
-import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
+import com.t1t.digipolis.apim.core.i18n.Messages;
+import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.util.CacheUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -62,6 +62,7 @@ public class LoginResource implements ILoginResource {
     @Inject private UserFacade userFacade;
     @Inject private OAuthFacade oAuthFacade;
     @Inject private AppConfig config;
+    @Inject private CacheUtil cacheUtil;
     @Inject private OrganizationFacade orgFacade;
     private static final Logger log = LoggerFactory.getLogger(LoginResource.class.getName());
 
@@ -77,11 +78,11 @@ public class LoginResource implements ILoginResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     public String postSAML2AuthRequestUri(SAMLRequest request) {
-        Preconditions.checkNotNull(request);
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "Request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()), Messages.i18n.format("emptyValue", "IDP URL"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()), Messages.i18n.format("emptyValue", "Service provider name"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()), Messages.i18n.format("emptyValue", "Service provider URL"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()), Messages.i18n.format("emptyValue", "Client redirect"));
         Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
         return userFacade.generateSAML2AuthRequest(request);
     }
@@ -99,10 +100,10 @@ public class LoginResource implements ILoginResource {
                                          @QueryParam("sp_name")String spName,
                                          @QueryParam("sp_url") String spUrl,
                                          @QueryParam("client_redirect")String clientRedirect) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(idpUrl));
-        Preconditions.checkArgument(!StringUtils.isEmpty(spName));
-        Preconditions.checkArgument(!StringUtils.isEmpty(spUrl));
-        Preconditions.checkArgument(!StringUtils.isEmpty(clientRedirect));
+        Preconditions.checkArgument(!StringUtils.isEmpty(idpUrl), Messages.i18n.format("emptyValue", "IDP URL"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(spName), Messages.i18n.format("emptyValue", "Service provider name"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(spUrl), Messages.i18n.format("emptyValue", "Service provider URL"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(clientRedirect), Messages.i18n.format("emptyValue", "Client redirect"));
         SAMLRequest request = new SAMLRequest();
         request.setClientAppRedirect(clientRedirect);
         request.setIdpUrl(idpUrl);
@@ -123,10 +124,10 @@ public class LoginResource implements ILoginResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response postSAML2AuthRequestRedirect(SAMLRequest request) {
         Preconditions.checkNotNull(request);
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()), Messages.i18n.format("emptyValue", "IDP URL"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()), Messages.i18n.format("emptyValue", "Service provider name"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpUrl()), Messages.i18n.format("emptyValue", "Service provider URL"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getClientAppRedirect()), Messages.i18n.format("emptyValue", "Client redirect"));
         Preconditions.checkArgument(request.getToken().equals(ClientTokeType.opaque) || request.getToken().equals(ClientTokeType.jwt));
         String idpRequest = userFacade.generateSAML2AuthRequest(request);
         URI idpRequestUri = null;
@@ -148,10 +149,10 @@ public class LoginResource implements ILoginResource {
                                                 @QueryParam("sp_name")String spName,
                                                 @QueryParam("sp_url") String spUrl,
                                                 @QueryParam("client_redirect")String clientRedirect) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(idpUrl));
-        Preconditions.checkArgument(!StringUtils.isEmpty(spName));
-        Preconditions.checkArgument(!StringUtils.isEmpty(spUrl));
-        Preconditions.checkArgument(!StringUtils.isEmpty(clientRedirect));
+        Preconditions.checkArgument(!StringUtils.isEmpty(idpUrl), Messages.i18n.format("emptyValue", "IDP URL"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(spName), Messages.i18n.format("emptyValue", "Service provide name"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(spUrl), Messages.i18n.format("emptyValue", "Service provider URL"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(clientRedirect), Messages.i18n.format("emptyValue", "Client redirect"));
         SAMLRequest request = new SAMLRequest();
         request.setClientAppRedirect(clientRedirect);
         request.setIdpUrl(idpUrl);
@@ -180,8 +181,8 @@ public class LoginResource implements ILoginResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
-        Preconditions.checkNotNull(jwtRefreshRequestBean);
-        Preconditions.checkArgument(!StringUtils.isEmpty(jwtRefreshRequestBean.getOriginalJWT()));
+        Preconditions.checkNotNull(jwtRefreshRequestBean, Messages.i18n.format("nullValue", "JWT refresh request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(jwtRefreshRequestBean.getOriginalJWT()), Messages.i18n.format("emptyValue", "Original JWT"));
         return userFacade.refreshToken(jwtRefreshRequestBean);
     }
 
@@ -225,19 +226,37 @@ public class LoginResource implements ILoginResource {
         try {
             SAMLResponseRedirect response = userFacade.processSAML2Response(samlResponse,relayState);
             String jwtToken = response.getToken();
+            if (!response.getClientUrl().startsWith("http")) {
+                response.setClientUrl("https://" + response.getClientUrl());
+            }
             URI clientUrl = new URI(response.getClientUrl());
             if(clientUrl.getQuery()!=null){
                 uri = new URL(response.getClientUrl() + "&jwt=" + jwtToken).toURI();
             }else{
                 uri = new URL(response.getClientUrl() + "?jwt=" + jwtToken).toURI();
             }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
+        } catch (URISyntaxException | StorageException | MalformedURLException | UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (Exception e) {
-            log.error("Grant Error:{}",e.getMessage());
-            throw new SAMLAuthException(e.getMessage());
+            //Catch the exception check if there's an underlying AbstractRestException and create an error message for the redirect
+            if (e.getCause() != null && AbstractRestException.class.isAssignableFrom(e.getCause().getClass()) ) {
+                AbstractRestException ex = (AbstractRestException) e.getCause();
+                try {
+                    WebClientCacheBean webCache = cacheUtil.getWebCacheBean(URLEncoder.encode(relayState, "UTF-8"));
+                    StringBuilder clientURLString = new StringBuilder(webCache == null ? new URI("https://" + URLEncoder.encode(relayState, "UTF-8")).toString() : webCache.getClientAppRedirect());
+                    URI clientURL = new URI(clientURLString.toString());
+                    clientURLString
+                            .append(clientURL.getQuery() != null ? "&" : "?")
+                            .append("errorcode=").append(ex.getErrorCode())
+                            .append("&errormessage=")
+                            .append(URLEncoder.encode(ex.getMessage(), "UTF-8"));
+                    return Response.seeOther(new URL(clientURLString.toString())
+                            .toURI()).build();
+                } catch (MalformedURLException | URISyntaxException | UnsupportedEncodingException exception) {
+                    //do nothing at this point
+                    ex.printStackTrace();
+                }
+            }
         }
         if (uri != null) return Response.seeOther(uri).build();
         return Response.status(500).entity("Could not parse the initial consumer URI").build();
@@ -253,8 +272,8 @@ public class LoginResource implements ILoginResource {
     @Path("/idp/ext/validation")
     @Produces(MediaType.APPLICATION_JSON)
     public Response externalSAML2Validation(JWTRequest request) {
-        Preconditions.checkNotNull(request);
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSamlResponse()));
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "JWT request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSamlResponse()), Messages.i18n.format("emptyValue", "SAML response"));
         SAMLResponseRedirect response = null;
         try {
             response = userFacade.validateExtSAML2(request.getSamlResponse());
@@ -278,10 +297,10 @@ public class LoginResource implements ILoginResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
     public String logout(SAMLLogoutRequest request) {
-        Preconditions.checkNotNull(request);
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getUsername()));
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "SAML logout request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getIdpUrl()), Messages.i18n.format("emptyValue", "IDP URL"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getSpName()), Messages.i18n.format("emptyValue", "Service provider name"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getUsername()), Messages.i18n.format("emptyValue", "User name"));
         return userFacade.generateSAML2LogoutRequest(request.getIdpUrl(), request.getSpName(), request.getUsername(), request.getRelayState());
     }
 
@@ -352,8 +371,8 @@ public class LoginResource implements ILoginResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserByMail(ExternalUserRequest externalUserRequest) {
-        Preconditions.checkNotNull(externalUserRequest);
-        Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserMail()));
+        Preconditions.checkNotNull(externalUserRequest, Messages.i18n.format("nullValue", "External user request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserMail()), Messages.i18n.format("emptyValue", "User mail"));
         ExternalUserBean userByEmail = null;
         userByEmail = userFacade.getUserByEmail(externalUserRequest.getUserMail());
         return Response.ok().entity(userByEmail).build();
@@ -369,8 +388,8 @@ public class LoginResource implements ILoginResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserByUsername(ExternalUserRequest externalUserRequest) {
-        Preconditions.checkNotNull(externalUserRequest);
-        Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserName()));
+        Preconditions.checkNotNull(externalUserRequest, Messages.i18n.format("nullValue", "External user request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(externalUserRequest.getUserName()), Messages.i18n.format("emptyValue", "User name"));
         ExternalUserBean userByEmail = userFacade.getUserByUsername(externalUserRequest.getUserName());
         return Response.ok().entity(userByEmail).build();
     }

@@ -648,4 +648,23 @@ public final class ExceptionFactory {
     public static final SAMLAuthException samlAuthException(String message) {
         return new SAMLAuthException(message);
     }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final MaintenanceException maintenanceException(String message) {
+        return new MaintenanceException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @param errorCode
+     * @return
+     */
+    public static final MaintenanceException maintenanceException(String message, Integer errorCode) {
+        return new MaintenanceException(message, errorCode);
+    }
 }

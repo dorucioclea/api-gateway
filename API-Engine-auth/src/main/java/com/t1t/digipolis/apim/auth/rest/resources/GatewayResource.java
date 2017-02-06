@@ -30,8 +30,8 @@ import java.util.List;
 @ApplicationScoped
 public class GatewayResource {
     @Inject private IStorageQuery storageQuery;
-    @ApiOperation(value = "IDP Callback URL for the Marketplace",
-                  notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim.")
+    @ApiOperation(value = "Retrieve the gateway's public key",
+                  notes = "Retrieve the gateway's public key")
     @ApiResponses({
                           @ApiResponse(code = 200, response = JWTPubKeyResponse.class, message = "Public Key PEM formatted - base64 encoded")
                   })

@@ -3,6 +3,7 @@ package com.t1t.digipolis.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.idm.UserPermissionsBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.facades.PermissionsFacade;
 import com.t1t.digipolis.apim.rest.resources.IPermissionsResource;
@@ -49,7 +50,7 @@ public class PermissionsResource implements IPermissionsResource {
     @Produces(MediaType.APPLICATION_JSON)
     public UserPermissionsBean getPermissionsForUser(@PathParam("userId") String userId) throws UserNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(userId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         return permissionsFacade.getPermissionsForUser(userId);
     }
 

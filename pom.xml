@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.t1t.digipolis</groupId>
     <artifactId>API-Engine</artifactId>
-    <version>0.9.5-SNAPSHOT</version>
+    <version>0.9.5</version>
     <packaging>pom</packaging>
 
     <description>
@@ -164,6 +164,7 @@
         <version.io.vertx>2.1.1</version.io.vertx>
         <version.io.vertx.testtools>2.0.3-final</version.io.vertx.testtools>
         <version.unboundid.scim>1.8.2</version.unboundid.scim>
+        <version.ejb.ext.api>2.2.0.Final</version.ejb.ext.api>
 
         <!--Dependency Versions -->
         <commons-lang.version>2.4</commons-lang.version>
@@ -756,6 +757,11 @@
                 <artifactId>bcprov-jdk15on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.jboss.ejb3</groupId>
+                <artifactId>jboss-ejb3-ext-api</artifactId>
+                <version>${version.ejb.ext.api}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -801,15 +807,24 @@
         </pluginManagement>
     </build>
 
-    <!-- repository to deploy to -->
+
+    <!--Repositories -->
+    <repositories>
+        <repository>
+            <id>nexus</id>
+            <url>https://repo.t1t.be/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+    <!-- repository to deploy to JAVA -->
     <distributionManagement>
         <repository>
             <id>Releases</id>
-            <url>http://oasis.t1t.be/content/repositories/releases</url>
+            <url>https://repo.t1t.be/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
             <id>Snapshots</id>
-            <url>http://oasis.t1t.be/content/repositories/snapshots</url>
+            <url>https://repo.t1t.be/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 

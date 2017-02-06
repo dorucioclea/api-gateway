@@ -117,6 +117,19 @@
             <logger category="jacorb.config">
                 <level name="ERROR"/>
             </logger>
+            <logger category="com.t1t.digipolis">
+                <level name="INFO"/>
+                <handlers>
+                    <handler name="FILE"/>
+                    <handler name="CONSOLE"/>
+                </handlers>
+            </logger>
+            <logger category="com.t1t.digipolis.apim.kong" use-parent-handlers="false">
+                <level name="INFO"/>
+                <handlers>
+                    <handler name="CONSOLE"/>
+                </handlers>
+            </logger>
             <root-logger>
                 <level name="INFO"/>
                 <handlers>
