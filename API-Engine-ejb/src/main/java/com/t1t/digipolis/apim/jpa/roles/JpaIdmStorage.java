@@ -5,15 +5,12 @@ import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
-import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.jpa.AbstractJpaStorage;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
@@ -24,7 +21,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -36,10 +32,9 @@ import java.util.*;
 @Default
 public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
 
-    private static Logger logger = LoggerFactory.getLogger(JpaIdmStorage.class);
-    @Inject ISecurityAppContext appContext;
-    @Inject IStorage storage;
-    @Inject IStorageQuery query;
+    @Inject private ISecurityAppContext appContext;
+    @Inject private IStorage storage;
+    @Inject private IStorageQuery query;
 
     /**
      * Constructor.

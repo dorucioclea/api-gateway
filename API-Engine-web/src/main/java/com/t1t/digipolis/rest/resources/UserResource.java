@@ -7,14 +7,11 @@ import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.idm.NewUserBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
-import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
-import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.beans.user.*;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -31,28 +28,12 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.netty.util.internal.StringUtil;
-import org.jose4j.jwt.MalformedClaimException;
-import org.jose4j.jwt.consumer.InvalidJwtException;
-import org.jose4j.lang.JoseException;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.io.UnmarshallingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.List;
 
 @Api(value = "/users", description = "The User API.")
@@ -64,7 +45,6 @@ public class UserResource implements IUserResource {
     @Inject ISecurityContext securityContext;
     @Inject IStorageQuery query;
     @Inject private UserFacade userFacade;
-    private static final Logger log = LoggerFactory.getLogger(UserResource.class.getName());
 
     /**
      * Constructor.
@@ -75,7 +55,7 @@ public class UserResource implements IUserResource {
     @ApiOperation(value = "Get User by ID",
             notes = "Use this endpoint to get information about a specific user by the User ID.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = UserBean.class, message = "Full user information.")
+            @ApiResponse(code = 200, response = UserDtoBean.class, message = "Full user information.")
     })
     @GET
     @Path("/{userId}")

@@ -1,12 +1,15 @@
 package com.t1t.digipolis.apim.beans.dto;
-import java.util.Arrays;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author Guillaume Vandecasteele
  * @since 2017
  */
-public class UserDtoBean {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class UserDtoBean implements Serializable {
 
     private String username;
     private String kongUsername;
@@ -133,37 +136,12 @@ public class UserDtoBean {
 
         UserDtoBean that = (UserDtoBean) o;
 
-        if (username != null ? !username.equals(that.username) : that.username != null) return false;
-        if (kongUsername != null ? !kongUsername.equals(that.kongUsername) : that.kongUsername != null) return false;
-        if (fullName != null ? !fullName.equals(that.fullName) : that.fullName != null) return false;
-        if (email != null ? !email.equals(that.email) : that.email != null) return false;
-        if (joinedOn != null ? !joinedOn.equals(that.joinedOn) : that.joinedOn != null) return false;
-        if (admin != null ? !admin.equals(that.admin) : that.admin != null) return false;
-        if (company != null ? !company.equals(that.company) : that.company != null) return false;
-        if (location != null ? !location.equals(that.location) : that.location != null) return false;
-        if (website != null ? !website.equals(that.website) : that.website != null) return false;
-        if (bio != null ? !bio.equals(that.bio) : that.bio != null) return false;
-        if (base64pic != null ? !base64pic.equals(that.base64pic) : that.base64pic != null) return false;
-        if (jwtKey != null ? !jwtKey.equals(that.jwtKey) : that.jwtKey != null) return false;
-        return jwtSecret != null ? jwtSecret.equals(that.jwtSecret) : that.jwtSecret == null;
+        return username.equals(that.username);
     }
 
     @Override
     public int hashCode() {
-        int result = username != null ? username.hashCode() : 0;
-        result = 31 * result + (kongUsername != null ? kongUsername.hashCode() : 0);
-        result = 31 * result + (fullName != null ? fullName.hashCode() : 0);
-        result = 31 * result + (email != null ? email.hashCode() : 0);
-        result = 31 * result + (joinedOn != null ? joinedOn.hashCode() : 0);
-        result = 31 * result + (admin != null ? admin.hashCode() : 0);
-        result = 31 * result + (company != null ? company.hashCode() : 0);
-        result = 31 * result + (location != null ? location.hashCode() : 0);
-        result = 31 * result + (website != null ? website.hashCode() : 0);
-        result = 31 * result + (bio != null ? bio.hashCode() : 0);
-        result = 31 * result + (base64pic != null ? base64pic.hashCode() : 0);
-        result = 31 * result + (jwtKey != null ? jwtKey.hashCode() : 0);
-        result = 31 * result + (jwtSecret != null ? jwtSecret.hashCode() : 0);
-        return result;
+        return username.hashCode();
     }
 
     @Override
