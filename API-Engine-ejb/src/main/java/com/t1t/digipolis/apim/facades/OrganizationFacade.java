@@ -20,6 +20,7 @@ import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.dto.PolicyDtoBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;
@@ -109,7 +110,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.rmi.server.UID;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -1107,7 +1107,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
     }
 
-    public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
+    public PolicyDtoBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         try {
             return scrubPolicy(getServicePolicyInternal(organizationId, serviceId, version, policyId));
         }
@@ -1116,27 +1116,39 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    private PolicyBean scrubPolicy(PolicyBean policy) throws StorageException {
+    private PolicyDtoBean scrubPolicy(PolicyBean policy) throws StorageException {
         //TODO - scrub the sensitive information out of policy configurations
         boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix());
-
+        PolicyDtoBean rval = DtoFactory.createPolicyDtoBean(policy);
         if (doFilter) {
-            switch (Policies.valueOf(policy.getDefinition().getId().toUpperCase())) {
+            Gson gson = new Gson();
+            switch (Policies.valueOf(rval.getDefinition().getId().toUpperCase())) {
                 case OAUTH2:
-                    Gson gson = new Gson();
-                    KongPluginOAuth oauthConfig = gson.fromJson(policy.getConfiguration(), KongPluginOAuth.class);
+                    KongPluginOAuth oauthConfig = gson.fromJson(rval.getConfiguration(), KongPluginOAuth.class);
                     oauthConfig.setProvisionKey(null);
-                    policy.setConfiguration(gson.toJson(oauthConfig));
+                    rval.setConfiguration(gson.toJson(oauthConfig));
                     break;
                 case REQUESTTRANSFORMER:
+                    KongPluginRequestTransformer reqConfig = new KongPluginRequestTransformer();
+                    reqConfig.setAdd(new KongPluginRequestTransformerAdd());
+                    reqConfig.setRemove(new KongPluginRequestTransformerRemove());
+                    rval.setConfiguration(gson.toJson(reqConfig));
+                    break;
                 case RESPONSETRANSFORMER:
+                    KongPluginResponseTransformer respConfig = new KongPluginResponseTransformer();
+                    respConfig.setAdd(new KongPluginResponseTransformerAdd());
+                    respConfig.setRemove(new KongPluginResponseTransformerRemove());
+                    rval.setConfiguration(gson.toJson(respConfig));
+                    break;
                 case LDAPAUTHENTICATION:
-                    policy.setConfiguration(null);
+                    KongPluginLDAP ldapConfig = new KongPluginLDAP();
+                    rval.setConfiguration(gson.toJson(ldapConfig));
+                    break;
                 default:
                     break;
             }
         }
-        return policy;
+        return rval;
     }
 
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
