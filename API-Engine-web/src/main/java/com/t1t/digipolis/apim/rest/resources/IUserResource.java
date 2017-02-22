@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.rest.resources;
 
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.dto.UserDtoBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -27,7 +28,7 @@ public interface IUserResource {
      * @return Full user information.
      * @throws UserNotFoundException when specified user not found
      */
-    public UserBean get(String userId) throws UserNotFoundException;
+    public UserDtoBean get(String userId) throws UserNotFoundException;
 
     /**
      * Use this endpoint to update the information about a user.  This will fail

@@ -1,6 +1,7 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
+import com.t1t.digipolis.apim.beans.dto.GatewayDtoBean;
 import com.t1t.digipolis.apim.beans.gateways.*;
 import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.GatewayTestResultBean;
@@ -14,6 +15,7 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.rest.resources.IGatewayResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.util.DtoFactory;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -24,7 +26,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.Date;
 import java.util.List;
 
 @Api(value = "/gateways", description = "The Gateway API.")
@@ -90,14 +91,19 @@ public class GatewayResource implements IGatewayResource {
     @ApiOperation(value = "Get a Gateway by ID",
             notes = "Call this endpoint to get the details of a single configured Gateway.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = GatewayBean.class, message = "The Gateway identified by {gatewayId}.")
+            @ApiResponse(code = 200, response = GatewayDtoBean.class, message = "The Gateway identified by {gatewayId}.")
     })
     @GET
     @Path("/{gatewayId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public GatewayBean get(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException, NotAuthorizedException {
+    public GatewayDtoBean get(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId), Messages.i18n.format("emptyValue", "Gateway ID"));
-        return gatewayFacade.get(gatewayId);
+        GatewayDtoBean rval = DtoFactory.createGatewayDtoBean(gatewayFacade.get(gatewayId));
+        if (!securityContext.isAdmin()) {
+            rval.setConfiguration(null);
+            rval.setJWTPrivKey(null);
+        }
+        return rval;
     }
 
     @ApiOperation(value = "Update a Gateway",
