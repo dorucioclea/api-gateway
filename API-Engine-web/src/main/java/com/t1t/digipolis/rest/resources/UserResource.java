@@ -2,6 +2,7 @@ package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
+import com.t1t.digipolis.apim.beans.dto.UserDtoBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.idm.NewUserBean;
 import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
@@ -24,6 +25,7 @@ import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.apim.rest.resources.IUserResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.util.DtoFactory;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -78,9 +80,14 @@ public class UserResource implements IUserResource {
     @GET
     @Path("/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public UserBean get(@PathParam("userId") String userId) throws UserNotFoundException {
+    public UserDtoBean get(@PathParam("userId") String userId) throws UserNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
-        return userFacade.get(userId);
+        UserDtoBean rval = DtoFactory.createUserDtoBean(userFacade.get(userId));
+        if (!securityContext.isAdmin()) {
+            rval.setJwtKey(null);
+            rval.setJwtSecret(null);
+        }
+        return rval;
     }
 
     @ApiOperation(value = "Get Admin users",

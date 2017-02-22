@@ -1230,7 +1230,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ServiceSummaryBean> getServicesInOrgs(Set<String> orgIds) throws StorageException {
         List<ServiceSummaryBean> rval = new ArrayList<>();
-
+        if (orgIds == null || orgIds.isEmpty()) {
+            return rval;
+        }
         EntityManager entityManager = getActiveEntityManager();
         String jpql = "SELECT s FROM ServiceBean s JOIN s.organization o WHERE o.id IN :orgs ORDER BY s.id ASC"; //$NON-NLS-1$
         Query query = entityManager.createQuery(jpql);
@@ -2955,6 +2957,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         }
         catch (NoResultException ex) {
             return null;
+        }
+    }
+
+    @Override
+    public Long getOAuth2TokenCount() throws StorageException {
+        try {
+            return (Long) getActiveEntityManager().createQuery("SELECT COUNT(o) FROM OAuth2TokenBean o").getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return 0L;
         }
     }
 }

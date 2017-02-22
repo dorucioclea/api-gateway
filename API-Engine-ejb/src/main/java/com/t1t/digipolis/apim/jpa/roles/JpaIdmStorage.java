@@ -1,12 +1,14 @@
 package com.t1t.digipolis.apim.jpa.roles;
 
 import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.IStorage;
+import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.jpa.AbstractJpaStorage;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
@@ -23,10 +25,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A JPA implementation of the role storage interface {@link com.t1t.digipolis.apim.core.IIdmStorage}.
@@ -40,6 +39,7 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
     private static Logger logger = LoggerFactory.getLogger(JpaIdmStorage.class);
     @Inject ISecurityAppContext appContext;
     @Inject IStorage storage;
+    @Inject IStorageQuery query;
 
     /**
      * Constructor.
@@ -268,12 +268,13 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         TypedQuery<RoleMembershipBean> typedQuery = em.createQuery(criteriaQuery);
         typedQuery.setMaxResults(500);
         List<RoleMembershipBean> resultList = typedQuery.getResultList();
+        Set<String> adminPrefixes = query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Admin));
         for (RoleMembershipBean membership : resultList) {
             RoleBean role = getRoleInternal(membership.getRoleId());
             String qualifier = membership.getOrganizationId();
             //apply app scope - checking org
             final OrganizationBean organization = storage.getOrganization(qualifier);
-            if(organization.getContext().equals(appContext.getApplicationPrefix())){
+            if(organization.getContext().equals(appContext.getApplicationPrefix()) || adminPrefixes.contains(appContext.getApplicationPrefix())) {
                 for (PermissionType permission : role.getPermissions()) {
                     PermissionBean p = new PermissionBean();
                     p.setName(permission);
@@ -290,8 +291,14 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         Set<PermissionBean> permissions = new HashSet<>();
         EntityManager em = getActiveEntityManager();
         //apply app scope
-        Query query = em.createQuery("SELECT o FROM OrganizationBean o WHERE o.context = :oContext");
-        query.setParameter("oContext",appContext.getApplicationPrefix());
+        Query query;
+        if (!this.query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
+            query = em.createQuery("SELECT o FROM OrganizationBean o WHERE o.context = :oContext");
+            query.setParameter("oContext", appContext.getApplicationPrefix());
+        }
+        else {
+            query = em.createQuery("SELECT o FROM OrganizationBean o");
+        }
         List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
         for(OrganizationBean org:orgs){
             PermissionType[] ptypes = PermissionType.values();

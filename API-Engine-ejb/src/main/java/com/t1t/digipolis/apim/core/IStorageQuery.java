@@ -1171,5 +1171,18 @@ public interface IStorageQuery {
      */
     public PolicyBean getPolicyByContractIdAndDefinitionForEntity(String organizationId, String entityId, String version, String polDef, Long contractId, String gatewayId) throws StorageException;
 
+    /**
+     * Get policy based in the Kong plugin ID
+     * @param kongPluginId
+     * @return
+     * @throws StorageException
+     */
     public PolicyBean getPolicyByKongPluginId(String kongPluginId) throws StorageException;
+
+    /**
+     * Get a count for the number of tokens that are backed up
+     * @return
+     * @throws StorageException
+     */
+    public Long getOAuth2TokenCount() throws StorageException;
 }
