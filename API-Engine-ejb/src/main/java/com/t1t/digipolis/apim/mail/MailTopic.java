@@ -1,8 +1,5 @@
 package com.t1t.digipolis.apim.mail;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Created by michallispashidis on 29/04/16.
  * Contains all data implicitly used for mail templates.

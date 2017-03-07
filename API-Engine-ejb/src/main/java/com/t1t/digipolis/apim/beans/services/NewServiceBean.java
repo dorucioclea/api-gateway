@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.beans.services;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 
 import java.io.Serializable;
 import java.util.Set;

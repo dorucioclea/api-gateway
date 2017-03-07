@@ -2,9 +2,7 @@ package com.t1t.digipolis.apim.rest.resources.filter;
 
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
-import com.t1t.digipolis.apim.beans.operation.OperatingBean;
 import com.t1t.digipolis.apim.beans.operation.SafeHTTPMethods;
-import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
@@ -12,13 +10,11 @@ import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 import com.t1t.digipolis.apim.maintenance.MaintenanceController;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import com.t1t.digipolis.rest.JaxRsActivator;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.JWTUtils;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
-import org.jose4j.jwt.consumer.JwtContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,11 +23,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static javafx.scene.input.KeyCode.M;
 
 /**
  * Created by michallispashidis on 20/09/15.

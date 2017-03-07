@@ -1,33 +1,7 @@
 package com.t1t.digipolis.apim.kong;
 
 import com.t1t.digipolis.kong.model.*;
-import com.t1t.digipolis.kong.model.KongApi;
-import com.t1t.digipolis.kong.model.KongApiList;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongConsumerList;
-import com.t1t.digipolis.kong.model.KongExtraInfo;
-import com.t1t.digipolis.kong.model.KongInfo;
-import com.t1t.digipolis.kong.model.KongInstalledPlugins;
-import com.t1t.digipolis.kong.model.KongOAuthTokenList;
-import com.t1t.digipolis.kong.model.KongPluginBasicAuthRequest;
-import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
-import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginJWTRequest;
-import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
-import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthRequest;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.KongPluginACLRequest;
-import com.t1t.digipolis.kong.model.KongPluginACLResponseList;
 import retrofit.http.*;
-
-import java.util.Collection;
 
 /**
  * Created by michallispashidis on 7/08/15.

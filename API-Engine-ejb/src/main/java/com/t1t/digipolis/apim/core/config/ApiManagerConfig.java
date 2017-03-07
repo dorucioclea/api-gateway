@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.core.config;
 
 import com.t1t.digipolis.apim.common.config.ConfigFactory;
 import org.apache.commons.configuration.Configuration;
+
 import javax.enterprise.context.ApplicationScoped;
 import java.net.MalformedURLException;
 import java.net.URL;

@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.core;
 
-import com.t1t.digipolis.apim.beans.metrics.*;
+import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
+import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
 import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;

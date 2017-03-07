@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.core;
 
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.exceptions.ExternalUserNotFoundException;
-import org.omg.CORBA.UserException;
 
 /**
  * Created by michallispashidis on 23/11/15.

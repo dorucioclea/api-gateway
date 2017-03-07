@@ -4,9 +4,6 @@ import com.t1t.digipolis.apim.beans.authorization.*;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 
-import javax.ws.rs.core.Response;
-import java.util.List;
-
 /**
  * Created by michallispashidis on 16/09/15.
  */

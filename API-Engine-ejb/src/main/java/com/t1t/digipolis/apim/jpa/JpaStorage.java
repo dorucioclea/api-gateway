@@ -36,7 +36,10 @@ import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
-import com.t1t.digipolis.apim.beans.search.*;
+import com.t1t.digipolis.apim.beans.search.PagingBean;
+import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
+import com.t1t.digipolis.apim.beans.search.SearchCriteriaFilterOperator;
+import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.SupportBean;
@@ -44,7 +47,6 @@ import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.mail.MailTopic;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -71,7 +73,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A JPA implementation of the storage interface.
@@ -712,8 +713,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public Set<String> getAllOrganizations() throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
         String jpql = "SELECT o FROM OrganizationBean o where o.context = :oContext";
-        Query query = entityManager.createQuery(jpql);
-        query.setParameter("oContext",appContext.getApplicationPrefix());
+        Query query;
+        if (!getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
+            query = em.createQuery("SELECT o FROM OrganizationBean o WHERE o.context = :oContext");
+            query.setParameter("oContext", appContext.getApplicationPrefix());
+        }
+        else {
+            query = em.createQuery("SELECT o FROM OrganizationBean o");
+        }
         List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
         logger.info("dborgs all:{}",orgs);
         Set<String> orgNames = new TreeSet<>();

@@ -1,7 +1,5 @@
 package com.t1t.digipolis.apim.beans.gateways;
 
-import com.t1t.digipolis.kong.model.KongPluginOAuthEnhanced;
-
 import java.io.Serializable;
 
 /**

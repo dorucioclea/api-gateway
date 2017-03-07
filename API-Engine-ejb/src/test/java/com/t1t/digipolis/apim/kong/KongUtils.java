@@ -1,7 +1,5 @@
 package com.t1t.digipolis.apim.kong;
 
-import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
-import com.t1t.digipolis.apim.common.util.AesEncrypter;
 import org.apache.commons.codec.binary.Base64;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;

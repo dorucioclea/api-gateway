@@ -9,7 +9,7 @@ import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.RoleAlreadyExistsException;
 import com.t1t.digipolis.apim.exceptions.RoleNotFoundException;
 
-import javax.ws.rs.*;
+import javax.ws.rs.NotAuthorizedException;
 import java.util.List;
 
 /**

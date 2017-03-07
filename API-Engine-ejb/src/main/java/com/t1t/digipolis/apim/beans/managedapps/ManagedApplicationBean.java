@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.beans.managedapps;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;

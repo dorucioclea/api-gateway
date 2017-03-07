@@ -1,12 +1,8 @@
 package com.t1t.digipolis.apim.servlet;
 
-import com.t1t.digipolis.apim.core.IStorage;
-import com.t1t.digipolis.apim.core.IStorageQuery;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;

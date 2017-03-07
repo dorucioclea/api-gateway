@@ -1,10 +1,10 @@
 package com.t1t.digipolis.rest.resources;
 
-import com.t1t.digipolis.apim.beans.contracts.ContractBean;
-import com.t1t.digipolis.apim.beans.policies.Policies;
-import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.AbstractRestException;
+import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
+import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
+import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
 import com.t1t.digipolis.apim.facades.MigrationFacade;
 import com.t1t.digipolis.apim.rest.resources.IMigrationResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -17,9 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import java.util.List;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 
 /**
  * @author Guillaume Vandecasteele

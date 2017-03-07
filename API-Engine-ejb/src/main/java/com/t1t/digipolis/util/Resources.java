@@ -1,6 +1,7 @@
 package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.kong.KongServiceBuilder;
+
 import javax.inject.Inject;
 
 /**

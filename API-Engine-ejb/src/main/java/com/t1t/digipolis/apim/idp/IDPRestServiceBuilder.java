@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
+
 import java.io.UnsupportedEncodingException;
 
 /**

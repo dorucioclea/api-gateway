@@ -12,7 +12,7 @@ import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.digipolis.apim.exceptions.UserNotFoundException;
 
-import javax.ws.rs.*;
+import javax.ws.rs.NotAuthorizedException;
 import java.util.List;
 
 /**

@@ -1,6 +1,5 @@
 package com.t1t.digipolis.util;
 
-import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.io.pem.PemReader;
 
@@ -9,12 +8,9 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.List;
 
 /**
  * Created by michallispashidis on 17/11/15.

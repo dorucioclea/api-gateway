@@ -13,7 +13,6 @@ import com.t1t.digipolis.apim.mail.MailService;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.GatewayUtils;
-import org.infinispan.factories.annotations.Start;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +20,6 @@ import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
@@ -61,7 +59,7 @@ public class StartupService {
             verifyOrCreateGatewayDependencies();
             sendTestMail();
         }
-        catch (StorageException ex){
+        catch (Exception ex) {
             _LOG.error(ex.getMessage());
         }
     }
