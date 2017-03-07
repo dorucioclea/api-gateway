@@ -4,7 +4,10 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.events.*;
-import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.idm.Role;
+import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.mail.*;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
@@ -31,7 +34,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.t1t.digipolis.apim.beans.events.EventType.*;
-import static javafx.scene.input.KeyCode.Z;
 
 /**
  * @author Guillaume Vandecasteele

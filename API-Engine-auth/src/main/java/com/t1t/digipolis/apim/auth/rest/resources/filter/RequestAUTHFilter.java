@@ -1,17 +1,11 @@
 package com.t1t.digipolis.apim.auth.rest.resources.filter;
 
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.auth.rest.JaxRsActivator;
-import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
-import com.t1t.digipolis.apim.beans.operation.OperatingBean;
-import com.t1t.digipolis.apim.beans.operation.SafeHTTPMethods;
 import com.t1t.digipolis.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
-import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.maintenance.MaintenanceController;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.facades.SearchFacade;

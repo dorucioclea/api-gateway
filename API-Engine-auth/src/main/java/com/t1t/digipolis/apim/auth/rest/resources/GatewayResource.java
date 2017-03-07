@@ -2,8 +2,6 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTPubKeyResponse;
-import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
-import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.JWTPubKeyException;

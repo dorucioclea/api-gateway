@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
-
 /**
  * Models a single version of a service "impl".  Every service in
  * APIEngine has basic meta-data stored in {@link ServiceBean}.  All

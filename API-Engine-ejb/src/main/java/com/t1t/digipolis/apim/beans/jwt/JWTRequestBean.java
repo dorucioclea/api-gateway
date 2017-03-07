@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.beans.jwt;
-import java.util.*;
+
+import java.util.Map;
 /**
  * Created by michallispashidis on 23/11/15.
  */

@@ -1,14 +1,11 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.beans.services.DefaultServiceTermsBean;
 import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.facades.DefaultsFacade;
-import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.maintenance.MaintenanceController;
 import com.t1t.digipolis.apim.rest.resources.IAdminResource;
 import com.t1t.digipolis.apim.rest.resources.IMaintenanceResource;
@@ -18,8 +15,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;

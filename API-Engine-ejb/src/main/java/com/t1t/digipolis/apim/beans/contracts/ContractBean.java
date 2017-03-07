@@ -1,7 +1,9 @@
 package com.t1t.digipolis.apim.beans.contracts;
+
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;

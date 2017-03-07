@@ -1,9 +1,5 @@
 package com.t1t.digipolis.apim.beans;
 
-import com.t1t.digipolis.apim.security.ISecurityAppContext;
-
-import javax.inject.Inject;
-
 /**
  * Some simple bean utils.
  *

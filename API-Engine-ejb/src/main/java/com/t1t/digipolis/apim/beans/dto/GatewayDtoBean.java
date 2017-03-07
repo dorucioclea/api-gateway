@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.beans.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
+
 import java.io.Serializable;
 import java.util.Date;
 

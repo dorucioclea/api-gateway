@@ -2,8 +2,6 @@ package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Guillaume Vandecasteele

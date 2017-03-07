@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.security.impl;
 
-import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -15,8 +14,6 @@ import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import java.io.Serializable;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 5/09/15.

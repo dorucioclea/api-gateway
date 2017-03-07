@@ -2,13 +2,9 @@ package com.t1t.digipolis.apim.rest.impl.mappers;
 
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.core.i18n.Messages;
-import com.t1t.digipolis.apim.exceptions.AbstractRestException;
 import com.t1t.digipolis.apim.exceptions.ErrorCodes;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;

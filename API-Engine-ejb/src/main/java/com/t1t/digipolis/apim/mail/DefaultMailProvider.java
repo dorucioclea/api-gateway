@@ -3,7 +3,6 @@ package com.t1t.digipolis.apim.mail;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.mail.BaseMailBean;
 import com.t1t.digipolis.apim.exceptions.MailProviderException;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

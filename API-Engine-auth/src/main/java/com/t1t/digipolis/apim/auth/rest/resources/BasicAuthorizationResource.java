@@ -3,17 +3,14 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerBean;
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestBasicAuthBean;
-import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
 import com.t1t.digipolis.apim.facades.AuthorizationFacade;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

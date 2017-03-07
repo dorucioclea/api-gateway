@@ -3,7 +3,6 @@ package com.t1t.digipolis.apim.scim;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.digipolis.apim.beans.scim.SCIMConfigBean;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;

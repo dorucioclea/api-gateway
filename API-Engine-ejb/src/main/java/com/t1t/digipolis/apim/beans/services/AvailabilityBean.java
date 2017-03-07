@@ -1,7 +1,5 @@
 package com.t1t.digipolis.apim.beans.services;
 
-import javax.persistence.Column;
-
 /**
  * Created by michallispashidis on 25/06/16.
  */

@@ -1,7 +1,5 @@
 package com.t1t.digipolis.apim.beans.events;
 
-import java.io.Serializable;
-
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
