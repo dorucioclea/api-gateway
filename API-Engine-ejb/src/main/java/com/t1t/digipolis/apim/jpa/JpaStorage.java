@@ -19,6 +19,7 @@ import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayType;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.idp.IDPBean;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -2975,5 +2976,44 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         catch (NoResultException ex) {
             return 0L;
         }
+    }
+
+    @Override
+    public void createIDP(IDPBean idp) throws StorageException {
+        super.create(idp);
+    }
+
+    @Override
+    public void updateIDPBean(IDPBean idp) throws StorageException {
+        super.update(idp);
+    }
+
+    @Override
+    public void deleteIDP(IDPBean idp) throws StorageException {
+        super.delete(idp);
+    }
+
+    @Override
+    public IDPBean getIDP(String id) throws StorageException {
+        return super.get(id, IDPBean.class);
+    }
+
+    @Override
+    public IDPBean getOrCreateIDP(IDPBean idp) throws StorageException {
+        IDPBean rval = getIDP(idp.getId());
+        if (rval == null) {
+            createIDP(idp);
+            rval = idp;
+        }
+        return rval;
+    }
+
+    @Override
+    public IDPBean getDefaultIdp() throws StorageException {
+        List<IDPBean> result = getActiveEntityManager().createQuery("SELECT i FROM IDPBean i WHERE i.defaultIdp = TRUE").getResultList();
+        if (!result.isEmpty()) {
+            return result.get(0);
+        }
+        else return null;
     }
 }

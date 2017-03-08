@@ -485,7 +485,7 @@ public class ActionFacade {
                         break;
                     }*/
                     default: {
-                        throw new RuntimeException("Missing case for switch!"); //$NON-NLS-1$
+                        throw new IllegalArgumentException("Missing case for switch!"); //$NON-NLS-1$
                     }
                 }
                 List<PolicySummaryBean> appPolicies = query.getPolicies(org, id, ver, policyType);

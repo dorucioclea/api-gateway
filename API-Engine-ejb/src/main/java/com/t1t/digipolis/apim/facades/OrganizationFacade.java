@@ -61,6 +61,9 @@ import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
+import com.t1t.digipolis.apim.idp.IDPClient;
+import com.t1t.digipolis.apim.idp.IDPLinkFactory;
+import com.t1t.digipolis.apim.idp.dto.Realm;
 import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -105,10 +108,8 @@ import static com.t1t.digipolis.util.ServiceConventionUtil.generateServiceUnique
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
-public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
-    private static Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
-    @PersistenceContext
-    private EntityManager em;
+public class OrganizationFacade {
+    private static final Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
     @Inject private ISecurityContext securityContext;
     @Inject private ISecurityAppContext appContext;
     @Inject
@@ -143,21 +144,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     private Event<AnnouncementBean> announcement;
     @Inject
     private GatewayValidation gatewayValidation;
+    @Inject
+    private IDPLinkFactory idpFactory;
 
     public final static String MARKET_SEPARATOR = "-";
 
-    @SuppressWarnings("nls")
-    public static final String[] DATE_FORMATS = {
-            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-            "yyyy-MM-dd'T'HH:mm:ss'Z'",
-            "yyyy-MM-dd'T'HH:mm:ssz",
-            "yyyy-MM-dd'T'HH:mm:ss",
-            "yyyy-MM-dd'T'HH:mm",
-            "yyyy-MM-dd",
-            "EEE, dd MMM yyyy HH:mm:ss z",
-            "EEE, dd MMM yyyy HH:mm:ss",
-            "EEE, dd MMM yyyy"
-    };
     public static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
 
     private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
@@ -179,10 +170,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         }
 
-        if ("true".equals(System.getProperty("apim.manager.require-auto-granted-org", "true"))) {
-            if (autoGrantedRoles.isEmpty()) {
-                throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable"));
-            }
+        if ("true".equals(System.getProperty("apim.manager.require-auto-granted-org", "true")) && autoGrantedRoles.isEmpty()) {
+            throw new SystemErrorException(Messages.i18n.format("OrganizationResourceImpl.NoAutoGrantRoleAvailable"));
         }
         //determine org id
         String orgUniqueId = bean.getName();
@@ -221,6 +210,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             storage.createOrganization(orgBean);
             storage.createAuditEntry(AuditUtils.organizationCreated(orgBean, securityContext));
+            //Create the corresponding realm on the IDP
+            IDPClient idp = idpFactory.getDefaultIDPClient();
+            idp.createRealm(orgBean);
 
             // Auto-grant memberships in roles to the creator of the organization
             for (RoleBean roleBean : autoGrantedRoles) {
@@ -290,18 +282,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public SearchResultsBean<AuditEntryBean> activity(String organizationId, int page, int pageSize) {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
         try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, null, null, null, paging);
+            SearchResultsBean<AuditEntryBean> rval;
+            rval = query.auditEntity(organizationId, null, null, null, getPagingBean(page, pageSize));
             return rval;
         } catch (AbstractRestException e) {
             throw e;
@@ -565,7 +548,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
 
     public ContractBean acceptContractRequest(String organizationId, String applicationId, String version, NewContractBean bean) {
         //Validate service and app version, and verify if request actually occurred
-        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
+        getAppVersion(organizationId, applicationId, version);
         ServiceVersionBean svb = getServiceVersionInternal(bean.getServiceOrgId(), bean.getServiceId(), bean.getServiceVersion());
         if (svb.getService().isAdmin() && !securityContext.isAdmin()) {
             throw ExceptionFactory.notAuthorizedException();
@@ -751,7 +734,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                     storage.updateApplicationVersion(avb);
                 } catch (Exception e) {
                     log.debug("Error enabling application for oauth:{}", e.getStackTrace());
-                    ;//don't do anything
+                    //don't do anything
                 }
                 if (response == null) {
                     log.debug("Enable consumer for oauth - response empty");
@@ -913,18 +896,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public SearchResultsBean<AuditEntryBean> getAppActivity(String organizationId, String applicationId, int page, int pageSize) {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
         try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, applicationId, null, ApplicationBean.class, paging);
+            SearchResultsBean<AuditEntryBean> rval;
+            rval = query.auditEntity(organizationId, applicationId, null, ApplicationBean.class, getPagingBean(page, pageSize));
             return rval;
         } catch (AbstractRestException e) {
             throw e;
@@ -988,7 +962,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public PolicyBean getPlanPolicy(String organizationId, String planId, String version, long policyId) {
-        boolean hasPermission = securityContext.hasPermission(PermissionType.planView, organizationId);
 
         // Make sure the plan version exists
         getPlanVersion(organizationId, planId, version);
@@ -1258,13 +1231,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 try {
                     if (svb.getGateways() == null || svb.getGateways().isEmpty()) {
                         GatewaySummaryBean gateway = getSingularGateway();
-                        if (gateway != null) {
-                            if (svb.getGateways() == null) {
-                                svb.setGateways(new HashSet<ServiceGatewayBean>());
-                                ServiceGatewayBean sgb = new ServiceGatewayBean();
-                                sgb.setGatewayId(gateway.getId());
-                                svb.getGateways().add(sgb);
-                            }
+                        if (gateway != null && svb.getGateways() == null) {
+                            svb.setGateways(new HashSet<>());
+                            ServiceGatewayBean sgb = new ServiceGatewayBean();
+                            sgb.setGatewayId(gateway.getId());
+                            svb.getGateways().add(sgb);
                         }
                         log.debug("BEAN GATEWAYS FILLED IN IF EMPTY");
                     }
@@ -1532,18 +1503,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public SearchResultsBean<AuditEntryBean> getAppVersionActivity(String organizationId, String applicationId, String version, int page, int pageSize) {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
         try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, applicationId, version, ApplicationBean.class, paging);
+            SearchResultsBean<AuditEntryBean> rval;
+            rval = query.auditEntity(organizationId, applicationId, version, ApplicationBean.class, getPagingBean(page, pageSize));
             return rval;
         } catch (AbstractRestException e) {
             throw e;
@@ -1588,12 +1550,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
-        if (interval == null) {
-            interval = HistogramIntervalType.day;
+        HistogramIntervalType intrval = interval;
+        if (intrval == null) {
+            intrval = HistogramIntervalType.day;
         }
         validateMetricRange(from, to);
-        validateTimeSeriesMetric(from, to, interval);
-        MetricsUsageList usageList = metrics.getUsage(organizationId, serviceId, version, interval, from, to);
+        validateTimeSeriesMetric(from, to, intrval);
+        MetricsUsageList usageList = metrics.getUsage(organizationId, serviceId, version, intrval, from, to);
         if (usageList != null) {
             return usageList;
         } else {
@@ -1615,12 +1578,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
-        if (interval == null) {
-            interval = HistogramIntervalType.day;
+        HistogramIntervalType intrval = interval;
+        if (intrval == null) {
+            intrval = HistogramIntervalType.day;
         }
         validateMetricRange(from, to);
-        validateTimeSeriesMetric(from, to, interval);
-        MetricsResponseStatsList statsList = metrics.getResponseStats(organizationId, serviceId, version, interval, from, to);
+        validateTimeSeriesMetric(from, to, intrval);
+        MetricsResponseStatsList statsList = metrics.getResponseStats(organizationId, serviceId, version, intrval, from, to);
         if (statsList != null) {
             return statsList;
         } else {
@@ -1694,7 +1658,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             ContractBean contract = getContract(organizationId, applicationId, version, contractId);
             ApplicationVersionBean avb;
             avb = storage.getApplicationVersion(organizationId, applicationId, version);
-            Map<String, IGatewayLink> gateways = getApplicationContractGatewayLinks(Collections.singletonList(contract));
             if (contract == null) {
                 throw ExceptionFactory.contractNotFoundException(contractId);
             }
@@ -1706,14 +1669,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             if (!contract.getApplication().getVersion().equals(version)) {
                 throw ExceptionFactory.contractNotFoundException(contractId);
-            }
-
-            //get all application contracts in order to verify if other contracts are present
-            List<ContractSummaryBean> contractBeans = null;
-            try {
-                contractBeans = query.getApplicationContracts(organizationId, applicationId, version);
-            } catch (StorageException e) {
-                throw ExceptionFactory.actionException(Messages.i18n.format("ApplicationNotFound"), e); //$NON-NLS-1$
             }
 
             //Revoke application's contract plugins
@@ -1772,6 +1727,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             case RATELIMITING:
                 gateway.deleteApiPlugin(generateServiceUniqueName(c.getService()), p.getKongPluginId());
                 deleted = true;
+                break;
+            default:
                 break;
         }
         if (deleted) {
@@ -2030,18 +1987,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public SearchResultsBean<AuditEntryBean> getServiceActivity(String organizationId, String serviceId, int page, int pageSize) {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
         try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, serviceId, null, ServiceBean.class, paging);
+            SearchResultsBean<AuditEntryBean> rval;
+            rval = query.auditEntity(organizationId, serviceId, null, ServiceBean.class, getPagingBean(page, pageSize));
             return rval;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -2155,7 +2103,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             if (!gatewaySvbs.isEmpty()) {
                 for (ServiceVersionBean svb : gatewaySvbs) {
                     for (ServiceGatewayBean gwBean : svb.getGateways()) {
-                        gatewayFacade.createGatewayLink(gwBean.getGatewayId()).deleteApi(ServiceConventionUtil.generateServiceUniqueName(brandingId, serviceId, svb.getVersion()));
+                        gatewayFacade.createGatewayLink(gwBean.getGatewayId()).deleteApi(generateServiceUniqueName(brandingId, serviceId, svb.getVersion()));
                     }
                 }
             }
@@ -2230,7 +2178,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
             //enrich visibility with the name of the marketplace based on the persisted prefix.
-            final List<ManagedApplicationBean> availableMarkets = query.listAvailableMarkets();
             for (VisibilityBean vb : serviceVersion.getVisibility()) {
                 //get the name of the marketplace
                 final ManagedApplicationBean managedApplication = query.findManagedApplication(vb.getCode());
@@ -2287,18 +2234,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }*/
 
     public SearchResultsBean<AuditEntryBean> getServiceVersionActivity(String organizationId, String serviceId, String version, int page, int pageSize) {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
         try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, serviceId, version, ServiceBean.class, paging);
+            SearchResultsBean<AuditEntryBean> rval;
+            rval = query.auditEntity(organizationId, serviceId, version, ServiceBean.class, getPagingBean(page, pageSize));
             return rval;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -2469,16 +2407,18 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public List<ContractSummaryBean> getServiceVersionContracts(String organizationId, String serviceId, String version, int page, int pageSize) {
-        if (page <= 1) {
-            page = 1;
+        int pg = page;
+        int pgSize = pageSize;
+        if (pg <= 1) {
+            pg = 1;
         }
-        if (pageSize == 0) {
-            pageSize = 200;
+        if (pgSize == 0) {
+            pgSize = 200;
         }
         // Try to get the service first - will throw an exception if not found.
         getServiceVersionInternal(organizationId, serviceId, version);
         try {
-            List<ContractSummaryBean> contracts = query.getServiceContracts(organizationId, serviceId, version, page, pageSize);
+            List<ContractSummaryBean> contracts = query.getServiceContracts(organizationId, serviceId, version, pg, pgSize);
 
             log.debug(String.format("Got service %s version %s contracts: %s", serviceId, version, contracts)); //$NON-NLS-1$
             return contracts;
@@ -2557,18 +2497,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public SearchResultsBean<AuditEntryBean> getPlanActivity(String organizationId, String planId, int page, int pageSize) {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
         try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, planId, null, PlanBean.class, paging);
+            SearchResultsBean<AuditEntryBean> rval;
+            rval = query.auditEntity(organizationId, planId, null, PlanBean.class, getPagingBean(page, pageSize));
             return rval;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -2656,18 +2587,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     public SearchResultsBean<AuditEntryBean> getPlanVersionActivity(String organizationId, String planId, String version, int page, int pageSize) {
-        if (page <= 1) {
-            page = 1;
-        }
-        if (pageSize == 0) {
-            pageSize = 20;
-        }
         try {
-            SearchResultsBean<AuditEntryBean> rval = null;
-            PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
-            rval = query.auditEntity(organizationId, planId, version, PlanBean.class, paging);
+            SearchResultsBean<AuditEntryBean> rval;
+            rval = query.auditEntity(organizationId, planId, version, PlanBean.class, getPagingBean(page, pageSize));
             return rval;
         } catch (StorageException e) {
             throw new SystemErrorException(e);
@@ -3087,33 +3009,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
     }
 
     /**
-     * Check to see if the contract already exists, by getting a list of all the
-     * application's contracts and comparing with the one being created.
-     *
-     * @param organizationId
-     * @param applicationId
-     * @param version
-     * @param bean
-     */
-    @TransactionAttribute(TransactionAttributeType.MANDATORY)
-    private boolean contractAlreadyExists(String organizationId, String applicationId, String version, NewContractBean bean) {
-        try {
-            List<ContractSummaryBean> contracts = query.getApplicationContracts(organizationId, applicationId, version);
-            for (ContractSummaryBean contract : contracts) {
-                if (contract.getServiceOrganizationId().equals(bean.getServiceOrgId()) &&
-                        contract.getServiceId().equals(bean.getServiceId()) &&
-                        contract.getServiceVersion().equals(bean.getServiceVersion()) &&
-                        contract.getPlanId().equals(bean.getPlanId())) {
-                    return true;
-                }
-            }
-            return false;
-        } catch (StorageException e) {
-            return false;
-        }
-    }
-
-    /**
      * Gets a policy by its id.  Also verifies that the policy really does belong to
      * the entity indicated.
      *
@@ -3221,7 +3116,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
-            log.debug("Failed to create policy {} for {}: {}", def.getId(), ServiceConventionUtil.generateServiceUniqueName(organizationId, entityId, entityVersion), bean);
+            log.debug("Failed to create policy {} for {}: {}", def.getId(), generateServiceUniqueName(organizationId, entityId, entityVersion), bean);
             throw new SystemErrorException(e);
         }
     }
@@ -3286,13 +3181,11 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         newVersion.setService(service);
         //If the service is designated as an admin service, do not enable auto contract acceptance
         newVersion.setAutoAcceptContracts(service.isAdmin() != null && !service.isAdmin());
-        if (gateway != null) {
-            if (newVersion.getGateways() == null) {
-                newVersion.setGateways(new HashSet<ServiceGatewayBean>());
-                ServiceGatewayBean sgb = new ServiceGatewayBean();
-                sgb.setGatewayId(gateway.getId());
-                newVersion.getGateways().add(sgb);
-            }
+        if (gateway != null && newVersion.getGateways() == null) {
+            newVersion.setGateways(new HashSet<>());
+            ServiceGatewayBean sgb = new ServiceGatewayBean();
+            sgb.setGatewayId(gateway.getId());
+            newVersion.getGateways().add(sgb);
         }
         //TODO add path information to endpoint properties
         if (serviceValidator.isReady(newVersion)) {
@@ -3332,12 +3225,13 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 Policies type = Policies.valueOf(polDef.getId().toUpperCase());
                 if (query.getEntityPoliciesByDefinitionId(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service, type).isEmpty()) {
 
-                    if (checkForConflicts) {
-                        if (type == Policies.KEYAUTHENTICATION && !query.getEntityPoliciesByDefinitionId(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service, Policies.OAUTH2).isEmpty()) {
+                    if (checkForConflicts &&
+                            type == Policies.KEYAUTHENTICATION &&
+                            !query.getEntityPoliciesByDefinitionId(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service, Policies.OAUTH2).isEmpty()) {
                             continue;
-                        }
                     }
-                    String policyJsonConfig = null;
+
+                    String policyJsonConfig;
                     Gson gson = new Gson();
                     switch (type) {
                         case ACL:
@@ -3397,6 +3291,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @param data
      */
     protected void storeServiceDefinition(String organizationId, String serviceId, String version, ServiceDefinitionType definitionType, InputStream data) {
+        InputStream localData = data;
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
@@ -3410,10 +3305,10 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
             String svPath = GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), serviceVersion.getVersion());
-            data = transformJSONObjectDef(data, serviceVersion, svPath);
+            localData = transformJSONObjectDef(localData, serviceVersion, svPath);
             //safety check
-            if (data == null) throw new DefinitionException("The Swagger data returned is invalid");
-            storage.updateServiceDefinition(serviceVersion, data);
+            if (localData == null) throw new DefinitionException("The Swagger data returned is invalid");
+            storage.updateServiceDefinition(serviceVersion, localData);
             log.debug(String.format("Stored service definition %s: %s", serviceId, serviceVersion)); //$NON-NLS-1$
         } catch (AbstractRestException e) {
             throw e;
@@ -3422,35 +3317,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    /**
-     * The method parses the json def to an object in order to perform some modificaitons.
-     * In the API engine, conventionally all base paths must be set to "/" in the defintion.
-     *
-     * @param data
-     * @return
-     * @throws IOException
-     */
-    private InputStream transformSwaggerDef(InputStream data, ServiceVersionBean serviceVersionBean, String serviceVersionPath) throws StorageException, IOException {
-        //set all base paths to "/servicebasepath" because the path is decided by the APi engine
-        Swagger swaggerJson = new SwaggerParser().parse(IOUtils.toString(data));//IOUtils.closequietly?
-        swaggerJson.setBasePath(serviceVersionPath);
-        //available schemes override
-        List<Scheme> schemeList = new ArrayList<>();
-        schemeList.add(Scheme.HTTPS);
-        swaggerJson.setSchemes(schemeList);
-        swaggerJson.setHost(null);
-        //read documentation and persist if present
-        if (swaggerJson != null && swaggerJson.getExternalDocs() != null) {
-            String onlineDoc = swaggerJson.getExternalDocs().getUrl();
-            if (!StringUtils.isEmpty(onlineDoc)) {
-                serviceVersionBean.setOnlinedoc(onlineDoc);
-            }
-        }
-        storage.updateServiceVersion(serviceVersionBean);
-        return new ByteArrayInputStream((Json.pretty(swaggerJson)).getBytes());
-
-        //InputStream stream = new ByteArrayInputStream(exampleString.getBytes());//StandardCharsets.UTF_8
-    }
 
     /**
      * Because Swagger validation is too strict - see method transformSwaggerDef() - a custom json updater has been implemented.
@@ -3489,7 +3355,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 //update service
                 serviceVersionBean.setOnlinedoc(docUrl);
             } catch (JSONException jsonex) {
-                ;//continue::don't do anything -> no external doc present
+                //continue::don't do anything -> no external doc present
             }
             //serialize to calling method
             return new ByteArrayInputStream(json.toString().getBytes());
@@ -3589,8 +3455,8 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             default:
                 break;
         }
-        long totalDataPoints = millis / divBy;
-/*        if (totalDataPoints > 5000) {
+        /*long totalDataPoints = millis / divBy;
+        if (totalDataPoints > 5000) {
             throw ExceptionFactory.invalidMetricCriteriaException(Messages.i18n.format("OrganizationResourceImpl.MetricDataSetTooLarge")); //$NON-NLS-1$
         }*/
     }
@@ -3605,7 +3471,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
      * @throws NotAuthorizedException
      */
     protected ApiRegistryBean getApiRegistry(String organizationId, String applicationId, String version) throws ApplicationNotFoundException, NotAuthorizedException {
-        boolean hasPermission = securityContext.hasPermission(PermissionType.appView, organizationId);
         // Try to get the application first - will throw a ApplicationNotFoundException if not found.
         getAppVersion(organizationId, applicationId, version);
         Map<String, IGatewayLink> gatewayLinks = new HashMap<>();
@@ -3640,9 +3505,9 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
             throw new SystemErrorException(e);
         } finally {
             if (txStarted) {
-            }
-            for (IGatewayLink link : gatewayLinks.values()) {
-                link.close();
+                for (IGatewayLink link : gatewayLinks.values()) {
+                    link.close();
+                }
             }
         }
     }
@@ -3670,10 +3535,6 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         storage.createPlanVersion(newVersion);
         storage.createAuditEntry(AuditUtils.planVersionCreated(newVersion, securityContext));
         return newVersion;
-    }
-
-    public void setEm(EntityManager em) {
-        this.em = em;
     }
 
 
@@ -4432,5 +4293,20 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         else {
             return split;
         }
+    }
+
+    private PagingBean getPagingBean(int page, int pageSize) {
+        int pg = page;
+        int pgSize = pageSize;
+        if (pg <= 1) {
+            pg = 1;
+        }
+        if (pgSize == 0) {
+            pgSize = 20;
+        }
+        PagingBean paging = new PagingBean();
+        paging.setPage(pg);
+        paging.setPageSize(pgSize);
+        return paging;
     }
 }

@@ -55,8 +55,6 @@ public class EventFacade {
     private OrganizationFacade orgFacade;
     @Inject
     private MailService mailService;
-    @Inject
-    private RoleFacade roleFacade;
 
     public EventBean get(Long id) {
         try {

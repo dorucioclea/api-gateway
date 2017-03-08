@@ -260,4 +260,12 @@ public final class ErrorCodes {
     public static final int SYSTEM_MAINTENANCE_LOGIN            = 20002;
 
     public static final String SYSTEM_MAINTENANCE_INFO          = null;
+
+    //
+    // IDP related
+    //
+
+    public static final int IDP_NOT_FOUND                       = 21004;
+
+    public static final String IDP_NOT_FOUND_INFO               = null;
 }

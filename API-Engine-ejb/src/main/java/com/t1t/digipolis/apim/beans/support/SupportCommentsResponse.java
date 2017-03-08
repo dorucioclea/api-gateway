@@ -7,7 +7,8 @@ import java.util.List;
  * Created by michallispashidis on 4/10/15.
  */
 public class SupportCommentsResponse implements Serializable {
-    List<SupportComment> comments;
+
+    private List<SupportComment> comments;
 
     public SupportCommentsResponse() {
     }

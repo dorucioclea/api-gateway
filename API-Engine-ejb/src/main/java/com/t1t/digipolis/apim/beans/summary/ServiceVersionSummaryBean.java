@@ -24,12 +24,6 @@ public class ServiceVersionSummaryBean implements Serializable {
     private boolean publicService;
 
     /**
-     * Constructor.
-     */
-    public ServiceVersionSummaryBean() {
-    }
-
-    /**
      * @return the organizationId
      */
     public String getOrganizationId() {

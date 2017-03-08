@@ -12,12 +12,6 @@ public class PluginSpec {
     private String version;
 
     /**
-     * Constructor.
-     */
-    public PluginSpec() {
-    }
-
-    /**
      * @return the name
      */
     public String getName() {

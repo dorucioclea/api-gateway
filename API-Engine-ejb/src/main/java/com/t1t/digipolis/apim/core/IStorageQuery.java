@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.idp.IDPBean;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -1180,4 +1181,11 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public Long getOAuth2TokenCount() throws StorageException;
+
+    /**
+     * Returns the default IDP
+     * @return
+     * @throws StorageException
+     */
+    public IDPBean getDefaultIdp() throws StorageException;
 }

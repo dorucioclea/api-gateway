@@ -24,7 +24,6 @@ import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.kong.KongConstants;
-import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
@@ -32,8 +31,6 @@ import com.t1t.digipolis.util.GatewayPathUtilities;
 import com.t1t.digipolis.util.URIUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
@@ -48,13 +45,11 @@ import java.util.stream.Collectors;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OAuthFacade {
-    private static Logger log = LoggerFactory.getLogger(OAuthFacade.class.getName());
-    @Inject IStorageQuery query;
+    @Inject private IStorageQuery query;
     @Inject private IStorage storage;
     @Inject private IIdmStorage idmStorage;
     @Inject private IGatewayLinkFactory gatewayLinkFactory;
     @Inject private AppConfig config;
-    @Inject private ISecurityAppContext appContext;
 
     /**
      * This method should be called only for the consumer registering the OAuth service, and thus not for each consumer using the OAuth
@@ -86,7 +81,7 @@ public class OAuthFacade {
                     avb.setOauthCredentialId(response.getId());
                     storage.updateApplicationVersion(avb);
                 } catch (Exception e) {
-                    ;//don't do anything
+                    //don't do anything
                 }
                 if (response == null) {
                     //try to recover existing user
@@ -155,7 +150,6 @@ public class OAuthFacade {
                     /*serviceVersion.getService().getBasepath()*/
                     return response;
                 }
-                ;
             } else throw new GatewayException("No default gateway found!");
         } catch (StorageException e) {
             e.printStackTrace();

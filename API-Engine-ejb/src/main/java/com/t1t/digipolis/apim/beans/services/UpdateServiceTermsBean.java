@@ -6,9 +6,6 @@ package com.t1t.digipolis.apim.beans.services;
 public class UpdateServiceTermsBean {
     private String terms;
 
-    public UpdateServiceTermsBean() {
-    }
-
     public String getTerms() {
         return terms;
     }

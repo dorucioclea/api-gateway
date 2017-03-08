@@ -14,12 +14,6 @@ public class AuthToken {
     private String principal;
     private Set<String> roles;
     private String signature;
-    
-    /**
-     * Constructor.
-     */
-    public AuthToken() {
-    }
 
     /**
      * @return the issuedOn

@@ -667,4 +667,13 @@ public final class ExceptionFactory {
     public static final MaintenanceException maintenanceException(String message, Integer errorCode) {
         return new MaintenanceException(message, errorCode);
     }
+
+    /**
+     * Creates an exception
+     * @param id
+     * @return
+     */
+    public static final IDPNotFoundException idpNotFoundException(String id) {
+        return new IDPNotFoundException(Messages.i18n.format("idpNotFound", id));
+    }
 }

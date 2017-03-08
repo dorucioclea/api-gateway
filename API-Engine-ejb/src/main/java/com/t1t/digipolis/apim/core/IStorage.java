@@ -13,6 +13,7 @@ import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.defaults.DefaultsBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.idp.IDPBean;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
@@ -73,6 +74,7 @@ public interface IStorage {
     public void createConfig(ConfigBean config) throws StorageException;
     public void createBranding(ServiceBrandingBean branding) throws StorageException;
     public void createOAuth2Token(OAuth2TokenBean token) throws StorageException;
+    public void createIDP(IDPBean idp) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -104,6 +106,7 @@ public interface IStorage {
     public void updateBranding(ServiceBrandingBean branding) throws StorageException;
     public void updateOperatingBean(OperatingBean operatingBean) throws StorageException;
     public void updateOAuth2TokenBean(OAuth2TokenBean token) throws StorageException;
+    public void updateIDPBean(IDPBean idp) throws StorageException;
 
 
     /*
@@ -137,6 +140,7 @@ public interface IStorage {
     public void deleteConfig(ConfigBean configBean) throws StorageException;
     public void deleteBranding(ServiceBrandingBean branding) throws StorageException;
     public void deleteOAuth2Token(OAuth2TokenBean token) throws StorageException;
+    public void deleteIDP(IDPBean idp) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -170,6 +174,7 @@ public interface IStorage {
     public DefaultsBean getDefaults(String id) throws StorageException;
     public List<ConfigBean> getDefaultConfig() throws StorageException;
     public ServiceBrandingBean getBranding(String id) throws StorageException;
+    public IDPBean getIDP(String id) throws StorageException;
 
 
     /*
@@ -198,4 +203,10 @@ public interface IStorage {
      * @throws StorageException
      */
     public Set<ServiceBrandingBean> getAllBrandings() throws StorageException;
+
+    /**
+     * Get or create methods
+     */
+
+    public IDPBean getOrCreateIDP(IDPBean idp) throws StorageException;
 }
