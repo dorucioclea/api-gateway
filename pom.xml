@@ -188,7 +188,7 @@
         <jose4j.version>0.5.0</jose4j.version>
         <oauth2-client.version>2.5.2</oauth2-client.version>
         <bouncycastle.version>1.54</bouncycastle.version>
-        <version.keycloak.admin.client>2.5.0.Final</version.keycloak.admin.client>
+        <version.keycloak>2.5.0.Final</version.keycloak>
 
         <!--Build number and date-->
         <buildNumber>${maven.build.timestamp}</buildNumber>
@@ -618,12 +618,12 @@
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-core</artifactId>
-                <version>${version.org.keycloak}</version>
+                <version>${version.keycloak}</version>
             </dependency>
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-server-overlay</artifactId>
-                <version>${version.org.keycloak}</version>
+                <version>${version.keycloak}</version>
                 <type>zip</type>
             </dependency>
 
@@ -770,7 +770,7 @@
             <dependency>
                 <groupId>org.keycloak</groupId>
                 <artifactId>keycloak-admin-client</artifactId>
-                <version>${version.keycloak.admin.client}</version>
+                <version>${version.keycloak}</version>
             </dependency>
 
             <dependency>

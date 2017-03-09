@@ -888,6 +888,8 @@ public class OrganizationFacade {
             }
             // Delete related application events
             query.deleteAllEventsForEntity(ConsumerConventionUtil.createAppUniqueId(avb));
+            // Delete the client on the IDP
+            idpFactory.getDefaultIDPClient().deleteClient(avb);
             // Finally delete the application
             storage.deleteApplicationVersion(avb);
         } catch (StorageException ex) {
@@ -2934,6 +2936,8 @@ public class OrganizationFacade {
                 .withClientSecret(newVersion.getOauthClientSecret())
                 .withName(appConsumerName).withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
         newVersion.setOauthCredentialId(response.getId());
+        //Create the corresponding IDP client and set the app version idp id
+        newVersion.setIdpClientId(idpFactory.getDefaultIDPClient().createClient(newVersion).getId());
         storage.createApplicationVersion(newVersion);
         storage.createAuditEntry(AuditUtils.applicationVersionCreated(newVersion, securityContext));
         log.debug(String.format("Created new application version %s: %s", newVersion.getApplication().getName(), newVersion)); //$NON-NLS-1$
@@ -3920,6 +3924,9 @@ public class OrganizationFacade {
                 }
             }
             deleteOrganizationInternal(org);
+
+            //Finally, delete the corresponding realm
+            idpFactory.getDefaultIDPClient().deleteRealm(org);
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);

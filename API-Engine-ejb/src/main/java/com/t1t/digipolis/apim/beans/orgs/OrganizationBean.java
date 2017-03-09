@@ -175,10 +175,16 @@ public class OrganizationBean implements Serializable {
         this.organizationPrivate = organizationPrivate;
     }
 
+    /**
+     * @return the organization context
+     */
     public String getContext() {
         return context;
     }
 
+    /**
+     * @param context the organization context to set
+     */
     public void setContext(String context) {
         this.context = context;
     }

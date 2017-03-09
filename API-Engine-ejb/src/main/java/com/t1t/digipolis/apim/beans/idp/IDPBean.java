@@ -24,10 +24,6 @@ public class IDPBean implements Serializable {
     private String serverUrl;
     @Column(name = "master_realm")
     private String masterRealm;
-    @Column(name = "username")
-    private String user;
-    @Column(name = "password")
-    private String password;
     @Column(name = "client_id")
     private String clientId;
     @Column(name = "client_secret")
@@ -57,22 +53,6 @@ public class IDPBean implements Serializable {
 
     public void setMasterRealm(String masterRealm) {
         this.masterRealm = masterRealm;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getClientId() {
@@ -120,8 +100,6 @@ public class IDPBean implements Serializable {
                 "id='" + id + '\'' +
                 ", serverUrl='" + serverUrl + '\'' +
                 ", masterRealm='" + masterRealm + '\'' +
-                ", user='" + user + '\'' +
-                ", password='XXXXX'" +
                 ", clientId='" + clientId + '\'' +
                 ", clientSecret='XXXXX'" +
                 ", defaultIdp=" + defaultIdp +

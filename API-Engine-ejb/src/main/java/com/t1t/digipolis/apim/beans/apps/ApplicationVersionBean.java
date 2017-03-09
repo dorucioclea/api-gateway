@@ -64,6 +64,8 @@ public class ApplicationVersionBean implements Serializable {
     private String jwtKey;
     @Column(name="jwt_secret")
     private String jwtSecret;
+    @Column(name = "idp_client_id")
+    private String idpClientId;
 
 
     /**
@@ -282,20 +284,46 @@ public class ApplicationVersionBean implements Serializable {
         this.apikey = apikey;
     }
 
+    /**
+     * @return the Gateway JWT key
+     */
     public String getJwtKey() {
         return jwtKey;
     }
 
+    /**
+     * @param jwtKey the Gateway JWT key to set
+     */
     public void setJwtKey(String jwtKey) {
         this.jwtKey = jwtKey;
     }
 
+    /**
+     * @return the Gateway JWT secret
+     */
     public String getJwtSecret() {
         return jwtSecret;
     }
 
+    /**
+     * @param jwtSecret the Gateway JWT secret to set
+     */
     public void setJwtSecret(String jwtSecret) {
         this.jwtSecret = jwtSecret;
+    }
+
+    /**
+     * @return the IDP client ID
+     */
+    public String getIdpClientId() {
+        return idpClientId;
+    }
+
+    /**
+     * @param idpClientId the IDP client ID to set
+     */
+    public void setIdpClientId(String idpClientId) {
+        this.idpClientId = idpClientId;
     }
 
     /**
@@ -349,6 +377,7 @@ public class ApplicationVersionBean implements Serializable {
                 ", oauthCredentialId='" + oauthCredentialId + '\'' +
                 ", jwtKey='" + jwtKey + '\'' +
                 ", jwtSecret='" + jwtSecret + '\'' +
+                ", idpClientId='" + idpClientId + '\'' +
                 '}';
     }
 }

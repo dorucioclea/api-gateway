@@ -5,7 +5,7 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.slf4j.Logger;
@@ -60,13 +60,10 @@ public class IDPLinkFactoryImpl implements IDPLinkFactory {
     private Keycloak createKeycloakClient(IDPBean idp) {
         return KeycloakBuilder.builder()
                 .serverUrl(idp.getServerUrl())
+                .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .realm(idp.getMasterRealm())
-                .username(idp.getUser())
-                .password(idp.getPassword())
                 .clientId(idp.getClientId())
                 .clientSecret(idp.getClientSecret())
-                .resteasyClient(new ResteasyClientBuilder().connectionPoolSize(10)
-                        .build())
                 .build();
     }
 }
