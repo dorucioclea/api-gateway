@@ -6,7 +6,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayType;
 import java.io.Serializable;
 
 /**
- * A summary bean for {@link GatewayBean}.
+ * A summary bean for {@link com.t1t.digipolis.apim.beans.gateways.GatewayBean}.
  *
  */
 public class GatewaySummaryBean implements Serializable {
@@ -17,12 +17,6 @@ public class GatewaySummaryBean implements Serializable {
     private String name;
     private String description;
     private GatewayType type;
-
-    /**
-     * Constructor.
-     */
-    public GatewaySummaryBean() {
-    }
 
     /**
      * @return the id

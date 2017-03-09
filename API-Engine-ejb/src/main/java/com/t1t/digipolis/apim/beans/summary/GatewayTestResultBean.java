@@ -14,12 +14,6 @@ public class GatewayTestResultBean implements Serializable {
     private String detail;
 
     /**
-     * Constructor.
-     */
-    public GatewayTestResultBean() {
-    }
-
-    /**
      * @return the success
      */
     public boolean isSuccess() {

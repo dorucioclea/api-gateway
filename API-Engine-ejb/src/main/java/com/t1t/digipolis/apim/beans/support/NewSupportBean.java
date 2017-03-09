@@ -9,9 +9,6 @@ public class NewSupportBean implements Serializable {
     private String title;
     private String description;
 
-    public NewSupportBean() {
-    }
-
     public String getDescription() {
         return description;
     }

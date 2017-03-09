@@ -21,12 +21,6 @@ public class PlanSummaryBean implements Serializable {
     private String description;
 
     /**
-     * Constructor.
-     */
-    public PlanSummaryBean() {
-    }
-
-    /**
      * @return the organizationId
      */
     public String getOrganizationId() {

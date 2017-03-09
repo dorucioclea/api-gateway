@@ -46,12 +46,6 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Inject
     private EventFacade eventFacade;
 
-    /**
-     * Constructor.
-     */
-    public CurrentUserResource() {
-    }
-
     @ApiOperation(value = "Get Current User Information",
             notes = "Use this endpoint to get information about the currently authenticated user.")
     @ApiResponses({

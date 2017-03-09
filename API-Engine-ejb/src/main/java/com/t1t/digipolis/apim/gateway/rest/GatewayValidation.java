@@ -33,10 +33,9 @@ public class GatewayValidation {
     private static final String CLAIM_TO_VERIFY = "exp";
     private static final String JWT_URI_PARAM_NAME = "jwt";
 
-    public GatewayValidation() {}
-
     @Inject private IStorageQuery query;
     @Inject private AppConfig config;
+
     {
         environment = "";
         if(config!=null){

@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.authorization.*;
 import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
-import com.t1t.digipolis.apim.facades.AuthorizationFacade;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import io.swagger.annotations.Api;
@@ -25,7 +24,6 @@ import javax.ws.rs.core.MediaType;
 @Path("/oauth")
 @ApplicationScoped
 public class OAuthResource implements IOAuth2Authorization {
-    @Inject private AuthorizationFacade authorizationFacade;
     @Inject private OAuthFacade oAuthFacade;
 
     @ApiOperation(value = "Enable an application consumer for OAuth2 in the context of the application.",

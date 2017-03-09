@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.common.plugin.*;
 import com.t1t.digipolis.apim.core.IPluginRegistry;
 import com.t1t.digipolis.apim.core.exceptions.InvalidPluginException;
 import com.t1t.digipolis.apim.core.i18n.Messages;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -116,7 +117,7 @@ public abstract class AbstractPluginRegistry implements IPluginRegistry {
                     return;
                 } catch (IOException e) {
                     artifactFile.delete();
-                    throw new RuntimeException(e);
+                    throw ExceptionFactory.systemErrorException(e);
                 }
             }
         }

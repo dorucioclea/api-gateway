@@ -10,9 +10,6 @@ public class UpdateSupportBean implements Serializable {
     private String description;
     private SupportStatus status;
 
-    public UpdateSupportBean() {
-    }
-
     public String getTitle() {
         return title;
     }

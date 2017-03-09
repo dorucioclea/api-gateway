@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.core.logging;
 
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codehaus.jackson.JsonGenerator;
@@ -99,10 +100,6 @@ public class JsonLoggerImpl implements IApimanDelegateLogger {
     private static Time time = new DefaultTimeImpl();
     private static ObjectMapper mapper = new ObjectMapper();
 
-    static {
-        //mapper.set TODO set pretty print?
-    }
-
     private Logger delegatedLogger;
     private Class<?> klazz;
 
@@ -200,7 +197,7 @@ public class JsonLoggerImpl implements IApimanDelegateLogger {
 
             return sw.toString();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw ExceptionFactory.systemErrorException(e);
         }
     }
 }

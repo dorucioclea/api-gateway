@@ -20,12 +20,6 @@ public class PolicySummaryBean implements Serializable {
     private Date createdOn;
 
     /**
-     * Constructor.
-     */
-    public PolicySummaryBean() {
-    }
-
-    /**
      * @return the policyDefinitionId
      */
     public String getPolicyDefinitionId() {

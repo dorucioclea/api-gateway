@@ -31,14 +31,12 @@ public class KongClientIntegrationTest {
     private static Gson gson;
     //TODO make configurable in maven test profile
     private static final String KONG_UNDER_TEST_URL = "http://devapim.t1t.be:8001";//should point to the admin url:port
-    private static final String KONG_UNDER_TEST_CONSUMER_URL = "http://devapim.t1t.be";
-    //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
     private static final String API_NAME = "newapi";
     private static final String API_PATH = "/testpath";
     private static final String API_URL = "http://domain.com/app/rest/v1";
     private static final String API_URL_OAUTH_A = "http://servicea.com/endpoint";
     private static final String API_URL_OAUTH_B = "http://serviceb.com/endpoint";
-    private static final String API_URL_OAUTH_ORG= "http://dummyhost";
+
 
     private static final String JWT_RSA_PUB_KEY_PEM = "-----BEGIN PUBLIC KEY-----\n" +
             "MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAjmrg7sFxRdobSZHI2Zjk\n" +

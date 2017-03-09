@@ -20,12 +20,6 @@ public class UpdateServiceBean implements Serializable {
     private Boolean admin;
 
     /**
-     * Constructor.
-     */
-    public UpdateServiceBean() {
-    }
-
-    /**
      * @return the description
      */
     public String getDescription() {

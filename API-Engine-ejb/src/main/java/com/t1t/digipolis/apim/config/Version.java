@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.config;
 
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import org.apache.commons.io.IOUtils;
 
 import javax.annotation.PostConstruct;
@@ -48,7 +49,7 @@ public class Version {
                 this.versionString = props.getProperty("version", "Unknown"); //$NON-NLS-1$ //$NON-NLS-2$
                 this.versionDate = props.getProperty("date", new Date().toString()); //$NON-NLS-1$
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw ExceptionFactory.systemErrorException(e);
             } finally {
                 IOUtils.closeQuietly(is);
             }

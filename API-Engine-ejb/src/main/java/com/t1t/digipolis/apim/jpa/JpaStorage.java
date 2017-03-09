@@ -712,15 +712,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public Set<String> getAllOrganizations() throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
         String jpql = "SELECT o FROM OrganizationBean o where o.context = :oContext";
         Query query;
         if (!getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
-            query = em.createQuery("SELECT o FROM OrganizationBean o WHERE o.context = :oContext");
+            query = getActiveEntityManager().createQuery("SELECT o FROM OrganizationBean o WHERE o.context = :oContext");
             query.setParameter("oContext", appContext.getApplicationPrefix());
         }
         else {
-            query = em.createQuery("SELECT o FROM OrganizationBean o");
+            query = getActiveEntityManager().createQuery("SELECT o FROM OrganizationBean o");
         }
         List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
         logger.info("dborgs all:{}",orgs);

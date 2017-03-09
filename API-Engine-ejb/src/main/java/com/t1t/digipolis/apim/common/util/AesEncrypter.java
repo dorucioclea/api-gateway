@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.common.util;
 
+import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.crypto.BadPaddingException;
@@ -39,19 +40,13 @@ public class AesEncrypter {
         try {
             cipher = Cipher.getInstance("AES"); //$NON-NLS-1$
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchPaddingException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+            throw new IllegalArgumentException(e);
         }
         try {
             encrypted = cipher.doFinal(plainText.getBytes());
-        } catch (IllegalBlockSizeException e) {
-            throw new RuntimeException(e);
-        } catch (BadPaddingException e) {
-            throw new RuntimeException(e);
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
+            throw new IllegalArgumentException(e);
         }
         return "$CRYPT::" + new String(Base64.encodeBase64(encrypted)); //$NON-NLS-1$
     }
@@ -71,20 +66,14 @@ public class AesEncrypter {
             try {
                 cipher = Cipher.getInstance("AES"); //$NON-NLS-1$
                 cipher.init(Cipher.DECRYPT_MODE, skeySpec);
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            } catch (NoSuchPaddingException e) {
-                throw new RuntimeException(e);
-            } catch (InvalidKeyException e) {
-                throw new RuntimeException(e);
+            } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+                throw new IllegalArgumentException(e);
             }
             try {
                 String decryptedString = new String(cipher.doFinal(decoded));
                 return decryptedString;
-            } catch (IllegalBlockSizeException e) {
-                throw new RuntimeException(e);
-            } catch (BadPaddingException e) {
-                throw new RuntimeException(e);
+            } catch (IllegalBlockSizeException | BadPaddingException e) {
+                throw new IllegalArgumentException(e);
             }
         } else {
             return encryptedText;

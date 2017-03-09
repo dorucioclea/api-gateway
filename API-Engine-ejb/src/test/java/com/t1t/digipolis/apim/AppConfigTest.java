@@ -13,6 +13,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Created by michallispashidis on 21/10/15.
@@ -36,7 +37,7 @@ public class AppConfigTest {
     @Test
     public void testGetEnvironment() throws Exception {
         assertThat(config.getEnvironment().trim(), is(not("")));
-        assertTrue(!StringUtils.isEmpty(config.getEnvironment()));
+        assertFalse(!StringUtils.isEmpty(config.getEnvironment()));
     }
 
     @Test

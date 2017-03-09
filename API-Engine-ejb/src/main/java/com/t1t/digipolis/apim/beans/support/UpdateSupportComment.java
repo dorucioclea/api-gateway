@@ -8,9 +8,6 @@ import java.io.Serializable;
 public class UpdateSupportComment implements Serializable{
     private String comment;
 
-    public UpdateSupportComment() {
-    }
-
     public String getComment() {
         return comment;
     }

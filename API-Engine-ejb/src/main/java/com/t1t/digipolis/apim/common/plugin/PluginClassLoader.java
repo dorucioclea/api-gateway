@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.common.plugin;
 
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
@@ -200,7 +201,7 @@ public class PluginClassLoader extends ClassLoader {
                 try {
                     return extractResource(zipEntry);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw ExceptionFactory.systemErrorException(e);
                 }
             }
         }

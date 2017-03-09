@@ -13,9 +13,6 @@ import retrofit.RestAdapter;
 public class RestMetricsBuilder {
     private static Logger _LOG = LoggerFactory.getLogger(RestMetricsBuilder.class.getName());
 
-    public RestMetricsBuilder() {
-    }
-
     /**
      * Returns the service requestes throught the restAdapter.
      *
@@ -25,7 +22,7 @@ public class RestMetricsBuilder {
      */
     public <T> T getService(String URI, Class<T> iFace) {
         //optional GSON converter
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         StringBuilder metricsURL = new StringBuilder(URI);
         RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(metricsURL.toString()).build();
         _LOG.info("Metrics connection string:{}", metricsURL.toString());

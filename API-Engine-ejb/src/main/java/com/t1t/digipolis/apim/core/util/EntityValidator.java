@@ -27,12 +27,6 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
     private IStorageQuery storageQuery;
 
     /**
-     * Constructor.
-     */
-    public EntityValidator() {
-    }
-
-    /**
      * @see com.t1t.digipolis.apim.core.IApplicationValidator#isReady(ApplicationVersionBean)
      */
     @Override
@@ -82,16 +76,11 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
         if (service.getEndpoint() == null || service.getEndpoint().trim().length() == 0) {
             ready = false;
         }
-        if (StringUtils.isEmpty(service.getOnlinedoc())) {
-            //ready = false;
-        }
         if (service.getEndpointType() == null) {
             ready = false;
         }
-        if (!service.isPublicService()) {
-            if (service.getPlans() == null || service.getPlans().isEmpty()) {
-                ready = false;
-            }
+        if (!service.isPublicService() && (service.getPlans() == null || service.getPlans().isEmpty())) {
+            ready = false;
         }
         if (service.getGateways() == null || service.getGateways().isEmpty()) {
             ready = false;

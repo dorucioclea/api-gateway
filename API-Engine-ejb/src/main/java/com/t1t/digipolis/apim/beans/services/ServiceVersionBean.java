@@ -97,12 +97,6 @@ public class ServiceVersionBean implements Serializable {
     private Boolean termsAgreementRequired;
 
     /**
-     * Constructor.
-     */
-    public ServiceVersionBean() {
-    }
-
-    /**
      * @return the id
      */
     public Long getId() {

@@ -54,23 +54,23 @@ public class OrganizationFacadeTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Mock EntityManager em;
-    @Mock AppConfig config;
-    @Mock ISecurityContext securityContext;
-    @Mock ISecurityAppContext appContext;
-    @Mock IStorage storage;
-    @Mock IStorageQuery query;
-    @Mock IIdmStorage idmStorage;
-    @Mock IApiKeyGenerator apiKeyGenerator;
-    @Mock IApplicationValidator applicationValidator;
-    @Mock IServiceValidator serviceValidator;
-    @Mock IMetricsAccessor metrics;
-    @Mock GatewayFacade gatewayFacade;
-    @Mock GatewayValidation gatewayValidation;
-    @Mock IGatewayLinkFactory gatewayLinkFactory;
-    @Mock UserFacade userFacade;
-    @Mock RoleFacade roleFacade;
-    @InjectMocks OrganizationFacade orgFacade;
+    @Mock private EntityManager em;
+    @Mock private AppConfig config;
+    @Mock private ISecurityContext securityContext;
+    @Mock private ISecurityAppContext appContext;
+    @Mock private IStorage storage;
+    @Mock private IStorageQuery query;
+    @Mock private IIdmStorage idmStorage;
+    @Mock private IApiKeyGenerator apiKeyGenerator;
+    @Mock private IApplicationValidator applicationValidator;
+    @Mock private IServiceValidator serviceValidator;
+    @Mock private IMetricsAccessor metrics;
+    @Mock private GatewayFacade gatewayFacade;
+    @Mock private GatewayValidation gatewayValidation;
+    @Mock private IGatewayLinkFactory gatewayLinkFactory;
+    @Mock private UserFacade userFacade;
+    @Mock private RoleFacade roleFacade;
+    @InjectMocks private OrganizationFacade orgFacade;
 
     @Test
     public void sanity() throws Exception {

@@ -22,12 +22,6 @@ public class PolicyDefinitionSummaryBean implements Serializable {
     private Long pluginId;
 
     /**
-     * Constructor.
-     */
-    public PolicyDefinitionSummaryBean() {
-    }
-
-    /**
      * @return the id
      */
     public String getId() {

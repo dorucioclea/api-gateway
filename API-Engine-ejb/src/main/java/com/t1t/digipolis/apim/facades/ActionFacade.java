@@ -68,11 +68,9 @@ import java.util.stream.Collectors;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class ActionFacade {
     private static Logger log = LoggerFactory.getLogger(ActionFacade.class.getName());
-    @PersistenceContext private EntityManager em;
     @Inject private ISecurityContext securityContext;
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
-    @Inject private IGatewayLinkFactory gatewayLinkFactory;
     @Inject private OrganizationFacade orgFacade;
     @Inject private IServiceValidator serviceValidator;
     @Inject private IApplicationValidator applicationValidator;
@@ -285,8 +283,6 @@ public class ActionFacade {
 
             storage.updateServiceVersion(versionBean);
             storage.createAuditEntry(AuditUtils.serviceRetired(versionBean, securityContext));
-        } catch (PublishingException e) {
-            throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
         } catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("RetireError"), e); //$NON-NLS-1$
         }
@@ -464,7 +460,9 @@ public class ActionFacade {
 /*            types[1] = PolicyType.Application;
             types[2] = PolicyType.Service;*/
             for (PolicyType policyType : types) {
-                String org, id, ver;
+                String org;
+                String id;
+                String ver;
                 switch (policyType) {
 /*                    case Application: {
                         org = contractBean.getOrganizationId();
@@ -489,15 +487,12 @@ public class ActionFacade {
                     }
                 }
                 List<PolicySummaryBean> appPolicies = query.getPolicies(org, id, ver, policyType);
-                try {
-                    for (PolicySummaryBean policySummaryBean : appPolicies) {
-                        PolicyBean policyBean = storage.getPolicy(policyType, org, id, ver, policySummaryBean.getId());
-                        Policy policy = new Policy();
-                        policy.setPolicyJsonConfig(policyBean.getConfiguration());
-                        policy.setPolicyImpl(policyBean.getDefinition().getId());
-                        policies.add(policy);
-                    }
-                } finally {
+                for (PolicySummaryBean policySummaryBean : appPolicies) {
+                    PolicyBean policyBean = storage.getPolicy(policyType, org, id, ver, policySummaryBean.getId());
+                    Policy policy = new Policy();
+                    policy.setPolicyJsonConfig(policyBean.getConfiguration());
+                    policy.setPolicyImpl(policyBean.getDefinition().getId());
+                    policies.add(policy);
                 }
             }
             return policies;

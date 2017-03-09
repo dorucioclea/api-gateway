@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.common.config;
 
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
@@ -26,7 +28,7 @@ public class ConfigFileConfiguration extends PropertiesConfiguration {
                 try {
                     return cfile.toURI().toURL();
                 } catch (MalformedURLException e) {
-                    throw new RuntimeException(e);
+                    throw new IllegalArgumentException(e);
                 }
             }
         }
@@ -37,7 +39,7 @@ public class ConfigFileConfiguration extends PropertiesConfiguration {
         try {
             return new ConfigFileConfiguration(configFileName);
         } catch (ConfigurationException e) {
-            throw new RuntimeException("Failed to find configuration file: " + configFileName, e); //$NON-NLS-1$
+            throw ExceptionFactory.actionException("Failed to find configuration file: " + configFileName, e); //$NON-NLS-1$
         }
     }
 

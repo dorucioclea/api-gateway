@@ -10,12 +10,6 @@ import java.util.UUID;
  */
 @ApplicationScoped @Default
 public class UuidApiKeyGenerator implements IApiKeyGenerator {
-    
-    /**
-     * Constructor.
-     */
-    public UuidApiKeyGenerator() {
-    }
 
     /**
      * @see com.t1t.digipolis.apim.core.IApiKeyGenerator#generate()

@@ -4,6 +4,7 @@ import com.t1t.digipolis.apim.IConfig;
 import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
 import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.core.IMetricsAccessor;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.kong.model.*;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -52,9 +53,9 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }else throw new RuntimeException("API Engine basic property file not found.");
+        }else throw ExceptionFactory.systemErrorException("API Engine basic property file not found.");
         //read specific application config, depends on the maven profile that has been set
-        config = ConfigFactory.load(properties.getProperty(IConfig.PROP_FILE_CONFIG_FILE)); if(config==null) throw new RuntimeException("API Engine log not found");
+        config = ConfigFactory.load(properties.getProperty(IConfig.PROP_FILE_CONFIG_FILE)); if(config==null) throw ExceptionFactory.systemErrorException("API Engine log not found");
         metricsURI = "";
         if (config != null && StringUtils.isEmpty(metricsURI)) {
             metricsURI = new StringBuffer("")
@@ -68,7 +69,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
             restMetricsBuilder = new RestMetricsBuilder();
             httpClient = restMetricsBuilder.getService(metricsURI, MetricsClient.class);
             timeout = config.getInt(IConfig.HYSTRIX_METRICS_TIMEOUT_VALUE);
-        }else throw new RuntimeException("MongoMetricsAccessor - Metrics are not initialized");
+        }else throw ExceptionFactory.systemErrorException("MongoMetricsAccessor - Metrics are not initialized");
     }
 
     @Override
@@ -145,7 +146,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
         }
         MetricsConsumerUsageList resultUsageList = new MetricsConsumerUsageList();
         //we create a epoch map in order to add specific values at random and sort the key values
-        Map<Long, com.t1t.digipolis.kong.model.MetricsConsumerUsage> processingMap = new TreeMap<>();
+        Map<Long, MetricsConsumerUsage> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
         long intervalMillis = getIntervalMillis(interval);
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)

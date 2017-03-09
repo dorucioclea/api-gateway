@@ -28,12 +28,6 @@ public class SystemStatusBean implements Serializable {
     private boolean up;
 
     /**
-     * Constructor.
-     */
-    public SystemStatusBean() {
-    }
-
-    /**
      * @return the version
      */
     public String getVersion() {

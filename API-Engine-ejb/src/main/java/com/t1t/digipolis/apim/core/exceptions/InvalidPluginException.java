@@ -36,7 +36,7 @@ public class InvalidPluginException extends Exception {
      * @param cause the exception cause cause of the exception
      */
     public InvalidPluginException(String message, Throwable cause) {
-        super(cause);
+        super(message, cause);
     }
 
 }

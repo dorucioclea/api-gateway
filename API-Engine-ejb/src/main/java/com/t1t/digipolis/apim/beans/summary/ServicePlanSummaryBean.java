@@ -17,12 +17,6 @@ public class ServicePlanSummaryBean implements Serializable {
     private String version;
 
     /**
-     * Constructor.
-     */
-    public ServicePlanSummaryBean() {
-    }
-
-    /**
      * @return the planId
      */
     public String getPlanId() {

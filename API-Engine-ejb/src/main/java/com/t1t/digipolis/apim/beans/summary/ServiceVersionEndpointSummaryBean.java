@@ -19,12 +19,6 @@ public class ServiceVersionEndpointSummaryBean implements Serializable {
     private String oauth2TokenEndpoint;
     private Set<ServiceVersionEndpointSummaryBean> brandingEndpoints;
 
-    /**
-     * Constructor.
-     */
-    public ServiceVersionEndpointSummaryBean() {
-    }
-
     public String getOauth2AuthorizeEndpoint() {
         return oauth2AuthorizeEndpoint;
     }

@@ -29,12 +29,6 @@ public abstract class AbstractJpaStorage {
     @PersistenceContext protected EntityManager em;
 
     /**
-     * Constructor.
-     */
-    public AbstractJpaStorage() {
-    }
-
-    /**
      * @return the thread's entity manager
      * @throws StorageException if a storage problem occurs while storing a bean
      */

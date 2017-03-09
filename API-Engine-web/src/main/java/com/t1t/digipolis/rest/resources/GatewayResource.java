@@ -37,13 +37,13 @@ import java.util.List;
 public class GatewayResource implements IGatewayResource {
 
     @Inject
-    IStorage storage;
+    private IStorage storage;
     @Inject
-    IStorageQuery query;
+    private IStorageQuery query;
     @Inject
-    ISecurityContext securityContext;
+    private ISecurityContext securityContext;
     @Inject
-    IGatewayLinkFactory gatewayLinkFactory;
+    private IGatewayLinkFactory gatewayLinkFactory;
     @Inject private GatewayFacade gatewayFacade;
 
     /**

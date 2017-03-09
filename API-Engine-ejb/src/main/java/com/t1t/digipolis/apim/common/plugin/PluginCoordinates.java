@@ -22,12 +22,6 @@ public class PluginCoordinates implements Serializable {
     private String version;
     private String classifier;
     private String type = "war"; //$NON-NLS-1$
-    
-    /**
-     * Constructor.
-     */
-    public PluginCoordinates() {
-    }
 
     /**
      * Constructor.

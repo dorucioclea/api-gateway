@@ -23,12 +23,6 @@ public class ApplicationSummaryBean implements Serializable {
     private String base64logo;
 
     /**
-     * Constructor.
-     */
-    public ApplicationSummaryBean() {
-    }
-
-    /**
      * @return the organizationId
      */
     public String getOrganizationId() {

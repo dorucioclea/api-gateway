@@ -73,7 +73,7 @@ public class ApiManagerConfig {
                 try {
                     rval.add(new URL(repository.trim()));
                 } catch (MalformedURLException e) {
-                    throw new RuntimeException(e);
+                    throw new IllegalArgumentException(e);
                 }
             }
         }

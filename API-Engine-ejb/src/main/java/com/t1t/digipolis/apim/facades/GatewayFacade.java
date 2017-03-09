@@ -46,8 +46,6 @@ import java.util.stream.Collectors;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class GatewayFacade {
     private static Logger log = LoggerFactory.getLogger(GatewayFacade.class.getName());
-    @PersistenceContext
-    private EntityManager em;
     @Inject private ISecurityContext securityContext;
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
@@ -178,41 +176,7 @@ public class GatewayFacade {
     }
 
     /*********************************************UTILITIES**********************************************/
-    /**
-     * @param bean
-     */
-    private void encryptPasswords(GatewayBean bean) {
-        if (bean.getConfiguration() == null) {
-            return;
-        }
-        try {
-            if (bean.getType() == GatewayType.REST) {
-                RestGatewayConfigBean configBean = mapper.readValue(bean.getConfiguration(), RestGatewayConfigBean.class);
-                configBean.setPassword(AesEncrypter.encrypt(configBean.getPassword()));
-                bean.setConfiguration(mapper.writeValueAsString(configBean));
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-    /**
-     * @param bean
-     */
-    private void decryptPasswords(GatewayBean bean) {
-        if (bean.getConfiguration() == null) {
-            return;
-        }
-        try {
-            if (bean.getType() == GatewayType.REST) {
-                RestGatewayConfigBean configBean = mapper.readValue(bean.getConfiguration(), RestGatewayConfigBean.class);
-                configBean.setPassword(AesEncrypter.decrypt(configBean.getPassword()));
-                bean.setConfiguration(mapper.writeValueAsString(configBean));
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /**
      * Return default gateway - normally one should be supported for each environment.
@@ -313,6 +277,8 @@ public class GatewayFacade {
                 break;
             case Retired:
                 log.info("== Application {} is in status {}, no gateways ==", ConsumerConventionUtil.createAppUniqueId(avb), avb.getStatus());
+                break;
+            default:
                 break;
         }
         return gateways;

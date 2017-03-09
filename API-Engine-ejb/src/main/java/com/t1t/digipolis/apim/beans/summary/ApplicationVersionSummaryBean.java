@@ -22,12 +22,6 @@ public class ApplicationVersionSummaryBean implements Serializable {
     private String version;
 
     /**
-     * Constructor.
-     */
-    public ApplicationVersionSummaryBean() {
-    }
-
-    /**
      * @return the organizationId
      */
     public String getOrganizationId() {

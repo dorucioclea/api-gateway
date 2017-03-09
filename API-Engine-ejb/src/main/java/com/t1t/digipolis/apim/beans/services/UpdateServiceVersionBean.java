@@ -31,12 +31,6 @@ public class UpdateServiceVersionBean implements Serializable {
     private String readme;
 
     /**
-     * Constructor.
-     */
-    public UpdateServiceVersionBean() {
-    }
-
-    /**
      * @return the endpoint
      */
     public String getEndpoint() {
@@ -175,20 +169,6 @@ public class UpdateServiceVersionBean implements Serializable {
                 ", termsAgreementRequired=" + termsAgreementRequired +
                 ", readme='" + readme + '\'' +
                 '}';
-    }
-
-    @SuppressWarnings("nls")
-    private String toString(Collection<?> collection, int maxLen) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        int i = 0;
-        for (Iterator<?> iterator = collection.iterator(); iterator.hasNext() && i < maxLen; i++) {
-            if (i > 0)
-                builder.append(", ");
-            builder.append(iterator.next());
-        }
-        builder.append("]");
-        return builder.toString();
     }
 
 }

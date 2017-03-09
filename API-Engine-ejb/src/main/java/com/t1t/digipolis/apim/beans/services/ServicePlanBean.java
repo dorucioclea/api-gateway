@@ -20,12 +20,6 @@ public class ServicePlanBean implements Serializable {
     private String version;
 
     /**
-     * Constructor.
-     */
-    public ServicePlanBean() {
-    }
-
-    /**
      * @return the planId
      */
     public String getPlanId() {

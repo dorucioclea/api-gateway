@@ -30,12 +30,6 @@ public class ApiEntryBean implements Serializable {
     private String gatewayId;
 
     /**
-     * Constructor.
-     */
-    public ApiEntryBean() {
-    }
-
-    /**
      * @return the serviceOrgId
      */
     public String getServiceOrgId() {

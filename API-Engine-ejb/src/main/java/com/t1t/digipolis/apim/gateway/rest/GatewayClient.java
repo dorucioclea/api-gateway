@@ -45,7 +45,6 @@ public class GatewayClient {
     private IStorage storage;
     private AppConfig appConfig;
     private GatewayValidation gatewayValidation;
-    private static final ObjectMapper mapper = new ObjectMapper();
     private static String metricsURI;
     private static String AUTH_API_KEY = "apikey";
     private static final String DUMMY_UPSTREAM_URI = "http://localhost:3000";
@@ -548,81 +547,6 @@ public class GatewayClient {
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
-    }
-
-    /**
-     * Registers the default httplog plugin pointing to the metrics server.
-     * We cannot add 2x HTTP logs instances.
-     * @param api
-     */
-    private KongPluginConfig registerDefaultHttpPolicy(KongApi api) {
-        KongPluginHttpLog httpPolicy = new KongPluginHttpLog()
-                .withHttpEndpoint(metricsURI)
-                .withMethod(KongPluginHttpLog.Method.POST);
-        KongPluginConfig config = new KongPluginConfig()
-                .withName(Policies.HTTPLOG.getKongIdentifier())
-                .withConfig(httpPolicy);
-        return httpClient.createPluginConfig(api.getId(),config);
-    }
-
-    private KongPluginConfig registerDefaultAnalyticsPolicy(KongApi api){
-            KongPluginAnalytics analyticsPolicy = new KongPluginAnalytics()
-                    .withConnectionTimeout(appConfig.getAnalyticsConnTimeout())
-                    .withServiceToken(appConfig.getAnalyticsServiceToken())
-                    .withEnvironment(appConfig.getAnalyticsEnvironment())
-                    .withRetryCount(appConfig.getAnalyticsRetryCount())
-                    .withQueueSize(appConfig.getAnalyticsQueueSize())
-                    .withFlushTimeout(appConfig.getAnalyticsFlushTimeout())
-                    .withLogBodies(appConfig.getAnalyticsLogBodies())
-                    .withHost(appConfig.getAnalyticsHost())
-                    .withPort(appConfig.getAnalyticsPort())
-                    .withHttps(appConfig.getAnalyticsHttps())
-                    .withHttpsVerify(appConfig.getAnalyticsHttpsVerify());
-            KongPluginConfig config = new KongPluginConfig()
-                    .withName(ANALYTICS.getKongIdentifier())
-                    .withConfig(analyticsPolicy);
-            return httpClient.createPluginConfig(api.getId(),config);
-    }
-
-    /**
-     * Registers the default keyauth plugin with apikey key_value (service-scoped policy).
-     * Only consumers having an valid API key can access the API.
-     * TODO Kong 0.5.0 - add ACL group
-     * @param api
-     */
-    private KongPluginConfig registerDefaultKeyAuthPolicy(KongApi api) {
-        KongPluginKeyAuth keyAuthPolicy = new KongPluginKeyAuth()
-                .withKeyNames(Arrays.asList(AUTH_API_KEY));
-        KongPluginConfig config = new KongPluginConfig()
-                .withName(Policies.KEYAUTHENTICATION.getKongIdentifier())
-                .withConfig(keyAuthPolicy);
-        return httpClient.createPluginConfig(api.getId(),config);
-    }
-
-    /**
-     * Register the default JWT plugin with self-generated key and security.
-     * @param api
-     */
-    private KongPluginConfig registerDefaultJWTPolicy(KongApi api) {
-        KongPluginConfig config = new KongPluginConfig()
-                .withName(Policies.JWT.getKongIdentifier());
-        return httpClient.createPluginConfig(api.getId(),config);
-    }
-
-    /**
-     * Registers the default CORS for the service (service-scoped policy)
-     * @param api
-     */
-    private KongPluginConfig registerDefaultCORSPolicy(KongApi api) {
-        List<Method> defaultMethods = Arrays.asList(Method.HEAD, Method.DELETE,Method.GET,Method.POST,Method.PUT,Method.PATCH);
-        List<String> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY, "Authorization");
-        KongPluginCors corsPolicy = new KongPluginCors(); //default values are ok
-        corsPolicy.setMethods(defaultMethods);
-        corsPolicy.setHeaders(headers);
-        KongPluginConfig config = new KongPluginConfig()
-                .withName(Policies.CORS.getKongIdentifier())
-                .withConfig(corsPolicy);
-        return httpClient.createPluginConfig(api.getId(),config);
     }
 
     private void registerDefaultOAuthPolicy(KongApi api){

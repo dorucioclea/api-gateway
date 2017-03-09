@@ -1,6 +1,7 @@
 package com.t1t.digipolis.apim.cdi;
 
 import com.t1t.digipolis.apim.core.plugin.AbstractPluginRegistry;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -32,7 +33,7 @@ public class Wildfly8PluginRegistry extends AbstractPluginRegistry {
         String dataDirPath = System.getProperty("jboss.server.data.dir"); //$NON-NLS-1$
         File dataDir = new File(dataDirPath);
         if (!dataDir.isDirectory()) {
-            throw new RuntimeException("Failed to find WildFly data directory at: " + dataDirPath); //$NON-NLS-1$
+            throw ExceptionFactory.systemErrorException("Failed to find WildFly data directory at: " + dataDirPath); //$NON-NLS-1$
         }
         File pluginsDir = new File(dataDir, "apiengine/plugins"); //$NON-NLS-1$
         return pluginsDir;

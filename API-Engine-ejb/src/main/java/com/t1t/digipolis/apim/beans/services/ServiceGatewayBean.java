@@ -17,12 +17,6 @@ public class ServiceGatewayBean implements Serializable {
     private String gatewayId;
 
     /**
-     * Constructor.
-     */
-    public ServiceGatewayBean() {
-    }
-
-    /**
      * @return the gatewayId
      */
     public String getGatewayId() {

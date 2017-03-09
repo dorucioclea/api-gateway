@@ -7,9 +7,6 @@ public class SAMLResponseRedirect {
     private String clientUrl;
     private String token;
 
-    public SAMLResponseRedirect() {
-    }
-
     public String getClientUrl() {
         return clientUrl;
     }

@@ -23,12 +23,6 @@ public class OrganizationSummaryBean implements Serializable {
     private int numEvents;
 
     /**
-     * Constructor.
-     */
-    public OrganizationSummaryBean() {
-    }
-
-    /**
      * @return the id
      */
     public String getId() {

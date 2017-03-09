@@ -23,12 +23,6 @@ public class ApiRegistryBean implements Serializable {
     private List<ApiEntryBean> apis = new ArrayList<>();
 
     /**
-     * Constructor.
-     */
-    public ApiRegistryBean() {
-    }
-
-    /**
      * @return the apis
      */
     public List<ApiEntryBean> getApis() {

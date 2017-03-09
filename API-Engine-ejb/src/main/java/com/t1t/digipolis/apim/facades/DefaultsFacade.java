@@ -92,7 +92,8 @@ public class DefaultsFacade {
             return new String(Files.readAllBytes(Paths.get(config.getLocalFilePath(), "terms.md")), Charset.forName("UTF-8"));
         }
         catch (NoSuchFileException ex) {
-            return new String();
+            //Return an empty string if file is not found
+            return "";
         }
     }
 }

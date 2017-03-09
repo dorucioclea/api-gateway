@@ -33,8 +33,6 @@ import java.util.Set;
 public class BrandingResource implements IBrandingResource {
 
     @Inject
-    private OrganizationFacade orgFacade;
-    @Inject
     private BrandingFacade brandingFacade;
     @Inject
     private ISecurityContext security;

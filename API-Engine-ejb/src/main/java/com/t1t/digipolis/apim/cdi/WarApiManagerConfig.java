@@ -15,12 +15,6 @@ import java.util.Map;
 public class WarApiManagerConfig extends ApiManagerConfig implements IJpaProperties {
 
     /**
-     * Constructor.
-     */
-    public WarApiManagerConfig() {
-    }
-
-    /**
      * @see IJpaProperties#getAllHibernateProperties()
      */
     @Override

@@ -19,12 +19,6 @@ import java.util.Set;
 public class SystemPropertiesConfiguration extends AbstractConfiguration {
 
     /**
-     * Constructor.
-     */
-    public SystemPropertiesConfiguration() {
-    }
-
-    /**
      * @see org.apache.commons.configuration.Configuration#isEmpty()
      */
     @Override

@@ -24,12 +24,6 @@ public class PluginSummaryBean implements Serializable {
     private Date createdOn;
 
     /**
-     * Constructor.
-     */
-    public PluginSummaryBean() {
-    }
-
-    /**
      * @return the id
      */
     public Long getId() {

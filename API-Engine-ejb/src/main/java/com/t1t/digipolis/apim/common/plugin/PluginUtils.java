@@ -21,7 +21,7 @@ public class PluginUtils {
         try {
             MAVEN_REPOSITORIES.add(new URL("https://repo1.maven.org/maven2/")); //$NON-NLS-1$
         } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
     }
     

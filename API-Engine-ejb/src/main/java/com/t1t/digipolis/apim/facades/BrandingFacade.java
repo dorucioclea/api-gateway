@@ -12,8 +12,6 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.facades.audit.AuditUtils;
 import com.t1t.digipolis.apim.security.ISecurityContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
@@ -30,8 +28,6 @@ import java.util.Set;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class BrandingFacade {
-
-    private static final Logger _LOG = LoggerFactory.getLogger(BrandingFacade.class);
 
     @Inject
     private IStorage storage;
