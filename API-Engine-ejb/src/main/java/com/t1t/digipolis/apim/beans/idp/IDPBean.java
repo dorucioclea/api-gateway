@@ -26,7 +26,7 @@ public class IDPBean implements Serializable {
     private String masterRealm;
     @Column(name = "client_id")
     private String clientId;
-    @Column(name = "client_secret")
+    @Column(name = "encrypted_client_secret")
     private String clientSecret;
     @Column(name = "default_idp")
     private boolean defaultIdp;

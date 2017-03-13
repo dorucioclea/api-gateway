@@ -21,8 +21,10 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayType;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.idp.IDPBean;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
+import com.t1t.digipolis.apim.beans.idp.KeystoreBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.mail.MailProviderBean;
 import com.t1t.digipolis.apim.beans.mail.MailTemplateBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
@@ -3014,5 +3016,35 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return result.get(0);
         }
         else return null;
+    }
+
+    @Override
+    public void createKeystore(KeystoreBean keystore) throws StorageException {
+
+    }
+
+    @Override
+    public void updateKeystoreBean(KeystoreBean keystore) throws StorageException {
+
+    }
+
+    @Override
+    public void deleteKeystore(KeystoreBean keystore) throws StorageException {
+
+    }
+
+    @Override
+    public KeystoreBean getKeystore(Long id) throws StorageException {
+        return null;
+    }
+
+    @Override
+    public KeystoreBean getDefaultKeystore() throws StorageException {
+        return null;
+    }
+
+    @Override
+    public MailProviderBean getDefaultMailProvider() throws StorageException {
+        return null;
     }
 }

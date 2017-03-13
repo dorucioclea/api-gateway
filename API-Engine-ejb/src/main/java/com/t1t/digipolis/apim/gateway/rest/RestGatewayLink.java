@@ -6,7 +6,7 @@ import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.RestGatewayConfigBean;
-import com.t1t.digipolis.apim.common.util.AesEncrypter;
+import com.t1t.digipolis.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;

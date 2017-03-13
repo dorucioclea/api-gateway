@@ -37,7 +37,8 @@ CREATE TABLE application_versions
   apikey VARCHAR(255) DEFAULT NULL,
   oauth_credential_id VARCHAR(255) DEFAULT NULL,
   jwt_key VARCHAR(255) DEFAULT NULL,
-  jwt_secret VARCHAR(255) DEFAULT NULL
+  jwt_secret VARCHAR(255) DEFAULT NULL,
+  idp_client_id VARCHAR(255) DEFAULT NULL
 );
 
 CREATE TABLE applications
@@ -157,8 +158,17 @@ CREATE TABLE idps
   server_url VARCHAR(255) NOT NULL,
   master_realm VARCHAR(255) NOT NULL,
   client_id VARCHAR(255) NOT NULL,
-  client_secret VARCHAR(255) NOT NULL,
+  encrypted_client_secret VARCHAR(255) NOT NULL,
   default_idp BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE keystores
+(
+  id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  encrypted_keystore_password VARCHAR(255) NOT NULL,
+  encrypted_key_password VARCHAR(255) NOT NULL,
+  default_keystore BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE key_mapping
@@ -167,6 +177,18 @@ CREATE TABLE key_mapping
   to_spec_type VARCHAR(25) NOT NULL,
   from_spec_claim VARCHAR(255) NOT NULL,
   to_spec_claim VARCHAR(255)
+);
+
+CREATE TABLE mail_providers
+(
+  id BIGINT NOT NULL,
+  host VARCHAR(255) NOT NULL,
+  port BIGINT NOT NULL,
+  auth BOOLEAN DEFAULT TRUE,
+  from VARCHAR(255) NOT NULL,
+  user VARCHAR(255) NOT NULL,
+  encrypted_password VARCHAR(255) NOT NULL,
+  default_mail_provider BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE mail_templates
@@ -498,7 +520,11 @@ ALTER TABLE gateways ADD PRIMARY KEY (id);
 
 ALTER TABLE idps ADD PRIMARY KEY (id);
 
+ALTER TABLE keystores ADD PRIMARY KEY (id);
+
 ALTER TABLE key_mapping ADD PRIMARY KEY (from_spec_type, to_spec_type, from_spec_claim);
+
+ALTER TABLE mail_providers ADD PRIMARY KEY (id);
 
 ALTER TABLE mail_templates ADD PRIMARY KEY (topic);
 
@@ -569,8 +595,6 @@ CREATE INDEX idx_fk_contracts_2 ON contracts (planv_id);
 CREATE INDEX idx_fk_contracts_3 ON contracts (svcv_id);
 
 CREATE INDEX idx_fk_followers_1 ON followers (servicebean_id, servicebean_organization_id);
-
-CREATE INDEX idx_idps_1 ON idps(id);
 
 CREATE INDEX idx_managed_app_keys_1 ON managed_application_keys (managed_app_id);
 

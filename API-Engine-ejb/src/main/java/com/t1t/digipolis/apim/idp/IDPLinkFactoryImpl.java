@@ -5,6 +5,7 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.util.AesEncrypter;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -63,7 +64,7 @@ public class IDPLinkFactoryImpl implements IDPLinkFactory {
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .realm(idp.getMasterRealm())
                 .clientId(idp.getClientId())
-                .clientSecret(idp.getClientSecret())
+                .clientSecret(AesEncrypter.decrypt(idp.getClientSecret()))
                 .build();
     }
 }

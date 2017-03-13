@@ -676,4 +676,15 @@ public final class ExceptionFactory {
     public static final IDPNotFoundException idpNotFoundException(String id) {
         return new IDPNotFoundException(Messages.i18n.format("idpNotFound", id));
     }
+
+    /**
+     * Creates an exception
+     * @param type
+     * @param value
+     * @param e
+     * @return
+     */
+    public static EncryptionFailedException encryptionFailed(final String type, final String value, final Throwable e) {
+        return new EncryptionFailedException(Messages.i18n.format("EncryptionFailed", type, value), e);
+    }
 }

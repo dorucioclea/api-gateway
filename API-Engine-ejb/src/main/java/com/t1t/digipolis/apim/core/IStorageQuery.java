@@ -13,8 +13,10 @@ import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idp.IDPBean;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
+import com.t1t.digipolis.apim.beans.idp.KeystoreBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.mail.MailProviderBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.operation.OperatingBean;
@@ -1188,4 +1190,18 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public IDPBean getDefaultIdp() throws StorageException;
+
+    /**
+     * Returns the default keystore
+     * @return
+     * @throws StorageException
+     */
+    public KeystoreBean getDefaultKeystore()throws StorageException;
+
+    /**
+     * Returns the default mail provider
+     * @return
+     * @throws StorageException
+     */
+    public MailProviderBean getDefaultMailProvider() throws StorageException;
 }

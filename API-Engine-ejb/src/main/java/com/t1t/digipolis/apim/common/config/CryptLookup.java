@@ -1,6 +1,6 @@
 package com.t1t.digipolis.apim.common.config;
 
-import com.t1t.digipolis.apim.common.util.AesEncrypter;
+import com.t1t.digipolis.util.AesEncrypter;
 import org.apache.commons.lang.text.StrLookup;
 
 /**

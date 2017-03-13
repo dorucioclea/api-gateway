@@ -32,4 +32,12 @@ public abstract class AbstractSystemException extends AbstractRestException {
         super(cause);
     }
 
+    /**
+     * Constructor.
+     * @param message the exception message
+     * @param cause the exception cause
+     */
+    public AbstractSystemException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

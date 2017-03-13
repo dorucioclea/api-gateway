@@ -15,6 +15,7 @@ import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idp.IDPBean;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
+import com.t1t.digipolis.apim.beans.idp.KeystoreBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.mail.MailTemplateBean;
@@ -75,6 +76,7 @@ public interface IStorage {
     public void createBranding(ServiceBrandingBean branding) throws StorageException;
     public void createOAuth2Token(OAuth2TokenBean token) throws StorageException;
     public void createIDP(IDPBean idp) throws StorageException;
+    public void createKeystore(KeystoreBean keystore) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -107,6 +109,7 @@ public interface IStorage {
     public void updateOperatingBean(OperatingBean operatingBean) throws StorageException;
     public void updateOAuth2TokenBean(OAuth2TokenBean token) throws StorageException;
     public void updateIDPBean(IDPBean idp) throws StorageException;
+    public void updateKeystoreBean(KeystoreBean keystore) throws StorageException;
 
 
     /*
@@ -141,6 +144,7 @@ public interface IStorage {
     public void deleteBranding(ServiceBrandingBean branding) throws StorageException;
     public void deleteOAuth2Token(OAuth2TokenBean token) throws StorageException;
     public void deleteIDP(IDPBean idp) throws StorageException;
+    public void deleteKeystore(KeystoreBean keystore) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -175,6 +179,7 @@ public interface IStorage {
     public List<ConfigBean> getDefaultConfig() throws StorageException;
     public ServiceBrandingBean getBranding(String id) throws StorageException;
     public IDPBean getIDP(String id) throws StorageException;
+    public KeystoreBean getKeystore(Long id) throws StorageException;
 
 
     /*
