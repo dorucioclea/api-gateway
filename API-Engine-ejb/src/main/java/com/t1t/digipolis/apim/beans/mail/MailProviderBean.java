@@ -1,6 +1,9 @@
 package com.t1t.digipolis.apim.beans.mail;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * @author Guillaume Vandecasteele
@@ -8,7 +11,8 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "mail_providers")
-public class MailProviderBean {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class MailProviderBean implements Serializable {
 
     @Id
     @GeneratedValue

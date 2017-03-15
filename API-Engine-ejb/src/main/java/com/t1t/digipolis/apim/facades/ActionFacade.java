@@ -11,6 +11,7 @@ import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
+import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.plans.PlanStatus;
 import com.t1t.digipolis.apim.beans.plans.PlanVersionBean;
 import com.t1t.digipolis.apim.beans.policies.NewPolicyBean;
@@ -38,6 +39,8 @@ import com.t1t.digipolis.apim.gateway.dto.Contract;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
+import com.t1t.digipolis.apim.idp.IDPClient;
+import com.t1t.digipolis.apim.idp.IDPLinkFactory;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.KongConsumer;
 import com.t1t.digipolis.kong.model.KongPluginACLResponse;
@@ -75,6 +78,7 @@ public class ActionFacade {
     @Inject private IServiceValidator serviceValidator;
     @Inject private IApplicationValidator applicationValidator;
     @Inject private GatewayFacade gatewayFacade;
+    @Inject private IDPLinkFactory idpLinkFactory;
 
     public void performAction(ActionBean action){
         switch (action.getType()) {
@@ -400,7 +404,8 @@ public class ActionFacade {
                                     .withName(versionBean.getApplication().getName())
                                     .withId(versionBean.getOauthCredentialId())
                                     .withRedirectUri(versionBean.getOauthClientRedirects()));
-                            gw.addConsumerJWT(appConsumerName, JWTUtils.JWT_RS256, versionBean.getJwtKey(), versionBean.getJwtSecret());
+                            String publicKey = idpLinkFactory.getDefaultIDPClient().getRealmPublicKeyInPemFormat(versionBean.getApplication().getOrganization());
+                            gw.addConsumerJWT(appConsumerName, publicKey);
                         } catch (Exception ex) {
                             //Delete the consumer on the gateway so the gateway and engine remain in sync
                             gw.deleteConsumer(appConsumerName);
@@ -564,23 +569,7 @@ public class ActionFacade {
         versionBean.setRetiredOn(new Date());
 
         // delete all contracts
-        for(ContractSummaryBean contractSumBean:contractBeans){
-            ContractBean contract = null;
-            try {
-                contract = storage.getContract(contractSumBean.getContractId());
-                if (contract.getService().getService().isAdmin()) {
-                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());
-                    mab.getApiKeys().remove(contract.getApplication().getApikey());
-                    storage.updateManagedApplication(mab);
-                }
-                storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
-                storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
-                storage.deleteContract(contract);
-                log.debug(String.format("Deleted contract: %s", contract));
-            } catch (StorageException e) {
-                throw new SystemErrorException(e);
-            }
-        }
+        orgFacade.deleteContractsForSummaries(contractBeans);
 
         try {
             storage.updateApplicationVersion(versionBean);

@@ -42,6 +42,10 @@ public class OrganizationBean implements Serializable {
     private String friendlyName;
     @Column(name = "private")
     private boolean organizationPrivate;
+    @Column(name = "mail_provider_id")
+    private Long mailProviderId;
+    @Column(name = "keystore_kid")
+    private String keystoreKid;
 
     /**
      * Constructor.
@@ -190,6 +194,34 @@ public class OrganizationBean implements Serializable {
     }
 
     /**
+     * @return the mail provider ID
+     */
+    public Long getMailProviderId() {
+        return mailProviderId;
+    }
+
+    /**
+     * @param mailProviderId the mail provider ID to set
+     */
+    public void setMailProviderId(Long mailProviderId) {
+        this.mailProviderId = mailProviderId;
+    }
+
+    /**
+     * @return the keystore ID
+     */
+    public String getKeystoreKid() {
+        return keystoreKid;
+    }
+
+    /**
+     * @param keystoreId the keystore ID to set
+     */
+    public void setKeystoreKid(String keystoreId) {
+        this.keystoreKid = keystoreId;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -233,6 +265,8 @@ public class OrganizationBean implements Serializable {
                 ", modifiedOn=" + modifiedOn +
                 ", friendlyName='" + friendlyName + '\'' +
                 ", organizationPrivate=" + organizationPrivate +
+                ", mailProviderId=" + mailProviderId +
+                ", keystoreKid=" + keystoreKid +
                 '}';
     }
 }

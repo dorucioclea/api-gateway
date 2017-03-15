@@ -1,7 +1,12 @@
 package com.t1t.digipolis.util;
 
+import org.bouncycastle.jce.provider.PEMUtil;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
+import org.bouncycastle.util.io.pem.PemWriter;
+import sun.security.provider.X509Factory;
 
 import java.io.*;
 import java.security.KeyFactory;
@@ -106,5 +111,18 @@ public class KeyUtils {
         catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
             return null;
         }
+    }
+
+    public static  String convertPubKeyToPEM(String publicKey) throws IOException {
+        PublicKey key = getKey(publicKey);
+        if (key != null) {
+            StringWriter writer = new StringWriter();
+            PemWriter pemWriter = new PemWriter(writer);
+            pemWriter.writeObject(new PemObject("PUBLIC KEY", key.getEncoded()));
+            pemWriter.flush();
+            pemWriter.close();
+            return writer.toString();
+        }
+        else return null;
     }
 }

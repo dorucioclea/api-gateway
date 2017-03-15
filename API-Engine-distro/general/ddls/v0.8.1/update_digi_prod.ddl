@@ -9,7 +9,6 @@ ALTER TABLE service_versions ADD CONSTRAINT FK_service_versions_1 FOREIGN KEY (s
 ALTER TABLE endpoint_properties ADD CONSTRAINT FK_endpoint_properties_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 ALTER TABLE applications ADD CONSTRAINT FK_applications_1 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 ALTER TABLE policies ADD CONSTRAINT FK_policies_1 FOREIGN KEY (definition_id) REFERENCES policydefs (id) ON UPDATE CASCADE;
-ALTER TABLE oauth_apps ADD CONSTRAINT FK_oauth_apps_1 FOREIGN KEY (app_id) REFERENCES application_versions (id) ON UPDATE CASCADE;
 ALTER TABLE plans ADD CONSTRAINT FK_plans_1 FOREIGN KEY (organization_id) REFERENCES organizations (id) ON UPDATE CASCADE;
 
 ALTER TABLE contracts ADD CONSTRAINT FK_contracts_3 FOREIGN KEY (planv_id) REFERENCES plan_versions (id) ON UPDATE CASCADE;
@@ -26,7 +25,6 @@ ALTER TABLE application_versions DROP CONSTRAINT fk_8epnoby31bt7xakegakigpikp;
 ALTER TABLE applications DROP CONSTRAINT fk_jenpu34rtuncsgvtw0sfo8qq9;
 ALTER TABLE endpoint_properties DROP CONSTRAINT fk_gn0ydqur10sxuvpyw2jvv4xxb;
 ALTER TABLE followers DROP CONSTRAINT  fk_29hj3xmhp1wedxjh1bklnlg15;
-ALTER TABLE oauth_apps DROP CONSTRAINT fk_l5q6we1bos1yl98nmogei7aja;
 ALTER TABLE permissions DROP CONSTRAINT fk_sq51ihfrapwdr98uufenhcocg;
 ALTER TABLE plan_versions DROP CONSTRAINT fk_tonylvm2ypnq3efxqr1g0m9fs;
 ALTER TABLE plans DROP CONSTRAINT fk_lwhc7xrdbsun1ak2uvfu0prj8;

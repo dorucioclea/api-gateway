@@ -27,7 +27,11 @@ public class IDPBean implements Serializable {
     @Column(name = "client_id")
     private String clientId;
     @Column(name = "encrypted_client_secret")
-    private String clientSecret;
+    private String encryptedClientSecret;
+    @Column(name = "default_login_theme_id")
+    private String defaultLoginThemeId;
+    @Column(name = "default_client")
+    private String defaultClient;
     @Column(name = "default_idp")
     private boolean defaultIdp;
 
@@ -63,12 +67,28 @@ public class IDPBean implements Serializable {
         this.clientId = clientId;
     }
 
-    public String getClientSecret() {
-        return clientSecret;
+    public String getEncryptedClientSecret() {
+        return encryptedClientSecret;
     }
 
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
+    public void setEncryptedClientSecret(String clientSecret) {
+        this.encryptedClientSecret = clientSecret;
+    }
+
+    public String getDefaultLoginThemeId() {
+        return defaultLoginThemeId;
+    }
+
+    public void setDefaultLoginThemeId(String defaultLoginThemeId) {
+        this.defaultLoginThemeId = defaultLoginThemeId;
+    }
+
+    public String getDefaultClient() {
+        return defaultClient;
+    }
+
+    public void setDefaultClient(String defaultClient) {
+        this.defaultClient = defaultClient;
     }
 
     public boolean isDefaultIdp() {
@@ -101,7 +121,9 @@ public class IDPBean implements Serializable {
                 ", serverUrl='" + serverUrl + '\'' +
                 ", masterRealm='" + masterRealm + '\'' +
                 ", clientId='" + clientId + '\'' +
-                ", clientSecret='XXXXX'" +
+                ", encryptedClientSecret='XXXXX'" +
+                ", defaultLoginThemeId='" + defaultLoginThemeId + '\'' +
+                ", defaultClient='" + defaultClient + '\'' +
                 ", defaultIdp=" + defaultIdp +
                 '}';
     }

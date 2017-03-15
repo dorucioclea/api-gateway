@@ -17,6 +17,7 @@ import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
+import com.t1t.digipolis.apim.idp.IDPLinkFactory;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +57,8 @@ public class SyncFacade {
     private IApiKeyGenerator apiKeyGenerator;
     @Inject
     private GatewayValidation gatewayValidation;
+    @Inject
+    private IDPLinkFactory idpLinkFactory;
 
     @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
     public void syncAll() {
@@ -77,7 +80,8 @@ public class SyncFacade {
 
     @TransactionTimeout(value = 1, unit = TimeUnit.HOURS)
     public void syncUsers() {
-        log.info("==== SYNC USERS START ====");
+
+        /*log.info("==== SYNC USERS START ====");
         LocalDateTime start = LocalDateTime.now();
         try {
             List<IGatewayLink> gateways = query.getAllGateways().stream().map(gwBean -> gatewayFacade.createGatewayLink(gwBean.getId())).collect(Collectors.toList());
@@ -150,7 +154,7 @@ public class SyncFacade {
             log.error("==== SYNC USERS FAILED DUE TO {} ====" + e.getMessage());
             e.printStackTrace();
         }
-        log.info("==== SYNC USERS END, COMPLETED IN {} ====", TimeUtil.getTimeSince(start));
+        log.info("==== SYNC USERS END, COMPLETED IN {} ====", TimeUtil.getTimeSince(start));*/
     }
 
 
@@ -323,14 +327,14 @@ public class SyncFacade {
                                     jwtCreds.getData().stream().filter(jwt -> {
                                         boolean baseMatch = !jwt.getAlgorithm().equals(JWT_RS256) || !jwt.getRsaPublicKey().equals(pubKey);
                                         if (!needsJWTcreds) {
-                                            baseMatch = baseMatch || !jwt.getKey().equals(avb.getJwtKey()) || !jwt.getSecret().equals(avb.getJwtSecret());
+                                            baseMatch = baseMatch || !jwt.getKey().equals(avb.getJwtKey());
                                         }
                                         return baseMatch;
                                     }).forEach(jwt -> gw.deleteConsumerJwtCredential(appId, jwt.getId()));
                                     jwtCreds = gw.getConsumerJWT(appId);
                                 }
                                 if (jwtCreds.getData().isEmpty()) {
-                                    jwtCred = gw.addConsumerJWT(appId, JWT_RS256, avb.getJwtKey(), avb.getJwtSecret());
+                                    jwtCred = gw.addConsumerJWT(appId, idpLinkFactory.getDefaultIDPClient().getRealmPublicKeyInPemFormat(avb.getApplication().getOrganization()));
                                     log.info("= NO JWT CREDENTIALS FOUND FOR APPLICATION \"{}\" ON GATEWAY \"{}\", CREATED =", appId, gwId);
                                 } else {
                                     jwtCred = jwtCreds.getData().get(0);

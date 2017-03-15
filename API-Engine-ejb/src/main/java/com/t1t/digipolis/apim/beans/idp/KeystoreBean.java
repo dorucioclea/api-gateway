@@ -1,6 +1,9 @@
 package com.t1t.digipolis.apim.beans.idp;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * @author Guillaume Vandecasteele
@@ -8,27 +11,40 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "keystores")
-public class KeystoreBean {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class KeystoreBean implements Serializable {
 
     @Id
-    @GeneratedValue
-    private Long id;
+    private String kid;
     @Column(name = "name")
     private String name;
+    @Column(name = "path")
+    private String path;
     @Column(name = "encrypted_keystore_password")
     private String encryptedKeystorePassword;
     @Column(name = "encrypted_key_password")
     private String encryptedKeyPassword;
+    @Column(name = "private_key_alias")
+    private String privateKeyAlias;
+    @Column(name = "priority")
+    private Long priority;
     @Column(name = "default_keystore")
     private boolean defaultKeystore;
 
-
-    public Long getId() {
-        return id;
+    public String getKid() {
+        return kid;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setKid(String kid) {
+        this.kid = kid;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public String getName() {
@@ -55,12 +71,28 @@ public class KeystoreBean {
         this.encryptedKeyPassword = encryptedKeyPassword;
     }
 
+    public Long getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Long priority) {
+        this.priority = priority;
+    }
+
     public boolean isDefaultKeystore() {
         return defaultKeystore;
     }
 
     public void setDefaultKeystore(boolean defaultKeystore) {
         this.defaultKeystore = defaultKeystore;
+    }
+
+    public String getPrivateKeyAlias() {
+        return privateKeyAlias;
+    }
+
+    public void setPrivateKeyAlias(String privateKeyAlias) {
+        this.privateKeyAlias = privateKeyAlias;
     }
 
     @Override
@@ -70,21 +102,24 @@ public class KeystoreBean {
 
         KeystoreBean that = (KeystoreBean) o;
 
-        return id != null ? id.equals(that.id) : that.id == null;
+        return kid != null ? kid.equals(that.kid) : that.kid == null;
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return kid != null ? kid.hashCode() : 0;
     }
 
     @Override
     public String toString() {
-        return "KeystoresBean{" +
-                "id=" + id +
+        return "KeystoreBean{" +
+                "kid='" + kid + '\'' +
                 ", name='" + name + '\'' +
-                ", encryptedKeystorePassword='********'" +
-                ", encryptedKeyPassword='********'" +
+                ", path='" + path + '\'' +
+                ", encryptedKeystorePassword='*******'" +
+                ", encryptedKeyPassword='*******'" +
+                ", privateKeyAlias='" + privateKeyAlias + '\'' +
+                ", priority=" + priority +
                 ", defaultKeystore=" + defaultKeystore +
                 '}';
     }

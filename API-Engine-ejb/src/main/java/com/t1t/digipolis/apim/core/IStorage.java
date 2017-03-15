@@ -6,7 +6,6 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.config.ConfigBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -18,6 +17,7 @@ import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
 import com.t1t.digipolis.apim.beans.idp.KeystoreBean;
 import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.digipolis.apim.beans.mail.MailProviderBean;
 import com.t1t.digipolis.apim.beans.mail.MailTemplateBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.operation.OperatingBean;
@@ -61,7 +61,6 @@ public interface IStorage {
     public void createPlugin(PluginBean plugin) throws StorageException;
     public void createPolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
     public void createAuditEntry(AuditEntryBean entry) throws StorageException;
-    public void createApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException;
     public void createServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
     public void createServiceSupport(SupportBean supportBean) throws StorageException;
     public void createServiceSupportComment(SupportComment commentBean) throws StorageException;
@@ -77,6 +76,7 @@ public interface IStorage {
     public void createOAuth2Token(OAuth2TokenBean token) throws StorageException;
     public void createIDP(IDPBean idp) throws StorageException;
     public void createKeystore(KeystoreBean keystore) throws StorageException;
+    public void createMailProvider(MailProviderBean mailProvider) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -93,7 +93,6 @@ public interface IStorage {
     public void updatePolicy(PolicyBean policy) throws StorageException;
     public void updateGateway(GatewayBean gateway) throws StorageException;
     public void updatePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
-    public void updateApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException;
     public void updateServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
     public void updateServiceSupport(SupportBean supportBean) throws StorageException;
     public void updateServiceSupportComment(SupportComment commentBean) throws StorageException;
@@ -110,7 +109,7 @@ public interface IStorage {
     public void updateOAuth2TokenBean(OAuth2TokenBean token) throws StorageException;
     public void updateIDPBean(IDPBean idp) throws StorageException;
     public void updateKeystoreBean(KeystoreBean keystore) throws StorageException;
-
+    public void updateMailProviderBean(MailProviderBean mailProvider) throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
@@ -129,7 +128,6 @@ public interface IStorage {
     public void deleteGateway(GatewayBean gateway) throws StorageException;
     public void deletePlugin(PluginBean plugin) throws StorageException;
     public void deletePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
-    public void deleteApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException;
     public void deleteServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
     public void deleteServiceSupport(SupportBean supportBean) throws StorageException;
     public void deleteServiceSupportComment(SupportComment commentBean) throws StorageException;
@@ -145,6 +143,7 @@ public interface IStorage {
     public void deleteOAuth2Token(OAuth2TokenBean token) throws StorageException;
     public void deleteIDP(IDPBean idp) throws StorageException;
     public void deleteKeystore(KeystoreBean keystore) throws StorageException;
+    public void deleteMailProvider(MailProviderBean mailProvider) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -164,7 +163,6 @@ public interface IStorage {
     public PluginBean getPlugin(long id) throws StorageException;
     public PluginBean getPlugin(String groupId, String artifactId) throws StorageException;
     public PolicyDefinitionBean getPolicyDefinition(String id) throws StorageException;
-    public OAuthAppBean getApplicationOAuthCredentials(String id) throws StorageException;
     public AnnouncementBean getServiceAnnouncement(Long id) throws StorageException;
     public SupportBean getServiceSupport(Long id) throws StorageException;
     public SupportComment getServiceSupportComment(Long id) throws StorageException;
@@ -180,7 +178,7 @@ public interface IStorage {
     public ServiceBrandingBean getBranding(String id) throws StorageException;
     public IDPBean getIDP(String id) throws StorageException;
     public KeystoreBean getKeystore(Long id) throws StorageException;
-
+    public MailProviderBean getMailProvider(Long id) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

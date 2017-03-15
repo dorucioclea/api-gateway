@@ -1,6 +1,8 @@
 package com.t1t.digipolis.apim.idp;
 
 import com.t1t.digipolis.apim.beans.idp.IDPBean;
+import com.t1t.digipolis.apim.beans.idp.KeystoreBean;
+import com.t1t.digipolis.apim.beans.mail.MailProviderBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -38,7 +40,7 @@ public class IDPLinkFactoryImpl implements IDPLinkFactory {
             if (idp == null) {
                 throw ExceptionFactory.idpNotFoundException(idpId);
             }
-            return new IDPClientImpl(createKeycloakClient(idp));
+            return getIDPClientInternal(idp);
         } catch (StorageException e) {
             throw ExceptionFactory.systemErrorException(e);
         }
@@ -52,10 +54,16 @@ public class IDPLinkFactoryImpl implements IDPLinkFactory {
                 log.error("There is no IDP defined as default");
                 throw ExceptionFactory.idpNotFoundException("Default");
             }
-            return new IDPClientImpl(createKeycloakClient(idp));
+            return getIDPClientInternal(idp);
         } catch (StorageException e) {
             throw ExceptionFactory.systemErrorException(e);
         }
+    }
+
+    private IDPClient getIDPClientInternal(IDPBean idp) throws StorageException {
+        KeystoreBean kb = query.getDefaultKeystore();
+        MailProviderBean mpb = query.getDefaultMailProvider();
+        return new IDPClientImpl(createKeycloakClient(idp), idp, kb, mpb);
     }
 
     private Keycloak createKeycloakClient(IDPBean idp) {
@@ -64,7 +72,7 @@ public class IDPLinkFactoryImpl implements IDPLinkFactory {
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .realm(idp.getMasterRealm())
                 .clientId(idp.getClientId())
-                .clientSecret(AesEncrypter.decrypt(idp.getClientSecret()))
+                .clientSecret(AesEncrypter.decrypt(idp.getEncryptedClientSecret()))
                 .build();
     }
 }

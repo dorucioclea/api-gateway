@@ -159,15 +159,20 @@ CREATE TABLE idps
   master_realm VARCHAR(255) NOT NULL,
   client_id VARCHAR(255) NOT NULL,
   encrypted_client_secret VARCHAR(255) NOT NULL,
+  default_login_theme_id VARCHAR(255) DEFAULT NULL,
+  default_client VARCHAR(255) DEFAULT NULL,
   default_idp BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE keystores
 (
-  id BIGINT NOT NULL,
+  kid VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
+  path VARCHAR(255) NOT NULL,
   encrypted_keystore_password VARCHAR(255) NOT NULL,
   encrypted_key_password VARCHAR(255) NOT NULL,
+  private_key_alias VARCHAR(255) NOT NULL,
+  priority BIGINT NOT NULL DEFAULT 150,
   default_keystore BOOLEAN DEFAULT FALSE
 );
 
@@ -242,18 +247,6 @@ CREATE TABLE oauth2_tokens
   gateway_id VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE oauth_apps
-(
-  id BIGINT NOT NULL,
-  oauth_svc_orgid VARCHAR(255) NOT NULL,
-  oauth_svc_id VARCHAR(255) NOT NULL,
-  oauth_svc_version VARCHAR(255) NOT NULL,
-  oauth_client_id VARCHAR(255) NOT NULL,
-  oauth_client_secret VARCHAR(255) NOT NULL,
-  oauth_client_redirect VARCHAR(255),
-  app_id BIGINT NOT NULL
-);
-
 CREATE TABLE oauth_scopes
 (
   serviceversionbean_id BIGINT NOT NULL,
@@ -279,7 +272,9 @@ CREATE TABLE organizations
   name VARCHAR(255) NOT NULL,
   friendly_name VARCHAR(255),
   private BOOLEAN DEFAULT true,
-  context VARCHAR(255) DEFAULT 'pub' NOT NULL
+  context VARCHAR(255) DEFAULT 'pub' NOT NULL,
+  mail_provider_id BIGINT NULL,
+  keystore_id BIGINT NULL
 );
 
 CREATE TABLE permissions
@@ -520,7 +515,7 @@ ALTER TABLE gateways ADD PRIMARY KEY (id);
 
 ALTER TABLE idps ADD PRIMARY KEY (id);
 
-ALTER TABLE keystores ADD PRIMARY KEY (id);
+ALTER TABLE keystores ADD PRIMARY KEY (kid);
 
 ALTER TABLE key_mapping ADD PRIMARY KEY (from_spec_type, to_spec_type, from_spec_claim);
 
@@ -531,8 +526,6 @@ ALTER TABLE mail_templates ADD PRIMARY KEY (topic);
 ALTER TABLE managed_applications ADD PRIMARY KEY (id);
 
 ALTER TABLE memberships ADD PRIMARY KEY (id);
-
-ALTER TABLE oauth_apps ADD PRIMARY KEY (id);
 
 ALTER TABLE operating_modes ADD PRIMARY KEY (id);
 
@@ -602,8 +595,6 @@ CREATE INDEX idx_memberships_1 ON memberships (user_id);
 
 CREATE INDEX idx_oauth2_tokens_1 ON oauth2_tokens (credential_id);
 
-CREATE INDEX idx_oauth_defs_1 ON oauth_apps (oauth_svc_orgid, oauth_svc_id, oauth_svc_version);
-
 CREATE INDEX idx_fk_oauth_scopes_1 ON oauth_scopes (serviceversionbean_id);
 
 CREATE INDEX idx_organizations_1 ON organizations (name);
@@ -660,6 +651,12 @@ ALTER TABLE service_defs ADD CONSTRAINT uk_service_defs_1 UNIQUE (service_versio
 
 ALTER TABLE service_versions ADD CONSTRAINT uk_service_versions_1 UNIQUE (service_id, service_org_id, version);
 
+CREATE UNIQUE INDEX uk_idps_1 ON idps (default_idp) WHERE default_idp = true;
+
+CREATE UNIQUE INDEX uk_keystores_1 ON keystores (default_keystore) WHERE default_keystore = true;
+
+CREATE UNIQUE INDEX uk_mail_providers_1 ON mail_providers (default_mail_provider) WHERE default_mail_provider = true;
+
 -- FOREIGN KEYS
 
 ALTER TABLE application_versions ADD CONSTRAINT fk_application_versions_1 FOREIGN KEY (app_id, app_org_id) REFERENCES applications (id, organization_id);
@@ -684,9 +681,11 @@ ALTER TABLE managed_application_keys ADD CONSTRAINT fk_managed_app_keys_1 FOREIG
 
 ALTER TABLE managed_applications ADD CONSTRAINT fk_managed_applications_1 FOREIGN KEY (gateway_id) REFERENCES gateways (id);
 
-ALTER TABLE oauth_apps ADD CONSTRAINT fk_oauth_apps_1 FOREIGN KEY (app_id) REFERENCES application_versions (id);
-
 ALTER TABLE oauth_scopes ADD CONSTRAINT fk_oauth_scopes_1 FOREIGN KEY (serviceversionbean_id) REFERENCES service_versions (id);
+
+ALTER TABLE organizations ADD CONSTRAINT fk_organization_1 FOREIGN KEY (mail_provider_id) REFERENCES mail_providers (id);
+
+ALTER TABLE organizations ADD CONSTRAINT fk_organizations_2 FOREIGN KEY (keystore_id) REFERENCES keystores (id);
 
 ALTER TABLE permissions ADD CONSTRAINT fk_permissions_1 FOREIGN KEY (role_id) REFERENCES roles (id);
 

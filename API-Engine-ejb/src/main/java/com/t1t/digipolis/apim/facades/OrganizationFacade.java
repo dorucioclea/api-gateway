@@ -49,6 +49,7 @@ import com.t1t.digipolis.apim.beans.services.*;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.*;
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
+import com.t1t.digipolis.apim.idp.dto.RealmClient;
 import com.t1t.digipolis.util.AesEncrypter;
 import com.t1t.digipolis.apim.core.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -841,23 +842,10 @@ public class OrganizationFacade {
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         try {
             List<ContractSummaryBean> summaries = query.getApplicationContracts(organizationId, applicationId, version);
-            for (ContractSummaryBean contractSumBean : summaries) {
-                ContractBean contract = null;
-                try {
-                    contract = storage.getContract(contractSumBean.getContractId());
-                    if (contract.getService().getService().isAdmin()) {
-                        ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());
-                        mab.getApiKeys().remove(contract.getApplication().getApikey());
-                        storage.updateManagedApplication(mab);
-                    }
-                    storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
-                    storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
-                    storage.deleteContract(contract);
-                    log.debug(String.format("Deleted contract: %s", contract));
-                } catch (StorageException e) {
-                    throw new SystemErrorException(e);
-                }
-            }
+
+            //Delete the contracts
+            deleteContractsForSummaries(summaries);
+
             Application application = new Application(organizationId, applicationId, version);
             if (avb.getStatus() == ApplicationStatus.Registered) {
                 Map<String, IGatewayLink> gateways = getApplicationGatewayLinks(summaries);
@@ -2910,28 +2898,35 @@ public class OrganizationFacade {
         newVersion.setStatus(ApplicationStatus.Created);
         newVersion.setVersion(bean.getVersion());
         newVersion.setApikey(apiKeyGenerator.generate());
-        newVersion.setoAuthClientId(apiKeyGenerator.generate());
-        newVersion.setOauthClientSecret(apiKeyGenerator.generate());
+        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion);
+
+        //TODO - remove the oauth client id property once backwards compatability is no longer required
+        newVersion.setoAuthClientId(appConsumerName);
         newVersion.setOauthClientRedirects(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI)));
+
+        //Create the corresponding IDP client and set the app version idp id
+        IDPClient idpClient = idpFactory.getDefaultIDPClient();
+        RealmClient rc = idpClient.createClient(newVersion);
+        newVersion.setIdpClientId(rc.getId());
+
+        newVersion.setOauthClientSecret(rc.getSecret());
+
         //create consumer on gateway
         //We create the new application version consumer
         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
 
-        String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId(), newVersion.getVersion());
-        //Applications' customId must contain version otherwise only one version of an application can be available on the gateway at one time
-        //String appConsumerNameVersionLess = ConsumerConventionUtil.createAppVersionlessId(newVersion.getApplication().getOrganization().getId(), newVersion.getApplication().getId());
         gateway.createConsumer(appConsumerName, appConsumerName);
-        KongPluginJWTResponse jwtCred = gateway.addConsumerJWT(appConsumerName,JWTUtils.JWT_RS256, null, null);
+        KongPluginJWTResponse jwtCred = gateway.addConsumerJWT(appConsumerName, idpClient.getRealmPublicKeyInPemFormat(application.getOrganization()));
         newVersion.setJwtKey(jwtCred.getKey());
         newVersion.setJwtSecret(jwtCred.getSecret());
         gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
         KongPluginOAuthConsumerResponse response = gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
                 .withClientId(newVersion.getoAuthClientId())
                 .withClientSecret(newVersion.getOauthClientSecret())
-                .withName(appConsumerName).withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
+                .withName(application.getName())
+                .withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
         newVersion.setOauthCredentialId(response.getId());
-        //Create the corresponding IDP client and set the app version idp id
-        newVersion.setIdpClientId(idpFactory.getDefaultIDPClient().createClient(newVersion).getId());
+
         storage.createApplicationVersion(newVersion);
         storage.createAuditEntry(AuditUtils.applicationVersionCreated(newVersion, securityContext));
         log.debug(String.format("Created new application version %s: %s", newVersion.getApplication().getName(), newVersion)); //$NON-NLS-1$
@@ -4247,6 +4242,26 @@ public class OrganizationFacade {
                 .withType(type)
                 .withBody(body);
         event.fire(neb);
+    }
+
+    public void deleteContractsForSummaries(List<ContractSummaryBean> contractBeans) {
+        for(ContractSummaryBean contractSumBean:contractBeans){
+            ContractBean contract = null;
+            try {
+                contract = storage.getContract(contractSumBean.getContractId());
+                if (contract.getService().getService().isAdmin()) {
+                    ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(contract.getApplication().getApikey());
+                    mab.getApiKeys().remove(contract.getApplication().getApikey());
+                    storage.updateManagedApplication(mab);
+                }
+                storage.createAuditEntry(AuditUtils.contractBrokenFromApp(contract, securityContext));
+                storage.createAuditEntry(AuditUtils.contractBrokenToService(contract, securityContext));
+                storage.deleteContract(contract);
+                log.debug(String.format("Deleted contract: %s", contract));
+            } catch (StorageException e) {
+                throw new SystemErrorException(e);
+            }
+        }
     }
 
     public ApplicationVersionBean getApplicationVersionByUniqueId(String UID) {

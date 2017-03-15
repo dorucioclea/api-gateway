@@ -9,7 +9,6 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
-import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.config.ConfigBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -50,6 +49,7 @@ import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
+import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.apim.mail.MailTopic;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -277,11 +277,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public void updateApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
-        super.update(oAuthAppBean);
-    }
-
-    @Override
     public void updateServiceAnnouncement(AnnouncementBean announcement) throws StorageException {
         super.update(announcement);
     }
@@ -483,11 +478,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public void deleteApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
-        super.delete(oAuthAppBean);
-    }
-
-    @Override
     public void deleteServiceAnnouncement(AnnouncementBean announcement) throws StorageException {
         super.delete(announcement);
     }
@@ -657,11 +647,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public PolicyDefinitionBean getPolicyDefinition(String id) throws StorageException {
         return super.get(id, PolicyDefinitionBean.class);
-    }
-
-    @Override
-    public OAuthAppBean getApplicationOAuthCredentials(String id) throws StorageException {
-        return super.get(id, OAuthAppBean.class);
     }
 
     @Override
@@ -921,11 +906,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         if (entry != null) {
             super.create(entry);
         }
-    }
-
-    @Override
-    public void createApplicationOAuthCredentials(OAuthAppBean oAuthAppBean) throws StorageException {
-        super.create(oAuthAppBean);
     }
 
     @Override
@@ -1870,33 +1850,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             beans.add(bean);
         }
         return beans;
-    }
-
-    @Override
-    public List<OAuthAppBean> listApplicationOAuthCredentials(Long appVersionId) throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        String jpql =
-                "SELECT oa from OAuthAppBean oa "
-                        + " WHERE oa.app = :appVersionId "
-                        + " ORDER BY oa.serviceVersion ASC";
-        Query query = entityManager.createQuery(jpql);
-        query.setParameter("appVersionId", appVersionId);
-
-        List<OAuthAppBean> oauthCredentials = (List<OAuthAppBean>) query.getResultList();
-        List<OAuthAppBean> rval = new ArrayList<>(oauthCredentials.size());
-        for (OAuthAppBean cred : oauthCredentials) {
-            OAuthAppBean res = new OAuthAppBean();
-            res.setId(cred.getId());
-            res.setServiceOrgId(cred.getServiceOrgId());
-            res.setServiceId(cred.getServiceId());
-            res.setServiceVersion(cred.getServiceVersion());
-            res.setClientId(cred.getClientId());
-            res.setClientSecret(cred.getClientSecret());
-            res.setClientRedirect(cred.getClientRedirect());
-            res.setApp(cred.getApp());
-            rval.add(res);
-        }
-        return rval;
     }
 
     @Override
@@ -3011,40 +2964,71 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public IDPBean getDefaultIdp() throws StorageException {
-        List<IDPBean> result = getActiveEntityManager().createQuery("SELECT i FROM IDPBean i WHERE i.defaultIdp = TRUE").getResultList();
-        if (!result.isEmpty()) {
-            return result.get(0);
+        try {
+            return (IDPBean) getActiveEntityManager().createQuery("SELECT i FROM IDPBean i WHERE i.defaultIdp = TRUE").getSingleResult();
         }
-        else return null;
+        catch (NoResultException ex) {
+            return null;
+        }
     }
 
     @Override
     public void createKeystore(KeystoreBean keystore) throws StorageException {
+        super.create(keystore);
+    }
 
+    @Override
+    public void createMailProvider(MailProviderBean mailProvider) throws StorageException {
+        super.create(mailProvider);
     }
 
     @Override
     public void updateKeystoreBean(KeystoreBean keystore) throws StorageException {
+        super.update(keystore);
+    }
 
+    @Override
+    public void updateMailProviderBean(MailProviderBean mailProvider) throws StorageException {
+        super.update(mailProvider);
     }
 
     @Override
     public void deleteKeystore(KeystoreBean keystore) throws StorageException {
+        super.delete(keystore);
+    }
 
+    @Override
+    public void deleteMailProvider(MailProviderBean mailProvider) throws StorageException {
+        super.delete(mailProvider);
     }
 
     @Override
     public KeystoreBean getKeystore(Long id) throws StorageException {
-        return null;
+        return super.get(id, KeystoreBean.class);
+    }
+
+    @Override
+    public MailProviderBean getMailProvider(Long id) throws StorageException {
+        return super.get(id, MailProviderBean.class);
     }
 
     @Override
     public KeystoreBean getDefaultKeystore() throws StorageException {
-        return null;
+        try {
+            return (KeystoreBean) getActiveEntityManager().createQuery("SELECT k FROM KeystoreBean k WHERE k.defaultKeystore = TRUE").getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
     }
 
     @Override
     public MailProviderBean getDefaultMailProvider() throws StorageException {
-        return null;
+        try {
+            return (MailProviderBean) getActiveEntityManager().createQuery("SELECT m FROM MailProviderBean m WHERE m.defaultMailProvider = TRUE").getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
     }
 }

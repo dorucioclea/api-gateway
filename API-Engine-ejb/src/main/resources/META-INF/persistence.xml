@@ -44,7 +44,6 @@
         <class>com.t1t.digipolis.apim.beans.audit.AuditEntryBean</class>
         <class>com.t1t.digipolis.apim.beans.gateways.GatewayBean</class>
         <class>com.t1t.digipolis.apim.beans.plugins.PluginBean</class>
-        <class>com.t1t.digipolis.apim.beans.authorization.OAuthAppBean</class>
         <class>com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean</class>
         <class>com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean</class>
         <class>com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean</class>

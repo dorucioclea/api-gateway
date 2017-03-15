@@ -753,7 +753,8 @@ public class UserFacade implements Serializable {
      * @return
      */
     private String updateOrCreateConsumerJWTOnGateway(IdentityAttributes identityAttributes, WebClientCacheBean cacheBean) {
-        String jwtKey = "";
+        //TODO - Remove all user provisioning on the gateway
+        /*String jwtKey = "";
         String jwtSecret = "";
         String issuedJWT = "";
         // Publish the service to all relevant gateways
@@ -842,7 +843,8 @@ public class UserFacade implements Serializable {
         }catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
-        return issuedJWT;
+        return issuedJWT;*/
+        return null;
     }
 
     /**

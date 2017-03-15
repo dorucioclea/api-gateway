@@ -225,11 +225,12 @@ public interface IGatewayLink {
 
     /**
      * Adds JWT to a consumer, generating a new key/secret on the API Engine.
-     * @param id
+     * @param consumerName
+     * @param publicRsaKey
      * @return
      * @throws ConsumerException
      */
-    public KongPluginJWTResponse addConsumerJWT(String id, String encoding, String key, String secret) throws ConsumerException;
+    public KongPluginJWTResponse addConsumerJWT(String consumerName, String publicRsaKey) throws ConsumerException;
 
     /**
      * Retrieve a consumer information with it's JWT key.

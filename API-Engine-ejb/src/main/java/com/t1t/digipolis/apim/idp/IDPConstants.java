@@ -18,5 +18,8 @@ public interface IDPConstants {
     String KEYSTORE_KEY_PASSWORD = "keyPassword";
     String KEYSTORE_ALIAS = "keyAlias";
     String KEYSTORE_PATH = "keystore";
+    String KEYSTORE_ACTIVE = "active";
+    String KEYSTORE_ENABLED = "enabled";
+    String KEYSTORE_PRIORITY = "priority";
 
 }

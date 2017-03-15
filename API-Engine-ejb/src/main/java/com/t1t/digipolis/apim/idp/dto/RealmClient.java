@@ -1,5 +1,7 @@
 package com.t1t.digipolis.apim.idp.dto;
 
+import java.util.List;
+
 /**
  * @author Guillaume Vandecasteele
  * @since 2017
@@ -7,6 +9,8 @@ package com.t1t.digipolis.apim.idp.dto;
 public class RealmClient {
 
     private String id;
+    private String secret;
+    private List<String> redirectUris;
 
     public String getId() {
         return id;
@@ -14,6 +18,14 @@ public class RealmClient {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
     }
 
     @Override
