@@ -19,7 +19,7 @@ public class SwaggerJaxrsConfig extends HttpServlet {
         try {
             super.init(servletConfig);
             BeanConfig beanConfig = new BeanConfig();
-            beanConfig.setTitle("API Engine");
+            beanConfig.setTitle("API Gateway");
             beanConfig.setVersion("v1");
             beanConfig.setBasePath("t1g-web/v1");
             beanConfig.setResourcePackage("com.t1t.rest.resources");
@@ -30,8 +30,8 @@ public class SwaggerJaxrsConfig extends HttpServlet {
                     .title("API Engine")
                     .description("Description")
                     .termsOfService("TERMS")
-                    .contact(new Contact().email("info@digipolis.be"))
-                    .license(new License().name("API-Engine").url("license@url.com"));
+                    .contact(new Contact().email("info@trust1team.com"))
+                    .license(new License().name("API-Gateway").url("license@url.com"));
             ServletContext context = servletConfig.getServletContext();
 
             //configuration

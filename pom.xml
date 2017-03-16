@@ -25,7 +25,7 @@
     <packaging>pom</packaging>
 
     <description>
-        An API Engine based on the Kong gateway: http://getkong.org/
+        An API Gateway based on the Kong gateway: http://getkong.org/
     </description>
     <url>http://www.trust1team.com</url>
     <organization>
