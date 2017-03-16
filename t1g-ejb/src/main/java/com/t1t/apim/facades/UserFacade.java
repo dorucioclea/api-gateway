@@ -135,7 +135,7 @@ public class UserFacade implements Serializable {
         try {
             UserBean user = idmStorage.getUser(userId);
             if (user == null) {
-                throw ExceptionFactory.organizationNotFoundException(userId);
+                throw ExceptionFactory.userNotFoundException(userId);
             }
             return user;
         } catch (StorageException e) {
