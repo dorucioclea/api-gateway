@@ -17,10 +17,10 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <name>API-Engine</name>
+    <name>API-Gateway</name>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.t1t.digipolis</groupId>
-    <artifactId>API-Engine</artifactId>
+    <groupId>com.t1t</groupId>
+    <artifactId>api-gateway</artifactId>
     <version>0.9.7-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -61,11 +61,11 @@
     </licenses>
 
     <modules>
-        <module>API-Engine-ejb</module>
-        <module>API-Engine-web</module>
-        <module>API-Engine-ear</module>
-        <module>API-Engine-auth</module>
-        <module>API-Engine-distro</module>
+        <module>t1g-ejb</module>
+        <module>t1g-web</module>
+        <module>t1g-ear</module>
+        <module>t1g-auth</module>
+        <module>t1g-distro</module>
     </modules>
 
     <properties>
@@ -202,28 +202,28 @@
         <dependencies>
             <!--Digi-apim modules-->
             <dependency>
-                <groupId>com.t1t.digipolis</groupId>
-                <artifactId>API-Engine-ejb</artifactId>
+                <groupId>com.t1t</groupId>
+                <artifactId>t1g-ejb</artifactId>
                 <version>${project.version}</version>
                 <type>ejb</type>
             </dependency>
             <dependency>
-                <groupId>com.t1t.digipolis</groupId>
-                <artifactId>API-Engine-web</artifactId>
+                <groupId>com.t1t</groupId>
+                <artifactId>t1g-web</artifactId>
                 <version>${project.version}</version>
                 <type>war</type>
                 <scope>compile</scope>
             </dependency>
             <dependency>
-                <groupId>com.t1t.digipolis</groupId>
-                <artifactId>API-Engine-auth</artifactId>
+                <groupId>com.t1t</groupId>
+                <artifactId>t1g-auth</artifactId>
                 <version>${project.version}</version>
                 <type>war</type>
                 <scope>compile</scope>
             </dependency>
             <dependency>
-                <groupId>com.t1t.digipolis</groupId>
-                <artifactId>API-Engine-distro</artifactId>
+                <groupId>com.t1t</groupId>
+                <artifactId>t1g-distro</artifactId>
                 <version>${project.version}</version>
                 <type>pom</type>
                 <scope>compile</scope>

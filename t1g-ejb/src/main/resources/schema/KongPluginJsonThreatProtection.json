@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces": [
+    "com.t1t.kong.model.KongConfigValue"
+  ],
+  "properties": {
+    "container_depth": {
+      "type": "number",
+      "required": false,
+      "default": 0
+    },
+    "string_value_length": {
+      "type": "number",
+      "required": false,
+      "default": 0
+    },
+    "array_element_count": {
+      "type": "number",
+      "required": false,
+      "default": 0
+    },
+    "object_entry_count": {
+      "type": "number",
+      "required": false,
+      "default": 0
+    },
+    "object_entry_name_length": {
+      "type": "number",
+      "required": false,
+      "default": 0
+    }
+  }
+}

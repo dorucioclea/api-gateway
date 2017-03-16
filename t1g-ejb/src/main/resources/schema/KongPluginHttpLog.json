@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces" : ["com.t1t.kong.model.KongConfigValue"],
+  "properties": {
+    "keepalive": {
+      "type": "number",
+      "default": 60000
+    },
+    "method": {
+      "enum": [
+        "POST",
+        "PUT",
+        "PATCH"
+      ],
+      "default": "POST"
+    },
+    "timeout": {
+      "type": "number",
+      "default": 10000
+    },
+    "http_endpoint": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

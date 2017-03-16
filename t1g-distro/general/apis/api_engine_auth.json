@@ -1,0 +1,666 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "v1",
+    "title": "API Engine Authorization"
+  },
+  "basePath": "/t1g-auth/v1",
+  "tags": [{
+    "name": "login"
+  }, {
+    "name": "oauth"
+  }],
+  "schemes": ["http"],
+  "paths": {
+    "/login/idp/callback": {
+      "post": {
+        "tags": ["login"],
+        "summary": "The service provider for the SAML2 Authentication request",
+        "description": "This endpoint should be used by an IDP who's responding with a SAML2 Authentication response. The endpoint will provide an authorization token in return, towards the configured client URL (provided with the /idp/redirect request).",
+        "operationId": "executeSAML2Callback",
+        "produces": ["text/plain"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "SAML2 authentication request",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Server error generating the SAML2 request",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/login/idp/logout": {
+      "post": {
+        "tags": ["login"],
+        "summary": "User logout",
+        "description": "This endpoint performs actions upon an IDP triggered SAML2 logout request.",
+        "operationId": "logout",
+        "consumes": ["application/json"],
+        "produces": ["text/plain"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": false,
+          "schema": {
+            "$ref": "#/definitions/SAMLLogoutRequest"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "User specific logout.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/login/idp/redirect": {
+      "post": {
+        "tags": ["login"],
+        "summary": "IDP Callback URL for the Marketplace",
+        "description": "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim.When the token expiration time is set to 0, the token will be valid for all times. The optional claims map can be provided by the consuming application. The claim set can be changed upon refreshing the JWT.",
+        "operationId": "getSAML2AuthRequestUri",
+        "consumes": ["application/json"],
+        "produces": ["text/plain"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": false,
+          "schema": {
+            "$ref": "#/definitions/SAMLRequest"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "SAML2 authentication request",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Server error generating the SAML2 request",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/login/idp/slo": {
+      "post": {
+        "tags": ["login"],
+        "summary": "IDP single logout",
+        "description": "This endpoint can be used by an IDP to logout a user.",
+        "operationId": "singleIDPLogout",
+        "produces": ["text/plain"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "IDP single logout.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/login/idp/token/refresh": {
+      "post": {
+        "tags": ["login"],
+        "summary": "Refresh an existing valid JWT. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter.",
+        "description": "Use this endpoint to refresh and prolong your JWT expiration time. If 0 is provided as expiration configuration, the JWT will be infinitly valid. The consuming application can provide at this moment optionally a custom claim map.",
+        "operationId": "refreshToken",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": false,
+          "schema": {
+            "$ref": "#/definitions/JWTRefreshRequestBean"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "Refreshed JWT.",
+            "schema": {
+              "$ref": "#/definitions/JWTRefreshResponseBean"
+            }
+          },
+          "500": {
+            "description": "Server error while refreshing token",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/login/idp/user/mail": {
+      "post": {
+        "tags": ["login"],
+        "summary": "Performs a search on user email towards the coupled Identity Provider.",
+        "description": "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.",
+        "operationId": "getUserByMail",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": false,
+          "schema": {
+            "$ref": "#/definitions/ExternalUserRequest"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "External and initialized user.",
+            "schema": {
+              "$ref": "#/definitions/ExternalUserBean"
+            }
+          }
+        }
+      }
+    },
+    "/login/idp/user/name": {
+      "post": {
+        "tags": ["login"],
+        "summary": "Performs a search on user unique name towards the coupled Identity Provider.",
+        "description": "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.",
+        "operationId": "getUserByUsername",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": false,
+          "schema": {
+            "$ref": "#/definitions/ExternalUserRequest"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "External and initialized user.",
+            "schema": {
+              "$ref": "#/definitions/ExternalUserBean"
+            }
+          }
+        }
+      }
+    },
+    "/login/proxy-auth/user": {
+      "post": {
+        "tags": ["login"],
+        "summary": "Authentication proxy endpoint, authenticates the user through trusted application.",
+        "description": "Utility method. The client application serves as a OAuth service provider, and is know to the IDP. The client application uses OAuth client credentials to authenticate the user's provided credentials.",
+        "operationId": "ipdClientCredGrantForUserAuthentication",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": false,
+          "schema": {
+            "$ref": "#/definitions/ProxyAuthRequest"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "When authenticated succesfull, the user will be returned, else null response.",
+            "schema": {
+              "$ref": "#/definitions/JWTRefreshResponseBean"
+            }
+          }
+        }
+      }
+    },
+    "/oauth/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}": {
+      "get": {
+        "tags": ["oauth"],
+        "summary": "Retrieve Application OAuth2 information for targeted service.",
+        "description": "Retrive the Application OAuth2 information in order to inform the user through a consent page for a specific service.",
+        "operationId": "getApplicationInfo",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [{
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "orgId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "serviceId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "The result unique username and generated KeyAuth token.",
+            "schema": {
+              "$ref": "#/definitions/OAuthApplicationResponse"
+            }
+          },
+          "409": {
+            "description": "Conflict error.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/oauth/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}/scopes": {
+      "get": {
+        "tags": ["oauth"],
+        "summary": "Information endpoint to retrieve service version scopes.",
+        "description": "Returns a list of string values representing available service versions copes",
+        "operationId": "getServiceVersionScopes",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [{
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "orgId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "serviceId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }],
+        "responses": {
+          "200": {
+            "description": "list of service version scopes.",
+            "schema": {
+              "$ref": "#/definitions/OAuthServiceScopeResponse"
+            }
+          },
+          "409": {
+            "description": "Conflict error.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/oauth/consumer": {
+      "post": {
+        "tags": ["oauth"],
+        "summary": "Enable an application consumer for OAuth2 in the context of the application.",
+        "description": "The client application is identified with a client_id and client_password. Both are needed to provide the application name and redirect URL in order to register a consumer for OAuth2.",
+        "operationId": "enableOAuthForConsumer",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [{
+          "in": "body",
+          "name": "body",
+          "required": false,
+          "schema": {
+            "$ref": "#/definitions/OAuthConsumerRequestBean"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "The result unique username and generated KeyAuth token.",
+            "schema": {
+              "$ref": "#/definitions/KongPluginOAuthConsumerResponse"
+            }
+          },
+          "409": {
+            "description": "Conflict error.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/oauth/redirect/{responseType}/user/{userId}/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}": {
+      "post": {
+        "tags": ["oauth"],
+        "summary": "Utility endpoint to composes a redirect request for user authorization.",
+        "description": "Returns a redirect URI that will forward the user to an authorization page (Authorization/Implicit Grant). The response type can be - code - for Authorization Code Grant; or - token - for Implicit Grant ",
+        "operationId": "getAuthorizationRedirect",
+        "consumes": ["application/json"],
+        "produces": ["text/plain"],
+        "parameters": [{
+          "name": "responseType",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "enum": ["CODE", "TOKEN"]
+        }, {
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "orgId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "serviceId",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "name": "version",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }, {
+          "in": "body",
+          "name": "body",
+          "required": false,
+          "schema": {
+            "$ref": "#/definitions/OAuthServiceScopeRequest"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "The authorization redirect URI.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "409": {
+            "description": "Conflict error.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "SAMLRequest": {
+      "type": "object",
+      "properties": {
+        "idpUrl": {
+          "type": "string"
+        },
+        "spUrl": {
+          "type": "string"
+        },
+        "spName": {
+          "type": "string"
+        },
+        "clientAppRedirect": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string",
+          "enum": ["opaque", "saml2bearer", "jwt"]
+        },
+        "optionalClaimMap": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ProxyAuthRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "optionalClaimset": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "expectedAudience": {
+          "type": "string"
+        }
+      }
+    },
+    "KongPluginOAuthConsumerResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "consumerId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "clientSecret": {
+          "type": "string"
+        },
+        "redirectUri": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "SAMLLogoutRequest": {
+      "type": "object",
+      "properties": {
+        "idpUrl": {
+          "type": "string"
+        },
+        "spName": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      }
+    },
+    "OAuthServiceScopeRequest": {
+      "type": "object",
+      "properties": {
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "JWTRefreshRequestBean": {
+      "type": "object",
+      "properties": {
+        "optionalClaims": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "originalJWT": {
+          "type": "string"
+        }
+      }
+    },
+    "OAuthApplicationResponse": {
+      "type": "object",
+      "properties": {
+        "consumerResponse": {
+          "$ref": "#/definitions/KongPluginOAuthConsumerResponse"
+        },
+        "consumer": {
+          "$ref": "#/definitions/KongConsumer"
+        },
+        "scopes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "base64AppLogo": {
+          "type": "string"
+        },
+        "appVersion": {
+          "type": "string"
+        },
+        "serviceProvisionKey": {
+          "type": "string"
+        },
+        "authorizationUrl": {
+          "type": "string"
+        },
+        "tokenUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "OAuthServiceScopeResponse": {
+      "type": "object",
+      "properties": {
+        "scopes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ExternalUserBean": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "givenname": {
+          "type": "string"
+        },
+        "surname": {
+          "type": "string"
+        },
+        "accountId": {
+          "type": "string"
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdon": {
+          "type": "string"
+        },
+        "lastModified": {
+          "type": "string"
+        }
+      }
+    },
+    "OAuthConsumerRequestBean": {
+      "type": "object",
+      "properties": {
+        "appOAuthId": {
+          "type": "string"
+        },
+        "appOAuthSecret": {
+          "type": "string"
+        },
+        "uniqueUserName": {
+          "type": "string"
+        }
+      }
+    },
+    "KongConsumer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "customId": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "ExternalUserRequest": {
+      "type": "object",
+      "properties": {
+        "userName": {
+          "type": "string"
+        },
+        "userMail": {
+          "type": "string"
+        }
+      }
+    },
+    "JWTRefreshResponseBean": {
+      "type": "object",
+      "properties": {
+        "jwt": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about the API Engine",
+    "url": "http://trust1team.com"
+  }
+}

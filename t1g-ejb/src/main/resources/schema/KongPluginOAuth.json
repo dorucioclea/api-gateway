@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces" : ["com.t1t.kong.model.KongConfigValue"],
+  "properties": {
+    "scopes": {
+      "id": "kongPluginOAuthScope",
+      "type": "array",
+      "items": {
+        "$ref":"KongPluginOAuthScope.json"
+      }
+    },
+    "mandatory_scope": {
+      "type": "boolean",
+      "required": true,
+      "func": "function",
+      "default": false
+    },
+    "token_expiration": {
+      "type": "integer",
+      "required": true,
+      "default": 7200
+    },
+    "hide_credentials": {
+      "type": "boolean",
+      "default": false
+    },
+    "enable_authorization_code": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "enable_implicit_grant": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "enable_client_credentials": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "enable_password_grant": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "provision_key": {
+      "unique": true,
+      "required": false,
+      "func": "function",
+      "type": "string"
+    },
+    "accept_http_if_already_terminated": {
+      "required": false,
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
