@@ -15,7 +15,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Created by michallispashidis on 8/10/15.

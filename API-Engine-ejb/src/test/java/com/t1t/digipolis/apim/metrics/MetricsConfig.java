@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.metrics;
 
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**

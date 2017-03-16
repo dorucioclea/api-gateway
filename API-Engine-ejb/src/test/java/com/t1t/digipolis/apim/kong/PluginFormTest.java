@@ -8,7 +8,9 @@ import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by michallispashidis on 30/09/15.

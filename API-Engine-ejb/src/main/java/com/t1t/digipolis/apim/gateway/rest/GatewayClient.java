@@ -13,7 +13,6 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.BrandingNotAvailableException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.JWTException;
 import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.dto.*;
@@ -23,7 +22,6 @@ import com.t1t.digipolis.apim.kong.KongClient;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +30,7 @@ import retrofit.RetrofitError;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.t1t.digipolis.apim.beans.policies.Policies.*;
+import static com.t1t.digipolis.apim.beans.policies.Policies.REQUESTSIZELIMITING;
 
 /**
  * A REST client for accessing the Gateway API.

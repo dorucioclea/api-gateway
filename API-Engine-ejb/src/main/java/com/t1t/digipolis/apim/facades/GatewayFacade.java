@@ -2,7 +2,9 @@ package com.t1t.digipolis.apim.facades;
 
 import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
-import com.t1t.digipolis.apim.beans.gateways.*;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.gateways.NewGatewayBean;
+import com.t1t.digipolis.apim.beans.gateways.UpdateGatewayBean;
 import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.GatewayTestResultBean;
 import com.t1t.digipolis.apim.core.IStorage;

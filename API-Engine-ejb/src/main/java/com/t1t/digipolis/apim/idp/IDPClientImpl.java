@@ -1,16 +1,13 @@
 package com.t1t.digipolis.apim.idp;
 
-import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.idp.IDPBean;
 import com.t1t.digipolis.apim.beans.idp.KeystoreBean;
 import com.t1t.digipolis.apim.beans.mail.MailProviderBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
-import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.idp.dto.Realm;
 import com.t1t.digipolis.apim.idp.dto.RealmClient;
-import com.t1t.digipolis.apim.mail.MailProvider;
 import com.t1t.digipolis.util.AesEncrypter;
 import com.t1t.digipolis.util.CustomCollectors;
 import com.t1t.digipolis.util.KeyUtils;
@@ -19,17 +16,15 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.ComponentRepresentation;
-import org.keycloak.representations.idm.KeysMetadataRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.t1t.digipolis.util.ConsumerConventionUtil.*;
+import static com.t1t.digipolis.util.ConsumerConventionUtil.createAppUniqueId;
 
 /**
  * @author Guillaume Vandecasteele

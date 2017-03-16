@@ -2,8 +2,6 @@ package com.t1t.digipolis.util;
 
 import org.junit.Test;
 
-import java.net.URI;
-
 import static org.junit.Assert.*;
 
 /**

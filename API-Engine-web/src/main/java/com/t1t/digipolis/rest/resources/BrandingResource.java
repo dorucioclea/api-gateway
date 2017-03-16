@@ -8,7 +8,6 @@ import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.BrandingFacade;
-import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.rest.resources.IBrandingResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;

@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 

@@ -16,8 +16,6 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 
 import static org.mockito.Mockito.*;
-
-import static org.junit.Assert.*;
 /**
  * Created by michallispashidis on 2/03/16.
  */

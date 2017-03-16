@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.common.config;
 
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
