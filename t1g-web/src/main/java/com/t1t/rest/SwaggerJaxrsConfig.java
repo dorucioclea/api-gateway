@@ -36,7 +36,7 @@ public class SwaggerJaxrsConfig extends HttpServlet {
 
             //configuration
             Swagger swagger = new Swagger().info(info);
-            swagger.externalDocs(new ExternalDocs("Find out more about the API Engine", "http://trust1team.com"));
+            swagger.externalDocs(new ExternalDocs("Find out more about the API Gateway", "http://trust1team.com"));
             swagger.scheme(Scheme.HTTP);
             swagger.host("localhost:8080");
             swagger.basePath("t1g-web/v1");

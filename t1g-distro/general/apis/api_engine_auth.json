@@ -660,7 +660,7 @@
     }
   },
   "externalDocs": {
-    "description": "Find out more about the API Engine",
+    "description": "Find out more about the API Gateway",
     "url": "http://trust1team.com"
   }
 }
