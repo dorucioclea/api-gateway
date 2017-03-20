@@ -4,7 +4,6 @@ import com.t1t.apim.beans.apps.AppIdentifier;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
-import com.t1t.apim.facades.UserFacade;
 import com.t1t.util.ConsumerConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

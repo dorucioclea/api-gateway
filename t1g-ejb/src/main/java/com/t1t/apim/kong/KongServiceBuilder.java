@@ -1,13 +1,9 @@
 package com.t1t.apim.kong;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 
 import java.io.UnsupportedEncodingException;

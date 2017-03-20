@@ -4,8 +4,6 @@ import com.t1t.apim.beans.apps.AppIdentifier;
 import com.t1t.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by michallispashidis on 19/09/15.

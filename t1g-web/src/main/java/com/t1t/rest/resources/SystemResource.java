@@ -1,11 +1,9 @@
 package com.t1t.rest.resources;
 
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.apim.beans.summary.ServiceVersionAvailabilityBean;
 import com.t1t.apim.beans.system.SystemStatusBean;
-import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.GatewayNotFoundException;
 import com.t1t.apim.exceptions.InvalidServiceStatusException;
@@ -13,7 +11,6 @@ import com.t1t.apim.exceptions.ServiceVersionNotFoundException;
 import com.t1t.apim.facades.SystemFacade;
 import com.t1t.apim.gateway.GatewayAuthenticationException;
 import com.t1t.apim.rest.resources.ISystemResource;
-import com.t1t.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;

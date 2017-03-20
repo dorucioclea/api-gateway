@@ -11,8 +11,6 @@ import com.t1t.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.apim.core.IStorage;
-import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.InvalidSearchCriteriaException;

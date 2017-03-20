@@ -15,8 +15,6 @@ import com.t1t.apim.exceptions.JWTException;
 import com.t1t.apim.exceptions.OAuthException;
 import com.t1t.apim.gateway.GatewayAuthenticationException;
 import com.t1t.apim.gateway.IGatewayLink;
-import com.t1t.apim.security.ISecurityAppContext;
-import com.t1t.apim.security.ISecurityContext;
 import com.t1t.apim.security.JWTExpTimeResponse;
 import com.t1t.apim.security.OAuthExpTimeResponse;
 import com.t1t.util.ConsumerConventionUtil;

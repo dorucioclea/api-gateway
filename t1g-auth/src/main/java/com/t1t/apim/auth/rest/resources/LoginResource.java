@@ -1,7 +1,6 @@
 package com.t1t.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.beans.cache.WebClientCacheBean;
 import com.t1t.apim.beans.idm.ExternalUserBean;
 import com.t1t.apim.beans.jwt.JWTRefreshRequestBean;
@@ -13,18 +12,13 @@ import com.t1t.apim.beans.user.ClientTokeType;
 import com.t1t.apim.beans.user.SAMLLogoutRequest;
 import com.t1t.apim.beans.user.SAMLRequest;
 import com.t1t.apim.beans.user.SAMLResponseRedirect;
-import com.t1t.apim.core.IIdmStorage;
-import com.t1t.apim.core.IStorage;
-import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.AbstractRestException;
 import com.t1t.apim.exceptions.SAMLAuthException;
 import com.t1t.apim.exceptions.SystemErrorException;
-import com.t1t.apim.facades.OAuthFacade;
 import com.t1t.apim.facades.OrganizationFacade;
 import com.t1t.apim.facades.UserFacade;
-import com.t1t.apim.security.ISecurityContext;
 import com.t1t.util.CacheUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

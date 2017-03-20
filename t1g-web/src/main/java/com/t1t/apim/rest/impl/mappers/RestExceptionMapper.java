@@ -2,18 +2,14 @@ package com.t1t.apim.rest.impl.mappers;
 
 import com.t1t.apim.beans.exceptions.ErrorBean;
 import com.t1t.apim.exceptions.AbstractRestException;
-import com.t1t.apim.security.ISecurityContext;
-import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
-import java.io.PrintWriter;
 
 /**
  * Provider that maps an error.

@@ -2,8 +2,6 @@ package com.t1t.util;
 
 import com.t1t.apim.exceptions.ExceptionFactory;
 import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Iterator;

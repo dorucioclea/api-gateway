@@ -13,8 +13,6 @@ import com.t1t.apim.gateway.GatewayAuthenticationException;
 import com.t1t.apim.gateway.IGatewayLink;
 import com.t1t.apim.gateway.dto.SystemStatus;
 import com.t1t.apim.maintenance.MaintenanceController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
