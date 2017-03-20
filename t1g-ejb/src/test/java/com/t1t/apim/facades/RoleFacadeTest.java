@@ -34,18 +34,16 @@ import static org.mockito.Mockito.*;
  * Created by michallispashidis on 21/10/15.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class RoleFacadeTest {
+public class    RoleFacadeTest {
     private static final Logger _LOG = LoggerFactory.getLogger(RoleFacadeTest.class.getName());
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-    @Mock
-    EntityManager em;
-    @Mock
-    ISecurityContext securityContext;
-    @Mock
-    IIdmStorage idmStorage;
-    @InjectMocks
-    RoleFacade roleFacade;
+
+    @Rule public ExpectedException thrown = ExpectedException.none();
+
+    @Mock private EntityManager em;
+    @Mock private ISecurityContext securityContext;
+    @Mock private IIdmStorage idmStorage;
+
+    @InjectMocks private RoleFacade roleFacade;
 
     @Test
     public void sanity() throws Exception {
@@ -169,26 +167,26 @@ public class RoleFacadeTest {
     }
 
     public void testCreate1() throws Exception {
-
+        //Empty test - to do
     }
 
     public void testGet() throws Exception {
-
+        //Empty test - to do
     }
 
     public void testUpdate1() throws Exception {
-
+        //Empty test - to do
     }
 
     public void testDelete1() throws Exception {
-
+        //Empty test - to do
     }
 
     public void testList1() throws Exception {
-
+        //Empty test - to do
     }
 
     public void testSearch1() throws Exception {
-
+        //Empty test - to do
     }
 }

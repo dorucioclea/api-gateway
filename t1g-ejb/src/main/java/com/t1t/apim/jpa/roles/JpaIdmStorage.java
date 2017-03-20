@@ -37,12 +37,6 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
     @Inject private IStorageQuery query;
 
     /**
-     * Constructor.
-     */
-    public JpaIdmStorage() {
-    }
-
-    /**
      * @see IIdmStorage#createUser(UserBean)
      */
     @Override

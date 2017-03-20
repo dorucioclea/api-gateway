@@ -84,11 +84,9 @@ import java.util.stream.Collectors;
 public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorageQuery {
 
     private static Logger logger = LoggerFactory.getLogger(JpaStorage.class);
-    @Inject
-    AppConfig config;
-    @Inject ISecurityAppContext appContext;
-    @Inject
-    ISecurityContext security;
+    @Inject private AppConfig config;
+    @Inject private ISecurityAppContext appContext;
+    @Inject private ISecurityContext security;
 
     /**
      * Constructor.

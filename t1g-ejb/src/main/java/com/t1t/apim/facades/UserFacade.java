@@ -104,32 +104,18 @@ import java.util.zip.DeflaterOutputStream;
 public class UserFacade implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(UserFacade.class.getName());
     private static final String SAML2_KEY_RELAY_STATE = "RelayState=";
-    private static final String SAML2_KEY_RESPONSE = "SAMLResponse=";
+    //private static final String SAML2_KEY_RESPONSE = "SAMLResponse=";
     private static final String SAML2_KEY_REQUEST = "SAMLRequest=";
-    @Inject
-    private ISecurityContext securityContext;
-    @Inject
-    private ISecurityAppContext securityAppContext;
-    @Inject
-    private IStorage storage;
-    @Inject
-    private GatewayFacade gatewayFacade;
-    @Inject
-    private IStorageQuery query;
-    @Inject
-    private IIdmStorage idmStorage;
-    @Inject
-    private CacheUtil cacheUtil;
-    @Inject
-    private OrganizationFacade organizationFacade;
-    @Inject
-    private IUserExternalInfoService userExternalInfoService;
-    @Inject
-    private AppConfig config;
-    @Inject
-    private Event<NewEventBean> event;
-    @Inject
-    private MaintenanceController maintenance;
+
+    @Inject private ISecurityContext securityContext;
+    @Inject private ISecurityAppContext securityAppContext;
+    @Inject private IStorage storage;
+    @Inject private GatewayFacade gatewayFacade;
+    @Inject private IStorageQuery query;
+    @Inject private IIdmStorage idmStorage;
+    @Inject private CacheUtil cacheUtil;
+    @Inject private AppConfig config;
+    @Inject private Event<NewEventBean> event;
 
     public UserBean get(String userId) {
         try {
@@ -330,7 +316,7 @@ public class UserFacade implements Serializable {
         DefaultBootstrap.bootstrap();
         final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
         //Generate the request
-        AuthnRequest authnRequest = buildAuthnRequestObject(samlRequest.getSpUrl(), samlRequest.getSpName(), samlRequest.getClientAppRedirect());
+        AuthnRequest authnRequest = buildAuthnRequestObject(samlRequest.getSpUrl(), samlRequest.getSpName());
         WebClientCacheBean webCache = new WebClientCacheBean();
         webCache.setToken(samlRequest.getToken());
         webCache.setClientAppRedirect(samlRequest.getClientAppRedirect());
@@ -391,7 +377,7 @@ public class UserFacade implements Serializable {
      * @param spName
      * @return
      */
-    private AuthnRequest buildAuthnRequestObject(String spUrl, String spName, String clientUrl) {
+    private AuthnRequest buildAuthnRequestObject(String spUrl, String spName) {
         IssuerBuilder issuerBuilder = null;
         Issuer issuer = null;
         NameIDPolicyBuilder nameIdPolicyBuilder = null;
@@ -414,7 +400,7 @@ public class UserFacade implements Serializable {
         nameIdPolicy = nameIdPolicyBuilder.buildObject();
         nameIdPolicy.setFormat("urn:oasis:names:tc:SAML:2.0:nameid-format:entity");
         nameIdPolicy.setSPNameQualifier("apiengine");
-        nameIdPolicy.setAllowCreate(new Boolean(true));
+        nameIdPolicy.setAllowCreate(Boolean.TRUE);
 
         // AuthnContextClass
         authnContextClassRefBuilder = new AuthnContextClassRefBuilder();
@@ -431,8 +417,8 @@ public class UserFacade implements Serializable {
         issueInstant = new DateTime();
         authRequestBuilder = new AuthnRequestBuilder();
         authRequest = authRequestBuilder.buildObject("urn:oasis:names:tc:SAML:2.0:protocol", "AuthnRequest", "samlp");
-        authRequest.setForceAuthn(new Boolean(false));
-        authRequest.setIsPassive(new Boolean(false));
+        authRequest.setForceAuthn(Boolean.FALSE);
+        authRequest.setIsPassive(Boolean.FALSE);
         authRequest.setIssueInstant(issueInstant);
         authRequest.setProtocolBinding("urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST");//urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
         authRequest.setAssertionConsumerServiceURL(spUrl);

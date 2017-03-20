@@ -16,15 +16,14 @@ import static org.junit.Assert.assertNotNull;
  */
 @Ignore("Clean up script for Kong apis and consumers - the script does not delete already generated keys. Use with care.")
 public class KongCleanup {
-    private static Logger log = LoggerFactory.getLogger(KongCleanup.class.getName());
     private static KongClient kongClient;
-    private static Gson gson;
+
     //TODO make configurable in maven test profile
     private static final String KONG_UNDER_TEST_URL = "http://devapim.t1t.be:8001";//should point to the admin url:port
     //private static final String KONG_UNDER_TEST_URL = "http://localhost:8001";//should point to the admin url:port
-    private static final String API_NAME = "newapi";
-    private static final String API_PATH = "/testpath";
-    private static final String API_URL = "http://domain.com/app/rest/v1";
+    //private static final String API_NAME = "newapi";
+    //private static final String API_PATH = "/testpath";
+    //private static final String API_URL = "http://domain.com/app/rest/v1";
 
     public static void main(String []args){
         KongCleanup instance = new KongCleanup();
@@ -41,7 +40,6 @@ public class KongCleanup {
         restConfig.setEndpoint(KONG_UNDER_TEST_URL);
         kongClient = new KongServiceBuilder().getService(restConfig, KongClient.class);
         assertNotNull(kongClient);
-        gson = new Gson();
     }
 
     public void cleanAll() throws Exception {

@@ -19,11 +19,6 @@ public class GatewayLinkFactory implements IGatewayLinkFactory {
     @Inject private IStorage storage;
     @Inject private AppConfig config;
     @Inject private GatewayValidation gatewayValidation;
-    /**
-     * Constructor.
-     */
-    public GatewayLinkFactory() {
-    }
     
     /**
      * @see IGatewayLinkFactory#create(GatewayBean)

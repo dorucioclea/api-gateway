@@ -14,8 +14,6 @@ import java.util.Set;
  */
 @ApplicationPath("/v1")
 public class JaxRsActivator extends Application {
-    public JaxRsActivator() {
-    }
 
     @Override
     public Set<Class<?>> getClasses() {

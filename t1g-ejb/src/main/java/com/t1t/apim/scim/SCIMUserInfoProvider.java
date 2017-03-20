@@ -22,7 +22,6 @@ import java.util.List;
 @ApplicationScoped
 @Default
 public class SCIMUserInfoProvider implements IUserExternalInfoService {
-    private SCIMServiceBuilder scimServiceBuilder;
     private SCIMClient scimClient;
     @Inject private AppConfig config;
 
@@ -33,8 +32,7 @@ public class SCIMUserInfoProvider implements IUserExternalInfoService {
         scimConfigBean.setEndpoint(config.getIDPSCIMEndpoint());
         scimConfigBean.setUsername(config.getIDPSCIMUserLogin());
         scimConfigBean.setPassword(config.getIDPSCIMUserPassword());
-        scimServiceBuilder = new SCIMServiceBuilder();
-        scimClient = scimServiceBuilder.getService(scimConfigBean, SCIMClient.class);
+        scimClient = new SCIMServiceBuilder().getService(scimConfigBean, SCIMClient.class);
     }
 
     @Override

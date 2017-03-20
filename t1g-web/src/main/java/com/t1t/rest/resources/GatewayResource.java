@@ -36,21 +36,8 @@ import java.util.List;
 @ApplicationScoped
 public class GatewayResource implements IGatewayResource {
 
-    @Inject
-    private IStorage storage;
-    @Inject
-    private IStorageQuery query;
-    @Inject
-    private ISecurityContext securityContext;
-    @Inject
-    private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject private ISecurityContext securityContext;
     @Inject private GatewayFacade gatewayFacade;
-
-    /**
-     * Constructor.
-     */
-    public GatewayResource() {
-    }
 
     @ApiOperation(value = "Test a Gateway",
             notes = "This endpoint is used to test the Gateway his settings prior to either creating or updating it.  The information will be used to attempt to create a link between the API Manager and the Gateway, by simply trying to ping the Gateway his status endpoint.")

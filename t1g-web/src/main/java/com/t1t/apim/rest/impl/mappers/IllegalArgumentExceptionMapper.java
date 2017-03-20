@@ -25,12 +25,6 @@ public class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalAr
     ISecurityContext securityContext;
 
     /**
-     * Constructor.
-     */
-    public IllegalArgumentExceptionMapper() {
-    }
-
-    /**
      * @see ExceptionMapper#toResponse(Throwable)
      */
     @Override

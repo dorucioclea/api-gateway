@@ -148,7 +148,7 @@ public class AuditUtils {
         if (before == null && after != null) {
             return true;
         }
-        return !(before == after);
+        return (before != after);
     }
 
     /**

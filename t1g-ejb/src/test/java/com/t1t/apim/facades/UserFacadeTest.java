@@ -43,43 +43,12 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UserFacade.class)
 public class UserFacadeTest extends TestCase {
-    private static final Logger _LOG = LoggerFactory.getLogger(UserFacadeTest.class.getName());
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-    @Mock
-    CacheUtil ehcache;
-    @Mock
-    AppConfig config;
-    @Mock
-    EntityManager em;
-    @Mock
-    ISecurityContext securityContext;
-    @Mock
-    IStorage storage;
-    @Mock
-    IStorageQuery query;
-    @Mock
-    IIdmStorage idmStorage;
-    @Mock
-    IApiKeyGenerator apiKeyGenerator;
-    @Mock
-    IApplicationValidator applicationValidator;
-    @Mock
-    IServiceValidator serviceValidator;
-    @Mock
-    IMetricsAccessor metrics;
-    @Mock
-    GatewayFacade gatewayFacade;
-    @Mock
-    IGatewayLinkFactory gatewayLinkFactory;
-    @InjectMocks
-    UserFacade userFacade;
-    @Mock
-    RoleFacade roleFacade;
-    @Mock
-    OrganizationFacade orgFacade;
-    @Mock
-    DefaultBootstrap defaultBootstrap;
+    @Rule public ExpectedException thrown = ExpectedException.none();
+
+    @Mock private AppConfig config;
+    @Mock IStorageQuery query;
+    @Mock private IIdmStorage idmStorage;
+    @InjectMocks private UserFacade userFacade;
 
     public void testURIUtilForRelayState() throws URISyntaxException {
         String uriA = "https://someurl.com/?token=my&type=nothingspecial";
@@ -236,7 +205,6 @@ public class UserFacadeTest extends TestCase {
     }
 
     public void testGetActivityException() throws Exception {
-        SearchResultsBean<AuditEntryBean> result = new SearchResultsBean<>();
         when(query.auditUser(anyString(), anyObject())).thenThrow(new StorageException());
         thrown.expect(SystemErrorException.class);
         userFacade.getActivity("someuserid", 1, 1);
@@ -248,7 +216,6 @@ public class UserFacadeTest extends TestCase {
         String spName = "apimarket";
         String clientUrl = "http://localhost:4000";
         ClientTokeType tokeType = ClientTokeType.jwt;
-        Integer overrideExp = 5;
         Map<String, String> optClaimMap = new HashMap<>();
         when(config.getJWTDefaultTokenExpInSeconds()).thenReturn(10);
         thrown.expect(IllegalArgumentException.class);//some issue bootstrapping context
@@ -259,7 +226,7 @@ public class UserFacadeTest extends TestCase {
         samlRequest.setSpUrl(spUrl);
         samlRequest.setToken(tokeType);
         samlRequest.setOptionalClaimMap(optClaimMap);
-        String retVal = userFacade.generateSAML2AuthRequest(samlRequest);
+        userFacade.generateSAML2AuthRequest(samlRequest);
     }
 
     public void testGenerateSAML2LogoutRequest() throws Exception {
@@ -267,7 +234,7 @@ public class UserFacadeTest extends TestCase {
         String user = "testuser";
         String spName = "apimarket";
         thrown.expect(IllegalArgumentException.class);//issue bootstrapping opensaml context
-        String retval = userFacade.generateSAML2LogoutRequest(idpUrl, spName, user);
+        userFacade.generateSAML2LogoutRequest(idpUrl, spName, user);
     }
 
     public void testBuildExtensions() throws Exception {
@@ -277,15 +244,15 @@ public class UserFacadeTest extends TestCase {
     }
 
     public void testProcessSAML2Response() throws Exception {
-
+        //Empty test - to do
     }
 
     public void testUserFromSAML2BearerToken() throws Exception {
-
+        //Empty test - to do
     }
 
     public void testGetDecryptedAssertion() throws Exception {
-
+        //Empty test - to do
     }
 
     public void testInitNewUser()throws Exception{

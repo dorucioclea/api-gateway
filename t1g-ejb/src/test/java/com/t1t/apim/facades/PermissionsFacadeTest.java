@@ -8,10 +8,10 @@ import junit.framework.TestCase;
 public class PermissionsFacadeTest extends TestCase {
 
     public void testGetPermissionsForUser() throws Exception {
-
+        //Empty test
     }
 
     public void testGetPermissionsForCurrentUser() throws Exception {
-
+        //Empty test
     }
 }

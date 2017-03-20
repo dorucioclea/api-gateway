@@ -7,6 +7,7 @@ import com.t1t.apim.beans.gateways.Gateway;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.apim.core.IStorage;
+import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.gateway.GatewayAuthenticationException;
 import com.t1t.apim.gateway.IGatewayLink;
 import com.t1t.apim.gateway.dto.*;
@@ -66,10 +67,8 @@ public class RestGatewayLink implements IGatewayLink {
             //setup http client with applicable interfaces
             httpClient = kongServiceBuilder.getService(config, KongClient.class);
             this.gatewayValidation = gatewayValidation;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw ExceptionFactory.systemErrorException(e);
         }
     }
 

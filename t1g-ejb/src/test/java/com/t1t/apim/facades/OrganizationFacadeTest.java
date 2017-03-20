@@ -40,6 +40,7 @@ import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -50,12 +51,10 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({OrganizationFacade.class, AuditUtils.class})
 public class OrganizationFacadeTest {
-    private static final Logger _LOG = LoggerFactory.getLogger(OrganizationFacadeTest.class.getName());
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     @Mock private EntityManager em;
-    @Mock private AppConfig config;
     @Mock private ISecurityContext securityContext;
     @Mock private ISecurityAppContext appContext;
     @Mock private IStorage storage;
@@ -104,7 +103,7 @@ public class OrganizationFacadeTest {
         when(idmStorage.findRoles(anyObject())).thenReturn(getDefaultSearchResultRoleBeans());
         when(securityContext.getCurrentUser()).thenReturn("admin");
         when(storage.getOrganization(anyString())).thenReturn(null);
-        OrganizationBean organizationBean = orgFacade.create(getDefaultNewOrganization());
+        orgFacade.create(getDefaultNewOrganization());
         verify(storage).createOrganization(anyObject());
         verify(storage).createAuditEntry(anyObject());
         verify(idmStorage).createMembership(anyObject());
@@ -364,12 +363,12 @@ public class OrganizationFacadeTest {
 
     @Test
     public void testCreateContract() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testEnableOAuthForConsumer() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
@@ -545,332 +544,332 @@ public class OrganizationFacadeTest {
 
     @Test
     public void testCreateServicePolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceVersion() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServicePolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdateServiceVersion() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testCreateService() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testCreateServiceVersion() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceDefinition() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdateServiceDefinition() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListServicePolicies() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetAppVersionActivity() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetAppUsagePerService() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetUsage() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetMarketInfo() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetResponseStats() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetResponseStatsSummary() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListAppVersions() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetContract() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeleteAllContracts() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeleteContract() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetApiRegistryJSON() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetApiRegistryXML() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdateAppPolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeleteAppPolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testReorderApplicationPolicies() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdateServiceTerms() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetService() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceActivity() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListServices() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdateService() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceVersionEndpointInfo() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceVersionActivity() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListServiceVersions() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceVersionPlans() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdateServicePolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeleteServicePolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeleteServiceDefinition() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testReorderServicePolicies() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServicePolicyChain() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceVersionContracts() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testCreatePlan() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetPlan() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetPlanActivity() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListPlans() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdatePlan() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testCreatePlanVersion() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListPlanPolicies() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetPlanVersionActivity() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListPlanVersions() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdatePlanPolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeletePlanPolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testReorderPlanPolicies() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGrant() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testRevoke() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testRevokeAll() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListMembers() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testCreateAppVersionInternal() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testCreateContractInternal() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDoGetPolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDoCreatePolicy() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testCreateServiceVersionInternal() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testStoreServiceDefinition() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetApiRegistry() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testCreatePlanVersionInternal() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testSetEm() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testAddServiceFollower() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testRemoveServiceFollower() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
@@ -880,77 +879,77 @@ public class OrganizationFacadeTest {
 
     @Test
     public void testCreateServiceAnnouncement() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeleteServiceAnnouncement() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceAnnouncement() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceAnnouncements() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testCreateServiceSupportTicket() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdateServiceSupportTicket() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceSupportTicket() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeleteSupportTicket() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListServiceSupportTickets() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testAddServiceSupportComment() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testUpdateServiceSupportComment() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeleteServiceSupportComment() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testGetServiceSupportComment() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testListServiceSupportTicketComments() throws Exception {
-
+        //Empty - to do
     }
 
     @Test
     public void testDeleteOrganization() throws Exception {
-
+        //Empty - to do
     }
 
     private OrganizationBean getDefaultOrganization(){

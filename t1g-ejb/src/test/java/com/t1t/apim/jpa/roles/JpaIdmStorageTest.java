@@ -22,13 +22,9 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UserFacade.class)
 public class JpaIdmStorageTest {
-    private static final Logger _LOG = LoggerFactory.getLogger(JpaIdmStorageTest.class.getName());
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-    @Mock
-    public EntityManager em;
-    @InjectMocks
-    public JpaIdmStorage storage;
+    @Rule public ExpectedException thrown = ExpectedException.none();
+    @Mock private EntityManager em;
+    @InjectMocks private JpaIdmStorage storage;
 
     @Test
     public void testCreateUser() throws Exception {

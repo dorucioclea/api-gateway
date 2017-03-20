@@ -431,7 +431,6 @@ public class GatewayClient {
                 List<Policy> policyList = service.getServicePolicies();
                 for(Policy policy:policyList){
                     //execute policy
-                    Policies type = Policies.valueOf(policy.getPolicyImpl().toUpperCase());
                     createServicePolicy(service.getOrganizationId(), service.getServiceId(), service.getVersion(), policy);
                 }
             }catch (Exception e){

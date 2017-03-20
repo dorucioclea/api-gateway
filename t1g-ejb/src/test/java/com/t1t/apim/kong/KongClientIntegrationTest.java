@@ -119,12 +119,12 @@ public class KongClientIntegrationTest {
         assertNotNull(kongInfo);
         print(kongInfo);
         //verify all properties are not empty
-        assertTrue(!StringUtils.isEmpty(kongInfo.getHostname()));
-        assertTrue(!StringUtils.isEmpty(kongInfo.getLuaVersion()));
-        assertTrue(!StringUtils.isEmpty(kongInfo.getVersion()));
-        assertTrue(!StringUtils.isEmpty(kongInfo.getTagline()));
-        assertTrue(kongInfo.getTimers()!=null);
-        assertTrue(kongInfo.getConfiguration()!=null);
+        assertFalse(StringUtils.isEmpty(kongInfo.getHostname()));
+        assertFalse(StringUtils.isEmpty(kongInfo.getLuaVersion()));
+        assertFalse(StringUtils.isEmpty(kongInfo.getVersion()));
+        assertFalse(StringUtils.isEmpty(kongInfo.getTagline()));
+        assertNotNull(kongInfo.getTimers());
+        assertNotNull(kongInfo.getConfiguration());
         Plugins plugins = kongInfo.getPlugins();
         //normally minimum 1 plugin should be available
         assertNotNull(plugins.getAvailableOnServer());
@@ -303,7 +303,7 @@ public class KongClientIntegrationTest {
         apic = kongClient.addApi(apic);
         consumer = kongClient.createConsumer(consumer);
         //create a ratelimitation for the consumer and apply it for the api
-        KongPluginConfig pluginConfig = createTestPlugin(apic,consumer);
+        KongPluginConfig pluginConfig = createTestPlugin(consumer);
         pluginConfig = kongClient.createPluginConfig(apic.getId(), pluginConfig);
         print(pluginConfig);
         kongClient.deleteApi(apic.getId());
@@ -339,8 +339,8 @@ public class KongClientIntegrationTest {
         consumerA = kongClient.createConsumer(consumerA);
         consumerB = kongClient.createConsumer(consumerB);
         //create a ratelimitation for the consumer and apply it for the api
-        KongPluginConfig pluginConfigA = createTestPlugin(apic,consumerA);
-        KongPluginConfig pluginConfigB = createTestPlugin(apic,consumerB);
+        KongPluginConfig pluginConfigA = createTestPlugin(consumerA);
+        KongPluginConfig pluginConfigB = createTestPlugin(consumerB);
         pluginConfigA = kongClient.createPluginConfig(apic.getId(), pluginConfigA);
         print(pluginConfigA);
         //verify amount of plugins
@@ -368,7 +368,7 @@ public class KongClientIntegrationTest {
         apie = kongClient.addApi(apie);
         consumer = kongClient.createConsumer(consumer);
         //create a ratelimitation for the consumer and apply it for the api
-        KongPluginConfig pluginConfig = createTestPlugin(apie, consumer);
+        KongPluginConfig pluginConfig = createTestPlugin(consumer);
         pluginConfig = kongClient.createPluginConfig(apie.getId(), pluginConfig);
         print(pluginConfig);
         //verify one has been added
@@ -389,7 +389,7 @@ public class KongClientIntegrationTest {
         KongConsumer consumer = createDummyConsumer("customidrandom1", "customidrandom1");
         api1 = kongClient.addApi(api1);
         consumer = kongClient.createConsumer(consumer);
-        KongPluginConfig pluginConfig = createTestPlugin(api1,consumer);
+        KongPluginConfig pluginConfig = createTestPlugin(consumer);
         pluginConfig = kongClient.createPluginConfig(api1.getId(),pluginConfig);
         print(pluginConfig);
         print(pluginConfig.getConfig().toString());
@@ -409,7 +409,7 @@ public class KongClientIntegrationTest {
         apif = kongClient.addApi(apif);
         consumer = kongClient.createConsumer(consumer);
         //create a ratelimitation for the consumer and apply it for the api
-        KongPluginConfig pluginConfig = createTestPlugin(apif, consumer);
+        KongPluginConfig pluginConfig = createTestPlugin(consumer);
         pluginConfig = kongClient.createPluginConfig(apif.getId(), pluginConfig);
         print(pluginConfig);
         //update
@@ -433,7 +433,7 @@ public class KongClientIntegrationTest {
         apid = kongClient.addApi(apid);
         consumer = kongClient.createConsumer(consumer);
         //create a ratelimitation for the consumer and apply it for the api
-        KongPluginConfig pluginConfig = createTestPlugin(apid, consumer);
+        KongPluginConfig pluginConfig = createTestPlugin(consumer);
         pluginConfig = kongClient.createPluginConfig(apid.getId(), pluginConfig);
         print(pluginConfig);
         KongPluginConfigList configList = kongClient.getKongPluginConfigList(apid.getId());
@@ -457,7 +457,7 @@ public class KongClientIntegrationTest {
         apie = kongClient.addApi(apie);
         consumer = kongClient.createConsumer(consumer);
         //create a ratelimitation for the consumer and apply it for the api
-        KongPluginConfig pluginConfig = createTestPlugin(apie, consumer);
+        KongPluginConfig pluginConfig = createTestPlugin(consumer);
         pluginConfig = kongClient.createPluginConfig(apie.getId(), pluginConfig);
         print(pluginConfig);
         KongPluginConfigList configList = kongClient.getKongPluginConfigList(apie.getId());
@@ -508,7 +508,6 @@ public class KongClientIntegrationTest {
         KongPluginConfig pluginConfig = createTestOAuthPlugin();
         pluginConfig = kongClient.createPluginConfig(apioauth.getId(),pluginConfig);
         KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(pluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        String provisionKey = enhancedOAuthValue.getProvisionKey();
         kongClient.deleteConsumer(oauthConsumer.getId());
         kongClient.deleteApi(apioauth.getId());
         //verify the provision key is not null!
@@ -700,7 +699,7 @@ public class KongClientIntegrationTest {
         return cons;
     }
 
-    private KongPluginConfig createTestPlugin(KongApi api, KongConsumer consumer) {
+    private KongPluginConfig createTestPlugin(KongConsumer consumer) {
         //create config value - 1 request/minute
         KongPluginRateLimiting rateLimitingConfig = new KongPluginRateLimiting()
                 .withMinute(1);

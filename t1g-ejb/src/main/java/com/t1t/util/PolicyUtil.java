@@ -22,6 +22,7 @@ public class PolicyUtil {
             switch (flavor){
                 case WHITELIST:kpip.setWhitelist(transformedIPList);break;
                 case BLACKLIST:kpip.setBlacklist(transformedIPList);break;
+                default:break;
             }
             return kpip;
         }else return null;

@@ -26,12 +26,6 @@ public abstract class AbstractPluginRegistry implements IPluginRegistry {
 
     /**
      * Constructor.
-     */
-    public AbstractPluginRegistry() {
-    }
-
-    /**
-     * Constructor.
      * @param pluginsDir the plugin's directory
      */
     public AbstractPluginRegistry(File pluginsDir) {

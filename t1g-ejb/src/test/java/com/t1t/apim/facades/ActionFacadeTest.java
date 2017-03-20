@@ -26,32 +26,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ActionFacade.class)
 public class ActionFacadeTest {
-    private static final Logger _LOG = LoggerFactory.getLogger(OrganizationFacadeTest.class.getName());
     @Rule public ExpectedException thrown = ExpectedException.none();
-    @Mock EntityManager em;
-    @Mock ISecurityContext securityContext;
-    @Mock
-    IStorage storage;
-    @Mock
-    IStorageQuery query;
-    @Mock
-    IIdmStorage idmStorage;
-    @Mock
-    IApiKeyGenerator apiKeyGenerator;
-    @Mock
-    IApplicationValidator applicationValidator;
-    @Mock IServiceValidator serviceValidator;
-    @Mock IMetricsAccessor metrics;
-    @Mock
-    GatewayFacade gatewayFacade;
-    @Mock IGatewayLinkFactory gatewayLinkFactory;
-    @Mock
-    UserFacade userFacade;
-    @Mock
-    RoleFacade roleFacade;
-    @InjectMocks ActionFacade actionFacade;
-    @Mock
-    OrganizationFacade orgFacade;
 
     @Test
     public void testPerformActionLockPlan() throws Exception {

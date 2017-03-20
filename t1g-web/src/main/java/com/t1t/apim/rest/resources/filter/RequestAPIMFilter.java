@@ -85,13 +85,13 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
                 throw new IOException(e);
             }
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(REDIRECT_PATH)) {
-            ;//allow access without setting security context.
+            //allow access without setting security context.
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_CALLBACK)) {
-            ;//allow from idp
+            //allow from idp
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(IDP_SLO)) {
-            ;//allow from idp
+            //allow from idp
         } else if (containerRequestContext.getUriInfo().getRequestUri().getPath().contains(SYSTEM_INFO)) {
-            ;//allow from idp
+            //allow from idp
         } else {
             //Get apikey - app context - SHOULD BE ALWAYS PROVIDED
             try {

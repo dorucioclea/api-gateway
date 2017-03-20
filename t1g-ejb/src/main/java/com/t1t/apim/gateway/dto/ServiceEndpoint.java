@@ -6,17 +6,12 @@ import java.io.Serializable;
  * Service endpoint.
  *
  */
-public class ServiceEndpoint implements Serializable {
+public class
+ServiceEndpoint implements Serializable {
 
     private static final long serialVersionUID = -7892423118281500532L;
 
     private String endpoint;
-    
-    /**
-     * Constructor.
-     */
-    public ServiceEndpoint() {
-    }
 
     /**
      * @return the endpoint

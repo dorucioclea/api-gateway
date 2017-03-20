@@ -35,106 +35,106 @@ public class AppConfigTest {
     @Test
     public void testGetEnvironment() throws Exception {
         assertThat(config.getEnvironment().trim(), is(not("")));
-        assertFalse(!StringUtils.isEmpty(config.getEnvironment()));
+        assertFalse(StringUtils.isEmpty(config.getEnvironment()));
     }
 
     @Test
     public void testGetKongEndpoint() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getKongEndpoint()));
+        assertFalse(StringUtils.isEmpty(config.getKongEndpoint()));
     }
 
     @Test
     public void testGetVersion() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getVersion()));
+        assertFalse(StringUtils.isEmpty(config.getVersion()));
     }
 
     @Test
     public void testGetBuildDate() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getBuildDate()));
+        assertFalse(StringUtils.isEmpty(config.getBuildDate()));
     }
 
     @Test
     public void testGetConfigurationFile() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getConfigurationFile()));
+        assertFalse(StringUtils.isEmpty(config.getConfigurationFile()));
     }
 
     @Test
     public void testGetKongManagementEndpoint() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getKongManagementEndpoint()));
+        assertFalse(StringUtils.isEmpty(config.getKongManagementEndpoint()));
     }
 
     @Test
     public void testGetIDPSAMLEndpoint() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPSAMLEndpoint()));
+        assertFalse(StringUtils.isEmpty(config.getIDPSAMLEndpoint()));
     }
 
     @Test
     public void testGetIDPSAMLNameIdFormat() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPSAMLNameIdFormat()));
+        assertFalse(StringUtils.isEmpty(config.getIDPSAMLNameIdFormat()));
     }
 
     @Test
     public void testGetIDPSCIMEndpoint() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMEndpoint()));
+        assertFalse(StringUtils.isEmpty(config.getIDPSCIMEndpoint()));
     }
 
     @Test
     public void testGetSCIMUserLogin() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMUserLogin()));
+        assertFalse(StringUtils.isEmpty(config.getIDPSCIMUserLogin()));
     }
 
     @Test
     public void testGetSCIMUserPassword()throws Exception{
-        assertTrue(!StringUtils.isEmpty(config.getIDPSCIMUserPassword()));
+        assertFalse(StringUtils.isEmpty(config.getIDPSCIMUserPassword()));
     }
 
     @Test
     public void testGetIDPOAuthTokenEndpoint() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPOAuthTokenEndpoint()));
+        assertFalse(StringUtils.isEmpty(config.getIDPOAuthTokenEndpoint()));
     }
 
     @Test
     public void testGetIDPOAuthClientId() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPOAuthClientId()));
+        assertFalse(StringUtils.isEmpty(config.getIDPOAuthClientId()));
     }
 
     @Test
     public void testGetIDPOAuthClientSecret() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getIDPOAuthClientSecret()));
+        assertFalse(StringUtils.isEmpty(config.getIDPOAuthClientSecret()));
     }
 
     @Test
     public void testGetMetricsScheme() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getMetricsScheme()));
+        assertFalse(StringUtils.isEmpty(config.getMetricsScheme()));
     }
 
     @Test
     public void testGetMetricsURI() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getMetricsURI()));
+        assertFalse(StringUtils.isEmpty(config.getMetricsURI()));
     }
 
     @Test
     public void testGetMetricsPort() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getMetricsURI()));
+        assertFalse(StringUtils.isEmpty(config.getMetricsURI()));
     }
 
     @Test
     public void testGetDefaultOrganization() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getDefaultOrganization()));
+        assertFalse(StringUtils.isEmpty(config.getDefaultOrganization()));
     }
 
     @Test
     public void testGetDefaultUserRoles() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getDefaultUserRoles()));
+        assertFalse(StringUtils.isEmpty(config.getDefaultUserRoles()));
     }
 
     @Test
     public void testGetOAuthConsentURI() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getOAuthConsentURI()));
+        assertFalse(StringUtils.isEmpty(config.getOAuthConsentURI()));
     }
 
     @Test
     public void testGetSecurityRestResource() throws Exception {
-        assertTrue(!StringUtils.isEmpty(config.getOAuthConsentURI()));
+        assertFalse(StringUtils.isEmpty(config.getOAuthConsentURI()));
     }
 }

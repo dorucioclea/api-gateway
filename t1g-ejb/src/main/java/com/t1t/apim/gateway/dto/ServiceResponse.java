@@ -22,13 +22,7 @@ public class ServiceResponse implements IServiceObject, Serializable {
     private transient Map<String, Object> attributes = new HashMap<>();
 
     /**
-     * Constructor.
-     */
-    public ServiceResponse() {
-    }
-
-    /**
-     * @see io.apiman.gateway.engine.beans.IServiceObject#getHeaders()
+     * @return the headers
      */
     @Override
     public Map<String, String> getHeaders() {
@@ -36,7 +30,7 @@ public class ServiceResponse implements IServiceObject, Serializable {
     }
 
     /**
-     * @see io.apiman.gateway.engine.beans.IServiceObject#setHeaders(Map)
+     * @param headers the headers to set
      */
     @Override
     public void setHeaders(Map<String, String> headers) {

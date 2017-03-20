@@ -30,22 +30,8 @@ import java.util.List;
 @ApplicationScoped
 public class PluginResource implements IPluginResource {
 
-    @Inject
-    IStorage storage;
-    @Inject
-    IStorageQuery query;
-    @Inject
-    ISecurityContext securityContext;
-    @Inject
-    IPluginRegistry pluginRegistry;
-    @Inject
-    private PluginFacade pluginFacade;
-
-    /**
-     * Constructor.
-     */
-    public PluginResource() {
-    }
+    @Inject private ISecurityContext securityContext;
+    @Inject private PluginFacade pluginFacade;
 
     @ApiOperation(value = "List All Plugins",
             notes = "This endpoint returns a list of all plugins that have been added to the")
