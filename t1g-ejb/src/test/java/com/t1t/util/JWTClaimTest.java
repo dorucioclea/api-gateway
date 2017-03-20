@@ -58,8 +58,7 @@ public class JWTClaimTest {
                 .setVerificationKeyResolver(jwksResolver)
                 .build(); // create the JwtConsumer instance
         JwtClaims claims = jwtConsumer.processToClaims(JWT_TOKEN_RS);
-        JwtContext jwtContext = jwtConsumer.process(JWT_TOKEN_RS);
-        List<JsonWebStructure> joseObjects = jwtContext.getJoseObjects();
+        jwtConsumer.process(JWT_TOKEN_RS).getJoseObjects();
 
 
         assertNotNull(claims);//this means, it validates
@@ -78,7 +77,7 @@ public class JWTClaimTest {
                 "Vft+vUl+liuChqTlWpwSBpXc+O3c6WRYcgUfuCciyjiPXDl1SIsidXnptnX6qeIN\n" +
                 "GwIDAQAB"));
         JsonWebKeySet jsonWebKeySet = new JsonWebKeySet(rsaJsonWebKey);
-        JwksVerificationKeyResolver jwksResolver = new JwksVerificationKeyResolver(jsonWebKeySet.getJsonWebKeys());
+        new JwksVerificationKeyResolver(jsonWebKeySet.getJsonWebKeys());
         JsonWebSignature jws = new JsonWebSignature();
         jws.setCompactSerialization(JWT_TOKEN_RS);
         VerificationJwkSelector jwkSelector = new VerificationJwkSelector();
@@ -143,7 +142,7 @@ public class JWTClaimTest {
     public void issueJWT() throws Exception{
         final String JWT_KEY = "7da8cb6408bb42a4c27785c2c5b467b2";
         final String JWT_SECRET = "ddfd1beb178d449fc4603bec701abb96";
-        final PrivateKey privateKey = KeyUtils.getPrivateKey("-----BEGIN RSA PRIVATE KEY-----\n" +
+        /*final PrivateKey privateKey = KeyUtils.getPrivateKey("-----BEGIN RSA PRIVATE KEY-----\n" +
                 "MIIEpAIBAAKCAQEAw5mp3MS3hVLkHwB9lMrEx34MjYCmKeH/XeMLexNpTd1FzuNv\n" +
                 "6rArovTY763CDo1Tp0xHz0LPlDJJtpqAgsnfDwCcgn6ddZTo1u7XYzgEDfS8J4SY\n" +
                 "dcKxZiSdVTpb9k7pByXfnwK/fwq5oeBAJXISv5ZLB1IEVZHhUvGCH0udlJ2vadqu\n" +
@@ -169,7 +168,7 @@ public class JWTClaimTest {
                 "uVlJORsCgYBv/zpNukkXrSxVHjeZj582nkdAGafYvT0tEQ1u3LERgifUNwhmHH+m\n" +
                 "1OcqJKpbgQhGzidXK6lPiVFpsRXv9ICP7o96FjmQrMw2lAfC7stYnFLKzv+cj8L9\n" +
                 "h4hhNWM6i/DHXjPsHgwdzlX4ulq8M7dR8Oqm9DrbdAyWz8h8/kzsnA==\n" +
-                "-----END RSA PRIVATE KEY-----");
+                "-----END RSA PRIVATE KEY-----");*/
         final String JWT_AUDIENCE = "http://consumerapp";
         JWTRequestBean jwtRequestBean = new JWTRequestBean();
         jwtRequestBean.setIssuer(JWT_KEY);

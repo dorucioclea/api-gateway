@@ -15,12 +15,6 @@ public class PolicyData implements Serializable {
     private EntityUpdatedData data;
 
     /**
-     * Constructor.
-     */
-    public PolicyData() {
-    }
-
-    /**
      * @return the policyDefId
      */
     public String getPolicyDefId() {

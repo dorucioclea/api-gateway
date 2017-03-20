@@ -86,7 +86,7 @@ public class    RoleFacadeTest {
         when(idmStorage.getRole(anyString())).thenReturn(existingRole);
         doNothing().when(idmStorage).createRole(anyObject());
         thrown.expect(RoleAlreadyExistsException.class);
-        RoleBean roleBean = roleFacade.create(newRoleBean);
+        roleFacade.create(newRoleBean);
     }
 
     @Test

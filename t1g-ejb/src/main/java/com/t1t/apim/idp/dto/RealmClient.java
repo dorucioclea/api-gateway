@@ -28,6 +28,14 @@ public class RealmClient {
         this.secret = secret;
     }
 
+    public List<String> getRedirectUris() {
+        return redirectUris;
+    }
+
+    public void setRedirectUris(List<String> redirectUris) {
+        this.redirectUris = redirectUris;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -47,6 +55,8 @@ public class RealmClient {
     public String toString() {
         return "RealmClient{" +
                 "id='" + id + '\'' +
+                ", secret='" + secret + '\'' +
+                ", redirectUris=" + redirectUris +
                 '}';
     }
 }

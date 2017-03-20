@@ -39,14 +39,10 @@ import java.util.*;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class SearchFacade {
-    private static Logger log = LoggerFactory.getLogger(SearchFacade.class.getName());
 
-    @PersistenceContext private EntityManager em;
-    @Inject private ISecurityContext securityContext;
-    @Inject private IStorage storage;
     @Inject private IStorageQuery query;
-    @Inject private IMetricsAccessor metrics;
-    @Inject ISecurityAppContext appContext;
+    //@Inject private IMetricsAccessor metrics;
+    @Inject private ISecurityAppContext appContext;
 
     private static final String NAME = "name";
     private static final String STATUS = "status";

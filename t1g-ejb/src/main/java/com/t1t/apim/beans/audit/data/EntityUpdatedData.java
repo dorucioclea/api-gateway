@@ -15,12 +15,6 @@ public class EntityUpdatedData implements Serializable {
     private List<EntityFieldChange> changes = new ArrayList<>();
 
     /**
-     * Constructor.
-     */
-    public EntityUpdatedData() {
-    }
-
-    /**
      * Adds a single change.
      * @param name the name
      * @param before the before state

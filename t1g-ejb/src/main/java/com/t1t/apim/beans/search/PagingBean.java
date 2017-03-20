@@ -16,12 +16,6 @@ public class PagingBean implements Serializable {
     private int pageSize;
 
     /**
-     * Constructor.
-     */
-    public PagingBean() {
-    }
-
-    /**
      * @return the page
      */
     public int getPage() {

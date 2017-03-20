@@ -1,6 +1,5 @@
 package com.t1t.apim.facades;
 
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.beans.apps.*;
 import com.t1t.apim.beans.audit.AuditEntryBean;
 import com.t1t.apim.beans.audit.data.EntityUpdatedData;
@@ -33,14 +32,11 @@ import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -538,7 +534,7 @@ public class OrganizationFacadeTest {
         NewPolicyBean newPolicyBean = new NewPolicyBean();
         newPolicyBean.setConfiguration("defaultconfig");
         newPolicyBean.setDefinitionId("defaultdefid");
-        PolicyBean planPolicy = orgFacade.createPlanPolicy("someorg", "someplanx", "someverionsx", newPolicyBean);
+        orgFacade.createPlanPolicy("someorg", "someplanx", "someverionsx", newPolicyBean);
         verify(orgFacade).doCreatePolicy("someorg","someplanx","someversionx",anyObject(),PolicyType.Plan);
     }
 

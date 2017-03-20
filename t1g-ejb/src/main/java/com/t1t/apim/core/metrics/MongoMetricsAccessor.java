@@ -37,11 +37,6 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
     private static Integer timeout;
 
     //interval values
-    private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
-    private static final long ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000;
-    private static final long ONE_DAY_MILLIS = 1 * 24 * 60 * 60 * 1000;
-    private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
-    private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
 
     {
         //read properties file
@@ -83,7 +78,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
         //we create a epoch map in order to add specific values at random and sort the key values
         Map<Long, MetricsUsage> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
-        long intervalMillis = getIntervalMillis(interval);
+        long intervalMillis = interval.getMillis();
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
         long fromMillis = from.getMillis();
         if (originList.getData().size() > 0) {
@@ -110,7 +105,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
         //we create a epoch map in order to add specific values at random and sort the key values
         Map<Long, MetricsResponseStats> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
-        long intervalMillis = getIntervalMillis(interval);
+        long intervalMillis = interval.getMillis();
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
         long fromMillis = from.getMillis();
         if (originList.getData().size() > 0) {
@@ -148,7 +143,7 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
         //we create a epoch map in order to add specific values at random and sort the key values
         Map<Long, MetricsConsumerUsage> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
-        long intervalMillis = getIntervalMillis(interval);
+        long intervalMillis = interval.getMillis();
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
         long fromMillis = from.getMillis();
         if (originList.getData().size() > 0) {
@@ -198,35 +193,5 @@ public class MongoMetricsAccessor implements IMetricsAccessor, Serializable {
         //TODO followers
         info.setFollowers(0);
         return info;
-    }
-
-    /**
-     * Returns the interval in millis for histogram calculation.
-     *
-     * @param interval
-     * @return
-     */
-    private long getIntervalMillis(HistogramIntervalType interval) {
-        long divBy = ONE_DAY_MILLIS;
-        switch (interval) {
-            case day:
-                divBy = ONE_DAY_MILLIS;
-                break;
-            case hour:
-                divBy = ONE_HOUR_MILLIS;
-                break;
-            case minute:
-                divBy = ONE_MINUTE_MILLIS;
-                break;
-            case month:
-                divBy = ONE_MONTH_MILLIS;
-                break;
-            case week:
-                divBy = ONE_WEEK_MILLIS;
-                break;
-            default:
-                break;
-        }
-        return divBy;
     }
 }

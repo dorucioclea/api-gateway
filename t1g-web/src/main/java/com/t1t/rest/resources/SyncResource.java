@@ -25,10 +25,7 @@ import javax.ws.rs.Path;
 @ApplicationScoped
 public class SyncResource implements ISyncResource {
 
-    private static final Logger _LOG = LoggerFactory.getLogger(SyncResource.class);
-
-    @Inject
-    private SyncFacade syncFacade;
+    @Inject private SyncFacade syncFacade;
 
     @Override
     @ApiOperation(value =  "Sync everything",

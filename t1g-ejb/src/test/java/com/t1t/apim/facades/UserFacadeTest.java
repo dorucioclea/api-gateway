@@ -10,27 +10,21 @@ import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.apim.beans.user.ClientTokeType;
 import com.t1t.apim.beans.user.SAMLRequest;
-import com.t1t.apim.core.*;
+import com.t1t.apim.core.IIdmStorage;
+import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.SystemErrorException;
 import com.t1t.apim.exceptions.UserNotFoundException;
-import com.t1t.apim.gateway.IGatewayLinkFactory;
-import com.t1t.apim.security.ISecurityContext;
-import com.t1t.util.CacheUtil;
 import junit.framework.TestCase;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.opensaml.DefaultBootstrap;
 import org.opensaml.saml2.common.Extensions;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -189,7 +183,6 @@ public class UserFacadeTest extends TestCase {
     }
 
     public void testGetServicesException() throws Exception {
-        Set<PermissionBean> permissions = new HashSet<>();
         PermissionBean perm = new PermissionBean();
         perm.setName(PermissionType.svcView);
         when(idmStorage.getPermissions(anyString())).thenThrow(new StorageException());

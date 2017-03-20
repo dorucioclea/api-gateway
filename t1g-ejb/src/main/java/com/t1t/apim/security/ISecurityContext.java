@@ -1,6 +1,8 @@
 package com.t1t.apim.security;
 
 import com.t1t.apim.beans.idm.PermissionType;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.MalformedClaimException;
 
 import java.util.Set;
 
@@ -21,7 +23,13 @@ public interface ISecurityContext {
      * Sets the current username to be validated, and validates by calling getCurrentUser.
      * @return
      */
-    public String setCurrentUser(String userId);
+    public String setCurrentUser(JwtClaims claims) throws MalformedClaimException;
+
+    /**
+     * Sets the current username to be validated, and validates by calling getCurrentUser.
+     * @return
+     */
+    public String setCurrentUser(String userName);
 
     /**
      * @return the currently authenticated user's full name

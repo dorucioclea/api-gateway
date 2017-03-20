@@ -18,12 +18,6 @@ public class MembershipData implements Serializable {
     private Set<String> roles = new HashSet<>();
 
     /**
-     * Constructor.
-     */
-    public MembershipData() {
-    }
-
-    /**
      * @param role the role
      */
     public void addRole(String role) {

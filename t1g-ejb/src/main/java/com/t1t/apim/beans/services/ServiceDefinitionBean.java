@@ -23,12 +23,6 @@ public class ServiceDefinitionBean implements Serializable {
     private byte[] data;
 
     /**
-     * Constructor.
-     */
-    public ServiceDefinitionBean() {
-    }
-
-    /**
      * @return the data
      */
     public byte[] getData() {

@@ -22,15 +22,6 @@ import java.io.PrintWriter;
 @ApplicationScoped
 public class RestExceptionMapper implements ExceptionMapper<AbstractRestException> {
 
-    @Inject
-    ISecurityContext securityContext;
-
-    /**
-     * Constructor.
-     */
-    public RestExceptionMapper() {
-    }
-
     /**
      * @see ExceptionMapper#toResponse(Throwable)
      */
@@ -57,17 +48,6 @@ public class RestExceptionMapper implements ExceptionMapper<AbstractRestExceptio
         }*/
         builder.type(MediaType.APPLICATION_JSON_TYPE);
         return builder.entity(error).build();
-    }
-
-    /**
-     * Gets the full stack trace for the given exception and returns it as a
-     * string.
-     * @param data
-     */
-    private String getStackTrace(AbstractRestException data) {
-        StringBuilderWriter writer = new StringBuilderWriter();
-        data.printStackTrace(new PrintWriter(writer));
-        return writer.getBuilder().toString();
     }
 
 }

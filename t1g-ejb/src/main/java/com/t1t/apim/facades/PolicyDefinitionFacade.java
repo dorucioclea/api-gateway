@@ -30,10 +30,6 @@ import java.util.List;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class PolicyDefinitionFacade {
-    private static Logger log = LoggerFactory.getLogger(PolicyDefinitionFacade.class.getName());
-    @PersistenceContext
-    private EntityManager em;
-    @Inject private ISecurityContext securityContext;
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
 

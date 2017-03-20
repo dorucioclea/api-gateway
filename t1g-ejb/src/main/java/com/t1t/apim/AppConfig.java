@@ -3,6 +3,7 @@ package com.t1t.apim;
 import com.t1t.apim.beans.config.ConfigBean;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.exceptions.StorageException;
+import com.t1t.apim.exceptions.ExceptionFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class AppConfig implements Serializable {
                 if(configList!=null && configList.size()>0) defaultConfig = configList.get(0);
                 else throw new StorageException("No configuration found.");
             } catch (StorageException e) {
-                throw new RuntimeException("Could not start the service, missing configuration.");
+                throw ExceptionFactory.systemErrorException("Could not start the service, missing configuration.");
             }
         }else defaultConfig = optionalConfig;
         Path configPath = Paths.get(defaultConfig.getConfigPath());
@@ -60,12 +61,12 @@ public class AppConfig implements Serializable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }else throw new RuntimeException("API Engine basic property file not found.");
+        }else throw ExceptionFactory.systemErrorException("API Engine basic property file not found.");
         //read specific application config, depends on the maven profile that has been set
-        if(!configPath.toFile().exists()) throw new RuntimeException("API Engine config property file not found.");
+        if(!configPath.toFile().exists()) throw ExceptionFactory.systemErrorException("API Engine config property file not found.");
         config = ConfigFactory.parseFile(configPath.toFile());
         //config = ConfigFactory.load(getConfigurationFile());
-        if(config==null) throw new RuntimeException("API Engine log not found");
+        if(config==null) throw ExceptionFactory.systemErrorException("API Engine log not found");
         else{
             try {
                 _LOG.info("===== API Engine configuration ==============================");

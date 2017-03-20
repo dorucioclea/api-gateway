@@ -36,7 +36,7 @@ import com.t1t.apim.beans.search.SearchResultsBean;
 import com.t1t.apim.beans.services.*;
 import com.t1t.apim.beans.summary.*;
 import com.t1t.apim.beans.support.*;
-import com.t1t.apim.core.*;
+import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.*;

@@ -480,14 +480,6 @@ public class GatewayClient {
         publishAPIWithFallback(brandingApi);
     }
 
-    private Policy getCorrectedPolicy(KongPluginConfig config, Policies type) {
-        Policy policy = new Policy();
-        policy.setPolicyImpl(type.getPolicyDefId());
-        policy.setPolicyJsonConfig(new Gson().toJson(config.getConfig()).replace(":{}", ":[]"));
-        policy.setKongPluginId(config.getId());
-        return policy;
-    }
-
     /**
      * After applying the OAuth2 plugin to a service the following action gets executed.
      * In case of OAuth2 - add provision_key to the service version, and additional scopes.
@@ -750,7 +742,6 @@ public class GatewayClient {
         }catch(RetrofitError rfe){
             //it's possible that the group already exists - try to recover
             List<KongPluginACLResponse> consumerACLs = httpClient.getConsumerACLs(consumerId).getData();
-            KongPluginACLResponse aclResponse = null;
             for(KongPluginACLResponse acl:consumerACLs){
                 if(acl.getGroup().equalsIgnoreCase(serviceVersionId))return acl;
             }

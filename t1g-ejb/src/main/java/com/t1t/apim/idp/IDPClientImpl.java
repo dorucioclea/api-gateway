@@ -135,6 +135,7 @@ public class IDPClientImpl implements IDPClient {
             //Get the ID of the newly created client
             String keycloakId = realm.clients().findByClientId(clientId).get(0).getId();
             rval.setSecret(realm.clients().get(keycloakId).getSecret().getValue());
+            rval.setRedirectUris(cRep.getRedirectUris());
             rval.setId(keycloakId);
             return rval;
         }

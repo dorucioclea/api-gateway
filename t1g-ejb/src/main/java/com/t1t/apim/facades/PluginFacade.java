@@ -44,9 +44,7 @@ import java.util.List;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class PluginFacade {
-    private static Logger log = LoggerFactory.getLogger(PluginFacade.class.getName());
-    @PersistenceContext
-    private EntityManager em;
+    private static final Logger log = LoggerFactory.getLogger(PluginFacade.class.getName());
     @Inject private ISecurityContext securityContext;
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;

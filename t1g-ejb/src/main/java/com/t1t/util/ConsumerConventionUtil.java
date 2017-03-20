@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  * Created by michallispashidis on 19/09/15.
  */
 public class ConsumerConventionUtil {
-    private static Logger _LOG = LoggerFactory.getLogger(ConsumerConventionUtil.class.getName());
+
     public static String createAppConsumerUnqiueId(String orgId, String appId, String appVersionId, String userId){
         StringBuilder uniqueName = new StringBuilder("");
         uniqueName.append(orgId)

@@ -37,21 +37,10 @@ import java.util.Set;
 @Path("/search")
 @ApplicationScoped
 public class SearchResource implements ISearchResource {
-
-    @Inject
-    IStorage storage;
-    @Inject
-    IStorageQuery query;
     @Inject
     private SearchFacade searchFacade;
     @Inject
     private ISecurityContext securityContext;
-
-    /**
-     * Constructor.
-     */
-    public SearchResource() {
-    }
 
     @ApiOperation(value = "Search for Organizations",
             notes = "Use this endpoint to search for organizations.  The search criteria is provided in the body of the request, including filters, order-by, and paging information. Possible values are: publishService, retireService, registerApplication, unregisterApplciation, lockPlan")

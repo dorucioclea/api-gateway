@@ -61,13 +61,6 @@ public class PolicyBean implements Serializable {
     @Column(name = "enabled")
     private Boolean enabled;
 
-
-    /**
-     * Constructor.
-     */
-    public PolicyBean() {
-    }
-
     /**
      * @return the id
      */

@@ -23,12 +23,6 @@ public class ServiceSummaryBean implements Serializable, Comparable<ServiceSumma
     private Date createdOn;
 
     /**
-     * Constructor.
-     */
-    public ServiceSummaryBean() {
-    }
-
-    /**
      * @return the organizationId
      */
     public String getOrganizationId() {

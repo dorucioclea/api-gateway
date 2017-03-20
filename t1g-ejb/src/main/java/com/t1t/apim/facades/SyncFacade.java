@@ -43,20 +43,12 @@ public class SyncFacade {
     private static final Logger log = LoggerFactory.getLogger(SyncFacade.class);
     private static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
 
-    @Inject
-    private IStorage storage;
-    @Inject
-    private IStorageQuery query;
-    @Inject
-    private IIdmStorage idmStorage;
-    @Inject
-    private GatewayFacade gatewayFacade;
-    @Inject
-    private IApiKeyGenerator apiKeyGenerator;
-    @Inject
-    private GatewayValidation gatewayValidation;
-    @Inject
-    private IDPLinkFactory idpLinkFactory;
+    @Inject private IStorage storage;
+    @Inject private IStorageQuery query;
+    //@Inject private IIdmStorage idmStorage;
+    @Inject private GatewayFacade gatewayFacade;
+    @Inject private IApiKeyGenerator apiKeyGenerator;
+    @Inject private IDPLinkFactory idpLinkFactory;
 
     @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
     public void syncAll() {
@@ -800,11 +792,12 @@ public class SyncFacade {
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     private void syncToken(OAuth2TokenBean token, IGatewayLink gatewayLink) {
-        if (gatewayLink == null) {
-            gatewayLink = gatewayFacade.createGatewayLink(token.getGatewayId());
+        IGatewayLink gw = gatewayLink;
+        if (gw == null) {
+            gw = gatewayFacade.createGatewayLink(token.getGatewayId());
         }
         try {
-            if (gatewayLink.createOAuthToken(token) == null) {
+            if (gw.createOAuthToken(token) == null) {
                 log.info("== SYNC FOR TOKEN {} NOT NECESSARY ==", token.getAccessToken());
             }
             storage.deleteOAuth2Token(token);

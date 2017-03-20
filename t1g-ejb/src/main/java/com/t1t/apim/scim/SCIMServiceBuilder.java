@@ -52,22 +52,13 @@ public class SCIMServiceBuilder {
      */
     public <T> T getService(SCIMConfigBean config, Class<T> iFace) {
         //optional GSON converter
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         StringBuilder scimURL = new StringBuilder(config.getEndpoint());
         RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(scimURL.toString())
                 .setLogLevel(RestAdapter.LogLevel.BASIC)
-                .setLog(new RestAdapter.Log() {
-                    public void log(String msg) {
-                        _LOG.info("retrofit - SCIM:{}",msg);
-                    }
-                })
-                .setRequestInterceptor(new RequestInterceptor() {
-                    @Override
-                    public void intercept(RequestFacade requestFacade) {
-                        String authHeader = getBasicAuthValue(config);
-                        requestFacade.addHeader("Authorization", getBasicAuthValue(config));
-                    }
-                })
+                .setLog(msg -> _LOG.info("retrofit - SCIM:{}",msg))
+                .setRequestInterceptor(requestFacade ->
+                    requestFacade.addHeader("Authorization", getBasicAuthValue(config)))
                 .build();
         _LOG.info("SCIM connection string:{}", scimURL.toString());
         return restAdapter.create(iFace);

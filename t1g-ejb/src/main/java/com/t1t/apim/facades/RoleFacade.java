@@ -29,9 +29,7 @@ import java.util.List;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class RoleFacade {
-    private static Logger log = LoggerFactory.getLogger(RoleFacade.class.getName());
-    @PersistenceContext
-    private EntityManager em;
+
     @Inject private ISecurityContext securityContext;
     @Inject private IIdmStorage idmStorage;
 

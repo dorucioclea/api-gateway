@@ -15,8 +15,6 @@ import java.util.Map;
  */
 public class GatewayPaginationUtil {
 
-    private static final Logger _LOG = LoggerFactory.getLogger(GatewayPaginationUtil.class);
-
     public static final Map<String, String> decodeOffsets(String encodedOffset) {
         try {
             Map<String, String> rval = new HashMap<>();

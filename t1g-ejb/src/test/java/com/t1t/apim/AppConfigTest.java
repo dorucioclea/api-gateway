@@ -11,7 +11,8 @@ import org.junit.runners.MethodSorters;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 
 /**
  * Created by michallispashidis on 21/10/15.

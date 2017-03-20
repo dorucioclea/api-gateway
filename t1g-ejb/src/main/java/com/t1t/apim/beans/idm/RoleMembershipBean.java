@@ -19,14 +19,6 @@ public class RoleMembershipBean implements Serializable {
 
     private static final long serialVersionUID = 7798709783947356888L;
 
-    public static final RoleMembershipBean create(String userId, String roleId, String organizationId) {
-        RoleMembershipBean bean = new RoleMembershipBean();
-        bean.setUserId(userId);
-        bean.setRoleId(roleId);
-        bean.setOrganizationId(organizationId);
-        return bean;
-    }
-
     @Id @GeneratedValue
     private Long id;
     @Column(name="user_id")
@@ -38,10 +30,12 @@ public class RoleMembershipBean implements Serializable {
     @Column(name = "created_on")
     private Date createdOn;
 
-    /**
-     * Constructor.
-     */
-    public RoleMembershipBean() {
+    public static final RoleMembershipBean create(String userId, String roleId, String organizationId) {
+        RoleMembershipBean bean = new RoleMembershipBean();
+        bean.setUserId(userId);
+        bean.setRoleId(roleId);
+        bean.setOrganizationId(organizationId);
+        return bean;
     }
 
     /**

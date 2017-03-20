@@ -49,12 +49,6 @@ public class PolicyDefinitionBean implements Serializable {
     private String defaultConfig;
 
     /**
-     * Constructor.
-     */
-    public PolicyDefinitionBean() {
-    }
-
-    /**
      * @return the id
      */
     public String getId() {

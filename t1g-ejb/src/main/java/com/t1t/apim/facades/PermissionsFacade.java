@@ -21,9 +21,7 @@ import javax.persistence.PersistenceContext;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class PermissionsFacade {
-    private static Logger log = LoggerFactory.getLogger(PermissionsFacade.class.getName());
-    @PersistenceContext
-    private EntityManager em;
+
     @Inject
     private ISecurityContext securityContext;
     @Inject

@@ -37,9 +37,7 @@ import java.util.Set;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class SecurityFacade {
-    private static Logger _LOG = LoggerFactory.getLogger(SecurityFacade.class.getName());
-    @Inject private ISecurityContext securityContext;
-    @Inject private ISecurityAppContext appContext;
+    private static final Logger _LOG = LoggerFactory.getLogger(SecurityFacade.class.getName());
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
     @Inject private AppConfig config;

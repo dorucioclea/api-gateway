@@ -12,12 +12,6 @@ public class EntityFieldChange {
 
     /**
      * Constructor.
-     */
-    public EntityFieldChange() {
-    }
-
-    /**
-     * Constructor.
      * @param name the name
      * @param before the before state
      * @param after the after state

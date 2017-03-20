@@ -1,11 +1,8 @@
 package com.t1t.apim.kong;
 
-import com.google.gson.Gson;
 import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.kong.model.*;
 import org.junit.Ignore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 

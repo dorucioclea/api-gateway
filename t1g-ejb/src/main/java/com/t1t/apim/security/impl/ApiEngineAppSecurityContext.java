@@ -23,15 +23,12 @@ import java.io.Serializable;
 public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext implements Serializable {
     //Logger
     private static Logger LOG = LoggerFactory.getLogger(ApiEngineAppSecurityContext.class.getName());
-    @Inject private UserFacade userFacade;
+
     @Inject private IStorageQuery query;
 
     private String nonManagedApplication;
     private String currentApplication;
     private AppIdentifier appIdentifier;
-
-    public ApiEngineAppSecurityContext() {
-    }
 
     @Override
     public String getApplication() {

@@ -17,12 +17,6 @@ public class UpdateGatewayBean implements Serializable {
     private String configuration;
 
     /**
-     * Constructor.
-     */
-    public UpdateGatewayBean() {
-    }
-
-    /**
      * @return the description
      */
     public String getDescription() {

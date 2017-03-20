@@ -40,10 +40,8 @@ import java.util.List;
 @Path("/users")
 @ApplicationScoped
 public class UserResource implements IUserResource {
-    @Inject private IStorage storage;
-    @Inject IIdmStorage idmStorage;
-    @Inject ISecurityContext securityContext;
-    @Inject IStorageQuery query;
+
+    @Inject private ISecurityContext securityContext;
     @Inject private UserFacade userFacade;
 
     /**

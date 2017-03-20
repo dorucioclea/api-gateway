@@ -12,6 +12,7 @@ import com.t1t.apim.beans.idp.KeyMappingTypes;
 import com.t1t.apim.beans.jwt.IJWT;
 import com.t1t.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.apim.beans.jwt.JWTRefreshResponseBean;
+import com.t1t.apim.beans.jwt.JWTRequestBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.search.PagingBean;
 import com.t1t.apim.beans.search.SearchCriteriaBean;
@@ -25,16 +26,16 @@ import com.t1t.apim.beans.user.UserSession;
 import com.t1t.apim.core.IIdmStorage;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
-import com.t1t.apim.core.IUserExternalInfoService;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.gateway.IGatewayLink;
-import com.t1t.apim.maintenance.MaintenanceController;
+import com.t1t.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.apim.saml2.ISAML2;
 import com.t1t.apim.security.ISecurityAppContext;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.apim.security.IdentityAttributes;
+import com.t1t.kong.model.KongConsumer;
 import com.t1t.kong.model.KongPluginJWTResponse;
 import com.t1t.kong.model.KongPluginJWTResponseList;
 import com.t1t.util.*;
@@ -488,14 +489,14 @@ public class UserFacade implements Serializable {
      */
     private String encodeAuthnRequest(RequestAbstractType authnRequest) throws MarshallingException, IOException {
         Marshaller marshaller = null;
-        org.w3c.dom.Element authDOM = null;
+        Element authDOM = null;
         StringWriter requestWriter = null;
         String requestMessage = null;
         Deflater deflater = null;
         ByteArrayOutputStream byteArrayOutputStream = null;
         DeflaterOutputStream deflaterOutputStream = null;
         String encodedRequestMessage = null;
-        marshaller = org.opensaml.Configuration.getMarshallerFactory().getMarshaller(authnRequest); // object to DOM converter
+        marshaller = Configuration.getMarshallerFactory().getMarshaller(authnRequest); // object to DOM converter
         authDOM = marshaller.marshall(authnRequest); // converting to a DOM
         requestWriter = new StringWriter();
         XMLHelper.writeNode(authDOM, requestWriter);
@@ -561,7 +562,7 @@ public class UserFacade implements Serializable {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
-        responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs, webClientCacheBean));
+        //responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs, webClientCacheBean));
         clientUrl.append(webClientCacheBean.getClientAppRedirect());
         //if (!clientUrl.toString().endsWith("/")) clientUrl.append("/");
         responseRedirect.setClientUrl(clientUrl.toString());
@@ -593,7 +594,7 @@ public class UserFacade implements Serializable {
             throw new SAMLAuthException("Could not process the SAML2 Response: " + ex.getMessage());
         }
         SAMLResponseRedirect responseRedirect = new SAMLResponseRedirect();
-        responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs, null));
+        //responseRedirect.setToken(updateOrCreateConsumerJWTOnGateway(idAttribs, null));
         //for logout, we should keep the SessionIndex in cache with the username
         if (assertion != null && assertion.getAuthnStatements().size() > 0) {
             //update or create user sessionindex in cache -- id::the subject of JWT -- subject::saml2 subjectid -- sessionindex
@@ -615,7 +616,6 @@ public class UserFacade implements Serializable {
         //only consider the first attribute statement.
         if (attributeStatements.size() > 0) {
             AttributeStatement attributeStatement = attributeStatements.get(0);
-            IDIndex idIndex = attributeStatement.getIDIndex();
             List<Attribute> attributes = attributeStatement.getAttributes();
             for (Attribute attrib : attributes) {
                 String name = attrib.getName();
@@ -734,9 +734,10 @@ public class UserFacade implements Serializable {
      * @param identityAttributes SAML2 attributes
      * @return
      */
+    /*
     private String updateOrCreateConsumerJWTOnGateway(IdentityAttributes identityAttributes, WebClientCacheBean cacheBean) {
         //TODO - Remove all user provisioning on the gateway
-        /*String jwtKey = "";
+        String jwtKey = "";
         String jwtSecret = "";
         String issuedJWT = "";
         // Publish the service to all relevant gateways
@@ -825,9 +826,9 @@ public class UserFacade implements Serializable {
         }catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
-        return issuedJWT;*/
+        return issuedJWT;
         return null;
-    }
+    }*/
 
     /**
      * Returns a user by given mail.
@@ -879,10 +880,10 @@ public class UserFacade implements Serializable {
      *
      * @param jwtKey
      * @param jwtSecret
-     */
+     *//*
     private void setTokenCache(String jwtKey, String jwtSecret) {
         cacheUtil.cacheToken(jwtKey, jwtSecret);
-    }
+    }*/
 
     /**
      * Retrieves the secret for a given subject, if the key is not found in the cache, a Kong request will be sent to retrieve the value;.
@@ -1010,17 +1011,20 @@ public class UserFacade implements Serializable {
      * We create a user only in the API Engine db. Upon next visit of the user, the Kong consumer will be created on demand and JWT
      * token will be issued after user authentication.
      *
-     * @param identityAttributes
-     */
+     * */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    private UserBean initNewUser(IdentityAttributes identityAttributes) {
-        log.info("Init new user with attributes:{}", identityAttributes);
+    public UserBean initNewUser(JwtClaims claims) throws MalformedClaimException {
+        log.info("Init new user with attributes:{}", claims);
         try {
             //create user
             UserBean newUser = new UserBean();
-            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));//upn of UUID
-            newUser.setFullName(identityAttributes.getGivenName() + " " + identityAttributes.getFamilyName());
+            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(claims.getSubject()));
+            if (claims.hasClaim(IJWT.GIVEN_NAME) && claims.hasClaim(IJWT.SURNAME)) {
+
+            }
+            newUser.setFullName(claims.getStringClaimValue(IJWT.GIVEN_NAME) + " " + claims.getStringClaimValue(IJWT.SURNAME));
             newUser.setAdmin(false);
+            //TODO - parse the roles and organizations from the JWT claims
             idmStorage.createUser(newUser);
             return newUser;
         } catch (StorageException e) {
@@ -1073,7 +1077,7 @@ public class UserFacade implements Serializable {
      *
      * @param externalUserBean
      * @return
-     */
+     *//*
     private IdentityAttributes resolveScimAttributeStatements(ExternalUserBean externalUserBean) {
         IdentityAttributes identityAttributes = new IdentityAttributes();
         //map values
@@ -1082,7 +1086,7 @@ public class UserFacade implements Serializable {
         identityAttributes.setFamilyName(externalUserBean.getSurname());
         identityAttributes.setGivenName(externalUserBean.getGivenname());
         return identityAttributes;
-    }
+    }*/
 
     /**
      * Fires a new event with the following parameters

@@ -315,7 +315,6 @@ public class KongClientIntegrationTest {
     public void testCreateCorsPlugin() throws Exception {
         //in order to create a plugin you should have an api registered and a consumer
         KongApi apicors = createDummyApi("apicors","/apicors",API_URL);
-        KongConsumer consumer = createDummyConsumer("cors123", "apicosruser");
         apicors = kongClient.addApi(apicors);
         //create a ratelimitation for the consumer and apply it for the api
         List<String> headers = Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "apikey");
@@ -418,7 +417,7 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         kongClient.updateOrCreatePluginConfig(apif.getId(), pluginConfig);
         KongPluginConfigList configList = kongClient.getKongPluginConfigList(apif.getId());
-        KongPluginConfig updatedConfig = configList.getData().get(0);
+        configList.getData().get(0);
         //TODO use generics in KongPluginConfig for value field in order to parse automatically upon receiving the configuration from kong
         kongClient.deleteApi(apif.getId());
         kongClient.deleteConsumer(consumer.getId());
@@ -542,9 +541,9 @@ public class KongClientIntegrationTest {
         apiOrgAuthEndpoint = kongClient.addApi(apiOrgAuthEndpoint);
 
         //add oauth policy to services
-        KongPluginConfig pluginConfigA = createTestOAuthPluginPrefixedSet("someprovisionkeyA",serviceAId);
+        KongPluginConfig pluginConfigA = createTestOAuthPluginPrefixedSet(serviceAId);
         pluginConfigA = kongClient.createPluginConfig(apiServiceA.getId(),pluginConfigA);
-        KongPluginConfig pluginConfigB = createTestOAuthPluginPrefixedSet("someprovisionkeyB",serviceBId);
+        KongPluginConfig pluginConfigB = createTestOAuthPluginPrefixedSet(serviceBId);
         pluginConfigB = kongClient.createPluginConfig(apiServiceB.getId(),pluginConfigB);
 
         //create org oauth policy with consolidated scopes
@@ -552,12 +551,9 @@ public class KongClientIntegrationTest {
         pluginConfigOrg = kongClient.createPluginConfig(apiOrgAuthEndpoint.getId(),pluginConfigOrg);
 
         //get provision keys
-        KongPluginOAuthEnhanced enhancedOAuthSA = gson.fromJson(pluginConfigA.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        String provKeyServiceA = enhancedOAuthSA.getProvisionKey();
-        KongPluginOAuthEnhanced enhancedOAuthSB = gson.fromJson(pluginConfigB.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        String provKeyServiceB = enhancedOAuthSB.getProvisionKey();
-        KongPluginOAuthEnhanced enhancedOAuthOrg = gson.fromJson(pluginConfigOrg.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        String provKeyServiceOrg = enhancedOAuthOrg.getProvisionKey();
+        gson.fromJson(pluginConfigA.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        gson.fromJson(pluginConfigB.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        gson.fromJson(pluginConfigOrg.getConfig().toString(),KongPluginOAuthEnhanced.class);
 
         //register consumer
         KongConsumer oauthConsumer = createDummyConsumer("someoauthapp","apimultiuserscope");
@@ -589,7 +585,6 @@ public class KongClientIntegrationTest {
         KongPluginConfig pluginConfig = createTestOAuthPluginWithManyScopes();
         pluginConfig = kongClient.createPluginConfig(apioauth.getId(),pluginConfig);
         KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(pluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        String provisionKey = enhancedOAuthValue.getProvisionKey();
         kongClient.deleteConsumer(oauthConsumer.getId());
         kongClient.deleteApi(apioauth.getId());
         //verify the provision key is not null!
@@ -654,7 +649,7 @@ public class KongClientIntegrationTest {
 
     @Test(expected = RetrofitError.class)
     public void getNonExistingConsumer(){
-        KongConsumer consumer = kongClient.getConsumer("nonexistingid");
+        kongClient.getConsumer("nonexistingid");
     }
 
     /**
@@ -662,14 +657,7 @@ public class KongClientIntegrationTest {
      * @return
      */
     private KongApi createTestApi(){
-        //create new api
-        KongApi api = new KongApi();
-        api.setName(API_NAME);
-        api.setRequestPath(API_PATH);
-        api.setStripRequestPath(true);
-        api.setUpstreamUrl(API_URL);
-        print(api);
-        return api;
+        return createDummyApi(API_NAME, API_PATH, API_URL);
     }
 
     private KongApi createDummyApi(String name, String path, String url){
@@ -756,7 +744,7 @@ public class KongClientIntegrationTest {
         return pluginConfig;
     }
 
-    private KongPluginConfig createTestOAuthPluginPrefixedSet(String provisionkey, String serviceprefix){
+    private KongPluginConfig createTestOAuthPluginPrefixedSet(String serviceprefix){
         List<Object> scopes = new ArrayList<>(Arrays.asList(serviceprefix+".basic",serviceprefix+".extended",serviceprefix+".full"));
         KongPluginOAuthEnhanced oAuthEnhancedConfig = new KongPluginOAuthEnhanced()
                 .withEnableAuthorizationCode(true)
@@ -800,7 +788,6 @@ public class KongClientIntegrationTest {
     public void testCreateIPRestrictionPluginWL() throws Exception {
         //in order to create a plugin you should have an api registered and a consumer
         KongApi apiipr = createDummyApi("apiiprwl","/apiiprwl",API_URL);
-        KongConsumer consumer = createDummyConsumer("ipr123wl", "apruserwl");
         apiipr = kongClient.addApi(apiipr);
         //create a IPRestrcition policy
         List<String> whitelistrecords = new ArrayList<>();
@@ -851,7 +838,6 @@ public class KongClientIntegrationTest {
         String iprestrictionValues = "{\"whitelist\":[\"127.0.0.0/24\"]}";
         Gson gson = new Gson();
         KongPluginIPRestriction kongPluginIPRestriction = gson.fromJson(iprestrictionValues, KongPluginIPRestriction.class);
-        KongConsumer consumer = createDummyConsumer("ipr1234w", "apruser4w");
         apiipr = kongClient.addApi(apiipr);
         KongPluginConfig pluginConfig = new KongPluginConfig()
                 .withName("ip-restriction")//as an example
@@ -868,7 +854,6 @@ public class KongClientIntegrationTest {
         String iprestrictionValues = "{\"blacklist\":[\"127.0.0.0/24\"]}";
         Gson gson = new Gson();
         KongPluginIPRestriction kongPluginIPRestriction = gson.fromJson(iprestrictionValues, KongPluginIPRestriction.class);
-        KongConsumer consumer = createDummyConsumer("ipr1234b", "apruser4b");
         apiipr = kongClient.addApi(apiipr);
         KongPluginConfig pluginConfig = new KongPluginConfig()
                 .withName("ip-restriction")//as an example

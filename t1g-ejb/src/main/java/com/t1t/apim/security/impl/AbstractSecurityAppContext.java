@@ -9,11 +9,4 @@ import org.slf4j.LoggerFactory;
  *
  */
 public abstract class AbstractSecurityAppContext implements ISecurityAppContext {
-
-    private static Logger logger = LoggerFactory.getLogger(AbstractSecurityAppContext.class);
-    /**
-     * Constructor.
-     */
-    public AbstractSecurityAppContext() {
-    }
 }

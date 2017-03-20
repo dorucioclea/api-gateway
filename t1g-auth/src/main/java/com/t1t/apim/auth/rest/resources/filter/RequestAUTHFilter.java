@@ -33,12 +33,12 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
      */
     private static final Logger LOG = LoggerFactory.getLogger(RequestAUTHFilter.class.getName());
     //private static final String HEADER_CONSUMER_USERNAME = "x-consumer-username";//here the consumer should be an application consumer
-    private static final String SWAGGER_DOC_URI = "t1g-auth";
-    private static final String SWAGGER_DOC_JSON = "/t1g-auth/v1/swagger.json";
+    //private static final String SWAGGER_DOC_URI = "t1g-auth";
+    //private static final String SWAGGER_DOC_JSON = "/t1g-auth/v1/swagger.json";
     private static final String HEADER_API_KEY = "apikey";
     private static final String HEADER_X_CONSUMER_USERNAME = "X-Consumer-Username";
     //exclusions
-    private static final String JWT_PUB_KEY_PATH = "/gtw/tokens/pub";
+    //private static final String JWT_PUB_KEY_PATH = "/gtw/tokens/pub";
 
     //Security context
     @Inject private ISecurityAppContext securityAppContext;
@@ -80,9 +80,7 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
                     .status(Response.Status.UNAUTHORIZED)
                     .entity("Application cannot access the resource.")
                     .build());
-            return;
         }
-        return;
     }
 }
 

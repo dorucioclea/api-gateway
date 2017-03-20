@@ -18,12 +18,6 @@ public class UpdateApplicationBean implements Serializable {
     private String email;
 
     /**
-     * Constructor.
-     */
-    public UpdateApplicationBean() {
-    }
-
-    /**
      * @return the description
      */
     public String getDescription() {

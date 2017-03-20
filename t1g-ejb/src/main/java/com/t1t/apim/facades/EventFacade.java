@@ -616,6 +616,8 @@ public class EventFacade {
                                     break;
                             }
                             break;
+                        default:
+                            break;
                     }
                     eabs.add(eab);
                     break;
@@ -698,7 +700,9 @@ public class EventFacade {
                         }
                     }
                     break;
-                    //TODO - events for new announcements
+                default:
+                    break;
+                //TODO - events for new announcements
             }
         });
         return eabs;
@@ -799,6 +803,8 @@ public class EventFacade {
                             case MEMBERSHIP_PENDING:
                                 mailService.sendRequestMembership(membershipRequestMailBean);
                                 break;
+                            default:
+                                break;
                         }
                         break;
                     case CONTRACT_PENDING:
@@ -824,6 +830,8 @@ public class EventFacade {
                                 avb = orgFacade.getApplicationVersionByUniqueId(event.getDestinationId());
                                 svb = orgFacade.getServiceVersionByUniqueId(event.getOriginId());
                                 break;
+                            default:
+                                break;
                         }
                         contractMailBean.setAppOrgName(avb.getApplication().getOrganization().getName());
                         contractMailBean.setAppName(avb.getApplication().getName());
@@ -847,6 +855,8 @@ public class EventFacade {
                                 break;
                             case CONTRACT_ACCEPTED:
                                 mailService.approveContractRequest(contractMailBean);
+                                break;
+                            default:
                                 break;
                         }
                         break;
@@ -882,6 +892,8 @@ public class EventFacade {
                             break;
                         case MEMBERSHIP_REJECTED:
                             mailService.rejectRequestMembership(bean);
+                            break;
+                        default:
                             break;
                     }
                     break;

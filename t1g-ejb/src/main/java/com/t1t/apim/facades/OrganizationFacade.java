@@ -144,12 +144,6 @@ public class OrganizationFacade {
 
     public static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
 
-    private static final long ONE_MINUTE_MILLIS = 1 * 60 * 1000;
-    private static final long ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000;
-    private static final long ONE_DAY_MILLIS = 1 * 24 * 60 * 60 * 1000;
-    private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
-    private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
-
     //craete organization
     public OrganizationBean create(NewOrganizationBean bean) throws StorageException {
         List<RoleBean> autoGrantedRoles = null;
@@ -3425,28 +3419,9 @@ public class OrganizationFacade {
      * @param interval
      */
     private void validateTimeSeriesMetric(DateTime from, DateTime to, HistogramIntervalType interval) throws InvalidMetricCriteriaException {
-        long millis = to.getMillis() - from.getMillis();
-        long divBy = ONE_DAY_MILLIS;
-        switch (interval) {
-            case day:
-                divBy = ONE_DAY_MILLIS;
-                break;
-            case hour:
-                divBy = ONE_HOUR_MILLIS;
-                break;
-            case minute:
-                divBy = ONE_MINUTE_MILLIS;
-                break;
-            case month:
-                divBy = ONE_MONTH_MILLIS;
-                break;
-            case week:
-                divBy = ONE_WEEK_MILLIS;
-                break;
-            default:
-                break;
-        }
-        /*long totalDataPoints = millis / divBy;
+        /*long millis = to.getMillis() - from.getMillis();
+        long divBy = interval.getMillis();
+        long totalDataPoints = millis / divBy;
         if (totalDataPoints > 5000) {
             throw ExceptionFactory.invalidMetricCriteriaException(Messages.i18n.format("OrganizationResourceImpl.MetricDataSetTooLarge")); //$NON-NLS-1$
         }*/

@@ -17,9 +17,6 @@ public class ServiceFollowers {
         this.total = total;
     }
 
-    public ServiceFollowers() {
-    }
-
     public Set<String> getFollowers() {
         return followers;
     }

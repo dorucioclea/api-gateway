@@ -36,17 +36,8 @@ public class JWTUtils {
     public static final String JWT_HS256 = "HS256";
     public static final String JWT_RS256 = "RS256";
 
-    /**
-     * Validate token signed with RSA algorithm.
-     *
-     * @param jwtToken
-     * @param publicKey
-     * @param expectedIssuer
-     * @param expectedAudience
-     * @return
-     * @throws InvalidJwtException
-     */
-    public static JwtContext validateRSAToken(String jwtToken, String publicKey, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException {
+
+    /*public static JwtContext validateRSAToken(String jwtToken, String publicKey, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException {
         //This key is the public Realm key defined at our IDP Proxy
         RsaJsonWebKey rsaJsonWebKey = new RsaJsonWebKey((RSAPublicKey) KeyUtils.getKey(publicKey));
         // There's also a key resolver that selects from among a given list of JWKs using the Key ID
@@ -88,8 +79,17 @@ public class JWTUtils {
         _LOG.info("JWT-token:{}", jwtContext.getJwt());
         _LOG.info("JWT-claims:{}", jwtContext.getJwtClaims());
         return jwtContext;
-    }
+    }*/
 
+    /**
+     * Validate token signed with RSA algorithm.
+     *
+     * @param jwt
+     * @param expectedIssuer
+     * @param publicKeys
+     * @return
+     * @throws InvalidJwtException
+     */
     public static JwtContext validateRSAToken(String jwt, String expectedIssuer, Set<String> publicKeys) throws InvalidJwtException {
         JwtContext context = null;
         JsonWebKeySet jsonWebKeySet = new JsonWebKeySet();
@@ -254,12 +254,5 @@ public class JWTUtils {
                 .setSkipSignatureVerification()
                 .build()
                 .process(jwt);
-    }
-
-    //TODO don't do this hard coded and unfinished - roles with XACML :-)
-    public List<String> getRoles(JwtContext jwtContext) {
-        JwtClaims jwtClaims = jwtContext.getJwtClaims();
-        org.json.JSONObject resourceObject = (org.json.JSONObject) jwtClaims.getClaimValue("resource_access");
-        return null;
     }
 }

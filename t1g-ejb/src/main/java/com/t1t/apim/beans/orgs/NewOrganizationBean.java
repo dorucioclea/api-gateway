@@ -19,12 +19,6 @@ public class NewOrganizationBean implements Serializable {
     private Boolean organizationPrivate;
 
     /**
-     * Constructor.
-     */
-    public NewOrganizationBean() {
-    }
-
-    /**
      * @return the name
      */
     public String getName() {

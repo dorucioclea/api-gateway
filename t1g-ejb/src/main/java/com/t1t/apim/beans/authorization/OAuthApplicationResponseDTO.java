@@ -9,17 +9,14 @@ import java.util.Map;
  * Created by michallispashidis on 26/09/15.
  */
 public class OAuthApplicationResponseDTO {
-    KongPluginOAuthConsumerResponseDTO consumerResponse;
-    KongConsumer consumer;
-    Map<String,String> scopes;
-    String base64AppLogo;
-    String appVersion;
-    String serviceProvisionKey;
-    String authorizationUrl;
-    String tokenUrl;
-
-    public OAuthApplicationResponseDTO() {
-    }
+    private KongPluginOAuthConsumerResponseDTO consumerResponse;
+    private KongConsumer consumer;
+    private Map<String,String> scopes;
+    private String base64AppLogo;
+    private String appVersion;
+    private String serviceProvisionKey;
+    private String authorizationUrl;
+    private String tokenUrl;
 
     public OAuthApplicationResponseDTO(OAuthApplicationResponse resp) {
         this.consumerResponse = new KongPluginOAuthConsumerResponseDTO().withId(resp.getConsumerResponse().getId())

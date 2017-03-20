@@ -21,7 +21,6 @@ import com.t1t.apim.kong.KongServiceBuilder;
 import com.t1t.kong.model.*;
 import com.t1t.util.AesEncrypter;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 
@@ -328,7 +327,6 @@ public class RestGatewayLink implements IGatewayLink {
      * @return a newly created rest gateway client
      */
     private GatewayClient createClient() {
-        String gatewayEndpoint = getConfig().getEndpoint();
         return new GatewayClient(httpClient, gateway, storage, metricsURI, appConfig, gatewayValidation);
     }
 

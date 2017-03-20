@@ -5,7 +5,6 @@ import com.t1t.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.apim.beans.summary.ServiceVersionAvailabilityBean;
 import com.t1t.apim.beans.system.SystemStatusBean;
-import com.t1t.apim.config.Version;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.GatewayNotFoundException;
@@ -36,10 +35,6 @@ import java.util.List;
 @ApplicationScoped
 public class SystemResource implements ISystemResource {
 
-    @Inject private IStorage storage;
-    @Inject private AppConfig config;
-    @Inject private Version version;
-    @Inject ISecurityContext securityContext;
     @Inject private SystemFacade systemFacade;
 
     @ApiOperation(value = "Get System Status",

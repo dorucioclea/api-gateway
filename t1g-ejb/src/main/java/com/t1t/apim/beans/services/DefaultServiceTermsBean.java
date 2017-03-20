@@ -6,14 +6,11 @@ package com.t1t.apim.beans.services;
  */
 public class DefaultServiceTermsBean {
 
-    public DefaultServiceTermsBean() {
-    }
+    private String terms;
 
     public DefaultServiceTermsBean(String terms) {
         this.terms = terms;
     }
-
-    private String terms;
 
     public String getTerms() {
         return terms;

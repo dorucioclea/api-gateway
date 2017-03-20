@@ -37,7 +37,6 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     //private static final String HEADER_CONSUMER_USERNAME = "x-consumer-username";//considerred to be an application consumer - we use this to setup an application context
     //private static final String HEADER_CONSUMER_ID = "x-consumer-id";
     private static final String HEADER_USER_AUTHORIZATION = "Authorization"; // will contain the JWT user token
-    private static final String HEADER_CREDENTIAL_USERNAME = "X-Credential-Username";
     private static final String HEADER_API_KEY = "apikey";
     //exclusions
 
@@ -49,8 +48,8 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     private static final String MAINTENANCE_PATH = "/admin/maintenance/";
     private static final String SYNC_PATH = "/sync";
     private static final String SEARCH_PATH = "/search/";
-    private static final String SWAGGER_DOC_URI = "t1g-web";
-    private static final String SWAGGER_DOC_JSON = "/t1g-web/v1/swagger.json";
+    //private static final String SWAGGER_DOC_URI = "t1g-web";
+    //private static final String SWAGGER_DOC_JSON = "/t1g-web/v1/swagger.json";
 
 
     //Security context
@@ -113,10 +112,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
                 try {
                     JwtClaims jwtClaims = JWTUtils.getUnvalidatedClaims(jwt);
                     //Check if the JWT comes from a user that authenticated using LDAP
-                    validatedUser = jwtClaims.getSubject() != null ?
-                            jwtClaims.getSubject() : jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) != null ?
-                            jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) : "";
-                    validatedUser = securityContext.setCurrentUser(ConsumerConventionUtil.createUserUniqueId(validatedUser));
+                    validatedUser = securityContext.setCurrentUser(jwtClaims);
                 } catch (InvalidJwtException | UserNotFoundException | MalformedClaimException ex) {
                     //this shouldnt be thrown because of implicit user creation during initial user intake (saml2 provider and JWT issuance)
                     LOG.error("Unauthorized user:{}", validatedUser);

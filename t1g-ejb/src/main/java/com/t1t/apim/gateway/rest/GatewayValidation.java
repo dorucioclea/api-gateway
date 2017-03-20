@@ -81,7 +81,6 @@ public class GatewayValidation {
     }
 
     private Policy validateServiceACL(Policy policy) {
-        Gson gson = new Gson();
         KongPluginACL config = new KongPluginACL().withWhitelist(Arrays.asList(policy.getEntityId()));
         if (config.getWhitelist().isEmpty() && config.getBlacklist().isEmpty()) {
             throw ExceptionFactory.invalidPolicyException("ACL Policy needs at least one group name in either whitelist or blacklist");

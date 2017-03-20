@@ -14,12 +14,6 @@ public class OwnershipTransferData implements Serializable {
     private String newOwnerId;
 
     /**
-     * Constructor.
-     */
-    public OwnershipTransferData() {
-    }
-
-    /**
      * @param previousOwnerId the userId of the previous organization owner
      */
     public void setPreviousOwnerId(String previousOwnerId) {

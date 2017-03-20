@@ -16,12 +16,6 @@ public class ActionBean implements Serializable {
     private String entityVersion;
 
     /**
-     * Constructor.
-     */
-    public ActionBean() {
-    }
-
-    /**
      * @return the type
      */
     public ActionType getType() {
@@ -95,32 +89,16 @@ public class ActionBean implements Serializable {
      * @see Object#equals(Object)
      */
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ActionBean other = (ActionBean) obj;
-        if (entityId == null) {
-            if (other.entityId != null)
-                return false;
-        } else if (!entityId.equals(other.entityId))
-            return false;
-        if (entityVersion == null) {
-            if (other.entityVersion != null)
-                return false;
-        } else if (!entityVersion.equals(other.entityVersion))
-            return false;
-        if (organizationId == null) {
-            if (other.organizationId != null)
-                return false;
-        } else if (!organizationId.equals(other.organizationId))
-            return false;
-        if (type != other.type)
-            return false;
-        return true;
-    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ActionBean)) return false;
 
+        ActionBean that = (ActionBean) o;
+
+        if (type != that.type) return false;
+        if (organizationId != null ? !organizationId.equals(that.organizationId) : that.organizationId != null)
+            return false;
+        if (entityId != null ? !entityId.equals(that.entityId) : that.entityId != null) return false;
+        return entityVersion != null ? entityVersion.equals(that.entityVersion) : that.entityVersion == null;
+    }
 }

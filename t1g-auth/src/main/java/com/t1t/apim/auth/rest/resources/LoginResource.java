@@ -49,16 +49,12 @@ import java.net.*;
 @Path("/login")
 @ApplicationScoped
 public class LoginResource implements ILoginResource {
-    @Inject private IStorage storage;
-    @Inject IIdmStorage idmStorage;
-    @Inject ISecurityContext securityContext;
-    @Inject IStorageQuery query;
+
+    private static final Logger log = LoggerFactory.getLogger(LoginResource.class.getName());
+
     @Inject private UserFacade userFacade;
-    @Inject private OAuthFacade oAuthFacade;
-    @Inject private AppConfig config;
     @Inject private CacheUtil cacheUtil;
     @Inject private OrganizationFacade orgFacade;
-    private static final Logger log = LoggerFactory.getLogger(LoginResource.class.getName());
 
     @ApiOperation(value = "IDP Callback URL for the Marketplace",
                        notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim." +

@@ -30,7 +30,6 @@ import java.util.Map;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class SystemFacade {
-    private static Logger _LOG = LoggerFactory.getLogger(SystemFacade.class.getName());
     private static final String DESCRIPTION = "The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services.";
     private static final String ID = "apim-manager-api";
     private static final String MORE_INFO = "http://www.trust1team.com";
