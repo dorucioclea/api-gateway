@@ -22,4 +22,8 @@ public interface IDPConstants {
     String KEYSTORE_ENABLED = "enabled";
     String KEYSTORE_PRIORITY = "priority";
 
+    String CLIENT_USER_INFO_RESPONSE_SIGNATURE_ALGORITHM = "user.info.response.signature.alg";
+    String CLIENT_REQUEST_OBJECT_SIGNATURE_ALGORITHM = "request.object.signature.alg";
+    String CLIENT_SIGNING_ALGORITHM_RS256 = "RS256";
+
 }

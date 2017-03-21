@@ -1011,22 +1011,22 @@ public class GatewayClient {
 
     public KongPluginConfig updateServicePlugin(String api, KongPluginConfig plugin) {
         Policies policies = GatewayUtils.convertKongPluginNameToPolicy(plugin.getName());
-
+        KongPluginConfig kpc = plugin;
         switch(policies){
             //for OAuth2 we have an exception, we validate the form data at this moment to keep track of OAuth2 scopes descriptions
             case OAUTH2:
-                KongPluginOAuth engineConfig = (KongPluginOAuth) plugin.getConfig();
+                KongPluginOAuth engineConfig = (KongPluginOAuth) kpc.getConfig();
                 KongPluginOAuthEnhanced gwConfig = gatewayValidation.validateExplicitOAuth(engineConfig);
-                plugin = httpClient.updateKongPluginConfig(api, plugin.withConfig(gwConfig));
+                kpc = httpClient.updateKongPluginConfig(api, kpc.withConfig(gwConfig));
                 log.info("start post oauth2 actions");
                 //upon transformation we use another enhanced object for json deserialization
                 postOAuth2Actions(engineConfig, gwConfig.getProvisionKey(), api);
                 break;
             default:
-                plugin = httpClient.updateKongPluginConfig(api, plugin);
+                kpc = httpClient.updateKongPluginConfig(api, kpc);
                 break;
         }
-        return plugin;
+        return kpc;
     }
 
     public KongOAuthToken createOAuthToken(OAuth2TokenBean token) {

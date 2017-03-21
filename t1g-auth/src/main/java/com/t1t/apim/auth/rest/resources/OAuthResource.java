@@ -24,6 +24,7 @@ import javax.ws.rs.core.MediaType;
 @Path("/oauth")
 @ApplicationScoped
 public class OAuthResource implements IOAuth2Authorization {
+
     @Inject private OAuthFacade oAuthFacade;
 
     @ApiOperation(value = "Enable an application consumer for OAuth2 in the context of the application.",

@@ -811,7 +811,6 @@ public class KongClientIntegrationTest {
     public void testCreateIPRestrictionPluginBL() throws Exception {
         //in order to create a plugin you should have an api registered and a consumer
         KongApi apiipr = createDummyApi("apiiprb","/apiiprb",API_URL);
-        KongConsumer consumer = createDummyConsumer("ipr123b", "apruserb");
         apiipr = kongClient.addApi(apiipr);
         //create a IPRestrcition policy
         List<String> whitelistrecords = new ArrayList<>();

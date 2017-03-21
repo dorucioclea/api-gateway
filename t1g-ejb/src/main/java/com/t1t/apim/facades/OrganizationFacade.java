@@ -26,8 +26,10 @@ import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.events.NewEventBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.idm.*;
+import com.t1t.apim.beans.idp.KeystoreBean;
 import com.t1t.apim.beans.jwt.IJWT;
 import com.t1t.apim.beans.jwt.JWTResponse;
+import com.t1t.apim.beans.mail.MailProviderBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.members.MemberBean;
@@ -105,46 +107,29 @@ public class OrganizationFacade {
     private static final Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
     @Inject private ISecurityContext securityContext;
     @Inject private ISecurityAppContext appContext;
-    @Inject
-    private IStorage storage;
-    @Inject
-    private IStorageQuery query;
-    @Inject
-    private IIdmStorage idmStorage;
-    @Inject
-    private IApiKeyGenerator apiKeyGenerator;
-    @Inject
-    private IApplicationValidator applicationValidator;
-    @Inject
-    private IServiceValidator serviceValidator;
-    @Inject
-    private IMetricsAccessor metrics;
-    @Inject
-    private GatewayFacade gatewayFacade;
-    @Inject
-    private IGatewayLinkFactory gatewayLinkFactory;
-    @Inject
-    private UserFacade userFacade;
-    @Inject
-    private RoleFacade roleFacade;
-    @Inject
-    private BrandingFacade brandingFacade;
-    @Inject
-    private AppConfig config;
-    @Inject
-    private Event<NewEventBean> event;
-    @Inject
-    private Event<AnnouncementBean> announcement;
-    @Inject
-    private GatewayValidation gatewayValidation;
-    @Inject
-    private IDPLinkFactory idpFactory;
+    @Inject private IStorage storage;
+    @Inject private IStorageQuery query;
+    @Inject private IIdmStorage idmStorage;
+    @Inject private IApiKeyGenerator apiKeyGenerator;
+    @Inject private IApplicationValidator applicationValidator;
+    @Inject private IServiceValidator serviceValidator;
+    @Inject private IMetricsAccessor metrics;
+    @Inject private GatewayFacade gatewayFacade;
+    @Inject private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject private UserFacade userFacade;
+    @Inject private RoleFacade roleFacade;
+    @Inject private BrandingFacade brandingFacade;
+    @Inject private AppConfig config;
+    @Inject private Event<NewEventBean> event;
+    @Inject private Event<AnnouncementBean> announcement;
+    @Inject private GatewayValidation gatewayValidation;
+    @Inject private IDPLinkFactory idpFactory;
 
     public final static String MARKET_SEPARATOR = "-";
 
     public static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
 
-    //craete organization
+    //create organization
     public OrganizationBean create(NewOrganizationBean bean) throws StorageException {
         List<RoleBean> autoGrantedRoles = null;
         SearchCriteriaBean criteria = new SearchCriteriaBean();
@@ -184,6 +169,31 @@ public class OrganizationFacade {
         orgBean.setModifiedOn(new Date());
         orgBean.setModifiedBy(securityContext.getCurrentUser());
         orgBean.setOrganizationPrivate(bean.getOrganizationPrivate() == null ? true : bean.getOrganizationPrivate());
+
+        MailProviderBean mpb;
+        if (bean.getMailProviderId() != null) {
+            mpb = storage.getMailProvider(bean.getMailProviderId());
+            if (mpb == null) {
+                throw ExceptionFactory.mailProviderNotFoundException(bean.getMailProviderId());
+            }
+        }
+        else {
+            mpb = query.getDefaultMailProvider();
+        }
+        orgBean.setMailProviderId(mpb.getId());
+
+        KeystoreBean kpb;
+        if (bean.getKeystoreKid() != null) {
+            kpb = storage.getKeystore(bean.getKeystoreKid());
+            if (kpb == null) {
+                throw ExceptionFactory.keystoreNotFoundException(bean.getKeystoreKid());
+            }
+        }
+        else {
+            kpb = query.getDefaultKeystore();
+        }
+        orgBean.setKeystoreKid(kpb.getKid());
+
         if (bean.getFriendlyName() != null) {
             if (!securityContext.isAdmin()) {
                 throw ExceptionFactory.notAuthorizedException();
@@ -199,7 +209,7 @@ public class OrganizationFacade {
             storage.createAuditEntry(AuditUtils.organizationCreated(orgBean, securityContext));
             //Create the corresponding realm on the IDP
             IDPClient idp = idpFactory.getDefaultIDPClient();
-            idp.createRealm(orgBean);
+            idp.createRealm(orgBean, kpb, mpb);
 
             // Auto-grant memberships in roles to the creator of the organization
             for (RoleBean roleBean : autoGrantedRoles) {
@@ -1531,7 +1541,7 @@ public class OrganizationFacade {
             intrval = HistogramIntervalType.day;
         }
         validateMetricRange(from, to);
-        validateTimeSeriesMetric(from, to, intrval);
+        //validateTimeSeriesMetric(from, to, intrval);
         MetricsUsageList usageList = metrics.getUsage(organizationId, serviceId, version, intrval, from, to);
         if (usageList != null) {
             return usageList;
@@ -1559,7 +1569,7 @@ public class OrganizationFacade {
             intrval = HistogramIntervalType.day;
         }
         validateMetricRange(from, to);
-        validateTimeSeriesMetric(from, to, intrval);
+        //validateTimeSeriesMetric(from, to, intrval);
         MetricsResponseStatsList statsList = metrics.getResponseStats(organizationId, serviceId, version, intrval, from, to);
         if (statsList != null) {
             return statsList;
@@ -2689,37 +2699,6 @@ public class OrganizationFacade {
         fireEvent(organizationId, bean.getUserId(), EventType.MEMBERSHIP_GRANTED, null);
     }
 
-    public void grant(String organizationId, GrantRolesBean bean) {
-        // Verify that the references are valid.
-        get(organizationId);
-        userFacade.get(bean.getUserId());
-        for (String roleId : bean.getRoleIds()) {
-            roleFacade.get(roleId);
-        }
-        MembershipData auditData = new MembershipData();
-        auditData.setUserId(bean.getUserId());
-        try {
-            for (String roleId : bean.getRoleIds()) {
-                RoleMembershipBean membership = RoleMembershipBean.create(bean.getUserId(), roleId, organizationId);
-                membership.setCreatedOn(new Date());
-                // If the membership already exists, that's fine!
-                if (idmStorage.getMembership(bean.getUserId(), roleId, organizationId) == null) {
-                    idmStorage.createMembership(membership);
-                }
-                auditData.addRole(roleId);
-            }
-        } catch (StorageException e) {
-            throw new SystemErrorException(e);
-        }
-        try {
-            storage.createAuditEntry(AuditUtils.membershipGrantedImplicit(organizationId, auditData, securityContext, true));
-        } catch (AbstractRestException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new SystemErrorException(e);
-        }
-    }
-
     public void revoke(String organizationId, String roleId, String userId) {
         get(organizationId);
         userFacade.get(userId);
@@ -3418,14 +3397,14 @@ public class OrganizationFacade {
      * @param to
      * @param interval
      */
-    private void validateTimeSeriesMetric(DateTime from, DateTime to, HistogramIntervalType interval) throws InvalidMetricCriteriaException {
-        /*long millis = to.getMillis() - from.getMillis();
+    /*private void validateTimeSeriesMetric(DateTime from, DateTime to, HistogramIntervalType interval) throws InvalidMetricCriteriaException {
+        long millis = to.getMillis() - from.getMillis();
         long divBy = interval.getMillis();
         long totalDataPoints = millis / divBy;
         if (totalDataPoints > 5000) {
             throw ExceptionFactory.invalidMetricCriteriaException(Messages.i18n.format("OrganizationResourceImpl.MetricDataSetTooLarge")); //$NON-NLS-1$
-        }*/
-    }
+        }
+    }*/
 
     /**
      * Gets the API registry.

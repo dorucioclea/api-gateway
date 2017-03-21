@@ -49,6 +49,7 @@ public class OAuthFacade {
     @Inject private IStorage storage;
     @Inject private IIdmStorage idmStorage;
     @Inject private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject private GatewayFacade gatewayFacade;
     @Inject private AppConfig config;
 
     /**
@@ -76,7 +77,7 @@ public class OAuthFacade {
             String defaultGateway = query.listGateways().get(0).getId();
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
-                    IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                    IGatewayLink gatewayLink = gatewayFacade.getDefaultGatewayLink();
                     response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
                     avb.setOauthCredentialId(response.getId());
                     storage.updateApplicationVersion(avb);
@@ -86,7 +87,7 @@ public class OAuthFacade {
                 if (response == null) {
                     //try to recover existing user
                     try {
-                        IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                        IGatewayLink gatewayLink = gatewayFacade.getDefaultGatewayLink();
                         KongPluginOAuthConsumerResponseList credentials = gatewayLink.getConsumerOAuthCredentials(request.getUniqueUserName());
                         for (KongPluginOAuthConsumerResponse cred : credentials.getData()) {
                             if (cred.getClientId().equals(request.getAppOAuthId())) response = cred;
@@ -117,7 +118,7 @@ public class OAuthFacade {
             response.setTokenUrl(getOAuth2TokenEndpoint(orgId, serviceId, version));
             if (!StringUtils.isEmpty(defaultGateway)) {
                 try {
-                    IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
+                    IGatewayLink gatewayLink = gatewayFacade.getDefaultGatewayLink();
                     KongPluginOAuthConsumerResponseList appInfoList = gatewayLink.getApplicationOAuthInformation(clientId);
                     if (appInfoList != null && appInfoList.getData() != null && appInfoList.getData().size() > 0) {
                         response.setConsumerResponse(appInfoList.getData().get(0));
@@ -242,26 +243,6 @@ public class OAuthFacade {
         } catch (StorageException e) {
             e.printStackTrace();
             return "error";
-        }
-    }
-
-    /**
-     * Creates a gateway link given a gateway id.
-     *
-     * @param gatewayId
-     */
-    private IGatewayLink createGatewayLink(String gatewayId) throws PublishingException {
-        try {
-            GatewayBean gateway = storage.getGateway(gatewayId);
-            if (gateway == null) {
-                throw new GatewayNotFoundException();
-            }
-            IGatewayLink link = gatewayLinkFactory.create(gateway);
-            return link;
-        } catch (GatewayNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new PublishingException(e.getMessage(), e);
         }
     }
 }

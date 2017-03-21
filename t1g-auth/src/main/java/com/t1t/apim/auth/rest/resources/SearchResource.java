@@ -175,7 +175,7 @@ public class SearchResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ServiceVersionBean getServiceVersion(@PathParam("organizationId") String organizationId,
                                                 @PathParam("serviceId") String serviceId,
-                                                @PathParam("version") String version) throws ServiceVersionNotFoundException, com.t1t.apim.exceptions.NotAuthorizedException {
+                                                @PathParam("version") String version) throws ServiceVersionNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));

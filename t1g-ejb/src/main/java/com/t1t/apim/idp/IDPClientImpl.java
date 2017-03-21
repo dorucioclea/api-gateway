@@ -225,6 +225,11 @@ public class IDPClientImpl implements IDPClient {
             rval.setName(idp.getDefaultClient());
             rval.setRootUrl("http://localhost");
             rval.setAuthorizationServicesEnabled(true);
+            //Set the authorization attributes
+            Map<String, String> attributes = new HashMap<>();
+            attributes.put(IDPConstants.CLIENT_REQUEST_OBJECT_SIGNATURE_ALGORITHM, IDPConstants.CLIENT_SIGNING_ALGORITHM_RS256);
+            attributes.put(IDPConstants.CLIENT_USER_INFO_RESPONSE_SIGNATURE_ALGORITHM, IDPConstants.CLIENT_SIGNING_ALGORITHM_RS256);
+            rval.setAttributes(attributes);
             client.realm(idp.getMasterRealm()).clients().create(rval);
         }
         else {

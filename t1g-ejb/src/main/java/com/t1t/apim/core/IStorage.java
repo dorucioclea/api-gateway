@@ -177,7 +177,7 @@ public interface IStorage {
     public List<ConfigBean> getDefaultConfig() throws StorageException;
     public ServiceBrandingBean getBranding(String id) throws StorageException;
     public IDPBean getIDP(String id) throws StorageException;
-    public KeystoreBean getKeystore(Long id) throws StorageException;
+    public KeystoreBean getKeystore(String kid) throws StorageException;
     public MailProviderBean getMailProvider(Long id) throws StorageException;
 
     /*

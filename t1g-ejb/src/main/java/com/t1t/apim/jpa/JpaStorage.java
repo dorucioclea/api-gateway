@@ -89,12 +89,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Inject private ISecurityContext security;
 
     /**
-     * Constructor.
-     */
-    public JpaStorage() {
-    }
-
-    /**
      * @see IStorage#createApplication(ApplicationBean)
      */
     @Override
@@ -3000,8 +2994,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public KeystoreBean getKeystore(Long id) throws StorageException {
-        return super.get(id, KeystoreBean.class);
+    public KeystoreBean getKeystore(String kid) throws StorageException {
+        return super.get(kid, KeystoreBean.class);
     }
 
     @Override

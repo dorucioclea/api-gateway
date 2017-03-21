@@ -18,12 +18,6 @@ public class SystemStatus implements Serializable {
     private String status;
     private String cluster;
     private boolean up;
-    
-    /**
-     * Constructor.
-     */
-    public SystemStatus() {
-    }
 
     /**
      * @return the up
