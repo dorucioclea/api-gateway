@@ -126,6 +126,14 @@ public final class ExceptionFactory {
     }
 
     /**
+     * Creates an exception
+     * @return the exception
+     */
+    public static final ApplicationVersionNotFoundException applicationVersionNotFoundException(String message) {
+        return new ApplicationVersionNotFoundException(message); //$NON-NLS-1$
+    }
+
+    /**
      * Creates an invalid service status exception.
      * @return the exception
      */
@@ -571,6 +579,15 @@ public final class ExceptionFactory {
      * @param message
      * @return
      */
+    public static final JWTInvalidException jwtInvalidException(String message) {
+        return new JWTInvalidException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
     public static final UserAlreadyAdminException userAlreadyAdminException(String message) {
         return new UserAlreadyAdminException(message);
     }
@@ -601,5 +618,53 @@ public final class ExceptionFactory {
      */
     public static final BrandingCannotBeDeletedException brandingCannotBeDeletedException(String brandingId) {
         return new BrandingCannotBeDeletedException(Messages.i18n.format("BrandingStillHasServices", brandingId));
+    }
+
+    /**
+     * Creates an Exception
+     * @param message
+     * @param args
+     * @return
+     */
+    public static final InvalidArgumentException invalidArgumentException(String message, String... args) {
+        return new InvalidArgumentException(Messages.i18n.format(message, (Object[]) args));
+    }
+
+    /**
+     * Creates an exception
+     * @param clientId
+     * @param serviceId
+     * @return
+     */
+    public static final ApplicationOAuthInformationNotFoundException applicationOAuthInformationNotFoundException(String clientId, String serviceId) {
+        return new ApplicationOAuthInformationNotFoundException(Messages.i18n.format("AppOAuthInfoNotFound", clientId, serviceId));
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final SAMLAuthException samlAuthException(String message) {
+        return new SAMLAuthException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @return
+     */
+    public static final MaintenanceException maintenanceException(String message) {
+        return new MaintenanceException(message);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @param errorCode
+     * @return
+     */
+    public static final MaintenanceException maintenanceException(String message, Integer errorCode) {
+        return new MaintenanceException(message, errorCode);
     }
 }

@@ -49,6 +49,7 @@ import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
 import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.ejb3.annotation.TransactionTimeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RetrofitError;
@@ -56,9 +57,9 @@ import retrofit.RetrofitError;
 import javax.ejb.*;
 import javax.inject.Inject;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.t1t.digipolis.apim.beans.user.ClientTokeType.jwt;
 import static com.t1t.digipolis.util.JWTUtils.JWT_RS256;
 
 /**
@@ -114,6 +115,18 @@ public class MigrationFacade {
             });
         } catch (StorageException ex) {
             throw new SystemErrorException(ex);
+        }
+    }
+
+    public void applyDefaultPolicies() {
+        try {
+            List<ServiceVersionBean> svbs = query.getAllNonRetiredServiceVersions();
+            svbs.forEach(svb -> {
+                orgFacade.createDefaultServicePolicies(svb, true);
+            });
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
@@ -265,6 +278,7 @@ public class MigrationFacade {
     //initialize unregistered consumer
     //register consumers
     //TODO: impact service request events?
+    @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
     public void rebuildGtw() {
         log.info("====MIGRATION-START====");
         removeACLsFromDB();
@@ -302,9 +316,9 @@ public class MigrationFacade {
                     try {
                         //create user on gateway using existing kong_username
                         gatewayLink.createConsumerWithKongId(user.getKongUsername(), ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
-                        Thread.sleep(100);
+                        Thread.sleep(50);
                         //create jwt token
-                        gatewayLink.addConsumerJWT(user.getKongUsername(), JWT_RS256);
+                        gatewayLink.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                     } catch (RetrofitError rte) {
                         log.error("-->no sync executed for kong id {} and username {}", user.getKongUsername(), user.getUsername());
                         continue;
@@ -379,7 +393,8 @@ public class MigrationFacade {
                                 IGatewayLink gatewayLink = createGatewayLink(serviceGatewayBean.getGatewayId());
                                 try {
                                     gatewaySvc = gatewayLink.publishService(gatewaySvc);
-                                } catch (GatewayAuthenticationException e) {
+                                    Thread.sleep(100);
+                                } catch (GatewayAuthenticationException |InterruptedException e) {
                                     continue;//next loop cycle
                                 }
                                 //Here we add the various marketplaces to the Service's ACL, otherwise try-out in marketplace won't work
@@ -488,7 +503,7 @@ public class MigrationFacade {
                         gateway.addConsumerKeyAuth(appConsumerName, apikey);
 
                         //create jwt token
-                        gateway.addConsumerJWT(appConsumerName, JWT_RS256);
+                        gateway.addConsumerJWT(appConsumerName, JWT_RS256, avb.getJwtKey(), avb.getJwtSecret());
                         //sync oauth info
                         if (!StringUtils.isEmpty(avb.getoAuthClientId()) && !StringUtils.isEmpty(avb.getOauthClientSecret())) {//redirect may be empty
                             if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty() || avb.getOauthClientRedirects().stream().filter(redirect -> !StringUtils.isEmpty(redirect)).collect(Collectors.toSet()).isEmpty())
@@ -793,11 +808,11 @@ public class MigrationFacade {
                                 continue;
                             }
                             event.setDestinationId(new StringBuilder(org.getId())
-                                                        .append(".")
-                                                        .append(dest[1])
-                                                        .append(".")
-                                                        .append(dest[2])
-                                                        .toString());
+                                    .append(".")
+                                    .append(dest[1])
+                                    .append(".")
+                                    .append(dest[2])
+                                    .toString());
                             storage.updateEvent(event);
                             break;
                     }
@@ -836,6 +851,9 @@ public class MigrationFacade {
             Map<String, IGatewayLink> links = new HashMap<>();
             for (ContractSummaryBean contract : contractSummaries) {
                 ServiceVersionBean svb = storage.getServiceVersion(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion());
+                if (svb == null) {
+                    log.error("Service version not found:{}", ServiceConventionUtil.generateServiceUniqueName(contract.getServiceOrganizationId(), contract.getServiceId(), contract.getServiceVersion()));
+                }
                 Set<ServiceGatewayBean> gateways = svb.getGateways();
                 for (ServiceGatewayBean serviceGatewayBean : gateways) {
                     if (!links.containsKey(serviceGatewayBean.getGatewayId())) {
@@ -876,7 +894,7 @@ public class MigrationFacade {
                         }
                     }
                 }
-                final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(consumerId, JWT_RS256);
+                final KongPluginJWTResponse kongPluginJWTResponse = gateway.addConsumerJWT(consumerId, JWT_RS256, null, null);
                 final String key = kongPluginJWTResponse.getKey();
                 final String secret = kongPluginJWTResponse.getSecret();
                 log.info("Consumer '{}' JWT credentials generated ({},{})",consumerId,key,secret);
@@ -985,6 +1003,7 @@ public class MigrationFacade {
         try {
             List<ApplicationVersionBean> allApps = query.findAllApplicationVersions();
             for (ApplicationVersionBean avb : allApps) {
+                log.info("==Beginning Sync for:{}==", ConsumerConventionUtil.createAppUniqueId(avb));
                 String appId = ConsumerConventionUtil.createAppUniqueId(avb);
                 boolean appModified = false;
                 if (avb.getStatus() != ApplicationStatus.Retired) {
@@ -1080,7 +1099,7 @@ public class MigrationFacade {
                                     log.info("No JWT credentials for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 }
                                 if (jwtCreds.getData().isEmpty()) {
-                                    gw.addConsumerJWT(appId, JWT_RS256);
+                                    gw.addConsumerJWT(appId, JWT_RS256, avb.getJwtKey(), avb.getJwtSecret());
                                     log.info("JWT credentials created for app \"{}\" on gateway \"{}\"", appId, gwId);
                                 } else {
                                     log.info("No JWT sync necessary for app \"{}\" on gateway \"{}\"", appId, gwId);
@@ -1106,5 +1125,34 @@ public class MigrationFacade {
             throw ExceptionFactory.systemErrorException(ex);
         }
         log.info("======== END Enabling Consumers for all auth methods ========");
+    }
+
+    public void createDefaultPoliciesOnGateway() {
+        try{
+            List<PolicyBean> policies = query.getDefaultUnpublishedPolicies();
+            policies.forEach(policy -> {
+                try {
+                    IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+                    Policy pol = new Policy();
+                    pol.setEntityId(ServiceConventionUtil.generateServiceUniqueName(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion()));
+                    pol.setPolicyId(policy.getId());
+                    pol.setPolicyImpl(policy.getDefinition().getId());
+                    pol.setPolicyJsonConfig(policy.getConfiguration());
+                    Policy returnPol = gateway.createServicePolicy(policy.getOrganizationId(), policy.getEntityId(), policy.getEntityVersion(), pol);
+                    policy.setGatewayId(gateway.getGatewayId());
+                    policy.setKongPluginId(returnPol.getKongPluginId());
+                    storage.updatePolicy(policy);
+                }
+                catch (StorageException ex) {
+                    throw ExceptionFactory.systemErrorException(ex);
+                }
+                catch (Exception ex) {
+                    //do nothing
+                }
+            });
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 }

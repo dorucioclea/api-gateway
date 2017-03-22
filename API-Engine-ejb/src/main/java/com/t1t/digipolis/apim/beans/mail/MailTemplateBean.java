@@ -2,10 +2,11 @@ package com.t1t.digipolis.apim.beans.mail;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.BaseEntity;
-import com.t1t.digipolis.apim.beans.orgs.OrganizationBasedCompositeId;
-import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
 
 /**

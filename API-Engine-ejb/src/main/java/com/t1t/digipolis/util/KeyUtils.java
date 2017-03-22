@@ -1,6 +1,5 @@
 package com.t1t.digipolis.util;
 
-import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.io.pem.PemReader;
 
@@ -9,12 +8,9 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.List;
 
 /**
  * Created by michallispashidis on 17/11/15.
@@ -79,16 +75,18 @@ public class KeyUtils {
      *
      * @param privKey
      * @return
-     * @throws IOException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
      */
-    public static PrivateKey getPrivateKey(String privKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        PemReader pemReader = new PemReader(new StringReader(privKey));
-        byte[] content = pemReader.readPemObject().getContent();
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(content);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePrivate(spec);
+    public static PrivateKey getPrivateKey(String privKey) {
+        try {
+            PemReader pemReader = new PemReader(new StringReader(privKey));
+            byte[] content = pemReader.readPemObject().getContent();
+            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(content);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return kf.generatePrivate(spec);
+        }
+        catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+            return null;
+        }
     }
 
     /**
@@ -96,15 +94,17 @@ public class KeyUtils {
      *
      * @param pubKey
      * @return
-     * @throws IOException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
      */
-    public static PublicKey getPublicKey(String pubKey) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException  {
-        PemReader pemReader = new PemReader(new StringReader(pubKey));
-        byte[] content = pemReader.readPemObject().getContent();
-        X509EncodedKeySpec spec = new X509EncodedKeySpec(content);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePublic(spec);
+    public static PublicKey getPublicKey(String pubKey) {
+        try {
+            PemReader pemReader = new PemReader(new StringReader(pubKey));
+            byte[] content = pemReader.readPemObject().getContent();
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(content);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return kf.generatePublic(spec);
+        }
+        catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+            return null;
+        }
     }
 }

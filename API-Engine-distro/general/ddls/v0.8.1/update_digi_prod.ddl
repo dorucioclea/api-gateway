@@ -47,6 +47,7 @@ UPDATE service_versions SET status = 'Created' WHERE terms_agreement_required = 
 ALTER TABLE contracts ADD COLUMN terms_agreed BOOL DEFAULT FALSE;
 CREATE TABLE defaults (id VARCHAR(255) NOT NULL, service_terms TEXT NULL);
 ALTER TABLE defaults ADD PRIMARY KEY (id);
+INSERT INTO defaults (id, service_terms) VALUES ('PROD', 'This is a placeholder for the default terms & conditions\n========================================================\n');
 
 -- add config in db
 CREATE TABLE config(id BIGINT NOT NULL, config_path VARCHAR(255) NOT NULL);

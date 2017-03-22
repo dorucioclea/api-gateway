@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.beans.idm;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.netty.util.internal.StringUtil;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -50,6 +49,10 @@ public class UserBean implements Serializable {
     @Lob
     @Basic(fetch=FetchType.EAGER)
     private byte[] base64pic;
+    @Column(name="jwt_key")
+    private String jwtKey;
+    @Column(name="jwt_secret")
+    private String jwtSecret;
 
 
     /**
@@ -164,6 +167,22 @@ public class UserBean implements Serializable {
         this.kongUsername = kongUsername;
     }
 
+    public String getJwtKey() {
+        return jwtKey;
+    }
+
+    public void setJwtKey(String jwtKey) {
+        this.jwtKey = jwtKey;
+    }
+
+    public String getJwtSecret() {
+        return jwtSecret;
+    }
+
+    public void setJwtSecret(String jwtSecret) {
+        this.jwtSecret = jwtSecret;
+    }
+
     /**
      * @see Object#hashCode()
      */
@@ -216,6 +235,9 @@ public class UserBean implements Serializable {
                 ", location='" + location + '\'' +
                 ", website='" + website + '\'' +
                 ", bio='" + bio + '\'' +
+                ", base64pic=" + Arrays.toString(base64pic) +
+                ", jwtKey='" + jwtKey + '\'' +
+                ", jwtSecret='" + jwtSecret + '\'' +
                 '}';
     }
 }

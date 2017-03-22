@@ -12,28 +12,6 @@ import com.t1t.digipolis.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.digipolis.apim.gateway.dto.Policy;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PolicyViolationException;
 import com.t1t.digipolis.kong.model.*;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.KongPluginAnalytics;
-import com.t1t.digipolis.kong.model.KongPluginCors;
-import com.t1t.digipolis.kong.model.KongPluginJWT;
-import com.t1t.digipolis.kong.model.KongPluginFileLog;
-import com.t1t.digipolis.kong.model.KongPluginHttpLog;
-import com.t1t.digipolis.kong.model.KongPluginIPRestriction;
-import com.t1t.digipolis.kong.model.KongPluginJWTUp;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuth;
-import com.t1t.digipolis.kong.model.KongPluginOAuth;
-import com.t1t.digipolis.kong.model.KongPluginOAuthScope;
-import com.t1t.digipolis.kong.model.KongPluginRateLimiting;
-import com.t1t.digipolis.kong.model.KongPluginRequestTransformer;
-import com.t1t.digipolis.kong.model.KongPluginRequestTransformerAdd;
-import com.t1t.digipolis.kong.model.KongPluginRequestTransformerRemove;
-import com.t1t.digipolis.kong.model.KongPluginResponseTransformer;
-import com.t1t.digipolis.kong.model.KongPluginResponseTransformerAdd;
-import com.t1t.digipolis.kong.model.KongPluginResponseTransformerRemove;
-import com.t1t.digipolis.kong.model.KongPluginTcpLog;
-import com.t1t.digipolis.kong.model.KongPluginUdpLog;
-
-import com.t1t.digipolis.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +20,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.*;
 import java.util.regex.Pattern;
-
-import static com.t1t.digipolis.apim.beans.policies.Policies.JSONTHREATPROTECTION;
-import static com.t1t.digipolis.apim.beans.policies.Policies.LDAPAUTHENTICATION;
 
 /**
  * Created by michallispashidis on 30/09/15.
@@ -55,6 +30,8 @@ public class GatewayValidation {
     private static String environment;
     private static final String OAUTH_SCOPE_CONCAT = ".";
     private static final Set<String> ALLOWED_JWT_CLAIMS = new HashSet<>(Arrays.asList("exp", "nbf"));
+    private static final String CLAIM_TO_VERIFY = "exp";
+    private static final String JWT_URI_PARAM_NAME = "jwt";
 
     public GatewayValidation() {}
 
@@ -128,7 +105,10 @@ public class GatewayValidation {
         Gson gson = new Gson();
         JWTFormBean jwtValue = gson.fromJson(policy.getPolicyJsonConfig(),JWTFormBean.class);
         KongPluginJWT kongPluginJWT = new KongPluginJWT();
-        Set<String> claimsToVerify = new HashSet<>(jwtValue.getClaims_to_verify());
+        Set<String> claimsToVerify = new HashSet<>();
+        if (jwtValue.getClaims_to_verify() != null && !jwtValue.getClaims_to_verify().isEmpty()) {
+            claimsToVerify.addAll(jwtValue.getClaims_to_verify());
+        }
         if (!claimsToVerify.isEmpty()) {
             for (String claim : claimsToVerify) {
                 if (!ALLOWED_JWT_CLAIMS.contains(claim)) {
@@ -138,8 +118,9 @@ public class GatewayValidation {
         }
         //if(jwtValue.getClaims_to_verify())claimsToVerify.add("exp");//hardcoded claim at the moment
         //--enforce to validate JWT exp
-        claimsToVerify.add("exp");
+        claimsToVerify.add(CLAIM_TO_VERIFY);
         kongPluginJWT.setClaimsToVerify(new ArrayList<>(claimsToVerify));
+        kongPluginJWT.setUriParamNames(Collections.singletonList(JWT_URI_PARAM_NAME));
         //perform enhancements
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
@@ -177,7 +158,12 @@ public class GatewayValidation {
             if (!StringUtils.isEmpty(scope.getScope())) {
                 //add prefix
                 if (StringUtils.isEmpty(scope.getScopeDesc())) scope.setScopeDesc(scope.getScope());
-                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+scope.getScope().toLowerCase());
+                if(!StringUtils.isEmpty(optionalPrefixId) && !scope.getScope().startsWith(optionalPrefixId)) {
+                    //In case of cloning policy, strip the prefix of the previous version
+                    String strippedScope = scope.getScope();
+                    if (scope.getScope().contains(".")) strippedScope = scope.getScope().substring(scope.getScope().lastIndexOf(".") + 1);
+                    scope.setScope(optionalPrefixId+OAUTH_SCOPE_CONCAT+strippedScope.toLowerCase());
+                }
                 responseScopes.add(scope);
             }
         }
@@ -186,8 +172,11 @@ public class GatewayValidation {
             throw ExceptionFactory.invalidPolicyException("If \"Mandatory Scopes\" is checked, at least one scope/scope description must be provided in order to apply OAuth2");
         }
         //create custom provisionkey - explicitly
+        //Unless the policy already has a provision key
         oauthValue.setScopes(responseScopes);
-        oauthValue.setProvisionKey(UUID.randomUUID().toString());
+        if (StringUtils.isEmpty(oauthValue.getProvisionKey())) {
+            oauthValue.setProvisionKey(UUID.randomUUID().toString());
+        }
         //If no OAuth token expiration has been set, use the default gateway value
         if (oauthValue.getTokenExpiration() == null) {
             try {
@@ -447,7 +436,7 @@ public class GatewayValidation {
     public synchronized Policy validateLDAP(Policy policy) {
         _LOG.info("ldap policy to validate:{}", policy);
         KongPluginLDAP req = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginLDAP.class);
-        if (StringUtils.isEmpty(req.getLdapHost()) || StringUtils.isEmpty(req.getBaseDn())) {
+        if (StringUtils.isEmpty(req.getLdapHost())) {
             throw new PolicyViolationException("Form was not correctly filled in.");
         }
         return policy;
@@ -456,6 +445,43 @@ public class GatewayValidation {
     public synchronized Policy validateJsonThreatProtection(Policy policy) {
         //Do nothing, it's fine
         return policy;
+    }
+
+    /**
+     * Validate OAuth plugin values and if necessary transform.
+     *
+     * @param policy    OAuth policy
+     * @return
+     */
+    public synchronized Policy validateExplicitOAuth(Policy policy) {
+        //we can be sure this is an OAuth Policy
+        Gson gson = new Gson();
+        KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);
+        KongPluginOAuthEnhanced newOAuthValue = validateExplicitOAuth(oauthValue);
+        //perform enhancements
+        Policy responsePolicy = new Policy();
+        responsePolicy.setPolicyImpl(policy.getPolicyImpl());
+        responsePolicy.setPolicyJsonConfig(gson.toJson(newOAuthValue,KongPluginOAuthEnhanced.class));
+        return responsePolicy;
+    }
+
+    public synchronized KongPluginOAuthEnhanced validateExplicitOAuth(KongPluginOAuth config) {
+        KongPluginOAuthEnhanced newOAuthValue = new KongPluginOAuthEnhanced();
+        newOAuthValue.setEnableImplicitGrant(config.getEnableImplicitGrant());
+        newOAuthValue.setEnableAuthorizationCode(config.getEnableAuthorizationCode());
+        newOAuthValue.setEnableClientCredentials(config.getEnableClientCredentials());
+        newOAuthValue.setEnablePasswordGrant(config.getEnablePasswordGrant());
+        newOAuthValue.setHideCredentials(config.getHideCredentials());
+        newOAuthValue.setMandatoryScope(config.getMandatoryScope());
+        newOAuthValue.setProvisionKey(config.getProvisionKey());
+        newOAuthValue.setTokenExpiration(config.getTokenExpiration());
+        List<KongPluginOAuthScope> scopeObjects = config.getScopes();
+        List<Object>scopes = new ArrayList<>();
+        for(KongPluginOAuthScope scope:scopeObjects){
+            scopes.add(scope.getScope());
+        }
+        newOAuthValue.setScopes(scopes);
+        return newOAuthValue;
     }
 
     private static boolean isEmptyList(List list){

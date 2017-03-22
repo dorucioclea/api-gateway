@@ -1,18 +1,24 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.digipolis.apim.beans.gateways.*;
+import com.t1t.digipolis.apim.beans.dto.GatewayDtoBean;
+import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
+import com.t1t.digipolis.apim.beans.gateways.NewGatewayBean;
+import com.t1t.digipolis.apim.beans.gateways.UpdateGatewayBean;
 import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.beans.summary.GatewayTestResultBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
-import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.core.i18n.Messages;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.GatewayAlreadyExistsException;
+import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.GatewayFacade;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
-import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.rest.resources.IGatewayResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.util.DtoFactory;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -23,7 +29,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.Date;
 import java.util.List;
 
 @Api(value = "/gateways", description = "The Gateway API.")
@@ -57,7 +62,7 @@ public class GatewayResource implements IGatewayResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public GatewayTestResultBean test(NewGatewayBean bean) throws NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New gateway"));
         return gatewayFacade.test(bean);
     }
 
@@ -82,21 +87,26 @@ public class GatewayResource implements IGatewayResource {
     @Produces(MediaType.APPLICATION_JSON)
     public GatewayBean create(NewGatewayBean bean) throws GatewayAlreadyExistsException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New gateway"));
         return gatewayFacade.create(bean);
     }
 
     @ApiOperation(value = "Get a Gateway by ID",
             notes = "Call this endpoint to get the details of a single configured Gateway.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = GatewayBean.class, message = "The Gateway identified by {gatewayId}.")
+            @ApiResponse(code = 200, response = GatewayDtoBean.class, message = "The Gateway identified by {gatewayId}.")
     })
     @GET
     @Path("/{gatewayId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public GatewayBean get(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException, NotAuthorizedException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
-        return gatewayFacade.get(gatewayId);
+    public GatewayDtoBean get(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId), Messages.i18n.format("emptyValue", "Gateway ID"));
+        GatewayDtoBean rval = DtoFactory.createGatewayDtoBean(gatewayFacade.get(gatewayId));
+        if (!securityContext.isAdmin()) {
+            rval.setConfiguration(null);
+            rval.setJWTPrivKey(null);
+        }
+        return rval;
     }
 
     @ApiOperation(value = "Update a Gateway",
@@ -109,8 +119,8 @@ public class GatewayResource implements IGatewayResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void update(@PathParam("gatewayId") String gatewayId, UpdateGatewayBean bean) throws GatewayNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
-        Preconditions.checkNotNull(bean);
+        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId), Messages.i18n.format("emptyValue", "Gateway ID"));
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Updated gateway"));
         gatewayFacade.update(gatewayId,bean);
     }
 
@@ -123,7 +133,7 @@ public class GatewayResource implements IGatewayResource {
     @Path("/{gatewayId}")
     public void remove(@PathParam("gatewayId") String gatewayId) throws GatewayNotFoundException, NotAuthorizedException {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId));
+        Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId), Messages.i18n.format("emptyValue", "Gateway ID"));
         gatewayFacade.remove(gatewayId);
     }
 }

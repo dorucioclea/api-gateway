@@ -1,7 +1,5 @@
 package com.t1t.digipolis.apim.security;
 
-import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
-
 import java.io.Serializable;
 import java.util.Map;
 

@@ -1,6 +1,7 @@
 package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.summary.ServiceVersionSummaryBean;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 
 /**
@@ -41,6 +42,15 @@ public class ServiceConventionUtil {
         if (rval.length != 3) {
             throw new IllegalArgumentException("Unique name must contain 3 substrings separated by 2 periods");
         }
+        return rval;
+    }
+
+    public static ServiceVersionSummaryBean getServiceVersionSummaryFromUniqueName(String uniqueServiceId) {
+        ServiceVersionSummaryBean rval = new ServiceVersionSummaryBean();
+        String[] split = getOrgSvcVersionIdsFromUniqueName(uniqueServiceId);
+        rval.setOrganizationId(split[0]);
+        rval.setId(split[1]);
+        rval.setVersion(split[2]);
         return rval;
     }
 }

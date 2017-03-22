@@ -3,7 +3,6 @@ package com.t1t.digipolis.apim.beans.brandings;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.services.ServiceBean;
-import org.hibernate.annotations.Columns;
 
 import javax.persistence.*;
 import java.io.Serializable;

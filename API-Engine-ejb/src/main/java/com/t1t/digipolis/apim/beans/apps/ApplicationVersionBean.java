@@ -58,6 +58,13 @@ public class ApplicationVersionBean implements Serializable {
     private Set<String> oauthClientRedirects;
     @Column(name = "apikey")
     private String apikey;
+    @Column(name = "oauth_credential_id")
+    private String oauthCredentialId;
+    @Column(name="jwt_key")
+    private String jwtKey;
+    @Column(name="jwt_secret")
+    private String jwtSecret;
+
 
     /**
      * Constructor.
@@ -248,6 +255,20 @@ public class ApplicationVersionBean implements Serializable {
     }
 
     /**
+     * @return the oauth credential id
+     */
+    public String getOauthCredentialId() {
+        return oauthCredentialId;
+    }
+
+    /**
+     * @param oauthCredentialId the oauth credential id to set
+     */
+    public void setOauthCredentialId(String oauthCredentialId) {
+        this.oauthCredentialId = oauthCredentialId;
+    }
+
+    /**
      * @return the API key
      */
     public String getApikey() {
@@ -259,6 +280,22 @@ public class ApplicationVersionBean implements Serializable {
      */
     public void setApikey(String apikey) {
         this.apikey = apikey;
+    }
+
+    public String getJwtKey() {
+        return jwtKey;
+    }
+
+    public void setJwtKey(String jwtKey) {
+        this.jwtKey = jwtKey;
+    }
+
+    public String getJwtSecret() {
+        return jwtSecret;
+    }
+
+    public void setJwtSecret(String jwtSecret) {
+        this.jwtSecret = jwtSecret;
     }
 
     /**
@@ -292,11 +329,7 @@ public class ApplicationVersionBean implements Serializable {
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
-    @SuppressWarnings("nls")
     public String toString() {
         return "ApplicationVersionBean{" +
                 "id=" + id +
@@ -313,6 +346,9 @@ public class ApplicationVersionBean implements Serializable {
                 ", oauthClientSecret='" + oauthClientSecret + '\'' +
                 ", oauthClientRedirects=" + oauthClientRedirects +
                 ", apikey='" + apikey + '\'' +
+                ", oauthCredentialId='" + oauthCredentialId + '\'' +
+                ", jwtKey='" + jwtKey + '\'' +
+                ", jwtSecret='" + jwtSecret + '\'' +
                 '}';
     }
 }

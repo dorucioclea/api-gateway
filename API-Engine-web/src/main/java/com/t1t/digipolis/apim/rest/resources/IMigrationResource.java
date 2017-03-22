@@ -21,7 +21,7 @@ public interface IMigrationResource {
     /**
      * Use this endpoint to change applications' versionless customId's to match their usernames
      */
-    public void updateConsumersCustomId() throws AbstractRestException;
+    //public void updateConsumersCustomId() throws AbstractRestException;
 
     /**
      * Sync the local db with the Kong gateway in case of:
@@ -66,5 +66,12 @@ public interface IMigrationResource {
      * Sync or create credentials for applications
      */
     public void syncOrCreateConsumerCredentials();
+
+    /**
+     * Apply the default service policies to every service version
+     * @throws AbstractRestException
+     */
+    public void applyDefaultPoliciesToServiceVersions() throws AbstractRestException;
+
 }
 

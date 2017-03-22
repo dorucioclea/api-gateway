@@ -1,37 +1,17 @@
 package com.t1t.digipolis.apim.gateway;
 
+import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.gateways.Gateway;
-import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.gateway.dto.*;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.digipolis.kong.model.*;
-import com.t1t.digipolis.kong.model.KongConsumerList;
-import com.t1t.digipolis.kong.model.KongOAuthTokenList;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.KongApi;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponse;
-import com.t1t.digipolis.kong.model.KongPluginBasicAuthResponseList;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
-import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponse;
-import com.t1t.digipolis.kong.model.KongPluginKeyAuthResponseList;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
 import org.elasticsearch.gateway.GatewayException;
 
-import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
 
 /**
  * Links the design time API with a Gateway.  This allows the design time API
@@ -249,7 +229,7 @@ public interface IGatewayLink {
      * @return
      * @throws ConsumerException
      */
-    public KongPluginJWTResponse addConsumerJWT(String id, String encoding) throws ConsumerException;
+    public KongPluginJWTResponse addConsumerJWT(String id, String encoding, String key, String secret) throws ConsumerException;
 
     /**
      * Retrieve a consumer information with it's JWT key.
@@ -323,7 +303,7 @@ public interface IGatewayLink {
      * @param request
      * @return
      */
-    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, String oldClientId, String oldClientSecret, KongPluginOAuthConsumerRequest request);
+    public KongPluginOAuthConsumerResponse updateConsumerOAuthCredentials(String consumerId, KongPluginOAuthConsumerRequest request);
 
     /**
      * Get application specific information for OAuth.
@@ -376,6 +356,13 @@ public interface IGatewayLink {
     public KongPluginConfig updateServicePlugin(String serviceId, KongPluginConfig config);
 
     /**
+     * Updates a plugin on the gateway
+     * @param config
+     * @return
+     */
+    public KongPluginConfig updateServicePlugin(KongPluginConfig config);
+
+    /**
      * Adds a consumer to a service ACL
      *
      * @param consumerId
@@ -396,6 +383,13 @@ public interface IGatewayLink {
      * @return KongConsumerList
      */
     public KongConsumerList getConsumers();
+
+    /**
+     * Get a list of consumers
+     * @param offset
+     * @return
+     */
+    public KongConsumerList getConsumers(String offset);
 
     /**
      * Update or create a consumer
@@ -437,9 +431,10 @@ public interface IGatewayLink {
     /**
      * Retrieve a consumer's OAuth2 tokens
      * @param consumerOAuthCredentialId
+     * @param offset base64 encoded page number
      * @return
      */
-    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId);
+    public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId, String offset);
 
     /**
      * Delete a token on the gateway corresponding to the id
@@ -450,9 +445,10 @@ public interface IGatewayLink {
     /**
      * Retrieve oauth tokens by authenticated user id
      * @param authenticatedUserId
+     * @param offset base64 encoded page number
      * @return
      */
-    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId);
+    public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId, String offset);
 
     /**
      * Retrieve OAuth information based on credential id
@@ -490,7 +486,8 @@ public interface IGatewayLink {
      * @param policy
      * @return
      */
-    public Policy createServicePolicy(String organizationId, String serviceId, String version, Policy policy);
+    public Policy createServicePolicy(String organizationId, String serviceId, String
+            version, Policy policy);
 
     /**
      * Create a service branding api on the gateway
@@ -503,4 +500,105 @@ public interface IGatewayLink {
      * @param apiName
      */
     public void deleteApi(String apiName);
+
+    /**
+     * Get the gateway OAuth token corresponding to an access token
+     * @param token
+     * @return
+     */
+    public KongOAuthToken getGatewayOAuthToken(String token);
+
+    /**
+     * Revoke an OAuth token on the gateway corresponding to the access token
+     * @param accessToken
+     */
+    public void revokeGatewayOAuthToken(String accessToken);
+
+    /**
+     * Retrieve all oauth tokens on the gateway
+     * @param offset
+     */
+    public KongOAuthTokenList getAllOAuth2Tokens(String offset);
+
+    /**
+     * Create a token on the gateway
+     * @param token
+     * @return
+     */
+    public KongOAuthToken createOAuthToken(OAuth2TokenBean token);
+
+    /**
+     * Create an api on the gateway
+     * @param api
+     * @return
+     */
+    public KongApi createApi(KongApi api);
+
+    /**
+     * Create or update the api on the gateway
+     * @param api
+     * @return
+     */
+    public KongApi updateOrCreateApi(KongApi api);
+
+    /**
+     * Create an api plugin on the gateway
+     * @param apiId
+     * @param plugin
+     * @return
+     */
+    public KongPluginConfig createApiPlugin(String apiId, KongPluginConfig plugin);
+
+    /**
+     * Update an consumer acl plugin on the gateway
+     * @param acl
+     * @return
+     */
+    public KongPluginACLResponse updateConsumerACL(KongPluginACLResponse acl);
+
+    /**
+     * Retrieve a consumer's acl plugin
+     * @param consumerId
+     * @param kongPluginId
+     * @return
+     */
+    public KongPluginACLResponse getConsumerACL(String consumerId, String kongPluginId);
+
+    /**
+     * Return a consumer based on it's custom id. Returns null if no consumer is found, returns the consumer with the latest
+     * creation date if multiple are present
+     * @param customId
+     * @return
+     */
+    public KongConsumer getConsumerByCustomId(String customId);
+
+    /**
+     * Update a plugin on the gateway
+     * @param plugin
+     * @return
+     */
+    public KongPluginConfig updatePlugin(KongPluginConfig plugin);
+
+    /**
+     * Retrieves plugins for a given consumer id
+     * @param consumerId
+     * @return
+     */
+    public KongPluginConfigList getConsumerPlugins(String consumerId);
+
+    /**
+     * Retrieves all consumer acl groups
+     * @param consumerId
+     * @return
+     */
+    public KongPluginACLResponseList getAllConsumerAcls(String consumerId);
+
+    /**
+     * Retrieve consumer-specific api plugin
+     * @param consumerId
+     * @param apiId
+     * @return
+     */
+    public KongPluginConfigList getConsumerSpecificApiPlugins(String consumerId, String apiId);
+
 }

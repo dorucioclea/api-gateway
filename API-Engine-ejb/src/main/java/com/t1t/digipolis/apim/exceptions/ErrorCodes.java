@@ -12,12 +12,16 @@ public final class ErrorCodes {
     // HTTP status codes
     //
     public static final int HTTP_STATUS_CODE_INVALID_INPUT  = 400;
+    public static final int HTTP_STATUS_CODE_UNAUTHORIZED   = 401;
     public static final int HTTP_STATUS_CODE_FORBIDDEN      = 403;
     public static final int HTTP_STATUS_CODE_NOT_FOUND      = 404;
     public static final int HTTP_STATUS_CODE_ALREADY_EXISTS = 409;
     public static final int HTTP_STATUS_CODE_INVALID_STATE  = 409;
     public static final int HTTP_STATUS_CODE_SYSTEM_ERROR   = 500;
     public static final int HTTP_STATUS_CODE_UNAVAILABLE    = 503;
+
+    public static final String HTTP_STATUS_CODE_INVALID_INPUT_INFO = null;
+    public static final String HTTP_STATUS_CODE_UNAVAILABLE_INFO = null;
 
 
     //
@@ -29,6 +33,7 @@ public final class ErrorCodes {
     public static final int USER_ALREADY_A_MEMBER           = 1004;
     public static final int JWT_INVALID                     = 1005;
     public static final int USER_ALREADY_ADMIN              = 1006;
+    public static final int INVALID_SAML                    = 1007;
 
     public static final String USER_NOT_FOUND_INFO          = null;
     public static final String USER_ALREADY_EXISTS_INFO     = null;
@@ -36,6 +41,7 @@ public final class ErrorCodes {
     public static final String USER_ALREADY_A_MEMBER_INFO   = null;
     public static final String JWT_INVALID_INFO             = null;
     public static final String USER_ALREADY_ADMIN_INFO      = null;
+    public static final String INVALID_SAML_INFO            = null;
 
 
     //
@@ -74,6 +80,7 @@ public final class ErrorCodes {
     public static final int APP_VERSION_ALREADY_EXISTS      = 4007;
     public static final int CONTRACT_ALREADY_REQUESTED      = 4008;
     public static final int TERMS_AGREEMENT_MISSING         = 4009;
+    public static final int APP_OAUTH_INFO_NOT_FOUND        = 4010;
 
     public static final String APP_ALREADY_EXISTS_INFO      = null;
     public static final String APP_NOT_FOUND_INFO           = null;
@@ -83,6 +90,8 @@ public final class ErrorCodes {
     public static final String APP_STATUS_ERROR_INFO        = null;
     public static final String APP_VERSION_ALREADY_EXISTS_INFO = null;
     public static final String TERMS_AGREEMENT_MISSING_INFO = null;
+    public static final String APP_OAUTH_INFO_NOT_FOUND_INFO= null;
+
 
 
     //
@@ -242,4 +251,13 @@ public final class ErrorCodes {
     public static final String SERVICE_BRANDING_NOT_FOUND_INFO  = null;
     public static final String SERVICE_BRANDING_ALREADY_EXISTS_INFO  = null;
     public static final String SERVICE_BRANDING_CANNOT_BE_DELETED_INFO  = null;
+
+    //
+    // System related
+    //
+
+    public static final int SYSTEM_MAINTENANCE                  = 20001;
+    public static final int SYSTEM_MAINTENANCE_LOGIN            = 20002;
+
+    public static final String SYSTEM_MAINTENANCE_INFO          = null;
 }

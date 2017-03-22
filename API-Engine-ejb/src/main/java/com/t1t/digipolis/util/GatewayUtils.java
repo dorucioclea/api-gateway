@@ -2,8 +2,6 @@ package com.t1t.digipolis.util;
 
 import com.t1t.digipolis.apim.beans.policies.Policies;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Guillaume Vandecasteele
@@ -42,6 +40,7 @@ public class GatewayUtils {
             case "ssl":
                 return Policies.SSL;
             case "mashape-analytics":
+            case "galileo":
                 return Policies.ANALYTICS;
             case "jwt":
                 return Policies.JWT;

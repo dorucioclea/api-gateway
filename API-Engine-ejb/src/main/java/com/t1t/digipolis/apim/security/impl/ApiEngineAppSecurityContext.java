@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.security.impl;
 
-import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.core.IStorageQuery;
@@ -15,8 +14,6 @@ import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import java.io.Serializable;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 5/09/15.
@@ -29,6 +26,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     @Inject private UserFacade userFacade;
     @Inject private IStorageQuery query;
 
+    private String nonManagedApplication;
     private String currentApplication;
     private AppIdentifier appIdentifier;
 
@@ -84,5 +82,16 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
         if(appIdentifier!=null && !StringUtils.isEmpty(appIdentifier.getPrefix())){
             return appIdentifier.getPrefix();
         }return "";
+    }
+
+    @Override
+    public String getNonManagedApplication() {
+        return this.nonManagedApplication;
+    }
+
+    @Override
+    public String setNonManagedApplication(String application) {
+        this.nonManagedApplication = application;
+        return getNonManagedApplication();
     }
 }

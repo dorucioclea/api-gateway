@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.beans.idm;
 
 import java.util.List;
-import java.util.Date;
 
 /**
  * Created by michallispashidis on 23/11/15.

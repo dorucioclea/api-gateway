@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -148,12 +147,13 @@ public class SearchFacade {
             Set<String> consentPrefixes = new HashSet<>();
             consentPrefixes.addAll(query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)));
             List<ServiceVersionBean> rval = query.findAllServicesWithCategory(categories);
-            for (ServiceVersionBean svb : rval) {
+            //TODO - Remove provision key
+            /*for (ServiceVersionBean svb : rval) {
                 if (!(securityContext.hasPermission(PermissionType.svcEdit, svb.getService().getOrganization().getId()) || consentPrefixes.contains(appContext.getApplicationPrefix()))) {
                     svb.setProvisionKey(null);
                 }
-            }
-            return query.findAllServicesWithCategory(categories);
+            }*/
+            return rval;
         } catch (StorageException e) {
             throw new SystemErrorException();
         }

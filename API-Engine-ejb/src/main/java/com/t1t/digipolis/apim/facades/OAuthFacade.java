@@ -3,7 +3,11 @@ package com.t1t.digipolis.apim.facades;
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
-import com.t1t.digipolis.apim.beans.authorization.*;
+import com.t1t.digipolis.apim.beans.authorization.OAuthApplicationResponse;
+import com.t1t.digipolis.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.digipolis.apim.beans.authorization.OAuthResponseType;
+import com.t1t.digipolis.apim.beans.authorization.OAuthServiceScopeResponse;
+import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
@@ -31,7 +35,9 @@ import org.elasticsearch.gateway.GatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.*;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,6 +83,8 @@ public class OAuthFacade {
                 try {
                     IGatewayLink gatewayLink = createGatewayLink(defaultGateway);
                     response = gatewayLink.enableConsumerForOAuth(request.getUniqueUserName(), oauthRequest);
+                    avb.setOauthCredentialId(response.getId());
+                    storage.updateApplicationVersion(avb);
                 } catch (Exception e) {
                     ;//don't do anything
                 }
@@ -104,6 +112,10 @@ public class OAuthFacade {
         OAuthApplicationResponse response = new OAuthApplicationResponse();
         try {
             //there must be a gateway
+            ContractBean contract = query.getContractByServiceVersionAndOAuthClientId(orgId, serviceId, version, clientId);
+            if (contract == null) {
+                throw ExceptionFactory.applicationOAuthInformationNotFoundException(clientId, serviceId + " " + version);
+            }
             Preconditions.checkNotNull(query.listGateways().size() > 0);
             String defaultGateway = query.listGateways().get(0).getId();
             response.setAuthorizationUrl(getOAuth2AuthorizeEndpoint(orgId, serviceId, version));
@@ -136,7 +148,7 @@ public class OAuthFacade {
                 //add scope information to the response
                 if (response.getConsumer() != null && response.getConsumerResponse() != null) {
                     //retrieve scopes for targeted service
-                    ServiceVersionBean serviceVersion = storage.getServiceVersion(orgId, serviceId, version);
+                    ServiceVersionBean serviceVersion = contract.getService();
                     //verify if it's an OAuth enabled service
                     response.setScopes(serviceVersion.getOauthScopes());
                     response.setServiceProvisionKey(serviceVersion.getProvisionKey());
@@ -203,7 +215,9 @@ public class OAuthFacade {
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
             ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);
-            Preconditions.checkNotNull(svb);
+            if (svb == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
             //construct the target url
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
                     .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))
@@ -223,7 +237,9 @@ public class OAuthFacade {
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
             ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);
-            Preconditions.checkNotNull(svb);
+            if (svb == null) {
+                throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            }
             //construct the target url
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
                     .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))

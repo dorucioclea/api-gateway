@@ -3,7 +3,6 @@ package com.t1t.digipolis.apim.mail;
 import com.t1t.digipolis.apim.beans.mail.*;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.MailServiceException;
-import com.t1t.digipolis.apim.gateway.dto.Contract;
 
 /**
  * Created by michallispashidis on 8/04/16.

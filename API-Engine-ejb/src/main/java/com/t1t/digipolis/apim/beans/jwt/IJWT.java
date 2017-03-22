@@ -13,4 +13,5 @@ public interface IJWT {
     String EMAIL = "email";
     String GIVEN_NAME = "givenname";
     String SURNAME = "surname";
+    String SERVICE_ACCOUNT = "isServiceAccount";
 }

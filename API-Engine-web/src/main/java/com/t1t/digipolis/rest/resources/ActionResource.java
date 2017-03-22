@@ -7,6 +7,7 @@ import com.t1t.digipolis.apim.core.IApplicationValidator;
 import com.t1t.digipolis.apim.core.IServiceValidator;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.ActionException;
 import com.t1t.digipolis.apim.facades.ActionFacade;
 import com.t1t.digipolis.apim.gateway.IGatewayLinkFactory;
@@ -67,7 +68,7 @@ public class ActionResource implements IActionResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public void performAction(ActionBean action) throws ActionException {
-        Preconditions.checkNotNull(action);
+        Preconditions.checkNotNull(action, Messages.i18n.format("nullValue", "Action"));
         actionFacade.performAction(action);
     }
 
@@ -80,7 +81,7 @@ public class ActionResource implements IActionResource {
     @Path("/swaggerdoc/")
     @Produces(MediaType.APPLICATION_JSON)
     public SwaggerDocBean fetchSwaggerDoc(SwaggerDocBean swaggerDocBean) throws ActionException {
-        Preconditions.checkNotNull(swaggerDocBean.getSwaggerURI());
+        Preconditions.checkNotNull(swaggerDocBean.getSwaggerURI(), Messages.i18n.format("nullValue", "Swagger URI"));
         return actionFacade.fetchSwaggerDoc(swaggerDocBean);
     }
 }

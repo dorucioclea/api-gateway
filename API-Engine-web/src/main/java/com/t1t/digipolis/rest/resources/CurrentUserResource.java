@@ -1,16 +1,20 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.digipolis.apim.beans.events.EventAggregateBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
-import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
+import com.t1t.digipolis.apim.beans.idm.UpdateUserBean;
+import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
-import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.core.i18n.Messages;
+import com.t1t.digipolis.apim.exceptions.EventNotFoundException;
+import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
+import com.t1t.digipolis.apim.exceptions.InvalidEventException;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
 import com.t1t.digipolis.apim.facades.CurrentUserFacade;
 import com.t1t.digipolis.apim.facades.EventFacade;
@@ -27,7 +31,6 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Implementation of the Current User API.
@@ -176,7 +179,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Path("/notifications/incoming/{eventType}")
     @Produces(MediaType.APPLICATION_JSON)
     public <T> List<T> getCurrentUsersIncomingEventsByTypeAndStatus(@PathParam("eventType") String type) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(type));
+        Preconditions.checkArgument(!StringUtils.isEmpty(type), Messages.i18n.format("emptyValue", "Event type"));
         return eventFacade.getCurrentUserIncomingEventsByType(type);
     }
 
@@ -190,7 +193,7 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Path("/notifications/outgoing/{eventType}")
     @Produces(MediaType.APPLICATION_JSON)
     public <T> List<T> getCurrentUserOutgoingEventsByTypeAndStatus(@PathParam("eventType") String type) {
-        Preconditions.checkArgument(!StringUtils.isEmpty(type));
+        Preconditions.checkArgument(!StringUtils.isEmpty(type), Messages.i18n.format("emptyValue", "Event type"));
         return eventFacade.getCurrentUserOutgoingEventsByType(type);
     }
 
@@ -247,17 +250,17 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Override
     @ApiOperation("Retrieve current user's Oauth2 tokens")
     @ApiResponses({
-            @ApiResponse(code = 200, responseContainer = "List", response = OAuth2TokenBean.class, message = "OAuth2 Tokens")
+            @ApiResponse(code = 200, response = OAuth2TokenPaginationBean.class, message = "OAuth2 Tokens")
     })
     @GET
     @Path("/oauth2/tokens")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<OAuth2TokenBean> getCurrentUserOAuthTokens() {
-        return currentUserFacade.getCurrentUserOAuth2Tokens();
+    public OAuth2TokenPaginationBean getCurrentUserOAuthTokens(@QueryParam("page") String offset) {
+        return currentUserFacade.getCurrentUserOAuth2Tokens(offset);
     }
 
     @Override
-    @ApiOperation("Revoke current user's Oauth2 Token")
+    @ApiOperation(value = "Revoke current user's Oauth2 Token", notes = "Deprecated, please use the /security/oauth2/tokens/revoke/{token} DELETE endpoint")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Succesful, no content")
     })
@@ -265,8 +268,8 @@ public class CurrentUserResource implements ICurrentUserResource {
     @Path("/oauth2/tokens")
     @Consumes(MediaType.APPLICATION_JSON)
     public void revokeCurrentUserOAuthToken(OAuth2TokenRevokeBean token) {
-        Preconditions.checkNotNull(token);
-        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()) && StringUtils.isNotEmpty(token.getAuthenticatedUserId()));
+        Preconditions.checkNotNull(token, Messages.i18n.format("nullValue", "Token"));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(token.getId()) && StringUtils.isNotEmpty(token.getGatewayId()) && StringUtils.isNotEmpty(token.getAuthenticatedUserId()), Messages.i18n.format("emptyValue", "Token ID, Gateway ID & Authenticated user ID"));
         if (!token.getAuthenticatedUserId().equals(securityContext.getCurrentUser())) {
             throw ExceptionFactory.notAuthorizedException();
         }

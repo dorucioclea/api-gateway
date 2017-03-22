@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.core;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Alternative;
 import javax.enterprise.inject.Default;
 import java.util.UUID;
 

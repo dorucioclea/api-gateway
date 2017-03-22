@@ -8,21 +8,21 @@ Source: <https://bitbucket.org/Trust1T/digi-api-engine-javaee>
 
 Kong version
 ------------
-Kong 0.7.0
+Kong 0.9.3
 
 Build
 -----
 In order to build the project, the ejb module contains the necessary profiles. Example maven build for production environment:
-`mvn clean install -Pt1t-prod`
+`mvn clean install`
 
 Example build for dev - skipping tests can be done:
-`clean install -Pt1t-dev -DskipTests=true`
+`clean install -DskipTests=true`
 
 You can customize the artifact name adding a 'targetenv' property for building:
-`clean install -Pdefault -DskipTests=true -Dtargetenv=t1t`
+`clean install -DskipTests=true -Dtargetenv=t1t`
 
 You can customize artifact and define profile at the same time, for example:
-`clean install -DskipTests=true -Dtargetenv=dev -Pdigi-dev`
+`clean install -DskipTests=true -Dtargetenv=dev`
 
 Build and prepare a docker container
 `clean install -DskipTests=true -Pdocker`
@@ -158,6 +158,32 @@ $ docker run --add-host=localhost:84.198.85.191 -d --name konglocal --link cassa
 ```
 
 See [Docker-info](https://docs.docker.com/engine/reference/commandline/run/#add-entries-to-container-hosts-file-add-host)
+
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.7
+-------------------------------------------------------
+
+## Bug
+
+*   [[T1G-335](https://trust1t.atlassian.net/browse/T1G-335)] - Retrieving a user's services creates an internal server error
+
+
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.6
+-------------------------------------------------------
+
+## Bug
+
+*   [[T1G-333](https://trust1t.atlassian.net/browse/T1G-333)] - Remove public & private keys from gateway response object
+*   [[T1G-334](https://trust1t.atlassian.net/browse/T1G-334)] - Remove JWT key and secret from user response object
+*   [[T1G-335](https://trust1t.atlassian.net/browse/T1G-335)] - Retrieving a user's services creates an internal server error
+*   [[T1G-336](https://trust1t.atlassian.net/browse/T1G-336)] - Transaction times out when backing up/restoring large amount of tokens
+
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.5
+-------------------------------------------------------
+
+## Bug
+
+*   [[T1G-294](https://trust1t.atlassian.net/browse/T1G-294)] - Syncing does not take into account whether or not an application already has an oauth credential id
+*   [[T1G-295](https://trust1t.atlassian.net/browse/T1G-295)] - Syncing users and applications does not take into account existing JWT keys and secrets
 
 Release Notes - APIe - Version API/SDK engine 0.8.0
 ---------------------------------------------------

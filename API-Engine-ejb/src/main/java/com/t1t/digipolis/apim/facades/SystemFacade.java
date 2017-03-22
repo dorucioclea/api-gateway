@@ -5,17 +5,14 @@ import com.t1t.digipolis.apim.beans.iprestriction.BlacklistBean;
 import com.t1t.digipolis.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.services.AvailabilityBean;
-import com.t1t.digipolis.apim.beans.services.DefaultServiceTermsBean;
 import com.t1t.digipolis.apim.beans.system.SystemStatusBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.gateway.GatewayAuthenticationException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.SystemStatus;
-import com.t1t.digipolis.apim.security.ISecurityAppContext;
-import com.t1t.digipolis.apim.security.ISecurityContext;
+import com.t1t.digipolis.apim.maintenance.MaintenanceController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,10 +20,6 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,13 +31,16 @@ import java.util.Map;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class SystemFacade {
     private static Logger _LOG = LoggerFactory.getLogger(SystemFacade.class.getName());
-    @Inject private ISecurityContext securityContext;
-    @Inject private ISecurityAppContext appContext;
+    private static final String DESCRIPTION = "The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services.";
+    private static final String ID = "apim-manager-api";
+    private static final String MORE_INFO = "http://www.trust1team.com";
+    private static final String NAME = "API Manager REST API";
+
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
     @Inject private AppConfig config;
     @Inject private GatewayFacade gatewayFacade;
-    @Inject private MigrationFacade migrationFacade;
+    @Inject private MaintenanceController maintenance;
 
     public Map<String, AvailabilityBean> getAvailableMarketplaces() throws StorageException {
         final List<ManagedApplicationBean> managedApplicationList = query.listAvailableMarkets();
@@ -65,30 +61,23 @@ public class SystemFacade {
 
     public SystemStatusBean getStatus() throws StorageException, GatewayAuthenticationException {
         SystemStatusBean rval = new SystemStatusBean();
-        rval.setId("apim-manager-api"); //$NON-NLS-1$
-        rval.setName("API Manager REST API"); //$NON-NLS-1$
-        rval.setDescription("The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services."); //$NON-NLS-1$
-        rval.setMoreInfo("http://www.trust1team.com"); //$NON-NLS-1$
+        rval.setId(ID); //$NON-NLS-1$
+        rval.setName(NAME); //$NON-NLS-1$
+        rval.setDescription(DESCRIPTION); //$NON-NLS-1$
+        rval.setMoreInfo(MORE_INFO); //$NON-NLS-1$
         rval.setEnvironment(config.getEnvironment());
         rval.setBuiltOn(config.getBuildDate());
         rval.setVersion(config.getVersion());
         rval.setUp(storage != null);
-        rval.setKongInfo("");
-        rval.setKongCluster("");
-        rval.setKongStatus("");
+        rval.setMaintenanceModeEnabled(maintenance.isEnabled());
+        if (rval.getMaintenanceModeEnabled()) {
+            rval.setMaintenanceMessage(maintenance.getMessage());
+        }
         return rval;
     }
 
     public SystemStatusBean getAdminStatus() throws StorageException, GatewayAuthenticationException {
-        SystemStatusBean rval = new SystemStatusBean();
-        rval.setId("apim-manager-api"); //$NON-NLS-1$
-        rval.setName("API Manager REST API"); //$NON-NLS-1$
-        rval.setDescription("The API Manager REST API is used by the API Manager UI to get stuff done.  You can use it to automate any api task you wish.  For example, create new Organizations, Plans, Applications, and Services."); //$NON-NLS-1$
-        rval.setMoreInfo("http://www.trust1team.com"); //$NON-NLS-1$
-        rval.setEnvironment(config.getEnvironment());
-        rval.setBuiltOn(config.getBuildDate());
-        rval.setVersion(config.getVersion());
-        rval.setUp(storage != null);
+        SystemStatusBean rval = getStatus();
         //get Kong info
         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
         SystemStatus status = gateway.getStatus();

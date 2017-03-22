@@ -2,8 +2,6 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTPubKeyResponse;
-import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
-import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.JWTPubKeyException;
@@ -30,8 +28,8 @@ import java.util.List;
 @ApplicationScoped
 public class GatewayResource {
     @Inject private IStorageQuery storageQuery;
-    @ApiOperation(value = "IDP Callback URL for the Marketplace",
-                  notes = "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim.")
+    @ApiOperation(value = "Retrieve the gateway's public key",
+                  notes = "Retrieve the gateway's public key")
     @ApiResponses({
                           @ApiResponse(code = 200, response = JWTPubKeyResponse.class, message = "Public Key PEM formatted - base64 encoded")
                   })

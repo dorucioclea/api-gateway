@@ -1,110 +1,65 @@
 package com.t1t.digipolis.apim.beans.authorization;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.kong.model.KongOAuthToken;
 
-import java.io.Serializable;
-import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class OAuth2TokenBean implements Serializable {
+@Entity
+@Table(name = "oauth2_tokens")
+public class OAuth2TokenBean {
 
-    private String scope;
-    private String accessToken;
-    private String authenticatedUserid;
+    @Id
+    @Column(name = "id")
     private String id;
-    private String tokenType;
+    @Column(name = "credential_id")
     private String credentialId;
-    private Date createdAt;
-    //Combination of KongOAuthToken createdAt and expiresIn values
-    private Date expirationDate;
+    @Column(name = "token_type")
+    private String tokenType;
+    @Column(name = "access_token")
+    private String accessToken;
+    @Column(name = "refresh_token")
     private String refreshToken;
+    @Column(name = "expires_in")
+    private Long expiresIn;
+    @Column(name = "authenticated_userid")
+    private String authenticatedUserId;
+    @Column(name = "scope")
+    private String scope;
+    @Column(name = "gateway_id")
     private String gatewayId;
-    private String organizationId;
-    private String applicationId;
-    private String version;
 
     public OAuth2TokenBean() {
     }
 
-    public OAuth2TokenBean(String scope, String accessToken, String authenticatedUserid, String id, String tokenType, String credentialId, Date createdAt, Integer expiresIn, String refreshToken, String gatewayId, String organizationId, String applicationId, String version) {
-        this.scope = scope;
-        this.accessToken = accessToken;
-        this.authenticatedUserid = authenticatedUserid;
+    public OAuth2TokenBean(String id, String credentialId, String tokenType, String accessToken, String refreshToken, Long expiresIn, String authenticatedUserId, String scope, String gatewayId) {
         this.id = id;
-        this.tokenType = tokenType;
         this.credentialId = credentialId;
-        this.createdAt = createdAt;
-        //Expiration date = createdAt + expiresIn (in seconds, so multiply by 1000 for millis)
-        this.expirationDate = new Date(createdAt.getTime() + expiresIn * 1_000);
-        this.gatewayId = gatewayId;
-        this.refreshToken = refreshToken;
-        this.organizationId = organizationId;
-        this.applicationId = applicationId;
-        this.version = version;
-    }
-
-    public OAuth2TokenBean(KongOAuthToken token, String gatewayId, ApplicationVersionBean avb) {
-        this.scope = token.getScope();
-        this.accessToken = token.getAccessToken();
-        this.authenticatedUserid = token.getAuthenticatedUserid();
-        this.id = token.getId();
-        this.tokenType = token.getTokenType();
-        this.credentialId = token.getCredentialId();
-        this.createdAt = new Date(token.getCreatedAt().longValue());
-        //Expiration date = createdAt + expiresIn (in seconds, so multiply by 1000 for millis)
-        this.expirationDate = new Date(token.getCreatedAt().longValue() + token.getExpiresIn() * 1_000);
-        this.refreshToken = token.getRefreshToken();
-        this.gatewayId = gatewayId;
-        this.organizationId = avb.getApplication().getOrganization().getId();
-        this.applicationId = avb.getApplication().getId();
-        this.version = avb.getVersion();
-    }
-
-    public OAuth2TokenBean(KongOAuthToken token, String gatewayId, String organizationId, String applicationId, String version) {
-        this.scope = token.getScope();
-        this.accessToken = token.getAccessToken();
-        this.authenticatedUserid = token.getAuthenticatedUserid();
-        this.id = token.getId();
-        this.tokenType = token.getTokenType();
-        this.credentialId = token.getCredentialId();
-        this.createdAt = new Date(token.getCreatedAt().longValue());
-        //Expiration date = createdAt + expiresIn (in seconds, so multiply by 1000 for millis)
-        this.expirationDate = new Date(token.getCreatedAt().longValue() + token.getExpiresIn() * 1_000);
-        this.refreshToken = token.getRefreshToken();
-        this.gatewayId = gatewayId;
-        this.organizationId = organizationId;
-        this.applicationId = applicationId;
-        this.version = version;
-    }
-
-    public String getScope() {
-        return scope;
-    }
-
-    public void setScope(String scope) {
-        this.scope = scope;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
+        this.tokenType = tokenType;
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.expiresIn = expiresIn;
+        this.authenticatedUserId = authenticatedUserId;
+        this.scope = scope;
+        this.gatewayId = gatewayId;
     }
 
-    public String getAuthenticatedUserid() {
-        return authenticatedUserid;
-    }
-
-    public void setAuthenticatedUserid(String authenticatedUserid) {
-        this.authenticatedUserid = authenticatedUserid;
+    public OAuth2TokenBean(KongOAuthToken token, String gatewayId) {
+        this.id = token.getId();
+        this.credentialId = token.getCredentialId();
+        this.tokenType = token.getTokenType();
+        this.accessToken = token.getAccessToken();
+        this.refreshToken = token.getRefreshToken();
+        this.expiresIn = token.getExpiresIn().longValue();
+        this.authenticatedUserId = token.getAuthenticatedUserid();
+        this.scope = token.getScope();
+        this.gatewayId = gatewayId;
     }
 
     public String getId() {
@@ -115,14 +70,6 @@ public class OAuth2TokenBean implements Serializable {
         this.id = id;
     }
 
-    public String getTokenType() {
-        return tokenType;
-    }
-
-    public void setTokenType(String tokenType) {
-        this.tokenType = tokenType;
-    }
-
     public String getCredentialId() {
         return credentialId;
     }
@@ -131,44 +78,20 @@ public class OAuth2TokenBean implements Serializable {
         this.credentialId = credentialId;
     }
 
-    public Date getExpirationDate() {
-        return expirationDate;
+    public String getTokenType() {
+        return tokenType;
     }
 
-    public void setExpirationDate(Date expirationDate) {
-        this.expirationDate = expirationDate;
+    public void setTokenType(String tokenType) {
+        this.tokenType = tokenType;
     }
 
-    public String getGatewayId() {
-        return gatewayId;
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public void setGatewayId(String gatewayId) {
-        this.gatewayId = gatewayId;
-    }
-
-    public String getOrganizationId() {
-        return organizationId;
-    }
-
-    public void setOrganizationId(String organizationId) {
-        this.organizationId = organizationId;
-    }
-
-    public String getApplicationId() {
-        return applicationId;
-    }
-
-    public void setApplicationId(String applicationId) {
-        this.applicationId = applicationId;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
     public String getRefreshToken() {
@@ -179,49 +102,83 @@ public class OAuth2TokenBean implements Serializable {
         this.refreshToken = refreshToken;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
+    public Long getExpiresIn() {
+        return expiresIn;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
+    public void setExpiresIn(Long expiresIn) {
+        this.expiresIn = expiresIn;
+    }
+
+    public String getAuthenticatedUserId() {
+        return authenticatedUserId;
+    }
+
+    public void setAuthenticatedUserId(String authenticatedUserId) {
+        this.authenticatedUserId = authenticatedUserId;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public String getGatewayId() {
+        return gatewayId;
+    }
+
+    public void setGatewayId(String gatewayId) {
+        this.gatewayId = gatewayId;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof OAuth2TokenBean)) return false;
 
         OAuth2TokenBean that = (OAuth2TokenBean) o;
 
-        if (!id.equals(that.id)) return false;
-        return gatewayId.equals(that.gatewayId);
-
+        if (id != null ? !id.equals(that.id) : that.id != null) return false;
+        if (credentialId != null ? !credentialId.equals(that.credentialId) : that.credentialId != null) return false;
+        if (tokenType != null ? !tokenType.equals(that.tokenType) : that.tokenType != null) return false;
+        if (accessToken != null ? !accessToken.equals(that.accessToken) : that.accessToken != null) return false;
+        if (refreshToken != null ? !refreshToken.equals(that.refreshToken) : that.refreshToken != null) return false;
+        if (expiresIn != null ? !expiresIn.equals(that.expiresIn) : that.expiresIn != null) return false;
+        if (authenticatedUserId != null ? !authenticatedUserId.equals(that.authenticatedUserId) : that.authenticatedUserId != null)
+            return false;
+        if (scope != null ? !scope.equals(that.scope) : that.scope != null) return false;
+        return gatewayId != null ? gatewayId.equals(that.gatewayId) : that.gatewayId == null;
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + gatewayId.hashCode();
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (credentialId != null ? credentialId.hashCode() : 0);
+        result = 31 * result + (tokenType != null ? tokenType.hashCode() : 0);
+        result = 31 * result + (accessToken != null ? accessToken.hashCode() : 0);
+        result = 31 * result + (refreshToken != null ? refreshToken.hashCode() : 0);
+        result = 31 * result + (expiresIn != null ? expiresIn.hashCode() : 0);
+        result = 31 * result + (authenticatedUserId != null ? authenticatedUserId.hashCode() : 0);
+        result = 31 * result + (scope != null ? scope.hashCode() : 0);
+        result = 31 * result + (gatewayId != null ? gatewayId.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "OAuth2TokenBean{" +
-                "scope='" + scope + '\'' +
-                ", accessToken='" + accessToken + '\'' +
-                ", authenticatedUserid='" + authenticatedUserid + '\'' +
-                ", id='" + id + '\'' +
-                ", tokenType='" + tokenType + '\'' +
+                "id='" + id + '\'' +
                 ", credentialId='" + credentialId + '\'' +
-                ", createdAt=" + createdAt + '\'' +
-                ", expirationDate=" + expirationDate +
+                ", tokenType='" + tokenType + '\'' +
+                ", accessToken='" + accessToken + '\'' +
                 ", refreshToken='" + refreshToken + '\'' +
+                ", expiresIn=" + expiresIn +
+                ", authenticatedUserId='" + authenticatedUserId + '\'' +
+                ", scope='" + scope + '\'' +
                 ", gatewayId='" + gatewayId + '\'' +
-                ", organizationId='" + organizationId + '\'' +
-                ", applicationId='" + applicationId + '\'' +
-                ", version='" + version + '\'' +
                 '}';
     }
 }

@@ -49,3 +49,7 @@ INSERT INTO mail_templates(topic, subject, content, created_on,updated_on) VALUE
 INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'profielId', 'profielId');
 INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'profielType', 'profielType');
 INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_claim) VALUES ('SAML2', 'JWT', 'rrnr', 'rrnr');
+
+
+-- INSERT maintenance mode record
+INSERT INTO public.operating_modes (id, enabled, message) VALUES ('MAINTENANCE', false, null);

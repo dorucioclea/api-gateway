@@ -10,11 +10,10 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingBean;
 import com.t1t.digipolis.apim.beans.idp.KeyMappingTypes;
+import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.digipolis.apim.beans.jwt.JWTRequestBean;
-import com.t1t.digipolis.apim.beans.mail.MembershipAction;
-import com.t1t.digipolis.apim.beans.mail.UpdateAdminMailBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
@@ -34,7 +33,7 @@ import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.i18n.Messages;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.digipolis.apim.mail.MailService;
+import com.t1t.digipolis.apim.maintenance.MaintenanceController;
 import com.t1t.digipolis.apim.saml2.ISAML2;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -44,12 +43,13 @@ import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
 import com.t1t.digipolis.kong.model.KongPluginJWTResponseList;
 import com.t1t.digipolis.util.*;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.gateway.GatewayException;
 import org.joda.time.DateTime;
+import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtContext;
+import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
@@ -92,11 +92,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.Key;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
@@ -132,6 +132,8 @@ public class UserFacade implements Serializable {
     private AppConfig config;
     @Inject
     private Event<NewEventBean> event;
+    @Inject
+    private MaintenanceController maintenance;
 
     public UserBean get(String userId) {
         try {
@@ -536,7 +538,7 @@ public class UserFacade implements Serializable {
      *
      * @return
      */
-    public SAMLResponseRedirect processSAML2Response(String samlResponse, String relaystate) throws Exception {
+    public SAMLResponseRedirect processSAML2Response(String samlResponse, String relaystate) throws StorageException, UnsupportedEncodingException {
 
         String relayState = relaystate;
         StringBuffer clientUrl = new StringBuffer("");
@@ -546,11 +548,16 @@ public class UserFacade implements Serializable {
         String urlEncodedRelaystate = URLEncoder.encode(relayState, "UTF-8");
         WebClientCacheBean webClientCacheBean = cacheUtil.getWebCacheBean(urlEncodedRelaystate.trim());
         if (webClientCacheBean == null) {
-            throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
+            webClientCacheBean = new WebClientCacheBean();
+            try {
+                webClientCacheBean.setClientAppRedirect(new URI(urlEncodedRelaystate).toString());
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+            //throw new CachingException("SSO Cache with id " + urlEncodedRelaystate.trim() + " does not exist!");
         }
         try {
             assertion = processSSOResponse(samlResponse);
-            //clientAppName = assertion.getConditions().getAudienceRestrictions().get(0).getAudiences().get(0).getAudienceURI(); -> important to validate audience
             idAttribs = resolveSaml2AttributeStatements(assertion.getAttributeStatements());
             String userId = ConsumerConventionUtil.createUserUniqueId(idAttribs.getId());
             //preempt if restricted mode and user is not admin; be carefull to scope the application, non api-engine applications uses this endpoint as well.
@@ -710,12 +717,9 @@ public class UserFacade implements Serializable {
         Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
         Response response = (Response) unmarshaller.unmarshall(element);
 
-        //TODO validate signature - see SSOAgent example of WSO2
-        //String certificate = response.getSignature().getKeyInfo().getX509Datas().get(0).getX509Certificates().get(0).getValue();
-        //get assertion
-        Assertion assertion = response.getAssertions().get(0);
-        //Return base64url encoded assertion
-        return assertion;
+        SamlResponseValidator.validateSAMLResponse(response, config);
+
+        return response.getAssertions().get(0);
     }
 
     /**
@@ -799,6 +803,10 @@ public class UserFacade implements Serializable {
             //get user from local DB - if doesn't exists -> create new consumer
             UserBean user = idmStorage.getUser(ConsumerConventionUtil.createUserUniqueId(identityAttributes.getId()));
             if (user == null) {//exists already
+                //If maintenance mode is turned on, do not create a new user.
+                if (maintenance.isEnabled()) {
+                    throw ExceptionFactory.maintenanceException(Messages.i18n.format("maintenanceUserCreation", maintenance.getMessage()), ErrorCodes.SYSTEM_MAINTENANCE_LOGIN);
+                }
                 user = initNewUser(identityAttributes);
             }
             log.info("User found:{}", user);
@@ -806,12 +814,18 @@ public class UserFacade implements Serializable {
             if (!StringUtils.isEmpty(user.getKongUsername()))
                 consumer = gatewayLink.getConsumer(user.getKongUsername());
             if (consumer == null) {
-                //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
-                consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
-                //update kong username in local userbean
-                user.setKongUsername(consumer.getId());
-                idmStorage.updateUser(user);
-                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
+                if (StringUtils.isNotEmpty(user.getKongUsername())) {
+                    //The user already had a kong username, and same kong username will be used
+                    consumer = gatewayLink.createConsumerWithKongId(user.getKongUsername(), ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+                }
+                else {
+                    //user doesn't exists, implicit creation in order to sync with local db => when user is deleted from Kong, will be recreated and username will be updated
+                    consumer = gatewayLink.createConsumerWithCustomId(ConsumerConventionUtil.createUserUniqueId(user.getUsername()));
+                    //update kong username in local userbean
+                    user.setKongUsername(consumer.getId());
+                    idmStorage.updateUser(user);
+                }
+                KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                 jwtKey = jwtResponse.getKey();//JWT "iss"
                 jwtSecret = jwtResponse.getSecret();
             } else {
@@ -821,10 +835,15 @@ public class UserFacade implements Serializable {
                     jwtSecret = response.getData().get(0).getSecret();
                 } else {
                     //create jwt credentials
-                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256);
+                    KongPluginJWTResponse jwtResponse = gatewayLink.addConsumerJWT(consumer.getId(),JWTUtils.JWT_RS256, user.getJwtKey(), user.getJwtSecret());
                     jwtKey = jwtResponse.getKey();//JWT "iss"
                     jwtSecret = jwtResponse.getSecret();
                 }
+            }
+            if (StringUtils.isEmpty(user.getJwtKey()) && StringUtils.isEmpty(user.getJwtSecret()) && StringUtils.isNotEmpty(jwtKey) && StringUtils.isNotEmpty(jwtSecret)) {
+                user.setJwtKey(jwtKey);
+                user.setJwtSecret(jwtSecret);
+                idmStorage.updateUser(user);
             }
             //set the cache for performance and resilience
             setTokenCache(jwtKey, jwtSecret);
@@ -850,13 +869,16 @@ public class UserFacade implements Serializable {
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
                 jwtExpirationTime = gatewayBean.getJWTExpTime();
             }
-            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtSecret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint());
+            issuedJWT = JWTUtils.composeJWT(jwtRequestBean, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint());
             log.debug("==>JWT:{}",issuedJWT);
             //close gateway
             gatewayLink.close();
         } catch (PublishingException e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("PublishError"), e); //$NON-NLS-1$
-        } catch (Exception e) {
+
+        } catch (MaintenanceException ex) {
+            throw ex;
+        }catch (Exception e) {
             throw ExceptionFactory.actionException(Messages.i18n.format("GrantError"), e); //$NON-NLS-1$
         }
         return issuedJWT;
@@ -920,27 +942,17 @@ public class UserFacade implements Serializable {
     /**
      * Retrieves the secret for a given subject, if the key is not found in the cache, a Kong request will be sent to retrieve the value;.
      *
-     * @param key
+     * @param issuer
+     * @param subject
      * @return
      */
-    private String getSecretFromTokenCache(String key, String userName) {
-        String secret = cacheUtil.getToken(key);
+    private String getSecretFromTokenCache(String issuer, String subject, boolean isServiceAccount) {
+        String secret = cacheUtil.getToken(issuer);
         if (secret == null) {
-            //retrieve from Kong
-            String gatewayId = null;
-            try {
-                gatewayId = gatewayFacade.getDefaultGateway().getId();
-                IGatewayLink gatewayLink = gatewayFacade.createGatewayLink(gatewayId);
-                List<KongPluginJWTResponse> data = gatewayLink.getConsumerJWT(get(userName).getKongUsername()).getData();
-                if (data != null && data.size() > 0) {
-                    secret = data.get(0).getSecret();
-                } else throw new StorageException("Refresh JWT - somehow the user is not known");
-            } catch (Exception ex) {
-                throw new GatewayException("Error connection to gateway:{}" + ex.getMessage());
-            }
-            //We've done all we could to retrieve the secret
+            //retrieve secret from gateway if not present in cache
+            secret = getJWTCredentials(subject, isServiceAccount).getData().stream().filter(cred -> cred.getKey().equals(issuer)).map(KongPluginJWTResponse::getSecret).collect(CustomCollectors.getSingleResult());
             if (secret == null) {
-                throw ExceptionFactory.cachingException("Token Cache with id " + key + " does not exist!");
+                throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("jwtCredentialsNotFound", subject));
             }
         }
         return secret;
@@ -949,10 +961,14 @@ public class UserFacade implements Serializable {
     public JWTRefreshResponseBean refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
         //get body
         try {
-            JwtContext jwtContext = JWTUtils.validateHMACToken(jwtRefreshRequestBean.getOriginalJWT());
-            JwtClaims jwtClaims = jwtContext.getJwtClaims();
-            //get gateway default expiration time for JWT
+
             final GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+            String algorithm = JsonWebSignature.fromCompactSerialization(jwtRefreshRequestBean.getOriginalJWT()).getAlgorithmHeaderValue();
+            JwtContext jwtContext = validateJWT(jwtRefreshRequestBean.getOriginalJWT());
+            JwtClaims jwtClaims = jwtContext.getJwtClaims();
+            boolean isServiceAccount = jwtClaims.hasClaim(IJWT.SERVICE_ACCOUNT) && (Boolean) jwtClaims.getClaimValue(IJWT.SERVICE_ACCOUNT);
+            //get gateway default expiration time for JWT
+
             Integer jwtExpirationTime = 60;//default 60min.
             String pubKeyEndpoint = gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
             if(gatewayBean.getJWTExpTime()!=null&&gatewayBean.getJWTExpTime()>0){
@@ -961,15 +977,86 @@ public class UserFacade implements Serializable {
                 jwtExpirationTime = config.getJWTDefaultTokenExpInSeconds();
             }
             //get secret based on iss/username - cached
-            String secret = getSecretFromTokenCache(jwtClaims.getIssuer().toString(), jwtClaims.getSubject());
+            Key key;
+            switch (algorithm) {
+                case JWTUtils.JWT_HS256:
+                    key = new HmacKey(getSecretFromTokenCache(jwtClaims.getIssuer(), jwtClaims.getSubject(), isServiceAccount).getBytes("UTF-8"));
+                    break;
+                case JWTUtils.JWT_RS256:
+                    key = KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey());
+                    break;
+                default:
+                    throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("unsupportedJwtAlgorithm", algorithm));
+            }
+
             JWTRefreshResponseBean jwtRefreshResponseBean = new JWTRefreshResponseBean();
-            jwtRefreshResponseBean.setJwt(JWTUtils.refreshJWT(jwtRefreshRequestBean, jwtClaims, secret, jwtExpirationTime, KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()),pubKeyEndpoint));
+            jwtRefreshResponseBean.setJwt(JWTUtils.getJwtWithExpirationTime(jwtClaims, jwtExpirationTime, key ,pubKeyEndpoint, algorithm));
             return jwtRefreshResponseBean;
         }
-        catch (InvalidJwtException | UnsupportedEncodingException | MalformedClaimException ex) {
-            throw ExceptionFactory.jwtInvalidException("Cannot parse JWT", ex);
+        catch (InvalidJwtException | IOException | MalformedClaimException | JoseException ex) {
+            throw ExceptionFactory.jwtInvalidException("JWT is invalid", ex);
         }
-        catch (StorageException | JoseException | InvalidKeySpecException | NoSuchAlgorithmException | IOException ex) {
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public JwtContext validateJWT(String jwt) throws JoseException, UnsupportedEncodingException, InvalidJwtException, MalformedClaimException, JWTInvalidException {
+        try {
+            String algorithm = JsonWebSignature.fromCompactSerialization(jwt).getAlgorithmHeaderValue();
+            JwtContext rval;
+            JwtClaims firstPass = JWTUtils.getUnvalidatedClaims(jwt);
+            String issuer = firstPass.getIssuer();
+            String subject = firstPass.getSubject();
+            boolean isServiceAccount = firstPass.hasClaim(IJWT.SERVICE_ACCOUNT) && (Boolean) firstPass.getClaimValue(IJWT.SERVICE_ACCOUNT);
+            switch (algorithm) {
+                case JWTUtils.JWT_HS256:
+                    //Get secret from cache if it exists
+                    rval = JWTUtils.validateHMACToken(jwt, getSecretFromTokenCache(issuer, subject, isServiceAccount), issuer);
+                    break;
+                case JWTUtils.JWT_RS256:
+                    Set<String> pubKeys = new LinkedHashSet<>();
+
+                    //First add the default gateway's credential's pub key. It's possible the private key is unknown to the gateway
+                    String pubKey = getJWTCredentials(subject, isServiceAccount).getData().stream().filter(cred -> cred.getKey().equals(issuer)).map(KongPluginJWTResponse::getRsaPublicKey).collect(CustomCollectors.getSingleResult());
+
+                    if (StringUtils.isNotEmpty(pubKey)) {
+                        pubKeys.add(pubKey);
+                    }
+
+                    //Add the various gateways' public keys in case the credentials don't come from the default gateway
+                    pubKeys.addAll(query.getAllGateways().stream().map(GatewayBean::getJWTPubKey).collect(Collectors.toSet()));
+
+                    rval = JWTUtils.validateRSAToken(jwt, issuer, pubKeys);
+                    break;
+                default:
+                    throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("unsupportedJwtAlgorithm", algorithm));
+            }
+            log.info("JWT is valid:{}", jwt);
+            return rval;
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    private KongPluginJWTResponseList getJWTCredentials(String subject, boolean isServiceAccount) {
+        try {
+            String consumerId = null;
+            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            if (isServiceAccount) {
+                consumerId = subject;
+            }
+            else {
+                consumerId = get(subject).getKongUsername();
+            }
+            KongPluginJWTResponseList creds = gateway.getConsumerJWT(consumerId);
+            if (creds == null || creds.getData() == null || creds.getData().isEmpty()) {
+                throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("userHasNoJwtCredentials", subject));
+            }
+            return creds;
+        }
+        catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

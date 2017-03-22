@@ -4,7 +4,10 @@ import com.google.gson.Gson;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.events.*;
-import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.idm.CurrentUserBean;
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.idm.Role;
+import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.mail.*;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
@@ -31,7 +34,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.t1t.digipolis.apim.beans.events.EventType.*;
-import static javafx.scene.input.KeyCode.Z;
 
 /**
  * @author Guillaume Vandecasteele
@@ -831,7 +833,8 @@ public class EventFacade {
                                 contractMailBean.setServiceVersion(svb.getVersion());
                                 Gson gson = new Gson();
                                 PlanVersionSummaryBean pvsb = gson.fromJson(event.getBody(), PlanVersionSummaryBean.class);
-                                contractMailBean.setPlanName(new Gson().fromJson(event.getBody(), PlanVersionSummaryBean.class).getName());
+                                contractMailBean.setPlanName(pvsb.getName());
+                                contractMailBean.setPlanVersion(pvsb.getVersion());
                                 switch (event.getType()) {
                                     case CONTRACT_PENDING:
                                         mailService.sendContractRequest(contractMailBean);
@@ -888,15 +891,15 @@ public class EventFacade {
                 case MEMBERSHIP_REVOKED_ROLE:
                 case MEMBERSHIP_UPDATED:
                 case MEMBERSHIP_TRANSFER:
-                    String roleName = null;
+                    /*String roleName = null;
                     if (!StringUtils.isEmpty(event.getBody())) {
                         roleName = roleFacade.get(event.getBody()).getName();
-                    }
+                    }*/
                     UpdateMemberMailBean updateMemberMailBean = new UpdateMemberMailBean();
                     updateMemberMailBean.setTo(user.getEmail());
                     updateMemberMailBean.setOrgName(org.getName());
                     updateMemberMailBean.setOrgFriendlyName(org.getFriendlyName());
-                    updateMemberMailBean.setRole(roleName);
+                    updateMemberMailBean.setRole(Role.OWNER.toString().toLowerCase());
                     switch (event.getType()) {
                         case MEMBERSHIP_REVOKED_ROLE:
                         case MEMBERSHIP_REVOKED:

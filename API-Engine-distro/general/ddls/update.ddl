@@ -423,7 +423,6 @@ INSERT INTO key_mapping(from_spec_type, to_spec_type, from_spec_claim, to_spec_c
 
 ALTER TABLE services ADD COLUMN admin BOOL DEFAULT FALSE;
 CREATE TABLE managed_application_keys AS SELECT managed_applications.id, managed_applications.api_key FROM managed_applications;
-ALTER TABLE managed_applications DROP COLUMN api_key;
 ALTER TABLE managed_application_keys ADD CONSTRAINT UK_managed_app_keys_1 UNIQUE (id, api_key);
 ALTER TABLE managed_application_keys RENAME COLUMN id TO managed_app_id;
 ALTER TABLE managed_application_keys ADD CONSTRAINT FK_managed_app_keys_1 FOREIGN KEY (managed_app_id) REFERENCES managed_applications(id);
@@ -561,7 +560,7 @@ UPDATE policydefs SET default_config = '{"key_names":["apikey"],"hide_credential
       "type": "array",
       "items": {
         "type": "string",
-        "description":"Describes a name where the plugin will look for a valid credential. The client must send the authentication key in one of the specified key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order)."
+        "description":"Describes a name where the plugin will look for a valid credential. The client must send the authentication key in one of the specified key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order).",
         "default": "apikey"
       }
     },
@@ -662,8 +661,6 @@ SET apikey = contracts.apikey
 FROM contracts
 WHERE contracts.appv_id = application_versions.id;
 
-ALTER TABLE contracts DROP COLUMN apikey;
-
 -- Branding gateway URL's feature
 
 CREATE TABLE brandings (id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NUll);
@@ -677,3 +674,66 @@ ALTER TABLE service_brandings ADD CONSTRAINT FK_service_brandings_2 FOREIGN KEY 
 ALTER TABLE service_brandings ADD CONSTRAINT UK_service_brandings_1 UNIQUE (service_id, branding_id);
 CREATE INDEX IDX_service_brandings_1 ON service_brandings(organization_id, service_id);
 CREATE INDEX IDX_service_brandings_2 ON service_brandings(branding_id);
+
+-- UPDATE FROM 0.8.2 -> 0.9.3 --
+
+ALTER TABLE managed_applications DROP COLUMN api_key;
+ALTER TABLE contracts DROP COLUMN apikey;
+
+UPDATE policydefs SET form = '{
+  "type": "object",
+  "title": "Rate Limiting",
+  "properties": {
+    "day": {
+      "title": "Day(s)",
+      "description": "The amount of HTTP requests the developer can make per day. At least one limit must exist.",
+      "type": "integer"
+    },
+    "minute": {
+      "title": "Minute(s)",
+      "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
+      "type": "integer"
+    },
+    "second": {
+      "title": "Second(s)",
+      "description": "The amount of HTTP requests the developer can make per second. At least one limit must exist.",
+      "type": "integer"
+    },
+    "hour": {
+      "title": "Hour(s)",
+      "description": "The amount of HTTP requests the developer can make per hour. At least one limit must exist.",
+      "type": "integer"
+    },
+    "month": {
+      "title": "Month(s)",
+      "description": "The amount of HTTP requests the developer can make per month. At least one limit must exist.",
+      "type": "integer"
+    },
+    "year": {
+      "title": "Year(s)",
+      "description": "The amount of HTTP requests the developer can make per year. At least one limit must exist.",
+      "type": "integer"
+    }
+  }
+}' WHERE id = 'RateLimiting';
+
+--Application emails
+
+ALTER TABLE applications ADD COLUMN email VARCHAR(255) DEFAULT NULL;
+
+-- Table for API engine operating modes
+-- 0.9.4 SNAPSHOT
+CREATE TABLE operating_modes (id VARCHAR(255) NOT NULL, enabled BOOL NOT NULL DEFAULT FALSE, message VARCHAR(255));
+INSERT INTO operating_modes VALUES ('MAINTENANCE', false);
+
+ALTER TABLE application_versions ADD COLUMN oauth_credential_id VARCHAR(255) DEFAULT NULL;
+
+CREATE TABLE oauth2_tokens (id VARCHAR(255) NOT NULL, credential_id VARCHAR(255) NOT NULL, token_type VARCHAR(255) NOT NULL, access_token VARCHAR(255) NOT NULL, refresh_token VARCHAR(255) DEFAULT NULL, expires_in BIGINT NOT NULL, authenticated_userid VARCHAR(255) DEFAULT NULL, scope VARCHAR(4096) DEFAULT NULL, gateway_id VARCHAR(255) NOT NULL);
+ALTER TABLE oauth2_tokens ADD PRIMARY KEY (id);
+CREATE INDEX idx_oauth2_tokens_1 ON oauth2_tokens(credential_id);
+
+ALTER TABLE users ADD COLUMN jwt_key VARCHAR(255) DEFAULT NULL;
+ALTER TABLE users ADD COLUMN jwt_secret VARCHAR(255) DEFAULT NULL;
+
+ALTER TABLE application_versions ADD COLUMN jwt_key VARCHAR(255) DEFAULT NULL;
+ALTER TABLE application_versions ADD COLUMN jwt_secret VARCHAR(255) DEFAULT NULL;

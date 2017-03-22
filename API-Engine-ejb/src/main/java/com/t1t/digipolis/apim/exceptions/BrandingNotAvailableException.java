@@ -1,8 +1,5 @@
 package com.t1t.digipolis.apim.exceptions;
 
-import com.t1t.digipolis.apim.exceptions.AbstractAlreadyExistsException;
-import com.t1t.digipolis.apim.exceptions.ErrorCodes;
-
 /**
  * @author Guillaume Vandecasteele
  * @since 2016

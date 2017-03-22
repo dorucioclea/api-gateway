@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.rest.resources;
 
+import com.t1t.digipolis.apim.beans.dto.GatewayDtoBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.NewGatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.UpdateGatewayBean;
@@ -8,7 +9,7 @@ import com.t1t.digipolis.apim.beans.summary.GatewayTestResultBean;
 import com.t1t.digipolis.apim.exceptions.GatewayAlreadyExistsException;
 import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 
-import javax.ws.rs.*;
+import javax.ws.rs.NotAuthorizedException;
 import java.util.List;
 
 /**
@@ -60,7 +61,7 @@ public interface IGatewayResource {
      * @throws GatewayNotFoundException when gateway is not found
      * @throws NotAuthorizedException when attempt to do something user is not authorized to do
      */
-    public GatewayBean get(String gatewayId) throws GatewayNotFoundException, NotAuthorizedException;
+    public GatewayDtoBean get(String gatewayId) throws GatewayNotFoundException, NotAuthorizedException;
 
     /**
      * Use this endpoint to update an existing Gateway.  Note that the name of the

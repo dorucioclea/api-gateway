@@ -2,6 +2,7 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.authorization.*;
+import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.OAuthException;
 import com.t1t.digipolis.apim.facades.AuthorizationFacade;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
@@ -16,8 +17,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.util.List;
 
 /**
  * Created by michallispashidis on 26/09/15.
@@ -41,10 +40,10 @@ public class OAuthResource implements IOAuth2Authorization {
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
     public KongPluginOAuthConsumerResponse enableOAuthForConsumer(OAuthConsumerRequestBean request) throws OAuthException {
-        Preconditions.checkNotNull(request);
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getAppOAuthId()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getAppOAuthSecret()));
-        Preconditions.checkArgument(!StringUtils.isEmpty(request.getUniqueUserName()));
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "OAuth consumer request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getAppOAuthId()), Messages.i18n.format("emptyValue", "OAuth client ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getAppOAuthSecret()), Messages.i18n.format("emptyValue", "OAuth client secret"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(request.getUniqueUserName()), Messages.i18n.format("emptyValue", "Unique user name"));
         return oAuthFacade.enableOAuthForConsumer(request);
     }
 
@@ -61,11 +60,11 @@ public class OAuthResource implements IOAuth2Authorization {
     @Override
     //TODO - remove the DTO in next version release
     public OAuthApplicationResponseDTO getApplicationInfo(@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version) throws OAuthException {
-        Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        return new OAuthApplicationResponseDTO(oAuthFacade.getApplicationOAuthInformation(oauthClientId, orgId, serviceId, version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId), Messages.i18n.format("emptyValue", "OAuth client ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
+        return new OAuthApplicationResponseDTO(oAuthFacade.getApplicationOAuthInformation(oauthClientId, orgId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase()));
     }
 
     @ApiOperation(value = "Utility endpoint to composes a redirect request for user authorization.",
@@ -80,14 +79,15 @@ public class OAuthResource implements IOAuth2Authorization {
     @Produces(MediaType.TEXT_PLAIN)
     @Override
     public String getAuthorizationRedirect(@PathParam("responseType")OAuthResponseType responseType,@PathParam("userId")String authenticatedUserId ,@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version, OAuthServiceScopeRequest requestScopes) throws OAuthException{
-        Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
-        Preconditions.checkNotNull(responseType);
-        Preconditions.checkNotNull(requestScopes);
-        Preconditions.checkNotNull(requestScopes.getScopes());
-        Preconditions.checkArgument(requestScopes.getScopes().size()>0);
+        Preconditions.checkArgument(!StringUtils.isEmpty(authenticatedUserId), Messages.i18n.format("emptyValue", "Authenticated user id"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId), Messages.i18n.format("emptyValue", "OAuth client ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
+        Preconditions.checkNotNull(responseType, Messages.i18n.format("nullValue", "Response type"));
+        Preconditions.checkNotNull(requestScopes, Messages.i18n.format("nullValue", "Request scopes"));
+        Preconditions.checkNotNull(requestScopes.getScopes(), Messages.i18n.format("nullValue", "Request scopes"));
+        Preconditions.checkArgument(requestScopes.getScopes().size()>0, Messages.i18n.format("emptyValue", "Request scopes"));
         return oAuthFacade.getAuthorizationRedirect(responseType, authenticatedUserId ,oauthClientId, orgId, serviceId, version, requestScopes.getScopes());
     }
 
@@ -103,10 +103,10 @@ public class OAuthResource implements IOAuth2Authorization {
     @Produces(MediaType.APPLICATION_JSON)
     @Override
     public OAuthServiceScopeResponse getServiceVersionScopes(@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version){
-        Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(orgId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version));
+        Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId), Messages.i18n.format("emptyValue", "OAuth client ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
         return oAuthFacade.getServiceVersionScopes(oauthClientId, orgId, serviceId, version);
     }
 

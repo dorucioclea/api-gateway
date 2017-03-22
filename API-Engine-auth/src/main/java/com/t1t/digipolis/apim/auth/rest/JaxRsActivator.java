@@ -1,5 +1,6 @@
 package com.t1t.digipolis.apim.auth.rest;
 
+import com.t1t.digipolis.apim.auth.rest.impl.mappers.IllegalArgumentExceptionMapper;
 import com.t1t.digipolis.apim.auth.rest.impl.mappers.RestExceptionMapper;
 import com.t1t.digipolis.apim.auth.rest.resources.*;
 import com.t1t.digipolis.apim.auth.rest.resources.filter.RequestAUTHFilter;
@@ -43,6 +44,8 @@ public class JaxRsActivator extends Application {
         resources.add(SearchResource.class);
         resources.add(GatewayResource.class);
         resources.add(RestExceptionMapper.class);
+        resources.add(IllegalArgumentExceptionMapper.class);
+        resources.add(SystemResource.class);
     }
 }
 

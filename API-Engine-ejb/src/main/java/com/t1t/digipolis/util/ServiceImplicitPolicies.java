@@ -1,9 +1,7 @@
 package com.t1t.digipolis.util;
 
-import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.visibility.VisibilityBean;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
 
 import java.util.List;
 import java.util.Set;

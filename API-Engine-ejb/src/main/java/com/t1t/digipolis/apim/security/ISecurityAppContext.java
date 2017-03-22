@@ -1,10 +1,7 @@
 package com.t1t.digipolis.apim.security;
 
 import com.t1t.digipolis.apim.beans.apps.AppIdentifier;
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-
-import java.util.Set;
 
 /**
  * The security context used by the REST API to determine whether the
@@ -21,5 +18,7 @@ public interface ISecurityAppContext {
     public String setCurrentApplication(String application) throws StorageException;
     public AppIdentifier getApplicationIdentifier();
     public String getApplicationPrefix();
+    public String getNonManagedApplication();
+    public String setNonManagedApplication(String application);
 
 }

@@ -1,7 +1,10 @@
 package com.t1t.digipolis.rest.resources;
 
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.AbstractRestException;
+import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
+import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
+import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
 import com.t1t.digipolis.apim.facades.MigrationFacade;
 import com.t1t.digipolis.apim.rest.resources.IMigrationResource;
 import com.t1t.digipolis.apim.security.ISecurityContext;
@@ -37,9 +40,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("/gtw/rebuild")
     public void rebuild() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.rebuildGtw();
     }
 
@@ -55,17 +55,24 @@ public class MigrationResource implements IMigrationResource {
         migrationFacade.migrateToAcl();
     }*/
 
-    @Override
+    /*@Override
     @ApiOperation(value =  "Rename Application CustomId",
             notes = "Update applications custom Id's to contain version")
     @ApiResponses({@ApiResponse(code = 204, message = "Rename complete")})
     @POST
     @Path("applications/rename")
     public void updateConsumersCustomId() throws AbstractRestException {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.renameApplicationCustomIds();
+    }*/
+
+    @Override
+    @ApiOperation(value =  "Apply Default Service Policies",
+            notes = "Apply the default service policies to every service version")
+    @ApiResponses({@ApiResponse(code = 204, message = "Rename complete")})
+    @POST
+    @Path("services/default-policies/apply")
+    public void applyDefaultPoliciesToServiceVersions() throws AbstractRestException {
+        migrationFacade.applyDefaultPolicies();
     }
 
     //Obsolete, see "sync/applications/credentials/create-or-sync" endpoint
@@ -87,9 +94,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("sync/jwt-issuance")
     public void issueJWT() throws AbstractRestException, StorageException {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.issueJWT();
     }
 
@@ -100,9 +104,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("sync/service-policies")
     public void updatePoliciesWithGatewayPluginIds() {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
         migrationFacade.updatePoliciesWithGatewayPluginIds();
     }
 
@@ -113,20 +114,6 @@ public class MigrationResource implements IMigrationResource {
     @POST
     @Path("sync/applications/credentials/create-or-sync")
     public void syncOrCreateConsumerCredentials() {
-        if (!security.isAdmin()) {
-            throw ExceptionFactory.notAuthorizedException();
-        }
-        migrationFacade.syncAndCreateConsumerCredentials();
+        //migrationFacade.syncAndCreateConsumerCredentials();
     }
-
-    //Obsolete should not be used past version 0.8.0
-/*    @Override
-    @ApiOperation(value =  "Split orgs by context",
-            notes = "Use this endpoint in order to split orgs from v0.7x to v0.8.0")
-    @ApiResponses({@ApiResponse(code = 204, message = "Split completed")})
-    @POST
-    @Path("sync/split-orgs")
-    public void splitOrgs() throws Exception {
-        //migrationFacade.splitOrgs();
-    }*/
 }

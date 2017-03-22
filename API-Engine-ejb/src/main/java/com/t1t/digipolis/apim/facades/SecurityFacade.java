@@ -6,7 +6,6 @@ import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
 import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.UpdateGatewayBean;
-import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -151,6 +150,18 @@ public class SecurityFacade {
     private List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() {
         try {
             return query.getAllNonRetiredApplicationVersions();
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public void revokeOAuthToken(String accessToken) {
+        try {
+            query.getAllGateways().stream()
+                    .map(GatewayBean::getId)
+                    .map(gatewayFacade::createGatewayLink)
+                    .forEach(gw -> gw.revokeGatewayOAuthToken(accessToken));
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
