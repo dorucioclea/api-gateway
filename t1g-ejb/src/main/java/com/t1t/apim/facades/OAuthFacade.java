@@ -17,12 +17,9 @@ import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ApplicationNotFoundException;
 import com.t1t.apim.exceptions.ExceptionFactory;
-import com.t1t.apim.exceptions.GatewayNotFoundException;
 import com.t1t.apim.exceptions.OAuthException;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.gateway.IGatewayLink;
-import com.t1t.apim.gateway.IGatewayLinkFactory;
-import com.t1t.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.apim.kong.KongConstants;
 import com.t1t.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.kong.model.KongPluginOAuthConsumerResponse;
@@ -48,7 +45,6 @@ public class OAuthFacade {
     @Inject private IStorageQuery query;
     @Inject private IStorage storage;
     @Inject private IIdmStorage idmStorage;
-    @Inject private IGatewayLinkFactory gatewayLinkFactory;
     @Inject private GatewayFacade gatewayFacade;
     @Inject private AppConfig config;
 

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  */
 public class IDPClientImpl implements IDPClient {
 
-    private static final String OPENID_CONNECT = "openid-connect";
+
 
     private final Keycloak client;
     private final IDPBean idp;
@@ -215,7 +215,7 @@ public class IDPClientImpl implements IDPClient {
         List<ClientRepresentation> response = client.realm(idp.getMasterRealm()).clients().findByClientId(idp.getDefaultClient());
         if (response.isEmpty()) {
             rval = new ClientRepresentation();
-            rval.setProtocol(OPENID_CONNECT);
+            rval.setProtocol(IDPConstants.OPENID_CONNECT);
             rval.setServiceAccountsEnabled(true);
             rval.setEnabled(false);
             rval.setClientId(idp.getDefaultClient());

@@ -3,17 +3,10 @@ package com.t1t.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.actions.ActionBean;
 import com.t1t.apim.beans.actions.SwaggerDocBean;
-import com.t1t.apim.core.IApplicationValidator;
-import com.t1t.apim.core.IServiceValidator;
-import com.t1t.apim.core.IStorage;
-import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ActionException;
 import com.t1t.apim.facades.ActionFacade;
-import com.t1t.apim.gateway.IGatewayLinkFactory;
 import com.t1t.apim.rest.resources.IActionResource;
-import com.t1t.apim.rest.resources.IOrganizationResource;
-import com.t1t.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -35,21 +28,7 @@ import javax.ws.rs.core.MediaType;
 @ApplicationScoped
 public class ActionResource implements IActionResource {
 
-    @Inject
-    IStorage storage;
-    @Inject
-    IStorageQuery query;
-    @Inject
-    IGatewayLinkFactory gatewayLinkFactory;
-    @Inject
-    IOrganizationResource orgs;
-    @Inject
-    IServiceValidator serviceValidator;
-    @Inject
-    IApplicationValidator applicationValidator;
-    @Inject
-    ISecurityContext securityContext;
-    @Inject ActionFacade actionFacade;
+    @Inject private ActionFacade actionFacade;
 
     /**
      * Constructor.

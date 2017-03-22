@@ -1,8 +1,5 @@
 package com.t1t.apim.exceptions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author Guillaume Vandecasteele
  * @since 2017

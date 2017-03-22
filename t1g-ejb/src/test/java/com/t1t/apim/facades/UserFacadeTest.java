@@ -40,7 +40,7 @@ public class UserFacadeTest extends TestCase {
     @Rule public ExpectedException thrown = ExpectedException.none();
 
     @Mock private AppConfig config;
-    @Mock IStorageQuery query;
+    @Mock private IStorageQuery query;
     @Mock private IIdmStorage idmStorage;
     @InjectMocks private UserFacade userFacade;
 

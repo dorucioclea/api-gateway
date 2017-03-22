@@ -25,9 +25,6 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
     private UserFacade userFacade;
     private String currentUser;
 
-    public ApiEngineSecurityContext() {
-    }
-
     @Override
     public String getCurrentUser() {
         if (!StringUtils.isEmpty(currentUser)) {

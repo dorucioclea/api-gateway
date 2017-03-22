@@ -26,4 +26,6 @@ public interface IDPConstants {
     String CLIENT_REQUEST_OBJECT_SIGNATURE_ALGORITHM = "request.object.signature.alg";
     String CLIENT_SIGNING_ALGORITHM_RS256 = "RS256";
 
+    String OPENID_CONNECT = "openid-connect";
+
 }

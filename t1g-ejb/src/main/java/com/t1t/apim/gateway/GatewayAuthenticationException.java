@@ -6,11 +6,5 @@ package com.t1t.apim.gateway;
 public class GatewayAuthenticationException extends Exception {
 
     private static final long serialVersionUID = 2676435654614719743L;
-    
-    /**
-     * Constructor.
-     */
-    public GatewayAuthenticationException() {
-    }
 
 }

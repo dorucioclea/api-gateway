@@ -15,9 +15,6 @@ import java.io.UnsupportedEncodingException;
 public class KongServiceBuilder {
     private static Logger _LOG = LoggerFactory.getLogger(KongServiceBuilder.class.getName());
 
-    public KongServiceBuilder() {
-    }
-
     /**
      * Provides the basic authentication header based on the username and password provided in the configuration.
      *

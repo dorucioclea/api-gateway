@@ -3,11 +3,9 @@ package com.t1t.apim.auth.rest.impl.mappers;
 import com.t1t.apim.beans.exceptions.ErrorBean;
 import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ErrorCodes;
-import com.t1t.apim.security.ISecurityContext;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -20,9 +18,6 @@ import javax.ws.rs.ext.Provider;
 @Provider
 @ApplicationScoped
 public class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalArgumentException> {
-
-    @Inject
-    ISecurityContext securityContext;
 
     /**
      * @see ExceptionMapper#toResponse(Throwable)

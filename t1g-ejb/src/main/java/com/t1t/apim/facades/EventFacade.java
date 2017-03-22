@@ -43,18 +43,12 @@ import static com.t1t.apim.beans.events.EventType.*;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class EventFacade {
     private static final Logger _LOG = LoggerFactory.getLogger(EventFacade.class);
-    @Inject
-    private IStorage storage;
-    @Inject
-    private IStorageQuery query;
-    @Inject
-    private ISecurityContext securityContext;
-    @Inject
-    private UserFacade userFacade;
-    @Inject
-    private OrganizationFacade orgFacade;
-    @Inject
-    private MailService mailService;
+    @Inject private IStorage storage;
+    @Inject private IStorageQuery query;
+    @Inject private ISecurityContext securityContext;
+    @Inject private UserFacade userFacade;
+    @Inject private OrganizationFacade orgFacade;
+    @Inject private MailService mailService;
 
     public EventBean get(Long id) {
         try {
@@ -921,6 +915,8 @@ public class EventFacade {
                         case MEMBERSHIP_TRANSFER:
                             updateMemberMailBean.setMembershipAction(MembershipAction.TRANSFER);
                             break;
+                        default:
+                            break;
                     }
                     mailService.sendUpdateMember(updateMemberMailBean);
                     break;
@@ -934,6 +930,8 @@ public class EventFacade {
                             break;
                         case ADMIN_REVOKED:
                             updateAdminMailBean.setMembershipAction(MembershipAction.DELETE_MEMBERSHIP);
+                            break;
+                        default:
                             break;
                     }
                     mailService.sendUpdateAdmin(updateAdminMailBean);

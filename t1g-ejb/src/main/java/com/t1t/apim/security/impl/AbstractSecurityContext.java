@@ -25,11 +25,6 @@ public abstract class AbstractSecurityContext implements ISecurityContext, Seria
     protected IndexedPermissions permissions;
 
     @Inject private IIdmStorage idmStorage;
-    
-    /**
-     * Constructor.
-     */
-    public AbstractSecurityContext() {}
 
     /**
      * @see ISecurityContext#hasPermission(PermissionType, String)

@@ -4,8 +4,8 @@ CREATE TABLE idps (id VARCHAR(255) NOT NULL, server_url VARCHAR(255) NOT NULL, m
 ALTER TABLE idps ADD PRIMARY KEY (id);
 CREATE UNIQUE INDEX uk_idps_1 ON idps (default_idp) WHERE default_idp = true;
 
--- Replace the client secret with actual value
-INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_client, default_idp) VALUES ('Keycloak','https://idp.t1t.be/auth', 'master', 'admin-cli', '$CRYPT::79mlpuQOXd0UQd++6UQdb85ocB2d8a7I+piu5tFFSPs3Btpll2vhf0Xf5DsqBRzc', 't1g', 'DefaultClient', TRUE);
+-- Replace the client secret with actual encrypted value
+INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_client, default_idp) VALUES ('Keycloak','https://devidp.t1t.be/auth', 'master', 'admin-cli', 'INSERT_ENCRYPTED_SECRET_HERE', 't1g', 'DefaultClient', TRUE);
 
 -- Store the IDP ids
 ALTER TABLE application_versions ADD COLUMN idp_client_id VARCHAR(255) DEFAULT NULL;
@@ -18,8 +18,10 @@ CREATE TABLE mail_providers (id BIGINT NOT NULL, host VARCHAR(255) NOT NULL, por
 ALTER TABLE mail_providers ADD PRIMARY KEY (id);
 CREATE UNIQUE INDEX uk_mail_providers_1 ON mail_providers (default_mail_provider) WHERE default_mail_provider = true;
 
-INSERT INTO keystores (kid, name, path, encrypted_keystore_password, encrypted_key_password, private_key_alias, default_keystore) VALUES ('MrPfITJBMyIjkb5Fj8FK2uv6zgzBp9kIR7K2EzD_Iuo', 'T1T-IDP-JKS', '/usr/local/keystores/idp_kc_store.jks', '$CRYPT::Z5BlLMsBRYlNTfCWoE+59A==', '$CRYPT::Z5BlLMsBRYlNTfCWoE+59A==', 'idp.t1t.be', TRUE);
-INSERT INTO mail_providers (id, host, port, auth, mail_from, username, encrypted_password, default_mail_provider) VALUES (700, 'smtp.mailgun.org', 2525, TRUE, 'postmaster@saas.t1t.be', 'postmaster@saas.t1t.be', '$CRYPT::hOiPp+FgNRs/ssMS6F4MPBL53jh7AYVweqjYfN0vbmWrilgr70Ww9MDQV415WD11', TRUE);
+-- Replace the passwords with their actual encrypted values before inserting
+
+INSERT INTO keystores (kid, name, path, encrypted_keystore_password, encrypted_key_password, private_key_alias, default_keystore) VALUES ('INSERT_KEYSTORE_KID_FROM_IDP_HERE', 'T1T-IDP-JKS', '/usr/local/keystores/idp_kc_store.jks', 'INSERT_ENCRYPTED_KEYSTORE_PASSWORD_HERE', 'INSERT_ENCRYPTED_PRIVATE_KEY_PASSWORD_HERE', 'idp.t1t.be', TRUE);
+INSERT INTO mail_providers (id, host, port, auth, mail_from, username, encrypted_password, default_mail_provider) VALUES (700, 'smtp.mailgun.org', 2525, TRUE, 'postmaster@saas.t1t.be', 'postmaster@saas.t1t.be', 'INSERT_ENCRYPTED_PASSWORD_HERE', TRUE);
 
 ALTER TABLE organizations ADD COLUMN mail_provider_id BIGINT NULL;
 ALTER TABLE organizations ADD COLUMN keystore_kid VARCHAR(255) NULL;

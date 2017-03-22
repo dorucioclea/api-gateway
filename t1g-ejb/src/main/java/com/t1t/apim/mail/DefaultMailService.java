@@ -84,6 +84,8 @@ public class DefaultMailService implements MailService {
                 topic = MailTopic.MEMBERSHIP_UPDATE_ROLE;
                 break;
             }
+            default:
+                break;
         }
         if (topic != null) {
             createAndSendMail(topic, updateMemberMailBean);
@@ -102,6 +104,8 @@ public class DefaultMailService implements MailService {
                 topic = MailTopic.MEMBERSHIP_ADMIN_DELETED;
                 break;
             }
+            default:
+                break;
         }
         if (topic != null) {
             createAndSendMail(topic, updateAdminMailBean);

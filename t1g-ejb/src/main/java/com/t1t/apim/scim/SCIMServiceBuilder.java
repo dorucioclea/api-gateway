@@ -15,9 +15,6 @@ import java.io.UnsupportedEncodingException;
 public class SCIMServiceBuilder {
     private static Logger _LOG = LoggerFactory.getLogger(SCIMServiceBuilder.class.getName());
 
-    public SCIMServiceBuilder() {
-    }
-
     /**
      * Provides the basic authentication header based on the username and password provided in the configuration.
      *

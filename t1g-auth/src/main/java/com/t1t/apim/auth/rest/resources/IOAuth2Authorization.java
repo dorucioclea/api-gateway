@@ -23,8 +23,7 @@ public interface IOAuth2Authorization {
      * @return
      * @throws OAuthException
      */
-    //TODO -  Remove the DTO after next version release
-    OAuthApplicationResponseDTO getApplicationInfo(String oauthClientId, String orgId, String serviceId, String version) throws OAuthException;
+    OAuthApplicationResponse getApplicationInfo(String oauthClientId, String orgId, String serviceId, String version) throws OAuthException;
 
     /**
      * Get redirect URL for user authorization using Authorization Grant/Implicit Grant.

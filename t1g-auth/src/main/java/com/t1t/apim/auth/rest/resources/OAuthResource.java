@@ -49,7 +49,7 @@ public class OAuthResource implements IOAuth2Authorization {
     @ApiOperation(value = "Retrieve Application OAuth2 information for targeted service.",
             notes = "Retrieve the Application OAuth2 information in order to inform the user through a consent page for a specific service.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = OAuthApplicationResponseDTO.class, message = "The result unique username and generated KeyAuth token."),
+            @ApiResponse(code = 200, response = OAuthApplicationResponse.class, message = "The result unique username and generated KeyAuth token."),
             @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
     })
     @GET
@@ -57,13 +57,12 @@ public class OAuthResource implements IOAuth2Authorization {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
-    //TODO - remove the DTO in next version release
-    public OAuthApplicationResponseDTO getApplicationInfo(@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version) throws OAuthException {
+    public OAuthApplicationResponse getApplicationInfo(@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version) throws OAuthException {
         Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId), Messages.i18n.format("emptyValue", "OAuth client ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
-        return new OAuthApplicationResponseDTO(oAuthFacade.getApplicationOAuthInformation(oauthClientId, orgId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase()));
+        return oAuthFacade.getApplicationOAuthInformation(oauthClientId, orgId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase());
     }
 
     @ApiOperation(value = "Utility endpoint to composes a redirect request for user authorization.",

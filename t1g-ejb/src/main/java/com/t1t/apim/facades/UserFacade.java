@@ -266,17 +266,19 @@ public class UserFacade implements Serializable {
     }
 
     public SearchResultsBean<AuditEntryBean> getActivity(String userId, int page, int pageSize) {
-        if (page <= 1) {
-            page = 1;
+        int pg = page;
+        int pgSize = pageSize;
+        if (pg <= 1) {
+            pg = 1;
         }
-        if (pageSize == 0) {
-            pageSize = 20;
+        if (pgSize == 0) {
+            pgSize = 20;
         }
         try {
             SearchResultsBean<AuditEntryBean> rval = null;
             PagingBean paging = new PagingBean();
-            paging.setPage(page);
-            paging.setPageSize(pageSize);
+            paging.setPage(pg);
+            paging.setPageSize(pgSize);
             rval = query.auditUser(userId, paging);
             return rval;
         } catch (StorageException e) {

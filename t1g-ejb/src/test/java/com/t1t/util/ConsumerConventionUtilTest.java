@@ -20,7 +20,7 @@ public class ConsumerConventionUtilTest {
         String appVersions = "v";
         String appConsumer = "user";
         String appConsumerUnqiueId = ConsumerConventionUtil.createAppConsumerUnqiueId(appOrg, appApp, appVersions, appConsumer);
-        assertTrue(appConsumerUnqiueId.equals("org.app.v.user"));
+        assertTrue("org.app.v.user".equals(appConsumerUnqiueId));
     }
 
     @Test
@@ -29,26 +29,26 @@ public class ConsumerConventionUtilTest {
         String appApp = "app";
         String appVersions = "v";
         String appUniqueName = ConsumerConventionUtil.createAppUniqueId(appOrg, appApp, appVersions);
-        assertTrue(appUniqueName.equals("org.app.v"));
+        assertTrue("org.app.v".equals(appUniqueName));
     }
 
     @Test
     public void testCreateUserUniqueId() throws Exception {
         String username = "ex01234";
         String formattedUsername = ConsumerConventionUtil.createUserUniqueId(username);
-        assertTrue(formattedUsername.equals("ex01234"));
+        assertTrue("ex01234".equals(formattedUsername));
 
         username = "EX01234";
         formattedUsername = ConsumerConventionUtil.createUserUniqueId(username);
-        assertTrue(formattedUsername.equals("ex01234"));
+        assertTrue("ex01234".equals(formattedUsername));
 
         username = "Ex01234";
         formattedUsername = ConsumerConventionUtil.createUserUniqueId(username);
-        assertTrue(formattedUsername.equals("ex01234"));
+        assertTrue("ex01234".equals(formattedUsername));
 
         username = "eX01234";
         formattedUsername = ConsumerConventionUtil.createUserUniqueId(username);
-        assertTrue(formattedUsername.equals("ex01234"));
+        assertTrue("ex01234".equals(formattedUsername));
     }
 
     @Test

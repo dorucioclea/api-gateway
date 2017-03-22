@@ -42,7 +42,7 @@ public class GatewayClient {
     private AppConfig appConfig;
     private GatewayValidation gatewayValidation;
     private static String metricsURI;
-    private static String AUTH_API_KEY = "apikey";
+    private static final String AUTH_API_KEY = "apikey";
     private static final String DUMMY_UPSTREAM_URI = "http://localhost:3000";
 
     /**

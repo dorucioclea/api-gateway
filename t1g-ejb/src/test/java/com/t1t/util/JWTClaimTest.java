@@ -189,7 +189,7 @@ public class JWTClaimTest {
 
         //validate
         try {
-            JwtContext jwtContext = JWTUtils.validateHMACToken(jwt, JWT_SECRET, JWT_KEY, JWT_AUDIENCE, new Boolean(false));
+            JwtContext jwtContext = JWTUtils.validateHMACToken(jwt, JWT_SECRET, JWT_KEY, JWT_AUDIENCE, Boolean.FALSE);
             _LOG.info("JWT validation succeeded.");
             _LOG.info("Claim names:{}",jwtContext.getJwtClaims().getClaimsMap());
         } catch (InvalidJwtException e) {

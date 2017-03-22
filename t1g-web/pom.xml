@@ -21,7 +21,7 @@
     <parent>
       <artifactId>api-gateway</artifactId>
       <groupId>com.t1t</groupId>
-      <version>0.9.7-SNAPSHOT</version>
+      <version>1.0.0-SNAPSHOT</version>
    </parent>
 
    <artifactId>t1g-web</artifactId>

@@ -16,6 +16,7 @@ import com.t1t.apim.beans.services.ServiceBean;
 import com.t1t.apim.beans.services.ServiceGatewayBean;
 import com.t1t.apim.beans.services.ServicePlanBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
+import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.security.ISecurityContext;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -78,11 +79,7 @@ public class AuditUtils {
             return false;
         }
         if (before == null) {
-            if (after.isEmpty()) {
-                return false;
-            } else {
-                return true;
-            }
+            return !after.isEmpty();
         } else {
             if (before.size() != after.size()) {
                 return true;
@@ -148,7 +145,7 @@ public class AuditUtils {
         if (before == null && after != null) {
             return true;
         }
-        return (before != after);
+        return (before.equals(after));
     }
 
     /**
@@ -550,6 +547,9 @@ public class AuditUtils {
                 break;
             case Contract:
                 entry.setEntityType(AuditEntityType.Contract);
+                break;
+            default:
+                break;
         }
         PolicyData data = new PolicyData();
         data.setPolicyDefId(bean.getDefinition().getId());
@@ -628,7 +628,7 @@ public class AuditUtils {
         try {
             return mapper.writeValueAsString(data);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw ExceptionFactory.systemErrorException(e.getMessage());
         }
     }
 
@@ -853,7 +853,7 @@ public class AuditUtils {
     private static AuditEntryBean newEntry(String orgId, AuditEntityType type, ISecurityContext securityContext, boolean implicit) {
         // Wait for 1 ms to guarantee that two audit entries are never created at the same moment in time (which would
         // result in non-deterministic sorting by the storage layer)
-        try { Thread.sleep(1); } catch (InterruptedException e) { throw new RuntimeException(e); }
+        try { Thread.sleep(1); } catch (InterruptedException e) { throw ExceptionFactory.systemErrorException(e); }
 
         AuditEntryBean entry = new AuditEntryBean();
         entry.setOrganizationId(orgId);

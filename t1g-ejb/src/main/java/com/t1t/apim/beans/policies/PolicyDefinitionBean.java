@@ -5,8 +5,6 @@ import com.t1t.apim.beans.summary.PolicyFormType;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * A Policy Definition describes a type of policy that can be added to
