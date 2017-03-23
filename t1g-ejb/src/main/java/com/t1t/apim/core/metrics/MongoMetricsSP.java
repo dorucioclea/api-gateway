@@ -23,13 +23,6 @@ public class MongoMetricsSP implements MetricsSPI, Serializable {
     private static Logger log = LoggerFactory.getLogger(MongoMetricsSP.class.getName());
     private static MongoDBMetricsClient httpClient;
 
-    //interval values
-    private static final long ONE_MINUTE_MILLIS = 60 * 1000;
-    private static final long ONE_HOUR_MILLIS = 60 * 60 * 1000;
-    private static final long ONE_DAY_MILLIS = 24 * 60 * 60 * 1000;
-    private static final long ONE_WEEK_MILLIS = 7 * 24 * 60 * 60 * 1000;
-    private static final long ONE_MONTH_MILLIS = 30 * 24 * 60 * 60 * 1000;
-
     {
         //read properties file
         InputStream is = getClass().getClassLoader().getResourceAsStream("application.properties");
@@ -70,7 +63,7 @@ public class MongoMetricsSP implements MetricsSPI, Serializable {
         //we create a epoch map in order to add specific values at random and sort the key values
         Map<Long, MetricsUsage> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
-        long intervalMillis = getIntervalMillis(interval);
+        long intervalMillis = interval.getMillis();
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
         long fromMillis = from.getMillis();
         if (originList.getData().size() > 0) {
@@ -97,7 +90,7 @@ public class MongoMetricsSP implements MetricsSPI, Serializable {
         //we create a epoch map in order to add specific values at random and sort the key values
         Map<Long, MetricsResponseStats> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
-        long intervalMillis = getIntervalMillis(interval);
+        long intervalMillis = interval.getMillis();
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
         long fromMillis = from.getMillis();
         if (originList.getData().size() > 0) {
@@ -135,7 +128,7 @@ public class MongoMetricsSP implements MetricsSPI, Serializable {
         //we create a epoch map in order to add specific values at random and sort the key values
         Map<Long, com.t1t.kong.model.MetricsConsumerUsage> processingMap = new TreeMap<>();
         long toMillis = to.getMillis();
-        long intervalMillis = getIntervalMillis(interval);
+        long intervalMillis = interval.getMillis();
         //prefill map - the from value should be the first REAL metrics value we encouter (in order to sync time interval with the metrics engine)
         long fromMillis = from.getMillis();
         if (originList.getData().size() > 0) {
@@ -185,35 +178,5 @@ public class MongoMetricsSP implements MetricsSPI, Serializable {
         //TODO followers
         info.setFollowers(0);
         return info;
-    }
-
-    /**
-     * Returns the interval in millis for histogram calculation.
-     *
-     * @param interval
-     * @return
-     */
-    private long getIntervalMillis(HistogramIntervalType interval) {
-        long divBy = ONE_DAY_MILLIS;
-        switch (interval) {
-            case day:
-                divBy = ONE_DAY_MILLIS;
-                break;
-            case hour:
-                divBy = ONE_HOUR_MILLIS;
-                break;
-            case minute:
-                divBy = ONE_MINUTE_MILLIS;
-                break;
-            case month:
-                divBy = ONE_MONTH_MILLIS;
-                break;
-            case week:
-                divBy = ONE_WEEK_MILLIS;
-                break;
-            default:
-                break;
-        }
-        return divBy;
     }
 }

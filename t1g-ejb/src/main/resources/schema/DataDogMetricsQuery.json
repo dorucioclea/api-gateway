@@ -12,7 +12,7 @@
     "series": {
       "type": "array",
       "items": {
-        "$ref":"DataDogMetricsSerie.json"
+        "$ref":"DataDogMetricsSeries.json"
       }
     },
     "from_date": {

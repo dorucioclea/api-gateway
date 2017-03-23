@@ -18,15 +18,10 @@
     "pointlist": {
       "type": "array",
       "items": {
-        "type":"array",
-        "items": [
-          {
-            "type": "number"
-          },
-          {
-            "type": "number"
-          }
-        ]
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
       }
     },
     "end": {

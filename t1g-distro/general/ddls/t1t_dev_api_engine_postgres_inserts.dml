@@ -360,7 +360,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   "required": [
     "http_endpoint"
   ]
-}', 'JsonSchema', 'fa-exchange', 'HTTP Log Policy', null, false, false, true, null, null);
+}', 'JsonSchema', 'fa-exchange', 'HTTP Log Policy', null, false, false, false, null, null);
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('FileLog', 'Append request and response data to a log file on disk', '{
   "type": "object",

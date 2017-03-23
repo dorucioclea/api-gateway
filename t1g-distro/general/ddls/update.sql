@@ -31,6 +31,8 @@ ALTER TABLE organizations ADD CONSTRAINT fk_organizations_2 FOREIGN KEY (keystor
 
 DROP TABLE oauth_apps;
 
+UPDATE policydefs SET scope_auto = FALSE WHERE id = 'HTTPLog';
+
 --------- UPGRADE TO 0.10.1 STARTS HERE ---------
 
 -- Drop the oauth client id info from app versions, backwards compatability no longer required

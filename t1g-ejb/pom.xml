@@ -483,7 +483,7 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginEmptyConfig.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongClusterItem.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongCluster.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/DataDogMetricsSerie.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/DataDogMetricsSeries.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/DataDogMetricsQuery.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseDTO.json</sourcePath>
                     </sourcePaths>

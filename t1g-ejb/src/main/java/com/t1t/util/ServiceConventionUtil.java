@@ -53,4 +53,8 @@ public class ServiceConventionUtil {
         rval.setVersion(split[2]);
         return rval;
     }
+
+    public static String getDatadogUniqueName(String orgId, String svcId, String version) {
+        return generateServiceUniqueName(orgId, svcId, version).replace(".", "_").replace("-", "_");
+    }
 }
