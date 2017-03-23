@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces" : ["com.t1t.kong.model.KongConfigValue"],
+  "properties": {
+    "day": {
+      "type": "integer"
+    },
+    "minute": {
+      "type": "integer"
+    },
+    "second": {
+      "type": "integer"
+    },
+    "hour": {
+      "type": "integer"
+    },
+    "month": {
+      "type": "integer"
+    },
+    "year": {
+      "type": "integer"
+    }
+  },
+  "self_check": "function"
+}
