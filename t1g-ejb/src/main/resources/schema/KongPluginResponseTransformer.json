@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces": ["com.t1t.kong.model.KongConfigValue"],
+  "properties": {
+    "remove": {"type":"object", "$ref":"KongPluginResponseTransformerRemove.json"},
+    "add": {"type":"object", "$ref":"KongPluginResponseTransformerAdd.json"}
+  }
+}

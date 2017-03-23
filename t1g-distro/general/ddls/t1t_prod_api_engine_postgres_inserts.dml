@@ -1,0 +1,893 @@
+-- POPULATE TABLES
+
+-- ROLES
+
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Owner', true, 'admin', CURRENT_DATE, 'Automatically granted to the user who creates an Organization.  Grants all privileges.', 'Owner');
+
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Developer', null, 'admin', CURRENT_DATE, 'Users responsible for creating and managing applications and services should be granted this role within an Organization.', 'Developer');
+
+INSERT INTO roles (id, auto_grant, created_by, created_on, description, name) VALUES ('Watcher', null, 'admin', CURRENT_DATE, 'Users who only need read access can be granted this role. They can view all information within an Organization, but cannot make changes.', 'Watcher');
+
+-- PERMISSIONS
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 0);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 1);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 2);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 3);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 4);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 5);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 6);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 7);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 8);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 9);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 10);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Owner', 11);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Watcher', 0);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Watcher', 3);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Watcher', 6);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Watcher', 9);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 0);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 1);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 3);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 4);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 6);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 7);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 9);
+
+INSERT INTO permissions (role_id, permissions) VALUES ('Developer', 10);
+
+-- POLICY DEFINITIONS
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('BasicAuthentication', 'Add Basic Authentication to your APIs', '{
+  "type": "object",
+  "title": "Basic Authentication",
+  "properties": {
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}', 'JsonSchema', 'fa-user', 'Basic Authentication Policy', null, false, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('SSL', 'Add an SSL certificate for an underlying service', '{
+  "type": "object",
+  "title": "SSL",
+  "properties": {
+    "cert": {
+      "title": "Certificate",
+      "description": "Specify the path of the certificate file to upload.",
+      "type": "string"
+    },
+    "only_https": {
+      "title": "Only HTTPS allowed",
+      "description": "Specify if the service should only be available through an https protocol.",
+      "type": "boolean",
+      "default": false
+    },
+    "key": {
+      "title": "Key",
+      "type": "string",
+      "description": "Specify the path of the certificate key file to upload"
+    }
+  },
+  "required": [
+    "cert",
+    "key"
+  ]
+}', 'JsonSchema', 'fa-lock', 'SSL Policy', null, false, false, false, null, null);
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
+  "type": "object",
+  "title": "Request Transformer",
+  "properties": {
+    "remove": {
+      "title": "Remove from request",
+      "type": "object",
+      "properties": {
+          "querystring": {
+              "type": "array",
+              "items": {
+                "title": "Querystring",
+                "type": "string",
+                "description": "Parameter name to remove from the request querystring."
+              }
+          },
+          "body": {
+              "type": "array",
+              "items": {
+                "title": "Form",
+                "type": "string",
+                "description": "Parameter names to remove from the request body."
+              }
+          },
+          "headers": {
+              "type": "array",
+              "items": {
+                "title": "Header",
+                "type": "string",
+                "description": "Header names to remove from the request."
+              }
+          }
+      }
+    },
+    "add": {
+      "title": "Add to request",
+      "type": "object",
+      "properties": {
+          "querystring": {
+              "type": "array",
+              "items": {
+                "title": "Query",
+                "type": "string",
+                "description": "Paramname:value to add to the request querystring."
+              }
+          },
+          "body": {
+              "type": "array",
+              "items": {
+                "title": "Form",
+                "type": "string",
+                "description": "Paramname:value to add to the request body in urlencoded format."
+              }
+          },
+          "headers": {
+              "type": "array",
+              "items": {
+                "title": "Header",
+                "type": "string",
+                "description": "Headername:value to add to the request headers."
+              }
+          }
+      }
+    }
+  }
+}', 'JsonSchema', 'fa-chevron-circle-right', 'Request Transformer Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('RequestSizeLimiting', 'Block requests with bodies greater than a specific size', '{
+  "type": "object",
+  "title": "Request Size Limiting",
+  "properties": {
+    "allowed_payload_size": {
+      "title": "Allowed payload size",
+      "description": "Allowed request payload size in megabytes, default is 128 (128 000 000 Bytes)",
+      "type": "number",
+      "default": 128,
+      "minimum": 0
+    }
+  },
+  "required": [
+    "allowed_payload_size"
+  ]
+}', 'JsonSchema', 'fa-compress', 'Request Size Limiting Policy', null, true, true, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('ResponseTransformer', 'Modify the upstream response before returning it to the client', '{
+  "type": "object",
+  "title": "Response Transformer",
+  "properties": {
+    "remove": {
+      "title": "Remove from request",
+      "type": "object",
+      "properties": {
+          "headers": {
+              "type": "array",
+              "items": {
+                    "title": "Header",
+                    "type": "string",
+                    "description": "Header name to remove from the response headers."
+              }
+          },
+          "json": {
+              "type": "array",
+              "items": {
+                "title": "JSON",
+                "type": "string",
+                "description": "JSON key name to remove from a JSON response body."
+              }
+          }
+      }
+    },
+    "add": {
+      "title": "Add to request",
+      "type": "object",
+      "properties": {
+          "headers": {
+              "type": "array",
+              "items": {
+                "title": "Header",
+                "type": "string",
+                "description": "Headername:value to add to the response headers."
+              }
+          },
+          "json": {
+              "type": "array",
+              "items": {
+                "title": "JSON",
+                "type": "string",
+                "description": "Jsonkey:value to add to a JSON response body."
+              }
+          }
+      }
+    }
+  }
+}', 'JsonSchema', 'fa-chevron-circle-left', 'Response Transformer Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('RateLimiting', 'Rate-limit how many HTTP requests a consumer can make', '{
+  "type": "object",
+  "title": "Rate Limiting",
+  "properties": {
+    "day": {
+      "title": "Day(s)",
+      "description": "The amount of HTTP requests the developer can make per day. At least one limit must exist.",
+      "type": "integer"
+    },
+    "minute": {
+      "title": "Minute(s)",
+      "description": "The amount of HTTP requests the developer can make per minute. At least one limit must exist.",
+      "type": "integer"
+    },
+    "second": {
+      "title": "Second(s)",
+      "description": "The amount of HTTP requests the developer can make per second. At least one limit must exist.",
+      "type": "integer"
+    },
+    "hour": {
+      "title": "Hour(s)",
+      "description": "The amount of HTTP requests the developer can make per hour. At least one limit must exist.",
+      "type": "integer"
+    },
+    "month": {
+      "title": "Month(s)",
+      "description": "The amount of HTTP requests the developer can make per month. At least one limit must exist.",
+      "type": "integer"
+    },
+    "year": {
+      "title": "Year(s)",
+      "description": "The amount of HTTP requests the developer can make per year. At least one limit must exist.",
+      "type": "integer"
+    }
+  }
+}', 'JsonSchema', 'fa-tachometer', 'Rate Limiting Policy', null, true, true, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('TCPLog', 'Send request and response logs to a TCP server', '{
+  "type": "object",
+  "title": "TCP Log",
+  "properties": {
+    "host": {
+      "title": "Host",
+      "description": "The IP address or host name to send data to.",
+      "type": "string"
+    },
+    "keepalive": {
+      "title": "Keep alive",
+      "description": "Default 60000. An optional value in milliseconds that defines for how long an idle connection will live before being closed.",
+      "type": "number",
+      "default": 60000
+    },
+    "timeout": {
+      "title": "Time-out",
+      "description": "Default 10000. An optional timeout in milliseconds when sending data to the upstream server.",
+      "type": "number",
+      "default": 10000
+    },
+    "port": {
+      "title": "Port",
+      "description": "The port to send data to on the upstream server.",
+      "type": "number"
+    }
+  },
+  "required": [
+    "host","port"
+  ]
+}', 'JsonSchema', 'fa-random', 'TCP Log Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('UDPLog', 'Send request and response logs to a UDP server', '{
+  "type": "object",
+  "title": "UDP Log",
+  "properties": {
+    "host": {
+      "title": "Host",
+      "description": "The IP address or host name to send data to.",
+      "type": "string"
+    },
+    "timeout": {
+      "title": "Time-out",
+      "description": "Default 10000. An optional timeout in milliseconds when sending data to the upstream server.",
+      "type": "number",
+      "default": 10000
+    },
+    "port": {
+      "title": "Port",
+      "description": "The port to send data to on the upstream server.",
+      "type": "number"
+    }
+  },
+  "required": [
+    "host","port"
+  ]
+}', 'JsonSchema', 'fa-crosshairs', 'UDP Log Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('HTTPLog', 'Send request and response logs to a HTTP server', '{
+  "type": "object",
+  "title": "HTTP Log",
+  "properties": {
+    "http_endpoint": {
+      "title": "HTTP Endpoint",
+      "description": "The HTTP endpoint (including the protocol to use) where to send the data to.",
+      "type": "string"
+    },
+    "method": {
+      "title": "HTTP Method",
+      "description": "Default POST. An optional method used to send data to the http server, other supported values are PUT, PATCH.",
+      "type": "string",
+      "default": "POST"
+    },
+    "keepalive": {
+      "title": "Keep alive",
+      "description": "Default 60000. An optional value in milliseconds that defines for how long an idle connection will live before being closed.",
+      "type": "number",
+      "default": 60000
+    },
+    "timeout": {
+      "title": "Time-out",
+      "description": "Default 10000. An optional timeout in milliseconds when sending data to the upstream server.",
+      "type": "number",
+      "default": 10000
+    }
+  },
+  "required": [
+    "http_endpoint"
+  ]
+}', 'JsonSchema', 'fa-exchange', 'HTTP Log Policy', null, false, false, true, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('FileLog', 'Append request and response data to a log file on disk', '{
+  "type": "object",
+  "title": "File Log",
+  "properties": {
+    "path": {
+      "title": "Path",
+      "description": "The file path of the output log file. The plugin will create the file if it doesn''t exist yet. Make sure Kong has write permissions to this file.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "path"
+  ]
+}', 'JsonSchema', 'fa-file-text-o', 'File Log Policy', null, false, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('Analytics', 'View API analytics in Mashape analytics - retention 1 day', '{
+  "type": "object",
+  "title": "File Log",
+  "properties": {
+    "service_token": {
+      "title": "Service token (API key)",
+      "type": "string",
+      "required": true
+    }
+  },
+  "required": [
+    "service_token"
+  ]
+}', 'JsonSchema', 'fa-line-chart', 'Mashape Analytics Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('IPRestriction', 'Whitelist or Blacklist IPs that can make requests', '{
+  "type": "object",
+  "title": "IP Restriction",
+  "properties": {
+    "blacklist": {
+        "type": "array",
+        "items":{
+               "type": "string",
+               "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
+                "description": "List of IPs or CIDR ranges to blacklist. You cannot set blacklist values if you have already whitelist values specified!",
+                "validationMessage":"IP or CIDR required"
+        }
+    },
+    "whitelist": {
+        "type": "array",
+        "items":{
+            "type": "string",
+            "pattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(\\d|[1-2]\\d|3[0-2]))?$",
+            "description": "List of IPs or CIDR ranges to whitelist. You cannot set whitelist values if you have already blacklist values specified.",
+            "validationMessage":"IP or CIDR required"
+        }
+    }
+  }
+}', 'JsonSchema', 'fa-table', 'IP Restriction Policy', null, true, true, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('JWTUp', 'Transforms authentication credentials to upstream certificated signed JWT. When policy is added in combination with JWT policy, JWT will be ignored.', '{
+  "type": "object",
+  "title": "JWT-Upstream",
+  "properties": {
+    "placeholder" :{}
+  },
+  "required": []
+}', 'JsonSchema', 'fa-certificate', 'JWT-Up Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('JWT', 'Enable the service to accept and validate Json Web Tokens towards the upstream API.', '{
+  "type": "object",
+  "title": "JWT Token",
+  "properties": {
+    "placeholder" :{}
+  },
+  "required": []
+}', 'JsonSchema', 'fa-certificate', 'JWT Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('JSONThreatProtection', 'Protect your API from JSON content-level attack attempts that use structures that overwhelm JSON Parsers.', '{
+  "type": "object",
+  "title": "JSON Threat Protection",
+  "properties": {
+    "source": {
+      "title": "Source",
+      "type": "string",
+      "pattern": "^request$|^response$|^message$",
+      "validationMessage": "Should be one of: request,response,message",
+      "description": "The sources that should be protected"
+    },
+    "container_depth": {
+      "title": "Container Depth",
+      "description": "Specifies the maximum allowed containment depth, where the containers are objects or arrays. For example, an array containing an object which contains an object would result in a containment depth of 3. If you do not specify this element, or if you specify a negative integer, the system does not enforce any limit.",
+      "type": "number",
+      "default": 0
+    },
+    "string_value_length": {
+      "title": "String Value Length",
+      "description": "Specifies the maximum length allowed for a string value. If you do not specify this element, or if you specify a negative integer, the system does not enforce a limit.",
+      "type": "number",
+      "default": 0
+    },
+    "array_element_count": {
+      "title": "Array Element Count",
+      "description": "Specifies the maximum number of elements allowed in an array. If you do not specify this element, or if you specify a negative integer, the system does not enforce a limit.",
+      "type": "number",
+      "default": 0
+    },
+    "object_entry_count": {
+      "title": "Object Entry Count",
+      "description": "Specifies the maximum number of entries allowed in an object. If you do not specify this element, or if you specify a negative integer, the system does not enforce any limit.",
+      "type": "number",
+      "default": 0
+    },
+    "object_entry_name_length": {
+      "title": "Object Entry Name Length",
+      "description": "Specifies the maximum string length allowed for a property name within an object. If you do not specify this element, or if you specify a negative integer, the system does not enforce any limit.",
+      "type": "number",
+      "default": 0
+    }
+  }
+}', 'JsonSchema', 'fa-shield', 'JSON Threat Protection', null, false, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('LDAPAuthentication', 'Add LDAP Bind Authentication to your APIs, with username and password protection.', '{
+  "type": "object",
+  "title": "LDAP Authentication",
+  "properties": {
+    "ldap_host": {
+      "title": "LDAP Host",
+      "description": "Host on which the LDAP server is running.",
+      "type": "string"
+    },
+    "ldap_port": {
+      "title": "LDAP Port",
+      "description": "TCP port where the LDAP server is listening.",
+      "type": "number",
+      "default": 636
+    },
+    "base_dn": {
+      "title": "Base DN",
+      "description": "Base DN as the starting point for the search.",
+      "type": "string"
+    },
+    "attribute": {
+      "title": "Attribute",
+      "description": "Attribute to be used to search the user.",
+      "type": "string"
+    },
+    "cache_ttl": {
+      "title": "Cache TTL",
+      "description": "Cache expiry time",
+      "type": "number",
+      "default": 60
+    },
+    "timeout": {
+      "title": "Timeout",
+      "description": "An optional timeout in milliseconds when waiting for connection with LDAP server.",
+      "type": "number",
+      "default": 10000
+    },
+    "keepalive": {
+      "title": "Keep Alive",
+      "description": "An optional value in milliseconds that defines for how long an idle connection to LDAP server will live before being closed.",
+      "type": "number",
+      "default": 60000
+    },
+    "verify_ldap_host": {
+      "title": "Verify LDAP Host",
+      "description": "Set it to true to authenticate LDAP server.",
+      "type": "boolean",
+      "default": false
+    },
+    "start_tls": {
+      "title": "Start TLS",
+      "description": "Set it to true to issue StartTLS (Transport Layer Security) extended operation over ldap connection.",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "ldap_host",
+    "cache_ttl",
+    "ldap_port",
+    "base_dn"
+  ]
+}', 'JsonSchema', 'fa-database', 'LDAP Authentication Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('OAuth2', 'Add an OAuth2 Authentication to your APIs', '{
+  "type": "object",
+  "title": "OAuth2",
+  "properties": {
+    "scopes": {
+      "type": "array",
+      "items": {
+          "type": "object",
+          "properties":{
+            "scope":{
+                "title": "Scope",
+                "type": "string",
+                "pattern": "^[a-z,A-Z]+$",
+                "description": "Provide the scope identifier that will be available to the end user (use only lowercase characters and no special characters)."
+            },
+            "scope_desc":{
+                "title": "Scope Description",
+                "type": "string",
+                "description": "Describes the scope that will be available to the end user."
+            }
+          }
+      }
+    },
+    "mandatory_scope": {
+      "title": "Mandatory scope",
+      "type": "boolean",
+      "func": "function",
+      "default": false,
+      "description": "An optional boolean value telling the plugin to require at least one scope to be authorized by the end user."
+    },
+    "token_expiration": {
+      "title": "Token expiration",
+      "type": "number",
+      "minimum": 0,
+      "description": "An optional integer value telling the plugin how long should a token last, after which the client will need to refresh the token. Set to 0 to disable the expiration."
+    },
+    "enable_authorization_code": {
+      "title": "Enable Authorization Code Grant",
+      "type": "boolean",
+      "default": true,
+      "description": "An optional boolean value to enable the three-legged Authorization Code flow (RFC 6742 Section 4.1)."
+    },
+    "enable_implicit_grant": {
+      "title": "Enable Implicit Grant",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value to enable the Implicit Grant flow which allows to provision a token as a result of the authorization process (RFC 6742 Section 4.2)."
+    },
+    "enable_client_credentials": {
+      "title": "Enable Client Credentials Grant",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value to enable the Client Credentials Grant flow (RFC 6742 Section 4.4)."
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "type": "boolean",
+      "default": false,
+      "description": "An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by Kong before proxying the request."
+    }
+  }
+}', 'JsonSchema', 'fa-sign-in', 'OAuth2 Policy', null, true, false, false, '[
+  "scopes",
+  "mandatory_scope",
+  "token_expiration",
+  "enable_authorization_code",
+  "enable_implicit_grant",
+  {
+    "type":"help",
+    "helpvalue":"<p class=\"text-justified text-warning xsmall\">WARNING: The Implicit Grant flow is necessary for try-out functionality in the marketplace, but also prohibits the usage of refresh tokens.</p>"
+  },
+  "enable_client_credentials",
+  "hide_credentials"
+]', null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('HAL', 'The HAL policy rewrites currie-values from hal/json bodies.', '{
+  "type": "object",
+  "title": "HAL Authentication",
+  "properties": {
+    "placeholder" :{}
+  },
+  "required": []
+}', 'JsonSchema', 'fa-paw', 'HAL Policy', null, true, false, false, null, null);
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('KeyAuthentication', 'Add Key Authentication to your APIs', '{
+  "type": "object",
+  "title": "Key Authentication",
+  "properties": {
+    "key_names": {
+      "title":"Key names",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description":"Describes a name where the plugin will look for a valid credential. The client must send the authentication key in one of the specified key names, and the plugin will try to read the credential from a header, the querystring, a form parameter (in this order).",
+        "default": "apikey"
+      }
+    },
+    "hide_credentials": {
+      "title": "Hide credentials",
+      "description":"An optional boolean value telling the plugin to hide the credential to the upstream API server. It will be removed by the gateway before proxying the request.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "key_names"
+  ]
+}', 'JsonSchema', 'fa-key', 'Key Authentication Policy', null, true, false, true, null, '{"key_names":["apikey"],"hide_credentials":false}');
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('CORS', 'Allow consumers to make requests from browsers to your APIs', '{
+  "type": "object",
+  "title": "CORS",
+  "properties": {
+    "methods": {
+      "type": "array",
+      "items": {
+        "title": "Methods",
+        "type": "string",
+        "pattern": "^POST$|^GET$|^HEAD$|^PUT$|^PATCH$|^DELETE$",
+        "validationMessage": "Should be one of: GET,HEAD,PUT,PATCH,POST,DELETE",
+        "description": "Value for the Access-Control-Allow-Methods header, expects a string (e.g. GET or POST). Defaults to the values GET,HEAD,PUT,PATCH,POST,DELETE."
+      }
+    },
+    "credentials": {
+      "title": "Credentials",
+      "description": "Flag to determine whether the Access-Control-Allow-Credentials header should be sent with true as the value.",
+      "type": "boolean",
+      "default": false
+    },
+      "headers": {
+        "type": "array",
+        "items": {
+          "title": "Headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Allow-Headers header (e.g. Origin, Authorization). Defaults to the value of the Access-Control-Request-Headers header."
+        }
+    },
+    "exposed_headers": {
+                "type": "array",
+        "items": {
+          "title": "Exposed headers",
+          "type": "string",
+          "description": "Value for the Access-Control-Expose-Headers header (e.g. Origin, Authorization). If not specified, no custom headers are exposed."
+        }
+    },
+    "origin": {
+      "title": "Origin",
+      "type": "string",
+      "default": "*",
+      "description": "Value for the Access-Control-Allow-Origin header, expects a String. Defaults to *."
+    },
+    "max_age": {
+      "title": "Max age",
+      "type": "number",
+      "description": "Indicated how long the results of the preflight request can be cached, in seconds.",
+      "default": 3600,
+      "minimum": 1
+    },
+    "preflight_continue": {
+      "title": "Preflight continue",
+      "type": "boolean",
+      "description": "A boolean value that instructs the plugin to proxy the OPTIONS preflight request to the upstream API. Defaults to false.",
+      "default": false
+    }
+  }
+}', 'JsonSchema', 'fa-code', 'CORS Policy', null, true, false, true, '[
+  "methods",
+  "credentials",
+  "headers",
+  {
+    "type": "help",
+    "helpvalue": "<p class=\"text-justified text-warning xsmall\">WARNING: When implementing a custom CORS policy we STRONGLY recommend including the following headers in order to ensure correct functioning of the API Gateway: \"Accept\",\"Accept-Version\",\"Content-Length\",\"Content-MD5\",\"Content-Type\",\"Date\",\"apikey\",\"Authorization\".</p>"
+  },
+  "exposed_headers",
+  "origin",
+  "max_age",
+  "preflight_continue"
+]', '{"methods":["HEAD","DELETE","GET","POST","PUT","PATCH"],"credentials":false,"exposed_headers":[],"max_age":3600.0,"preflight_continue":false,"headers":["Accept","Accept-Version","Content-Length","Content-MD5","Content-Type","Date","apikey","Authorization"]}');
+
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('ACL', 'Enable the service to work with an Access Control List', '{
+  "type": "object",
+  "title": "ACL",
+  "properties": {
+    "placeholder": {}
+  }
+}', 'JsonSchema', 'fa-users', 'ACL Policy', null, true, false, true, null, null);
+
+-- CONFIG
+
+INSERT INTO config(id, config_path) VALUES (7, '/opt/wildfly/standalone/configuration/application.conf');
+
+-- OPERATING MODES
+
+INSERT INTO operating_modes VALUES ('MAINTENANCE', false);
+
+INSERT INTO defaults (id, service_terms) VALUES ('DEV', 'This is a default terms & conditions
+====================================
+[![][t1t-logo]][Trust1Team-url]
+
+Kong is a scalable, open source API Layer *(also known as an API Gateway, or
+API Middleware)*. Kong was originally built at [Mashape][mashape-url] to
+secure, manage and extend over [15,000 APIs &
+Microservices](http://stackshare.io/mashape/how-mashape-manages-over-15000-apis-and-microservices)
+for its API Marketplace, which generates billions of requests per month.
+
+Backed by the battle-tested **NGINX** with a focus on high performance, Kong
+was made available as an open-source platform in 2015. Under active
+development, Kong is now used in production at hundreds of organizations from
+startups, to large enterprises and government departments.
+
+The JWT upstream plugin has been developed to provide a JWT towards upstream APIs - registered on Kong - without worrying about the authentication plugin used by a consumer.
+
+More information can be found on the [jwt-up wiki page][jwt-up-doc]
+
+[Website Trust1Team][Trust1Team-url]
+
+[Website Kong][kong-url]
+
+## Summary
+
+Only works from Kong 0.8.0.
+You can not use the JWT-up plugin in combination with the JWT plugin. This is because the JWT-up by default validates HS256 incoming JWT and implicitly generates a RS256 token for upstream APIs.
+The JWT-up can be used in order to have 2 types of consumers:
+- consumer applications, using a key-auth policy to reqeust a service
+- end-user consumers, using a consumer application, in order to request a service
+
+Both authentication means can be different:
+- consumer applications: uses only key-auth
+- end-user consumer: uses JWT received after successful login
+
+Both will result - after applying the JWT-up - in a RS256 JWT - enriched - send to upstream API.
+
+## Roadmap
+
+Update to Kong 0.9.0
+At the moment we need to provide the certificates hardcodes in the fixtures files.
+This is due to a cert upload issue we have using Kong 0.8.0
+
+## Development
+
+TBD
+
+## License
+
+```
+This file is part of the Trust1Team(R) sarl project.
+ Copyright (c) 2014 Trust1Team sarl
+ Authors: Trust1Team development
+
+
+This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License version 3
+ as published by the Free Software Foundation with the addition of the
+ following permission added to Section 15 as permitted in Section 7(a):
+ FOR ANY PART OF THE COVERED WORK IN WHICH THE COPYRIGHT IS OWNED BY Trust1T,
+ Trust1T DISCLAIMS THE WARRANTY OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
+
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ or FITNESS FOR A PARTICULAR PURPOSE.
+ See the GNU Affero General Public License for more details.
+ You should have received a copy of the GNU Affero General Public License
+ along with this program; if not, see http://www.gnu.org/licenses or write to
+ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA, 02110-1301 USA.
+
+ The interactive user interfaces in modified source and object code versions
+ of this program must display Appropriate Legal Notices, as required under
+ Section 5 of the GNU Affero General Public License.
+
+
+You can be released from the requirements of the Affero General Public License
+ by purchasing
+ a commercial license. Buying such a license is mandatory if you wish to develop commercial activities involving the Trust1T software without
+ disclosing the source code of your own applications.
+ Examples of such activities include: offering paid services to customers as an ASP,
+ Signing PDFs on the fly in a web application, shipping OCS with a closed
+ source product...
+Irrespective of your choice of license, the T1T logo as depicted below may not be removed from this file, or from any software or other product or service to which it is applied, without the express prior written permission of Trust1Team sarl. The T1T logo is an EU Registered Trademark (n° 12943131).
+```
+
+[kong-url]: https://getkong.org/
+[Trust1Team-url]: http://trust1team.com
+[t1t-logo]: http://imgur.com/lukAaxx.png
+[jwt-up-doc]: https://trust1t.atlassian.net/wiki/pages/viewpage.action?pageId=74547210
+[mashape-url]: https://www.mashape.com/');
+
+-- GATEWAYS - Insert your PEM encoded private key in the insert statement
+
+INSERT INTO gateways (id, configuration, endpoint, created_by, created_on, description, modified_by, modified_on, name, type, jwt_exp_time, oauth_exp_time, jwt_pub_key, jwt_pub_key_endpoint, jwt_priv_key) VALUES ('KongGateway', '{"endpoint":"http://apim.t1t.be:8001","username":"","password":""}', 'https://apim.t1t.be', '', CURRENT_DATE, 'This is the gateway.', 'admin', CURRENT_DATE, 'Default Kong Gateway', 'REST', 7200, 7200, '-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx9fimjArPge6RrCFJp5H
+8BdTzbrWVKsf6nlgCsVK0VnCy+i1CTVtG0d4KLHOxklRAyHGMs7gy6/E73L3B/4Z
+zCYjywyikVK6RCDMWtOObBToG6D3NPC7QoLcr5dS7HGULI70/cqWMG7wqvzMebH5
+YPtjO9cI7m2idKFhAWAHE4QteXNiNhw4X0kX+QeeraGLjPvGMxP3wNFMdajCbP24
+8HPZRlDk9bSr4G/PYscGV7CUOdcHHBE3/dfPrt7GJg/k98zGBdHRoEtKBcAY/cxW
+E8agMDNt2b/ttoTf6/SNB6DzeG3Xloypixg4zpva134UnrqOnoxdqJi8Ows+w8Wl
+HQIDAQAB
+-----END PUBLIC KEY-----', '/keys/pub', 'PLACE_PRIVATE_KEY_HERE');
+
+INSERT INTO users (username, email, full_name, joined_on, admin) VALUES ('admin', 'admin@example.org', 'Admin', CURRENT_DATE, true);
+INSERT INTO users (username, email, full_name, joined_on, admin) VALUES ('michallis@trust1team.com', 'michallis@trust1team.com', 'Michallis Pashidis', CURRENT_DATE, true);
+INSERT INTO users (username, email, full_name, joined_on, admin) VALUES ('maarten.somers@trust1team.com', 'maarten.somers@trust1team.com', 'Maarten Somers', CURRENT_DATE, true);
+INSERT INTO users (username, email, full_name, joined_on, admin) VALUES ('jonas@trust1team.com', 'jonas@trust1team.com', 'Jonas Vekeman', CURRENT_DATE, true);
+INSERT INTO users (username, email, full_name, joined_on, admin) VALUES ('guillaume@trust1team.com', 'guillaume@trust1team.com', 'Guillaume Vandecasteele', CURRENT_DATE, true);
+
+INSERT INTO organizations (id,description,name,created_by,created_on,modified_by,modified_on) VALUES ('trust1team','Trust1Team','Trust1Team','admin',CURRENT_DATE,'admin',CURRENT_DATE);
+INSERT INTO memberships (id,created_on, org_id, role_id, user_id) VALUES (999,CURRENT_DATE,'trust1team','Owner','admin');
+
+INSERT INTO managed_applications (id, name, version, gateway_id, app_id, type, prefix, gateway_username, activated, restricted) VALUES (901, 'External Marketplace', 'v1', null, 'marketplace', 'ExternalMarketplace', 'ext', null, true, false);
+INSERT INTO managed_applications (id, name, version, gateway_id, app_id, type, prefix, gateway_username, activated, restricted) VALUES (902, 'Internal Marketplace', 'v1', null, 'marketplace', 'InternalMarketplace', 'int', null, true, false);
+INSERT INTO managed_applications (id, name, version, gateway_id, app_id, type, prefix, gateway_username, activated, restricted) VALUES (903, 'Publisher', 'v1', null, 'publisher', 'Publisher', 'pub', null, true, false);
+INSERT INTO managed_applications (id, name, version, gateway_id, app_id, type, prefix, gateway_username, activated, restricted) VALUES (904, 'consent_app_nodejs', 'v1', null, 'consent_app_nodejs', 'Consent', 'acpaas', null, true, false);
+INSERT INTO managed_applications (id, name, version, gateway_id, app_id, type, prefix, gateway_username, activated, restricted) VALUES (905, 'Admin Application', 'v1', null, 'adminapp', 'Admin', 'admin', null, true, false);
+
+INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (901, '***REMOVED***');
+INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (902, '***REMOVED***');
+INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (903, '***REMOVED***');
+INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (904, '229e2ea08ba94919c9d221cdf3be1124');
+
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('MEMBERSHIP_REQUEST', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>The following user requests membership for your organization: {orgFriendlyName} ({orgName})</p><p>- Username: {userId}</p><p>- Email : {userMail}</p><p>You can add the user in the Members-tab of your organization.</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - request membership for {orgFriendlyName} ({orgName})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('MEMBERSHIP_APPROVE', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>Your membership request for {orgFriendlyName} ({orgName}) has been granted.</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - approve membership for {orgFriendlyName} ({orgName})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('MEMBERSHIP_REJECT', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>Your membership request for {orgFriendlyName} ({orgName}) has been rejected.</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - reject membership for {orgFriendlyName} ({orgName})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('MEMBERSHIP_GRANTED', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>You have been granted for {orgFriendlyName} ({orgName}).</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - granted membership for {orgFriendlyName} ({orgName})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('MEMBERSHIP_NEW', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>You have been invited to join {orgFriendlyName} ({orgName}).</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - Welcome to {orgFriendlyName} ({orgName})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('MEMBERSHIP_DELETED', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>Your membership has been deleted for {orgFriendlyName} ({orgName}).</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - Membership deleted for {orgFriendlyName} ({orgName})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('MEMBERSHIP_UPDATE_ROLE', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>Your role for {orgFriendlyName} ({orgName}) is updated:</p><p>- {role} </p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - Updated role ({role}) for {orgFriendlyName} ({orgName})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('MEMBERSHIP_ADMIN_NEW', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>You have been added as administrator for the API Engine.</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - Admin privileges assigned', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('MEMBERSHIP_ADMIN_DELETED', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>Your administrator privileges have been revoked.</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - Admin privileges revoked', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('ORGANIZATION_TRANSFER', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>You have been assigned owner for {orgFriendlyName} ({orgName}).</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - Transfer ownership for {orgFriendlyName} ({orgName})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('CONTRACT_REQUEST', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h3>Hi,</h3><p>There is a contract request from {userId} ({userMail}) pending for:</p><p><strong>Application</strong></p><p>{appName} with version {appVersion} from {appOrgName}</p><p><strong>Service</strong>&nbsp;</p><p>{serviceName} with version {serviceVersion} from {serviceOrgName}</p><p><strong>Contract Plan</strong></p><p>{planName} with version {planVersion} </p><p>&nbsp;</p><p>You have privileges to ''accept'' or ''reject'' the request in the API Publisher.</p><p>When the contract is ''accepted'', the contract will be activated for use. </p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - Contract request for {serviceName}', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('CONTRACT_APPROVE', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h3>Hi,</h3><p>The following contract has been ''approved'' by {userId} ({userMail}):</p><p><strong>Application</strong></p><p>{appName} ({appVersion}) from {appOrgName}</p><p><strong>Service</strong>&nbsp;</p><p>{serviceName} ({serviceVersion}) from {serviceOrgName}</p><p><strong>Contract Plan</strong></p><p>{planName}</p><p>&nbsp;</p><p>The issued keys  for your application can be retrieved in the API Store; they have been activated to consumer the ''approved'' service.</p><p>&nbsp;</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - Contract approved for {serviceName}', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('CONTRACT_REJECT', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h3>Hi,</h3><p>The following contract has been ''rejected'' by {userId} ({userMail}):</p><p><strong>Application</strong></p><p>{appName} ({appVersion}) from {appOrgName}</p><p><strong>Service</strong>&nbsp;</p><p>{serviceName} ({serviceVersion}) from {serviceOrgName}</p><p><strong>Contract Plan</strong></p><p>{planName}</p><p>&nbsp;</p><p>The requested contract has been removed from your applications in the API Store.</p><p>&nbsp;</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine ({environment}) - Contract rejected for {serviceName}', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('STATUS', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>API Engine</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><h2>Hi,</h2><p>API Engine status information has not yet been implemented.</p></div></td></tr><tr><td class="container" bgcolor="#FFFFFF"><div class="content"><p>Greetings from the APIe-Team.</p></div></td></tr></table></body></html>', 'API Engine - status mail ({environment})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+INSERT INTO mail_templates (topic, content, subject, created_on, updated_on) VALUES ('TEST', '<!doctype html><html><head><meta name="viewport" content="width=device-width"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Signbox - Template</title><style>*{font-family:"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;font-size:100%;line-height:1.6em;margin:0;padding:0}img{max-width:600px;width:100%}body{-webkit-font-smoothing:antialiased;height:100%;-webkit-text-size-adjust:none;width:100% !important}a{color:#348eda}.btn-primary{Margin-bottom:10px;width:auto !important}.btn-primary td{background-color:#348eda;border-radius:25px;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-size:14px;text-align:center;vertical-align:top}.btn-primary td a{background-color:#348eda;border-radius:25px;border-width:10px 20px;border-style:solid;border-color:#348eda;display:inline-block;color:#fff;cursor:pointer;font-weight:bold;line-height:2;text-decoration:none}.last{margin-bottom:0}.first{margin-top:0}.padding{padding:10px 0}table.body-wrap{padding:20px;width:100%}table.body-wrap .container{border:1px solid #f0f0f0}table.footer-wrap{clear:both !important;width:100%}.footer-wrap .container p{color:#666;font-size:12px}table.footer-wrap a{color:#999}h1,h2,h3{color:#111;font-family:"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;font-weight:200;line-height:1.2em;margin:40px 0 10px}h1{font-size:36px}h2{font-size:28px}h3{font-size:22px}p,ul,ol{font-size:14px;font-weight:normal;margin-bottom:10px}ul li, ol li{margin-left:5px;list-style-position:inside}.container{clear:both !important;display:block !important;Margin:0 auto !important;max-width:600px !important}.body-wrap .container{padding:20px}.content{display:block;margin:0 auto;max-width:600px}.content table{width:100%}</style></head><body bgcolor="#f6f6f6"><table class="body-wrap" bgcolor="#f6f6f6"><tr><td></td><td class="container" bgcolor="#FFFFFF"><div class="content"><table><tr><td><h2>Hi,</h2><p>This is a test message - no further action required.</p><table class="btn-primary" cellpadding="0" cellspacing="0" border="0"><tr> </tr></table></td></tr></table></div></td><td></td></tr></table></body></html>', 'API Engine server restart ({environment})', '2016-07-28 00:00:00.000000', '2016-07-28 00:00:00.000000');
+
+-- Replace the client secret with actual encrypted value
+INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_client, default_idp) VALUES ('Keycloak','https://devidp.t1t.be/auth', 'master', 'admin-cli', 'INSERT_ENCRYPTED_SECRET_HERE', 't1g', 'DefaultClient', TRUE);
+
+-- Replace the passwords with their actual encrypted values before inserting
+
+INSERT INTO keystores (kid, name, path, encrypted_keystore_password, encrypted_key_password, private_key_alias, default_keystore) VALUES ('INSERT_KEYSTORE_KID_FROM_IDP_HERE', 'T1T-IDP-JKS', '/usr/local/keystores/idp_kc_store.jks', 'INSERT_ENCRYPTED_KEYSTORE_PASSWORD_HERE', 'INSERT_ENCRYPTED_PRIVATE_KEY_PASSWORD_HERE', 'idp.t1t.be', TRUE);
+INSERT INTO mail_providers (id, host, port, auth, mail_from, username, encrypted_password, default_mail_provider) VALUES (700, 'smtp.mailgun.org', 2525, TRUE, 'postmaster@saas.t1t.be', 'postmaster@saas.t1t.be', 'INSERT_ENCRYPTED_PASSWORD_HERE', TRUE);
