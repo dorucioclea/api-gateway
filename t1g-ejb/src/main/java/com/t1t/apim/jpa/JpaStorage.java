@@ -3022,4 +3022,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return null;
         }
     }
+
+    @Override
+    public String getPolicyDefinitionDefaultConfig(String policyDefId) throws StorageException {
+        try {
+            return (String) getActiveEntityManager()
+                    .createQuery("SELECT p.defaultConfig FROM PolicyDefinitionBean p WHERE p.id = :polDefId")
+                    .setParameter("polDefId", policyDefId).getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
+    }
 }

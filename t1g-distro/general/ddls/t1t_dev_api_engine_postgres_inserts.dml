@@ -736,6 +736,29 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
   }
 }', 'JsonSchema', 'fa-users', 'ACL Policy', null, true, false, true, null, null);
 
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('DataDog', 'Log API metrics like request count, request size, response status and latency to the local Datadog agent.', '{
+  "type": "object",
+  "title": "DataDog",
+  "properties": {
+    "placeholder": {}
+  }
+}', 'JsonSchema', 'fa-line-chart', 'DataDog', null, true, false, false, null, '{
+  "host": "localhost",
+  "tags": {},
+  "timeout": 10000,
+  "metrics": [
+    "request_count",
+    "latency",
+    "request_size",
+    "status_count",
+    "response_size",
+    "unique_users",
+    "request_per_user",
+    "upstream_latency"
+  ],
+  "port": 8125
+}');
+
 -- CONFIG
 
 INSERT INTO config(id, config_path) VALUES (7, '/opt/wildfly/standalone/configuration/application.conf');

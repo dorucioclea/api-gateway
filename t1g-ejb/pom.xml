@@ -486,6 +486,7 @@
                         <sourcePath>${basedir}/src/main/resources/schema/DataDogMetricsSeries.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/DataDogMetricsQuery.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseDTO.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginDataDogRequest.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>
