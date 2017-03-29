@@ -3,13 +3,14 @@
   "id": "/",
   "type": "object",
   "properties": {
-    "data": {
-      "id": "metricsResponseStats",
+    "metrics": {
       "type": "array",
       "items": {
-        "$ref":"MetricsResponseStats.json"
+        "type": "string"
       }
+    },
+    "from": {
+      "type": "number"
     }
   }
 }
-

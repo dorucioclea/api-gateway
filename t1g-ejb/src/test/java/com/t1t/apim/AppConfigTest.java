@@ -105,18 +105,18 @@ public class AppConfigTest {
     }
 
     @Test
-    public void testGetMetricsScheme() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getMetricsScheme()));
+    public void testGetDataDogMetricsApiKey() throws Exception {
+        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsApiKey()));
     }
 
     @Test
-    public void testGetMetricsURI() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getMetricsURI()));
+    public void testGetDataDogMetricsURI() throws Exception {
+        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsURI()));
     }
 
     @Test
-    public void testGetMetricsPort() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getMetricsURI()));
+    public void testGetDataDogMetricsApplicationKey() throws Exception {
+        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsURI()));
     }
 
     @Test

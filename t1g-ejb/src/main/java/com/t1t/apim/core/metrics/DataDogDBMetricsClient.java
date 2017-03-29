@@ -1,5 +1,6 @@
 package com.t1t.apim.core.metrics;
 
+import com.t1t.kong.model.DataDogAvailableMetrics;
 import com.t1t.kong.model.DataDogMetricsQuery;
 import retrofit.http.GET;
 import retrofit.http.Query;
@@ -15,9 +16,10 @@ public interface DataDogDBMetricsClient {
     //https://app.datadoghq.com/api/v1/query?api_key=***REMOVED***&application_key=***REMOVED***&query=avg:kong.bza_citygis_v1.request.count{host:rasu094.rte.antwerpen.local}.as_count()&from=1473160678&to=1473247056
 
     @GET("/api/v1/query")
-    DataDogMetricsQuery queryMeterics(@Query("api_key") String apiKey,
-                                      @Query("application_key") String appKey,
-                                      @Query("from") String from,
+    DataDogMetricsQuery queryMeterics(@Query("from") String from,
                                       @Query("to") String to,
                                       @Query("query") String query);
+
+    @GET("/api/v1/metrics")
+    DataDogAvailableMetrics getAvailableQueries(@Query("from") String from);
 }

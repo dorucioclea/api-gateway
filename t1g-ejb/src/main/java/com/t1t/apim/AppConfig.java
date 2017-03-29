@@ -86,9 +86,6 @@ public class AppConfig implements Serializable {
                 _LOG.info("IDP Not Before Delay: {}", getIDPNotBeforeDelay());
                 _LOG.info("REST resource security: {}", getRestResourceSecurity());
                 _LOG.info("REST AUTH resource security: {}", getRestAuthResourceSecurity());
-                _LOG.info("Metrics schema: {}", getMetricsScheme());
-                _LOG.info("Metrics URI: {}", getMetricsURI());
-                _LOG.info("Metrics port: {}", getMetricsPort());
                 _LOG.info("Default user organization: {}", getDefaultOrganization());
                 _LOG.info("Default user roles: {}", getDefaultUserRoles());
                 _LOG.info("Consent page: {}", getOAuthConsentURI());
@@ -129,9 +126,9 @@ public class AppConfig implements Serializable {
     public String getIDPOAuthClientId(){return config.getString(IConfig.IDP_OAUTH_CLIENT_ID);}
     public String getIDPOAuthClientSecret(){return config.getString(IConfig.IDP_OAUTH_CLIENT_SECRET);}
     public Boolean getIDPSCIMActivation(){return config.getBoolean(IConfig.IDP_SCIM_ACTIVATE);}
-    public String getMetricsScheme(){return config.getString(IConfig.METRICS_SCHEME);}
-    public String getMetricsURI(){return config.getString(IConfig.METRICS_DNS);}
-    public String getMetricsPort(){return config.getString(IConfig.METRICS_PORT);}
+    public String getDataDogMetricsApiKey(){return config.getString(IConfig.DATADOG_METRICS_API_KEY);}
+    public String getDataDogMetricsURI(){return config.getString(IConfig.DATADOG_METRICS_URI);}
+    public String getDataDogMetricsApplicationKey(){return config.getString(IConfig.DATADOG_METRICS_APPLICATION_KEY);}
     public String getDefaultOrganization(){return config.getString(IConfig.DEFAULT_USER_ORGANIZATION);}
     public String getDefaultUserRoles(){return config.getString(IConfig.DEFAULT_USER_ROLES_FOR_DEFAULT_ORG);}
     public String getOAuthConsentURI(){return config.getString(IConfig.CONSENT_URI);}

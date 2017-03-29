@@ -1,11 +1,9 @@
 package com.t1t.apim.core.metrics;
 
-import com.t1t.apim.beans.metrics.HistogramIntervalType;
-import com.t1t.apim.beans.metrics.ServiceMarketInfo;
-import com.t1t.kong.model.MetricsConsumerUsageList;
-import com.t1t.kong.model.MetricsResponseStatsList;
-import com.t1t.kong.model.MetricsResponseSummaryList;
-import com.t1t.kong.model.MetricsUsageList;
+import com.t1t.apim.beans.metrics.AppUsageBean;
+import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
+import com.t1t.apim.beans.metrics.ServiceUsageBean;
+import com.t1t.apim.beans.services.ServiceVersionBean;
 import org.joda.time.DateTime;
 
 /**
@@ -20,46 +18,13 @@ import org.joda.time.DateTime;
 public interface MetricsSPI {
 
     /**
-     * Query the metrics store for the total # of requests made to the service
-     * per time period within the date range.  This will return an array with one
-     * entry per bucket in the requested interval, even if the bucket has zero
-     * results.  So, for example, if the request is for the last 90 days with an
-     * interval of 'day', the result will be an array with 90 entries, each entry
-     * with a label and a value >= 0.
-     *
+     * Get all available metrics for a given service
      * @param organizationId
      * @param serviceId
      * @param version
-     * @param interval
-     * @param from
-     * @param to
+     * @return
      */
-    MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to);
-
-    /**
-     * Query the metrics store for a histogram of response statistics, including total
-     * number of responses, # of error responses,
-     *
-     * @param organizationId
-     * @param serviceId
-     * @param version
-     * @param interval
-     * @param from
-     * @param to
-     */
-    MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to);
-
-    /**
-     * Query the metrics store for response type stats (total, errors, failures) for a given
-     * service over a specified time range.  Returns a total summary of stats.
-     *
-     * @param organizationId
-     * @param serviceId
-     * @param version
-     * @param from
-     * @param to
-     */
-    MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to);
+    ServiceUsageBean getServiceUsage(ServiceVersionBean service);
 
     /**
      * Query the metrics store for # of requests made to a service broken
@@ -71,13 +36,13 @@ public interface MetricsSPI {
      * @param from
      * @param to
      */
-    MetricsConsumerUsageList getAppUsageForService(String organizationId, String applicationId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId);
+    AppUsageBean getAppUsageForService(ServiceVersionBean service, String consumerId, DateTime from, DateTime to);
 
     /**
      * Provides the service marketplace information.
      * <ul>
      *     <li>Uptime percentage</li>
-     *     <li>Amount of developers</li>
+     *     <li>Amount of distinct users</li>
      *     <li>Amount of followers</li>
      * </ul>
      * @param organizationId
@@ -85,5 +50,5 @@ public interface MetricsSPI {
      * @param version
      * @return
      */
-    ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version);
+    ServiceMarketInfoBean getServiceMarketInfo(ServiceVersionBean service);
 }

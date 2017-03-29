@@ -14,12 +14,16 @@ public abstract class AbstractHystrixMetricsCommand<R> extends HystrixCommand<R>
         super(group, executionIsolationThreadTimeoutInMilliseconds);
     }
 
-    public AbstractHystrixMetricsCommand<R> setSpi(MetricsSPI client) {
+    public AbstractHystrixMetricsCommand<R> withSpi(MetricsSPI client) {
         this.spi = client;
         return this;
     }
 
     public MetricsSPI getSpi() {
         return spi;
+    }
+
+    public void setSpi(MetricsSPI spi) {
+        this.spi = spi;
     }
 }

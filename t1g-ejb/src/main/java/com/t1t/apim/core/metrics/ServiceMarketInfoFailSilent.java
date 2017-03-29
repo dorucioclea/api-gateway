@@ -1,34 +1,31 @@
 package com.t1t.apim.core.metrics;
 
 import com.netflix.hystrix.HystrixCommandGroupKey;
-import com.t1t.apim.beans.metrics.ServiceMarketInfo;
+import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
+import com.t1t.apim.beans.services.ServiceVersionBean;
 
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-public class ServiceMarketInfoFailSilent extends AbstractHystrixMetricsCommand<ServiceMarketInfo> {
+public class ServiceMarketInfoFailSilent extends AbstractHystrixMetricsCommand<ServiceMarketInfoBean> {
 
-    private final String organizationId;
-    private final String serviceId;
-    private final String version;
+    private final ServiceVersionBean service;
 
 
-    public ServiceMarketInfoFailSilent(String organizationId, String serviceId, String version, Integer timeout) {
+    public ServiceMarketInfoFailSilent(ServiceVersionBean service, Integer timeout) {
         super(HystrixCommandGroupKey.Factory.asKey("ServiceMarketInfo"), timeout != null ? timeout : 200);
 
-        this.organizationId = organizationId;
-        this.serviceId = serviceId;
-        this.version = version;
+        this.service = service;
     }
 
     @Override
-    protected ServiceMarketInfo run() {
-        return this.getSpi().getServiceMarketInfo(organizationId, serviceId, version);
+    protected ServiceMarketInfoBean run() {
+        return this.getSpi().getServiceMarketInfo(service);
     }
 
     @Override
-    protected ServiceMarketInfo getFallback() {
+    protected ServiceMarketInfoBean getFallback() {
         return null;
     }
 }

@@ -8,7 +8,6 @@ import com.t1t.apim.beans.policies.PolicyType;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
-import com.t1t.apim.exceptions.MaintenanceException;
 import com.t1t.apim.exceptions.PolicyDefinitionInvalidException;
 import com.t1t.apim.gateway.dto.Policy;
 import com.t1t.apim.gateway.dto.exceptions.PolicyViolationException;

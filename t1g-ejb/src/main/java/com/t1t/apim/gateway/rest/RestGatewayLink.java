@@ -42,7 +42,6 @@ public class RestGatewayLink implements IGatewayLink {
     @SuppressWarnings("unused")
     private GatewayBean gateway;
     private KongClient httpClient;
-    private String metricsURI;
     private GatewayClient gatewayClient;
     private RestGatewayConfigBean config;
     private AppConfig appConfig;
@@ -54,11 +53,10 @@ public class RestGatewayLink implements IGatewayLink {
      *
      * @param gateway the gateway
      */
-    public RestGatewayLink(final GatewayBean gateway, final IStorage storage, final String metricsURI, final AppConfig appConfig, final GatewayValidation gatewayValidation) {
+    public RestGatewayLink(final GatewayBean gateway, final IStorage storage, final AppConfig appConfig, final GatewayValidation gatewayValidation) {
         try {
             this.gateway = gateway;
             this.storage = storage;
-            this.metricsURI = metricsURI;
             this.appConfig = appConfig;
             String cfg = gateway.getConfiguration();
             setConfig((RestGatewayConfigBean) mapper.reader(RestGatewayConfigBean.class).readValue(cfg));
@@ -327,7 +325,7 @@ public class RestGatewayLink implements IGatewayLink {
      * @return a newly created rest gateway client
      */
     private GatewayClient createClient() {
-        return new GatewayClient(httpClient, gateway, storage, metricsURI, appConfig, gatewayValidation);
+        return new GatewayClient(httpClient, gateway, storage, appConfig, gatewayValidation);
     }
 
     /**

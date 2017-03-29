@@ -1,12 +1,17 @@
 package com.t1t.apim.beans.metrics;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.io.Serializable;
+
 /**
  * Created by michallispashidis on 23/09/15.
  */
-public class ServiceMarketInfo {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ServiceMarketInfoBean implements Serializable {
     private int uptime;
     private int followers;
-    private int developers;
+    private int distinctUsers;
 
     public int getUptime() {
         return uptime;
@@ -24,12 +29,12 @@ public class ServiceMarketInfo {
         this.followers = followers;
     }
 
-    public int getDevelopers() {
-        return developers;
+    public int getDistinctUsers() {
+        return distinctUsers;
     }
 
-    public void setDevelopers(int developers) {
-        this.developers = developers;
+    public void setDistinctUsers(int distinctUsers) {
+        this.distinctUsers = distinctUsers;
     }
 
     @Override
@@ -37,7 +42,7 @@ public class ServiceMarketInfo {
         return "ServiCeMarketInfo{" +
                 "uptime=" + uptime +
                 ", followers=" + followers +
-                ", developers=" + developers +
+                ", distinctUsers=" + distinctUsers +
                 '}';
     }
 }

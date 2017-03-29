@@ -1,12 +1,10 @@
 package com.t1t.apim.core.metrics;
 
 import com.t1t.apim.AppConfig;
-import com.t1t.apim.beans.metrics.HistogramIntervalType;
-import com.t1t.apim.beans.metrics.ServiceMarketInfo;
-import com.t1t.kong.model.MetricsConsumerUsageList;
-import com.t1t.kong.model.MetricsResponseStatsList;
-import com.t1t.kong.model.MetricsResponseSummaryList;
-import com.t1t.kong.model.MetricsUsageList;
+import com.t1t.apim.beans.metrics.AppUsageBean;
+import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
+import com.t1t.apim.beans.metrics.ServiceUsageBean;
+import com.t1t.apim.beans.services.ServiceVersionBean;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,34 +30,27 @@ public class MetricsService {
     @Inject
     private AppConfig appConfig;
 
-    public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        return getReturnValue(new MetricsUsageListFailSilent(organizationId, serviceId, version, interval, from, to, appConfig.getHystrixMetricsTimeout()));
+    public ServiceUsageBean getServiceUsage(ServiceVersionBean service, DateTime from, DateTime to) {
+        return getReturnValue(new ServiceUsageFailSilent(service, from, to, appConfig.getHystrixMetricsTimeout()), service);
     }
 
-    public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, DateTime from, DateTime to) {
-        return getReturnValue(new MetricsResponseStatsListFailSilent(organizationId, serviceId, version, interval, from, to, appConfig.getHystrixMetricsTimeout()));
-    }
-
-    public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, DateTime from, DateTime to) {
-        return getReturnValue(new MetricsResponseSummaryFailSilent(organizationId, serviceId, version, from, to, appConfig.getHystrixMetricsTimeout()));
-    }
-
-    public MetricsConsumerUsageList getAppUsageForService(String organizationId, String applicationId, String version, HistogramIntervalType interval, DateTime from, DateTime to, String consumerId) {
-        return getReturnValue(new MetricsConsumerUsageFailSilent(organizationId, applicationId, version, interval, from, to, consumerId, appConfig.getHystrixMetricsTimeout()));
+    public AppUsageBean getAppUsage(ServiceVersionBean service, String consumerId, DateTime from, DateTime to) {
+        return getReturnValue(new AppUsageBeanFailSilent(service, consumerId, from, to, appConfig.getHystrixMetricsTimeout()), service);
     }
     
-    public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) {
-        return getReturnValue(new ServiceMarketInfoFailSilent(organizationId, serviceId, version, appConfig.getHystrixMetricsTimeout()));
+    public ServiceMarketInfoBean getServiceMarketInfo(ServiceVersionBean service) {
+        return getReturnValue(new ServiceMarketInfoFailSilent(service, appConfig.getHystrixMetricsTimeout()), service);
     }
 
-    private <T> T getReturnValue(AbstractHystrixMetricsCommand<T> command) {
+    private <T> T getReturnValue(AbstractHystrixMetricsCommand<T> command, ServiceVersionBean service) {
         T rval = null;
         try {
             Iterator<MetricsSPI> metrics = loader.iterator();
             while (rval == null && metrics.hasNext()) {
-                rval = command.setSpi(metrics.next()).execute();
+                rval = command.withSpi(metrics.next()).execute();
             }
-        } catch (ServiceConfigurationError serviceError) {
+        }
+        catch (ServiceConfigurationError serviceError) {
             rval = null;
             serviceError.printStackTrace();
 

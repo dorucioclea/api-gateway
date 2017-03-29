@@ -34,9 +34,10 @@ import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.members.MemberBean;
 import com.t1t.apim.beans.members.MemberRoleBean;
+import com.t1t.apim.beans.metrics.AppUsageBean;
 import com.t1t.apim.beans.metrics.AppUsagePerServiceBean;
-import com.t1t.apim.beans.metrics.HistogramIntervalType;
-import com.t1t.apim.beans.metrics.ServiceMarketInfo;
+import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
+import com.t1t.apim.beans.metrics.ServiceUsageBean;
 import com.t1t.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
@@ -1501,12 +1502,12 @@ public class OrganizationFacade {
         }
     }
 
-    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
+    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
-        AppUsagePerServiceBean appUsage = new AppUsagePerServiceBean();
-        Map<String, MetricsConsumerUsageList> data = new HashMap<>();
+        AppUsagePerServiceBean appUsagePerService = new AppUsagePerServiceBean();
+        Map<String, AppUsageBean> data = new HashMap<>();
         List<ContractSummaryBean> appContracts = null;
         //get App contracts
         try {
@@ -1518,79 +1519,41 @@ public class OrganizationFacade {
             if (consumer != null && !StringUtils.isEmpty(consumer.getCustomId())) {
                 String consumerId = consumer.getId();
                 for (ContractSummaryBean app : appContracts) {
-                    MetricsConsumerUsageList usageList = metrics.getAppUsageForService(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion(), interval, from, to, consumerId);
-                    if (usageList != null) {
-                        data.put(generateServiceUniqueName(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()), usageList);
+                    AppUsageBean appUsage = metrics.getAppUsage(storage.getServiceVersion(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()), consumerId, from, to);
+                    if (appUsage != null) {
+                        data.put(generateServiceUniqueName(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()), appUsage);
                     } else {
                         throw ExceptionFactory.metricsUnavailableException();
                     }
-
                 }
             }
         } catch (StorageException e) {
             throw new ApplicationNotFoundException(e.getMessage());
         }
-        appUsage.setData(data);
-        return appUsage;
+        appUsagePerService.setData(data);
+        return appUsagePerService;
     }
 
-    public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
+    public ServiceUsageBean getServiceUsage(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
-        HistogramIntervalType intrval = interval;
-        if (intrval == null) {
-            intrval = HistogramIntervalType.day;
-        }
         validateMetricRange(from, to);
-        //validateTimeSeriesMetric(from, to, intrval);
-        MetricsUsageList usageList = metrics.getUsage(organizationId, serviceId, version, intrval, from, to);
-        if (usageList != null) {
-            return usageList;
+        ServiceUsageBean serviceUsage = metrics.getServiceUsage(getServiceVersion(organizationId, serviceId, version), from, to);
+        if (serviceUsage != null) {
+            return serviceUsage;
         } else {
             throw ExceptionFactory.metricsUnavailableException();
         }
 
     }
 
-    public ServiceMarketInfo getMarketInfo(String organizationId, String serviceId, String version) {
-        ServiceMarketInfo marketInfo = metrics.getServiceMarketInfo(organizationId, serviceId, version);
+    public ServiceMarketInfoBean getMarketInfo(String organizationId, String serviceId, String version) {
+        ServiceMarketInfoBean marketInfo = metrics.getServiceMarketInfo(getServiceVersion(organizationId, serviceId, version));
         if (marketInfo != null) {
             return marketInfo;
         } else {
             throw ExceptionFactory.metricsUnavailableException();
         }
-
-    }
-
-    public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        HistogramIntervalType intrval = interval;
-        if (intrval == null) {
-            intrval = HistogramIntervalType.day;
-        }
-        validateMetricRange(from, to);
-        //validateTimeSeriesMetric(from, to, intrval);
-        MetricsResponseStatsList statsList = metrics.getResponseStats(organizationId, serviceId, version, intrval, from, to);
-        if (statsList != null) {
-            return statsList;
-        } else {
-            throw ExceptionFactory.metricsUnavailableException();
-        }
-
-    }
-
-    public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        MetricsResponseSummaryList summList = metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
-        if (summList != null) {
-            return summList;
-        } else {
-            throw ExceptionFactory.metricsUnavailableException();
-        }
-
     }
 
     public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId) {
@@ -3202,17 +3165,6 @@ public class OrganizationFacade {
                         case ACL:
                             policyJsonConfig = gson.toJson(new KongPluginACL()
                                     .withWhitelist(Collections.singletonList(generateServiceUniqueName(svb))));
-                            break;
-                        case HTTPLOG:
-                            String metricsURI = new StringBuffer("")
-                                    .append(config.getMetricsScheme())
-                                    .append("://")
-                                    .append(config.getMetricsURI())
-                                    .append((!StringUtils.isEmpty(config.getMetricsPort())) ? ":" + config.getMetricsPort() : "")
-                                    .append("/").toString();
-                            policyJsonConfig = gson.toJson(new KongPluginHttpLog()
-                                    .withHttpEndpoint(metricsURI)
-                                    .withMethod(KongPluginHttpLog.Method.POST));
                             break;
                         default:
                             policyJsonConfig = polDef.getDefaultConfig();

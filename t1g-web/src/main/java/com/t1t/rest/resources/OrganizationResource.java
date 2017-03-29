@@ -21,8 +21,8 @@ import com.t1t.apim.beans.idm.TransferOwnershipBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.members.MemberBean;
 import com.t1t.apim.beans.metrics.AppUsagePerServiceBean;
-import com.t1t.apim.beans.metrics.HistogramIntervalType;
-import com.t1t.apim.beans.metrics.ServiceMarketInfo;
+import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
+import com.t1t.apim.beans.metrics.ServiceUsageBean;
 import com.t1t.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
@@ -47,9 +47,6 @@ import com.t1t.apim.rest.impl.util.FieldValidator;
 import com.t1t.apim.rest.resources.IOrganizationResource;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.kong.model.KongPluginConfigList;
-import com.t1t.kong.model.MetricsResponseStatsList;
-import com.t1t.kong.model.MetricsResponseSummaryList;
-import com.t1t.kong.model.MetricsUsageList;
 import com.t1t.util.ValidationUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -388,6 +385,7 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getAppVersionActivity(organizationId, applicationId, version, page, pageSize);
     }
 
+    @Override
     @ApiOperation(value = "Get App Usage Metrics (per Service)",
             notes = "Retrieves metrics/analytics information for a specific application.  This will return request count data broken down by service.  It basically answers the question \"which services is my app really using?\".")
     @ApiResponses({
@@ -399,7 +397,6 @@ public class OrganizationResource implements IOrganizationResource {
     public AppUsagePerServiceBean getAppUsagePerService(@PathParam("organizationId") String organizationId,
                                                         @PathParam("applicationId") String applicationId,
                                                         @PathParam("version") String version,
-                                                        @QueryParam("interval") HistogramIntervalType interval,
                                                         @QueryParam("from") String fromDate,
                                                         @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.appView, organizationId))
@@ -409,9 +406,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         Preconditions.checkArgument(!StringUtils.isEmpty(fromDate), Messages.i18n.format("emptyValue", "From date"));
         Preconditions.checkArgument(!StringUtils.isEmpty(toDate), Messages.i18n.format("emptyValue", "To date"));
-        Preconditions.checkNotNull(interval, Messages.i18n.format("nullValue", "Interval"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()), Messages.i18n.format("emptyValue", "Interval"));
-        return orgFacade.getAppUsagePerService(organizationId, applicationId, version, interval, fromDate, toDate);
+        return orgFacade.getAppUsagePerService(organizationId, applicationId, version, fromDate, toDate);
     }
 
     @ApiOperation(value = "List Application Versions",
@@ -1356,12 +1351,12 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Get Service Market information",
             notes = "Retrieves the service uptime during the last month, and the distinct active consumers of the service.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = ServiceMarketInfo.class, message = "Service market information.")
+            @ApiResponse(code = 200, response = ServiceMarketInfoBean.class, message = "Service market information.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/market/info")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceMarketInfo getServiceMarketInfo(
+    public ServiceMarketInfoBean getServiceMarketInfo(
             @PathParam("organizationId") String organizationId,
             @PathParam("serviceId") String serviceId,
             @PathParam("version") String version) throws InvalidMetricCriteriaException {
@@ -1586,21 +1581,20 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.listServiceSupportTicketComments(Long.parseLong(supportId.trim(), 10));
     }
 
+    @Override
     @ApiOperation(value = "Get Service Usage Metrics",
             notes = "Retrieves metrics/analytics information for a specific service.  This will return a full histogram of request count data based on the provided date range and interval.  Valid intervals are:  month, week, day, hour, minute")
     @ApiResponses({
-            @ApiResponse(code = 200, response = MetricsUsageList.class, message = "Usage metrics information.")
+            @ApiResponse(code = 200, response = ServiceUsageBean.class, message = "Usage metrics information.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/usage")
     @Produces(MediaType.APPLICATION_JSON)
-    public MetricsUsageList getUsage(
-            @PathParam("organizationId") String organizationId,
-            @PathParam("serviceId") String serviceId,
-            @PathParam("version") String version,
-            @QueryParam("interval") HistogramIntervalType interval,
-            @QueryParam("from") String fromDate,
-            @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
+    public ServiceUsageBean getServiceUsage(@PathParam("organizationId") String organizationId,
+                                            @PathParam("serviceId") String serviceId,
+                                            @PathParam("version") String version,
+                                            @QueryParam("from") String fromDate,
+                                            @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
@@ -1608,58 +1602,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         Preconditions.checkArgument(!StringUtils.isEmpty(fromDate), Messages.i18n.format("emptyValue", "From date"));
         Preconditions.checkArgument(!StringUtils.isEmpty(toDate), Messages.i18n.format("emptyValue", "To date"));
-        Preconditions.checkNotNull(interval, Messages.i18n.format("nullValue", "Interval"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()), Messages.i18n.format("emptyValue", "Interval"));
-        return orgFacade.getUsage(organizationId, serviceId, version, interval, fromDate, toDate);
-    }
-
-    @ApiOperation(value = "Get System Status",
-            notes = "This endpoint simply returns the status of the api-gateway system. This is a useful endpoint to use when testing a client's connection to the apiman API Manager REST services.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = MetricsResponseStatsList.class, message = "System status information")
-    })
-    @GET
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/responseStats")
-    @Produces(MediaType.APPLICATION_JSON)
-    public MetricsResponseStatsList getResponseStats(@PathParam("organizationId") String organizationId,
-                                                       @PathParam("serviceId") String serviceId,
-                                                       @PathParam("version") String version,
-                                                       @QueryParam("interval") HistogramIntervalType interval,
-                                                       @QueryParam("from") String fromDate,
-                                                       @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate), Messages.i18n.format("emptyValue", "From date"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate), Messages.i18n.format("emptyValue", "To date"));
-        Preconditions.checkNotNull(interval, Messages.i18n.format("nullValue", "Interval"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(interval.toString()), Messages.i18n.format("emptyValue", "Interval"));
-        return orgFacade.getResponseStats(organizationId, serviceId, version, interval, fromDate, toDate);
-    }
-
-    @ApiOperation(value = "Get Service Response Statistics (Summary)",
-            notes = "Retrieves metrics/analytics information for a specific service.  This will return total response type statistics over the given date range.  Basically this will return three numbers: total request, # failed responses, # error responses.")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = MetricsResponseSummaryList.class, message = "System status information")
-    })
-    @GET
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/summaryResponseStats")
-    @Produces(MediaType.APPLICATION_JSON)
-    public MetricsResponseSummaryList getResponseStatsSummary(@PathParam("organizationId") String organizationId,
-                                                            @PathParam("serviceId") String serviceId,
-                                                            @PathParam("version") String version,
-                                                            @QueryParam("from") String fromDate,
-                                                            @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
-        if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(fromDate), Messages.i18n.format("emptyValue", "From date"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(toDate), Messages.i18n.format("emptyValue", "To date"));
-        return orgFacade.getResponseStatsSummary(organizationId, serviceId, version, fromDate, toDate);
+        return orgFacade.getServiceUsage(organizationId, serviceId, version, fromDate, toDate);
     }
 
     @ApiOperation(value = "Create Plan",
