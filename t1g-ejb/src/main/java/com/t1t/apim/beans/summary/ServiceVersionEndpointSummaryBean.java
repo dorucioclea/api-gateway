@@ -3,6 +3,7 @@ package com.t1t.apim.beans.summary;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -14,25 +15,33 @@ public class ServiceVersionEndpointSummaryBean implements Serializable {
 
     private static final long serialVersionUID = -4655383228161917800L;
 
-    private String managedEndpoint;
-    private String oauth2AuthorizeEndpoint;
-    private String oauth2TokenEndpoint;
+    private List<String> managedEndpoints;
+    private List<String> oauth2AuthorizeEndpoints;
+    private List<String> oauth2TokenEndpoints;
     private Set<ServiceVersionEndpointSummaryBean> brandingEndpoints;
 
-    public String getOauth2AuthorizeEndpoint() {
-        return oauth2AuthorizeEndpoint;
+    public List<String> getManagedEndpoints() {
+        return managedEndpoints;
     }
 
-    public void setOauth2AuthorizeEndpoint(String oauth2AuthorizeEndpoint) {
-        this.oauth2AuthorizeEndpoint = oauth2AuthorizeEndpoint;
+    public void setManagedEndpoints(List<String> managedEndpoints) {
+        this.managedEndpoints = managedEndpoints;
     }
 
-    public String getOauth2TokenEndpoint() {
-        return oauth2TokenEndpoint;
+    public List<String> getOauth2AuthorizeEndpoints() {
+        return oauth2AuthorizeEndpoints;
     }
 
-    public void setOauth2TokenEndpoint(String oauth2TokenEndpoint) {
-        this.oauth2TokenEndpoint = oauth2TokenEndpoint;
+    public void setOauth2AuthorizeEndpoints(List<String> oauth2AuthorizeEndpoints) {
+        this.oauth2AuthorizeEndpoints = oauth2AuthorizeEndpoints;
+    }
+
+    public List<String> getOauth2TokenEndpoints() {
+        return oauth2TokenEndpoints;
+    }
+
+    public void setOauth2TokenEndpoints(List<String> oauth2TokenEndpoints) {
+        this.oauth2TokenEndpoints = oauth2TokenEndpoints;
     }
 
     public Set<ServiceVersionEndpointSummaryBean> getBrandingEndpoints() {
@@ -43,42 +52,10 @@ public class ServiceVersionEndpointSummaryBean implements Serializable {
         this.brandingEndpoints = brandingEndpoints;
     }
 
-    public ServiceVersionEndpointSummaryBean withManagedEndpoint(String managedEndpoint) {
-        setManagedEndpoint(managedEndpoint);
+    public ServiceVersionEndpointSummaryBean withManagedEndpoints(List<String> managedEndpoints) {
+        setManagedEndpoints(managedEndpoints);
         return this;
     }
 
-    public ServiceVersionEndpointSummaryBean withOauth2AuthorizeEndpoint(String oauth2AuthorizeEndpoint) {
-        setManagedEndpoint(managedEndpoint);
-        return this;
-    }
 
-    public ServiceVersionEndpointSummaryBean withOauth2TokenEndpoint(String oauth2TokenEndpoint) {
-        setManagedEndpoint(managedEndpoint);
-        return this;
-    }
-
-    /**
-     * @return the managedEndpoint
-     */
-    public String getManagedEndpoint() {
-        return managedEndpoint;
-    }
-
-    /**
-     * @param managedEndpoint the managedEndpoint to set
-     */
-    public void setManagedEndpoint(String managedEndpoint) {
-        this.managedEndpoint = managedEndpoint;
-    }
-
-    @Override
-    public String toString() {
-        return "ServiceVersionEndpointSummaryBean{" +
-                "managedEndpoint='" + managedEndpoint + '\'' +
-                ", oauth2AuthorizeEndpoint='" + oauth2AuthorizeEndpoint + '\'' +
-                ", oauth2TokenEndpoint='" + oauth2TokenEndpoint + '\'' +
-                ", brandingEndpoints=" + brandingEndpoints +
-                '}';
-    }
 }

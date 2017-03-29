@@ -95,6 +95,9 @@ public class ServiceVersionBean implements Serializable {
     private String readme;
     @Column(name = "terms_agreement_required")
     private Boolean termsAgreementRequired;
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name="service_hosts", joinColumns=@JoinColumn(name="service_version_id"))
+    private Set<String> serviceHosts;
 
     /**
      * @return the id
@@ -349,60 +352,116 @@ public class ServiceVersionBean implements Serializable {
         this.endpointProperties = endpointProperties;
     }
 
+    /**
+     * @return the provision key
+     */
     public String getProvisionKey() {
         return provisionKey;
     }
 
+    /**
+     * @param provisionKey the provision key to set
+     */
     public void setProvisionKey(String provisionKey) {
         this.provisionKey = provisionKey;
     }
 
+    /**
+     * @return the oauth scopes
+     */
     public Map<String, String> getOauthScopes() {
         return oauthScopes;
     }
 
+    /**
+     * @param oauthScopes the oauth scopes to set
+     */
     public void setOauthScopes(Map<String, String> oauthScopes) {
         this.oauthScopes = oauthScopes;
     }
 
+    /**
+     * @return the online doc
+     */
     public String getOnlinedoc() {
         return onlinedoc;
     }
 
+    /**
+     * @param onlinedoc the online doc to set
+     */
     public void setOnlinedoc(String onlinedoc) {
         this.onlinedoc = onlinedoc;
     }
 
+    /**
+     * @return the deprecation date
+     */
     public Date getDeprecatedOn() {
         return deprecatedOn;
     }
 
+    /**
+     * @param deprecatedOn the deprecation date to set
+     */
     public void setDeprecatedOn(Date deprecatedOn) {
         this.deprecatedOn = deprecatedOn;
     }
 
+    /**
+     * @return the auto accept contracts value
+     */
     public Boolean getAutoAcceptContracts() {
         return autoAcceptContracts;
     }
 
+    /**
+     * @param autoAcceptContracts the auto accepts contracts value to set
+     */
     public void setAutoAcceptContracts(Boolean autoAcceptContracts) {
         this.autoAcceptContracts = autoAcceptContracts;
     }
 
+    /**
+     * @return the readme
+     */
     public String getReadme() {
         return readme;
     }
 
+    /**
+     * @param readme the readme to set
+     */
     public void setReadme(String readme) {
         this.readme = readme;
     }
 
+    /**
+     * @return the terms agreement required value
+     */
     public Boolean getTermsAgreementRequired() {
         return termsAgreementRequired;
     }
 
+    /**
+     * @param termsAgreementRequired the terms agreement required value to set
+     */
     public void setTermsAgreementRequired(Boolean termsAgreementRequired) {
         this.termsAgreementRequired = termsAgreementRequired;
+    }
+
+    /**
+     * @return the service hosts
+     */
+    public Set<String> getServiceHosts() {
+        return serviceHosts;
+    }
+
+    /**
+     * @param serviceHosts the service hosts to set
+     */
+    public void setServiceHosts(Set<String> serviceHosts) {
+        this.serviceHosts = serviceHosts;
     }
 
     /**
@@ -464,6 +523,7 @@ public class ServiceVersionBean implements Serializable {
                 ", autoAcceptContracts=" + autoAcceptContracts +
                 ", readme='" + readme + '\'' +
                 ", termsAgreementRequired=" + termsAgreementRequired +
+                ", serviceHosts=" + serviceHosts +
                 '}';
     }
 }

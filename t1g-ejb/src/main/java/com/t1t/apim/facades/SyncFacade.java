@@ -155,7 +155,7 @@ public class SyncFacade {
                 String apiId = ServiceConventionUtil.generateServiceUniqueName(svb);
                 try {
                     log.info("=== BEGINNING SYNC FOR:{} ===", apiId);
-                    String requestPath = GatewayPathUtilities.generateGatewayContextPath(svb.getService().getOrganization().getId(), svb.getService().getBasepath(), svb.getVersion());
+                    List<String> requestPaths = GatewayPathUtilities.generateGatewayContextPath(svb.getService().getOrganization().getId(), svb.getService().getBasepaths(), svb.getVersion());
                     svb.getGateways()
                             .stream()
                             .map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId()))
@@ -163,15 +163,15 @@ public class SyncFacade {
                                 try {
                                     KongApi api = gw.getApi(apiId);
                                     if (api == null) {
-                                        gw.createApi(new KongApi().withStripRequestPath(true)
+                                        gw.createApi(new KongApi().withStripUri(true)
                                                 .withPreserveHost(false)
-                                                .withRequestHost(apiId)
-                                                .withRequestPath(requestPath)
+                                                .withHosts(new ArrayList<>(svb.getServiceHosts()))
+                                                .withUris(requestPaths)
                                                 .withUpstreamUrl(svb.getEndpoint())
                                                 .withName(apiId));
                                         log.info("== API {} MISSING ON GATEWAY {}, CREATED ==", apiId, gw.getGatewayId());
                                     } else {
-                                        api = compareServiceApis(api, svb, requestPath, apiId);
+                                        api = compareServiceApis(api, svb, requestPaths, apiId);
                                         if (api != null) {
                                             gw.updateOrCreateApi(api);
                                             log.info("== API {} OUT OF SYNC, RESYNCED ==", apiId);
@@ -770,18 +770,18 @@ public class SyncFacade {
 
     /************* PRIVATE METHODS *************/
 
-    private KongApi compareServiceApis(KongApi api, ServiceVersionBean svb, String requestPath, String apiId) {
+    private KongApi compareServiceApis(KongApi api, ServiceVersionBean svb, List<String> requestPaths, String apiId) {
         if (!api.getUpstreamUrl().equals(svb.getEndpoint()) ||
-                !api.getRequestHost().equals(apiId) ||
-                !api.getRequestPath().equals(requestPath) ||
+                !new TreeSet<>(api.getHosts()).equals(new TreeSet<>(svb.getServiceHosts()))||
+                !new TreeSet<>(api.getUris()).equals(new TreeSet<>(requestPaths)) ||
                 api.getPreserveHost() ||
-                !api.getStripRequestPath()) {
-            return api.withRequestPath(requestPath)
-                    .withRequestHost(apiId)
-                    .withRequestPath(requestPath)
+                !api.getStripUri()) {
+            return api.withUris(requestPaths)
+                    .withHosts(new ArrayList<>(svb.getServiceHosts()))
+                    .withUris(requestPaths)
                     .withUpstreamUrl(svb.getEndpoint())
                     .withPreserveHost(false)
-                    .withStripRequestPath(true);
+                    .withStripUri(true);
         }
         else {
             return null;

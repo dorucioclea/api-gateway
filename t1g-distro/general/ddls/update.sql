@@ -1,4 +1,4 @@
---------- UPGRADE TO 0.10.0 STARTS HERE ----------
+--------- UPGRADE TO 1.0.0 STARTS HERE ----------
 
 CREATE TABLE idps (id VARCHAR(255) NOT NULL, server_url VARCHAR(255) NOT NULL, master_realm VARCHAR(255) NOT NULL, client_id VARCHAR(255) NOT NULL, encrypted_client_secret VARCHAR(255) NOT NULL, default_login_theme_id VARCHAR(255) DEFAULT NULL, default_client VARCHAR(255) DEFAULT NULL, default_idp BOOLEAN DEFAULT FALSE);
 ALTER TABLE idps ADD PRIMARY KEY (id);
@@ -29,10 +29,18 @@ ALTER TABLE organizations ADD COLUMN keystore_kid VARCHAR(255) NULL;
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_1 FOREIGN KEY (mail_provider_id) REFERENCES mail_providers (id);
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_2 FOREIGN KEY (keystore_kid) REFERENCES keystores (kid);
 
+CREATE TABLE service_basepaths AS SELECT services.organization_id, services.id AS service_id, services.basepath FROM services;
+ALTER TABLE service_basepaths ADD CONSTRAINT fk_service_basepaths_1 FOREIGN KEY (organization_id, service_id) REFERENCES services (organization_id, id);
+ALTER TABLE service_basepaths ADD CONSTRAINT uk_service_basepaths_1 UNIQUE (organization_id, service_id, basepath);
+CREATE INDEX idx_service_basepaths_1 ON service_basepaths (organization_id, service_id);
+
+
+-- These sections are for breaking changes. We attempt to always be able to roll back one version/release
+
+--------- UPGRADE TO 1.0.1 STARTS HERE ---------
+
 DROP TABLE oauth_apps;
 
---------- UPGRADE TO 0.10.1 STARTS HERE ---------
-
--- Drop the oauth client id info from app versions, backwards compatability no longer required
-
 ALTER TABLE application_versions DROP COLUMN oauth_client_id;
+
+ALTER TABLE services DROP COLUMN basepath;

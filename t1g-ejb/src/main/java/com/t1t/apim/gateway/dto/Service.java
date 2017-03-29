@@ -17,7 +17,8 @@ public class Service implements Serializable {
     private String version;
     private String endpointType;
     private String endpoint;
-    private String basepath;
+    private Set<String> basepaths;
+    private Set<String> hosts;
     private Map<String, String> endpointProperties = new HashMap<>();
     private List<Policy> servicePolicies = new ArrayList<>();
     private Set<String> brandings;
@@ -153,17 +154,17 @@ public class Service implements Serializable {
     }
 
     /**
-     * @return the basepath
+     * @return the basepaths
      */
-    public String getBasepath() {
-        return basepath;
+    public Set<String> getBasepaths() {
+        return basepaths;
     }
 
     /**
-     * @param basepath the basepath to set
+     * @param basepath the basepaths to set
      */
-    public void setBasepath(String basepath) {
-        this.basepath = basepath;
+    public void setBasepaths(Set<String> basepaths) {
+        this.basepaths = basepaths;
     }
 
     /**
@@ -178,6 +179,20 @@ public class Service implements Serializable {
      */
     public void setBrandings(Set<String> brandings) {
         this.brandings = brandings;
+    }
+
+    /**
+     * @return the hosts
+     */
+    public Set<String> getHosts() {
+        return hosts;
+    }
+
+    /**
+     * @param hosts the hosts to set
+     */
+    public void setHosts(Set<String> hosts) {
+        this.hosts = hosts;
     }
 
     /**
@@ -232,7 +247,7 @@ public class Service implements Serializable {
                 ", version='" + version + '\'' +
                 ", endpointType='" + endpointType + '\'' +
                 ", endpoint='" + endpoint + '\'' +
-                ", basepath='" + basepath + '\'' +
+                ", basepaths='" + basepaths + '\'' +
                 ", endpointProperties=" + endpointProperties +
                 ", servicePolicies=" + servicePolicies +
                 ", brandings=" + brandings +

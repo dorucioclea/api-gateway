@@ -2345,7 +2345,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     public ServiceBean getServiceByBasepath(String organizationId, String basepath) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT s FROM ServiceBean s WHERE s.basepath = :bpath AND s.organization.id = :orgId";
+        String jpql = "SELECT s FROM ServiceBean s WHERE :bpath IN s.basepaths AND s.organization.id = :orgId";
         try {
             return (ServiceBean) em.createQuery(jpql)
                     .setParameter("bpath", basepath)

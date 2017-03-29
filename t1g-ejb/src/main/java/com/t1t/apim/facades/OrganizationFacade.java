@@ -1277,7 +1277,7 @@ public class OrganizationFacade {
         newService.setName(bean.getName());
         newService.setDescription(bean.getDescription());
         newService.setId(BeanUtils.idFromName(bean.getName()));
-        newService.setBasepath(bean.getBasepath());
+        newService.setBasepaths(bean.getBasepaths());
         newService.setCategories(bean.getCategories());
         newService.setBase64logo(bean.getBase64logo());
         newService.setCreatedOn(new Date());
@@ -1295,8 +1295,10 @@ public class OrganizationFacade {
             if (storage.getService(orgBean.getId(), newService.getId()) != null) {
                 throw ExceptionFactory.serviceAlreadyExistsException(bean.getName());
             }
-            if (query.getServiceByBasepath(organizationId, bean.getBasepath()) != null) {
-                throw ExceptionFactory.serviceBasepathAlreadyInUseException(orgBean.getName(), bean.getBasepath().substring(1));
+            for (String basepath : newService.getBasepaths()) {
+                if (query.getServiceByBasepath(organizationId, basepath) != null) {
+                    throw ExceptionFactory.serviceBasepathAlreadyInUseException(orgBean.getName(), basepath.substring(1));
+                }
             }
             newService.setBrandings(validateServiceBrandings(newService, bean.getBrandings()));
             newService.setOrganization(orgBean);
@@ -2053,7 +2055,7 @@ public class OrganizationFacade {
                         svc.setServiceId(serviceId);
                         svc.setOrganizationId(organizationId);
                         svc.setVersion(svb.getVersion());
-                        svc.setBasepath(service.getBasepath());
+                        svc.setBasepaths(service.getBasepaths());
                         for (ServiceGatewayBean svcGw : svb.getGateways()) {
                             gatewayFacade.createGatewayLink(svcGw.getGatewayId()).createServiceBranding(svc, newBranding);
                         }
@@ -2119,33 +2121,46 @@ public class OrganizationFacade {
             //path starts always with '\'
             String gatewayEndpoint = ((gateway.getEndpoint().endsWith("\\") ? gateway.getEndpoint().substring(0, gateway.getEndpoint().length() - 1) : gateway.getEndpoint()));
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
-            rval.setManagedEndpoint(gatewayEndpoint + GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), version));
+            rval.setManagedEndpoints(GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepaths(), version).stream().map(contextPath -> gatewayEndpoint + contextPath).collect(Collectors.toList()));
             if (serviceVersion.getService().getBrandings() != null && !serviceVersion.getService().getBrandings().isEmpty()) {
-                rval.setBrandingEndpoints(serviceVersion.getService().getBrandings().stream().map(branding -> new ServiceVersionEndpointSummaryBean().withManagedEndpoint(gatewayEndpoint + GatewayPathUtilities.generateGatewayContextPath(branding.getId(), serviceVersion.getService().getBasepath(), version))).collect(Collectors.toSet()));
+                rval.setBrandingEndpoints(serviceVersion.getService().getBrandings().stream().map(branding -> new ServiceVersionEndpointSummaryBean().withManagedEndpoints(GatewayPathUtilities.generateGatewayContextPath(branding.getId(), serviceVersion.getService().getBasepaths(), version).stream().map(contextPath -> gatewayEndpoint + contextPath).collect(Collectors.toList()))).collect(Collectors.toSet()));
             }
             //get oauth endpoints if needed
             if (!StringUtils.isEmpty(serviceVersion.getProvisionKey())) {
                 //construct the target url
-                StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
-                        .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), version)))
-                        .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
-                rval.setOauth2AuthorizeEndpoint(targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_AUTH);
-                rval.setOauth2TokenEndpoint(targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN);
+                List<String> oauthAuths = new ArrayList<>();
+                List<String> oauthTokens = new ArrayList<>();
+                GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepaths(), version).forEach(basePath -> {
+                    StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
+                            .append(URIUtils.uriBackslashAppender(basePath))
+                            .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
+                    oauthAuths.add(targetURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_AUTH).toString());
+                    oauthTokens.add(targetURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN).toString());
+                });
+
+                rval.setOauth2AuthorizeEndpoints(oauthAuths);
+                rval.setOauth2TokenEndpoints(oauthTokens);
                 if (rval.getBrandingEndpoints() != null && !rval.getBrandingEndpoints().isEmpty()) {
                     rval.getBrandingEndpoints().forEach(endpoint -> {
-                        StringBuilder brandedURI = new StringBuilder(URIUtils.uriBackslashAppender(endpoint.getManagedEndpoint()))
-                                .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
-                        endpoint.setOauth2AuthorizeEndpoint(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_AUTH).toString());
-                        endpoint.setOauth2TokenEndpoint(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN).toString());
+                        List<String> brOauthAuths = new ArrayList<>();
+                        List<String> brOauthTokens = new ArrayList<>();
+                        endpoint.getManagedEndpoints().forEach(basePath -> {
+                            StringBuilder brandedURI = new StringBuilder(URIUtils.uriBackslashAppender(basePath))
+                                    .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
+                            brOauthAuths.add(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_AUTH).toString());
+                            brOauthTokens.add(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN).toString());
+                        });
+                        endpoint.setOauth2AuthorizeEndpoints(brOauthAuths);
+                        endpoint.setOauth2TokenEndpoints(brOauthTokens);
                     });
                 }
             } else {
-                rval.setOauth2AuthorizeEndpoint("");
-                rval.setOauth2TokenEndpoint("");
+                rval.setOauth2AuthorizeEndpoints(Collections.emptyList());
+                rval.setOauth2TokenEndpoints(Collections.emptyList());
                 if (rval.getBrandingEndpoints() != null && !rval.getBrandingEndpoints().isEmpty()) {
                     rval.getBrandingEndpoints().forEach(endpoint -> {
-                        endpoint.setOauth2TokenEndpoint("");
-                        endpoint.setOauth2AuthorizeEndpoint("");
+                        endpoint.setOauth2TokenEndpoints(Collections.emptyList());
+                        endpoint.setOauth2AuthorizeEndpoints(Collections.emptyList());
                     });
                 }
             }
@@ -3268,8 +3283,8 @@ public class OrganizationFacade {
                 storage.updateServiceVersion(serviceVersion);
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
-            String svPath = GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), serviceVersion.getVersion());
-            localData = transformJSONObjectDef(localData, serviceVersion, svPath);
+            List<String> svPath = GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepaths(), serviceVersion.getVersion());
+            localData = transformJSONObjectDef(localData, serviceVersion, svPath.get(0));
             //safety check
             if (localData == null) throw new DefinitionException("The Swagger data returned is invalid");
             storage.updateServiceDefinition(serviceVersion, localData);
@@ -3441,7 +3456,7 @@ public class OrganizationFacade {
                     gatewayLinks.put(gatewayId, link);
                 }
                 ServiceBean service = storage.getService(api.getServiceOrgId(), api.getServiceId());
-                ServiceEndpoint se = link.getServiceEndpoint(service.getBasepath(), api.getServiceOrgId(), api.getServiceId(), api.getServiceVersion());
+                ServiceEndpoint se = link.getServiceEndpoint(service.getBasepaths(), api.getServiceOrgId(), api.getServiceId(), api.getServiceVersion());
                 String apiEndpoint = se.getEndpoint();
                 api.setHttpEndpoint(apiEndpoint);
             }

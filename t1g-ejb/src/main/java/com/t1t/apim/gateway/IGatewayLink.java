@@ -12,6 +12,7 @@ import com.t1t.kong.model.*;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Links the design time API with a Gateway.  This allows the design time API
@@ -122,7 +123,7 @@ public interface IGatewayLink {
      * @return the service endpoint
      * @throws GatewayAuthenticationException when unable to authenticate with gateway
      */
-    public ServiceEndpoint getServiceEndpoint(String basePath, String organizationId, String serviceId, String version)
+    public ServiceEndpoint getServiceEndpoint(Set<String> basePaths, String organizationId, String serviceId, String version)
             throws GatewayAuthenticationException;
 
     /**

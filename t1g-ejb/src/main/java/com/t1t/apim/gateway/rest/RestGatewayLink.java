@@ -26,6 +26,7 @@ import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * An implementation of a Gateway Link that uses the Gateway's simple REST
@@ -239,9 +240,9 @@ public class RestGatewayLink implements IGatewayLink {
      * @see IGatewayLink#getServiceEndpoint(String, String, String, String)
      */
     @Override
-    public ServiceEndpoint getServiceEndpoint(String basePath, String organizationId, String serviceId, String version)
+    public ServiceEndpoint getServiceEndpoint(Set<String> basePaths, String organizationId, String serviceId, String version)
             throws GatewayAuthenticationException {
-        return getClient().getServiceEndpoint(basePath, organizationId, serviceId, version);
+        return getClient().getServiceEndpoint(basePaths, organizationId, serviceId, version);
     }
 
     @Override

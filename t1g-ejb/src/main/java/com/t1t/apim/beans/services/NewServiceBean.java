@@ -17,7 +17,7 @@ public class NewServiceBean implements Serializable {
     private String name;
     private String description;
     private String initialVersion;
-    private String basepath;
+    private Set<String> basepaths;
     private Set<String> categories;
     private String base64logo;
     private Boolean admin;
@@ -74,15 +74,15 @@ public class NewServiceBean implements Serializable {
     /**
      * @return the base path
      */
-    public String getBasepath() {
-        return basepath;
+    public Set<String> getBasepaths() {
+        return basepaths;
     }
 
     /**
      * @param basepath the base path value to set
      */
-    public void setBasepath(String basepath) {
-        this.basepath = basepath;
+    public void setBasepath(Set<String> basepaths) {
+        this.basepaths = basepaths;
     }
 
     /**
@@ -147,7 +147,7 @@ public class NewServiceBean implements Serializable {
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", initialVersion='" + initialVersion + '\'' +
-                ", basepath='" + basepath + '\'' +
+                ", basepaths='" + basepaths + '\'' +
                 ", categories=" + categories +
                 ", admin=" + admin +
                 '}';

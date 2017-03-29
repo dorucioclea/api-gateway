@@ -85,7 +85,7 @@ public class GatewayClient {
         return systemStatus;
     }
 
-    public ServiceEndpoint getServiceEndpoint(String basePath, String organizationId, String serviceId, String version) throws GatewayAuthenticationException {
+    public ServiceEndpoint getServiceEndpoint(Set<String> basePaths, String organizationId, String serviceId, String version) throws GatewayAuthenticationException {
         ServiceEndpoint endpoint = new ServiceEndpoint();
         StringBuilder url = new StringBuilder();
         url.append(gatewayBean.getEndpoint());
@@ -93,7 +93,7 @@ public class GatewayClient {
         service.setOrganizationId(organizationId);
         service.setServiceId(serviceId);
         service.setVersion(version);
-        service.setBasepath(basePath);
+        service.setBasepaths(basePaths);
         //TODO set basepath
         url.append(GatewayPathUtilities.generateGatewayContextPath(service));
         endpoint.setEndpoint(url.toString());
@@ -208,10 +208,10 @@ public class GatewayClient {
      */
     public void publishGatewayOAuthEndpoint(Gateway gtw)throws PublishingException{
         KongApi api = new KongApi();
-        api.setStripRequestPath(true);
+        api.setStripUri(true);
         api.setName(gtw.getId().toLowerCase());
-        if(gtw.getOauthBasePath().startsWith("/")) api.setRequestPath(gtw.getOauthBasePath());
-        else api.setRequestPath("/"+gtw.getOauthBasePath());
+        if(gtw.getOauthBasePath().startsWith("/")) api.setUris(Collections.singletonList(gtw.getOauthBasePath()));
+        else api.setUris(Collections.singletonList("/"+gtw.getOauthBasePath()));
         api.setUpstreamUrl(DUMMY_UPSTREAM_URI);
         log.info("Initialize oauth for gateway to Kong:{}", api.toString());
         //safe publish
@@ -408,18 +408,18 @@ public class GatewayClient {
         Preconditions.checkNotNull(service);
         //create the service using path, and target_url
         KongApi api = new KongApi();
-        api.setStripRequestPath(true);
+        api.setStripUri(true);
 
         //api.setPublicDns();
-        String nameAndDNS = ServiceConventionUtil.generateServiceUniqueName(service);
+        String name = ServiceConventionUtil.generateServiceUniqueName(service);
         //name wil be: organization.application.version
-        api.setName(nameAndDNS);
+        api.setName(name);
         //version wil be: organization.application.version
-        api.setRequestHost(nameAndDNS);
+        api.setHosts(new ArrayList<>(service.getHosts()));
         //real URL to target
         api.setUpstreamUrl(service.getEndpoint());
         //context path that will be stripped away
-        api.setRequestPath(validateServicePath(service));
+        api.setUris(validateServicePath(service));
         log.info("Send to Kong:{}", api.toString());
 
         //safe publish API
@@ -473,9 +473,9 @@ public class GatewayClient {
 
         KongApi brandingApi = new KongApi()
                 .withName(brandingNameAndDNS)
-                .withRequestHost(brandingNameAndDNS)
-                .withStripRequestPath(true)
-                .withRequestPath(GatewayPathUtilities.generateGatewayContextPath(branding, service.getBasepath(), service.getVersion()))
+                .withHosts(Collections.singletonList(brandingNameAndDNS))
+                .withStripUri(true)
+                .withUris(GatewayPathUtilities.generateGatewayContextPath(branding, service.getBasepaths(), service.getVersion()))
                 .withUpstreamUrl(managedEndpoint);
         publishAPIWithFallback(brandingApi);
     }
@@ -559,7 +559,7 @@ public class GatewayClient {
      * @param service
      * @return
      */
-    private String validateServicePath(Service service) {
+    private List<String> validateServicePath(Service service) {
         return GatewayPathUtilities.generateGatewayContextPath(service);
     }
 

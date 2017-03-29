@@ -22,6 +22,7 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -89,9 +90,9 @@ public class StartupService {
 
     private void verifyOrCreateApiEngine(IGatewayLink gw) {
         KongApi api = new KongApi()
-                .withRequestPath(config.getApiEngineRequestPath())
+                .withUris(Collections.singletonList(config.getApiEngineRequestPath()))
                 .withName(config.getApiEngineName())
-                .withStripRequestPath(config.getApiEngineStripRequestPath())
+                .withStripUri(config.getApiEngineStripRequestPath())
                 .withUpstreamUrl(config.getApiEngineUpstream());
 
         api = verifyApi(gw, api);
@@ -100,9 +101,9 @@ public class StartupService {
 
     private void verifyOrCreateApiEngineAuth(IGatewayLink gw) {
         KongApi api = new KongApi()
-                .withRequestPath(config.getApiEngineAuthRequestPath())
+                .withUris(Collections.singletonList(config.getApiEngineAuthRequestPath()))
                 .withName(config.getApiEngineAuthName())
-                .withStripRequestPath(config.getApiEngineAuthStripRequestPath())
+                .withStripUri(config.getApiEngineAuthStripRequestPath())
                 .withUpstreamUrl(config.getApiEngineAuthUpstreamUrl());
 
         api = verifyApi(gw, api);
@@ -111,9 +112,9 @@ public class StartupService {
 
     private void verifyOrCreateGatewayKeys(IGatewayLink gw) {
         KongApi api = new KongApi()
-                .withRequestPath(config.getGatewaykeysRequestPath())
+                .withUris(Collections.singletonList(config.getGatewaykeysRequestPath()))
                 .withName(config.getGatewaykeysName())
-                .withStripRequestPath(config.getGatewaykeysStripRequestPath())
+                .withStripUri(config.getGatewaykeysStripRequestPath())
                 .withUpstreamUrl(config.getGatewaykeysUpstreamUrl());
 
         api = verifyApi(gw, api);
@@ -123,10 +124,10 @@ public class StartupService {
     private KongApi verifyApi(IGatewayLink gw, KongApi api) {
         KongApi existingApi = gw.getApi(api.getName());
         if (existingApi != null)  {
-            if (!existingApi.getStripRequestPath().equals(api.getStripRequestPath()) ||
+            if (!existingApi.getStripUri().equals(api.getStripUri()) ||
                     !existingApi.getUpstreamUrl().equals(api.getUpstreamUrl()) ||
-                    !existingApi.getRequestPath().equals(api.getRequestPath())) {
-                existingApi = gw.updateOrCreateApi(existingApi.withStripRequestPath(api.getStripRequestPath()).withRequestPath(api.getRequestPath()).withUpstreamUrl(api.getUpstreamUrl()));
+                    !existingApi.getUris().equals(api.getUris())) {
+                existingApi = gw.updateOrCreateApi(existingApi.withStripUri(api.getStripUri()).withUris(api.getUris()).withUpstreamUrl(api.getUpstreamUrl()));
             }
         }
         else {
