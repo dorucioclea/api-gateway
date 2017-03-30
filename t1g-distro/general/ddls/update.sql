@@ -29,10 +29,15 @@ ALTER TABLE organizations ADD COLUMN keystore_kid VARCHAR(255) NULL;
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_1 FOREIGN KEY (mail_provider_id) REFERENCES mail_providers (id);
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_2 FOREIGN KEY (keystore_kid) REFERENCES keystores (kid);
 
-CREATE TABLE service_basepaths AS SELECT services.organization_id, services.id AS service_id, services.basepath FROM services;
-ALTER TABLE service_basepaths ADD CONSTRAINT fk_service_basepaths_1 FOREIGN KEY (organization_id, service_id) REFERENCES services (organization_id, id);
-ALTER TABLE service_basepaths ADD CONSTRAINT uk_service_basepaths_1 UNIQUE (organization_id, service_id, basepath);
-CREATE INDEX idx_service_basepaths_1 ON service_basepaths (organization_id, service_id);
+CREATE TABLE service_basepaths AS SELECT services.organization_id AS servicebean_organization_id, services.id AS servicebean_id, services.basepath FROM services;
+ALTER TABLE service_basepaths ADD CONSTRAINT fk_service_basepaths_1 FOREIGN KEY (servicebean_organization_id, servicebean_id) REFERENCES services (organization_id, id);
+ALTER TABLE service_basepaths ADD CONSTRAINT uk_service_basepaths_1 UNIQUE (servicebean_organization_id, servicebean_id, basepath);
+CREATE INDEX idx_service_basepaths_1 ON service_basepaths (servicebean_organization_id, servicebean_id) ;
+
+CREATE TABLE service_hosts AS SELECT service_versions.id AS service_version_id, service_versions.service_org_id || '.' || service_versions.service_id || '.' || service_versions.version AS hostname FROM service_versions;
+ALTER TABLE service_hosts ADD CONSTRAINT fk_service_hosts_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+ALTER TABLE service_hosts ADD CONSTRAINT uk_service_hosts_1 UNIQUE (service_version_id, hostname);
+CREATE INDEX idx_service_hosts_1 ON service_hosts (service_version_id);
 
 
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release

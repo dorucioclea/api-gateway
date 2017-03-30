@@ -2,6 +2,7 @@ package com.t1t.apim.gateway.rest;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.t1t.apim.AppConfig;
 import com.t1t.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.apim.beans.gateways.Gateway;
@@ -19,6 +20,7 @@ import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.apim.kong.KongClient;
+import com.t1t.apim.kong.adapters.KongSafeTypeAdapterFactory;
 import com.t1t.kong.model.*;
 import com.t1t.util.*;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +46,7 @@ public class GatewayClient {
     private static String metricsURI;
     private static final String AUTH_API_KEY = "apikey";
     private static final String DUMMY_UPSTREAM_URI = "http://localhost:3000";
+    private Gson gson;
 
     /**
      * Constructor.
@@ -61,6 +64,7 @@ public class GatewayClient {
         this.metricsURI = metricsURI;
         this.appConfig = appConfig;
         this.gatewayValidation = gatewayValidation;
+        this.gson = new GsonBuilder().registerTypeAdapterFactory(new KongSafeTypeAdapterFactory()).create();
     }
 
     public SystemStatus getStatus() throws GatewayAuthenticationException {
@@ -68,7 +72,6 @@ public class GatewayClient {
         KongInfo kongInformation = httpClient.getParsedInfo();
         Object kongStatus = httpClient.getStatus();
         Object kongCluster = httpClient.getCluster();
-        Gson gson = new Gson();
         //Remove NginX Config & SSL Cert/Key path from KongInfo
         kongInfo.getConfiguration().setSslCertPath(null);
         kongInfo.getConfiguration().setSslKeyPath(null);
@@ -227,13 +230,10 @@ public class GatewayClient {
      * @param expirationTimeSeconds
      */
     public void updateOAuth2ExpirationForCentralOAuth(GatewayBean gtw, Integer expirationTimeSeconds){
-        Gson gson = new Gson();
         final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
         if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
             KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
-            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString()
-                            //Temp fix for weird Kong behaviour
-                            .replace("scopes={}", "scopes=[]"),
+            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gson.toJson(gtwPluginConfig.getConfig()),
                     KongPluginOAuthEnhanced.class);
             gtwOAuthValue.setTokenExpiration(expirationTimeSeconds);
             gtwPluginConfig.setConfig(gtwOAuthValue);
@@ -252,35 +252,27 @@ public class GatewayClient {
      * @return
      */
     public KongPluginOAuthEnhanced getOAuth2ExpirationForCentralOAuth(GatewayBean gtw){
-        Gson gson = new Gson();
         final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
         if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
             KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
-            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString()
-                            //Temp fix for weird Kong behaviour
-                            .replace("scopes={}", "scopes=[]"),
+            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gson.toJson(gtwPluginConfig.getConfig()),
                     KongPluginOAuthEnhanced.class);
             return gtwOAuthValue;
         }else return null;
     }
 
     public void addGatewayOAuthScopes(GatewayBean gtw, KongApi api){
-        Gson gson = new Gson();
         final KongPluginConfigList gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
         if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
             KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
-            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString()
-                            //Temp fix for weird Kong behaviour
-                            .replace("scopes={}", "scopes=[]"),
+            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gson.toJson(gtwPluginConfig.getConfig()),
                     KongPluginOAuthEnhanced.class);
             //get oauth scopes from api
             final KongPluginConfigList apiPluginConfigList = httpClient.getKongPluginConfig(api.getId(),Policies.OAUTH2.getKongIdentifier());
             if(apiPluginConfigList!=null && apiPluginConfigList.getData().size()>0){
                 KongPluginConfig apiPluginConfig = apiPluginConfigList.getData().get(0);
                 KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(
-                        apiPluginConfig.getConfig().toString()
-                        //Temp fix for weird Kong behaviour
-                        .replace("scopes={}", "scopes=[]"),
+                        gson.toJson(apiPluginConfig.getConfig()),
                         KongPluginOAuthEnhanced.class);
                 if (!apiOAuthValue.getScopes().isEmpty()) {
                     Set<String> gtwScopes = objectListToStringSet(gtwOAuthValue.getScopes());
@@ -323,7 +315,6 @@ public class GatewayClient {
     }
 
     public void removeGatewayOAuthScopes(GatewayBean gtw, KongApi api){
-        Gson gson = new Gson();
         KongPluginConfigList gtwPluginConfigList = null;
         try {
             gtwPluginConfigList = httpClient.getKongPluginConfig(gtw.getId().toLowerCase(), Policies.OAUTH2.getKongIdentifier());
@@ -333,18 +324,14 @@ public class GatewayClient {
         }
         if(gtwPluginConfigList!=null && gtwPluginConfigList.getData().size()>0){
             KongPluginConfig gtwPluginConfig = gtwPluginConfigList.getData().get(0);
-            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gtwPluginConfig.getConfig().toString()
-                            //Temp fix for weird Kong behaviour
-                            .replace("={}", "=[]"),
+            KongPluginOAuthEnhanced gtwOAuthValue = gson.fromJson(gson.toJson(gtwPluginConfig.getConfig()),
                     KongPluginOAuthEnhanced.class);
             //get oauth scopes from api
             final KongPluginConfigList apiPluginConfigList = httpClient.getKongPluginConfig(api.getId(),Policies.OAUTH2.getKongIdentifier());
             if(apiPluginConfigList!=null && apiPluginConfigList.getData().size()>0){
                 KongPluginConfig apiPluginConfig = apiPluginConfigList.getData().get(0);
                 KongPluginOAuthEnhanced apiOAuthValue = gson.fromJson(
-                        apiPluginConfig.getConfig().toString()
-                        //Temp fix for weird Kong behaviour
-                        .replace("={}", "=[]"),
+                        gson.toJson(apiPluginConfig.getConfig()),
                         KongPluginOAuthEnhanced.class);
                 if (!apiOAuthValue.getScopes().isEmpty()) {
                     Set<String> gtwScopes = objectListToStringSet(gtwOAuthValue.getScopes());
@@ -494,14 +481,10 @@ public class GatewayClient {
         Preconditions.checkNotNull(config);
         //config contains provisioning and scopes
         try {
-            Gson gson = new Gson();
             //retrieve scope info from policy json
             KongPluginOAuth oauthValue = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginOAuth.class);//original request - we need this for the scope descriptions
             //TODO Temp quick fix: kong response oauth plugin returns empty scopes as {} object, while it returns filled in scope as array []
-            String conf = config.getConfig().toString();
-            if (conf.contains("scopes={}")) {
-                conf = conf.replace("scopes={}", "scopes=[]");
-            }
+            String conf = gson.toJson(config.getConfig());
             KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(conf,KongPluginOAuthEnhanced.class);//response from Kong - we need this for the provisioning key
             log.info("Response after applying oauth on API:{}",enhancedOAuthValue);
             ServiceVersionBean svb = storage.getServiceVersion(organizationId, serviceId, version);
@@ -775,7 +758,6 @@ public class GatewayClient {
     }
 
     private <T extends KongConfigValue> KongPluginConfig createServicePolicyInternal(String apiId, String policyJsonConfig, String kongIdentifier, Class<T> clazz)throws PublishingException {
-        Gson gson = new Gson();
         //perform value mapping
         KongConfigValue plugin = gson.fromJson(policyJsonConfig, clazz);
         KongPluginConfig config = new KongPluginConfig()
@@ -789,7 +771,7 @@ public class GatewayClient {
     private KongPluginConfig createCorsServicePolicy(String apiId, Policy policy) throws PublishingException {
         //Add the default headers to the custom headers in the policy
         Set<String> customHeaders = new HashSet<>(Arrays.asList("Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", AUTH_API_KEY, "Authorization"));
-        KongPluginCors plugin = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginCors.class);
+        KongPluginCors plugin = gson.fromJson(policy.getPolicyJsonConfig(), KongPluginCors.class);
         customHeaders.addAll(plugin.getHeaders());
         plugin.setHeaders(new ArrayList<>(customHeaders));
         KongPluginConfig config = new KongPluginConfig()
@@ -809,7 +791,6 @@ public class GatewayClient {
      * @throws PublishingException
      */
     private <T extends KongConfigValue> KongPluginConfig createPlanPolicy(KongApi api, KongConsumer consumer, Policy policy, String kongIdentifier,Class<T> clazz)throws PublishingException {
-        Gson gson = new Gson();
         //perform value mapping
         KongConfigValue plugin = gson.fromJson(policy.getPolicyJsonConfig(), clazz);
         KongPluginConfig config = new KongPluginConfig()
@@ -995,7 +976,7 @@ public class GatewayClient {
         }
         if (plugin != null && !StringUtils.isEmpty(plugin.getId())) {
             policy.setKongPluginId(plugin.getId());
-            policy.setPolicyJsonConfig(new Gson().toJson(plugin.getConfig()).replace(":{}", ":[]"));
+            policy.setPolicyJsonConfig(gson.toJson(plugin.getConfig()).replace(":{}", ":[]"));
         }
         return policy;
     }

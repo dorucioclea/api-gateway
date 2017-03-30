@@ -19,16 +19,7 @@
       "required": true,
       "default": 7200
     },
-    "hide_credentials": {
-      "type": "boolean",
-      "default": false
-    },
     "enable_authorization_code": {
-      "type": "boolean",
-      "required": true,
-      "default": false
-    },
-    "enable_implicit_grant": {
       "type": "boolean",
       "required": true,
       "default": false
@@ -38,9 +29,18 @@
       "required": true,
       "default": false
     },
+    "enable_implicit_grant": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
     "enable_password_grant": {
       "type": "boolean",
       "required": true,
+      "default": false
+    },
+    "hide_credentials": {
+      "type": "boolean",
       "default": false
     },
     "provision_key": {
@@ -53,6 +53,10 @@
       "required": false,
       "type": "boolean",
       "default": false
+    },
+    "anonymous": {
+      "required": false,
+      "type": "string"
     }
   }
 }

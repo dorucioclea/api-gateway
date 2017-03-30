@@ -145,7 +145,7 @@ public class ActionFacade {
         gatewaySvc.setEndpointProperties(versionBean.getEndpointProperties());
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
         gatewaySvc.setServiceId(versionBean.getService().getId());
-        gatewaySvc.setBasepath(versionBean.getService().getBasepath());
+        gatewaySvc.setBasepaths(versionBean.getService().getBasepaths());
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
         gatewaySvc.setBrandings(versionBean.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));

@@ -165,7 +165,7 @@ public class SyncFacade {
                                     if (api == null) {
                                         gw.createApi(new KongApi().withStripUri(true)
                                                 .withPreserveHost(false)
-                                                .withHosts(new ArrayList<>(svb.getServiceHosts()))
+                                                .withHosts(new ArrayList<>(svb.getHostnames()))
                                                 .withUris(requestPaths)
                                                 .withUpstreamUrl(svb.getEndpoint())
                                                 .withName(apiId));
@@ -772,12 +772,12 @@ public class SyncFacade {
 
     private KongApi compareServiceApis(KongApi api, ServiceVersionBean svb, List<String> requestPaths, String apiId) {
         if (!api.getUpstreamUrl().equals(svb.getEndpoint()) ||
-                !new TreeSet<>(api.getHosts()).equals(new TreeSet<>(svb.getServiceHosts()))||
+                !new TreeSet<>(api.getHosts()).equals(new TreeSet<>(svb.getHostnames()))||
                 !new TreeSet<>(api.getUris()).equals(new TreeSet<>(requestPaths)) ||
                 api.getPreserveHost() ||
                 !api.getStripUri()) {
             return api.withUris(requestPaths)
-                    .withHosts(new ArrayList<>(svb.getServiceHosts()))
+                    .withHosts(new ArrayList<>(svb.getHostnames()))
                     .withUris(requestPaths)
                     .withUpstreamUrl(svb.getEndpoint())
                     .withPreserveHost(false)

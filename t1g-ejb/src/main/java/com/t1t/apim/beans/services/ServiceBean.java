@@ -65,6 +65,7 @@ public class ServiceBean implements Serializable {
     private Boolean admin;
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name="service_basepaths")
+    @Column(name = "basepath")
     private Set<String> basepaths;
 
     /**

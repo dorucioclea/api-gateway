@@ -161,7 +161,7 @@ public class KongClientIntegrationTest {
         print(regApi);
         assertFalse(StringUtils.isEmpty(regApi.getId()));
         assertFalse(StringUtils.isEmpty(regApi.getName()));
-        assertFalse(StringUtils.isEmpty(regApi.getRequestPath()));
+        regApi.getUris().forEach(uri -> assertFalse(StringUtils.isEmpty(uri)));
         assertFalse(StringUtils.isEmpty(regApi.getUpstreamUrl()));
         assertTrue(regApi.getStripUri());
     }
@@ -199,19 +199,19 @@ public class KongClientIntegrationTest {
     public void testUpdateOrCreateApi() throws Exception {
         String randomName = "randomname";
         String randomPath="/somerandompath";
-        String randomUrl = "http://www.google.com/";
+        String randomUrl = "http://www.google.com";
         KongApi api = createTestApi();
         KongApi updatedApi = kongClient.addApi(api);
         print(updatedApi);
         updatedApi.setName(randomName);
-        updatedApi.setRequestPath(randomPath);
+        updatedApi.getUris().add(randomPath);
         updatedApi.setUpstreamUrl(randomUrl);
         updatedApi = kongClient.updateOrCreateApi(updatedApi);
         assertNotEquals(api.getName(), updatedApi.getName());
-        assertNotEquals(api.getRequestPath(), updatedApi.getRequestPath());
+        assertNotEquals(new TreeSet(api.getUris()), new TreeSet(updatedApi.getUris()));
         assertNotEquals(api.getUpstreamUrl(), updatedApi.getUpstreamUrl());
         assertEquals(updatedApi.getName(), randomName);
-        assertEquals(updatedApi.getRequestPath(), randomPath);
+        assertTrue(updatedApi.getUris().contains(randomPath));
         assertEquals(updatedApi.getUpstreamUrl(), randomUrl);
         //clean up
         kongClient.deleteApi(updatedApi.getName());
@@ -506,7 +506,7 @@ public class KongClientIntegrationTest {
         //create an oauth config
         KongPluginConfig pluginConfig = createTestOAuthPlugin();
         pluginConfig = kongClient.createPluginConfig(apioauth.getId(),pluginConfig);
-        KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(pluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(gson.toJson(pluginConfig.getConfig()), KongPluginOAuthEnhanced.class);
         kongClient.deleteConsumer(oauthConsumer.getId());
         kongClient.deleteApi(apioauth.getId());
         //verify the provision key is not null!
@@ -551,9 +551,9 @@ public class KongClientIntegrationTest {
         pluginConfigOrg = kongClient.createPluginConfig(apiOrgAuthEndpoint.getId(),pluginConfigOrg);
 
         //get provision keys
-        gson.fromJson(pluginConfigA.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        gson.fromJson(pluginConfigB.getConfig().toString(),KongPluginOAuthEnhanced.class);
-        gson.fromJson(pluginConfigOrg.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        gson.fromJson(gson.toJson(pluginConfigA.getConfig()),KongPluginOAuthEnhanced.class);
+        gson.fromJson(gson.toJson(pluginConfigB.getConfig()),KongPluginOAuthEnhanced.class);
+        gson.fromJson(gson.toJson(pluginConfigOrg.getConfig()),KongPluginOAuthEnhanced.class);
 
         //register consumer
         KongConsumer oauthConsumer = createDummyConsumer("someoauthapp","apimultiuserscope");
@@ -584,7 +584,7 @@ public class KongClientIntegrationTest {
         //create an oauth config
         KongPluginConfig pluginConfig = createTestOAuthPluginWithManyScopes();
         pluginConfig = kongClient.createPluginConfig(apioauth.getId(),pluginConfig);
-        KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(pluginConfig.getConfig().toString(),KongPluginOAuthEnhanced.class);
+        KongPluginOAuthEnhanced enhancedOAuthValue = gson.fromJson(gson.toJson(pluginConfig.getConfig()),KongPluginOAuthEnhanced.class);
         kongClient.deleteConsumer(oauthConsumer.getId());
         kongClient.deleteApi(apioauth.getId());
         //verify the provision key is not null!
@@ -664,7 +664,7 @@ public class KongClientIntegrationTest {
         //create new api
         KongApi api = new KongApi();
         api.setName(name);
-        api.setRequestPath(path);
+        api.setUris(Collections.singletonList(path));
         api.setStripUri(true);
         api.setUpstreamUrl(url);
         print(api);

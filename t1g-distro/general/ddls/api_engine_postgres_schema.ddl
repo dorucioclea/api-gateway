@@ -368,6 +368,13 @@ CREATE TABLE roles
   name VARCHAR(255)
 );
 
+CREATE TABLE service_basepaths
+(
+  servicebean_organization_id VARCHAR(255) NOT NULL,
+  servicebean_id VARCHAR(255) NOT NULL,
+  basepath VARCHAR (255) NOT NULL
+);
+
 CREATE TABLE service_brandings
 (
   organization_id VARCHAR(255) NOT NULL,
@@ -380,6 +387,12 @@ CREATE TABLE service_defs
   id BIGINT NOT NULL,
   data OID,
   service_version_id BIGINT
+);
+
+create table service_hosts
+(
+  service_version_id BIGINT NOT NULL,
+  hostname VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE service_versions
@@ -609,9 +622,13 @@ CREATE INDEX idx_policies_2 ON policies (order_index);
 
 CREATE INDEX idx_fk_policies_1 ON policies (definition_id);
 
+CREATE INDEX idx_service_basepaths_1 ON service_basepaths (servicebean_organization_id, servicebean_id);
+
 CREATE INDEX idx_service_brandings_1 ON service_brandings (organization_id, service_id);
 
 CREATE INDEX idx_service_brandings_2 ON service_brandings (branding_id);
+
+CREATE INDEX idx_service_hosts_1 ON service_hosts (service_version_id);
 
 CREATE INDEX idx_services_1 ON services (name);
 
@@ -645,9 +662,13 @@ ALTER TABLE plan_versions ADD CONSTRAINT uk_plan_versions_1 UNIQUE (plan_id, pla
 
 ALTER TABLE plugins ADD CONSTRAINT uk_plugins_1 UNIQUE (group_id, artifact_id);
 
+ALTER TABLE service_basepaths ADD CONSTRAINT uk_service_basepaths_1 UNIQUE (servicebean_organization_id, servicebean_id, basepath);
+
 ALTER TABLE service_brandings ADD CONSTRAINT uk_service_brandings_1 UNIQUE (service_id, branding_id);
 
 ALTER TABLE service_defs ADD CONSTRAINT uk_service_defs_1 UNIQUE (service_version_id);
+
+ALTER TABLE service_hosts ADD CONSTRAINT uk_service_hosts_1 UNIQUE (service_version_id, hostname);
 
 ALTER TABLE service_versions ADD CONSTRAINT uk_service_versions_1 UNIQUE (service_id, service_org_id, version);
 
@@ -695,11 +716,15 @@ ALTER TABLE plans ADD CONSTRAINT fk_plans_1 FOREIGN KEY (organization_id) REFERE
 
 ALTER TABLE policies ADD CONSTRAINT fk_policies_1 FOREIGN KEY (definition_id) REFERENCES policydefs (id);
 
+ALTER TABLE service_basepaths ADD CONSTRAINT fk_service_basepaths_1 FOREIGN KEY (servicebean_organization_id, servicebean_id) references services (organization_id, id);
+
 ALTER TABLE service_brandings ADD CONSTRAINT fk_service_brandings_1 FOREIGN KEY (service_id, organization_id) REFERENCES services (id, organization_id);
 
 ALTER TABLE service_brandings ADD CONSTRAINT fk_service_brandings_2 FOREIGN KEY (branding_id) REFERENCES brandings (id);
 
 ALTER TABLE service_defs ADD CONSTRAINT fk_service_defs_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+
+ALTER TABLE service_hosts ADD CONSTRAINT fk_service_hosts_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
 
 ALTER TABLE service_versions ADD CONSTRAINT fk_service_versions_1 FOREIGN KEY (service_id, service_org_id) REFERENCES services (id, organization_id);
 

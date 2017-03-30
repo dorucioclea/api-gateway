@@ -1100,7 +1100,7 @@ public class OrganizationFacade {
         if (svb.getStatus() != ServiceStatus.Retired) {
             if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
                 data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
-                svb.setEndpoint(bean.getEndpoint());
+                svb.setEndpoint(URIUtils.uriBackslashRemover(bean.getEndpoint()));
                 //If the service is already published, update the upstream URL's on the gateways the service is published on
                 updateServiceVersionEndpoint(svb);
                 log.debug("BEAN ENDPOINT UPDATED");

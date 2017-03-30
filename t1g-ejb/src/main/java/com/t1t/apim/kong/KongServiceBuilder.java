@@ -1,10 +1,14 @@
 package com.t1t.apim.kong;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.apim.kong.adapters.KongSafeTypeAdapterFactory;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RestAdapter;
+import retrofit.converter.GsonConverter;
 
 import java.io.UnsupportedEncodingException;
 
@@ -52,6 +56,7 @@ public class KongServiceBuilder {
                 .setLog(msg -> _LOG.info("retrofit - KONG:{}", msg))
                 .setRequestInterceptor(requestFacade ->
                     requestFacade.addHeader("Authorization", getBasicAuthValue(config)))
+                .setConverter(new GsonConverter(new GsonBuilder().registerTypeAdapterFactory(new KongSafeTypeAdapterFactory()).create()))
 /*                .setErrorHandler(new ErrorHandler() {
                     @Override
                     public Throwable handleError(RetrofitError retrofitError) {

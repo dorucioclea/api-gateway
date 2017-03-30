@@ -210,8 +210,9 @@ public class OAuthFacade {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
             //construct the target url
+            //TODO - return a list of strings for all uris
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
-                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))
+                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepaths(), version).get(0)))
                     .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
             return targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_AUTH;
             //response.setTokenUrl(targetURI.toString()+"token");
@@ -232,8 +233,9 @@ public class OAuthFacade {
                 throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
             }
             //construct the target url
+            //TODO - return a list of strings for all uris
             StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
-                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepath(), version)))
+                    .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(orgId, svb.getService().getBasepaths(), version).get(0)))
                     .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
             return targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN;
         } catch (StorageException e) {

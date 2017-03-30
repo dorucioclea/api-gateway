@@ -97,7 +97,8 @@ public class ServiceVersionBean implements Serializable {
     private Boolean termsAgreementRequired;
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name="service_hosts", joinColumns=@JoinColumn(name="service_version_id"))
-    private Set<String> serviceHosts;
+    @Column(name = "hostname")
+    private Set<String> hostnames;
 
     /**
      * @return the id
@@ -453,15 +454,15 @@ public class ServiceVersionBean implements Serializable {
     /**
      * @return the service hosts
      */
-    public Set<String> getServiceHosts() {
-        return serviceHosts;
+    public Set<String> getHostnames() {
+        return hostnames;
     }
 
     /**
      * @param serviceHosts the service hosts to set
      */
-    public void setServiceHosts(Set<String> serviceHosts) {
-        this.serviceHosts = serviceHosts;
+    public void setHostnames(Set<String> hostnames) {
+        this.hostnames = hostnames;
     }
 
     /**
@@ -523,7 +524,7 @@ public class ServiceVersionBean implements Serializable {
                 ", autoAcceptContracts=" + autoAcceptContracts +
                 ", readme='" + readme + '\'' +
                 ", termsAgreementRequired=" + termsAgreementRequired +
-                ", serviceHosts=" + serviceHosts +
+                ", hostnames=" + hostnames +
                 '}';
     }
 }
