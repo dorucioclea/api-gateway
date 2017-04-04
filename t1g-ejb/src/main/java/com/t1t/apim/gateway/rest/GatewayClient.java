@@ -817,9 +817,14 @@ public class GatewayClient {
         return httpClient.updateOrCreateConsumer(consumer);
     }
 
-    public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL) {
-        KongApi api = getApi(ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version));
-        api.setUpstreamUrl(upstreamURL);
+    public KongApi updateServiceVersionOnGateway(ServiceVersionBean svb) {
+        KongApi api = getApi(ServiceConventionUtil.generateServiceUniqueName(svb));
+        api.setUpstreamUrl(svb.getEndpoint());
+        api.setHosts(new ArrayList<>(svb.getHostnames()));
+        api.setUris(new ArrayList<>(svb.getService().getBasepaths()));
+        api.setUpstreamConnectTimeout(svb.getUpstreamConnectTimeout().intValue());
+        api.setUpstreamReadTimeout(svb.getUpstreamReadTimeout().intValue());
+        api.setUpstreamSendTimeout(svb.getUpstreamSendTimeout().intValue());
         return httpClient.updateOrCreateApi(api);
     }
 

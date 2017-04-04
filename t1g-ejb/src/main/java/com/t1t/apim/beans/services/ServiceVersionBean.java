@@ -99,6 +99,12 @@ public class ServiceVersionBean implements Serializable {
     @CollectionTable(name="service_hosts", joinColumns=@JoinColumn(name="service_version_id"))
     @Column(name = "hostname")
     private Set<String> hostnames;
+    @Column(name ="upstream_connect_timeout")
+    private Long upstreamConnectTimeout;
+    @Column(name ="upstream_send_timeout")
+    private Long upstreamSendTimeout;
+    @Column(name ="upstream_read_timeout")
+    private Long upstreamReadTimeout;
 
     /**
      * @return the id
@@ -466,6 +472,48 @@ public class ServiceVersionBean implements Serializable {
     }
 
     /**
+     * @return the upstream connect timeout
+     */
+    public Long getUpstreamConnectTimeout() {
+        return upstreamConnectTimeout;
+    }
+
+    /**
+     * @param upstreamConnectTimeout the upstream connect timeout to set
+     */
+    public void setUpstreamConnectTimeout(Long upstreamConnectTimeout) {
+        this.upstreamConnectTimeout = upstreamConnectTimeout;
+    }
+
+    /**
+     * @return the upstream send timeout
+     */
+    public Long getUpstreamSendTimeout() {
+        return upstreamSendTimeout;
+    }
+
+    /**
+     * @param upstreamConnectTimeout the upstream send timeout to set
+     */
+    public void setUpstreamSendTimeout(Long upstreamSendTimeout) {
+        this.upstreamSendTimeout = upstreamSendTimeout;
+    }
+
+    /**
+     * @return the upstream read timeout
+     */
+    public Long getUpstreamReadTimeout() {
+        return upstreamReadTimeout;
+    }
+
+    /**
+     * @param upstreamConnectTimeout the upstream read timeout to set
+     */
+    public void setUpstreamReadTimeout(Long upstreamReadTimeout) {
+        this.upstreamReadTimeout = upstreamReadTimeout;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -525,6 +573,9 @@ public class ServiceVersionBean implements Serializable {
                 ", readme='" + readme + '\'' +
                 ", termsAgreementRequired=" + termsAgreementRequired +
                 ", hostnames=" + hostnames +
+                ", upstreamConnectTimeout=" + upstreamConnectTimeout +
+                ", upstreamSendTimeout=" + upstreamSendTimeout +
+                ", upstreamReadTimeout=" + upstreamReadTimeout +
                 '}';
     }
 }

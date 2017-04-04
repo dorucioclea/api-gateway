@@ -212,7 +212,7 @@ public class IDPClientImpl implements IDPClient {
 
     private ClientRepresentation getDefaultClientRepresentation() {
         ClientRepresentation rval;
-        List<ClientRepresentation> response = client.realm(idp.getMasterRealm()).clients().findByClientId(idp.getDefaultClient());
+        List<ClientRepresentation> response = client.realm(idp.getDefaultRealm()).clients().findByClientId(idp.getDefaultClient());
         if (response.isEmpty()) {
             rval = new ClientRepresentation();
             rval.setProtocol(IDPConstants.OPENID_CONNECT);

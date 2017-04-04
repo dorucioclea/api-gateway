@@ -3,6 +3,7 @@ package com.t1t.apim.gateway;
 import com.t1t.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.apim.beans.gateways.Gateway;
+import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerException;
@@ -11,6 +12,7 @@ import com.t1t.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.kong.model.*;
 import org.elasticsearch.gateway.GatewayException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -409,7 +411,7 @@ public interface IGatewayLink {
      * @param upstreamURL
      * @return KongApi
      */
-    public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL);
+    public KongApi updateServiceVersionOnGateway(ServiceVersionBean svb);
 
     /**
      * @return the gateway link's id
@@ -602,5 +604,4 @@ public interface IGatewayLink {
      * @return
      */
     public KongPluginConfigList getConsumerSpecificApiPlugins(String consumerId, String apiId);
-
 }

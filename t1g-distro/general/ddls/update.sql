@@ -1,11 +1,11 @@
 --------- UPGRADE TO 1.0.0 STARTS HERE ----------
 
-CREATE TABLE idps (id VARCHAR(255) NOT NULL, server_url VARCHAR(255) NOT NULL, master_realm VARCHAR(255) NOT NULL, client_id VARCHAR(255) NOT NULL, encrypted_client_secret VARCHAR(255) NOT NULL, default_login_theme_id VARCHAR(255) DEFAULT NULL, default_client VARCHAR(255) DEFAULT NULL, default_idp BOOLEAN DEFAULT FALSE);
+CREATE TABLE idps (id VARCHAR(255) NOT NULL, server_url VARCHAR(255) NOT NULL, master_realm VARCHAR(255) NOT NULL, client_id VARCHAR(255) NOT NULL, encrypted_client_secret VARCHAR(255) NOT NULL, default_login_theme_id VARCHAR(255) DEFAULT NULL, default_realm VARCHAR(255) NOT NULL, default_client VARCHAR(255) NOT NULL, default_idp BOOLEAN DEFAULT FALSE);
 ALTER TABLE idps ADD PRIMARY KEY (id);
 CREATE UNIQUE INDEX uk_idps_1 ON idps (default_idp) WHERE default_idp = true;
 
 -- Replace the client secret with actual encrypted value
-INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_client, default_idp) VALUES ('Keycloak','https://devidp.t1t.be/auth', 'master', 'admin-cli', 'INSERT_ENCRYPTED_SECRET_HERE', 't1g', 'DefaultClient', TRUE);
+INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_realm, default_client, default_idp) VALUES ('Keycloak','https://devidp.t1t.be/auth', 'master', 'admin-cli', 'INSERT_ENCRYPTED_SECRET_HERE', 't1g', 'DefaultRealm','DefaultClient', TRUE);
 
 -- Store the IDP ids
 ALTER TABLE application_versions ADD COLUMN idp_client_id VARCHAR(255) DEFAULT NULL;
@@ -29,15 +29,21 @@ ALTER TABLE organizations ADD COLUMN keystore_kid VARCHAR(255) NULL;
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_1 FOREIGN KEY (mail_provider_id) REFERENCES mail_providers (id);
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_2 FOREIGN KEY (keystore_kid) REFERENCES keystores (kid);
 
+-- Kong 0.10.1 Upgrade
+
 CREATE TABLE service_basepaths AS SELECT services.organization_id AS servicebean_organization_id, services.id AS servicebean_id, services.basepath FROM services;
 ALTER TABLE service_basepaths ADD CONSTRAINT fk_service_basepaths_1 FOREIGN KEY (servicebean_organization_id, servicebean_id) REFERENCES services (organization_id, id);
 ALTER TABLE service_basepaths ADD CONSTRAINT uk_service_basepaths_1 UNIQUE (servicebean_organization_id, servicebean_id, basepath);
 CREATE INDEX idx_service_basepaths_1 ON service_basepaths (servicebean_organization_id, servicebean_id) ;
 
-CREATE TABLE service_hosts AS SELECT service_versions.id AS service_version_id, service_versions.service_org_id || '.' || service_versions.service_id || '.' || service_versions.version AS hostname FROM service_versions;
+CREATE TABLE service_hosts (service_version_id BIGINT NOT NULL, hostname VARCHAR(255) NOT NULL);
 ALTER TABLE service_hosts ADD CONSTRAINT fk_service_hosts_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
 ALTER TABLE service_hosts ADD CONSTRAINT uk_service_hosts_1 UNIQUE (service_version_id, hostname);
 CREATE INDEX idx_service_hosts_1 ON service_hosts (service_version_id);
+
+ALTER TABLE service_versions ADD COLUMN upstream_connect_timeout BIGINT DEFAULT 60000;
+ALTER TABLE service_versions ADD COLUMN upstream_send_timeout BIGINT DEFAULT 60000;
+ALTER TABLE service_versions ADD COLUMN upstream_read_timeout BIGINT DEFAULT 60000;
 
 
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release

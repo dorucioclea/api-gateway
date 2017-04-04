@@ -55,6 +55,24 @@ public class AuditUtils {
      * @param after the value after change
      * @return true if value changed, else false
      */
+    public static boolean valueChanged(Number before, Number after) {
+        if ((before == null && after == null) || after == null) {
+            return false;
+        }
+
+        if (before == null) {
+            return true;
+        }
+
+        return !before.equals(after);
+    }
+
+    /**
+     * Returns true only if the value changed.
+     * @param before the value before change
+     * @param after the value after change
+     * @return true if value changed, else false
+     */
     public static boolean valueChanged(Boolean before, Boolean after) {
         if ((before == null && after == null) || after == null) {
             return false;

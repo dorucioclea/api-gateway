@@ -6,6 +6,7 @@ import com.t1t.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.apim.beans.gateways.Gateway;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.gateway.GatewayAuthenticationException;
@@ -25,6 +26,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -384,8 +386,8 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL) {
-        return getClient().updateApiUpstreamURL(organizationId, serviceId, version, upstreamURL);
+    public KongApi updateServiceVersionOnGateway(ServiceVersionBean svb) {
+        return getClient().updateServiceVersionOnGateway(svb);
     }
 
     @Override

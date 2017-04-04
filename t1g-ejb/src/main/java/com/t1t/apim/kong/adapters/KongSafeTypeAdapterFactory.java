@@ -31,7 +31,7 @@ public class KongSafeTypeAdapterFactory implements TypeAdapterFactory {
                     delegate.write(out, value);
                 }
                 catch (Exception ex) {
-                    log.error("GSon Conversion error: {}", ex.getMessage());
+                    log.error("GSon Serialization error, skipping value: {}", ex.getMessage());
                     delegate.write(out, null);
                 }
             }
@@ -42,8 +42,8 @@ public class KongSafeTypeAdapterFactory implements TypeAdapterFactory {
                     return delegate.read(in);
                 }
                 catch (Exception ex) {
-                    log.error("GSon Conversion error: {}", ex.getMessage());
                     if (ex.getMessage().contains(EXPECTED_ARRAY)) {
+                        log.error("GSon Deserialization error, skipping value: {}", ex.getMessage());
                         in.skipValue();
                         return null;
                     }

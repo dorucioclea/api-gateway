@@ -1097,13 +1097,34 @@ public class OrganizationFacade {
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
         EntityUpdatedData data = new EntityUpdatedData();
+        boolean gwValueChanged = false;
         if (svb.getStatus() != ServiceStatus.Retired) {
             if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
                 data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
                 svb.setEndpoint(URIUtils.uriBackslashRemover(bean.getEndpoint()));
                 //If the service is already published, update the upstream URL's on the gateways the service is published on
-                updateServiceVersionEndpoint(svb);
+                gwValueChanged = true;
                 log.debug("BEAN ENDPOINT UPDATED");
+            }
+            if (AuditUtils.valueChanged(svb.getHostnames(), bean.getHostnames())) {
+                data.addChange("hostnames", svb.getHostnames() == null ? "" : svb.getHostnames().toString(), bean.getHostnames() == null ? "" : bean.getHostnames().toString());
+                svb.setHostnames(bean.getHostnames());
+                gwValueChanged = true;
+            }
+            if (AuditUtils.valueChanged(svb.getUpstreamConnectTimeout(), bean.getUpstreamConnectTimeout())) {
+                data.addChange("upstreamConnectTimeout", svb.getUpstreamConnectTimeout() == null ? null : svb.getUpstreamConnectTimeout().toString(), bean.getUpstreamConnectTimeout() == null ? null : bean.getUpstreamConnectTimeout().toString());
+                svb.setUpstreamConnectTimeout(bean.getUpstreamConnectTimeout());
+                gwValueChanged = true;
+            }
+            if (AuditUtils.valueChanged(svb.getUpstreamReadTimeout(), bean.getUpstreamReadTimeout())) {
+                data.addChange("upstreamReadTimeout", svb.getUpstreamReadTimeout() == null ? null : svb.getUpstreamReadTimeout().toString(), bean.getUpstreamReadTimeout() == null ? null : bean.getUpstreamReadTimeout().toString());
+                svb.setUpstreamReadTimeout(bean.getUpstreamReadTimeout());
+                gwValueChanged = true;
+            }
+            if (AuditUtils.valueChanged(svb.getUpstreamSendTimeout(), bean.getUpstreamSendTimeout())) {
+                data.addChange("upstreamSendTimeout", svb.getUpstreamSendTimeout() == null ? null : svb.getUpstreamSendTimeout().toString(), bean.getUpstreamSendTimeout() == null ? null : bean.getUpstreamSendTimeout().toString());
+                svb.setUpstreamSendTimeout(bean.getUpstreamSendTimeout());
+                gwValueChanged = true;
             }
             if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
                 data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
@@ -1131,28 +1152,6 @@ public class OrganizationFacade {
                 }
                 data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
                 svb.setVisibility(bean.getVisibility());
-                //add implicitly the IP Restriction when: External available and hide = false
-                //Legacy - we added implicitly an IPRestriction policy, we remove this because OR it should be on a separate gateway, or the load balancer should deal with it.
-/*                    KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(IPRestrictionFlavor.WHITELIST, query.listWhitelistRecords());
-                    boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
-                    if (defaultIPRestriction != null && enableIPR) {
-                        Gson gson = new Gson();
-                        NewPolicyBean npb = new NewPolicyBean();
-                        npb.setDefinitionId("IPRestriction");
-                        npb.setConfiguration(gson.toJson(defaultIPRestriction));
-                        try {
-                            createServicePolicy(organizationId, serviceId, version, npb);
-                        } catch (PolicyDefinitionAlreadyExistsException pdex) {
-                            ;
-                        }//ignore if policy already exists
-                    } else {
-                        //remove eventual policies already added
-                        List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
-                        for (PolicySummaryBean psb : policies) {
-                            psb.getPolicyDefinitionId().equalsIgnoreCase("IPRestriction");
-                            deleteServicePolicy(organizationId, serviceId, version, psb.getId());
-                        }
-                    }*/
                 log.debug("BEAN VISIBILITY UPDATED");
             }
             //Set auto accept to false no matter what when the service is an admin service
@@ -1259,6 +1258,9 @@ public class OrganizationFacade {
                 if (entry != null) {
                     storage.createAuditEntry(entry);
                 }
+                if (gwValueChanged) {
+                    updateServiceVersionOnGateway(svb);
+                }
                 log.debug(String.format("Successfully updated Service Version: %s", svb)); //$NON-NLS-1$
                 decryptEndpointProperties(svb);
                 return svb;
@@ -1295,11 +1297,7 @@ public class OrganizationFacade {
             if (storage.getService(orgBean.getId(), newService.getId()) != null) {
                 throw ExceptionFactory.serviceAlreadyExistsException(bean.getName());
             }
-            for (String basepath : newService.getBasepaths()) {
-                if (query.getServiceByBasepath(organizationId, basepath) != null) {
-                    throw ExceptionFactory.serviceBasepathAlreadyInUseException(orgBean.getName(), basepath.substring(1));
-                }
-            }
+            validateServiceBasepaths(orgBean, newService.getBasepaths());
             newService.setBrandings(validateServiceBrandings(newService, bean.getBrandings()));
             newService.setOrganization(orgBean);
             // Store/persist the new service
@@ -1316,6 +1314,14 @@ public class OrganizationFacade {
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+    }
+
+    private void validateServiceBasepaths(OrganizationBean org, Set<String> basepaths) throws StorageException {
+        for (String basepath : basepaths) {
+            if (query.getServiceByBasepath(org.getId(), basepath) != null) {
+                throw ExceptionFactory.serviceBasepathAlreadyInUseException(org.getName(), basepath.substring(1));
+            }
         }
     }
 
@@ -1386,6 +1392,10 @@ public class OrganizationFacade {
                 updatedService.setEndpoint(cloneSource.getEndpoint());
                 updatedService.setEndpointType(cloneSource.getEndpointType());
                 updatedService.setEndpointProperties(cloneSource.getEndpointProperties());
+                updatedService.setHostnames(cloneSource.getHostnames());
+                updatedService.setUpstreamConnectTimeout(cloneSource.getUpstreamConnectTimeout());
+                updatedService.setUpstreamReadTimeout(cloneSource.getUpstreamReadTimeout());
+                updatedService.setUpstreamSendTimeout(cloneSource.getUpstreamSendTimeout());
 
                 updatedService.setOnlinedoc(cloneSource.getOnlinedoc());
                 updatedService.setPublicService(cloneSource.isPublicService());
@@ -1468,14 +1478,14 @@ public class OrganizationFacade {
         log.debug(String.format("Updated service definition for %s", serviceId)); //$NON-NLS-1$
     }
 
-    private void updateServiceVersionEndpoint(ServiceVersionBean svb) {
+    private void updateServiceVersionOnGateway(ServiceVersionBean svb) {
         if (svb.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) {
             svb.getGateways().forEach(svcGateway -> {
                 IGatewayLink gateway = createGatewayLink(svcGateway.getGatewayId());
-                gateway.updateApiUpstreamURL(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), svb.getEndpoint());
+                gateway.updateServiceVersionOnGateway(svb);
             });
         }
     }
@@ -2031,12 +2041,45 @@ public class OrganizationFacade {
                 }
                 serviceForUpdate.setAdmin(bean.isAdmin());
             }
+            if (AuditUtils.valueChanged(serviceForUpdate.getBasepaths(), bean.getBasepaths())) {
+                validateServiceBasepaths(serviceForUpdate.getOrganization(), bean.getBasepaths());
+                auditData.addChange("basepaths", serviceForUpdate.getBasepaths().toString(), bean.getBasepaths().toString());
+                serviceForUpdate.setBasepaths(bean.getBasepaths());
+                updateServiceBasepaths(serviceForUpdate);
+            }
             storage.updateService(serviceForUpdate);
             storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+    }
+
+    public ServiceBean updateServiceBasepaths(String organizationId, String serviceId) {
+        try {
+            return updateServiceBasepaths(storage.getService(organizationId, serviceId));
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public ServiceBean updateServiceBasepaths(ServiceBean service) {
+        try {
+            Set<ServiceStatus> presentOnGateway = new HashSet<>();
+            presentOnGateway.add(ServiceStatus.Deprecated);
+            presentOnGateway.add(ServiceStatus.Published);
+            List<ServiceVersionBean> gwServiceVersions = query.getServiceVersionByStatusForService(presentOnGateway, service);
+            for (ServiceVersionBean svb : gwServiceVersions) {
+                for (ServiceGatewayBean gwsvb : svb.getGateways()) {
+                    gatewayFacade.createGatewayLink(gwsvb.getGatewayId()).updateServiceVersionOnGateway(svb);
+                }
+            }
+            return service;
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 

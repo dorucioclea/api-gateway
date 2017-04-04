@@ -80,6 +80,7 @@ public class StartupService {
                 verifyOrCreateApiEngine(gw);
                 verifyOrCreateApiEngineAuth(gw);
                 verifyOrCreateGatewayKeys(gw);
+                verifyOrCreateClusterInfo(gw);
                 verifyOrCreateConsumers(gw);
             }
             catch (StorageException ex){
@@ -116,6 +117,17 @@ public class StartupService {
                 .withName(config.getGatewaykeysName())
                 .withStripUri(config.getGatewaykeysStripRequestPath())
                 .withUpstreamUrl(config.getGatewaykeysUpstreamUrl());
+
+        api = verifyApi(gw, api);
+        verifyPlugins(gw, api, Arrays.asList(Policies.CORS));
+    }
+
+    private void verifyOrCreateClusterInfo(IGatewayLink gw) {
+        KongApi api = new KongApi()
+                .withUris(Collections.singletonList(config.getClusterInfoRequestPath()))
+                .withName(config.getClusterInfoName())
+                .withStripUri(config.getClusterInfoStripRequestPath())
+                .withUpstreamUrl(config.getClusterInfoUpstreamUrl());
 
         api = verifyApi(gw, api);
         verifyPlugins(gw, api, Arrays.asList(Policies.CORS));

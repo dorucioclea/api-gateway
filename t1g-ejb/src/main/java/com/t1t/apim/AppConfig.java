@@ -107,6 +107,8 @@ public class AppConfig implements Serializable {
                 _LOG.info("API Engine auth request path: {}", getApiEngineAuthRequestPath());
                 _LOG.info("Gateway keys upstream url: {}", getGatewaykeysUpstreamUrl());
                 _LOG.info("Gateway keys request path: {}", getGatewaykeysRequestPath());
+                _LOG.info("Gateway cluster info url: {}", getGatewaykeysUpstreamUrl());
+                _LOG.info("Gateway cluster info request path: {}", getGatewaykeysRequestPath());
                 _LOG.info("=============================================================");
             }
             catch (Exception ex) {
@@ -172,5 +174,9 @@ public class AppConfig implements Serializable {
     public Boolean getGatewaykeysStripRequestPath(){return config.getBoolean(IConfig.GWD_GATEWAYKEYS_STRIP_REQUEST_PATH);}
     public String getGatewaykeysUpstreamUrl(){return config.getString(IConfig.GWD_GATEWAYKEYS_UPSTREAM_URL);}
     public String getGatewaykeysRequestPath(){return config.getString(IConfig.GWD_GATEWAYKEYS_REQUEST_PATH);}
+    public String getClusterInfoName() {return config.getString(IConfig.GWD_CLUSTER_INFO_NAME);}
+    public String getClusterInfoRequestPath() {return config.getString(IConfig.GWD_CLUSTER_INFO_REQUEST_PATH);}
+    public String getClusterInfoUpstreamUrl() {return config.getString(IConfig.GWD_CLUSTER_INFO_UPSTREAM_URL);}
+    public Boolean getClusterInfoStripRequestPath() {return config.getBoolean(IConfig.GWD_CLUSTER_INFO_STRIP_REQUEST_PATH);}
 
 }

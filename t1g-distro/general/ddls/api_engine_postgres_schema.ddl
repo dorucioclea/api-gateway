@@ -160,7 +160,8 @@ CREATE TABLE idps
   client_id VARCHAR(255) NOT NULL,
   encrypted_client_secret VARCHAR(255) NOT NULL,
   default_login_theme_id VARCHAR(255) DEFAULT NULL,
-  default_client VARCHAR(255) DEFAULT NULL,
+  default_realm VARCHAR(255) NOT NULL,
+  default_client VARCHAR(255) NOT NULL,
   default_idp BOOLEAN DEFAULT FALSE
 );
 
@@ -417,7 +418,10 @@ CREATE TABLE service_versions
   onlinedoc VARCHAR(255),
   auto_accept_contracts BOOLEAN DEFAULT true,
   terms_agreement_required BOOLEAN DEFAULT false,
-  readme TEXT
+  readme TEXT,
+  upstream_connect_timeout BIGINT DEFAULT 60000,
+  upstream_send_timeout BIGINT DEFAULT 60000,
+  upstream_read_timeout BIGINT DEFAULT 60000
 );
 
 CREATE TABLE services

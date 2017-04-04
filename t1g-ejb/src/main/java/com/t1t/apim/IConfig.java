@@ -62,4 +62,8 @@ public interface IConfig {
     String GWD_GATEWAYKEYS_REQUEST_PATH = "apiapp.gateway_dependencies.gatewaykeys.request_path";
     String GWD_GATEWAYKEYS_UPSTREAM_URL = "apiapp.gateway_dependencies.gatewaykeys.upstream_url";
     String GWD_GATEWAYKEYS_STRIP_REQUEST_PATH = "apiapp.gateway_dependencies.gatewaykeys.strip_request_path";
+    String GWD_CLUSTER_INFO_NAME = "apiapp.gateway_dependencies.cluster_info.name";
+    String GWD_CLUSTER_INFO_REQUEST_PATH = "apiapp.gateway_dependencies.cluster_info.request_path";
+    String GWD_CLUSTER_INFO_UPSTREAM_URL = "apiapp.gateway_dependencies.cluster_info.upstream_url";
+    String GWD_CLUSTER_INFO_STRIP_REQUEST_PATH = "apiapp.gateway_dependencies.cluster_info.strip_request_path";
 }

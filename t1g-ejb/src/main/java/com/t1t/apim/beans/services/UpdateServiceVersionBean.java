@@ -3,7 +3,9 @@ package com.t1t.apim.beans.services;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.apim.beans.visibility.VisibilityBean;
 
+import javax.persistence.Column;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,6 +29,10 @@ public class UpdateServiceVersionBean implements Serializable {
     private Boolean autoAcceptContracts;
     private Boolean termsAgreementRequired;
     private String readme;
+    private Set<String> hostnames;
+    private Long upstreamConnectTimeout;
+    private Long upstreamSendTimeout;
+    private Long upstreamReadTimeout;
 
     /**
      * @return the endpoint
@@ -105,18 +111,30 @@ public class UpdateServiceVersionBean implements Serializable {
         return endpointProperties;
     }
 
+    /**
+     * @return the online doc
+     */
     public String getOnlinedoc() {
         return onlinedoc;
     }
 
+    /**
+     * @param onlinedoc the online doc to set
+     */
     public void setOnlinedoc(String onlinedoc) {
         this.onlinedoc = onlinedoc;
     }
 
+    /**
+     * @return the visibility
+     */
     public Set<VisibilityBean> getVisibility() {
         return visibility;
     }
 
+    /**
+     * @param visibility the visibilty to set
+     */
     public void setVisibility(Set<VisibilityBean> visibility) {
         this.visibility = visibility;
     }
@@ -128,28 +146,102 @@ public class UpdateServiceVersionBean implements Serializable {
         this.endpointProperties = endpointProperties;
     }
 
+    /**
+     * @return the auto accept contracts values
+     */
     public Boolean getAutoAcceptContracts() {
         return autoAcceptContracts;
     }
 
+    /**
+     * @param autoAcceptContracts the auto accept contracts value to set
+     */
     public void setAutoAcceptContracts(Boolean autoAcceptContracts) {
         this.autoAcceptContracts = autoAcceptContracts;
     }
 
+    /**
+     * @return the terms agreement required value
+     */
     public Boolean getTermsAgreementRequired() {
         return termsAgreementRequired;
     }
 
+    /**
+     * @param termsAgreementRequired the terms agreement required value to set
+     */
     public void setTermsAgreementRequired(Boolean termsAgreementRequired) {
         this.termsAgreementRequired = termsAgreementRequired;
     }
 
+    /**
+     * @return the read me
+     */
     public String getReadme() {
         return readme;
     }
 
+    /**
+     * @param readme the read me to set
+     */
     public void setReadme(String readme) {
         this.readme = readme;
+    }
+
+    /**
+     * @return the hostnames
+     */
+    public Set<String> getHostnames() {
+        return hostnames;
+    }
+
+    /**
+     * @param hostnames the hostnames to set
+     */
+    public void setHostnames(Set<String> hostnames) {
+        this.hostnames = hostnames;
+    }
+
+    /**
+     * @return the upstream connect timeout
+     */
+    public Long getUpstreamConnectTimeout() {
+        return upstreamConnectTimeout;
+    }
+
+    /**
+     * @param upstreamConnectTimeout the upstream connect timeout to set
+     */
+    public void setUpstreamConnectTimeout(Long upstreamConnectTimeout) {
+        this.upstreamConnectTimeout = upstreamConnectTimeout;
+    }
+
+    /**
+     * @return the upstream send timeout
+     */
+    public Long getUpstreamSendTimeout() {
+        return upstreamSendTimeout;
+    }
+
+    /**
+     * @param upstreamConnectTimeout the upstream send timeout to set
+     */
+    public void setUpstreamSendTimeout(Long upstreamSendTimeout) {
+        this.upstreamSendTimeout = upstreamSendTimeout;
+    }
+
+    /**
+     * @return the upstream read timeout
+     */
+    public Long getUpstreamReadTimeout() {
+        return upstreamReadTimeout;
+    }
+
+    /**
+     * @param upstreamConnectTimeout the upstream read timeout to set
+     */
+    public void setUpstreamReadTimeout(Long upstreamReadTimeout) {
+        this.upstreamReadTimeout = upstreamReadTimeout;
     }
 
     @Override
@@ -166,7 +258,10 @@ public class UpdateServiceVersionBean implements Serializable {
                 ", autoAcceptContracts=" + autoAcceptContracts +
                 ", termsAgreementRequired=" + termsAgreementRequired +
                 ", readme='" + readme + '\'' +
+                ", hostnames=" + hostnames +
+                ", upstreamConnectTimeout=" + upstreamConnectTimeout +
+                ", upstreamSendTimeout=" + upstreamSendTimeout +
+                ", upstreamReadTimeout=" + upstreamReadTimeout +
                 '}';
     }
-
 }
