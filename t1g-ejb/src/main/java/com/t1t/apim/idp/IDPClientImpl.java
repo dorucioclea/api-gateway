@@ -52,48 +52,7 @@ public class IDPClientImpl implements IDPClient {
 
     @Override
     public Realm createRealm(OrganizationBean org, KeystoreBean keystore, MailProviderBean mailProvider) {
-        if (realmExists(org.getId())) {
-            throw ExceptionFactory.organizationAlreadyExistsException(org.getId());
-        }
-        try {
-            //If no keystore or mailprovider is provided, use the defaults
-            MailProviderBean mpb = mailProvider == null ? defaultMailProvider : mailProvider;
-            KeystoreBean kb = keystore == null ? defaultKeystore : keystore;
-
-            //Create the realm
-            RealmRepresentation realm = new RealmRepresentation();
-            realm.setRealm(org.getId());
-            realm.setId(org.getId());
-            realm.setLoginTheme(idp.getDefaultLoginThemeId());
-            realm.setDisplayName(org.getName());
-            realm.setSmtpServer(convertMailProviderToMap(mpb));
-            realm.setEnabled(true);
-            client.realms().create(realm);
-
-            //Create the keystore
-            ComponentRepresentation newKeystore = new ComponentRepresentation();
-            newKeystore.setProviderType(IDPConstants.KEYSTORE_PROVIDER_TYPE);
-            newKeystore.setProviderId(IDPConstants.KEYSTORE_PROVIDER_ID);
-            newKeystore.setParentId(org.getId());
-            newKeystore.setName(kb.getName());
-            newKeystore.setConfig(convertKeystoreToMap(kb));
-            client.realm(org.getId()).components().add(newKeystore);
-
-            //Verify that the keystore was created
-            if (client.realm(org.getId()).components().query(org.getId(), IDPConstants.KEYSTORE_PROVIDER_TYPE, kb.getName()).isEmpty()) {
-                throw ExceptionFactory.actionException("Couldn't create keystore for realm");
-            }
-
-            Realm rval = new Realm();
-            rval.setId(org.getId());
-            return rval;
-        }
-        catch (Exception ex) {
-            log.error("Error creating realm on IDP");
-            //Attempt to delete the realm
-            deleteRealm(org);
-            throw ExceptionFactory.actionException("Couldn't create realm on IDP", ex);
-        }
+        return createRealm(org.getId(), org.getName(), keystore, mailProvider);
     }
 
     @Override
@@ -103,16 +62,7 @@ public class IDPClientImpl implements IDPClient {
 
     @Override
     public void deleteRealm(OrganizationBean org) {
-        try {
-            if (realmExists(org.getId())) {
-                client.realm(org.getId()).logoutAll();
-                client.realm(org.getId()).remove();
-            }
-        }
-        catch (Exception ex) {
-            log.error("Couldn't delete realm: {}", ex.getMessage());
-            throw ExceptionFactory.actionException("Couldn't delete realm.", ex);
-        }
+        deleteRealm(org.getId());
     }
 
     @Override
@@ -183,6 +133,64 @@ public class IDPClientImpl implements IDPClient {
         return client.realms().findAll().stream().map(RealmRepresentation::getRealm).collect(Collectors.toList()).contains(realmName);
     }
 
+    private Realm createRealm(String realmId, String realmName, KeystoreBean keystore, MailProviderBean mailProvider) {
+        if (realmExists(realmId)) {
+            throw ExceptionFactory.organizationAlreadyExistsException(realmId);
+        }
+        try {
+            //If no keystore or mailprovider is provided, use the defaults
+            MailProviderBean mpb = mailProvider == null ? defaultMailProvider : mailProvider;
+            KeystoreBean kb = keystore == null ? defaultKeystore : keystore;
+
+            //Create the realm
+            RealmRepresentation realm = new RealmRepresentation();
+            realm.setRealm(realmId);
+            realm.setId(realmId);
+            realm.setLoginTheme(idp.getDefaultLoginThemeId());
+            realm.setDisplayName(realmName);
+            realm.setSmtpServer(convertMailProviderToMap(mpb));
+            realm.setEnabled(true);
+            client.realms().create(realm);
+
+            //Create the keystore
+            ComponentRepresentation newKeystore = new ComponentRepresentation();
+            newKeystore.setProviderType(IDPConstants.KEYSTORE_PROVIDER_TYPE);
+            newKeystore.setProviderId(IDPConstants.KEYSTORE_PROVIDER_ID);
+            newKeystore.setParentId(realmId);
+            newKeystore.setName(kb.getName());
+            newKeystore.setConfig(convertKeystoreToMap(kb));
+            client.realm(realmId).components().add(newKeystore);
+
+            //Verify that the keystore was created
+            if (client.realm(realmId).components().query(realmId, IDPConstants.KEYSTORE_PROVIDER_TYPE, kb.getName()).isEmpty()) {
+                throw ExceptionFactory.actionException("Couldn't create keystore for realm");
+            }
+
+            Realm rval = new Realm();
+            rval.setId(realmId);
+            return rval;
+        }
+        catch (Exception ex) {
+            log.error("Error creating realm on IDP");
+            //Attempt to delete the realm
+            deleteRealm(realmId);
+            throw ExceptionFactory.actionException("Couldn't create realm on IDP", ex);
+        }
+    }
+
+    private void deleteRealm(String realmId) {
+        try {
+            if (realmExists(realmId)) {
+                client.realm(realmId).logoutAll();
+                client.realm(realmId).remove();
+            }
+        }
+        catch (Exception ex) {
+            log.error("Couldn't delete realm: {}", ex.getMessage());
+            throw ExceptionFactory.actionException("Couldn't delete realm.", ex);
+        }
+    }
+
     private boolean clientExistsInRealm(String clientId, String realmName) {
         return realmExists(realmName) && client.realm(realmName).clients().findByClientId(clientId).stream().map(ClientRepresentation::getClientId).collect(Collectors.toList()).contains(clientId);
     }
@@ -212,7 +220,8 @@ public class IDPClientImpl implements IDPClient {
 
     private ClientRepresentation getDefaultClientRepresentation() {
         ClientRepresentation rval;
-        List<ClientRepresentation> response = client.realm(idp.getDefaultRealm()).clients().findByClientId(idp.getDefaultClient());
+        RealmResource defaultRealm = getDefaultRealm();
+        List<ClientRepresentation> response = defaultRealm.clients().findByClientId(idp.getDefaultClient());
         if (response.isEmpty()) {
             rval = new ClientRepresentation();
             rval.setProtocol(IDPConstants.OPENID_CONNECT);
@@ -230,11 +239,10 @@ public class IDPClientImpl implements IDPClient {
             attributes.put(IDPConstants.CLIENT_REQUEST_OBJECT_SIGNATURE_ALGORITHM, IDPConstants.CLIENT_SIGNING_ALGORITHM_RS256);
             attributes.put(IDPConstants.CLIENT_USER_INFO_RESPONSE_SIGNATURE_ALGORITHM, IDPConstants.CLIENT_SIGNING_ALGORITHM_RS256);
             rval.setAttributes(attributes);
-            client.realm(idp.getMasterRealm()).clients().create(rval);
+            defaultRealm.clients().create(rval);
+            response = defaultRealm.clients().findByClientId(idp.getDefaultClient());
         }
-        else {
-            rval = response.get(0);
-        }
+        rval = response.get(0);
         //Scrub the default client of irrelevant info
         rval.setId(null);
         rval.setClientId(null);
@@ -242,5 +250,12 @@ public class IDPClientImpl implements IDPClient {
         rval.setEnabled(true);
         rval.getProtocolMappers().forEach(mapper -> mapper.setId(null));
         return rval;
+    }
+
+    private RealmResource getDefaultRealm() {
+        if (!realmExists(idp.getDefaultRealm())) {
+            createRealm(idp.getDefaultRealm(), idp.getDefaultRealm(), defaultKeystore, defaultMailProvider);
+        }
+        return client.realm(idp.getDefaultRealm());
     }
 }

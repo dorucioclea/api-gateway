@@ -73,9 +73,13 @@ public class GatewayClient {
         Object kongStatus = httpClient.getStatus();
         Object kongCluster = httpClient.getCluster();
         //Remove NginX Config & SSL Cert/Key path from KongInfo
-        kongInfo.getConfiguration().setSslCertPath(null);
-        kongInfo.getConfiguration().setSslKeyPath(null);
-        kongInfo.getConfiguration().setNginx(null);
+        kongInfo.getConfiguration().setSslCert(null);
+        kongInfo.getConfiguration().setSslCertCsrDefault(null);
+        kongInfo.getConfiguration().setSslCertKey(null);
+        kongInfo.getConfiguration().setSslCertKeyDefault(null);
+        kongInfo.getConfiguration().setSslCertDefault(null);
+        kongInfo.getConfiguration().setNginxConf(null);
+        kongInfo.getConfiguration().setNginxKongConf(null);
         SystemStatus systemStatus = new SystemStatus();
         systemStatus.setDescription(kongInformation.getTagline());
         systemStatus.setVersion(kongInformation.getVersion());
