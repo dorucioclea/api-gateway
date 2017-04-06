@@ -73,7 +73,7 @@ public class IDPLinkFactoryImpl implements IDPLinkFactory {
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .realm(idp.getMasterRealm())
                 .clientId(idp.getClientId())
-                .resteasyClient(new ResteasyClientBuilder().connectionPoolSize(100)
+                .resteasyClient(new ResteasyClientBuilder().connectionPoolSize(10)
                         .build())
                 .clientSecret(AesEncrypter.decrypt(idp.getEncryptedClientSecret()))
                 .build();
