@@ -190,8 +190,8 @@ CREATE TABLE mail_providers
   host VARCHAR(255) NOT NULL,
   port BIGINT NOT NULL,
   auth BOOLEAN DEFAULT TRUE,
-  from VARCHAR(255) NOT NULL,
-  user VARCHAR(255) NOT NULL,
+  mail_from VARCHAR(255) NOT NULL,
+  username VARCHAR(255) NOT NULL,
   encrypted_password VARCHAR(255) NOT NULL,
   default_mail_provider BOOLEAN DEFAULT FALSE
 );
@@ -274,7 +274,7 @@ CREATE TABLE organizations
   private BOOLEAN DEFAULT true,
   context VARCHAR(255) DEFAULT 'pub' NOT NULL,
   mail_provider_id BIGINT NULL,
-  keystore_id BIGINT NULL
+  keystore_kid VARCHAR(255) NULL
 );
 
 CREATE TABLE permissions
@@ -710,3 +710,7 @@ ALTER TABLE svc_gateways ADD CONSTRAINT fk_svc_gateways_1 FOREIGN KEY (service_v
 ALTER TABLE svc_plans ADD CONSTRAINT fk_scv_plans_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
 
 ALTER TABLE svc_visibility ADD CONSTRAINT fk_svc_visibility_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+
+-- Sequences
+
+CREATE SEQUENCE hibernate_sequence;
