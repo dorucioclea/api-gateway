@@ -14,6 +14,18 @@ public class ServiceUsageBean implements Serializable {
 
     private JSONObject data;
 
+    public JSONObject getData() {
+        return data;
+    }
 
+    public void setData(JSONObject data) {
+        this.data = data;
+    }
 
+    @Override
+    public String toString() {
+        return "ServiceUsageBean{" +
+                "data=" + data +
+                '}';
+    }
 }

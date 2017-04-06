@@ -19,12 +19,12 @@ public interface MetricsSPI {
 
     /**
      * Get all available metrics for a given service
-     * @param organizationId
-     * @param serviceId
-     * @param version
+     * @param service
+     * @param from
+     * @param to
      * @return
      */
-    ServiceUsageBean getServiceUsage(ServiceVersionBean service);
+    ServiceUsageBean getServiceUsage(ServiceVersionBean service, DateTime from, DateTime to);
 
     /**
      * Query the metrics store for # of requests made to a service broken

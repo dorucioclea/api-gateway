@@ -99,6 +99,7 @@ INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id,
     "key"
   ]
 }', 'JsonSchema', 'fa-lock', 'SSL Policy', null, false, false, false, null, null);
+
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('RequestTransformer', 'Modify the request before hitting the upstream sever', '{
   "type": "object",
   "title": "Request Transformer",

@@ -26,7 +26,7 @@ public class ServiceUsageFailSilent extends AbstractHystrixMetricsCommand<Servic
 
     @Override
     protected ServiceUsageBean run() {
-        return this.getSpi().getServiceUsage(service);
+        return this.getSpi().getServiceUsage(service, from, to);
     }
 
     @Override

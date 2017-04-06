@@ -1,5 +1,6 @@
 package com.t1t.apim.core.metrics;
 
+import com.google.gson.Gson;
 import com.t1t.apim.AppConfig;
 import com.t1t.apim.beans.metrics.AppUsageBean;
 import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
@@ -15,6 +16,7 @@ import com.t1t.kong.model.DataDogMetricsQuery;
 import com.t1t.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.json.JSONObject;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -53,10 +55,13 @@ public class DataDogMetricsSP implements MetricsSPI, Serializable {
     }
 
     @Override
-    public ServiceUsageBean getServiceUsage(ServiceVersionBean service) {
+    public ServiceUsageBean getServiceUsage(ServiceVersionBean service, DateTime from, DateTime to) {
         ServiceUsageBean rval = null;
         if (checkPolicy(service)) {
-            //TODO - implementation
+            String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(service);
+            List<String> availableQueries = getAvailableMetrics(ids[0], ids[1], ids[2]);
+            String finalQuery = consolidateQueries(availableQueries);
+            rval.setData(new JSONObject(new Gson().toJson(query(from, to, finalQuery))));
         }
         return rval;
     }
@@ -165,6 +170,15 @@ public class DataDogMetricsSP implements MetricsSPI, Serializable {
                 .getMetrics().stream()
                 .filter(metric -> metric.contains(ServiceConventionUtil.getDatadogUniqueName(organizationId, serviceId, version)))
                 .collect(Collectors.toList());
+    }
+
+    private String consolidateQueries(List<String> queries) {
+        StringBuilder rval = new StringBuilder();
+        for (String query : queries) {
+            if (rval.length() != 0) rval.append(QUERY_SEPARATOR);
+            rval.append(String.format(QUERY, AVG_PREFIX, query, config.getEnvironment()));
+        }
+        return rval.toString();
     }
 
     private String convertDateTimeToSecondsString(DateTime time) {
