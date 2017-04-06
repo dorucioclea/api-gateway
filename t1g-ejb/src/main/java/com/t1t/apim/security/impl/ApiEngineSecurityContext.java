@@ -2,6 +2,7 @@ package com.t1t.apim.security.impl;
 
 import com.t1t.apim.beans.idm.UserBean;
 import com.t1t.apim.core.exceptions.StorageException;
+import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.UserNotFoundException;
 import com.t1t.apim.facades.UserFacade;
 import org.apache.commons.lang3.StringUtils;
@@ -90,9 +91,14 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
         try {
             return getCurrentUser();
         }
-        catch (UserNotFoundException ex) {
-            userFacade.initNewUser(claims);
-            return currentUser;
+        catch (Exception ex) {
+            try {
+                userFacade.initNewUser(claims);
+                return currentUser;
+            }
+            catch (Exception e) {
+                throw ExceptionFactory.userNotFoundException(currentUser);
+            }
         }
     }
 
