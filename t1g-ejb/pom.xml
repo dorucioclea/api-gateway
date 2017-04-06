@@ -484,6 +484,7 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongClusterItem.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongCluster.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseDTO.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginAWSLambda.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>

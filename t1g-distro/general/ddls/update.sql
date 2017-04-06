@@ -45,6 +45,88 @@ ALTER TABLE service_versions ADD COLUMN upstream_connect_timeout BIGINT DEFAULT 
 ALTER TABLE service_versions ADD COLUMN upstream_send_timeout BIGINT DEFAULT 60000;
 ALTER TABLE service_versions ADD COLUMN upstream_read_timeout BIGINT DEFAULT 60000;
 
+INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('AWSLambda', 'Invoke an AWS Lambda function from Kong. It can be used in combination with other request plugins to secure, manage or extend the function.', '{
+  "type": "object",
+  "properties": {
+    "aws_key": {
+      "title": "AWS Key",
+      "description": "The AWS key credential to be used when invoking the function.",
+      "type": "string",
+      "required": true
+    },
+    "aws_secret": {
+      "title": "AWS Secret",
+      "description": "The AWS secret credential to be used when invoking the function.",
+      "type": "string",
+      "required": true
+    },
+    "function_name": {
+      "title": "Function Name",
+      "description": "The AWS Lambda function name to invoke",
+      "type": "string",
+      "required": true
+    },
+    "aws_region": {
+      "title": "AWS Region",
+      "description": "The AWS region where the Lambda function is located. Regions supported are: us-east-1, us-east-2, ap-northeast-1, ap-northeast-2, ap-southeast-1, ap-southeast-2, eu-central-1, eu-west-1.",
+      "type": "string",
+      "required": true,
+      "enum": [
+        "us-east-1",
+        "us-east-2",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "us-west-2",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "eu-central-1",
+        "eu-west-1"
+      ]
+    },
+    "qualifier": {
+      "title": "Qualifier",
+      "description": "The Qualifier to use when invoking the function.",
+      "type": "string"
+    },
+    "invocation_type": {
+      "title": "Invocation Type",
+      "description": "The InvocationType to use when invoking the function. Available types are RequestResponse, Event, DryRun.",
+      "type": "string",
+      "required": true,
+      "enum": [
+        "RequestResponse",
+        "Event",
+        "DryRun"
+      ],
+      "default": "RequestResponse"
+    },
+    "log_type": {
+      "title": "Log Type",
+      "description": "The LogType to use when invoking the function. By default None and Tail are supported.",
+      "type": "string",
+      "required": true,
+      "enum": [
+        "Tail",
+        "None"
+      ],
+      "default": "Tail"
+    },
+    "timeout": {
+      "title": "Timeout",
+      "description": "The timeout value in milliseconds.",
+      "type": "number",
+      "required": true,
+      "default": 60000
+    },
+    "keepalive": {
+      "title": "Keepalive",
+      "description": "The keepalive value in millisconds.",
+      "type": "number",
+      "required": true,
+      "default": 60000
+    }
+  }
+}', 'JsonSchema', 'fa-amazon', 'AWS Lambda Policy', null, TRUE, FALSE, FALSE, null, null);
 
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release
 

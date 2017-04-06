@@ -76,6 +76,7 @@ public class GatewayValidation {
             case LDAPAUTHENTICATION: return validateLDAP(policy);
             case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
             case HAL: return policy;
+            case AWSLAMBDA: return validateAWSLambda(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
     }
@@ -421,7 +422,7 @@ public class GatewayValidation {
         throw new PolicyViolationException("At the moment no DNS services have been registered, you need DNS based routing for SSL to apply.");
     }
 
-    public synchronized Policy validateAnalytics(Policy policy){
+    public synchronized Policy validateAnalytics(Policy policy) {
         Gson gson = new Gson();
         KongPluginAnalytics req = gson.fromJson(policy.getPolicyJsonConfig(),KongPluginAnalytics.class);
         if(StringUtils.isEmpty(req.getServiceToken())) throw new PolicyViolationException("Form was not correctly filled in.");
@@ -442,6 +443,14 @@ public class GatewayValidation {
 
     public synchronized Policy validateJsonThreatProtection(Policy policy) {
         //Do nothing, it's fine
+        return policy;
+    }
+
+    public synchronized Policy validateAWSLambda(Policy policy) {
+        KongPluginAWSLambda config = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginAWSLambda.class);
+        if ((config.getTimeout() != null && config.getTimeout() < 0) || (config.getKeepalive() != null && config.getKeepalive() < 0)) {
+            throw ExceptionFactory.invalidPolicyException("Negative values aren't allowed");
+        }
         return policy;
     }
 
