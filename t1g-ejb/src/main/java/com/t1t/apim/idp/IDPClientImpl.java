@@ -161,11 +161,22 @@ public class IDPClientImpl implements IDPClient {
 
     @Override
     public String getRealmPublicKeyInPemFormat(OrganizationBean org) {
+        return getRealmPublicKeyInPemFormat(org.getId(), org.getKeystoreKid());
+    }
+
+    @Override
+    public String getDefaultPublicKeyInPemFormat() {
+        return getRealmPublicKeyInPemFormat(idp.getMasterRealm(), defaultKeystore.getKid());
+    }
+
+    /****** Utility Methods ******/
+
+    private String getRealmPublicKeyInPemFormat(String realmId, String keystoreKid) {
         String rval = null;
-        if (realmExists(org.getId())) {
-            String pem = client.realm(org.getId()).keys().getKeyMetadata().getKeys().stream()
+        if (realmExists(realmId)) {
+            String pem = client.realm(realmId).keys().getKeyMetadata().getKeys().stream()
                     //Filter the keys until you get either the custom org keystore's kid, or the default one's
-                    .filter(key -> key.getKid().equals(org.getKeystoreKid() == null ? defaultKeystore.getKid() : org.getKeystoreKid()))
+                    .filter(key -> key.getKid().equals(keystoreKid == null ? defaultKeystore.getKid() : keystoreKid))
                     .collect(CustomCollectors.getSingleResult())
                     .getPublicKey();
             try {
@@ -176,8 +187,6 @@ public class IDPClientImpl implements IDPClient {
         }
         return rval;
     }
-
-    /****** Utility Methods ******/
 
     private boolean realmExists(String realmName) {
         return client.realms().findAll().stream().map(RealmRepresentation::getRealm).collect(Collectors.toList()).contains(realmName);

@@ -29,6 +29,11 @@ ALTER TABLE organizations ADD COLUMN keystore_kid VARCHAR(255) NULL;
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_1 FOREIGN KEY (mail_provider_id) REFERENCES mail_providers (id);
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_2 FOREIGN KEY (keystore_kid) REFERENCES keystores (kid);
 
+ALTER TABLE managed_applications ADD COLUMN keystore_kid VARCHAR(255);
+ALTER TABLE managed_applications ADD CONSTRAINT fk_managed_applications_2 FOREIGN KEY (keystore_kid) REFERENCES keystores (kid);
+UPDATE managed_applications SET keystore_kid = 'INSERT_KEYSTORE_KID_FROM_IDP_HERE';
+ALTER TABLE managed_applications ALTER COLUMN keystore_kid SET NOT NULL;
+
 DROP TABLE oauth_apps;
 
 --------- UPGRADE TO 0.10.1 STARTS HERE ---------
