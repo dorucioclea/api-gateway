@@ -8,6 +8,7 @@ import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.util.AesEncrypter;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -72,6 +73,8 @@ public class IDPLinkFactoryImpl implements IDPLinkFactory {
                 .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .realm(idp.getMasterRealm())
                 .clientId(idp.getClientId())
+                .resteasyClient(new ResteasyClientBuilder().connectionPoolSize(10)
+                        .build())
                 .clientSecret(AesEncrypter.decrypt(idp.getEncryptedClientSecret()))
                 .build();
     }
