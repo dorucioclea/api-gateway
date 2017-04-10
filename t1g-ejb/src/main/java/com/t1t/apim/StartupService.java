@@ -9,6 +9,7 @@ import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.facades.GatewayFacade;
 import com.t1t.apim.gateway.IGatewayLink;
+import com.t1t.apim.idp.IDPLinkFactory;
 import com.t1t.apim.mail.MailService;
 import com.t1t.kong.model.*;
 import com.t1t.util.ConsumerConventionUtil;
@@ -45,6 +46,7 @@ public class StartupService {
     @Inject private GatewayFacade gatewayFacade;
     @Inject private IStorageQuery query;
     @Inject private IStorage storage;
+    @Inject private IDPLinkFactory idpLinkFactory;
 
 
     /**
@@ -60,6 +62,7 @@ public class StartupService {
             sendTestMail();
         }
         catch (Exception ex) {
+            ex.printStackTrace();
             _LOG.error(ex.getMessage());
         }
     }
@@ -201,6 +204,7 @@ public class StartupService {
     }
 
     private void verifyOrCreateConsumers(IGatewayLink gw) throws StorageException {
+        String publicKey = idpLinkFactory.getDefaultIDPClient().getDefaultPublicKeyInPemFormat();
         query.getManagedAppForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.InternalMarketplace, ManagedApplicationTypes.ExternalMarketplace))
                 .forEach(mab -> {
             String id = ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
@@ -224,6 +228,21 @@ public class StartupService {
                             gw.addConsumerKeyAuth(id, apikey);
                         }
                     });
+                }
+                KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(id);
+                if (jwtCreds != null && jwtCreds.getData().isEmpty()) {
+                    gw.addConsumerJWT(id, publicKey);
+                }
+                else if (jwtCreds != null) {
+                    jwtCreds.getData().forEach(cred -> {
+                        if (!cred.getRsaPublicKey().equals(publicKey)) {
+                            gw.deleteConsumerJwtCredential(id, cred.getId());
+                            jwtCreds.getData().remove(cred);
+                        }
+                    });
+                    if (jwtCreds.getData().isEmpty()) {
+                        gw.addConsumerJWT(id, publicKey);
+                    }
                 }
             }
             else {
