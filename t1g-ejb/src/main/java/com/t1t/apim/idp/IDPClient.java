@@ -24,4 +24,8 @@ public interface IDPClient {
     void deleteClient(ApplicationVersionBean avb);
 
     String getRealmPublicKeyInPemFormat(OrganizationBean org);
+
+    String getRealmPublicKeyInPemFormat(String realmId, String keystoreKid);
+
+    String getDefaultPublicKeyInPemFormat();
 }

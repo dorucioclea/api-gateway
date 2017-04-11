@@ -160,6 +160,7 @@ CREATE TABLE idps
   client_id VARCHAR(255) NOT NULL,
   encrypted_client_secret VARCHAR(255) NOT NULL,
   default_login_theme_id VARCHAR(255) DEFAULT NULL,
+  default_realm VARCHAR(255) DEFAULT NULL,
   default_client VARCHAR(255) DEFAULT NULL,
   default_idp BOOLEAN DEFAULT FALSE
 );
@@ -222,7 +223,8 @@ CREATE TABLE managed_applications
   prefix VARCHAR(255) NOT NULL,
   gateway_username VARCHAR(255),
   activated BOOLEAN DEFAULT true,
-  restricted BOOLEAN DEFAULT false
+  restricted BOOLEAN DEFAULT false,
+  idp_client VARCHAR(255) DEFAULT NULL
 );
 
 CREATE TABLE memberships
@@ -680,6 +682,8 @@ ALTER TABLE followers ADD CONSTRAINT fk_followers_1 FOREIGN KEY (servicebean_id,
 ALTER TABLE managed_application_keys ADD CONSTRAINT fk_managed_app_keys_1 FOREIGN KEY (managed_app_id) REFERENCES managed_applications (id);
 
 ALTER TABLE managed_applications ADD CONSTRAINT fk_managed_applications_1 FOREIGN KEY (gateway_id) REFERENCES gateways (id);
+
+ALTER TABLE managed_applications ADD CONSTRAINT fk_managed_applications_2 FOREIGN KEY (keystore_kid) REFERENCES keystores (kid);
 
 ALTER TABLE oauth_scopes ADD CONSTRAINT fk_oauth_scopes_1 FOREIGN KEY (serviceversionbean_id) REFERENCES service_versions (id);
 

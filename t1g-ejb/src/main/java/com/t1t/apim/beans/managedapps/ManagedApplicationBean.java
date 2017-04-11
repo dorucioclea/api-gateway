@@ -42,6 +42,8 @@ public class ManagedApplicationBean implements Serializable {
     private Boolean restricted;
     @Column(name = "activated")
     private Boolean activated;
+    @Column(name = "idp_client")
+    private String idpClient;
 
     public ManagedApplicationBean() {}
 
@@ -117,6 +119,14 @@ public class ManagedApplicationBean implements Serializable {
 
     public void setActivated(Boolean activated) {this.activated = activated;}
 
+    public String getIdpClient() {
+        return idpClient;
+    }
+
+    public void setIdpClient(String idpClient) {
+        this.idpClient = idpClient;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -166,9 +176,10 @@ public class ManagedApplicationBean implements Serializable {
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
                 ", gatewayUsername='" + gatewayUsername + '\'' +
-                ", apiKeys='" + apiKeys + '\'' +
+                ", apiKeys=" + apiKeys +
                 ", restricted=" + restricted +
                 ", activated=" + activated +
+                ", idpClient='" + idpClient + '\'' +
                 '}';
     }
 }

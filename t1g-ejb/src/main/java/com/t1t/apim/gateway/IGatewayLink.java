@@ -602,4 +602,13 @@ public interface IGatewayLink {
      */
     public KongPluginConfigList getConsumerSpecificApiPlugins(String consumerId, String apiId);
 
+    /**
+     * Adds JWT credentials to a consumer with the given key and public key
+     * @param consumerName
+     * @param key
+     * @param publicRsaKey
+     * @return
+     */
+    public KongPluginJWTResponse addConsumerJWT(String consumerName, String key, String publicRsaKey);
+
 }
