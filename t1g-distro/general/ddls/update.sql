@@ -1,11 +1,11 @@
 --------- UPGRADE TO 1.0.0 STARTS HERE ----------
 
-CREATE TABLE idps (id VARCHAR(255) NOT NULL, server_url VARCHAR(255) NOT NULL, master_realm VARCHAR(255) NOT NULL, client_id VARCHAR(255) NOT NULL, encrypted_client_secret VARCHAR(255) NOT NULL, default_login_theme_id VARCHAR(255) DEFAULT NULL, default_realm VARCHAR(255) NOT NULL, default_client VARCHAR(255) NOT NULL, default_idp BOOLEAN DEFAULT FALSE);
+CREATE TABLE idps (id VARCHAR(255) NOT NULL, server_url VARCHAR(255) NOT NULL, master_realm VARCHAR(255) NOT NULL, client_id VARCHAR(255) NOT NULL, encrypted_client_secret VARCHAR(255) NOT NULL, default_login_theme_id VARCHAR(255) DEFAULT NULL, default_realm VARCHAR(255) DEFAULT NULL, default_client VARCHAR(255) DEFAULT NULL, default_idp BOOLEAN DEFAULT FALSE);
 ALTER TABLE idps ADD PRIMARY KEY (id);
 CREATE UNIQUE INDEX uk_idps_1 ON idps (default_idp) WHERE default_idp = true;
 
 -- Replace the client secret with actual encrypted value
-INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_realm, default_client, default_idp) VALUES ('Keycloak','https://devidp.t1t.be/auth', 'master', 'admin-cli', 'INSERT_ENCRYPTED_SECRET_HERE', 't1g', 'DefaultRealm','DefaultClient', TRUE);
+INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_realm, default_client, default_idp) VALUES ('Keycloak','https://devidp.t1t.be/auth', 'master', 'admin-cli', 'INSERT_ENCRYPTED_SECRET_HERE', 't1g', 'Trust1Gateway','DefaultClient', TRUE);
 
 -- Store the IDP ids
 ALTER TABLE application_versions ADD COLUMN idp_client_id VARCHAR(255) DEFAULT NULL;
@@ -44,6 +44,11 @@ CREATE INDEX idx_service_hosts_1 ON service_hosts (service_version_id);
 ALTER TABLE service_versions ADD COLUMN upstream_connect_timeout BIGINT DEFAULT 60000;
 ALTER TABLE service_versions ADD COLUMN upstream_send_timeout BIGINT DEFAULT 60000;
 ALTER TABLE service_versions ADD COLUMN upstream_read_timeout BIGINT DEFAULT 60000;
+
+ALTER TABLE managed_applications ADD COLUMN idp_client VARCHAR(255) DEFAULT NULL;
+UPDATE managed_applications SET idp_client = 'T1G-Publisher-ENV' WHERE name = 'Publisher';
+UPDATE managed_applications SET idp_client = 'T1G-MarketplaceInt-ENV' WHERE name = 'Internal Marketplace';
+UPDATE managed_applications SET idp_client = 'T1G-MarketplaceExt-ENV' WHERE name = 'External Marketplace';
 
 INSERT INTO policydefs (id, description, form, form_type, icon, name, plugin_id, scope_service, scope_plan, scope_auto, form_override, default_config) VALUES ('AWSLambda', 'Invoke an AWS Lambda function from Kong. It can be used in combination with other request plugins to secure, manage or extend the function.', '{
   "type": "object",
