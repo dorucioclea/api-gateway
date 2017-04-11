@@ -160,6 +160,7 @@ CREATE TABLE idps
   client_id VARCHAR(255) NOT NULL,
   encrypted_client_secret VARCHAR(255) NOT NULL,
   default_login_theme_id VARCHAR(255) DEFAULT NULL,
+  default_realm VARCHAR(255) DEFAULT NULL,
   default_client VARCHAR(255) DEFAULT NULL,
   default_idp BOOLEAN DEFAULT FALSE
 );
@@ -223,7 +224,7 @@ CREATE TABLE managed_applications
   gateway_username VARCHAR(255),
   activated BOOLEAN DEFAULT true,
   restricted BOOLEAN DEFAULT false,
-  keystore_kid VARCHAR(255) NOT NULL
+  idp_client VARCHAR(255) DEFAULT NULL
 );
 
 CREATE TABLE memberships

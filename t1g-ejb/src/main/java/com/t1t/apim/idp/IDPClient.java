@@ -25,5 +25,7 @@ public interface IDPClient {
 
     String getRealmPublicKeyInPemFormat(OrganizationBean org);
 
+    String getRealmPublicKeyInPemFormat(String realmId, String keystoreKid);
+
     String getDefaultPublicKeyInPemFormat();
 }

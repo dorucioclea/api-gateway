@@ -1,11 +1,11 @@
 --------- UPGRADE TO 0.10.0 STARTS HERE ----------
 
-CREATE TABLE idps (id VARCHAR(255) NOT NULL, server_url VARCHAR(255) NOT NULL, master_realm VARCHAR(255) NOT NULL, client_id VARCHAR(255) NOT NULL, encrypted_client_secret VARCHAR(255) NOT NULL, default_login_theme_id VARCHAR(255) DEFAULT NULL, default_client VARCHAR(255) DEFAULT NULL, default_idp BOOLEAN DEFAULT FALSE);
+CREATE TABLE idps (id VARCHAR(255) NOT NULL, server_url VARCHAR(255) NOT NULL, master_realm VARCHAR(255) NOT NULL, client_id VARCHAR(255) NOT NULL, encrypted_client_secret VARCHAR(255) NOT NULL, default_login_theme_id VARCHAR(255) DEFAULT NULL, default_realm VARCHAR(255), default_client VARCHAR(255) DEFAULT NULL, default_idp BOOLEAN DEFAULT FALSE);
 ALTER TABLE idps ADD PRIMARY KEY (id);
 CREATE UNIQUE INDEX uk_idps_1 ON idps (default_idp) WHERE default_idp = true;
 
 -- Replace the client secret with actual encrypted value
-INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_client, default_idp) VALUES ('Keycloak','https://devidp.t1t.be/auth', 'master', 'admin-cli', 'INSERT_ENCRYPTED_SECRET_HERE', 't1g', 'DefaultClient', TRUE);
+INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_realm, default_client, default_idp) VALUES ('Keycloak','https://devidp.t1t.be/auth', 'master', 'admin-cli', 'INSERT_ENCRYPTED_SECRET_HERE', 't1g', 'Trust1Gateway','DefaultClient', TRUE);
 
 -- Store the IDP ids
 ALTER TABLE application_versions ADD COLUMN idp_client_id VARCHAR(255) DEFAULT NULL;
@@ -29,10 +29,11 @@ ALTER TABLE organizations ADD COLUMN keystore_kid VARCHAR(255) NULL;
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_1 FOREIGN KEY (mail_provider_id) REFERENCES mail_providers (id);
 ALTER TABLE organizations ADD CONSTRAINT fk_organizations_2 FOREIGN KEY (keystore_kid) REFERENCES keystores (kid);
 
-ALTER TABLE managed_applications ADD COLUMN keystore_kid VARCHAR(255);
-ALTER TABLE managed_applications ADD CONSTRAINT fk_managed_applications_2 FOREIGN KEY (keystore_kid) REFERENCES keystores (kid);
-UPDATE managed_applications SET keystore_kid = 'INSERT_KEYSTORE_KID_FROM_IDP_HERE';
-ALTER TABLE managed_applications ALTER COLUMN keystore_kid SET NOT NULL;
+ALTER TABLE managed_applications ADD COLUMN idp_client VARCHAR(255) DEFAULT NULL;
+UPDATE managed_applications SET idp_client = 'T1G-Publisher-ENV' WHERE name = 'Publisher';
+UPDATE managed_applications SET idp_client = 'T1G-MarketplaceInt-ENV' WHERE name = 'Internal Marketplace';
+UPDATE managed_applications SET idp_client = 'T1G-MarketplaceExt-ENV' WHERE name = 'External Marketplace';
+
 
 DROP TABLE oauth_apps;
 

@@ -166,12 +166,11 @@ public class IDPClientImpl implements IDPClient {
 
     @Override
     public String getDefaultPublicKeyInPemFormat() {
-        return getRealmPublicKeyInPemFormat(idp.getMasterRealm(), defaultKeystore.getKid());
+        return getRealmPublicKeyInPemFormat(idp.getDefaultRealm(), defaultKeystore.getKid());
     }
 
-    /****** Utility Methods ******/
-
-    private String getRealmPublicKeyInPemFormat(String realmId, String keystoreKid) {
+    @Override
+    public String getRealmPublicKeyInPemFormat(String realmId, String keystoreKid) {
         String rval = null;
         if (realmExists(realmId)) {
             String pem = client.realm(realmId).keys().getKeyMetadata().getKeys().stream()
@@ -187,6 +186,8 @@ public class IDPClientImpl implements IDPClient {
         }
         return rval;
     }
+
+    /****** Utility Methods ******/
 
     private boolean realmExists(String realmName) {
         return client.realms().findAll().stream().map(RealmRepresentation::getRealm).collect(Collectors.toList()).contains(realmName);

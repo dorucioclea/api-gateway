@@ -521,4 +521,9 @@ public class RestGatewayLink implements IGatewayLink {
     public KongPluginConfigList getConsumerSpecificApiPlugins(String consumerId, String apiId) {
         return getClient().getConsumerSpecificApiPlugins(consumerId, apiId);
     }
+
+    @Override
+    public KongPluginJWTResponse addConsumerJWT(String consumerName, String key, String publicRsaKey) {
+        return getClient().createConsumerJWT(consumerName, key, publicRsaKey);
+    }
 }

@@ -30,6 +30,8 @@ public class IDPBean implements Serializable {
     private String encryptedClientSecret;
     @Column(name = "default_login_theme_id")
     private String defaultLoginThemeId;
+    @Column(name = "default_realm")
+    private String defaultRealm;
     @Column(name = "default_client")
     private String defaultClient;
     @Column(name = "default_idp")
@@ -83,6 +85,14 @@ public class IDPBean implements Serializable {
         this.defaultLoginThemeId = defaultLoginThemeId;
     }
 
+    public String getDefaultRealm() {
+        return defaultRealm;
+    }
+
+    public void setDefaultRealm(String defaultRealm) {
+        this.defaultRealm = defaultRealm;
+    }
+
     public String getDefaultClient() {
         return defaultClient;
     }
@@ -121,8 +131,9 @@ public class IDPBean implements Serializable {
                 ", serverUrl='" + serverUrl + '\'' +
                 ", masterRealm='" + masterRealm + '\'' +
                 ", clientId='" + clientId + '\'' +
-                ", encryptedClientSecret='XXXXX'" +
+                ", encryptedClientSecret='" + encryptedClientSecret + '\'' +
                 ", defaultLoginThemeId='" + defaultLoginThemeId + '\'' +
+                ", defaultRealm='" + defaultRealm + '\'' +
                 ", defaultClient='" + defaultClient + '\'' +
                 ", defaultIdp=" + defaultIdp +
                 '}';

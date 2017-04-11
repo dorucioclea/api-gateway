@@ -1,6 +1,7 @@
 package com.t1t.apim;
 
 import com.google.gson.Gson;
+import com.t1t.apim.beans.jwt.IJWT;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.core.IStorage;
@@ -14,6 +15,7 @@ import com.t1t.apim.mail.MailService;
 import com.t1t.kong.model.*;
 import com.t1t.util.ConsumerConventionUtil;
 import com.t1t.util.GatewayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,7 @@ import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -190,7 +193,7 @@ public class StartupService {
                 plugin.setConfig(new Gson().fromJson(storage.getPolicyDefinition(polDef.getPolicyDefId()).getDefaultConfig(), polDef.getClazz()));
                 break;
             case JWT:
-                plugin.setConfig(new KongPluginJWT().withClaimsToVerify(Arrays.asList("exp")));
+                plugin.setConfig(new KongPluginJWT().withClaimsToVerify(Arrays.asList(IJWT.EXPIRATION_CLAIM)).withKeyClaimName(IJWT.AUDIENCE_CLAIM));
                 break;
             case ANALYTICS:
                 plugin.setConfig(new KongPluginAnalytics()
@@ -204,7 +207,7 @@ public class StartupService {
     }
 
     private void verifyOrCreateConsumers(IGatewayLink gw) throws StorageException {
-        String publicKey = idpLinkFactory.getDefaultIDPClient().getDefaultPublicKeyInPemFormat();
+        String pemPublicKey = idpLinkFactory.getDefaultIDPClient().getDefaultPublicKeyInPemFormat();
         query.getManagedAppForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.InternalMarketplace, ManagedApplicationTypes.ExternalMarketplace))
                 .forEach(mab -> {
             String id = ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
@@ -229,19 +232,22 @@ public class StartupService {
                         }
                     });
                 }
-                KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(id);
-                if (jwtCreds != null && jwtCreds.getData().isEmpty()) {
-                    gw.addConsumerJWT(id, publicKey);
-                }
-                else if (jwtCreds != null) {
-                    jwtCreds.getData().forEach(cred -> {
-                        if (!cred.getRsaPublicKey().equals(publicKey)) {
-                            gw.deleteConsumerJwtCredential(id, cred.getId());
-                            jwtCreds.getData().remove(cred);
+                if (StringUtils.isNotEmpty(mab.getIdpClient())) {
+                    KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(id);
+                    if (jwtCreds != null && jwtCreds.getData().isEmpty()) {
+                        gw.addConsumerJWT(id, mab.getIdpClient(), pemPublicKey);
+                    } else if (jwtCreds != null) {
+                        List<KongPluginJWTResponse> removed = new ArrayList<>();
+                        jwtCreds.getData().forEach(cred -> {
+                            if (!cred.getRsaPublicKey().trim().equals(pemPublicKey.trim())) {
+                                gw.deleteConsumerJwtCredential(id, cred.getId());
+                                removed.add(cred);
+                            }
+                        });
+                        jwtCreds.getData().removeAll(removed);
+                        if (jwtCreds.getData().isEmpty()) {
+                            gw.addConsumerJWT(id, mab.getIdpClient(), pemPublicKey);
                         }
-                    });
-                    if (jwtCreds.getData().isEmpty()) {
-                        gw.addConsumerJWT(id, publicKey);
                     }
                 }
             }
