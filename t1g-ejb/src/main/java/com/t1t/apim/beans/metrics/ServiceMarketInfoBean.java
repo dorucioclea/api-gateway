@@ -9,31 +9,31 @@ import java.io.Serializable;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceMarketInfoBean implements Serializable {
-    private int uptime;
-    private int followers;
-    private int distinctUsers;
+    private Integer uptime;
+    private Integer followers;
+    private Integer distinctUsers;
 
-    public int getUptime() {
+    public Integer getUptime() {
         return uptime;
     }
 
-    public void setUptime(int uptime) {
+    public void setUptime(Integer uptime) {
         this.uptime = uptime;
     }
 
-    public int getFollowers() {
+    public Integer getFollowers() {
         return followers;
     }
 
-    public void setFollowers(int followers) {
+    public void setFollowers(Integer followers) {
         this.followers = followers;
     }
 
-    public int getDistinctUsers() {
+    public Integer getDistinctUsers() {
         return distinctUsers;
     }
 
-    public void setDistinctUsers(int distinctUsers) {
+    public void setDistinctUsers(Integer distinctUsers) {
         this.distinctUsers = distinctUsers;
     }
 
