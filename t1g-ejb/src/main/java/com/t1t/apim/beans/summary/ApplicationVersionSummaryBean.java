@@ -1,5 +1,6 @@
 package com.t1t.apim.beans.summary;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.apim.beans.apps.ApplicationStatus;
 
 import java.io.Serializable;
@@ -9,9 +10,8 @@ import java.io.Serializable;
  * A summary of an individual application version.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApplicationVersionSummaryBean implements Serializable {
-
-    private static final long serialVersionUID = 2047101278864994250L;
 
     private String organizationId;
     private String organizationName;
@@ -20,6 +20,7 @@ public class ApplicationVersionSummaryBean implements Serializable {
     private String description;
     private ApplicationStatus status;
     private String version;
+    private String kongConsumerId;
 
     /**
      * @return the organizationId
@@ -119,15 +120,31 @@ public class ApplicationVersionSummaryBean implements Serializable {
         this.version = version;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
+    /**
+     * @return the Kong consumer ID
      */
-    @Override
-    @SuppressWarnings("nls")
-    public String toString() {
-        return "ApplicationVersionSummaryBean [organizationId=" + organizationId + ", organizationName="
-                + organizationName + ", id=" + id + ", name=" + name + ", description=" + description
-                + ", status=" + status + ", version=" + version + "]";
+    public String getKongConsumerId() {
+        return kongConsumerId;
     }
 
+    /**
+     * @param kongConsumerId the Kong consumer ID to set
+     */
+    public void setKongConsumerId(String kongConsumerId) {
+        this.kongConsumerId = kongConsumerId;
+    }
+
+    @Override
+    public String toString() {
+        return "ApplicationVersionSummaryBean{" +
+                "organizationId='" + organizationId + '\'' +
+                ", organizationName='" + organizationName + '\'' +
+                ", id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", status=" + status +
+                ", version='" + version + '\'' +
+                ", kongConsumerId='" + kongConsumerId + '\'' +
+                '}';
+    }
 }

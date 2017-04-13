@@ -2,17 +2,19 @@ package com.t1t.apim.core.metrics;
 
 import com.google.gson.Gson;
 import com.t1t.apim.AppConfig;
-import com.t1t.apim.beans.metrics.AppUsageBean;
-import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
-import com.t1t.apim.beans.metrics.ServiceUsageBean;
+import com.t1t.apim.beans.metrics.ServiceMetricsBean;
+import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.beans.policies.PolicyType;
+import com.t1t.apim.beans.services.ServiceBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
+import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ErrorCodes;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.kong.model.DataDogMetricsQuery;
+import com.t1t.kong.model.DataDogMetricsSeries;
 import com.t1t.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -20,16 +22,15 @@ import org.json.JSONObject;
 
 import javax.inject.Inject;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.t1t.util.TimeUtil.*;
 
 /**
  * Created by michallispashidis on 07/09/16.
  */
-public class DataDogMetricsSP implements MetricsSPI, Serializable {
-    //private static Logger log = LoggerFactory.getLogger(DataDogMetricsSP.class.getName());
+public class DataDogMetricsSP implements Serializable, MetricsSPI {
 
     private static final String REQUEST_COUNT = "request.count";
     private static final String REQUEST_SIZE = "request.size";
@@ -47,73 +48,63 @@ public class DataDogMetricsSP implements MetricsSPI, Serializable {
     private static final String QUERY_SEPARATOR = ",";
 
     @Inject private AppConfig config;
-    @Inject private IStorageQuery query;
-    private DataDogDBMetricsClient httpClient;
+    private static DataDogDBMetricsClient httpClient;
 
     public DataDogMetricsSP() {
         this.httpClient = new RestDataDogMetricsBuilder().getService(config.getDataDogMetricsURI(), config.getDataDogMetricsApiKey(), config.getDataDogMetricsApplicationKey(), DataDogDBMetricsClient.class);
     }
 
     @Override
-    public ServiceUsageBean getServiceUsage(ServiceVersionBean service, DateTime from, DateTime to) {
-        ServiceUsageBean rval = null;
-        if (checkPolicy(service)) {
-            String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(service);
-            List<String> availableQueries = getAvailableMetrics(ids[0], ids[1], ids[2]);
-            String finalQuery = consolidateQueries(availableQueries);
-            rval.setData(new JSONObject(new Gson().toJson(query(from, to, finalQuery))));
+    public ServiceMetricsBean getServiceMetrics(ServiceVersionBean service, List<ApplicationVersionSummaryBean> applications, DateTime from, DateTime to) {
+        ServiceMetricsBean rval = new ServiceMetricsBean();
+        String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(service);
+        List<String> availableQueries = getAvailableMetrics(ids[0], ids[1], ids[2]);
+        if (availableQueries.isEmpty()) return null;
+        String finalQuery = consolidateQueries(availableQueries);
+        DataDogMetricsQuery results = query(from, to, finalQuery);
+        List<JSONObject> general = new ArrayList<>();
+        Map<ApplicationVersionSummaryBean, List<JSONObject>> sorted = new HashMap<>();
+
+        for (DataDogMetricsSeries series : results.getSeries()) {
+            JSONObject serializedSeries = new JSONObject(new Gson().toJson(series));
+            Boolean added = false;
+            for (ApplicationVersionSummaryBean sum : applications) {
+                String id = sum.getId();
+                if (!added) {
+                    if (series.getMetric().contains(id)) {
+                        if (sorted.containsKey(sum)) {
+                            sorted.get(sum).add(serializedSeries);
+                            added = true;
+                        }
+                        else {
+                            List<JSONObject> consumerSeries = new ArrayList<>();
+                            consumerSeries.add(serializedSeries);
+                            sorted.put(sum, consumerSeries);
+                            added = true;
+                        }
+                    }
+                }
+            }
+            if (!added) general.add(serializedSeries);
         }
+        rval.setServiceData(general);
+        rval.setApplicationData(sorted);
+
         return rval;
     }
 
     @Override
-    public AppUsageBean getAppUsageForService(ServiceVersionBean service, String consumerId, DateTime from, DateTime to) {
-        AppUsageBean rval = null;
-        if (checkPolicy(service)) {
-            //TODO - implementation
-        }
-        return rval;
+    public Integer getServiceUptime(ServiceVersionBean serviceVersion) {
+        String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(serviceVersion);
+        return getServiceUptime(ids[0], ids[1], ids[2]).intValue();
     }
-
-    @Override
-    public ServiceMarketInfoBean getServiceMarketInfo(ServiceVersionBean service) {
-        ServiceMarketInfoBean rval = null;
-        if (checkPolicy(service)) {
-            int distinctUsers = 0;
-            int followers = 0;
-            String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(service);
-            try {
-                distinctUsers = query.getServiceContracts(ids[0], ids[1], ids[2]).size();
-                followers = service.getService().getFollowers().size();
-            }
-            catch (NullPointerException ex) {
-                ex.printStackTrace();
-            }
-            catch (StorageException ex) {
-                throw ExceptionFactory.systemErrorException(ex);
-            }
-            rval.setDistinctUsers(distinctUsers);
-            rval.setFollowers(followers);
-            rval.setUptime(getServiceUptime(ids[0], ids[1], ids[2]).intValue());
-        }
-        return rval;
-    }
-
-    /*public static void main (String [] args){
-        RestDataDogMetricsBuilder metricsBuilder = new RestDataDogMetricsBuilder();
-        DataDogMetricsSP client = new DataDogMetricsSP();
-        //System.out.println(client.getStatusCodeStats("trust1team","t1c-ds","v1",HistogramIntervalType.day,DateTime.now().minusDays(1), DateTime.now()).toString());
-        //System.out.println(new Gson().toJson(query(DateTime.now().minusWeeks(2), DateTime.now(), "sum:kong.trust1team_t1c_ds_v1.request.count{env:prod}")));
-        //System.out.println(getServiceUptime("trust1team", "t1c-ds", "v1"));
-
-    }*/
 
     private Double getServiceUptime(String organizationId, String serviceId, String version) {
         Double uptimePercentage = null;
         List<String> errorQueries = new ArrayList<>();
         String totalQuery = null;
         List<String> availableQueries = getAvailableMetrics(organizationId, serviceId, version);
-
+        if (availableQueries.isEmpty()) return null;
         for (String query : availableQueries) {
             if (query.contains(REQUEST_STATUS)) {
                 Long httpStatusCode = Long.valueOf(query.substring(query.lastIndexOf(".") + 1));
@@ -128,7 +119,7 @@ public class DataDogMetricsSP implements MetricsSPI, Serializable {
         if (errorQueries.isEmpty()) {
             return 100D;
         }
-        DataDogMetricsQuery results = query(DateTime.now().minusWeeks(2), DateTime.now(), buildUptimeQuery(totalQuery, errorQueries));
+        DataDogMetricsQuery results = query(DateTime.now().minusDays(2), DateTime.now(), buildUptimeQuery(totalQuery, errorQueries));
         if (results != null) {
             Double totalCount = 0D;
             Double totalErrors = 0D;
@@ -153,7 +144,7 @@ public class DataDogMetricsSP implements MetricsSPI, Serializable {
         if (StringUtils.isNotEmpty(total)) {
             StringBuilder builder = new StringBuilder(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, total, config.getEnvironment())));
             for (String error : errors) {
-                builder.append(QUERY_SEPARATOR).append(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, error, config.getEnvironment())));
+                builder.append(QUERY_SEPARATOR).append(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, error, "prod")));
             }
             return builder.toString();
         }
@@ -179,23 +170,5 @@ public class DataDogMetricsSP implements MetricsSPI, Serializable {
             rval.append(String.format(QUERY, AVG_PREFIX, query, config.getEnvironment()));
         }
         return rval.toString();
-    }
-
-    private String convertDateTimeToSecondsString(DateTime time) {
-        String rval = null;
-        if (time != null) {
-            rval = String.valueOf(time.getMillis() / 1000);
-        }
-        return rval;
-    }
-
-    private boolean checkPolicy(ServiceVersionBean svb) {
-        try {
-            String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(svb);
-            return !query.getEntityPoliciesByDefinitionId(ids[0], ids[1], ids[2], PolicyType.Service, Policies.DATADOG).isEmpty();
-        }
-        catch (StorageException ex) {
-            throw ExceptionFactory.systemErrorException(ex);
-        }
     }
 }

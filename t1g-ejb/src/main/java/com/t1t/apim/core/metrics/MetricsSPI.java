@@ -1,10 +1,11 @@
 package com.t1t.apim.core.metrics;
 
-import com.t1t.apim.beans.metrics.AppUsageBean;
-import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
-import com.t1t.apim.beans.metrics.ServiceUsageBean;
+import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
+import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import org.joda.time.DateTime;
+
+import java.util.List;
 
 /**
  * @author Guillaume Vandecasteele
@@ -18,37 +19,19 @@ import org.joda.time.DateTime;
 public interface MetricsSPI {
 
     /**
-     * Get all available metrics for a given service
+     * Returns available common service metrics, including metrics for the specified list of applications
      * @param service
+     * @param applications
      * @param from
      * @param to
      * @return
      */
-    ServiceUsageBean getServiceUsage(ServiceVersionBean service, DateTime from, DateTime to);
+    ServiceMetricsBean getServiceMetrics(ServiceVersionBean service, List<ApplicationVersionSummaryBean> applications, DateTime from, DateTime to);
 
     /**
-     * Query the metrics store for # of requests made to a service broken
-     * down by plan.  For exclusively public services this will return no data.
-     *
-     * @param organizationId
-     * @param applicationId
-     * @param version
-     * @param from
-     * @param to
-     */
-    AppUsageBean getAppUsageForService(ServiceVersionBean service, String consumerId, DateTime from, DateTime to);
-
-    /**
-     * Provides the service marketplace information.
-     * <ul>
-     *     <li>Uptime percentage</li>
-     *     <li>Amount of distinct users</li>
-     *     <li>Amount of followers</li>
-     * </ul>
-     * @param organizationId
-     * @param serviceId
-     * @param version
+     * * Provides the service uptime information.
+     * @param serviceVersion
      * @return
      */
-    ServiceMarketInfoBean getServiceMarketInfo(ServiceVersionBean service);
+    Integer getServiceUptime(ServiceVersionBean serviceVersion);
 }

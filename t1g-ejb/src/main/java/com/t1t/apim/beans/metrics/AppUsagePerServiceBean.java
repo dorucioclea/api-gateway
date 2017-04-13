@@ -1,6 +1,7 @@
 package com.t1t.apim.beans.metrics;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.t1t.apim.beans.summary.ServiceVersionSummaryBean;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -13,13 +14,20 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AppUsagePerServiceBean implements Serializable {
 
-    private Map<String, AppUsageBean> data = new HashMap<>();
+    private Map<ServiceVersionSummaryBean, ServiceMetricsBean> data = new HashMap<>();
 
-    public Map<String, AppUsageBean> getData() {
+    public Map<ServiceVersionSummaryBean, ServiceMetricsBean> getData() {
         return data;
     }
 
-    public void setData(Map<String, AppUsageBean> data) {
+    public void setData(Map<ServiceVersionSummaryBean, ServiceMetricsBean> data) {
         this.data = data;
+    }
+
+    @Override
+    public String toString() {
+        return "AppUsagePerServiceBean{" +
+                "data=" + data +
+                '}';
     }
 }

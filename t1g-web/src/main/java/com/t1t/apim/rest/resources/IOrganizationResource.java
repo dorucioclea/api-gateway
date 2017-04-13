@@ -16,7 +16,7 @@ import com.t1t.apim.beans.idm.TransferOwnershipBean;
 import com.t1t.apim.beans.members.MemberBean;
 import com.t1t.apim.beans.metrics.AppUsagePerServiceBean;
 import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
-import com.t1t.apim.beans.metrics.ServiceUsageBean;
+import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
@@ -1314,9 +1314,9 @@ public interface IOrganizationResource {
      * @return Response statistics metrics information.
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public ServiceUsageBean getServiceUsage(String organizationId,
-                                             String serviceId, String version, String fromDate,
-                                             String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
+    public ServiceMetricsBean getServiceUsage(String organizationId,
+                                              String serviceId, String version, String fromDate,
+                                              String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
     /**
      * Retrieves the marketplace information for a service version.

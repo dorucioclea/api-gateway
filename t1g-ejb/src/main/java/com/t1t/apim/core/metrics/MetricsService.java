@@ -1,10 +1,9 @@
 package com.t1t.apim.core.metrics;
 
 import com.t1t.apim.AppConfig;
-import com.t1t.apim.beans.metrics.AppUsageBean;
-import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
-import com.t1t.apim.beans.metrics.ServiceUsageBean;
+import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
+import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
 
@@ -30,19 +30,15 @@ public class MetricsService {
     @Inject
     private AppConfig appConfig;
 
-    public ServiceUsageBean getServiceUsage(ServiceVersionBean service, DateTime from, DateTime to) {
-        return getReturnValue(new ServiceUsageFailSilent(service, from, to, appConfig.getHystrixMetricsTimeout()), service);
+    public ServiceMetricsBean getServiceMetrics(ServiceVersionBean service, List<ApplicationVersionSummaryBean> applications, DateTime from, DateTime to) {
+        return getReturnValue(new ServiceMetricsFailSilent(service, applications, from, to, appConfig.getHystrixMetricsTimeout()));
     }
 
-    public AppUsageBean getAppUsage(ServiceVersionBean service, String consumerId, DateTime from, DateTime to) {
-        return getReturnValue(new AppUsageBeanFailSilent(service, consumerId, from, to, appConfig.getHystrixMetricsTimeout()), service);
-    }
-    
-    public ServiceMarketInfoBean getServiceMarketInfo(ServiceVersionBean service) {
-        return getReturnValue(new ServiceMarketInfoFailSilent(service, appConfig.getHystrixMetricsTimeout()), service);
+    public Integer getServiceUptime(ServiceVersionBean serviceVersion) {
+        return getReturnValue(new ServiceUptimeFailSilent(serviceVersion, appConfig.getHystrixMetricsTimeout()));
     }
 
-    private <T> T getReturnValue(AbstractHystrixMetricsCommand<T> command, ServiceVersionBean service) {
+    private <T> T getReturnValue(AbstractHystrixMetricsCommand<T> command) {
         T rval = null;
         try {
             Iterator<MetricsSPI> metrics = loader.iterator();

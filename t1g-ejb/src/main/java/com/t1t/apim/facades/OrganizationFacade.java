@@ -34,10 +34,9 @@ import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.members.MemberBean;
 import com.t1t.apim.beans.members.MemberRoleBean;
-import com.t1t.apim.beans.metrics.AppUsageBean;
 import com.t1t.apim.beans.metrics.AppUsagePerServiceBean;
 import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
-import com.t1t.apim.beans.metrics.ServiceUsageBean;
+import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
@@ -1503,28 +1502,24 @@ public class OrganizationFacade {
     }
 
     public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version, String fromDate, String toDate) {
+        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
         AppUsagePerServiceBean appUsagePerService = new AppUsagePerServiceBean();
-        Map<String, AppUsageBean> data = new HashMap<>();
-        List<ContractSummaryBean> appContracts = null;
+        Map<ServiceVersionSummaryBean, ServiceMetricsBean> data = new HashMap<>();
         //get App contracts
         try {
-            appContracts = query.getApplicationContracts(organizationId, applicationId, version);
+            List<ServiceVersionBean> contractedServices = query.getApplicationVersionContracts(avb).stream().map(contract -> contract.getService()).collect(Collectors.toList());
             //getid from kong
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            IGatewayLink gateway = gatewayFacade.getDefaultGatewayLink();
             KongConsumer consumer = gateway.getConsumer(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version));
-            log.info("Getting AppUsageStats for consumer {}", consumer);
             if (consumer != null && !StringUtils.isEmpty(consumer.getCustomId())) {
                 String consumerId = consumer.getId();
-                for (ContractSummaryBean app : appContracts) {
-                    AppUsageBean appUsage = metrics.getAppUsage(storage.getServiceVersion(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()), consumerId, from, to);
-                    if (appUsage != null) {
-                        data.put(generateServiceUniqueName(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()), appUsage);
-                    } else {
-                        throw ExceptionFactory.metricsUnavailableException();
-                    }
+                List<ApplicationVersionSummaryBean> avsbs = Collections.singletonList(DtoFactory.createApplicationVersionSummarBeanWithConsumerId(avb, consumerId));
+                for (ServiceVersionBean svb : contractedServices) {
+                    ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(svb, avsbs, from, to);
+                    data.put(DtoFactory.createServiceVersionSummaryBean(svb), serviceMetrics);
                 }
             }
         } catch (StorageException e) {
@@ -1534,25 +1529,47 @@ public class OrganizationFacade {
         return appUsagePerService;
     }
 
-    public ServiceUsageBean getServiceUsage(String organizationId, String serviceId, String version, String fromDate, String toDate) {
+    public ServiceMetricsBean getServiceUsage(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
-        ServiceUsageBean serviceUsage = metrics.getServiceUsage(getServiceVersion(organizationId, serviceId, version), from, to);
-        if (serviceUsage != null) {
-            return serviceUsage;
-        } else {
-            throw ExceptionFactory.metricsUnavailableException();
+        try {
+            IGatewayLink gw = gatewayFacade.getDefaultGatewayLink();
+            List<ApplicationVersionSummaryBean> consumers = query.getServiceContracts(organizationId, serviceId, version).stream().map(contract -> {
+                KongConsumer consumer = gw.getConsumer(ConsumerConventionUtil.createAppUniqueId(contract.getApplication()));
+                if (consumer != null && StringUtils.isNotEmpty(consumer.getId())) {
+                    return DtoFactory.createApplicationVersionSummarBeanWithConsumerId(contract.getApplication(), consumer.getId());
+                }
+                else return null;
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+            ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(getServiceVersion(organizationId, serviceId, version), consumers, from, to);
+            if (serviceMetrics != null) {
+                return serviceMetrics;
+            } else {
+                throw ExceptionFactory.metricsUnavailableException();
+            }
         }
-
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 
     public ServiceMarketInfoBean getMarketInfo(String organizationId, String serviceId, String version) {
-        ServiceMarketInfoBean marketInfo = metrics.getServiceMarketInfo(getServiceVersion(organizationId, serviceId, version));
-        if (marketInfo != null) {
-            return marketInfo;
-        } else {
-            throw ExceptionFactory.metricsUnavailableException();
+        try {
+            ServiceVersionBean svb = storage.getServiceVersion(organizationId, serviceId, version);
+            if (svb == null) throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            ServiceMarketInfoBean marketInfo = new ServiceMarketInfoBean();
+            marketInfo.setUptime(metrics.getServiceUptime(getServiceVersion(organizationId, serviceId, version)));
+            marketInfo.setFollowers(svb.getService().getFollowers().size());
+            marketInfo.setDistinctUsers(query.getServiceContracts(organizationId, serviceId, version).size());
+            if (marketInfo != null) {
+                return marketInfo;
+            } else {
+                throw ExceptionFactory.metricsUnavailableException();
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 

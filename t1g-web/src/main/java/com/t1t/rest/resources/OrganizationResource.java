@@ -22,7 +22,7 @@ import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.members.MemberBean;
 import com.t1t.apim.beans.metrics.AppUsagePerServiceBean;
 import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
-import com.t1t.apim.beans.metrics.ServiceUsageBean;
+import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
@@ -1585,16 +1585,16 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Get Service Usage Metrics",
             notes = "Retrieves metrics/analytics information for a specific service.  This will return a full histogram of request count data based on the provided date range and interval.  Valid intervals are:  month, week, day, hour, minute")
     @ApiResponses({
-            @ApiResponse(code = 200, response = ServiceUsageBean.class, message = "Usage metrics information.")
+            @ApiResponse(code = 200, response = ServiceMetricsBean.class, message = "Usage metrics information.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/metrics/usage")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceUsageBean getServiceUsage(@PathParam("organizationId") String organizationId,
-                                            @PathParam("serviceId") String serviceId,
-                                            @PathParam("version") String version,
-                                            @QueryParam("from") String fromDate,
-                                            @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
+    public ServiceMetricsBean getServiceUsage(@PathParam("organizationId") String organizationId,
+                                              @PathParam("serviceId") String serviceId,
+                                              @PathParam("version") String version,
+                                              @QueryParam("from") String fromDate,
+                                              @QueryParam("to") String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException {
         if (!securityContext.hasPermission(PermissionType.svcView, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
