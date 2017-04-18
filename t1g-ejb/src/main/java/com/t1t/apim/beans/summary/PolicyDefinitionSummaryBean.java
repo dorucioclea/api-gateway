@@ -20,6 +20,7 @@ public class PolicyDefinitionSummaryBean implements Serializable {
     private Boolean scopePlan;
     private Boolean scopeAuto;
     private Long pluginId;
+    private String base64Logo;
 
     /**
      * @return the id
@@ -119,28 +120,60 @@ public class PolicyDefinitionSummaryBean implements Serializable {
         this.formType = formType;
     }
 
+    /**
+     * @return the service scoped value
+     */
     public Boolean getScopeService() {
         return scopeService;
     }
 
+    /**
+     * @param scopeService the service scoped value to set
+     */
     public void setScopeService(Boolean scopeService) {
         this.scopeService = scopeService;
     }
 
+    /**
+     * @return the plan scoped value
+     */
     public Boolean getScopePlan() {
         return scopePlan;
     }
 
+    /**
+     * @param scopePlan the plan scoped value to set
+     */
     public void setScopePlan(Boolean scopePlan) {
         this.scopePlan = scopePlan;
     }
 
+    /**
+     * @return the auto scoped value
+     */
     public Boolean getScopeAuto() {
         return scopeAuto;
     }
 
+    /**
+     * @param scopeAuto the auto scoped value to set
+     */
     public void setScopeAuto(Boolean scopeAuto) {
         this.scopeAuto = scopeAuto;
+    }
+
+    /**
+     * @return the Base64 encoded logo String
+     */
+    public String getBase64Logo() {
+        return base64Logo;
+    }
+
+    /**
+     * @param base64Logo the Base64 encoded logo String to set
+     */
+    public void setBase64Logo(String base64Logo) {
+        this.base64Logo = base64Logo;
     }
 
     /**

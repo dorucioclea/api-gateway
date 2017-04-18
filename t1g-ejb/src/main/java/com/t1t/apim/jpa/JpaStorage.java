@@ -1093,7 +1093,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
         @SuppressWarnings("nls")
         String sql =
-                "SELECT pd.id, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type, pd.scope_service, pd.scope_plan, pd.scope_auto" +
+                "SELECT pd.id, pd.name, pd.description, pd.icon, pd.plugin_id, pd.form_type, pd.scope_service, pd.scope_plan, pd.scope_auto, pd.logo" +
                         "  FROM policydefs pd" +
                         " ORDER BY pd.name ASC";
         Query query = entityManager.createNativeQuery(sql);
@@ -1115,6 +1115,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             bean.setScopeService(((Boolean) row[6]).booleanValue());
             bean.setScopePlan(((Boolean) row[7]).booleanValue());
             bean.setScopeAuto(((Boolean) row[8]).booleanValue());
+            bean.setBase64Logo(String.valueOf(row[9]));
             rval.add(bean);
         }
         return rval;

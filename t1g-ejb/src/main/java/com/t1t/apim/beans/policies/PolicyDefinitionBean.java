@@ -2,9 +2,12 @@ package com.t1t.apim.beans.policies;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.apim.beans.summary.PolicyFormType;
+import org.apache.commons.codec.binary.Base64;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * A Policy Definition describes a type of policy that can be added to
@@ -45,6 +48,10 @@ public class PolicyDefinitionBean implements Serializable {
     private String formOverride;
     @Column(name = "default_config")
     private String defaultConfig;
+    @Lob
+    @Column(name="logo")
+    @Type(type = "org.hibernate.type.TextType")
+    private String base64logo;
 
     /**
      * @return the id
@@ -215,6 +222,20 @@ public class PolicyDefinitionBean implements Serializable {
     }
 
     /**
+     * @return the base64-encoded logo
+     */
+    public String getBase64logo() {
+        return base64logo;
+    }
+
+    /**
+     * @param base64logo the base64-encoded logo to set
+     */
+    public void setBase64logo(String base64logo) {
+        this.base64logo = base64logo;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -260,6 +281,7 @@ public class PolicyDefinitionBean implements Serializable {
                 ", scopeAuto=" + scopeAuto +
                 ", formOverride='" + formOverride + '\'' +
                 ", defaultConfig='" + defaultConfig + '\'' +
+                ", base64logo=" + base64logo +
                 '}';
     }
 }
