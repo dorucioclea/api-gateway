@@ -2,12 +2,10 @@ package com.t1t.apim.beans.policies;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.apim.beans.summary.PolicyFormType;
-import org.apache.commons.codec.binary.Base64;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Arrays;
 
 /**
  * A Policy Definition describes a type of policy that can be added to

@@ -2,8 +2,6 @@ package com.t1t.apim.beans.summary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.apim.beans.policies.PolicyType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Date;

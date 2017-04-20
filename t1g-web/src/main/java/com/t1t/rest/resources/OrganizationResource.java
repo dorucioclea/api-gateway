@@ -29,7 +29,6 @@ import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
 import com.t1t.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.apim.beans.plans.*;
 import com.t1t.apim.beans.policies.NewPolicyBean;
-import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyChainBean;
 import com.t1t.apim.beans.policies.UpdatePolicyBean;
 import com.t1t.apim.beans.search.SearchResultsBean;

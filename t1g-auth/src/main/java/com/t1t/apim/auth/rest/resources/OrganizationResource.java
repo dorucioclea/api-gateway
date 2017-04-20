@@ -2,7 +2,6 @@ package com.t1t.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.announcements.AnnouncementBean;
-import com.t1t.apim.beans.dto.PolicyDtoBean;
 import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.services.ServiceDefinitionType;
 import com.t1t.apim.beans.services.ServiceVersionBean;

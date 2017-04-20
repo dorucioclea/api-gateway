@@ -20,7 +20,6 @@ import com.t1t.apim.beans.categories.TagBean;
 import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.contracts.NewContractBean;
 import com.t1t.apim.beans.contracts.NewContractRequestBean;
-import com.t1t.apim.beans.dto.PolicyDtoBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.events.NewEventBean;
