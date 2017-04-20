@@ -162,58 +162,25 @@ public class PolicyUtil {
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> StringUtils.isEmpty(entry.getValue()) ? NOT_CONFIGURED : entry.getValue()));
         switch (polDef) {
             case CORS:
-                KongPluginCors cors = (KongPluginCors) config;
-                keyMap.put("methods", isCollectionEmpty(cors.getMethods()) ? NOT_CONFIGURED : convertToCommaSeparatedString(cors.getMethods().stream().map(Method::toString).collect(Collectors.toList())));
-                keyMap.put("origin", StringUtils.isEmpty(cors.getOrigin()) ? NOT_CONFIGURED : cors.getOrigin());
+                modifyKeyMapForCorsPopover(keyMap, config);
                 break;
             case IPRESTRICTION:
-                KongPluginIPRestriction ipRestriction = (KongPluginIPRestriction) config;
-                keyMap.put("blacklist", isCollectionEmpty(ipRestriction.getBlacklist()) ? NOT_CONFIGURED : convertToCommaSeparatedString(ipRestriction.getBlacklist()));
-                keyMap.put("whitelist", isCollectionEmpty(ipRestriction.getWhitelist()) ? NOT_CONFIGURED : convertToCommaSeparatedString(ipRestriction.getWhitelist()));
+                modifyKeyMapForIpRestrictionPopover(keyMap, config);
                 break;
             case KEYAUTHENTICATION:
-                KongPluginKeyAuth keyAuth = (KongPluginKeyAuth) config;
-                keyMap.put("keyNames", isCollectionEmpty(keyAuth.getKeyNames()) ? NOT_CONFIGURED : convertToCommaSeparatedString(keyAuth.getKeyNames()));
+                modifyKeyMapForKeyAuthPopover(keyMap, config);
                 break;
             case OAUTH2:
-                KongPluginOAuth oAuth = (KongPluginOAuth) config;
-                keyMap.put("scopes", isCollectionEmpty(oAuth.getScopes()) ? NOT_CONFIGURED :  convertToCommaSeparatedString(oAuth.getScopes().stream().map(scope -> scope.getScopeDesc()).collect(Collectors.toList())));
+                modifyKeyMapForOAuthPopover(keyMap, config);
                 break;
             case REQUESTTRANSFORMER:
-                KongPluginRequestTransformerModification reqRem = ((KongPluginRequestTransformer) config).getRemove();
-                KongPluginRequestTransformerModification reqAdd = ((KongPluginRequestTransformer) config).getAdd();
-                KongPluginRequestTransformerModification reqRep = ((KongPluginRequestTransformer) config).getReplace();
-                KongPluginRequestTransformerModification reqApp = ((KongPluginRequestTransformer) config).getAppend();
-                keyMap.put("removeQuerystrings", reqRem == null || isCollectionEmpty(reqRem.getQuerystring()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRem.getQuerystring()));
-                keyMap.put("removeBody", reqRem == null || isCollectionEmpty(reqRem.getBody()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRem.getBody()));
-                keyMap.put("removeHeaders", reqRem == null || isCollectionEmpty(reqRem.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRem.getHeaders()));
-                keyMap.put("addQuerystrings", reqAdd == null || isCollectionEmpty(reqAdd.getQuerystring()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqAdd.getQuerystring()));
-                keyMap.put("addBody", reqAdd == null || isCollectionEmpty(reqAdd.getBody()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqAdd.getBody()));
-                keyMap.put("addHeaders", reqAdd == null || isCollectionEmpty(reqAdd.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqAdd.getHeaders()));
-                keyMap.put("replaceQuerystrings", reqRep == null || isCollectionEmpty(reqRep.getQuerystring()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRep.getQuerystring()));
-                keyMap.put("replaceBody", reqRep == null || isCollectionEmpty(reqRep.getBody()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRep.getBody()));
-                keyMap.put("replaceHeaders", reqRep == null || isCollectionEmpty(reqRep.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRep.getHeaders()));
-                keyMap.put("appendQuerystrings", reqApp == null || isCollectionEmpty(reqApp.getQuerystring()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqApp.getQuerystring()));
-                keyMap.put("appendBody", reqApp == null || isCollectionEmpty(reqApp.getBody()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqApp.getBody()));
-                keyMap.put("appendHeaders", reqApp == null || isCollectionEmpty(reqApp.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqApp.getHeaders()));
+                modifyKeyMapForRequestTransformerPopover(keyMap, config);
                 break;
             case RESPONSETRANSFORMER:
-                KongPluginResponseTransformerModification resRem = ((KongPluginResponseTransformer) config).getRemove();
-                KongPluginResponseTransformerModification resAdd = ((KongPluginResponseTransformer) config).getAdd();
-                KongPluginResponseTransformerModification resRep = ((KongPluginResponseTransformer) config).getReplace();
-                KongPluginResponseTransformerModification resApp = ((KongPluginResponseTransformer) config).getAppend();
-                keyMap.put("removeJson", resRem == null || isCollectionEmpty(resRem.getJson()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resRem.getJson()));
-                keyMap.put("removeHeaders", resRem == null || isCollectionEmpty(resRem.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resRem.getHeaders()));
-                keyMap.put("addJson", resAdd == null || isCollectionEmpty(resAdd.getJson()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resAdd.getJson()));
-                keyMap.put("addHeaders", resAdd == null || isCollectionEmpty(resAdd.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resAdd.getHeaders()));
-                keyMap.put("replaceJson", resRep == null || isCollectionEmpty(resRep.getJson()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resRep.getJson()));
-                keyMap.put("replaceHeaders", resRep == null || isCollectionEmpty(resRep.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resRep.getHeaders()));
-                keyMap.put("appendJson", resApp == null || isCollectionEmpty(resApp.getJson()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resApp.getJson()));
-                keyMap.put("appendHeaders", resApp == null || isCollectionEmpty(resApp.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resApp.getHeaders()));
+                modifyKeyMapForResponseTransformerPopover(keyMap, config);
                 break;
             case JWT:
-                KongPluginJWT jwt = (KongPluginJWT) config;
-                keyMap.put("claimsToVerify", isCollectionEmpty(jwt.getClaimsToVerify()) ? NOT_CONFIGURED : convertToCommaSeparatedString(jwt.getClaimsToVerify()));
+                modifyKeyMapForJWTPopover(keyMap, config);
                 break;
             default:
                 //No further action required
@@ -221,5 +188,66 @@ public class PolicyUtil {
         }
         StrSubstitutor sub = new StrSubstitutor(keyMap, KEY_START, KEY_END);
         return sub.replace(pb.getDefinition().getPopoverTemplate());
+    }
+
+    private static void modifyKeyMapForCorsPopover(Map<String, String> keyMap, KongConfigValue config) {
+        KongPluginCors cors = (KongPluginCors) config;
+        keyMap.put("methods", isCollectionEmpty(cors.getMethods()) ? NOT_CONFIGURED : convertToCommaSeparatedString(cors.getMethods().stream().map(Method::toString).collect(Collectors.toList())));
+        keyMap.put("origin", StringUtils.isEmpty(cors.getOrigin()) ? NOT_CONFIGURED : cors.getOrigin());
+    }
+
+    private static void modifyKeyMapForIpRestrictionPopover(Map<String, String> keyMap, KongConfigValue config) {
+        KongPluginIPRestriction ipRestriction = (KongPluginIPRestriction) config;
+        keyMap.put("blacklist", isCollectionEmpty(ipRestriction.getBlacklist()) ? NOT_CONFIGURED : convertToCommaSeparatedString(ipRestriction.getBlacklist()));
+        keyMap.put("whitelist", isCollectionEmpty(ipRestriction.getWhitelist()) ? NOT_CONFIGURED : convertToCommaSeparatedString(ipRestriction.getWhitelist()));
+    }
+
+    private static void modifyKeyMapForKeyAuthPopover(Map<String, String> keyMap, KongConfigValue config) {
+        KongPluginKeyAuth keyAuth = (KongPluginKeyAuth) config;
+        keyMap.put("keyNames", isCollectionEmpty(keyAuth.getKeyNames()) ? NOT_CONFIGURED : convertToCommaSeparatedString(keyAuth.getKeyNames()));
+    }
+
+    private static void modifyKeyMapForOAuthPopover(Map<String, String> keyMap, KongConfigValue config) {
+        KongPluginOAuth oAuth = (KongPluginOAuth) config;
+        keyMap.put("scopes", isCollectionEmpty(oAuth.getScopes()) ? NOT_CONFIGURED :  convertToCommaSeparatedString(oAuth.getScopes().stream().map(scope -> scope.getScopeDesc()).collect(Collectors.toList())));
+    }
+
+    private static void modifyKeyMapForRequestTransformerPopover(Map<String, String> keyMap, KongConfigValue config) {
+        KongPluginRequestTransformerModification reqRem = ((KongPluginRequestTransformer) config).getRemove();
+        KongPluginRequestTransformerModification reqAdd = ((KongPluginRequestTransformer) config).getAdd();
+        KongPluginRequestTransformerModification reqRep = ((KongPluginRequestTransformer) config).getReplace();
+        KongPluginRequestTransformerModification reqApp = ((KongPluginRequestTransformer) config).getAppend();
+        keyMap.put("removeQuerystrings", reqRem == null || isCollectionEmpty(reqRem.getQuerystring()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRem.getQuerystring()));
+        keyMap.put("removeBody", reqRem == null || isCollectionEmpty(reqRem.getBody()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRem.getBody()));
+        keyMap.put("removeHeaders", reqRem == null || isCollectionEmpty(reqRem.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRem.getHeaders()));
+        keyMap.put("addQuerystrings", reqAdd == null || isCollectionEmpty(reqAdd.getQuerystring()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqAdd.getQuerystring()));
+        keyMap.put("addBody", reqAdd == null || isCollectionEmpty(reqAdd.getBody()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqAdd.getBody()));
+        keyMap.put("addHeaders", reqAdd == null || isCollectionEmpty(reqAdd.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqAdd.getHeaders()));
+        keyMap.put("replaceQuerystrings", reqRep == null || isCollectionEmpty(reqRep.getQuerystring()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRep.getQuerystring()));
+        keyMap.put("replaceBody", reqRep == null || isCollectionEmpty(reqRep.getBody()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRep.getBody()));
+        keyMap.put("replaceHeaders", reqRep == null || isCollectionEmpty(reqRep.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqRep.getHeaders()));
+        keyMap.put("appendQuerystrings", reqApp == null || isCollectionEmpty(reqApp.getQuerystring()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqApp.getQuerystring()));
+        keyMap.put("appendBody", reqApp == null || isCollectionEmpty(reqApp.getBody()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqApp.getBody()));
+        keyMap.put("appendHeaders", reqApp == null || isCollectionEmpty(reqApp.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(reqApp.getHeaders()));
+    }
+
+    private static void modifyKeyMapForResponseTransformerPopover(Map<String, String> keyMap, KongConfigValue config) {
+        KongPluginResponseTransformerModification resRem = ((KongPluginResponseTransformer) config).getRemove();
+        KongPluginResponseTransformerModification resAdd = ((KongPluginResponseTransformer) config).getAdd();
+        KongPluginResponseTransformerModification resRep = ((KongPluginResponseTransformer) config).getReplace();
+        KongPluginResponseTransformerModification resApp = ((KongPluginResponseTransformer) config).getAppend();
+        keyMap.put("removeJson", resRem == null || isCollectionEmpty(resRem.getJson()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resRem.getJson()));
+        keyMap.put("removeHeaders", resRem == null || isCollectionEmpty(resRem.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resRem.getHeaders()));
+        keyMap.put("addJson", resAdd == null || isCollectionEmpty(resAdd.getJson()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resAdd.getJson()));
+        keyMap.put("addHeaders", resAdd == null || isCollectionEmpty(resAdd.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resAdd.getHeaders()));
+        keyMap.put("replaceJson", resRep == null || isCollectionEmpty(resRep.getJson()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resRep.getJson()));
+        keyMap.put("replaceHeaders", resRep == null || isCollectionEmpty(resRep.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resRep.getHeaders()));
+        keyMap.put("appendJson", resApp == null || isCollectionEmpty(resApp.getJson()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resApp.getJson()));
+        keyMap.put("appendHeaders", resApp == null || isCollectionEmpty(resApp.getHeaders()) ? NOT_CONFIGURED : convertToCommaSeparatedString(resApp.getHeaders()));
+    }
+
+    private static void modifyKeyMapForJWTPopover(Map<String, String> keyMap, KongConfigValue config) {
+        KongPluginJWT jwt = (KongPluginJWT) config;
+        keyMap.put("claimsToVerify", isCollectionEmpty(jwt.getClaimsToVerify()) ? NOT_CONFIGURED : convertToCommaSeparatedString(jwt.getClaimsToVerify()));
     }
 }
