@@ -132,7 +132,7 @@ public class GatewayValidation {
         KongPluginJWTUp kongPluginJWTUp = new KongPluginJWTUp();
         kongPluginJWTUp.setIssuerUrl(query.getDefaultGateway().getEndpoint());
         kongPluginJWTUp.setX5uUrl(query.getDefaultGateway().getEndpoint()+ query.getDefaultGateway().getJWTPubKeyEndpoint());
-        kongPluginJWTUp.setTokenExpiration(query.getDefaultGateway().getJWTExpTime());
+        kongPluginJWTUp.setTokenExpiration(query.getDefaultGateway().getJWTExpTime().longValue());
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(kongPluginJWTUp, KongPluginJWTUp.class));
@@ -178,7 +178,7 @@ public class GatewayValidation {
         //If no OAuth token expiration has been set, use the default gateway value
         if (oauthValue.getTokenExpiration() == null) {
             try {
-                oauthValue.setTokenExpiration(query.getDefaultGateway().getOAuthExpTime());
+                oauthValue.setTokenExpiration(query.getDefaultGateway().getOAuthExpTime().longValue());
             }
             catch (StorageException ex) {
                 throw ExceptionFactory.systemErrorException(ex);
@@ -206,11 +206,11 @@ public class GatewayValidation {
                 &&isEmptyList(req.getRemove().getBody())&&isEmptyList(req.getRemove().getHeaders())&&isEmptyList(req.getRemove().getQuerystring()))
             throw new PolicyViolationException("At least one value should be provided.");
         KongPluginRequestTransformer res = new KongPluginRequestTransformer();
-        KongPluginRequestTransformerAdd addStatement = new KongPluginRequestTransformerAdd();
+        KongPluginRequestTransformerModification addStatement = new KongPluginRequestTransformerModification();
         addStatement.setBody(new ArrayList<>());
         addStatement.setHeaders(new ArrayList<>());
         addStatement.setQuerystring(new ArrayList<>());
-        KongPluginRequestTransformerRemove remStatement = new KongPluginRequestTransformerRemove();
+        KongPluginRequestTransformerModification remStatement = new KongPluginRequestTransformerModification();
         remStatement.setBody(new ArrayList<>());
         remStatement.setHeaders(new ArrayList<>());
         remStatement.setQuerystring(new ArrayList<>());
@@ -251,10 +251,10 @@ public class GatewayValidation {
                 &&isEmptyList(req.getRemove().getHeaders())&&isEmptyList(req.getRemove().getJson()))
             throw new PolicyViolationException("At least one value should be provided.");
         KongPluginResponseTransformer res = new KongPluginResponseTransformer();
-        KongPluginResponseTransformerAdd addStatement = new KongPluginResponseTransformerAdd();
+        KongPluginResponseTransformerModification addStatement = new KongPluginResponseTransformerModification();
         addStatement.setHeaders(new ArrayList<>());
         addStatement.setJson(new ArrayList<>());
-        KongPluginResponseTransformerRemove remStatement = new KongPluginResponseTransformerRemove();
+        KongPluginResponseTransformerModification remStatement = new KongPluginResponseTransformerModification();
         remStatement.setHeaders(new ArrayList<>());
         remStatement.setJson(new ArrayList<>());
         res.setAdd(addStatement);
@@ -382,7 +382,7 @@ public class GatewayValidation {
 
     public synchronized Policy validateRateLimiting(Policy policy){
         KongPluginRateLimiting req = new Gson().fromJson(policy.getPolicyJsonConfig(),KongPluginRateLimiting.class);
-        List<Integer> ratesArray = new ArrayList<>();
+        List<Long> ratesArray = new ArrayList<>();
         if (req.getYear() == null && req.getMonth() == null && req.getDay() == null && req.getHour() == null && req.getMinute() == null && req.getSecond() == null) {
             throw ExceptionFactory.policyDefInvalidException("At least one value must be filled in");
         }

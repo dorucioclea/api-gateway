@@ -235,7 +235,7 @@ public class GatewayClient {
                             //Temp fix for weird Kong behaviour
                             .replace("scopes={}", "scopes=[]"),
                     KongPluginOAuthEnhanced.class);
-            gtwOAuthValue.setTokenExpiration(expirationTimeSeconds);
+            gtwOAuthValue.setTokenExpiration(expirationTimeSeconds.longValue());
             gtwPluginConfig.setConfig(gtwOAuthValue);
             KongPluginConfig updatedConfig = new KongPluginConfig()
                     .withId(gtwPluginConfig.getId())
@@ -545,7 +545,7 @@ public class GatewayClient {
         oauthPlugin.setHideCredentials(false);
         oauthPlugin.setMandatoryScope(true);
         oauthPlugin.setScopes(new ArrayList<>());
-        oauthPlugin.setTokenExpiration(new Integer(7200));
+        oauthPlugin.setTokenExpiration(new Long(7200));
         oauthPlugin.setProvisionKey(UUID.randomUUID().toString());
         KongPluginConfig config = new KongPluginConfig()
                 .withName(Policies.OAUTH2.getKongIdentifier())
@@ -1039,7 +1039,7 @@ public class GatewayClient {
                     .withAccessToken(token.getAccessToken())
                     .withAuthenticatedUserid(token.getAuthenticatedUserId())
                     .withCredentialId(token.getCredentialId())
-                    .withExpiresIn(token.getExpiresIn().intValue())
+                    .withExpiresIn(token.getExpiresIn())
                     .withId(token.getId())
                     .withScope(token.getScope())
                     .withRefreshToken(token.getRefreshToken())

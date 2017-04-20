@@ -52,6 +52,10 @@ public class PolicyDefinitionBean implements Serializable {
     @Column(name="logo")
     @Type(type = "org.hibernate.type.TextType")
     private String base64logo;
+    @Column(name = "marketplace_description", length = 4096)
+    private String marketplaceDescription;
+    @Column(name = "popover_template", length = 4096)
+    private String popoverTemplate;
 
     /**
      * @return the id
@@ -236,6 +240,34 @@ public class PolicyDefinitionBean implements Serializable {
     }
 
     /**
+     * @return the marketplace description
+     */
+    public String getMarketplaceDescription() {
+        return marketplaceDescription;
+    }
+
+    /**
+     * @param marketplaceDescription the marketplace description to set
+     */
+    public void setMarketplaceDescription(String marketplaceDescription) {
+        this.marketplaceDescription = marketplaceDescription;
+    }
+
+    /**
+     * @return the popover template
+     */
+    public String getPopoverTemplate() {
+        return popoverTemplate;
+    }
+
+    /**
+     * @param popoverTemplate the popover template to set
+     */
+    public void setPopoverTemplate(String popoverTemplate) {
+        this.popoverTemplate = popoverTemplate;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -281,7 +313,9 @@ public class PolicyDefinitionBean implements Serializable {
                 ", scopeAuto=" + scopeAuto +
                 ", formOverride='" + formOverride + '\'' +
                 ", defaultConfig='" + defaultConfig + '\'' +
-                ", base64logo=" + base64logo +
+                ", base64logo='" + base64logo + '\'' +
+                ", marketplaceDescription='" + marketplaceDescription + '\'' +
+                ", popoverTemplate='" + popoverTemplate + '\'' +
                 '}';
     }
 }

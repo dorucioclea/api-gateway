@@ -9,11 +9,11 @@
       "required": true
     },
     "timeout": {
-      "type": "number",
+      "type": "integer",
       "default": 10000
     },
     "port": {
-      "type": "number",
+      "type": "integer",
       "required": true
     }
   }

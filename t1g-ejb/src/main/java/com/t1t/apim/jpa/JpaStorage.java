@@ -1106,9 +1106,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             bean.setName(String.valueOf(row[1]));
             bean.setDescription(String.valueOf(row[2]));
             bean.setIcon(String.valueOf(row[3]));
-            if (row[4] != null) {
-                bean.setPluginId(((Number) row[4]).longValue());
-            }
             if (row[5] != null) {
                 bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[5])));
             }
@@ -1833,9 +1830,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             bean.setName(String.valueOf(row[1]));
             bean.setDescription(String.valueOf(row[2]));
             bean.setIcon(String.valueOf(row[3]));
-            if (row[4] != null) {
-                bean.setPluginId(((Number) row[4]).longValue());
-            }
             if (row[5] != null) {
                 bean.setFormType(PolicyFormType.valueOf(String.valueOf(row[5])));
             }

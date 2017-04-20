@@ -1,25 +1,27 @@
 package com.t1t.apim.beans.summary;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.io.Serializable;
 
 /**
  * A summary of a policy definition.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PolicyDefinitionSummaryBean implements Serializable {
 
-    private static final long serialVersionUID = 6297595620199835022L;
-
     private String id;
-    private String policyImpl;
     private String name;
     private String description;
+    private String marketplaceDescription;
     private String icon;
     private PolicyFormType formType;
+    private String form;
+    private String formOverride;
     private Boolean scopeService;
     private Boolean scopePlan;
     private Boolean scopeAuto;
-    private Long pluginId;
     private String base64Logo;
 
     /**
@@ -34,20 +36,6 @@ public class PolicyDefinitionSummaryBean implements Serializable {
      */
     public void setId(String id) {
         this.id = id;
-    }
-
-    /**
-     * @return the policyImpl
-     */
-    public String getPolicyImpl() {
-        return policyImpl;
-    }
-
-    /**
-     * @param policyImpl the policyImpl to set
-     */
-    public void setPolicyImpl(String policyImpl) {
-        this.policyImpl = policyImpl;
     }
 
     /**
@@ -90,20 +78,6 @@ public class PolicyDefinitionSummaryBean implements Serializable {
      */
     public void setIcon(String icon) {
         this.icon = icon;
-    }
-
-    /**
-     * @return the pluginId
-     */
-    public Long getPluginId() {
-        return pluginId;
-    }
-
-    /**
-     * @param pluginId the pluginId to set
-     */
-    public void setPluginId(Long pluginId) {
-        this.pluginId = pluginId;
     }
 
     /**
@@ -177,6 +151,48 @@ public class PolicyDefinitionSummaryBean implements Serializable {
     }
 
     /**
+     * @return the marketplace description
+     */
+    public String getMarketplaceDescription() {
+        return marketplaceDescription;
+    }
+
+    /**
+     * @param marketplaceDescription the marketplace description to set
+     */
+    public void setMarketplaceDescription(String marketplaceDescription) {
+        this.marketplaceDescription = marketplaceDescription;
+    }
+
+    /**
+     * @return the form
+     */
+    public String getForm() {
+        return form;
+    }
+
+    /**
+     * @param form the form to set
+     */
+    public void setForm(String form) {
+        this.form = form;
+    }
+
+    /**
+     * @return the form override
+     */
+    public String getFormOverride() {
+        return formOverride;
+    }
+
+    /**
+     * @param formOverride the form override to set
+     */
+    public void setFormOverride(String formOverride) {
+        this.formOverride = formOverride;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -211,15 +227,17 @@ public class PolicyDefinitionSummaryBean implements Serializable {
     public String toString() {
         return "PolicyDefinitionSummaryBean{" +
                 "id='" + id + '\'' +
-                ", policyImpl='" + policyImpl + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", marketplaceDescription='" + marketplaceDescription + '\'' +
                 ", icon='" + icon + '\'' +
                 ", formType=" + formType +
+                ", form='" + form + '\'' +
+                ", formOverride='" + formOverride + '\'' +
                 ", scopeService=" + scopeService +
                 ", scopePlan=" + scopePlan +
                 ", scopeAuto=" + scopeAuto +
-                ", pluginId=" + pluginId +
+                ", base64Logo='" + base64Logo + '\'' +
                 '}';
     }
 }
