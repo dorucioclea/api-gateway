@@ -105,6 +105,11 @@ public class ServiceVersionBean implements Serializable {
     private Long upstreamSendTimeout;
     @Column(name ="upstream_read_timeout")
     private Long upstreamReadTimeout;
+    @Column(name = "custom_load_balancing")
+    private Boolean customLoadBalancing;
+    @ElementCollection(fetch=FetchType.EAGER)
+    @CollectionTable(name="service_upstream_targets", joinColumns=@JoinColumn(name="service_version_id"))
+    private Set<ServiceUpstreamTargetBean> upstreamTargets;
 
     /**
      * @return the id
@@ -514,6 +519,34 @@ public class ServiceVersionBean implements Serializable {
     }
 
     /**
+     * @return the custom load balancing value
+     */
+    public Boolean getCustomLoadBalancing() {
+        return customLoadBalancing;
+    }
+
+    /**
+     * @param customLoadBalancing the custom load balancing value to set
+     */
+    public void setCustomLoadBalancing(Boolean customLoadBalancing) {
+        this.customLoadBalancing = customLoadBalancing;
+    }
+
+    /**
+     * @return the upstream targets
+     */
+    public Set<ServiceUpstreamTargetBean> getUpstreamTargets() {
+        return upstreamTargets;
+    }
+
+    /**
+     * @param upstreamTargets the upstream targets to set
+     */
+    public void setUpstreamTargets(Set<ServiceUpstreamTargetBean> upstreamTargets) {
+        this.upstreamTargets = upstreamTargets;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -576,6 +609,8 @@ public class ServiceVersionBean implements Serializable {
                 ", upstreamConnectTimeout=" + upstreamConnectTimeout +
                 ", upstreamSendTimeout=" + upstreamSendTimeout +
                 ", upstreamReadTimeout=" + upstreamReadTimeout +
+                ", customLoadBalancing=" + customLoadBalancing +
+                ", upstreamTargets=" + upstreamTargets +
                 '}';
     }
 }

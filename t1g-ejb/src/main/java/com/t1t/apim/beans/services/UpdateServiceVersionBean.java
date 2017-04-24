@@ -33,6 +33,8 @@ public class UpdateServiceVersionBean implements Serializable {
     private Long upstreamConnectTimeout;
     private Long upstreamSendTimeout;
     private Long upstreamReadTimeout;
+    private Boolean customLoadBalancing;
+    private Set<ServiceUpstreamTargetBean> upstreamTargets;
 
     /**
      * @return the endpoint
@@ -244,6 +246,34 @@ public class UpdateServiceVersionBean implements Serializable {
         this.upstreamReadTimeout = upstreamReadTimeout;
     }
 
+    /**
+     * @return the custom load balancing value
+     */
+    public Boolean getCustomLoadBalancing() {
+        return customLoadBalancing;
+    }
+
+    /**
+     * @param customLoadBalancing the custom load balancing value to set
+     */
+    public void setCustomLoadBalancing(Boolean customLoadBalancing) {
+        this.customLoadBalancing = customLoadBalancing;
+    }
+
+    /**
+     * @return the upstream targets
+     */
+    public Set<ServiceUpstreamTargetBean> getUpstreamTargets() {
+        return upstreamTargets;
+    }
+
+    /**
+     * @param upstreamTargets the upstream targets to set
+     */
+    public void setUpstreamTargets(Set<ServiceUpstreamTargetBean> upstreamTargets) {
+        this.upstreamTargets = upstreamTargets;
+    }
+
     @Override
     public String toString() {
         return "UpdateServiceVersionBean{" +
@@ -262,6 +292,8 @@ public class UpdateServiceVersionBean implements Serializable {
                 ", upstreamConnectTimeout=" + upstreamConnectTimeout +
                 ", upstreamSendTimeout=" + upstreamSendTimeout +
                 ", upstreamReadTimeout=" + upstreamReadTimeout +
+                ", customLoadBalancing=" + customLoadBalancing +
+                ", upstreamTargets=" + upstreamTargets +
                 '}';
     }
 }

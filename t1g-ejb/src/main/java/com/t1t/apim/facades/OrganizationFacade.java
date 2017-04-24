@@ -1090,6 +1090,9 @@ public class OrganizationFacade {
         EntityUpdatedData data = new EntityUpdatedData();
         boolean gwValueChanged = false;
         if (svb.getStatus() != ServiceStatus.Retired) {
+            if (AuditUtils.valueChanged(svb.getCustomLoadBalancing(), bean.getCustomLoadBalancing())) {
+                data.addChange();
+            }
             if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
                 data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
                 svb.setEndpoint(URIUtils.uriBackslashRemover(bean.getEndpoint()));
@@ -1249,7 +1252,7 @@ public class OrganizationFacade {
                 if (entry != null) {
                     storage.createAuditEntry(entry);
                 }
-                if (gwValueChanged) {
+                if ((svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) && gwValueChanged) {
                     updateServiceVersionOnGateway(svb);
                 }
                 log.debug(String.format("Successfully updated Service Version: %s", svb)); //$NON-NLS-1$

@@ -413,6 +413,12 @@ UPDATE policydefs SET logo = 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAbF
 
 UPDATE policydefs SET logo = 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAVFBMVEXa2tra2tra2tra2tra2tra2tr////a2toAfd6izPLvzPnRfvDYteSKr86zas0Aar4AhODY6vr3+Prx8v2Kv+9aqOk3muUOj+N5t+211vXhqfW01fXvn55GAAAABnRSTlMC9s/Hbhsvz/I3AAABVklEQVRo3u3b3Y6CMBCG4SJYhnV/KD+K7v3f57bN7AFJTcDUmZB+74lH5EmMA5hmjK+pq1awqm5M6HxqxTudPSzssmxM06rUmDp8DFawIYi1qYRdlisTeCtcMAGnAgwYMGDAgJ8GGPDB4B8frepnl9cZH5d1374E7GmX1WVuA0xzTvixA+5zwpc0/OXrVgU5N/yx6tMHGDBgwIABvxmeiBZhmF3fPMjDFLuOSjDdnBJMvVOAb1G+y8PjlUKdOGyHOcpLJniiDfEVC/FYZYA3unxFx2OVAd7sTjZ073msRGB2Yy7KvcsC2z05Hitx2P6PVTEwf9W/h/5xvTBOB76ByN8ydzRRzofELln1schjVNCrTxyjsl5vtV7ol7L+tAEGDLhMWOAw5ADHPxIHXmpHfAWepgJOBBgwYMCAAT8NMGDAgJOw2hKO2tqR2qKV1mqZ3jKd2vrgH/W3idgykdWgAAAAAElFTkSuQmCC', marketplace_description = 'Request and response logs are sent to a server via UDP', popover_template = '<p class="text-light">Logs are sent to <b>{{host}}:{{port}}</b>.</p><p class="text-light">Timeout in ms: {{timeout}}.</p>' WHERE id = 'UDPLog';
 
+ALTER TABLE service_versions ADD COLUMN custom_load_balancing BOOLEAN DEFAULT FALSE;
+
+CREATE TABLE service_upstream_targets (service_version_id BIGINT NOT NULL, target VARCHAR(255) NOT NULL, weight BIGINT DEFAULT 100);
+ALTER TABLE service_upstream_targets ADD CONSTRAINT fk_service_upstream_targets_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+CREATE INDEX idx_service_upstream_targets_1 ON service_upstream_targets (service_version_id);
+
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release
 
 --------- UPGRADE TO 1.0.1 STARTS HERE ---------
