@@ -5,14 +5,20 @@
   "javaInterfaces": ["com.t1t.kong.model.KongConfigValue"],
   "properties": {
     "remove": {
-      "id": "KongPluginRequestTransformerRemove",
       "type": "object",
-      "$ref":"KongPluginRequestTransformerRemove.json"
+      "$ref":"KongPluginRequestTransformerModification.json"
     },
     "add": {
-      "id": "KongPluginRequestTransformerAdd",
       "type": "object",
-      "$ref":"KongPluginRequestTransformerAdd.json"
+      "$ref":"KongPluginRequestTransformerModification.json"
+    },
+    "replace": {
+      "type": "object",
+      "$ref":"KongPluginRequestTransformerModification.json"
+    },
+    "append": {
+      "type": "object",
+      "$ref":"KongPluginRequestTransformerModification.json"
     }
   }
 }

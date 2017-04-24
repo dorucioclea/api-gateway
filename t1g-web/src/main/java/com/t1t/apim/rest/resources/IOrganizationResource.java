@@ -9,7 +9,6 @@ import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.contracts.ContractCancellationBean;
 import com.t1t.apim.beans.contracts.NewContractBean;
 import com.t1t.apim.beans.contracts.NewContractRequestBean;
-import com.t1t.apim.beans.dto.PolicyDtoBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.idm.GrantRoleBean;
 import com.t1t.apim.beans.idm.TransferOwnershipBean;
@@ -23,7 +22,6 @@ import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
 import com.t1t.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.apim.beans.plans.*;
 import com.t1t.apim.beans.policies.NewPolicyBean;
-import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyChainBean;
 import com.t1t.apim.beans.policies.UpdatePolicyBean;
 import com.t1t.apim.beans.search.SearchResultsBean;
@@ -428,7 +426,7 @@ public interface IOrganizationResource {
      * @throws ApplicationVersionNotFoundException when trying to get, update, or remove a application version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public PolicyBean createAppPolicy(String organizationId, String applicationId, String version, NewPolicyBean bean) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
+    public EnrichedPolicySummaryBean createAppPolicy(String organizationId, String applicationId, String version, NewPolicyBean bean) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             NotAuthorizedException;
 
     /**
@@ -446,7 +444,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or remove a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public PolicyBean getAppPolicy(String organizationId, String applicationId,  String version, long policyId) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
+    public EnrichedPolicySummaryBean getAppPolicy(String organizationId, String applicationId,  String version, long policyId) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException;
 
     /**
@@ -812,7 +810,7 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
 
-    public PolicyBean createServicePolicy(String organizationId,
+    public EnrichedPolicySummaryBean createServicePolicy(String organizationId,
                                           String serviceId, String version,
                                           NewPolicyBean bean) throws OrganizationNotFoundException, ServiceVersionNotFoundException,
             NotAuthorizedException;
@@ -832,7 +830,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or remove a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public PolicyDtoBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) throws OrganizationNotFoundException, ServiceVersionNotFoundException,
+    public EnrichedPolicySummaryBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) throws OrganizationNotFoundException, ServiceVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException;
 
     /**
@@ -852,7 +850,7 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
 
-    public PolicyBean updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
+    public EnrichedPolicySummaryBean updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
             ServiceVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException;
 
     /**
@@ -1132,7 +1130,7 @@ public interface IOrganizationResource {
      * @throws PlanVersionNotFoundException when trying to get, update, or remove a plan version that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public PolicyBean createPlanPolicy(String organizationId, String planId, String version, NewPolicyBean bean) throws OrganizationNotFoundException, PlanVersionNotFoundException,
+    public EnrichedPolicySummaryBean createPlanPolicy(String organizationId, String planId, String version, NewPolicyBean bean) throws OrganizationNotFoundException, PlanVersionNotFoundException,
             NotAuthorizedException;
 
     /**
@@ -1150,7 +1148,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or remove a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public PolicyBean getPlanPolicy(String organizationId, String planId, String version, long policyId) throws OrganizationNotFoundException, PlanVersionNotFoundException,
+    public EnrichedPolicySummaryBean getPlanPolicy(String organizationId, String planId, String version, long policyId) throws OrganizationNotFoundException, PlanVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException;
 
     /**

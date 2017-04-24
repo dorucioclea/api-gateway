@@ -7,16 +7,16 @@
   ],
   "properties": {
     "ldap_port": {
-      "type": "number",
+      "type": "integer",
       "required": true
     },
     "cache_ttl": {
-      "type": "number",
+      "type": "integer",
       "required": true,
       "default": 60
     },
     "timeout": {
-      "type": "number",
+      "type": "integer",
       "default": 10000
     },
     "start_tls": {
@@ -42,7 +42,7 @@
       "default": false
     },
     "keepalive": {
-      "type": "number",
+      "type": "integer",
       "default": 60000
     },
     "attribute": {

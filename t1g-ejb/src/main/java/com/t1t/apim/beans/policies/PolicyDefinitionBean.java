@@ -2,6 +2,7 @@ package com.t1t.apim.beans.policies;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.apim.beans.summary.PolicyFormType;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -45,6 +46,14 @@ public class PolicyDefinitionBean implements Serializable {
     private String formOverride;
     @Column(name = "default_config")
     private String defaultConfig;
+    @Lob
+    @Column(name="logo")
+    @Type(type = "org.hibernate.type.TextType")
+    private String base64logo;
+    @Column(name = "marketplace_description", length = 4096)
+    private String marketplaceDescription;
+    @Column(name = "popover_template", length = 4096)
+    private String popoverTemplate;
 
     /**
      * @return the id
@@ -215,6 +224,48 @@ public class PolicyDefinitionBean implements Serializable {
     }
 
     /**
+     * @return the base64-encoded logo
+     */
+    public String getBase64logo() {
+        return base64logo;
+    }
+
+    /**
+     * @param base64logo the base64-encoded logo to set
+     */
+    public void setBase64logo(String base64logo) {
+        this.base64logo = base64logo;
+    }
+
+    /**
+     * @return the marketplace description
+     */
+    public String getMarketplaceDescription() {
+        return marketplaceDescription;
+    }
+
+    /**
+     * @param marketplaceDescription the marketplace description to set
+     */
+    public void setMarketplaceDescription(String marketplaceDescription) {
+        this.marketplaceDescription = marketplaceDescription;
+    }
+
+    /**
+     * @return the popover template
+     */
+    public String getPopoverTemplate() {
+        return popoverTemplate;
+    }
+
+    /**
+     * @param popoverTemplate the popover template to set
+     */
+    public void setPopoverTemplate(String popoverTemplate) {
+        this.popoverTemplate = popoverTemplate;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -260,6 +311,9 @@ public class PolicyDefinitionBean implements Serializable {
                 ", scopeAuto=" + scopeAuto +
                 ", formOverride='" + formOverride + '\'' +
                 ", defaultConfig='" + defaultConfig + '\'' +
+                ", base64logo='" + base64logo + '\'' +
+                ", marketplaceDescription='" + marketplaceDescription + '\'' +
+                ", popoverTemplate='" + popoverTemplate + '\'' +
                 '}';
     }
 }

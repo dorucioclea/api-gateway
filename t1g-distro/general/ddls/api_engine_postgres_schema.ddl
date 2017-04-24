@@ -348,7 +348,7 @@ CREATE TABLE policydefs
 (
   id VARCHAR(255) NOT NULL,
   description VARCHAR(512) NOT NULL,
-  form VARCHAR(4096),
+  form TEXT DEFAULT NULL,
   form_type VARCHAR(255),
   icon VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -357,7 +357,10 @@ CREATE TABLE policydefs
   scope_plan BOOLEAN,
   scope_auto BOOLEAN,
   form_override VARCHAR(4096) DEFAULT NULL,
-  default_config VARCHAR(4096) DEFAULT NULL
+  default_config VARCHAR(4096) DEFAULT NULL,
+  logo TEXT DEFAULT NULL,
+  marketplace_description VARCHAR(4096) DEFAULT NULL,
+  popover_template VARCHAR(4096) DEFAULT NULL
 );
 
 CREATE TABLE roles

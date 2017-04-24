@@ -5,7 +5,7 @@
   "javaInterfaces" : ["com.t1t.kong.model.KongConfigValue"],
   "properties": {
     "keepalive": {
-      "type": "number",
+      "type": "integer",
       "default": 60000
     },
     "method": {
@@ -17,7 +17,7 @@
       "default": "POST"
     },
     "timeout": {
-      "type": "number",
+      "type": "integer",
       "default": 10000
     },
     "http_endpoint": {
