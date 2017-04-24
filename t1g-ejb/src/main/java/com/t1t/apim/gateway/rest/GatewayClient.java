@@ -830,9 +830,9 @@ public class GatewayClient {
         api.setUpstreamUrl(svb.getEndpoint());
         api.setHosts(new ArrayList<>(svb.getHostnames()));
         api.setUris(new ArrayList<>(svb.getService().getBasepaths()));
-        api.setUpstreamConnectTimeout(svb.getUpstreamConnectTimeout().intValue());
-        api.setUpstreamReadTimeout(svb.getUpstreamReadTimeout().intValue());
-        api.setUpstreamSendTimeout(svb.getUpstreamSendTimeout().intValue());
+        api.setUpstreamConnectTimeout(svb.getUpstreamConnectTimeout());
+        api.setUpstreamReadTimeout(svb.getUpstreamReadTimeout());
+        api.setUpstreamSendTimeout(svb.getUpstreamSendTimeout());
         return httpClient.updateOrCreateApi(api);
     }
 
