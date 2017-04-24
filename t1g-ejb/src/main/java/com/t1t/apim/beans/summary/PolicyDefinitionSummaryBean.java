@@ -1,25 +1,28 @@
 package com.t1t.apim.beans.summary;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.io.Serializable;
 
 /**
  * A summary of a policy definition.
  *
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PolicyDefinitionSummaryBean implements Serializable {
 
-    private static final long serialVersionUID = 6297595620199835022L;
-
     private String id;
-    private String policyImpl;
     private String name;
     private String description;
+    private String marketplaceDescription;
     private String icon;
     private PolicyFormType formType;
+    private String form;
+    private String formOverride;
     private Boolean scopeService;
     private Boolean scopePlan;
     private Boolean scopeAuto;
-    private Long pluginId;
+    private String base64Logo;
 
     /**
      * @return the id
@@ -33,20 +36,6 @@ public class PolicyDefinitionSummaryBean implements Serializable {
      */
     public void setId(String id) {
         this.id = id;
-    }
-
-    /**
-     * @return the policyImpl
-     */
-    public String getPolicyImpl() {
-        return policyImpl;
-    }
-
-    /**
-     * @param policyImpl the policyImpl to set
-     */
-    public void setPolicyImpl(String policyImpl) {
-        this.policyImpl = policyImpl;
     }
 
     /**
@@ -92,20 +81,6 @@ public class PolicyDefinitionSummaryBean implements Serializable {
     }
 
     /**
-     * @return the pluginId
-     */
-    public Long getPluginId() {
-        return pluginId;
-    }
-
-    /**
-     * @param pluginId the pluginId to set
-     */
-    public void setPluginId(Long pluginId) {
-        this.pluginId = pluginId;
-    }
-
-    /**
      * @return the formType
      */
     public PolicyFormType getFormType() {
@@ -119,28 +94,102 @@ public class PolicyDefinitionSummaryBean implements Serializable {
         this.formType = formType;
     }
 
+    /**
+     * @return the service scoped value
+     */
     public Boolean getScopeService() {
         return scopeService;
     }
 
+    /**
+     * @param scopeService the service scoped value to set
+     */
     public void setScopeService(Boolean scopeService) {
         this.scopeService = scopeService;
     }
 
+    /**
+     * @return the plan scoped value
+     */
     public Boolean getScopePlan() {
         return scopePlan;
     }
 
+    /**
+     * @param scopePlan the plan scoped value to set
+     */
     public void setScopePlan(Boolean scopePlan) {
         this.scopePlan = scopePlan;
     }
 
+    /**
+     * @return the auto scoped value
+     */
     public Boolean getScopeAuto() {
         return scopeAuto;
     }
 
+    /**
+     * @param scopeAuto the auto scoped value to set
+     */
     public void setScopeAuto(Boolean scopeAuto) {
         this.scopeAuto = scopeAuto;
+    }
+
+    /**
+     * @return the Base64 encoded logo String
+     */
+    public String getBase64Logo() {
+        return base64Logo;
+    }
+
+    /**
+     * @param base64Logo the Base64 encoded logo String to set
+     */
+    public void setBase64Logo(String base64Logo) {
+        this.base64Logo = base64Logo;
+    }
+
+    /**
+     * @return the marketplace description
+     */
+    public String getMarketplaceDescription() {
+        return marketplaceDescription;
+    }
+
+    /**
+     * @param marketplaceDescription the marketplace description to set
+     */
+    public void setMarketplaceDescription(String marketplaceDescription) {
+        this.marketplaceDescription = marketplaceDescription;
+    }
+
+    /**
+     * @return the form
+     */
+    public String getForm() {
+        return form;
+    }
+
+    /**
+     * @param form the form to set
+     */
+    public void setForm(String form) {
+        this.form = form;
+    }
+
+    /**
+     * @return the form override
+     */
+    public String getFormOverride() {
+        return formOverride;
+    }
+
+    /**
+     * @param formOverride the form override to set
+     */
+    public void setFormOverride(String formOverride) {
+        this.formOverride = formOverride;
     }
 
     /**
@@ -178,15 +227,17 @@ public class PolicyDefinitionSummaryBean implements Serializable {
     public String toString() {
         return "PolicyDefinitionSummaryBean{" +
                 "id='" + id + '\'' +
-                ", policyImpl='" + policyImpl + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", marketplaceDescription='" + marketplaceDescription + '\'' +
                 ", icon='" + icon + '\'' +
                 ", formType=" + formType +
+                ", form='" + form + '\'' +
+                ", formOverride='" + formOverride + '\'' +
                 ", scopeService=" + scopeService +
                 ", scopePlan=" + scopePlan +
                 ", scopeAuto=" + scopeAuto +
-                ", pluginId=" + pluginId +
+                ", base64Logo='" + base64Logo + '\'' +
                 '}';
     }
 }

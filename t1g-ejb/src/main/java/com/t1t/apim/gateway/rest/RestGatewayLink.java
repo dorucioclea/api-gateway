@@ -230,7 +230,7 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public Integer getCentralOAuthTokenExpirationTime() throws GatewayAuthenticationException {
         final KongPluginOAuthEnhanced oAuth2ExpirationForCentralOAuth = getClient().getOAuth2ExpirationForCentralOAuth(gateway);
-        return oAuth2ExpirationForCentralOAuth.getTokenExpiration();
+        return oAuth2ExpirationForCentralOAuth.getTokenExpiration().intValue();
     }
 
     /**

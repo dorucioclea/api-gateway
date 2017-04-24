@@ -418,6 +418,7 @@
                 <version>0.4.13</version>
                 <configuration>
                     <addCompileSourceRoot>true</addCompileSourceRoot>
+                    <useLongIntegers>true</useLongIntegers>
                     <!--<sourceDirectory>${basedir}/src/main/resources/schema</sourceDirectory>-->
                     <!--We didn't provided the sourceDirectory, because one schema -> KongConfigValue must be an interface and always gets generated as an abstract class, annoying stuff!-->
                     <sourcePaths>
@@ -446,11 +447,9 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthEnhanced.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRateLimiting.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestSizeLimiting.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerAdd.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerRemove.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerModification.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformer.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformerRemove.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformerAdd.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformerModification.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformer.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginSchema.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginSSL.json</sourcePath>
