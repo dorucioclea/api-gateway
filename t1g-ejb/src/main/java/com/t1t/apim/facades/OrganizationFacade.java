@@ -20,7 +20,6 @@ import com.t1t.apim.beans.categories.TagBean;
 import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.contracts.NewContractBean;
 import com.t1t.apim.beans.contracts.NewContractRequestBean;
-import com.t1t.apim.beans.dto.PolicyDtoBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.events.NewEventBean;
@@ -432,6 +431,10 @@ public class OrganizationFacade {
         }
     }
 
+    public EnrichedPolicySummaryBean createAndEnrichAppPolicy(String organizationId, String applicationId, String version, NewPolicyBean bean) {
+        return PolicyUtil.createEnrichedPolicySummary(createAppPolicy(organizationId, applicationId, version, bean));
+    }
+
     public PolicyBean createAppPolicy(String organizationId, String applicationId, String version, NewPolicyBean bean) {
         // Make sure the app version exists and is in the right state.
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
@@ -455,6 +458,10 @@ public class OrganizationFacade {
                 throw ExceptionFactory.invalidPolicyException("Invalid policy type");
         }
         return doCreatePolicy(managedApp.getPrefix(), managedApp.getName(), managedApp.getVersion(), bean, type);
+    }
+
+    public EnrichedPolicySummaryBean getEnrichedAppPolicy(String organizationId, String applicationId, String version, long policyId) {
+        return PolicyUtil.createEnrichedPolicySummary(getAppPolicy(organizationId, applicationId, version, policyId));
     }
 
     public PolicyBean getAppPolicy(String organizationId, String applicationId, String version, long policyId) {
@@ -947,6 +954,10 @@ public class OrganizationFacade {
         }
     }
 
+    public EnrichedPolicySummaryBean getEnrichedPlanPolicy(String organizationId, String planId, String version, long policyId) {
+        return PolicyUtil.createEnrichedPolicySummary(getPlanPolicy(organizationId, planId, version, policyId));
+    }
+
     public PolicyBean getPlanPolicy(String organizationId, String planId, String version, long policyId) {
 
         // Make sure the plan version exists
@@ -973,6 +984,10 @@ public class OrganizationFacade {
         }
     }
 
+    public EnrichedPolicySummaryBean createAndEnrichPlanPolicy(String organizationId, String planId, String version, NewPolicyBean bean) {
+        return PolicyUtil.createEnrichedPolicySummary(createPlanPolicy(organizationId, planId, version, bean));
+    }
+
     public PolicyBean createPlanPolicy(String organizationId, String planId, String version, NewPolicyBean bean) {
         // Make sure the plan version exists and is in the right state
         PlanVersionBean pvb = getPlanVersion(organizationId, planId, version);
@@ -987,6 +1002,10 @@ public class OrganizationFacade {
         }
         log.debug(String.format("Creating plan %s policy %s", planId, pvb)); //$NON-NLS-1$
         return doCreatePolicy(organizationId, planId, version, bean, PolicyType.Plan);
+    }
+
+    public EnrichedPolicySummaryBean createAndEnrichedServicePolicy(String organizationId, String serviceId, String version, NewPolicyBean bean) {
+        return PolicyUtil.createEnrichedPolicySummary(createServicePolicy(organizationId, serviceId, version, bean));
     }
 
     public PolicyBean createServicePolicy(String organizationId, String serviceId, String version, NewPolicyBean bean) {
@@ -1050,7 +1069,7 @@ public class OrganizationFacade {
         return doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
     }
 
-    public PolicyDtoBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
+    public EnrichedPolicySummaryBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         try {
             return scrubPolicy(getServicePolicyInternal(organizationId, serviceId, version, policyId));
         }
@@ -1059,38 +1078,10 @@ public class OrganizationFacade {
         }
     }
 
-    private PolicyDtoBean scrubPolicy(PolicyBean policy) throws StorageException {
+    private EnrichedPolicySummaryBean scrubPolicy(PolicyBean policy) throws StorageException {
         //TODO - scrub the sensitive information out of policy configurations
         boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix());
-        PolicyDtoBean rval = DtoFactory.createPolicyDtoBean(policy);
-        if (doFilter) {
-            Gson gson = new Gson();
-            switch (Policies.valueOf(rval.getDefinition().getId().toUpperCase())) {
-                case OAUTH2:
-                    KongPluginOAuth oauthConfig = gson.fromJson(rval.getConfiguration(), KongPluginOAuth.class);
-                    oauthConfig.setProvisionKey(null);
-                    rval.setConfiguration(gson.toJson(oauthConfig));
-                    break;
-                case REQUESTTRANSFORMER:
-                    KongPluginRequestTransformer reqConfig = new KongPluginRequestTransformer();
-                    reqConfig.setAdd(new KongPluginRequestTransformerAdd());
-                    reqConfig.setRemove(new KongPluginRequestTransformerRemove());
-                    rval.setConfiguration(gson.toJson(reqConfig));
-                    break;
-                case RESPONSETRANSFORMER:
-                    KongPluginResponseTransformer respConfig = new KongPluginResponseTransformer();
-                    respConfig.setAdd(new KongPluginResponseTransformerAdd());
-                    respConfig.setRemove(new KongPluginResponseTransformerRemove());
-                    rval.setConfiguration(gson.toJson(respConfig));
-                    break;
-                case LDAPAUTHENTICATION:
-                    KongPluginLDAP ldapConfig = new KongPluginLDAP();
-                    rval.setConfiguration(gson.toJson(ldapConfig));
-                    break;
-                default:
-                    break;
-            }
-        }
+        EnrichedPolicySummaryBean rval = PolicyUtil.createEnrichedPolicySummary(policy, doFilter);
         return rval;
     }
 
@@ -2247,6 +2238,10 @@ public class OrganizationFacade {
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
+    }
+
+    public EnrichedPolicySummaryBean updateAndEnrichServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) {
+        return PolicyUtil.createEnrichedPolicySummary(updateServicePolicy(organizationId, serviceId, version, policyId, bean));
     }
 
     public PolicyBean updateServicePolicy(String organizationId, String serviceId, String version, long policyId, UpdatePolicyBean bean) {

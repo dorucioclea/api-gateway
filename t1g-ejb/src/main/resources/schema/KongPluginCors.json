@@ -29,7 +29,7 @@
       "type": "string"
     },
     "max_age": {
-      "type": "number"
+      "type": "integer"
     },
     "preflight_continue": {
       "type": "boolean",

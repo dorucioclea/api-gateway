@@ -2,7 +2,6 @@ package com.t1t.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.announcements.AnnouncementBean;
-import com.t1t.apim.beans.dto.PolicyDtoBean;
 import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.services.ServiceDefinitionType;
 import com.t1t.apim.beans.services.ServiceVersionBean;
@@ -152,12 +151,12 @@ public class OrganizationResource {
     @ApiOperation(value = "Get Service Policy",
             notes = "Use this endpoint to get information about a single Policy in the Service version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PolicyDtoBean.class, message = "Full information about the Policy.")
+            @ApiResponse(code = 200, response = EnrichedPolicySummaryBean.class, message = "Full information about the Policy.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyDtoBean getServicePolicy(@PathParam("organizationId") String organizationId,
+    public EnrichedPolicySummaryBean getServicePolicy(@PathParam("organizationId") String organizationId,
                                           @PathParam("serviceId") String serviceId,
                                           @PathParam("version") String version,
                                           @PathParam("policyId") long policyId)

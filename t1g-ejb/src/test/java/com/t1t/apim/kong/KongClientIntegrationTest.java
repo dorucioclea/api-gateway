@@ -359,7 +359,7 @@ public class KongClientIntegrationTest {
     @Test
     public void testGetAllPlugins() throws Exception {
         KongPluginConfigList confList = kongClient.getAllPlugins();
-        int initSize = confList.getTotal();
+        long initSize = confList.getTotal();
         print(confList);
         //add some api config
         KongApi apie = createDummyApi("apiexx", "/apiexx", API_URL);
@@ -372,7 +372,7 @@ public class KongClientIntegrationTest {
         print(pluginConfig);
         //verify one has been added
         confList = kongClient.getAllPlugins();
-        int sizeAfter = confList.getTotal();
+        long sizeAfter = confList.getTotal();
         log.info("size before:{}",initSize);
         log.info("size after:{}", sizeAfter);
         kongClient.deleteApi(apie.getId());
@@ -412,7 +412,7 @@ public class KongClientIntegrationTest {
         pluginConfig = kongClient.createPluginConfig(apif.getId(), pluginConfig);
         print(pluginConfig);
         //update
-        KongPluginRateLimiting rateConfig = new KongPluginRateLimiting().withMinute(5);
+        KongPluginRateLimiting rateConfig = new KongPluginRateLimiting().withMinute(5L);
         pluginConfig.setConfig(rateConfig);
         print(pluginConfig);
         kongClient.updateOrCreatePluginConfig(apif.getId(), pluginConfig);
@@ -690,7 +690,7 @@ public class KongClientIntegrationTest {
     private KongPluginConfig createTestPlugin(KongConsumer consumer) {
         //create config value - 1 request/minute
         KongPluginRateLimiting rateLimitingConfig = new KongPluginRateLimiting()
-                .withMinute(1);
+                .withMinute(1L);
         KongPluginConfig pluginConfig = new KongPluginConfig()
                 .withConsumerId(consumer.getId())
                 .withName("rate-limiting")//as an example

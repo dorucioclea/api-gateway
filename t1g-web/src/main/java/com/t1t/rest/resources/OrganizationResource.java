@@ -29,7 +29,6 @@ import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
 import com.t1t.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.apim.beans.plans.*;
 import com.t1t.apim.beans.policies.NewPolicyBean;
-import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyChainBean;
 import com.t1t.apim.beans.policies.UpdatePolicyBean;
 import com.t1t.apim.beans.search.SearchResultsBean;
@@ -567,13 +566,13 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Add Application Policy",
             notes = "Use this endpoint to add a new Policy to the Application version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full details about the newly added Policy.")
+            @ApiResponse(code = 200, response = EnrichedPolicySummaryBean.class, message = "Full details about the newly added Policy.")
     })
     @POST
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean createAppPolicy(@PathParam("organizationId") String organizationId,
+    public EnrichedPolicySummaryBean createAppPolicy(@PathParam("organizationId") String organizationId,
                                       @PathParam("applicationId") String applicationId,
                                       @PathParam("version") String version,
                                       NewPolicyBean bean) throws OrganizationNotFoundException, ApplicationVersionNotFoundException,
@@ -583,25 +582,25 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        return orgFacade.createAppPolicy(organizationId, applicationId, version, bean);
+        return orgFacade.createAndEnrichAppPolicy(organizationId, applicationId, version, bean);
     }
 
     @ApiOperation(value = "Get Application Policy",
             notes = "Use this endpoint to get information about a single Policy in the Application version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full information about the Policy.")
+            @ApiResponse(code = 200, response = EnrichedPolicySummaryBean.class, message = "Full information about the Policy.")
     })
     @GET
     @Path("/{organizationId}/applications/{applicationId}/versions/{version}/policies/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean getAppPolicy(@PathParam("organizationId") String organizationId,
+    public EnrichedPolicySummaryBean getAppPolicy(@PathParam("organizationId") String organizationId,
                                    @PathParam("applicationId") String applicationId,
                                    @PathParam("version") String version,
                                    @PathParam("policyId") long policyId) throws OrganizationNotFoundException, ApplicationVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
-        return orgFacade.getAppPolicy(organizationId, applicationId, version, policyId);
+        return orgFacade.getEnrichedAppPolicy(organizationId, applicationId, version, policyId);
     }
 
     @ApiOperation(value = "Update Application Policy",
@@ -1177,13 +1176,13 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Add Service Policy",
             notes = "Use this endpoint to add a new Policy to the Service version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full details about the newly added Policy.")
+            @ApiResponse(code = 200, response = EnrichedPolicySummaryBean.class, message = "Full details about the newly added Policy.")
     })
     @POST
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean createServicePolicy(@PathParam("organizationId") String organizationId,
+    public EnrichedPolicySummaryBean createServicePolicy(@PathParam("organizationId") String organizationId,
                                           @PathParam("serviceId") String serviceId,
                                           @PathParam("version") String version,
                                           NewPolicyBean bean) throws OrganizationNotFoundException, ServiceVersionNotFoundException, NotAuthorizedException {
@@ -1192,7 +1191,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        return orgFacade.createServicePolicy(organizationId, serviceId, version, bean);
+        return orgFacade.createAndEnrichedServicePolicy(organizationId, serviceId, version, bean);
     }
 
     @ApiOperation(value = "Get Service Policy",
@@ -1203,7 +1202,7 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyDtoBean getServicePolicy(@PathParam("organizationId") String organizationId,
+    public EnrichedPolicySummaryBean getServicePolicy(@PathParam("organizationId") String organizationId,
                                           @PathParam("serviceId") String serviceId,
                                           @PathParam("version") String version,
                                           @PathParam("policyId") long policyId)
@@ -1217,13 +1216,13 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Update Service Policy",
             notes = "Use this endpoint to update the meta-data or configuration of a single Service Policy.")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "successful, no content")
+            @ApiResponse(code = 200, response = EnrichedPolicySummaryBean.class, message = "successful")
     })
     @PUT
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean updateServicePolicy(@PathParam("organizationId") String organizationId,
+    public EnrichedPolicySummaryBean updateServicePolicy(@PathParam("organizationId") String organizationId,
                                     @PathParam("serviceId") String serviceId,
                                     @PathParam("version") String version,
                                     @PathParam("policyId") long policyId, UpdatePolicyBean bean) throws OrganizationNotFoundException,
@@ -1233,7 +1232,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Service organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
-        return orgFacade.updateServicePolicy(organizationId, serviceId, version, policyId, bean);
+        return orgFacade.updateAndEnrichServicePolicy(organizationId, serviceId, version, policyId, bean);
     }
 
     @ApiOperation(value = "Remove Service Policy",
@@ -1819,13 +1818,13 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Add Plan Policy",
             notes = "Use this endpoint to add a new Policy to the Plan version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full details about the newly added Policy.")
+            @ApiResponse(code = 200, response = EnrichedPolicySummaryBean.class, message = "Full details about the newly added Policy.")
     })
     @POST
     @Path("/{organizationId}/plans/{planId}/versions/{version}/policies")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean createPlanPolicy(@PathParam("organizationId") String organizationId,
+    public EnrichedPolicySummaryBean createPlanPolicy(@PathParam("organizationId") String organizationId,
                                        @PathParam("planId") String planId,
                                        @PathParam("version") String version,
                                        NewPolicyBean bean) throws OrganizationNotFoundException, PlanVersionNotFoundException,
@@ -1835,18 +1834,18 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Plan version"));
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        return orgFacade.createPlanPolicy(organizationId, planId, version, bean);
+        return orgFacade.createAndEnrichPlanPolicy(organizationId, planId, version, bean);
     }
 
     @ApiOperation(value = "Get Plan Policy",
             notes = "Use this endpoint to get information about a single Policy in the Plan version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full information about the Policy.")
+            @ApiResponse(code = 200, response = EnrichedPolicySummaryBean.class, message = "Full information about the Policy.")
     })
     @GET
     @Path("/{organizationId}/plans/{planId}/versions/{version}/policies/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean getPlanPolicy(@PathParam("organizationId") String organizationId,
+    public EnrichedPolicySummaryBean getPlanPolicy(@PathParam("organizationId") String organizationId,
                                     @PathParam("planId") String planId,
                                     @PathParam("version") String version,
                                     @PathParam("policyId") long policyId)
@@ -1854,7 +1853,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
-        return orgFacade.getPlanPolicy(organizationId, planId, version, policyId);
+        return orgFacade.getEnrichedPlanPolicy(organizationId, planId, version, policyId);
     }
 
     @ApiOperation(value = "Update Plan Policy",
