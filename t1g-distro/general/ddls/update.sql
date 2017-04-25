@@ -415,8 +415,8 @@ UPDATE policydefs SET logo = 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAVF
 
 ALTER TABLE service_versions ADD COLUMN custom_load_balancing BOOLEAN DEFAULT FALSE;
 
-CREATE TABLE service_upstream_targets (service_version_id BIGINT NOT NULL, target VARCHAR(255) NOT NULL, weight BIGINT DEFAULT 100);
-ALTER TABLE service_upstream_targets ADD CONSTRAINT fk_service_upstream_targets_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id);
+CREATE TABLE service_upstream_targets (service_version_id BIGINT NOT NULL, target VARCHAR(255) NOT NULL, weight BIGINT DEFAULT 100 CHECK (weight >= 0 AND weight <= 1000));
+ALTER TABLE service_upstream_targets ADD CONSTRAINT fk_service_upstream_targets_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 CREATE INDEX idx_service_upstream_targets_1 ON service_upstream_targets (service_version_id);
 
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release

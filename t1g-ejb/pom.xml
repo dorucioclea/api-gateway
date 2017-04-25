@@ -490,6 +490,10 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongCluster.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseDTO.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginAWSLambda.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongUpstream.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongUpstreamList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongUpstreamTarget.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongUpstreamTargetList.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>

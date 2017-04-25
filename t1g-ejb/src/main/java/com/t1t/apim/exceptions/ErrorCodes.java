@@ -107,6 +107,7 @@ public final class ErrorCodes {
     public static final int SERVICE_BASEPATH_ALREADY_EXISTS     = 5010;
     public static final int SERVICE_UPDATE_VALUES_INVALID       = 5011;
     public static final int SERVICE_VERSION_NOT_AVAILABLE       = 5012;
+    public static final int SERVICE_LOAD_BALANCING_INVALID      = 5013;
 
     public static final String SERVICE_ALREADY_EXISTS_INFO      = null;
     public static final String SERVICE_NOT_FOUND_INFO           = null;
@@ -116,7 +117,7 @@ public final class ErrorCodes {
     public static final String SERVICE_VERSION_ALREADY_EXISTS_INFO      = null;
     public static final String SERVICE_UPDATE_VALUES_INVALID_INFO   = null;
     public static final String SERVICE_VERSION_NOT_AVAILABLE_INFO = null;
-
+    public static final String SERVICE_LOAD_BALANCING_INVALID_INFO  = null;
 
     //
     // Plan API related

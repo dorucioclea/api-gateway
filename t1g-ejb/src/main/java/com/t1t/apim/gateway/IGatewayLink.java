@@ -3,6 +3,7 @@ package com.t1t.apim.gateway;
 import com.t1t.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.apim.beans.gateways.Gateway;
+import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
@@ -613,5 +614,25 @@ public interface IGatewayLink {
      * @return
      */
     public KongPluginJWTResponse addConsumerJWT(String consumerName, String key, String publicRsaKey);
+
+    /**
+     * Deletes an upstream virtual host on the gateway
+     * @param upstreamVirtualHost
+     */
+    public void deleteServiceUpstream(String upstreamVirtualHost);
+
+    /**
+     * Creates an upstream virtual host and its targets on the gateway
+     * @param serviceVersionBean
+     * @param targets
+     */
+    public void createServiceUpstream(ServiceVersionBean serviceVersionBean, Set<ServiceUpstreamTargetBean> targets);
+
+    /**
+     * Updates an upstream virtual host's targets on the gateway
+     * @param upstreamVirtualHost
+     * @param targets
+     */
+    public void createOrUpdateServiceUpstreamTargets(String upstreamVirtualHost, Set<ServiceUpstreamTargetBean> targets);
 
 }

@@ -10,7 +10,7 @@ public class ServiceUpstreamTargetBean implements Serializable {
     @Column(name = "target", nullable=false)
     private String target;
     @Column(name = "weight", nullable=false)
-    private String weight;
+    private Long weight;
 
     public String getTarget() {
         return target;
@@ -20,11 +20,11 @@ public class ServiceUpstreamTargetBean implements Serializable {
         this.target = target;
     }
 
-    public String getWeight() {
+    public Long getWeight() {
         return weight;
     }
 
-    public void setWeight(String weight) {
+    public void setWeight(Long weight) {
         this.weight = weight;
     }
 

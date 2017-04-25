@@ -8,6 +8,7 @@ import com.t1t.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.apim.beans.gateways.Gateway;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.policies.Policies;
+import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.ServiceVersionSummaryBean;
 import com.t1t.apim.core.IStorage;
@@ -1156,4 +1157,70 @@ public class GatewayClient {
                 return plugin;
         }
     }
+
+    public void deleteServiceUpstream(String upstreamVirtualHost) {
+        try {
+            httpClient.deleteKongUpstream(upstreamVirtualHost);
+        }
+        catch (RetrofitError ex) {
+            log.error("Error deleting upstream on gateway: {}", ex.getMessage());
+        }
+    }
+
+    public KongUpstream getServiceUpstream(String upstreamName) {
+        try {
+            return httpClient.getKongUpstream(upstreamName);
+        }
+        catch (RetrofitError ex) {
+            return null;
+        }
+    }
+
+    public void createServiceUpstream(ServiceVersionBean serviceVersionBean, Set<ServiceUpstreamTargetBean> targets) {
+        String upstreamName = ServiceConventionUtil.generateServiceUniqueName(serviceVersionBean);
+        try {
+            if (getServiceUpstream(upstreamName) == null) {
+                KongUpstream upstream = new KongUpstream().withName(upstreamName);
+                //If there are more than 10 targets, increase the default slots size
+                if (targets.size() > 10) {
+                    upstream.setSlots(targets.size() * 100L);
+                }
+                httpClient.createKongUpstream(upstream);
+                for (ServiceUpstreamTargetBean targetBean : targets) {
+                    KongUpstreamTarget target = new KongUpstreamTarget().withTarget(targetBean.getTarget()).withWeight(targetBean.getWeight());
+                    httpClient.createKongUpstreamTarget(upstreamName, target);
+                }
+            }
+        }
+        catch (RetrofitError ex) {
+            deleteServiceUpstream(upstreamName);
+            throw ex;
+        }
+    }
+
+    public void createOrUpdateServiceUpstreamTargets(String upstreamName, Set<ServiceUpstreamTargetBean> targets) {
+        KongUpstream upstream = getServiceUpstream(upstreamName);
+        KongUpstreamTargetList activeTargets = httpClient.listActiveKongUpstreamTargets(upstreamName);
+        try {
+            if (upstream != null) {
+                for (ServiceUpstreamTargetBean targetBean : targets) {
+                    httpClient.createKongUpstreamTarget(upstreamName, new KongUpstreamTarget().withTarget(targetBean.getTarget()).withWeight(targetBean.getWeight()));
+                }
+            }
+        }
+        catch (RetrofitError ex) {
+            //Restore the active targets to their original state
+            for (KongUpstreamTarget target : activeTargets.getData()) {
+                try {
+                    httpClient.createKongUpstreamTarget(upstreamName, target);
+                }
+                catch (RetrofitError error) {
+                    //We tried our best
+                    log.error("Error restoring original targets: {}", error.getBody());
+                }
+            }
+            throw ex;
+        }
+    }
+
 }

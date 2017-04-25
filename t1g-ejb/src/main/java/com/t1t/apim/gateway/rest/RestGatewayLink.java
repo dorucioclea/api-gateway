@@ -6,6 +6,7 @@ import com.t1t.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.apim.beans.gateways.Gateway;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.exceptions.ExceptionFactory;
@@ -528,5 +529,20 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public KongPluginJWTResponse addConsumerJWT(String consumerName, String key, String publicRsaKey) {
         return getClient().createConsumerJWT(consumerName, key, publicRsaKey);
+    }
+
+    @Override
+    public void deleteServiceUpstream(String upstreamVirtualHost) {
+        getClient().deleteServiceUpstream(upstreamVirtualHost);
+    }
+
+    @Override
+    public void createServiceUpstream(ServiceVersionBean serviceVersionBean, Set<ServiceUpstreamTargetBean> targets) {
+        getClient().createServiceUpstream(serviceVersionBean, targets);
+    }
+
+    @Override
+    public void createOrUpdateServiceUpstreamTargets(String upstreamVirtualHost, Set<ServiceUpstreamTargetBean> targets) {
+        getClient().createOrUpdateServiceUpstreamTargets(upstreamVirtualHost, targets);
     }
 }

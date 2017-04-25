@@ -1085,14 +1085,90 @@ public class OrganizationFacade {
         return rval;
     }
 
+    public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) {
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        if (svb.getStatus() == ServiceStatus.Retired) throw ExceptionFactory.invalidServiceStatusException();
+        EntityUpdatedData data = new EntityUpdatedData();
+        boolean targetsChanged = false;
+        if (AuditUtils.valueChanged(svb.getCustomLoadBalancing(), bean.getCustomLoadBalancing())) {
+            //if enabled, check if at least one upstream target is specified
+            if (bean.getCustomLoadBalancing() && (svb.getUpstreamTargets() == null || svb.getUpstreamTargets().isEmpty()) && (bean.getUpstreamTargets() == null || bean.getUpstreamTargets().isEmpty())) {
+                throw ExceptionFactory.invalidLoadBalancingConfigurationException(Messages.i18n.format("lbNoTargets"));
+            }
+            if (svb.getCustomLoadBalancing() && !bean.getCustomLoadBalancing() && StringUtils.isEmpty(bean.getEndpoint())) {
+                throw ExceptionFactory.invalidLoadBalancingConfigurationException("lbNewEndpointConfig");
+            }
+            data.addChange("customLoadBalancing", String.valueOf(svb.getCustomLoadBalancing()), String.valueOf(bean.getCustomLoadBalancing()));
+        }
+        if (bean.getUpstreamTargets() != null && !bean.getUpstreamTargets().isEmpty() && AuditUtils.valueChanged(svb.getUpstreamTargets(), bean.getUpstreamTargets())) {
+            for (ServiceUpstreamTargetBean target : bean.getUpstreamTargets()) {
+                if (StringUtils.isEmpty(target.getTarget())) throw ExceptionFactory.invalidLoadBalancingConfigurationException("emptyTarget");
+                if (target.getWeight() != null && (target.getWeight() < 0 || target.getWeight() > 1000)) throw ExceptionFactory.invalidLoadBalancingConfigurationException("invalidWeight");
+            }
+            data.addChange("loadBalancingTargets", svb.getUpstreamTargets().toString(), bean.getUpstreamTargets().toString());
+            targetsChanged = true;
+        }
+
+        if (svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) {
+            List<IGatewayLink> gwLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
+            if (svb.getCustomLoadBalancing() && !bean.getCustomLoadBalancing()) {
+                gwLinks.forEach(gw -> gw.deleteServiceUpstream(ServiceConventionUtil.generateServiceUniqueName(svb)));
+                svb.setCustomLoadBalancing(bean.getCustomLoadBalancing());
+                svb.setEndpoint(bean.getEndpoint());
+                svb.setUpstreamTargets(Collections.emptySet());
+            }
+            else if (!svb.getCustomLoadBalancing() && bean.getCustomLoadBalancing()) {
+                //Replace the service endpoint host with the virtual DNS
+                String virtualEndpoint = URIUtils.setVirtualHost(svb.getEndpoint(), ServiceConventionUtil.generateServiceUniqueName(svb));
+                if (virtualEndpoint != null) {
+                    svb.setEndpoint(virtualEndpoint);
+                    gwLinks.forEach(gw -> gw.createServiceUpstream(svb, bean.getUpstreamTargets()));
+                }
+                else {
+                    throw ExceptionFactory.invalidLoadBalancingConfigurationException("invalidVirtualHost");
+                }
+            }
+            //Check the difference between the existing set of targets and the new one
+            if (svb.getCustomLoadBalancing() && targetsChanged) {
+                Set<ServiceUpstreamTargetBean> processedTargets = new HashSet<>(bean.getUpstreamTargets());
+                Set<ServiceUpstreamTargetBean> current = svb.getUpstreamTargets();
+                Set<String> targets = processedTargets.stream().map(ServiceUpstreamTargetBean::getTarget).collect(Collectors.toSet());
+                for (ServiceUpstreamTargetBean oldTarget : current) {
+                    if (!targets.contains(oldTarget.getTarget())) {
+                        //Targets are not deleted from the gateway, to "delete" one, the weight must be set to 0
+                        ServiceUpstreamTargetBean targetToRemove = new ServiceUpstreamTargetBean();
+                        targetToRemove.setTarget(oldTarget.getTarget());
+                        targetToRemove.setWeight(0L);
+                        processedTargets.add(targetToRemove);
+                    }
+                }
+                svb.setUpstreamTargets(bean.getUpstreamTargets());
+                gwLinks.forEach(gw -> {
+                    gw.createOrUpdateServiceUpstreamTargets(ServiceConventionUtil.generateServiceUniqueName(svb), processedTargets);
+                });
+
+            }
+            gwLinks.forEach(gw -> gw.updateServiceVersionOnGateway(svb));
+        }
+        svb.setCustomLoadBalancing(bean.getCustomLoadBalancing());
+        svb.setUpstreamTargets(bean.getUpstreamTargets());
+        try {
+            storage.updateServiceVersion(svb);
+            AuditEntryBean entry = AuditUtils.serviceVersionUpdated(svb, data, securityContext);
+            if (entry != null) {
+                storage.createAuditEntry(entry);
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
         EntityUpdatedData data = new EntityUpdatedData();
         boolean gwValueChanged = false;
         if (svb.getStatus() != ServiceStatus.Retired) {
-            if (AuditUtils.valueChanged(svb.getCustomLoadBalancing(), bean.getCustomLoadBalancing())) {
-                data.addChange();
-            }
             if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
                 data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
                 svb.setEndpoint(URIUtils.uriBackslashRemover(bean.getEndpoint()));
@@ -3199,6 +3275,7 @@ public class OrganizationFacade {
         newVersion.setModifiedOn(new Date());
         newVersion.setStatus(ServiceStatus.Created);
         newVersion.setService(service);
+        newVersion.setCustomLoadBalancing(false);
         //If the service is designated as an admin service, do not enable auto contract acceptance
         newVersion.setAutoAcceptContracts(service.isAdmin() != null && !service.isAdmin());
         if (gateway != null && newVersion.getGateways() == null) {
