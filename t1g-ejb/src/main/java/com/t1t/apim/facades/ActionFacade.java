@@ -149,6 +149,8 @@ public class ActionFacade {
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
         gatewaySvc.setBrandings(versionBean.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));
+        gatewaySvc.setUpstreamTargets(versionBean.getUpstreamTargets());
+        gatewaySvc.setCustomLoadBalancing(versionBean.getCustomLoadBalancing());
 
         try {
             //we don't restrict the application of service policies for only the public services

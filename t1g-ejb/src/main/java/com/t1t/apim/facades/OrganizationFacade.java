@@ -1090,13 +1090,14 @@ public class OrganizationFacade {
         if (svb.getStatus() == ServiceStatus.Retired) throw ExceptionFactory.invalidServiceStatusException();
         EntityUpdatedData data = new EntityUpdatedData();
         boolean targetsChanged = false;
+        boolean gwUpdateNecessary = false;
         if (AuditUtils.valueChanged(svb.getCustomLoadBalancing(), bean.getCustomLoadBalancing())) {
             //if enabled, check if at least one upstream target is specified
             if (bean.getCustomLoadBalancing() && (svb.getUpstreamTargets() == null || svb.getUpstreamTargets().isEmpty()) && (bean.getUpstreamTargets() == null || bean.getUpstreamTargets().isEmpty())) {
                 throw ExceptionFactory.invalidLoadBalancingConfigurationException(Messages.i18n.format("lbNoTargets"));
             }
             if (svb.getCustomLoadBalancing() && !bean.getCustomLoadBalancing() && StringUtils.isEmpty(bean.getEndpoint())) {
-                throw ExceptionFactory.invalidLoadBalancingConfigurationException("lbNewEndpointConfig");
+                throw ExceptionFactory.invalidLoadBalancingConfigurationException(Messages.i18n.format("lbNewEndpointConfig"));
             }
             data.addChange("customLoadBalancing", String.valueOf(svb.getCustomLoadBalancing()), String.valueOf(bean.getCustomLoadBalancing()));
         }
@@ -1108,24 +1109,38 @@ public class OrganizationFacade {
             data.addChange("loadBalancingTargets", svb.getUpstreamTargets().toString(), bean.getUpstreamTargets().toString());
             targetsChanged = true;
         }
-
+        if (svb.getCustomLoadBalancing() && !bean.getCustomLoadBalancing()) {
+            svb.setCustomLoadBalancing(bean.getCustomLoadBalancing());
+            svb.setEndpoint(bean.getEndpoint());
+            svb.setUpstreamTargets(Collections.emptySet());
+        }
+        else if (!svb.getCustomLoadBalancing() && bean.getCustomLoadBalancing()) {
+            //Replace the service endpoint host with the virtual DNS
+            String virtualEndpoint = URIUtils.setVirtualHost(svb.getEndpoint(), ServiceConventionUtil.generateServiceUniqueName(svb));
+            if (virtualEndpoint != null) {
+                svb.setEndpoint(virtualEndpoint);
+                svb.setCustomLoadBalancing(bean.getCustomLoadBalancing());
+                svb.setUpstreamTargets(bean.getUpstreamTargets());
+            }
+            else {
+                throw ExceptionFactory.invalidLoadBalancingConfigurationException(Messages.i18n.format("invalidVirtualHost"));
+            }
+        }
         if (svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) {
             List<IGatewayLink> gwLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
             if (svb.getCustomLoadBalancing() && !bean.getCustomLoadBalancing()) {
                 gwLinks.forEach(gw -> gw.deleteServiceUpstream(ServiceConventionUtil.generateServiceUniqueName(svb)));
-                svb.setCustomLoadBalancing(bean.getCustomLoadBalancing());
-                svb.setEndpoint(bean.getEndpoint());
-                svb.setUpstreamTargets(Collections.emptySet());
+                gwUpdateNecessary = true;
             }
             else if (!svb.getCustomLoadBalancing() && bean.getCustomLoadBalancing()) {
                 //Replace the service endpoint host with the virtual DNS
                 String virtualEndpoint = URIUtils.setVirtualHost(svb.getEndpoint(), ServiceConventionUtil.generateServiceUniqueName(svb));
                 if (virtualEndpoint != null) {
-                    svb.setEndpoint(virtualEndpoint);
-                    gwLinks.forEach(gw -> gw.createServiceUpstream(svb, bean.getUpstreamTargets()));
+                    gwLinks.forEach(gw -> gw.createServiceUpstream(organizationId, serviceId, version, bean.getUpstreamTargets()));
+                    gwUpdateNecessary = true;
                 }
                 else {
-                    throw ExceptionFactory.invalidLoadBalancingConfigurationException("invalidVirtualHost");
+                    throw ExceptionFactory.invalidLoadBalancingConfigurationException(Messages.i18n.format("invalidVirtualHost"));
                 }
             }
             //Check the difference between the existing set of targets and the new one
@@ -1148,10 +1163,9 @@ public class OrganizationFacade {
                 });
 
             }
-            gwLinks.forEach(gw -> gw.updateServiceVersionOnGateway(svb));
+            if (gwUpdateNecessary) gwLinks.forEach(gw -> gw.updateServiceVersionOnGateway(svb));
         }
-        svb.setCustomLoadBalancing(bean.getCustomLoadBalancing());
-        svb.setUpstreamTargets(bean.getUpstreamTargets());
+        if (svb.getCustomLoadBalancing())
         try {
             storage.updateServiceVersion(svb);
             AuditEntryBean entry = AuditUtils.serviceVersionUpdated(svb, data, securityContext);

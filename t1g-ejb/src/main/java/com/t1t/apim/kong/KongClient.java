@@ -1,6 +1,7 @@
 package com.t1t.apim.kong;
 
 import com.t1t.kong.model.*;
+import retrofit.client.Response;
 import retrofit.http.*;
 
 /**
@@ -110,14 +111,14 @@ public interface KongClient {
     /*********************   LOADBALANCING   *******************/
 
     @POST("/upstreams/") KongUpstream createKongUpstream(@Body KongUpstream upstream);
-    @GET("/upstreams/{nameOrId") KongUpstream getKongUpstream(@Path("nameOrId") String namerOrId);
+    @GET("/upstreams/{nameOrId}") KongUpstream getKongUpstream(@Path("nameOrId") String namerOrId);
     @GET("/upstreams") KongUpstreamList listKongUpstreams(@Query("id") String id, @Query("name") String name, @Query("slots") Long slots, @Query("size") Long size, @Query("offset") String offset);
     @PATCH("/upstreams/{nameOrId}") KongUpstream updateKongUpstream(@Path("nameOrId") String nameOrId, @Body KongUpstream upstream);
     @PUT("/upstreams/") KongUpstream updateOrCreateKongUpstream(@Body KongUpstream upstream);
-    @DELETE("/upstreams/{nameOrId") void deleteKongUpstream(@Path("nameOrId") String nameOrId);
+    @DELETE("/upstreams/{nameOrId}") Response deleteKongUpstream(@Path("nameOrId") String nameOrId);
 
     @POST("/upstreams/{upstreamNameOrId}/targets/") KongUpstreamTarget createKongUpstreamTarget(@Path("upstreamNameOrId") String upstreamNameOrId, @Body KongUpstreamTarget target);
     @GET("/upstreams/{upstreamNameOrId}/targets") KongUpstreamTargetList listKongUpstreamTargets(@Path("upstreamNameOrId") String upstreamNameOrId, @Query("id") String id, @Query("target") String name, @Query("weight") Long slots, @Query("size") Long size, @Query("offset") String offset);
     @GET("/upstreams/{upstreamNameOrId}/targets/") KongUpstreamTargetList listActiveKongUpstreamTargets(@Path("upstreamNameOrId") String upstreamNameOrId);
-    @DELETE("/upstreams/{upstreamNameOrId}/targets/{target}") void createKongUpstreamTarget(@Path("upstreamNameOrId") String upstreamNameOrId, @Path("target") String target);
+    @DELETE("/upstreams/{upstreamNameOrId}/targets/{target}") Response createKongUpstreamTarget(@Path("upstreamNameOrId") String upstreamNameOrId, @Path("target") String target);
 }

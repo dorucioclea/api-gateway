@@ -407,7 +407,7 @@ public class GatewayClient {
         //name wil be: organization.application.version
         api.setName(name);
         //version wil be: organization.application.version
-        api.setHosts(new ArrayList<>(service.getHosts()));
+        api.setHosts(service.getHosts() == null ? Collections.emptyList() : new ArrayList<>(service.getHosts()));
         //real URL to target
         api.setUpstreamUrl(service.getEndpoint());
         //context path that will be stripped away
@@ -432,6 +432,11 @@ public class GatewayClient {
                 }
                 throw new SystemErrorException(e);
             }
+        }
+
+        //Create the upstream and targets & heck if the endpoint host has been replace with a virtual host
+        if (service.isCustomLoadBalancing() && service.getEndpoint().toLowerCase().contains(ServiceConventionUtil.generateServiceUniqueName(service))) {
+            createServiceUpstream(service.getOrganizationId(), service.getServiceId(), service.getVersion(), service.getUpstreamTargets());
         }
 
         //Create branding APIs
@@ -829,8 +834,8 @@ public class GatewayClient {
     public KongApi updateServiceVersionOnGateway(ServiceVersionBean svb) {
         KongApi api = getApi(ServiceConventionUtil.generateServiceUniqueName(svb));
         api.setUpstreamUrl(svb.getEndpoint());
-        api.setHosts(new ArrayList<>(svb.getHostnames()));
-        api.setUris(new ArrayList<>(svb.getService().getBasepaths()));
+        api.setHosts(svb.getHostnames() == null ? Collections.emptyList() : new ArrayList<>(svb.getHostnames()));
+        api.setUris(GatewayPathUtilities.generateGatewayContextPath(svb.getService().getOrganization().getId(), svb.getService().getBasepaths(), svb.getVersion()));
         api.setUpstreamConnectTimeout(svb.getUpstreamConnectTimeout());
         api.setUpstreamReadTimeout(svb.getUpstreamReadTimeout());
         api.setUpstreamSendTimeout(svb.getUpstreamSendTimeout());
@@ -1176,14 +1181,18 @@ public class GatewayClient {
         }
     }
 
-    public void createServiceUpstream(ServiceVersionBean serviceVersionBean, Set<ServiceUpstreamTargetBean> targets) {
-        String upstreamName = ServiceConventionUtil.generateServiceUniqueName(serviceVersionBean);
+    public void createServiceUpstream(String organizationId, String serviceId, String version, Set<ServiceUpstreamTargetBean> targets) {
+        String upstreamName = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
         try {
             if (getServiceUpstream(upstreamName) == null) {
                 KongUpstream upstream = new KongUpstream().withName(upstreamName);
                 //If there are more than 10 targets, increase the default slots size
                 if (targets.size() > 10) {
                     upstream.setSlots(targets.size() * 100L);
+                }
+                //TODO - According to Kong 0.10.1 documentation, default should be 1000, but as of right now, it is actually 100.
+                else {
+                    upstream.setSlots(1000L);
                 }
                 httpClient.createKongUpstream(upstream);
                 for (ServiceUpstreamTargetBean targetBean : targets) {

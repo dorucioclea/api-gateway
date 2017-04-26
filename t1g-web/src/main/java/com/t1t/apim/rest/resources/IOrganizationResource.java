@@ -1613,4 +1613,14 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException
      */
     public void removeBrandingFromService(String organizationId, String serviceId, String brandingId) throws NotAuthorizedException;
+
+    /**
+     * Configures a custom load balancing ring for a service version
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     * @param bean
+     * @throws NotAuthorizedException
+     */
+    public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) throws NotAuthorizedException;
 }

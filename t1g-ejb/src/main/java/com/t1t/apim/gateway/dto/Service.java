@@ -1,5 +1,7 @@
 package com.t1t.apim.gateway.dto;
 
+import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -22,6 +24,8 @@ public class Service implements Serializable {
     private Map<String, String> endpointProperties = new HashMap<>();
     private List<Policy> servicePolicies = new ArrayList<>();
     private Set<String> brandings;
+    private boolean customLoadBalancing;
+    private Set<ServiceUpstreamTargetBean> upstreamTargets;
     
     /**
      * Constructor.
@@ -196,6 +200,34 @@ public class Service implements Serializable {
     }
 
     /**
+     * @return the custom load balancing value
+     */
+    public boolean isCustomLoadBalancing() {
+        return customLoadBalancing;
+    }
+
+    /**
+     * @param customLoadBalancing the custom load balancing value to set
+     */
+    public void setCustomLoadBalancing(boolean customLoadBalancing) {
+        this.customLoadBalancing = customLoadBalancing;
+    }
+
+    /**
+     * @return the upstream targets
+     */
+    public Set<ServiceUpstreamTargetBean> getUpstreamTargets() {
+        return upstreamTargets;
+    }
+
+    /**
+     * @param upstreamTargets the upstream targets to set
+     */
+    public void setUpstreamTargets(Set<ServiceUpstreamTargetBean> upstreamTargets) {
+        this.upstreamTargets = upstreamTargets;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -247,10 +279,13 @@ public class Service implements Serializable {
                 ", version='" + version + '\'' +
                 ", endpointType='" + endpointType + '\'' +
                 ", endpoint='" + endpoint + '\'' +
-                ", basepaths='" + basepaths + '\'' +
+                ", basepaths=" + basepaths +
+                ", hosts=" + hosts +
                 ", endpointProperties=" + endpointProperties +
                 ", servicePolicies=" + servicePolicies +
                 ", brandings=" + brandings +
+                ", customLoadBalancing=" + customLoadBalancing +
+                ", upstreamTargets=" + upstreamTargets +
                 '}';
     }
 }

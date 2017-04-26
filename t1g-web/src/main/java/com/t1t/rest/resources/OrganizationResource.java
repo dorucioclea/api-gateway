@@ -2315,7 +2315,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Override
     @ApiOperation("Update Service Tags")
     @ApiResponses({
-        @ApiResponse(code = 204, message = "Succesful, no content")
+        @ApiResponse(code = 204, message = "successful, no content")
     })
     @PUT
     @Path("/{organizationId}/services/{serviceId}/tags")
@@ -2333,7 +2333,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Override
     @ApiOperation("Delete Service Tag")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Succesful, no content")
+            @ApiResponse(code = 204, message = "successful, no content")
     })
     @DELETE
     @Path("/{organizationId}/services/{serviceId}/tags")
@@ -2351,7 +2351,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Override
     @ApiOperation("Add Service Tag")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Succesful, no content")
+            @ApiResponse(code = 204, message = "successful, no content")
     })
     @POST
     @Path("/{organizationId}/services/{serviceId}/tags")
@@ -2385,7 +2385,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Override
     @ApiOperation("Add branding to service")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Succesful, no content")
+            @ApiResponse(code = 204, message = "successful, no content")
     })
     @POST
     @Path("/{organizationId}/services/{serviceId}/brandings")
@@ -2401,7 +2401,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Override
     @ApiOperation("Remove branding from service")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Succesful, no content")
+            @ApiResponse(code = 204, message = "successful, no content")
     })
     @DELETE
     @Path("/{organizationId}/services/{serviceId}/brandings/{brandingId}")
@@ -2412,5 +2412,23 @@ public class OrganizationResource implements IOrganizationResource {
             throw ExceptionFactory.notAuthorizedException();
         }
         orgFacade.removeServiceBranding(organizationId, serviceId, brandingId);
+    }
+
+    @Override
+    @ApiOperation("Create custom load balancing")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Successful, no content")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/loadbalancing/configure")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void updateServiceVersionLoadBalancing(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version, ServiceLoadBalancingConfigurationBean bean) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && StringUtils.isNotEmpty(version), Messages.i18n.format("emptyValue", "Organization ID, service ID & version"));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+            throw ExceptionFactory.notAuthorizedException();
+        }
+        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Configuration"));
+        Preconditions.checkNotNull(bean.getCustomLoadBalancing(), Messages.i18n.format("nullValue", "Custom load balancing toggle"));
+        orgFacade.updateServiceVersionLoadBalancing(organizationId, serviceId, version, bean);
     }
 }
