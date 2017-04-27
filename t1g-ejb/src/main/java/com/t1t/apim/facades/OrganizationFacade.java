@@ -1553,6 +1553,7 @@ public class OrganizationFacade {
             marketInfo.setUptime(metrics.getServiceUptime(getServiceVersion(organizationId, serviceId, version)));
             marketInfo.setFollowers(svb.getService().getFollowers().size());
             marketInfo.setDistinctUsers(query.getServiceContracts(organizationId, serviceId, version).size());
+            return marketInfo;
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
