@@ -144,7 +144,7 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
         if (StringUtils.isNotEmpty(total)) {
             StringBuilder builder = new StringBuilder(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, total, config.getEnvironment())));
             for (String error : errors) {
-                builder.append(QUERY_SEPARATOR).append(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, error, "prod")));
+                builder.append(QUERY_SEPARATOR).append(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, error, config.getEnvironment())));
             }
             return builder.toString();
         }
