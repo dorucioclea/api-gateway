@@ -25,7 +25,7 @@ public class RestDataDogMetricsBuilder {
      */
     public <T> T getService(String uri, String apiKey, String applicationKey, Class<T> iFace) {
         //optional GSON converter
-        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(uri)
                 .setRequestInterceptor(request-> {

@@ -25,17 +25,9 @@ import static com.t1t.util.TimeUtil.convertDateTimeToSecondsString;
 public class DataDogMetricsSP implements Serializable, MetricsSPI {
 
     private static final String REQUEST_COUNT = "request.count";
-    private static final String REQUEST_SIZE = "request.size";
-    private static final String RESPONSE_SIZE = "response.size";
     private static final String REQUEST_STATUS = "request.status.";
-    private static final String LATENCY = "latency";
-    private static final String COUNT = "count";
-    private static final String USER_UNIQUES = "user.uniques";
-    private static final String AS_COUNT_FUNCTION = "as_count()";
     private static final String AVG_PREFIX = "avg";
-    private static final String GATEWAY = "kong.";
     private static final String QUERY = "%s:%s{env:%s}";
-    private static final String AVG_QUERY = "avg:kong.%s.%s{env:%s}";
     private static final String CUMSUM_QUERY = "cumsum(%s)";
     private static final String QUERY_SEPARATOR = ",";
 
@@ -58,19 +50,15 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
             Boolean added = false;
             for (ApplicationVersionSummaryBean sum : applications) {
                 String id = sum.getId();
-                if (!added) {
-                    if (series.getMetric().contains(id)) {
-                        if (sorted.containsKey(sum)) {
-                            sorted.get(sum).add(serializedSeries);
-                            added = true;
-                        }
-                        else {
-                            List<JSONObject> consumerSeries = new ArrayList<>();
-                            consumerSeries.add(serializedSeries);
-                            sorted.put(sum, consumerSeries);
-                            added = true;
-                        }
-                    }
+                if (!added && series.getMetric().contains(id) && sorted.containsKey(sum)) {
+                    sorted.get(sum).add(serializedSeries);
+                    added = true;
+                }
+                else {
+                    List<JSONObject> consumerSeries = new ArrayList<>();
+                    consumerSeries.add(serializedSeries);
+                    sorted.put(sum, consumerSeries);
+                    added = true;
                 }
             }
             if (!added) general.add(serializedSeries);

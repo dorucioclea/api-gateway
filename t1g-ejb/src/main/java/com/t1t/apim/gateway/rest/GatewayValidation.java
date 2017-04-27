@@ -447,7 +447,6 @@ public class GatewayValidation {
     }
 
     public synchronized Policy validateDataDogPolicy(Policy policy) {
-        Gson gson = new Gson();
         try {
             policy.setPolicyJsonConfig(query.getPolicyDefinitionDefaultConfig(policy.getPolicyImpl()));
         }

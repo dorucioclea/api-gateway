@@ -26,12 +26,12 @@ public class ServiceMetricsFailSilent extends AbstractHystrixMetricsCommand<Serv
         this.service = service;
         this.applications = applications;
         this.from = from;
-        this.to = to;;
+        this.to = to;
     }
 
     @Override
     protected ServiceMetricsBean run() throws Exception {
-        return null;
+        return this.getSpi().getServiceMetrics(service, applications, from, to);
     }
 
     @Override
