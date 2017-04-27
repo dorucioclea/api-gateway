@@ -3,16 +3,9 @@ package com.t1t.apim.core.metrics;
 import com.google.gson.Gson;
 import com.t1t.apim.AppConfig;
 import com.t1t.apim.beans.metrics.ServiceMetricsBean;
-import com.t1t.apim.beans.orgs.OrganizationBean;
-import com.t1t.apim.beans.policies.Policies;
-import com.t1t.apim.beans.policies.PolicyType;
-import com.t1t.apim.beans.services.ServiceBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
-import com.t1t.apim.core.IStorageQuery;
-import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ErrorCodes;
-import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.kong.model.DataDogMetricsQuery;
 import com.t1t.kong.model.DataDogMetricsSeries;
 import com.t1t.util.ServiceConventionUtil;
@@ -20,12 +13,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 
-import javax.inject.Inject;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.t1t.util.TimeUtil.*;
+import static com.t1t.util.TimeUtil.convertDateTimeToSecondsString;
 
 /**
  * Created by michallispashidis on 07/09/16.
@@ -47,15 +39,11 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
     private static final String CUMSUM_QUERY = "cumsum(%s)";
     private static final String QUERY_SEPARATOR = ",";
 
-    @Inject private AppConfig config;
-    private static DataDogDBMetricsClient httpClient;
-
-    public DataDogMetricsSP() {
-        this.httpClient = new RestDataDogMetricsBuilder().getService(config.getDataDogMetricsURI(), config.getDataDogMetricsApiKey(), config.getDataDogMetricsApplicationKey(), DataDogDBMetricsClient.class);
-    }
+    private static String environment;
+    private static DataDogMetricsClient httpClient;
 
     @Override
-    public ServiceMetricsBean getServiceMetrics(ServiceVersionBean service, List<ApplicationVersionSummaryBean> applications, DateTime from, DateTime to) {
+    public synchronized ServiceMetricsBean getServiceMetrics(ServiceVersionBean service, List<ApplicationVersionSummaryBean> applications, DateTime from, DateTime to) {
         ServiceMetricsBean rval = new ServiceMetricsBean();
         String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(service);
         List<String> availableQueries = getAvailableMetrics(ids[0], ids[1], ids[2]);
@@ -94,12 +82,12 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
     }
 
     @Override
-    public Integer getServiceUptime(ServiceVersionBean serviceVersion) {
+    public synchronized Integer getServiceUptime(ServiceVersionBean serviceVersion) {
         String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(serviceVersion);
-        return getServiceUptime(ids[0], ids[1], ids[2]).intValue();
+        return (int) Math.round(getServiceUptime(ids[0], ids[1], ids[2]));
     }
 
-    private Double getServiceUptime(String organizationId, String serviceId, String version) {
+    private synchronized Double getServiceUptime(String organizationId, String serviceId, String version) {
         Double uptimePercentage = null;
         List<String> errorQueries = new ArrayList<>();
         String totalQuery = null;
@@ -140,34 +128,44 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
         return uptimePercentage;
     }
 
-    private String buildUptimeQuery(String total, List<String> errors) {
+    @Override
+    public synchronized void setConfig(AppConfig config) {
+        if (this.httpClient == null) {
+            this.httpClient = new RestDataDogMetricsBuilder().getService(config.getDataDogMetricsURI(), config.getDataDogMetricsApiKey(), config.getDataDogMetricsApplicationKey(), DataDogMetricsClient.class);
+        }
+        if (StringUtils.isEmpty(this.environment)) {
+            this.environment = config.getEnvironment();
+        }
+    }
+
+    private synchronized String buildUptimeQuery(String total, List<String> errors) {
         if (StringUtils.isNotEmpty(total)) {
-            StringBuilder builder = new StringBuilder(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, total, config.getEnvironment())));
+            StringBuilder builder = new StringBuilder(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, total, environment)));
             for (String error : errors) {
-                builder.append(QUERY_SEPARATOR).append(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, error, config.getEnvironment())));
+                builder.append(QUERY_SEPARATOR).append(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, error, environment)));
             }
             return builder.toString();
         }
         else return null;
     }
 
-    private DataDogMetricsQuery query(DateTime from, DateTime to, String query) {
+    private synchronized DataDogMetricsQuery query(DateTime from, DateTime to, String query) {
         DataDogMetricsQuery rval = httpClient.queryMeterics(convertDateTimeToSecondsString(from), convertDateTimeToSecondsString(to), query);
         return rval;
     }
 
-    private List<String> getAvailableMetrics(String organizationId, String serviceId, String version) {
+    private synchronized List<String> getAvailableMetrics(String organizationId, String serviceId, String version) {
         return httpClient.getAvailableQueries(convertDateTimeToSecondsString(DateTime.now().minusWeeks(2)))
                 .getMetrics().stream()
                 .filter(metric -> metric.contains(ServiceConventionUtil.getDatadogUniqueName(organizationId, serviceId, version)))
                 .collect(Collectors.toList());
     }
 
-    private String consolidateQueries(List<String> queries) {
+    private synchronized String consolidateQueries(List<String> queries) {
         StringBuilder rval = new StringBuilder();
         for (String query : queries) {
             if (rval.length() != 0) rval.append(QUERY_SEPARATOR);
-            rval.append(String.format(QUERY, AVG_PREFIX, query, config.getEnvironment()));
+            rval.append(String.format(QUERY, AVG_PREFIX, query, environment));
         }
         return rval.toString();
     }

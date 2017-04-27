@@ -15,7 +15,6 @@ import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
-import com.t1t.apim.core.metrics.MetricsService;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.SystemErrorException;
 import com.t1t.apim.security.ISecurityAppContext;
@@ -35,7 +34,7 @@ import java.util.*;
 public class SearchFacade {
 
     @Inject private IStorageQuery query;
-    @Inject private MetricsService metrics;
+    @Inject private OrganizationFacade orgFacade;
     @Inject private ISecurityAppContext appContext;
 
     private static final String NAME = "name";
@@ -235,8 +234,7 @@ public class SearchFacade {
         List<ServiceVersionWithMarketInfoBean> svmibs = new ArrayList<>();
         svbs.forEach(svb -> {
             ServiceVersionWithMarketInfoBean svmib = new ServiceVersionWithMarketInfoBean(svb);
-            //TODO - Implement fail silent
-            svmib.setMarketInfo(null);
+            svmib.setMarketInfo(orgFacade.getMarketInfo(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()));
             svmibs.add(svmib);
         });
         return svmibs;

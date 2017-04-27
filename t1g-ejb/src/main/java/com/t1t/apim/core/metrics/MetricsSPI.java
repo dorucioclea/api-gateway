@@ -1,5 +1,6 @@
 package com.t1t.apim.core.metrics;
 
+import com.t1t.apim.AppConfig;
 import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
@@ -34,4 +35,10 @@ public interface MetricsSPI {
      * @return
      */
     Integer getServiceUptime(ServiceVersionBean serviceVersion);
+
+    /**
+     * Set the config file to be used by the implementation
+     * @param config
+     */
+    void setConfig(AppConfig config);
 }
