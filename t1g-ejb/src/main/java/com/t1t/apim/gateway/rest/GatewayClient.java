@@ -41,7 +41,6 @@ public class GatewayClient {
     private IStorage storage;
     private AppConfig appConfig;
     private GatewayValidation gatewayValidation;
-    private static String metricsURI;
     private static final String AUTH_API_KEY = "apikey";
     private static final String DUMMY_UPSTREAM_URI = "http://localhost:3000";
 
@@ -50,7 +49,7 @@ public class GatewayClient {
      *
      * @param httpClient the http client
      */
-    public GatewayClient(KongClient httpClient, GatewayBean gateway, IStorage storage, String metricsURI, AppConfig appConfig, GatewayValidation gatewayValidation) {
+    public GatewayClient(KongClient httpClient, GatewayBean gateway, IStorage storage, AppConfig appConfig, GatewayValidation gatewayValidation) {
         Preconditions.checkNotNull(httpClient);
         Preconditions.checkNotNull(storage);
         Preconditions.checkNotNull(gateway);
@@ -58,7 +57,6 @@ public class GatewayClient {
         this.httpClient = httpClient;
         this.gatewayBean = gateway;
         this.storage = storage;
-        this.metricsURI = metricsURI;
         this.appConfig = appConfig;
         this.gatewayValidation = gatewayValidation;
     }
@@ -823,10 +821,6 @@ public class GatewayClient {
         //TODO: strong validation should be done and rollback of the service registration upon error?!
         //execute
         return httpClient.createPluginConfig(api.getId(),config);
-    }
-
-    public static String getMetricsURI() {
-        return metricsURI;
     }
 
     public KongConsumerList getConsumers(String offset) {

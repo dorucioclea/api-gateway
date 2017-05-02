@@ -1,6 +1,6 @@
 package com.t1t.apim.beans.services;
 
-import com.t1t.apim.beans.metrics.ServiceMarketInfo;
+import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
 
 /**
  * @author Guillaume Vandecasteele
@@ -8,7 +8,7 @@ import com.t1t.apim.beans.metrics.ServiceMarketInfo;
  */
 public class ServiceVersionWithMarketInfoBean extends ServiceVersionBean {
 
-    private ServiceMarketInfo marketInfo;
+    private ServiceMarketInfoBean marketInfo;
 
     public ServiceVersionWithMarketInfoBean(ServiceVersionBean svb) {
         this.setAutoAcceptContracts(svb.getAutoAcceptContracts());
@@ -35,11 +35,11 @@ public class ServiceVersionWithMarketInfoBean extends ServiceVersionBean {
         this.setVersion(svb.getVersion());
     }
 
-    public ServiceMarketInfo getMarketInfo() {
+    public ServiceMarketInfoBean getMarketInfo() {
         return marketInfo;
     }
 
-    public void setMarketInfo(ServiceMarketInfo marketInfo) {
+    public void setMarketInfo(ServiceMarketInfoBean marketInfo) {
         this.marketInfo = marketInfo;
     }
 

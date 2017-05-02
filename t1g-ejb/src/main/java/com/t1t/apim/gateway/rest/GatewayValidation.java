@@ -76,6 +76,7 @@ public class GatewayValidation {
             case LDAPAUTHENTICATION: return validateLDAP(policy);
             case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
             case HAL: return policy;
+            case DATADOG: return validateDataDogPolicy(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
     }
@@ -442,6 +443,16 @@ public class GatewayValidation {
 
     public synchronized Policy validateJsonThreatProtection(Policy policy) {
         //Do nothing, it's fine
+        return policy;
+    }
+
+    public synchronized Policy validateDataDogPolicy(Policy policy) {
+        try {
+            policy.setPolicyJsonConfig(query.getPolicyDefinitionDefaultConfig(policy.getPolicyImpl()));
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
         return policy;
     }
 

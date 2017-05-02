@@ -20,9 +20,9 @@ public interface IConfig {
     String IDP_OAUTH_CLIENT_ID = "apiapp.idp.client_id";
     String IDP_OAUTH_CLIENT_SECRET = "apiapp.idp.client_secret";
     String IDP_SCIM_ACTIVATE = "apiapp.idp.enable_scim";
-    String METRICS_SCHEME = "apiapp.metrics.scheme";
-    String METRICS_DNS = "apiapp.metrics.url";
-    String METRICS_PORT = "apiapp.metrics.ports.default";
+    String DATADOG_METRICS_URI = "apiapp.metrics.datadog.url";
+    String DATADOG_METRICS_API_KEY = "apiapp.metrics.datadog.api_key";
+    String DATADOG_METRICS_APPLICATION_KEY = "apiapp.metrics.datadog.application_key";
     String CONSENT_URI = "apiapp.oauth.consent_uri";
     String OAUTH_ENABLE_GTW_ENDPOINTS = "apiapp.oauth.enable_shared_endpoints";
     String DEFAULT_USER_ORGANIZATION = "apiapp.defaults.orgId";

@@ -34,7 +34,7 @@ import java.util.*;
 public class SearchFacade {
 
     @Inject private IStorageQuery query;
-    //@Inject private IMetricsAccessor metrics;
+    @Inject private OrganizationFacade orgFacade;
     @Inject private ISecurityAppContext appContext;
 
     private static final String NAME = "name";
@@ -234,8 +234,7 @@ public class SearchFacade {
         List<ServiceVersionWithMarketInfoBean> svmibs = new ArrayList<>();
         svbs.forEach(svb -> {
             ServiceVersionWithMarketInfoBean svmib = new ServiceVersionWithMarketInfoBean(svb);
-            //TODO - Implement fail silent
-            svmib.setMarketInfo(null);
+            svmib.setMarketInfo(orgFacade.getMarketInfo(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()));
             svmibs.add(svmib);
         });
         return svmibs;

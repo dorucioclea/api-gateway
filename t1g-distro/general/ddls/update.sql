@@ -318,6 +318,11 @@ UPDATE policydefs SET logo = 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAYAAAA5ZDbSAAAJjU
 
 DROP TABLE oauth_apps;
 
+UPDATE policydefs SET scope_auto = FALSE WHERE id = 'HTTPLog';
+UPDATE policydefs SET scope_service = TRUE WHERE id = 'HTTPLog';
+UPDATE policydefs SET icon = 'fa-share-square' WHERE id = 'HAL';
+UPDATE policydefs SET icon = 'fa-paw' WHERE id = 'DataDog';
+
 --------- UPGRADE TO 0.10.1 STARTS HERE ---------
 
 -- Drop the oauth client id info from app versions, backwards compatability no longer required

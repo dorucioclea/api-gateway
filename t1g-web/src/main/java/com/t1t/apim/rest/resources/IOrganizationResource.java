@@ -14,8 +14,8 @@ import com.t1t.apim.beans.idm.GrantRoleBean;
 import com.t1t.apim.beans.idm.TransferOwnershipBean;
 import com.t1t.apim.beans.members.MemberBean;
 import com.t1t.apim.beans.metrics.AppUsagePerServiceBean;
-import com.t1t.apim.beans.metrics.HistogramIntervalType;
-import com.t1t.apim.beans.metrics.ServiceMarketInfo;
+import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
+import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
@@ -30,9 +30,6 @@ import com.t1t.apim.beans.summary.*;
 import com.t1t.apim.beans.support.*;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.*;
-import com.t1t.kong.model.MetricsResponseStatsList;
-import com.t1t.kong.model.MetricsResponseSummaryList;
-import com.t1t.kong.model.MetricsUsageList;
 
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -276,8 +273,7 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
     public AppUsagePerServiceBean getAppUsagePerService(
-            String organizationId,  String applicationId,
-            String version,HistogramIntervalType interval, String fromDate,
+            String organizationId,  String applicationId, String fromDate, String version,
              String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
 //    /**
@@ -1304,70 +1300,21 @@ public interface IOrganizationResource {
      * ----------------------------------------------------------------- */
 
     /**
-     * Retrieves metrics/analytics information for a specific service.  This will
-     * return a full histogram of request count data based on the provided date range
-     * and interval.  Valid intervals are:  month, week, day, hour, minute
-     *
-     * @summary Get Service Usage Metrics
-     * @param organizationId The organization ID.
-     * @param serviceId The service ID.
-     * @param version The service version.
-     * @param interval A valid interval (month, week, day, hour, minute)
-     * @param fromDate The start of a valid date range.
-     * @param toDate The end of a valid date range.
-     * @statuscode 200 If the metrics data is successfully returned.
-     * @return Usage metrics information.
-     * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
-     */
-    public MetricsUsageList getUsage(String organizationId,
-                                       String serviceId,  String version,
-                                       HistogramIntervalType interval, String fromDate,
-                                        String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
-
-    /**
-     * Retrieves metrics/analytics information for a specific service.  This will
-     * return a full histogram of response statistics data based on the provided date range
-     * and interval.  Valid intervals are:  month, week, day, hour, minute
-     *
-     * The data returned includes total request counts, failure counts, and error counts
-     * for each data point in the histogram.
+     * Retrieves metrics/analytics information for a specific service.
      *
      * @summary Get Service Response Statistics (Histogram)
      * @param organizationId The organization ID.
      * @param serviceId The service ID.
      * @param version The service version.
-     * @param interval A valid interval (month, week, day, hour, minute)
      * @param fromDate The start of a valid date range.
      * @param toDate The end of a valid date range.
      * @statuscode 200 If the metrics data is successfully returned.
      * @return Response statistics metrics information.
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public MetricsResponseStatsList getResponseStats(String organizationId,
-                                                       String serviceId, String version,
-                                                       HistogramIntervalType interval, String fromDate,
-                                                       String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
-
-    /**
-     * Retrieves metrics/analytics information for a specific service.  This will
-     * return total response type statistics over the given date range.  Basically
-     * this will return three numbers: total request, # failed responses, # error
-     * responses.
-     *
-     * @summary Get Service Response Statistics (Summary)
-     * @param organizationId The organization ID.
-     * @param serviceId The service ID.
-     * @param version The service version.
-     * @param fromDate The start of a valid date range.
-     * @param toDate The end of a valid date range.
-     * @statuscode 200 If the metrics data is successfully returned.
-     * @return Usage metrics information.
-     * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
-     */
-    public MetricsResponseSummaryList getResponseStatsSummary(
-            String organizationId, String serviceId,
-            String version, String fromDate,
-            String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
+    public ServiceMetricsBean getServiceUsage(String organizationId,
+                                              String serviceId, String version, String fromDate,
+                                              String toDate) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
     /**
      * Retrieves the marketplace information for a service version.
@@ -1384,7 +1331,7 @@ public interface IOrganizationResource {
      * @throws NotAuthorizedException
      * @throws InvalidMetricCriteriaException
      */
-    public ServiceMarketInfo getServiceMarketInfo(String organizationId, String serviceId, String version) throws NotAuthorizedException, InvalidMetricCriteriaException;
+    public ServiceMarketInfoBean getServiceMarketInfo(String organizationId, String serviceId, String version) throws NotAuthorizedException, InvalidMetricCriteriaException;
 
     /**
      * Reject a user's request for membership

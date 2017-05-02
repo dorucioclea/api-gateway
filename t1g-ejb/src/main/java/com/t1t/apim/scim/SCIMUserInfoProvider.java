@@ -18,6 +18,7 @@ import java.util.List;
 
 /**
  * Created by michallispashidis on 23/11/15.
+ * We leave the code in order to support later on the roadmap a SCIM protocol for user info
  */
 @ApplicationScoped
 @Default

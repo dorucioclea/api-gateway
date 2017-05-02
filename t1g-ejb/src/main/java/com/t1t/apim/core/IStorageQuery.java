@@ -1193,4 +1193,12 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public MailProviderBean getDefaultMailProvider() throws StorageException;
+
+    /**
+     * Returns a string with the JSON default policy config for the given policy definition ID
+     * @param policyDefId
+     * @return
+     * @throws StorageException
+     */
+    public String getPolicyDefinitionDefaultConfig(String policyDefId) throws StorageException;
 }

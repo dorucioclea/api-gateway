@@ -1,11 +1,15 @@
 package com.t1t.util;
 
+import com.t1t.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.apim.beans.dto.GatewayDtoBean;
 import com.t1t.apim.beans.dto.PolicyDtoBean;
 import com.t1t.apim.beans.dto.UserDtoBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.idm.UserBean;
 import com.t1t.apim.beans.policies.PolicyBean;
+import com.t1t.apim.beans.services.ServiceVersionBean;
+import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
+import com.t1t.apim.beans.summary.ServiceVersionSummaryBean;
 
 /**
  * @author Guillaume Vandecasteele
@@ -83,4 +87,42 @@ public class DtoFactory {
         return rval;
     }
 
+    public static ApplicationVersionSummaryBean createApplicationVersionSummaryBean(ApplicationVersionBean avb) {
+        ApplicationVersionSummaryBean rval = null;
+        if (avb != null) {
+            rval = new ApplicationVersionSummaryBean();
+            rval.setDescription(avb.getApplication().getDescription());
+            rval.setId(avb.getApplication().getId());
+            rval.setName(avb.getApplication().getName());
+            rval.setOrganizationId(avb.getApplication().getOrganization().getId());
+            rval.setOrganizationName(avb.getApplication().getOrganization().getName());
+            rval.setStatus(avb.getStatus());
+            rval.setVersion(avb.getVersion());
+        }
+        return rval;
+    }
+
+    public static ApplicationVersionSummaryBean createApplicationVersionSummarBeanWithConsumerId(ApplicationVersionBean avb, String consumerId) {
+        ApplicationVersionSummaryBean rval = createApplicationVersionSummaryBean(avb);
+        if (rval != null) {
+            rval.setKongConsumerId(consumerId);
+        }
+        return rval;
+    }
+
+    public static ServiceVersionSummaryBean createServiceVersionSummaryBean(ServiceVersionBean svb) {
+        ServiceVersionSummaryBean rval = null;
+        if (svb != null) {
+            rval = new ServiceVersionSummaryBean();
+            rval.setDescription(svb.getService().getDescription());
+            rval.setId(svb.getService().getId());
+            rval.setName(svb.getService().getName());
+            rval.setOrganizationId(svb.getService().getOrganization().getId());
+            rval.setOrganizationName(svb.getService().getOrganization().getName());
+            rval.setPublicService(svb.isPublicService());
+            rval.setStatus(svb.getStatus());
+            rval.setVersion(svb.getVersion());
+        }
+        return rval;
+    }
 }

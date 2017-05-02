@@ -464,15 +464,6 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponseList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongOAuthToken.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongOAuthTokenList.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/MetricsUsage.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/MetricsUsageList.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseStats.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseStatsList.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseSummary.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/MetricsResponseSummaryList.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/MetricsConsumerUsage.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/MetricsConsumerUsageList.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/MetricsServiceConsumerList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponse.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseList.json</sourcePath>
@@ -488,7 +479,11 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginEmptyConfig.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongClusterItem.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongCluster.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/DataDogMetricsSeries.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/DataDogMetricsQuery.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseDTO.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginDataDog.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/DataDogAvailableMetrics.json</sourcePath>
                     </sourcePaths>
                     <targetPackage>com.t1t.kong.model</targetPackage>
                     <sourceType>jsonschema</sourceType>

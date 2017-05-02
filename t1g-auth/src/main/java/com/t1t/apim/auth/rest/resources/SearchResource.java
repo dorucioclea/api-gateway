@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.apps.ApplicationBeanList;
 import com.t1t.apim.beans.categories.CategorySearchBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
-import com.t1t.apim.beans.metrics.ServiceMarketInfo;
+import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
 import com.t1t.apim.beans.search.SearchCriteriaBean;
 import com.t1t.apim.beans.search.SearchResultsBean;
 import com.t1t.apim.beans.services.ServiceStatus;
@@ -150,12 +150,12 @@ public class SearchResource {
     @ApiOperation(value = "Get Service Market information",
                   notes = "Retrieves the service uptime during the last month, and the distinct active consumers of the service.")
     @ApiResponses({
-                          @ApiResponse(code = 200, response = ServiceMarketInfo.class, message = "Service market information.")
+                          @ApiResponse(code = 200, response = ServiceMarketInfoBean.class, message = "Service market information.")
                   })
     @GET
     @Path("/organizations/{organizationId}/services/{serviceId}/versions/{version}/market/info")
     @Produces(MediaType.APPLICATION_JSON)
-    public ServiceMarketInfo getServiceMarketInfo(
+    public ServiceMarketInfoBean getServiceMarketInfo(
             @PathParam("organizationId") String organizationId,
             @PathParam("serviceId") String serviceId,
             @PathParam("version") String version) throws InvalidMetricCriteriaException {

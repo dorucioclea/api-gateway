@@ -1,5 +1,7 @@
 package com.t1t.util;
 
+import org.joda.time.DateTime;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -30,4 +32,11 @@ public class TimeUtil {
         return Duration.between(start, LocalDateTime.now());
     }
 
+    public static String convertDateTimeToSecondsString(DateTime time) {
+        String rval = null;
+        if (time != null) {
+            rval = String.valueOf(time.getMillis() / 1000);
+        }
+        return rval;
+    }
 }
