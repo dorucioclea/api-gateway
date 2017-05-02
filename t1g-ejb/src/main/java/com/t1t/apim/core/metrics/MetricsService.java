@@ -10,8 +10,6 @@ import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
@@ -29,7 +27,6 @@ import java.util.ServiceLoader;
 @Default
 public class MetricsService {
 
-    private static final Logger _LOG = LoggerFactory.getLogger(MetricsService.class);
     private static ServiceLoader<MetricsSPI> loader = ServiceLoader.load(MetricsSPI.class);
 
     @Inject

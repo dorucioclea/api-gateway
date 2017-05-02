@@ -11,7 +11,6 @@ import com.t1t.kong.model.DataDogMetricsSeries;
 import com.t1t.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.*;
@@ -40,25 +39,27 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
         String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(service);
         List<String> availableQueries = getAvailableMetrics(ids[0], ids[1], ids[2]);
         if (availableQueries.isEmpty()) return null;
-        String finalQuery = consolidateQueries(availableQueries);
+        List<String> filteredQueries = filterConsumerMetrics(ServiceConventionUtil.getDatadogUniqueName(ids[0], ids[1], ids[2]), availableQueries, applications.stream().map(ApplicationVersionSummaryBean::getKongConsumerId).collect(Collectors.toList()));
+        String finalQuery = consolidateQueries(filteredQueries);
         DataDogMetricsQuery results = query(from, to, finalQuery);
-        List<JSONObject> general = new ArrayList<>();
-        Map<ApplicationVersionSummaryBean, List<JSONObject>> sorted = new HashMap<>();
+        List<String> general = new ArrayList<>();
+        Map<ApplicationVersionSummaryBean, List<String>> sorted = new HashMap<>();
 
         for (DataDogMetricsSeries series : results.getSeries()) {
-            JSONObject serializedSeries = new JSONObject(new Gson().toJson(series));
+            String serializedSeries = new Gson().toJson(series);
             Boolean added = false;
             for (ApplicationVersionSummaryBean sum : applications) {
-                String id = sum.getId();
-                if (!added && series.getMetric().contains(id) && sorted.containsKey(sum)) {
-                    sorted.get(sum).add(serializedSeries);
-                    added = true;
-                }
-                else {
-                    List<JSONObject> consumerSeries = new ArrayList<>();
-                    consumerSeries.add(serializedSeries);
-                    sorted.put(sum, consumerSeries);
-                    added = true;
+                String id = sum.getKongConsumerId();
+                if (!added && series.getMetric().contains(id)) {
+                    if (sorted.containsKey(sum)) {
+                        sorted.get(sum).add(serializedSeries);
+                        added = true;
+                    } else {
+                        List<String> consumerSeries = new ArrayList<>();
+                        consumerSeries.add(serializedSeries);
+                        sorted.put(sum, consumerSeries);
+                        added = true;
+                    }
                 }
             }
             if (!added) general.add(serializedSeries);
@@ -88,7 +89,7 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
                     errorQueries.add(query);
                 }
             }
-            if (query.endsWith(REQUEST_COUNT)) {
+            if (query.endsWith(ServiceConventionUtil.getDatadogUniqueName(organizationId, serviceId, version) + "." + REQUEST_COUNT)) {
                 totalQuery = query;
             }
         }
@@ -147,6 +148,24 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
                 .getMetrics().stream()
                 .filter(metric -> metric.contains(ServiceConventionUtil.getDatadogUniqueName(organizationId, serviceId, version)))
                 .collect(Collectors.toList());
+    }
+
+    private synchronized List<String> filterConsumerMetrics(String datadogServiceId, List<String> queries, List<String> consumerIds) {
+        return queries.stream().filter(query -> {
+            if (query.endsWith(REQUEST_COUNT)) {
+                if (query.endsWith(datadogServiceId + "." + REQUEST_COUNT)) {
+                    return true;
+                }
+                else {
+                    //Given query "kong.<api>.<consumer>.request.count", get the consumer id
+                    if (consumerIds.contains(query.split("\\.")[2])) {
+                        return true;
+                    }
+                    else return false;
+                }
+            }
+            else return true;
+        }).collect(Collectors.toList());
     }
 
     private synchronized String consolidateQueries(List<String> queries) {

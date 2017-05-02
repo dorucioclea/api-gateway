@@ -391,7 +391,7 @@ public class OrganizationResource implements IOrganizationResource {
             @ApiResponse(code = 200, response = AppUsagePerServiceBean.class, message = "Usage metrics information.")
     })
     @GET
-    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/metrics/serviceUsage")
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/metrics/usage")
     @Produces(MediaType.APPLICATION_JSON)
     public AppUsagePerServiceBean getAppUsagePerService(@PathParam("organizationId") String organizationId,
                                                         @PathParam("applicationId") String applicationId,
