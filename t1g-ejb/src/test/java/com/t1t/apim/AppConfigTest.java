@@ -65,77 +65,17 @@ public class AppConfigTest {
     }
 
     @Test
-    public void testGetIDPSAMLEndpoint() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getIDPSAMLEndpoint()));
+    public void testGetDataDogMetricsApiKey() throws Exception {
+        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsApiKey()));
     }
 
     @Test
-    public void testGetIDPSAMLNameIdFormat() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getIDPSAMLNameIdFormat()));
+    public void testGetDataDogMetricsURI() throws Exception {
+        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsURI()));
     }
 
     @Test
-    public void testGetIDPSCIMEndpoint() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getIDPSCIMEndpoint()));
-    }
-
-    @Test
-    public void testGetSCIMUserLogin() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getIDPSCIMUserLogin()));
-    }
-
-    @Test
-    public void testGetSCIMUserPassword()throws Exception{
-        assertFalse(StringUtils.isEmpty(config.getIDPSCIMUserPassword()));
-    }
-
-    @Test
-    public void testGetIDPOAuthTokenEndpoint() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getIDPOAuthTokenEndpoint()));
-    }
-
-    @Test
-    public void testGetIDPOAuthClientId() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getIDPOAuthClientId()));
-    }
-
-    @Test
-    public void testGetIDPOAuthClientSecret() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getIDPOAuthClientSecret()));
-    }
-
-    @Test
-    public void testGetMetricsScheme() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getMetricsScheme()));
-    }
-
-    @Test
-    public void testGetMetricsURI() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getMetricsURI()));
-    }
-
-    @Test
-    public void testGetMetricsPort() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getMetricsURI()));
-    }
-
-    @Test
-    public void testGetDefaultOrganization() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getDefaultOrganization()));
-    }
-
-    @Test
-    public void testGetDefaultUserRoles() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getDefaultUserRoles()));
-    }
-
-    @Test
-    public void testGetOAuthConsentURI() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getOAuthConsentURI()));
-    }
-
-    @Test
-    public void testGetSecurityRestResource() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getOAuthConsentURI()));
+    public void testGetDataDogMetricsApplicationKey() throws Exception {
+        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsURI()));
     }
 }

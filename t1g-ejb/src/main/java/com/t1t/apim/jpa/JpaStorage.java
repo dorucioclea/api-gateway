@@ -684,12 +684,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public OrganizationBean getDefaultOrganizationForConsumers() throws StorageException {
-        String defaultOrgId = config.getDefaultOrganization();
-        return super.get(defaultOrgId, OrganizationBean.class);
-    }
-
-    @Override
     public Set<String> getAllOrganizations() throws StorageException {
         Query query;
         if (!getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
@@ -3012,6 +3006,18 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public MailProviderBean getDefaultMailProvider() throws StorageException {
         try {
             return (MailProviderBean) getActiveEntityManager().createQuery("SELECT m FROM MailProviderBean m WHERE m.defaultMailProvider = TRUE").getSingleResult();
+        }
+        catch (NoResultException ex) {
+            return null;
+        }
+    }
+
+    @Override
+    public String getPolicyDefinitionDefaultConfig(String policyDefId) throws StorageException {
+        try {
+            return (String) getActiveEntityManager()
+                    .createQuery("SELECT p.defaultConfig FROM PolicyDefinitionBean p WHERE p.id = :polDefId")
+                    .setParameter("polDefId", policyDefId).getSingleResult();
         }
         catch (NoResultException ex) {
             return null;

@@ -44,47 +44,25 @@ public class SecurityFacade {
 
     public void setOAuthExpTime(Integer expTime){
         try {
-            if (!config.getOAuthEnableGatewayEnpoints())
-            {
-                List<GatewayBean> gateways = query.getAllGateways();
-                for (GatewayBean gw : gateways) {
-                    gw.setOAuthExpTime(expTime);
-                    storage.updateGateway(gw);
-                }
-            }
-            else {
-                //We create the new application version consumer
-                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                gateway.updateCentralOAuthTokenExpirationTime(expTime);
+            List<GatewayBean> gateways = query.getAllGateways();
+            for (GatewayBean gw : gateways) {
+                gw.setOAuthExpTime(expTime);
+                storage.updateGateway(gw);
             }
         }
         catch (StorageException e) {
             throw new ApplicationNotFoundException(e.getMessage());
-        }
-        catch (GatewayAuthenticationException e) {
-            throw new OAuthException("Could not update the OAuth expiration time"+e.getMessage());
         }
     }
 
     public OAuthExpTimeResponse getOAuthExpTime(){
         try {
             OAuthExpTimeResponse oAuthExpTimeResponse = new OAuthExpTimeResponse();
-            if (!config.getOAuthEnableGatewayEnpoints()) {
-                oAuthExpTimeResponse.setExpirationTime(query.getDefaultGateway().getOAuthExpTime());
-            }
-            else {
-                //We create the new application version consumer
-                IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
-                final Integer centralOAuthTokenExpirationTime = gateway.getCentralOAuthTokenExpirationTime();
-                oAuthExpTimeResponse.setExpirationTime(centralOAuthTokenExpirationTime);
-            }
+            oAuthExpTimeResponse.setExpirationTime(query.getDefaultGateway().getOAuthExpTime());
             return oAuthExpTimeResponse;
         }
         catch (StorageException e) {
             throw new ApplicationNotFoundException(e.getMessage());
-        }
-        catch (GatewayAuthenticationException e) {
-            throw new OAuthException("Could not update the OAuth expiration time"+e.getMessage());
         }
     }
 

@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "metric": {
+      "type": "string"
+    },
+    "attributes": {
+      "type": "object"
+    },
+    "unit": {
+      "type": "array",
+      "items": {
+        "type":"Object"
+      }
+    },
+    "pointlist": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "end": {
+      "type": "number"
+    },
+    "interval": {
+      "type": "number"
+    },
+    "start": {
+      "type": "number"
+    },
+    "length": {
+      "type": "number"
+    },
+    "aggr": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "expression": {
+      "type": "string"
+    }
+  }
+}

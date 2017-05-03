@@ -186,11 +186,6 @@ public interface IStorage {
     public void reorderPolicies(PolicyType type, String organizationId, String entityId, String entityVersion, List<Long> newOrder) throws StorageException;
 
     /**
-     * Defaults
-     */
-    public OrganizationBean getDefaultOrganizationForConsumers()throws StorageException;
-
-    /**
      * Returns all organizations, this method is exceptional list of orgs for logged-in admin.
      * In other cases we use the currentuser or search endpoints.
      *

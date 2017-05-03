@@ -34,8 +34,8 @@ import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.members.MemberBean;
 import com.t1t.apim.beans.members.MemberRoleBean;
 import com.t1t.apim.beans.metrics.AppUsagePerServiceBean;
-import com.t1t.apim.beans.metrics.HistogramIntervalType;
-import com.t1t.apim.beans.metrics.ServiceMarketInfo;
+import com.t1t.apim.beans.metrics.ServiceMarketInfoBean;
+import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.orgs.UpdateOrganizationBean;
@@ -52,6 +52,7 @@ import com.t1t.apim.beans.support.*;
 import com.t1t.apim.beans.visibility.VisibilityBean;
 import com.t1t.apim.core.*;
 import com.t1t.apim.core.exceptions.StorageException;
+import com.t1t.apim.core.metrics.MetricsService;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.audit.AuditUtils;
@@ -112,7 +113,7 @@ public class OrganizationFacade {
     @Inject private IApiKeyGenerator apiKeyGenerator;
     @Inject private IApplicationValidator applicationValidator;
     @Inject private IServiceValidator serviceValidator;
-    @Inject private IMetricsAccessor metrics;
+    @Inject private MetricsService metrics;
     @Inject private GatewayFacade gatewayFacade;
     @Inject private IGatewayLinkFactory gatewayLinkFactory;
     @Inject private UserFacade userFacade;
@@ -1596,96 +1597,72 @@ public class OrganizationFacade {
         }
     }
 
-    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
+    public AppUsagePerServiceBean getAppUsagePerService(String organizationId, String applicationId, String version, String fromDate, String toDate) {
+        ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
         validateMetricRange(from, to);
-        AppUsagePerServiceBean appUsage = new AppUsagePerServiceBean();
-        Map<String, MetricsConsumerUsageList> data = new HashMap<>();
-        List<ContractSummaryBean> appContracts = null;
+        AppUsagePerServiceBean appUsagePerService = new AppUsagePerServiceBean();
+        Map<ServiceVersionSummaryBean, ServiceMetricsBean> data = new HashMap<>();
         //get App contracts
         try {
-            appContracts = query.getApplicationContracts(organizationId, applicationId, version);
+            List<ServiceVersionBean> contractedServices = query.getApplicationVersionContracts(avb).stream().map(contract -> contract.getService()).collect(Collectors.toList());
             //getid from kong
-            IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
+            IGatewayLink gateway = gatewayFacade.getDefaultGatewayLink();
             KongConsumer consumer = gateway.getConsumer(ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version));
-            log.info("Getting AppUsageStats for consumer {}", consumer);
             if (consumer != null && !StringUtils.isEmpty(consumer.getCustomId())) {
                 String consumerId = consumer.getId();
-                for (ContractSummaryBean app : appContracts) {
-                    MetricsConsumerUsageList usageList = metrics.getAppUsageForService(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion(), interval, from, to, consumerId);
-                    if (usageList != null) {
-                        data.put(generateServiceUniqueName(app.getServiceOrganizationId(), app.getServiceId(), app.getServiceVersion()), usageList);
-                    } else {
-                        throw ExceptionFactory.metricsUnavailableException();
-                    }
-
+                List<ApplicationVersionSummaryBean> avsbs = Collections.singletonList(DtoFactory.createApplicationVersionSummarBeanWithConsumerId(avb, consumerId));
+                for (ServiceVersionBean svb : contractedServices) {
+                    ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(svb, avsbs, from, to);
+                    data.put(DtoFactory.createServiceVersionSummaryBean(svb), serviceMetrics);
                 }
             }
         } catch (StorageException e) {
             throw new ApplicationNotFoundException(e.getMessage());
         }
-        appUsage.setData(data);
-        return appUsage;
+        appUsagePerService.setData(data);
+        return appUsagePerService;
     }
 
-    public MetricsUsageList getUsage(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
+    public ServiceMetricsBean getServiceUsage(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
-        HistogramIntervalType intrval = interval;
-        if (intrval == null) {
-            intrval = HistogramIntervalType.day;
-        }
         validateMetricRange(from, to);
-        //validateTimeSeriesMetric(from, to, intrval);
-        MetricsUsageList usageList = metrics.getUsage(organizationId, serviceId, version, intrval, from, to);
-        if (usageList != null) {
-            return usageList;
-        } else {
-            throw ExceptionFactory.metricsUnavailableException();
+        try {
+            IGatewayLink gw = gatewayFacade.getDefaultGatewayLink();
+            List<ApplicationVersionSummaryBean> consumers = query.getServiceContracts(organizationId, serviceId, version).stream().map(contract -> {
+                KongConsumer consumer = gw.getConsumer(ConsumerConventionUtil.createAppUniqueId(contract.getApplication()));
+                if (consumer != null && StringUtils.isNotEmpty(consumer.getId())) {
+                    return DtoFactory.createApplicationVersionSummarBeanWithConsumerId(contract.getApplication(), consumer.getId());
+                }
+                else return null;
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+            ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(getServiceVersion(organizationId, serviceId, version), consumers, from, to);
+            if (serviceMetrics != null) {
+                return serviceMetrics;
+            } else {
+                throw ExceptionFactory.metricsUnavailableException();
+            }
         }
-
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 
-    public ServiceMarketInfo getMarketInfo(String organizationId, String serviceId, String version) {
-        ServiceMarketInfo marketInfo = metrics.getServiceMarketInfo(organizationId, serviceId, version);
-        if (marketInfo != null) {
+    public ServiceMarketInfoBean getMarketInfo(String organizationId, String serviceId, String version) {
+        try {
+            ServiceVersionBean svb = storage.getServiceVersion(organizationId, serviceId, version);
+            if (svb == null) throw ExceptionFactory.serviceVersionNotFoundException(serviceId, version);
+            ServiceMarketInfoBean marketInfo = new ServiceMarketInfoBean();
+            marketInfo.setUptime(metrics.getServiceUptime(getServiceVersion(organizationId, serviceId, version)));
+            marketInfo.setFollowers(svb.getService().getFollowers().size());
+            marketInfo.setDistinctUsers(query.getServiceContracts(organizationId, serviceId, version).size());
             return marketInfo;
-        } else {
-            throw ExceptionFactory.metricsUnavailableException();
         }
-
-    }
-
-    public MetricsResponseStatsList getResponseStats(String organizationId, String serviceId, String version, HistogramIntervalType interval, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        HistogramIntervalType intrval = interval;
-        if (intrval == null) {
-            intrval = HistogramIntervalType.day;
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
-        validateMetricRange(from, to);
-        //validateTimeSeriesMetric(from, to, intrval);
-        MetricsResponseStatsList statsList = metrics.getResponseStats(organizationId, serviceId, version, intrval, from, to);
-        if (statsList != null) {
-            return statsList;
-        } else {
-            throw ExceptionFactory.metricsUnavailableException();
-        }
-
-    }
-
-    public MetricsResponseSummaryList getResponseStatsSummary(String organizationId, String serviceId, String version, String fromDate, String toDate) {
-        DateTime from = parseFromDate(fromDate);
-        DateTime to = parseToDate(toDate);
-        validateMetricRange(from, to);
-        MetricsResponseSummaryList summList = metrics.getResponseStatsSummary(organizationId, serviceId, version, from, to);
-        if (summList != null) {
-            return summList;
-        } else {
-            throw ExceptionFactory.metricsUnavailableException();
-        }
-
     }
 
     public List<ApplicationVersionSummaryBean> listAppVersions(String organizationId, String applicationId) {
@@ -3348,17 +3325,6 @@ public class OrganizationFacade {
                         case ACL:
                             policyJsonConfig = gson.toJson(new KongPluginACL()
                                     .withWhitelist(Collections.singletonList(generateServiceUniqueName(svb))));
-                            break;
-                        case HTTPLOG:
-                            String metricsURI = new StringBuffer("")
-                                    .append(config.getMetricsScheme())
-                                    .append("://")
-                                    .append(config.getMetricsURI())
-                                    .append((!StringUtils.isEmpty(config.getMetricsPort())) ? ":" + config.getMetricsPort() : "")
-                                    .append("/").toString();
-                            policyJsonConfig = gson.toJson(new KongPluginHttpLog()
-                                    .withHttpEndpoint(metricsURI)
-                                    .withMethod(KongPluginHttpLog.Method.POST));
                             break;
                         default:
                             policyJsonConfig = polDef.getDefaultConfig();

@@ -419,6 +419,11 @@ CREATE TABLE service_upstream_targets (service_version_id BIGINT NOT NULL, targe
 ALTER TABLE service_upstream_targets ADD CONSTRAINT fk_service_upstream_targets_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
 CREATE INDEX idx_service_upstream_targets_1 ON service_upstream_targets (service_version_id);
 
+UPDATE policydefs SET scope_auto = FALSE WHERE id = 'HTTPLog';
+UPDATE policydefs SET scope_service = TRUE WHERE id = 'HTTPLog';
+UPDATE policydefs SET icon = 'fa-share-square' WHERE id = 'HAL';
+UPDATE policydefs SET icon = 'fa-paw' WHERE id = 'DataDog';
+
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release
 
 --------- UPGRADE TO 1.0.1 STARTS HERE ---------

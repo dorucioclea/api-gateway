@@ -77,6 +77,7 @@ public class GatewayValidation {
             case JSONTHREATPROTECTION: return validateJsonThreatProtection(policy);
             case HAL: return policy;
             case AWSLAMBDA: return validateAWSLambda(policy);
+            case DATADOG: return validateDataDogPolicy(policy);
             default:throw new PolicyViolationException("Unknown policy "+ policy);
         }
     }
@@ -450,6 +451,16 @@ public class GatewayValidation {
         KongPluginAWSLambda config = new Gson().fromJson(policy.getPolicyJsonConfig(), KongPluginAWSLambda.class);
         if ((config.getTimeout() != null && config.getTimeout() < 0) || (config.getKeepalive() != null && config.getKeepalive() < 0)) {
             throw ExceptionFactory.invalidPolicyException("Negative values aren't allowed");
+        }
+        return policy;
+    }
+
+    public synchronized Policy validateDataDogPolicy(Policy policy) {
+        try {
+            policy.setPolicyJsonConfig(query.getPolicyDefinitionDefaultConfig(policy.getPolicyImpl()));
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
         return policy;
     }

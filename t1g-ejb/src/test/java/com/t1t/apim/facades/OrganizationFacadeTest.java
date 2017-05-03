@@ -15,6 +15,7 @@ import com.t1t.apim.beans.search.SearchResultsBean;
 import com.t1t.apim.beans.summary.ContractSummaryBean;
 import com.t1t.apim.beans.summary.PolicySummaryBean;
 import com.t1t.apim.core.*;
+import com.t1t.apim.core.metrics.MetricsService;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.facades.audit.AuditUtils;
 import com.t1t.apim.gateway.IGatewayLinkFactory;
@@ -59,7 +60,7 @@ public class OrganizationFacadeTest {
     @Mock private IApiKeyGenerator apiKeyGenerator;
     @Mock private IApplicationValidator applicationValidator;
     @Mock private IServiceValidator serviceValidator;
-    @Mock private IMetricsAccessor metrics;
+    @Mock private MetricsService metrics;
     @Mock private GatewayFacade gatewayFacade;
     @Mock private GatewayValidation gatewayValidation;
     @Mock private IGatewayLinkFactory gatewayLinkFactory;

@@ -1,7 +1,9 @@
 package com.t1t.apim.beans.metrics;
 
-import com.t1t.kong.model.MetricsConsumerUsageList;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.t1t.apim.beans.summary.ServiceVersionSummaryBean;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,21 +11,23 @@ import java.util.Map;
  * Bean returned for the "Usage per Service" metric for an app.
  *
  */
-public class AppUsagePerServiceBean {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AppUsagePerServiceBean implements Serializable {
 
-    private Map<String, MetricsConsumerUsageList> data = new HashMap<>();
+    private Map<ServiceVersionSummaryBean, ServiceMetricsBean> data = new HashMap<>();
 
-    /**
-     * Constructor.
-     */
-    public AppUsagePerServiceBean() {
-    }
-
-    public Map<String, MetricsConsumerUsageList> getData() {
+    public Map<ServiceVersionSummaryBean, ServiceMetricsBean> getData() {
         return data;
     }
 
-    public void setData(Map<String, MetricsConsumerUsageList> data) {
+    public void setData(Map<ServiceVersionSummaryBean, ServiceMetricsBean> data) {
         this.data = data;
+    }
+
+    @Override
+    public String toString() {
+        return "AppUsagePerServiceBean{" +
+                "data=" + data +
+                '}';
     }
 }

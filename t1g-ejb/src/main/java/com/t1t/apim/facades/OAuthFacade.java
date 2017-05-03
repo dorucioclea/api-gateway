@@ -154,28 +154,6 @@ public class OAuthFacade {
         return null;
     }
 
-    public String getAuthorizationRedirect(OAuthResponseType responseType, String userId, String clientId, String orgId, String serviceId, String version, List<String> scopes) {
-        //The consent page is published through the gateway itself, in order to add consent page policies.
-        //The consent URI is where the page has been published as part of the API Engine.
-        StringBuffer redirectURI = new StringBuffer("");
-        redirectURI.append(config.getOAuthConsentURI())
-                .append("?response_type=")
-                .append(responseType.toString().toLowerCase())
-                .append("&")
-                .append("client_id=").append(clientId)
-                .append("&")
-                .append("org_id=").append(orgId)
-                .append("&")
-                .append("service_id=").append(serviceId)
-                .append("&")
-                .append("version=").append(version)
-                .append("&")
-                .append("authenticatedUserId=").append(userId)
-                .append("&")
-                .append("scopes=").append(StringUtils.join(scopes, ','));
-        return redirectURI.toString();
-    }
-
     /**
      * Returns a list of scopes available for a service.
      *

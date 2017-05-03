@@ -19,6 +19,7 @@ public final class ErrorCodes {
     public static final int HTTP_STATUS_CODE_INVALID_STATE  = 409;
     public static final int HTTP_STATUS_CODE_SYSTEM_ERROR   = 500;
     public static final int HTTP_STATUS_CODE_UNAVAILABLE    = 503;
+    public static final int HTTP_STATUS_CODE_NETWORK_CONNECT_TIMEOUT_ERROR   = 599;
 
     public static final String HTTP_STATUS_CODE_INVALID_INPUT_INFO = null;
     public static final String HTTP_STATUS_CODE_UNAVAILABLE_INFO = null;

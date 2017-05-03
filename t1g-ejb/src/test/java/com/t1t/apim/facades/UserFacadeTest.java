@@ -203,51 +203,6 @@ public class UserFacadeTest extends TestCase {
         userFacade.getActivity("someuserid", 1, 1);
     }
 
-    public void testGenerateSAML2AuthRequest() throws Exception {
-        String idpUrl = "http://google.com";
-        String spUrl = "http://google.com";
-        String spName = "apimarket";
-        String clientUrl = "http://localhost:4000";
-        ClientTokeType tokeType = ClientTokeType.jwt;
-        Map<String, String> optClaimMap = new HashMap<>();
-        when(config.getJWTDefaultTokenExpInSeconds()).thenReturn(10);
-        thrown.expect(IllegalArgumentException.class);//some issue bootstrapping context
-        SAMLRequest samlRequest = new SAMLRequest();
-        samlRequest.setClientAppRedirect(clientUrl);
-        samlRequest.setIdpUrl(idpUrl);
-        samlRequest.setSpName(spName);
-        samlRequest.setSpUrl(spUrl);
-        samlRequest.setToken(tokeType);
-        samlRequest.setOptionalClaimMap(optClaimMap);
-        userFacade.generateSAML2AuthRequest(samlRequest);
-    }
-
-    public void testGenerateSAML2LogoutRequest() throws Exception {
-        String idpUrl = "http://google.com";
-        String user = "testuser";
-        String spName = "apimarket";
-        thrown.expect(IllegalArgumentException.class);//issue bootstrapping opensaml context
-        userFacade.generateSAML2LogoutRequest(idpUrl, spName, user);
-    }
-
-    public void testBuildExtensions() throws Exception {
-        String clientUrl = "someclienturi";
-        Extensions ext = userFacade.buildExtensions(clientUrl);
-        assertNotNull(ext);
-    }
-
-    public void testProcessSAML2Response() throws Exception {
-        //Empty test - to do
-    }
-
-    public void testUserFromSAML2BearerToken() throws Exception {
-        //Empty test - to do
-    }
-
-    public void testGetDecryptedAssertion() throws Exception {
-        //Empty test - to do
-    }
-
     public void testInitNewUser()throws Exception{
         NewUserBean newUserBean = new NewUserBean();
         newUserBean.setAdmin(true);

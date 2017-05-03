@@ -103,7 +103,7 @@ public class StartupService {
                 .withUpstreamUrl(config.getApiEngineUpstream());
 
         api = verifyApi(gw, api);
-        verifyPlugins(gw, api, Arrays.asList(Policies.JWT, Policies.KEYAUTHENTICATION, Policies.CORS, Policies.ANALYTICS));
+        verifyPlugins(gw, api, new ArrayList<>(Arrays.asList(Policies.JWT, Policies.KEYAUTHENTICATION, Policies.CORS, Policies.DATADOG)));
     }
 
     private void verifyOrCreateApiEngineAuth(IGatewayLink gw) {
@@ -114,7 +114,7 @@ public class StartupService {
                 .withUpstreamUrl(config.getApiEngineAuthUpstreamUrl());
 
         api = verifyApi(gw, api);
-        verifyPlugins(gw, api, Arrays.asList(Policies.KEYAUTHENTICATION, Policies.CORS, Policies.ANALYTICS));
+        verifyPlugins(gw, api, new ArrayList<>(Arrays.asList(Policies.KEYAUTHENTICATION, Policies.CORS, Policies.DATADOG)));
     }
 
     private void verifyOrCreateGatewayKeys(IGatewayLink gw) {
@@ -157,6 +157,7 @@ public class StartupService {
     private void verifyPlugins(IGatewayLink gw, KongApi api, List<Policies> policies) {
         KongPluginConfigList plugins = gw.getServicePlugins(api.getName());
         if (plugins != null && !plugins.getData().isEmpty()) {
+            List<Policies> policiesOnGateway = new ArrayList<>();
             plugins.getData().forEach(plugin -> {
                 Policies pluginDef = GatewayUtils.convertKongPluginNameToPolicy(plugin.getName());
                 if (!policies.contains(pluginDef)) {
@@ -166,10 +167,22 @@ public class StartupService {
                     try {
                         plugin = getDefaultConfigs(pluginDef, plugin);
                         gw.updatePlugin(plugin);
+                        policiesOnGateway.add(pluginDef);
                     }
                     catch (StorageException ex) {
                         throw ExceptionFactory.systemErrorException(ex);
                     }
+                }
+            });
+            policies.removeAll(policiesOnGateway);
+            policies.forEach(polDef -> {
+                try {
+                    KongPluginConfig plugin = new KongPluginConfig().withName(polDef.getKongIdentifier());
+                    plugin = getDefaultConfigs(polDef, plugin);
+                    gw.createApiPlugin(api.getId(), plugin);
+                }
+                catch (StorageException ex) {
+                    throw ExceptionFactory.systemErrorException(ex);
                 }
             });
         }
@@ -191,15 +204,11 @@ public class StartupService {
         switch (polDef) {
             case CORS:
             case KEYAUTHENTICATION:
+            case DATADOG:
                 plugin.setConfig(new Gson().fromJson(storage.getPolicyDefinition(polDef.getPolicyDefId()).getDefaultConfig(), polDef.getClazz()));
                 break;
             case JWT:
                 plugin.setConfig(new KongPluginJWT().withClaimsToVerify(Arrays.asList(IJWT.EXPIRATION_CLAIM)).withKeyClaimName(IJWT.AUDIENCE_CLAIM));
-                break;
-            case ANALYTICS:
-                plugin.setConfig(new KongPluginAnalytics()
-                        .withEnvironment(config.getEnvironment())
-                        .withServiceToken(config.getAnalyticsServiceToken()));
                 break;
             default:
                 throw new IllegalArgumentException("Not a valid policy for required api's: " + polDef.toString());

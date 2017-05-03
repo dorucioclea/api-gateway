@@ -30,7 +30,8 @@ public enum Policies {
     , LDAPAUTHENTICATION(KongPluginLDAP.class, "ldap-auth", "LDAPAuthentication")
     , JSONTHREATPROTECTION(KongPluginJsonThreatProtection.class,"json-threat-protection","JSONThreatProtection")
     , HAL(KongPluginEmptyConfig.class, "hal", "HAL")
-    , AWSLAMBDA(KongPluginAWSLambda.class, "aws-lambda", "AWSLambda");
+    , AWSLAMBDA(KongPluginAWSLambda.class, "aws-lambda", "AWSLambda")
+    , DATADOG(KongPluginDataDog.class, "datadog", "DataDog");
 
     private Class clazz;
     private String kongIdentifier;

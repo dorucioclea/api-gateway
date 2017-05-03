@@ -65,30 +65,6 @@ public class OAuthResource implements IOAuth2Authorization {
         return oAuthFacade.getApplicationOAuthInformation(oauthClientId, orgId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase());
     }
 
-    @ApiOperation(value = "Utility endpoint to composes a redirect request for user authorization.",
-            notes = "Returns a redirect URI that will forward the user to an authorization page (Authorization/Implicit Grant). The response type can be - code - for Authorization Code Grant; or - token - for Implicit Grant ")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = String.class, message = "The authorization redirect URI."),
-            @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
-    })
-    @POST
-    @Path("/redirect/{responseType}/user/{userId}/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
-    @Override
-    public String getAuthorizationRedirect(@PathParam("responseType")OAuthResponseType responseType, @PathParam("userId")String authenticatedUserId , @PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version, OAuthServiceScopeRequest requestScopes) throws OAuthException{
-        Preconditions.checkArgument(!StringUtils.isEmpty(authenticatedUserId), Messages.i18n.format("emptyValue", "Authenticated user id"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId), Messages.i18n.format("emptyValue", "OAuth client ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
-        Preconditions.checkNotNull(responseType, Messages.i18n.format("nullValue", "Response type"));
-        Preconditions.checkNotNull(requestScopes, Messages.i18n.format("nullValue", "Request scopes"));
-        Preconditions.checkNotNull(requestScopes.getScopes(), Messages.i18n.format("nullValue", "Request scopes"));
-        Preconditions.checkArgument(requestScopes.getScopes().size()>0, Messages.i18n.format("emptyValue", "Request scopes"));
-        return oAuthFacade.getAuthorizationRedirect(responseType, authenticatedUserId ,oauthClientId, orgId, serviceId, version, requestScopes.getScopes());
-    }
-
     @ApiOperation(value = "Information endpoint to retrieve service version scopes.",
             notes = "Returns a list of string values representing available service versions copes")
     @ApiResponses({
