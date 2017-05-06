@@ -24,10 +24,9 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceVersionBean implements Serializable {
 
-    private static final long serialVersionUID = -2218697175049442690L;
     //key for endpoint properties
     public static final String PROP_PATH = "service_path";
-
+    private static final long serialVersionUID = -2218697175049442690L;
     @Id @GeneratedValue
     private Long id;
     @ManyToOne
@@ -107,6 +106,10 @@ public class ServiceVersionBean implements Serializable {
     private Long upstreamReadTimeout;
     @Column(name = "custom_load_balancing")
     private Boolean customLoadBalancing;
+    @Column(name = "upstream_scheme")
+    private String upstreamScheme;
+    @Column(name = "upstream_path")
+    private String upstreamPath;
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name="service_upstream_targets", joinColumns=@JoinColumn(name="service_version_id"))
     private Set<ServiceUpstreamTargetBean> upstreamTargets;
@@ -547,6 +550,34 @@ public class ServiceVersionBean implements Serializable {
     }
 
     /**
+     * @return the upstream scheme
+     */
+    public String getUpstreamScheme() {
+        return upstreamScheme;
+    }
+
+    /**
+     * @param upstreamScheme the upstream scheme to set
+     */
+    public void setUpstreamScheme(String upstreamScheme) {
+        this.upstreamScheme = upstreamScheme;
+    }
+
+    /**
+     * @return the upstream path
+     */
+    public String getUpstreamPath() {
+        return upstreamPath;
+    }
+
+    /**
+     * @param upstreamPath the upstream path to set
+     */
+    public void setUpstreamPath(String upstreamPath) {
+        this.upstreamPath = upstreamPath;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -599,7 +630,7 @@ public class ServiceVersionBean implements Serializable {
                 ", retiredOn=" + retiredOn +
                 ", deprecatedOn=" + deprecatedOn +
                 ", definitionType=" + definitionType +
-                ", provisionKey='" + provisionKey + '\'' +
+                ", provisionKey='***************'" +
                 ", onlinedoc='" + onlinedoc + '\'' +
                 ", oauthScopes=" + oauthScopes +
                 ", autoAcceptContracts=" + autoAcceptContracts +
@@ -610,6 +641,8 @@ public class ServiceVersionBean implements Serializable {
                 ", upstreamSendTimeout=" + upstreamSendTimeout +
                 ", upstreamReadTimeout=" + upstreamReadTimeout +
                 ", customLoadBalancing=" + customLoadBalancing +
+                ", upstreamScheme='" + upstreamScheme + '\'' +
+                ", upstreamPath='" + upstreamPath + '\'' +
                 ", upstreamTargets=" + upstreamTargets +
                 '}';
     }

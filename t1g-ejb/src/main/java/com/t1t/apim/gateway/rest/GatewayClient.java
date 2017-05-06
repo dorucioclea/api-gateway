@@ -38,14 +38,14 @@ import java.util.stream.Collectors;
  * TODO ACL groups cannot be mixed through API => unique naming
  */
 public class GatewayClient {
+    private static final String AUTH_API_KEY = "apikey";
+    private static final String DUMMY_UPSTREAM_URI = "http://localhost:3000";
     private static Logger log = LoggerFactory.getLogger(GatewayClient.class.getName());
     private KongClient httpClient;
     private GatewayBean gatewayBean;
     private IStorage storage;
     private AppConfig appConfig;
     private GatewayValidation gatewayValidation;
-    private static final String AUTH_API_KEY = "apikey";
-    private static final String DUMMY_UPSTREAM_URI = "http://localhost:3000";
     private Gson gson;
 
     /**
@@ -578,6 +578,9 @@ public class GatewayClient {
                 httpClient.deleteApi(existingApi.getId());
             }
         });
+        if (service.isCustomLoadBalancing()) {
+            httpClient.deleteKongUpstream(nameAndDNS);
+        }
     }
 
     public KongConsumer getConsumer(String id){
@@ -1200,7 +1203,7 @@ public class GatewayClient {
 
     public void createOrUpdateServiceUpstreamTargets(String upstreamName, Set<ServiceUpstreamTargetBean> targets) {
         KongUpstream upstream = getServiceUpstream(upstreamName);
-        KongUpstreamTargetList activeTargets = httpClient.listActiveKongUpstreamTargets(upstreamName);
+        KongUpstreamTargetList activeTargets = listActiveKongUpstreamTargets(upstreamName);
         try {
             if (upstream != null) {
                 for (ServiceUpstreamTargetBean targetBean : targets) {
@@ -1210,16 +1213,25 @@ public class GatewayClient {
         }
         catch (RetrofitError ex) {
             //Restore the active targets to their original state
-            for (KongUpstreamTarget target : activeTargets.getData()) {
-                try {
-                    httpClient.createKongUpstreamTarget(upstreamName, target);
-                }
-                catch (RetrofitError error) {
-                    //We tried our best
-                    log.error("Error restoring original targets: {}", error.getBody());
+            if (activeTargets != null) {
+                for (KongUpstreamTarget target : activeTargets.getData()) {
+                    try {
+                        httpClient.createKongUpstreamTarget(upstreamName, target);
+                    } catch (RetrofitError error) {
+                        //We tried our best
+                        log.error("Error restoring original targets: {}", error.getBody());
+                    }
                 }
             }
             throw ex;
+        }
+    }
+
+    public KongUpstreamTargetList listActiveKongUpstreamTargets(String upstreamName) {
+        try {
+            return httpClient.listActiveKongUpstreamTargets(upstreamName);
+        } catch (RetrofitError ex) {
+            return null;
         }
     }
 

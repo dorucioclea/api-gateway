@@ -1,5 +1,7 @@
 package com.t1t.util;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,6 +14,7 @@ public class URIUtils {
 
     private static final String HTTP = "http://";
     private static final String SCHEME_SEPARATOR = "://";
+    private static final String PORT_SEPARATOR = ":";
 
     public static String setVirtualHost(String endpoint, String virtualHost) {
         return setVirtualHost(endpoint, virtualHost, true);
@@ -52,5 +55,17 @@ public class URIUtils {
 
         }
         return rval.toString();
+    }
+
+    public static String appendPort(String dns, Long port) {
+        if (StringUtils.isNotEmpty(dns)) {
+            StringBuilder rval = new StringBuilder(dns);
+            if (port != null) {
+                rval.append(PORT_SEPARATOR).append(port);
+            }
+            return rval.toString();
+        } else {
+            return null;
+        }
     }
 }

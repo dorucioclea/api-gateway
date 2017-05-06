@@ -119,6 +119,8 @@ public interface KongClient {
 
     @POST("/upstreams/{upstreamNameOrId}/targets/") KongUpstreamTarget createKongUpstreamTarget(@Path("upstreamNameOrId") String upstreamNameOrId, @Body KongUpstreamTarget target);
     @GET("/upstreams/{upstreamNameOrId}/targets") KongUpstreamTargetList listKongUpstreamTargets(@Path("upstreamNameOrId") String upstreamNameOrId, @Query("id") String id, @Query("target") String name, @Query("weight") Long slots, @Query("size") Long size, @Query("offset") String offset);
-    @GET("/upstreams/{upstreamNameOrId}/targets/") KongUpstreamTargetList listActiveKongUpstreamTargets(@Path("upstreamNameOrId") String upstreamNameOrId);
+
+    @GET("/upstreams/{upstreamNameOrId}/targets/active")
+    KongUpstreamTargetList listActiveKongUpstreamTargets(@Path("upstreamNameOrId") String upstreamNameOrId);
     @DELETE("/upstreams/{upstreamNameOrId}/targets/{target}") Response createKongUpstreamTarget(@Path("upstreamNameOrId") String upstreamNameOrId, @Path("target") String target);
 }

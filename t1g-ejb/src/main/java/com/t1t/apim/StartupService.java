@@ -24,11 +24,7 @@ import javax.ejb.DependsOn;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -103,7 +99,12 @@ public class StartupService {
                 .withUpstreamUrl(config.getApiEngineUpstream());
 
         api = verifyApi(gw, api);
-        verifyPlugins(gw, api, new ArrayList<>(Arrays.asList(Policies.JWT, Policies.KEYAUTHENTICATION, Policies.CORS, Policies.DATADOG)));
+        List<Policies> policies = new ArrayList<>();
+        policies.add(Policies.CORS);
+        policies.add(Policies.JWT);
+        policies.add(Policies.KEYAUTHENTICATION);
+        policies.add(Policies.DATADOG);
+        verifyPlugins(gw, api, policies);
     }
 
     private void verifyOrCreateApiEngineAuth(IGatewayLink gw) {
@@ -114,7 +115,11 @@ public class StartupService {
                 .withUpstreamUrl(config.getApiEngineAuthUpstreamUrl());
 
         api = verifyApi(gw, api);
-        verifyPlugins(gw, api, new ArrayList<>(Arrays.asList(Policies.KEYAUTHENTICATION, Policies.CORS, Policies.DATADOG)));
+        List<Policies> policies = new ArrayList<>();
+        policies.add(Policies.CORS);
+        policies.add(Policies.KEYAUTHENTICATION);
+        policies.add(Policies.DATADOG);
+        verifyPlugins(gw, api, policies);
     }
 
     private void verifyOrCreateGatewayKeys(IGatewayLink gw) {
@@ -125,7 +130,9 @@ public class StartupService {
                 .withUpstreamUrl(config.getGatewaykeysUpstreamUrl());
 
         api = verifyApi(gw, api);
-        verifyPlugins(gw, api, Arrays.asList(Policies.CORS));
+        List<Policies> policies = new ArrayList<>();
+        policies.add(Policies.CORS);
+        verifyPlugins(gw, api, policies);
     }
 
     private void verifyOrCreateClusterInfo(IGatewayLink gw) {
@@ -136,7 +143,9 @@ public class StartupService {
                 .withUpstreamUrl(config.getClusterInfoUpstreamUrl());
 
         api = verifyApi(gw, api);
-        verifyPlugins(gw, api, Arrays.asList(Policies.CORS));
+        List<Policies> policies = new ArrayList<>();
+        policies.add(Policies.CORS);
+        verifyPlugins(gw, api, policies);
     }
 
     private KongApi verifyApi(IGatewayLink gw, KongApi api) {

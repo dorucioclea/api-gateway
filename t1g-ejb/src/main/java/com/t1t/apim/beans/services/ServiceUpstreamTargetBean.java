@@ -9,6 +9,8 @@ public class ServiceUpstreamTargetBean implements Serializable {
 
     @Column(name = "target", nullable=false)
     private String target;
+    @Column(name = "port")
+    private Long port;
     @Column(name = "weight", nullable=false)
     private Long weight;
 
@@ -18,6 +20,14 @@ public class ServiceUpstreamTargetBean implements Serializable {
 
     public void setTarget(String target) {
         this.target = target;
+    }
+
+    public Long getPort() {
+        return port;
+    }
+
+    public void setPort(Long port) {
+        this.port = port;
     }
 
     public Long getWeight() {
@@ -36,6 +46,7 @@ public class ServiceUpstreamTargetBean implements Serializable {
         ServiceUpstreamTargetBean that = (ServiceUpstreamTargetBean) o;
 
         if (target != null ? !target.equals(that.target) : that.target != null) return false;
+        if (port != null ? !port.equals(that.port) : that.port != null) return false;
         if (weight != null ? !weight.equals(that.weight) : that.weight != null) return false;
 
         return true;
@@ -44,6 +55,7 @@ public class ServiceUpstreamTargetBean implements Serializable {
     @Override
     public int hashCode() {
         int result = target != null ? target.hashCode() : 0;
+        result = 31 * result + (port != null ? port.hashCode() : 0);
         result = 31 * result + (weight != null ? weight.hashCode() : 0);
         return result;
     }
@@ -52,7 +64,8 @@ public class ServiceUpstreamTargetBean implements Serializable {
     public String toString() {
         return "ServiceUpstreamTargetBean{" +
                 "target='" + target + '\'' +
-                ", weight='" + weight + '\'' +
+                ", port=" + port +
+                ", weight=" + weight +
                 '}';
     }
 }
