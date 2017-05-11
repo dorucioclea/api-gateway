@@ -80,9 +80,6 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
         if (service.getUpstreamScheme() == null) {
             ready = false;
         }
-        if (service.getEndpoint() == null || service.getEndpoint().trim().length() == 0) {
-            ready = false;
-        }
         if (service.getEndpointType() == null) {
             ready = false;
         }

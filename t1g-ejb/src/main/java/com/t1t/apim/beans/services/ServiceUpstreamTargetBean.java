@@ -48,18 +48,16 @@ public class ServiceUpstreamTargetBean implements Serializable {
 
         ServiceUpstreamTargetBean that = (ServiceUpstreamTargetBean) o;
 
-        if (target != null ? !target.equals(that.target) : that.target != null) return false;
-        if (port != null ? !port.equals(that.port) : that.port != null) return false;
-        if (weight != null ? !weight.equals(that.weight) : that.weight != null) return false;
+        if (!target.equals(that.target)) return false;
+        if (!port.equals(that.port)) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = target != null ? target.hashCode() : 0;
-        result = 31 * result + (port != null ? port.hashCode() : 0);
-        result = 31 * result + (weight != null ? weight.hashCode() : 0);
+        int result = target.hashCode();
+        result = 31 * result + port.hashCode();
         return result;
     }
 

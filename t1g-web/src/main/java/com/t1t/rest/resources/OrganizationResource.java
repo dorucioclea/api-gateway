@@ -992,12 +992,12 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "Request body"));
-        Preconditions.checkArgument(!StringUtils.isNotEmpty(request.getTarget()), Messages.i18n.format("emptyValue", "\"target\""));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(request.getTarget()), Messages.i18n.format("emptyValue", "\"target\""));
         Preconditions.checkArgument(InetAddressValidator.getInstance().isValid(request.getTarget()) || DomainValidator.getInstance().isValid(request.getTarget()), Messages.i18n.format("invalidTarget"));
         Preconditions.checkNotNull(request.getPort(), Messages.i18n.format("nullValue", "\"port\""));
         Preconditions.checkArgument(request.getPort() > 0 && request.getPort() <= 65535, Messages.i18n.format("invalidPort"));
         Preconditions.checkArgument(request.getWeight() == null || (request.getWeight() >= 0 && request.getWeight() <= 1000), Messages.i18n.format("invalidWeight"));
-        return ResponseFactory.buildResponse(OK, orgFacade.addServiceUpstreamTarget(organizationId, serviceId, version, request));
+        return ResponseFactory.buildResponse(CREATED, orgFacade.addServiceUpstreamTarget(organizationId, serviceId, version, request));
     }
 
     @ApiOperation(value = "Remove Service Version Upstream",
@@ -1018,9 +1018,10 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
 
         Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "Request body"));
-        Preconditions.checkArgument(!StringUtils.isNotEmpty(request.getTarget()), Messages.i18n.format("emptyValue", "\"target\""));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(request.getTarget()), Messages.i18n.format("emptyValue", "\"target\""));
         Preconditions.checkNotNull(request.getPort(), Messages.i18n.format("nullValue", "\"port\""));
-        return ResponseFactory.buildResponse(OK, orgFacade.getServiceUpstreamTargets(organizationId, serviceId, version));
+        orgFacade.removeServiceUpstreamTarget(organizationId, serviceId, version, request);
+        return ResponseFactory.buildResponse(NO_CONTENT);
     }
 
     @ApiOperation(value = "Get Service Definition",
@@ -1181,7 +1182,6 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Updated service version"));
         //it's possible not to provide the endpoint directly
-        if(!StringUtils.isEmpty(bean.getEndpoint())) Preconditions.checkArgument(ValidationUtils.isValidURL(bean.getEndpoint()), Messages.i18n.format("InvalidURL", bean.getEndpoint()));
         return orgFacade.updateServiceVersion(organizationId, serviceId, version, bean);
     }
 

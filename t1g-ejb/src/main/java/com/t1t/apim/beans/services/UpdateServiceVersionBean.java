@@ -18,7 +18,8 @@ public class UpdateServiceVersionBean implements Serializable {
 
     private static final long serialVersionUID = 4126848584932708146L;
 
-    private String endpoint;
+    private SchemeType upstreamScheme;
+    private String upstreamPath;
     private EndpointType endpointType;
     private Map<String, String> endpointProperties;
     private Set<ServiceGatewayBean> gateways;
@@ -35,17 +36,31 @@ public class UpdateServiceVersionBean implements Serializable {
     private Long upstreamReadTimeout;
 
     /**
-     * @return the endpoint
+     * @return the upstream scheme
      */
-    public String getEndpoint() {
-        return endpoint;
+    public SchemeType getUpstreamScheme() {
+        return upstreamScheme;
     }
 
     /**
-     * @param endpoint the endpoint to set
+     * @param upstreamScheme the upstream scheme to set
      */
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
+    public void setUpstreamScheme(SchemeType upstreamScheme) {
+        this.upstreamScheme = upstreamScheme;
+    }
+
+    /**
+     * @return the upstream path
+     */
+    public String getUpstreamPath() {
+        return upstreamPath;
+    }
+
+    /**
+     * @param upstreamPath the upstream path to set
+     */
+    public void setUpstreamPath(String upstreamPath) {
+        this.upstreamPath = upstreamPath;
     }
 
     /**
@@ -247,7 +262,8 @@ public class UpdateServiceVersionBean implements Serializable {
     @Override
     public String toString() {
         return "UpdateServiceVersionBean{" +
-                "endpoint='" + endpoint + '\'' +
+                "upstreamScheme=" + upstreamScheme +
+                ", upstreamPath='" + upstreamPath + '\'' +
                 ", endpointType=" + endpointType +
                 ", endpointProperties=" + endpointProperties +
                 ", gateways=" + gateways +

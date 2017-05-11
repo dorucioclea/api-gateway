@@ -835,7 +835,18 @@ public class GatewayClient {
     }
 
     public KongApi updateServiceVersionOnGateway(ServiceVersionBean svb) {
-        KongApi api = getApi(ServiceConventionUtil.generateServiceUniqueName(svb));
+        String apiId = ServiceConventionUtil.generateServiceUniqueName(svb);
+        KongApi api = getApi(apiId);
+
+        String upstreamUrl;
+        if (svb.getUpstreamTargets().size() == 1) {
+            ServiceUpstreamTargetBean target = svb.getUpstreamTargets().stream().collect(CustomCollectors.getFirstResult());
+            upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), target.getTarget(), target.getPort(), svb.getUpstreamPath());
+        }
+        else {
+            upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), apiId, null, svb.getUpstreamPath());
+        }
+        api.setUpstreamUrl(upstreamUrl);
         api.setHosts(svb.getHostnames() == null ? Collections.emptyList() : new ArrayList<>(svb.getHostnames()));
         api.setUris(GatewayPathUtilities.generateGatewayContextPath(svb.getService().getOrganization().getId(), svb.getService().getBasepaths(), svb.getVersion()));
         api.setUpstreamConnectTimeout(svb.getUpstreamConnectTimeout());
@@ -1178,7 +1189,7 @@ public class GatewayClient {
         try {
             return httpClient.getKongUpstream(upstreamName);
         }
-        catch (Exception ex) {
+        catch (RetrofitError ex) {
             return null;
         }
     }
@@ -1191,7 +1202,7 @@ public class GatewayClient {
                 httpClient.createKongUpstream(upstream);
             }
         }
-        catch (Exception ex) {
+        catch (RetrofitError ex) {
             log.error("Error creating upstream: {}", ex);
             throw ExceptionFactory.serviceVersionUpdateException("Upstream creation");
         }
@@ -1204,7 +1215,7 @@ public class GatewayClient {
                 httpClient.createKongUpstreamTarget(upstreamName, new KongUpstreamTarget().withTarget(URIUtils.appendPort(target.getTarget(), target.getPort())).withWeight(target.getWeight()));
             }
         }
-        catch (Exception ex) {
+        catch (RetrofitError ex) {
             log.error("Error creating an upstream target: {}", ex);
             throw ExceptionFactory.serviceVersionUpdateException("Target creation");
         }
@@ -1213,7 +1224,7 @@ public class GatewayClient {
     public KongUpstreamTargetList listActiveKongUpstreamTargets(String upstreamName) {
         try {
             return httpClient.listActiveKongUpstreamTargets(upstreamName);
-        } catch (Exception ex) {
+        } catch (RetrofitError ex) {
             return null;
         }
     }

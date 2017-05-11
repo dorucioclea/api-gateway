@@ -705,13 +705,4 @@ public final class ExceptionFactory {
     public static MailProviderNotFoundException mailProviderNotFoundException(Long id) {
         return new MailProviderNotFoundException(Messages.i18n.format("mailproviderNotFound", id));
     }
-
-    /**
-     * Creates an exception
-     * @param message
-     * @return
-     */
-    public static InvalidLoadBalancingConfigurationException invalidLoadBalancingConfigurationException(String message) {
-        return new InvalidLoadBalancingConfigurationException(message);
-    }
 }
