@@ -1,20 +1,20 @@
 package com.t1t.apim.beans.services;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import java.io.Serializable;
 
-@Embeddable
+/**
+ * @author Guillaume Vandecasteele
+ * @since 2017
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ServiceUpstreamTargetBean implements Serializable {
+public class ServiceUpstreamRequest implements Serializable {
 
-    @Column(name = "target", nullable=false)
     private String target;
-    @Column(name = "port")
     private Long port;
-    @Column(name = "weight", nullable=false)
     private Long weight;
 
     public String getTarget() {
@@ -44,28 +44,26 @@ public class ServiceUpstreamTargetBean implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ServiceUpstreamTargetBean)) return false;
+        if (!(o instanceof ServiceUpstreamRequest)) return false;
 
-        ServiceUpstreamTargetBean that = (ServiceUpstreamTargetBean) o;
+        ServiceUpstreamRequest that = (ServiceUpstreamRequest) o;
 
-        if (target != null ? !target.equals(that.target) : that.target != null) return false;
+        if (!target.equals(that.target)) return false;
         if (port != null ? !port.equals(that.port) : that.port != null) return false;
-        if (weight != null ? !weight.equals(that.weight) : that.weight != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = target != null ? target.hashCode() : 0;
+        int result = target.hashCode();
         result = 31 * result + (port != null ? port.hashCode() : 0);
-        result = 31 * result + (weight != null ? weight.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "ServiceUpstreamTargetBean{" +
+        return "ServiceUpstreamRequest{" +
                 "target='" + target + '\'' +
                 ", port=" + port +
                 ", weight=" + weight +

@@ -20,6 +20,7 @@ import com.t1t.apim.beans.categories.TagBean;
 import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.contracts.NewContractBean;
 import com.t1t.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.apim.beans.dto.ServiceUpstreamsDtoBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.events.NewEventBean;
@@ -1086,7 +1087,72 @@ public class OrganizationFacade {
         return rval;
     }
 
-    public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) {
+    public ServiceUpstreamsDtoBean getServiceUpstreamTargets(String organizationId, String serviceId, String version) {
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        return DtoFactory.createServiceUpstreamDtoBean(svb);
+    }
+
+    public ServiceUpstreamsDtoBean addServiceUpstreamTarget(String organizationId, String serviceId, String version, ServiceUpstreamRequest request) {
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        if (svb.getStatus().equals(ServiceStatus.Retired)) throw ExceptionFactory.invalidServiceStatusException();
+        ServiceUpstreamTargetBean target = new ServiceUpstreamTargetBean();
+        target.setPort(request.getPort());
+        target.setWeight(request.getWeight());
+        target.setTarget(request.getTarget());
+        svb.getUpstreamTargets().add(target);
+        if (svb.getStatus().equals(ServiceStatus.Deprecated) || svb.getStatus().equals(ServiceStatus.Published)) {
+            String gwId = ServiceConventionUtil.generateServiceUniqueName(svb);
+            List<IGatewayLink> serviceGatewayLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
+            // If the service is published/deprecated on the gateway, it should already have at least one upstream
+            for (IGatewayLink gw : serviceGatewayLinks) {
+                try {
+                    if (svb.getUpstreamTargets().size() == 2) {
+                        //This means that there was previously only one upstream and that no virtual host was set
+                        gw.createServiceUpstream(organizationId, serviceId, version);
+
+                    }
+                    gw.createOrUpdateServiceUpstreamTarget(gwId, target);
+                }
+                catch (Exception ex) {
+
+                }
+            }
+        }
+        try {
+            storage.updateServiceVersion(svb);
+        } catch (StorageException e) {
+            throw ExceptionFactory.systemErrorException(e);
+        }
+        return DtoFactory.createServiceUpstreamDtoBean(svb);
+    }
+
+    public void removeServiceUpstreamTarget(String organizationId, String serviceId, String version, ServiceUpstreamRequest request) {
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        if (svb.getStatus().equals(ServiceStatus.Retired)) throw ExceptionFactory.invalidServiceStatusException();
+        ServiceUpstreamTargetBean target = new ServiceUpstreamTargetBean();
+        target.setPort(request.getPort());
+        target.setWeight(request.getWeight());
+        target.setTarget(request.getTarget());
+        svb.getUpstreamTargets().add(target);
+        if (svb.getStatus().equals(ServiceStatus.Deprecated) || svb.getStatus().equals(ServiceStatus.Published)) {
+            String gwId = ServiceConventionUtil.generateServiceUniqueName(svb);
+            List<IGatewayLink> serviceGatewayLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
+            // If the service is published/deprecated on the gateway, it should already have at least one upstream
+            for (IGatewayLink gw : serviceGatewayLinks) {
+                if (svb.getUpstreamTargets().size() == 2) {
+                    gw.createServiceUpstream(organizationId, serviceId, version);
+                }
+                gw.createOrUpdateServiceUpstreamTarget(gwId, target);
+            }
+        }
+        try {
+            storage.updateServiceVersion(svb);
+        } catch (StorageException e) {
+            throw ExceptionFactory.systemErrorException(e);
+        }
+    }
+
+    /*public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         if (svb.getStatus() == ServiceStatus.Retired) throw ExceptionFactory.invalidServiceStatusException();
         EntityUpdatedData data = new EntityUpdatedData();
@@ -1160,7 +1226,7 @@ public class OrganizationFacade {
                 }
                 svb.setUpstreamTargets(bean.getUpstreamTargets());
                 gwLinks.forEach(gw -> {
-                    gw.createOrUpdateServiceUpstreamTargets(ServiceConventionUtil.generateServiceUniqueName(svb), processedTargets);
+                    gw.createOrUpdateServiceUpstreamTarget(ServiceConventionUtil.generateServiceUniqueName(svb), processedTargets);
                 });
 
             }
@@ -1177,20 +1243,20 @@ public class OrganizationFacade {
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
-    }
+    }*/
 
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
         EntityUpdatedData data = new EntityUpdatedData();
         boolean gwValueChanged = false;
         if (svb.getStatus() != ServiceStatus.Retired) {
-            if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
+            /*if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
                 data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
                 svb.setEndpoint(URIUtils.uriBackslashRemover(bean.getEndpoint()));
                 //If the service is already published, update the upstream URL's on the gateways the service is published on
                 gwValueChanged = true;
                 log.debug("BEAN ENDPOINT UPDATED");
-            }
+            }*/
             if (AuditUtils.valueChanged(svb.getHostnames(), bean.getHostnames())) {
                 data.addChange("hostnames", svb.getHostnames() == null ? "" : svb.getHostnames().toString(), bean.getHostnames() == null ? "" : bean.getHostnames().toString());
                 svb.setHostnames(bean.getHostnames());

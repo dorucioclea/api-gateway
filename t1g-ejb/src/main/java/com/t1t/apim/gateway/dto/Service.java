@@ -1,5 +1,6 @@
 package com.t1t.apim.gateway.dto;
 
+import com.t1t.apim.beans.services.SchemeType;
 import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 
 import java.io.Serializable;
@@ -18,14 +19,15 @@ public class Service implements Serializable {
     private String serviceId;
     private String version;
     private String endpointType;
-    private String endpoint;
+    private SchemeType upstreamScheme;
+    private String upstreamPath;
     private Set<String> basepaths;
     private Set<String> hosts;
     private Map<String, String> endpointProperties = new HashMap<>();
     private List<Policy> servicePolicies = new ArrayList<>();
     private Set<String> brandings;
     private boolean customLoadBalancing;
-    private Set<ServiceUpstreamTargetBean> upstreamTargets;
+    private List<ServiceUpstreamTargetBean> upstreamTargets;
     
     /**
      * Constructor.
@@ -88,17 +90,31 @@ public class Service implements Serializable {
     }
 
     /**
-     * @return the endpoint
+     * @return the upstream scheme
      */
-    public String getEndpoint() {
-        return endpoint;
+    public SchemeType getUpstreamScheme() {
+        return upstreamScheme;
     }
 
     /**
-     * @param endpoint the endpoint to set
+     * @param upstreamScheme the upstream scheme to set
      */
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
+    public void setUpstreamScheme(SchemeType upstreamScheme) {
+        this.upstreamScheme = upstreamScheme;
+    }
+
+    /**
+     * @return the upstream path
+     */
+    public String getUpstreamPath() {
+        return upstreamPath;
+    }
+
+    /**
+     * @param upstreamPath the upstream path to set
+     */
+    public void setUpstreamPath(String upstreamPath) {
+        this.upstreamPath = upstreamPath;
     }
 
     /**
@@ -216,14 +232,14 @@ public class Service implements Serializable {
     /**
      * @return the upstream targets
      */
-    public Set<ServiceUpstreamTargetBean> getUpstreamTargets() {
+    public List<ServiceUpstreamTargetBean> getUpstreamTargets() {
         return upstreamTargets;
     }
 
     /**
      * @param upstreamTargets the upstream targets to set
      */
-    public void setUpstreamTargets(Set<ServiceUpstreamTargetBean> upstreamTargets) {
+    public void setUpstreamTargets(List<ServiceUpstreamTargetBean> upstreamTargets) {
         this.upstreamTargets = upstreamTargets;
     }
 
@@ -278,7 +294,8 @@ public class Service implements Serializable {
                 ", serviceId='" + serviceId + '\'' +
                 ", version='" + version + '\'' +
                 ", endpointType='" + endpointType + '\'' +
-                ", endpoint='" + endpoint + '\'' +
+                ", upstreamScheme=" + upstreamScheme +
+                ", upstreamPath='" + upstreamPath + '\'' +
                 ", basepaths=" + basepaths +
                 ", hosts=" + hosts +
                 ", endpointProperties=" + endpointProperties +

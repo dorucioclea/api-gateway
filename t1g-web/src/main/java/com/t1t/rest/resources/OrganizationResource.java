@@ -13,6 +13,7 @@ import com.t1t.apim.beans.contracts.ContractCancellationBean;
 import com.t1t.apim.beans.contracts.NewContractBean;
 import com.t1t.apim.beans.contracts.NewContractRequestBean;
 import com.t1t.apim.beans.dto.PolicyDtoBean;
+import com.t1t.apim.beans.dto.ServiceUpstreamsDtoBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.exceptions.ErrorBean;
 import com.t1t.apim.beans.idm.GrantRoleBean;
@@ -46,12 +47,12 @@ import com.t1t.apim.rest.impl.util.FieldValidator;
 import com.t1t.apim.rest.resources.IOrganizationResource;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.kong.model.KongPluginConfigList;
+import com.t1t.util.ResponseFactory;
 import com.t1t.util.ValidationUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.DomainValidator;
+import org.apache.commons.validator.routines.InetAddressValidator;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -68,6 +69,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * This is the rest endpoint implementation.
@@ -938,19 +941,86 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
-        Set<String> consentPrefixes = new HashSet<>();
+        /*Set<String> consentPrefixes = new HashSet<>();
         try {
             consentPrefixes.addAll(query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)));
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
-        }
+        }*/
         ServiceVersionBean svb = orgFacade.getServiceVersion(organizationId, serviceId, version);
         //TODO - Remove provision key from bean
         /*if (!(securityContext.hasPermission(PermissionType.svcEdit, organizationId) || consentPrefixes.contains(appContext.getApplicationPrefix()))) {
             svb.setProvisionKey(null);
         }*/
         return svb;
+    }
+
+    @ApiOperation(value = "Get Service Version Upstreams",
+            notes = "Use this endpoint to get a list of the service versions upstreams")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ServiceUpstreamsDtoBean.class, message = "Service version upstreams"),
+            @ApiResponse(code = 400, response = ErrorBean.class, message = "Error occurred")
+    })
+    @GET
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/upstreams")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getServiceVersionUpstreams(@PathParam("organizationId") String organizationId,
+                                                @PathParam("serviceId") String serviceId,
+                                                @PathParam("version") String version) throws ServiceVersionNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
+        if (!securityContext.hasPermission(PermissionType.svcView, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        return ResponseFactory.buildResponse(OK, orgFacade.getServiceUpstreamTargets(organizationId, serviceId, version));
+    }
+
+    @ApiOperation(value = "Add Service Version Upstream",
+            notes = "Use this endpoint to add an upstream target to the service version")
+    @ApiResponses({
+            @ApiResponse(code = 201, response = ServiceUpstreamsDtoBean.class, message = "Created"),
+            @ApiResponse(code = 400, response = ErrorBean.class, message = "Error occurred")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/upstreams/add")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addServiceVersionUpstream(@PathParam("organizationId") String organizationId,
+                                              @PathParam("serviceId") String serviceId,
+                                              @PathParam("version") String version, @ApiParam ServiceUpstreamRequest request) throws ServiceVersionNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "Request body"));
+        Preconditions.checkArgument(!StringUtils.isNotEmpty(request.getTarget()), Messages.i18n.format("emptyValue", "\"target\""));
+        Preconditions.checkArgument(InetAddressValidator.getInstance().isValid(request.getTarget()) || DomainValidator.getInstance().isValid(request.getTarget()), Messages.i18n.format("invalidTarget"));
+        Preconditions.checkNotNull(request.getPort(), Messages.i18n.format("nullValue", "\"port\""));
+        Preconditions.checkArgument(request.getPort() > 0 && request.getPort() <= 65535, Messages.i18n.format("invalidPort"));
+        Preconditions.checkArgument(request.getWeight() == null || (request.getWeight() >= 0 && request.getWeight() <= 1000), Messages.i18n.format("invalidWeight"));
+        return ResponseFactory.buildResponse(OK, orgFacade.addServiceUpstreamTarget(organizationId, serviceId, version, request));
+    }
+
+    @ApiOperation(value = "Remove Service Version Upstream",
+            notes = "Use this endpoint to remove an upstream target from the service version")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Deleted"),
+            @ApiResponse(code = 400, response = ErrorBean.class, message = "Error occurred")
+    })
+    @POST
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/upstreams/remove")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeServiceVersionUpstream(@PathParam("organizationId") String organizationId,
+                                              @PathParam("serviceId") String serviceId,
+                                              @PathParam("version") String version, @ApiParam ServiceUpstreamRequest request) throws ServiceVersionNotFoundException, NotAuthorizedException {
+        Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Version"));
+
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "Request body"));
+        Preconditions.checkArgument(!StringUtils.isNotEmpty(request.getTarget()), Messages.i18n.format("emptyValue", "\"target\""));
+        Preconditions.checkNotNull(request.getPort(), Messages.i18n.format("nullValue", "\"port\""));
+        return ResponseFactory.buildResponse(OK, orgFacade.getServiceUpstreamTargets(organizationId, serviceId, version));
     }
 
     @ApiOperation(value = "Get Service Definition",
@@ -2357,7 +2427,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.removeServiceBranding(organizationId, serviceId, brandingId);
     }
 
-    @Override
+    /*@Override
     @ApiOperation("Create custom load balancing")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Successful, no content")
@@ -2373,5 +2443,5 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Configuration"));
         Preconditions.checkNotNull(bean.getCustomLoadBalancing(), Messages.i18n.format("nullValue", "Custom load balancing toggle"));
         orgFacade.updateServiceVersionLoadBalancing(organizationId, serviceId, version, bean);
-    }
+    }*/
 }

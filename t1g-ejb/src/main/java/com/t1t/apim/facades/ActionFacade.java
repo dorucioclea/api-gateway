@@ -140,7 +140,9 @@ public class ActionFacade {
         }
 
         Service gatewaySvc = new Service();
-        gatewaySvc.setEndpoint(versionBean.getEndpoint());
+        //gatewaySvc.setEndpoint(versionBean.getEndpoint());
+        gatewaySvc.setUpstreamScheme(versionBean.getUpstreamScheme());
+        gatewaySvc.setUpstreamPath(versionBean.getUpstreamPath());
         gatewaySvc.setEndpointType(versionBean.getEndpointType().toString());
         gatewaySvc.setEndpointProperties(versionBean.getEndpointProperties());
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
@@ -149,7 +151,7 @@ public class ActionFacade {
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
         gatewaySvc.setBrandings(versionBean.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));
-        gatewaySvc.setUpstreamTargets(versionBean.getUpstreamTargets());
+        gatewaySvc.setUpstreamTargets(new ArrayList<>(versionBean.getUpstreamTargets()));
         gatewaySvc.setCustomLoadBalancing(versionBean.getCustomLoadBalancing());
 
         try {

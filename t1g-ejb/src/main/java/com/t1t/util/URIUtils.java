@@ -1,5 +1,6 @@
 package com.t1t.util;
 
+import com.t1t.apim.beans.services.SchemeType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.MalformedURLException;
@@ -46,15 +47,14 @@ public class URIUtils {
         else return uri;
     }
 
-    public static String replaceHost(String uri, String newHost) {
-        StringBuilder rval = new StringBuilder();
-        if (uri.toLowerCase().startsWith("https://") || uri.toLowerCase().startsWith("http://")) {
-
+    public static String buildEndpoint(SchemeType scheme, String host, Long port, String path) {
+        try {
+            return new URI(scheme.getScheme(), null, host, port == null ? -1 : port.intValue(), path, null, null).toString();
         }
-        else {
-
+        catch (URISyntaxException ex) {
+            ex.printStackTrace();
+            return null;
         }
-        return rval.toString();
     }
 
     public static String appendPort(String dns, Long port) {

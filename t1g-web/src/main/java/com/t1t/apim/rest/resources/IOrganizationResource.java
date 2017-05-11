@@ -31,6 +31,7 @@ import com.t1t.apim.beans.support.*;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.*;
 
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -665,6 +666,41 @@ public interface IOrganizationResource {
      */
     public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version)
             throws ServiceVersionNotFoundException, NotAuthorizedException;
+
+    /**
+     * Use this endpoint to retrieve a service versions upstream targets.
+     * @param organizationId the organization ID.
+     * @param serviceId the service ID.
+     * @param version the service version.
+     * @return service upstreams
+     * @throws ServiceVersionNotFoundException
+     * @throws NotAuthorizedException
+     */
+    public Response getServiceVersionUpstreams(String organizationId, String serviceId, String version) throws ServiceVersionNotFoundException, NotAuthorizedException;
+
+    /**
+     * Use this endpoint to add an upstream target to the service version.
+     * @param organizationId the organization ID.
+     * @param serviceId the service ID.
+     * @param version the service version.
+     * @param request the upstream to add
+     * @return service upstreams
+     * @throws ServiceVersionNotFoundException
+     * @throws NotAuthorizedException
+     */
+    public Response addServiceVersionUpstream(String organizationId, String serviceId, String version, ServiceUpstreamRequest request) throws ServiceVersionNotFoundException, NotAuthorizedException;
+
+    /**
+     * Use this endpoint to remove an upstream target from the service version.
+     * @param organizationId the organization ID.
+     * @param serviceId the service ID.
+     * @param version the service version.
+     * @param request the upstream to remove
+     * @return response
+     * @throws ServiceVersionNotFoundException
+     * @throws NotAuthorizedException
+     */
+    public Response removeServiceVersionUpstream(String organizationId, String serviceId, String version, ServiceUpstreamRequest request) throws ServiceVersionNotFoundException, NotAuthorizedException;
 
     /**
      * Use this endpoint to retrieve the Service's definition document.  A service
@@ -1569,5 +1605,5 @@ public interface IOrganizationResource {
      * @param bean
      * @throws NotAuthorizedException
      */
-    public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) throws NotAuthorizedException;
+    //public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) throws NotAuthorizedException;
 }

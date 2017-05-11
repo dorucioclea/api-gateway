@@ -107,7 +107,8 @@ public class ServiceVersionBean implements Serializable {
     @Column(name = "custom_load_balancing")
     private Boolean customLoadBalancing;
     @Column(name = "upstream_scheme")
-    private String upstreamScheme;
+    @Enumerated(EnumType.STRING)
+    private SchemeType upstreamScheme;
     @Column(name = "upstream_path")
     private String upstreamPath;
     @ElementCollection(fetch=FetchType.EAGER)
@@ -552,14 +553,14 @@ public class ServiceVersionBean implements Serializable {
     /**
      * @return the upstream scheme
      */
-    public String getUpstreamScheme() {
+    public SchemeType getUpstreamScheme() {
         return upstreamScheme;
     }
 
     /**
      * @param upstreamScheme the upstream scheme to set
      */
-    public void setUpstreamScheme(String upstreamScheme) {
+    public void setUpstreamScheme(SchemeType upstreamScheme) {
         this.upstreamScheme = upstreamScheme;
     }
 

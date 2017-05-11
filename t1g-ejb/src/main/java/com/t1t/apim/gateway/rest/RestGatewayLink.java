@@ -535,12 +535,12 @@ public class RestGatewayLink implements IGatewayLink {
     }
 
     @Override
-    public void createServiceUpstream(String organizationId, String serviceId, String version, Set<ServiceUpstreamTargetBean> targets) {
-        getClient().createServiceUpstream(organizationId, serviceId, version, targets);
+    public void createServiceUpstream(String organizationId, String serviceId, String version) {
+        getClient().createServiceUpstream(organizationId, serviceId, version);
     }
 
     @Override
-    public void createOrUpdateServiceUpstreamTargets(String upstreamVirtualHost, Set<ServiceUpstreamTargetBean> targets) {
-        getClient().createOrUpdateServiceUpstreamTargets(upstreamVirtualHost, targets);
+    public void createOrUpdateServiceUpstreamTarget(String upstreamVirtualHost, ServiceUpstreamTargetBean target) {
+        getClient().createOrUpdateServiceUpstreamTargets(upstreamVirtualHost, target);
     }
 }

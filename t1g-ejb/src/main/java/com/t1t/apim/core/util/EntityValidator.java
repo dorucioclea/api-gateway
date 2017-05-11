@@ -1,6 +1,7 @@
 package com.t1t.apim.core.util;
 
 import com.t1t.apim.beans.apps.ApplicationVersionBean;
+import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.ContractSummaryBean;
 import com.t1t.apim.core.IApplicationValidator;
@@ -73,6 +74,12 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
     @Override
     public boolean isReady(ServiceVersionBean service) {
         boolean ready = true;
+        if (service.getUpstreamTargets() == null || service.getUpstreamTargets().isEmpty()) {
+            ready = false;
+        }
+        if (service.getUpstreamScheme() == null) {
+            ready = false;
+        }
         if (service.getEndpoint() == null || service.getEndpoint().trim().length() == 0) {
             ready = false;
         }

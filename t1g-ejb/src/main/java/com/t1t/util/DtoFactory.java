@@ -3,6 +3,7 @@ package com.t1t.util;
 import com.t1t.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.apim.beans.dto.GatewayDtoBean;
 import com.t1t.apim.beans.dto.PolicyDtoBean;
+import com.t1t.apim.beans.dto.ServiceUpstreamsDtoBean;
 import com.t1t.apim.beans.dto.UserDtoBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.idm.UserBean;
@@ -10,6 +11,8 @@ import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.apim.beans.summary.ServiceVersionSummaryBean;
+
+import java.util.ArrayList;
 
 /**
  * @author Guillaume Vandecasteele
@@ -122,6 +125,17 @@ public class DtoFactory {
             rval.setPublicService(svb.isPublicService());
             rval.setStatus(svb.getStatus());
             rval.setVersion(svb.getVersion());
+        }
+        return rval;
+    }
+
+    public static ServiceUpstreamsDtoBean createServiceUpstreamDtoBean(ServiceVersionBean svb) {
+        ServiceUpstreamsDtoBean rval = null;
+        if (svb != null) {
+            rval = new ServiceUpstreamsDtoBean();
+            rval.setScheme(svb.getUpstreamScheme());
+            rval.setTargets(new ArrayList<>(svb.getUpstreamTargets()));
+            rval.setPath(svb.getUpstreamPath());
         }
         return rval;
     }

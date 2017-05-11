@@ -407,7 +407,14 @@ public class GatewayClient {
         //version wil be: organization.application.version
         api.setHosts(service.getHosts() == null ? Collections.emptyList() : new ArrayList<>(service.getHosts()));
         //real URL to target
-        api.setUpstreamUrl(service.getEndpoint());
+        String upstreamUri = null;
+        if (service.getUpstreamTargets().size() > 1) {
+            upstreamUri = URIUtils.buildEndpoint(service.getUpstreamScheme(), name, null, service.getUpstreamPath());
+        }
+        else if (service.getUpstreamTargets().size() == 1) {
+            upstreamUri = URIUtils.buildEndpoint(service.getUpstreamScheme(), service.getUpstreamTargets().get(0).getTarget(), service.getUpstreamTargets().get(0).getPort(), service.getUpstreamPath());
+        }
+        api.setUpstreamUrl(upstreamUri);
         //context path that will be stripped away
         api.setUris(validateServicePath(service));
         log.info("Send to Kong:{}", api.toString());
@@ -423,6 +430,13 @@ public class GatewayClient {
                     //execute policy
                     createServicePolicy(service.getOrganizationId(), service.getServiceId(), service.getVersion(), policy);
                 }
+                //Create the upstream and targets & check if the endpoint host has been replace with a virtual host
+                if (service.getUpstreamTargets().size() > 1) {
+                    createServiceUpstream(service.getOrganizationId(), service.getServiceId(), service.getVersion());
+                    for (ServiceUpstreamTargetBean target : service.getUpstreamTargets()) {
+                        createOrUpdateServiceUpstreamTargets(name, target);
+                    }
+                }
             }catch (Exception e){
                 //if anything goes wrong, return exception and rollback api created
                 if(api!=null&&!StringUtils.isEmpty(api.getId())){
@@ -430,11 +444,6 @@ public class GatewayClient {
                 }
                 throw new SystemErrorException(e);
             }
-        }
-
-        //Create the upstream and targets & heck if the endpoint host has been replace with a virtual host
-        if (service.isCustomLoadBalancing() && service.getEndpoint().toLowerCase().contains(ServiceConventionUtil.generateServiceUniqueName(service))) {
-            createServiceUpstream(service.getOrganizationId(), service.getServiceId(), service.getVersion(), service.getUpstreamTargets());
         }
 
         //Create branding APIs
@@ -827,7 +836,6 @@ public class GatewayClient {
 
     public KongApi updateServiceVersionOnGateway(ServiceVersionBean svb) {
         KongApi api = getApi(ServiceConventionUtil.generateServiceUniqueName(svb));
-        api.setUpstreamUrl(svb.getEndpoint());
         api.setHosts(svb.getHostnames() == null ? Collections.emptyList() : new ArrayList<>(svb.getHostnames()));
         api.setUris(GatewayPathUtilities.generateGatewayContextPath(svb.getService().getOrganization().getId(), svb.getService().getBasepaths(), svb.getVersion()));
         api.setUpstreamConnectTimeout(svb.getUpstreamConnectTimeout());
@@ -1170,67 +1178,42 @@ public class GatewayClient {
         try {
             return httpClient.getKongUpstream(upstreamName);
         }
-        catch (RetrofitError ex) {
+        catch (Exception ex) {
             return null;
         }
     }
 
-    public void createServiceUpstream(String organizationId, String serviceId, String version, Set<ServiceUpstreamTargetBean> targets) {
+    public void createServiceUpstream(String organizationId, String serviceId, String version) {
         String upstreamName = ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version);
         try {
             if (getServiceUpstream(upstreamName) == null) {
-                KongUpstream upstream = new KongUpstream().withName(upstreamName);
-                //If there are more than 10 targets, increase the default slots size
-                if (targets.size() > 10) {
-                    upstream.setSlots(targets.size() * 100L);
-                }
-                //TODO - According to Kong 0.10.1 documentation, default should be 1000, but as of right now, it is actually 100.
-                else {
-                    upstream.setSlots(1000L);
-                }
+                KongUpstream upstream = new KongUpstream().withName(upstreamName).withSlots(1000L);
                 httpClient.createKongUpstream(upstream);
-                for (ServiceUpstreamTargetBean targetBean : targets) {
-                    KongUpstreamTarget target = new KongUpstreamTarget().withTarget(targetBean.getTarget()).withWeight(targetBean.getWeight());
-                    httpClient.createKongUpstreamTarget(upstreamName, target);
-                }
             }
         }
-        catch (RetrofitError ex) {
-            deleteServiceUpstream(upstreamName);
-            throw ex;
+        catch (Exception ex) {
+            log.error("Error creating upstream: {}", ex);
+            throw ExceptionFactory.serviceVersionUpdateException("Upstream creation");
         }
     }
 
-    public void createOrUpdateServiceUpstreamTargets(String upstreamName, Set<ServiceUpstreamTargetBean> targets) {
+    public void createOrUpdateServiceUpstreamTargets(String upstreamName, ServiceUpstreamTargetBean target) {
         KongUpstream upstream = getServiceUpstream(upstreamName);
-        KongUpstreamTargetList activeTargets = listActiveKongUpstreamTargets(upstreamName);
         try {
             if (upstream != null) {
-                for (ServiceUpstreamTargetBean targetBean : targets) {
-                    httpClient.createKongUpstreamTarget(upstreamName, new KongUpstreamTarget().withTarget(targetBean.getTarget()).withWeight(targetBean.getWeight()));
-                }
+                httpClient.createKongUpstreamTarget(upstreamName, new KongUpstreamTarget().withTarget(URIUtils.appendPort(target.getTarget(), target.getPort())).withWeight(target.getWeight()));
             }
         }
-        catch (RetrofitError ex) {
-            //Restore the active targets to their original state
-            if (activeTargets != null) {
-                for (KongUpstreamTarget target : activeTargets.getData()) {
-                    try {
-                        httpClient.createKongUpstreamTarget(upstreamName, target);
-                    } catch (RetrofitError error) {
-                        //We tried our best
-                        log.error("Error restoring original targets: {}", error.getBody());
-                    }
-                }
-            }
-            throw ex;
+        catch (Exception ex) {
+            log.error("Error creating an upstream target: {}", ex);
+            throw ExceptionFactory.serviceVersionUpdateException("Target creation");
         }
     }
 
     public KongUpstreamTargetList listActiveKongUpstreamTargets(String upstreamName) {
         try {
             return httpClient.listActiveKongUpstreamTargets(upstreamName);
-        } catch (RetrofitError ex) {
+        } catch (Exception ex) {
             return null;
         }
     }

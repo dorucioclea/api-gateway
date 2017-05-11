@@ -623,16 +623,17 @@ public interface IGatewayLink {
 
     /**
      * Creates an upstream virtual host and its targets on the gateway
-     * @param serviceVersionBean
-     * @param targets
+     * @param organizationId
+     * @param serviceId
+     * @param version
      */
-    public void createServiceUpstream(String organizationId, String serviceId, String version, Set<ServiceUpstreamTargetBean> targets);
+    public void createServiceUpstream(String organizationId, String serviceId, String version);
 
     /**
      * Updates an upstream virtual host's targets on the gateway
      * @param upstreamVirtualHost
-     * @param targets
+     * @param target
      */
-    public void createOrUpdateServiceUpstreamTargets(String upstreamVirtualHost, Set<ServiceUpstreamTargetBean> targets);
+    public void createOrUpdateServiceUpstreamTarget(String upstreamVirtualHost, ServiceUpstreamTargetBean target);
 
 }

@@ -19,7 +19,7 @@ public class BeanUtils {
         return name.replaceAll("[^\\w-\\.]", "").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
-    /**p
+    /**
      * Validates that a version string is OK - doesn't contain any
      * illegal characters.
      * @param version the version

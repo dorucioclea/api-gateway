@@ -145,6 +145,10 @@
            <groupId>junit</groupId>
            <artifactId>junit</artifactId>
            <scope>test</scope>
+       </dependency><!-- Apache commons validators -->
+       <dependency>
+           <groupId>commons-validator</groupId>
+           <artifactId>commons-validator</artifactId>
        </dependency>
    </dependencies>
 
