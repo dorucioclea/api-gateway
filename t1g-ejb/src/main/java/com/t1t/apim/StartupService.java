@@ -1,7 +1,10 @@
 package com.t1t.apim;
 
 import com.google.gson.Gson;
+import com.t1t.apim.beans.idp.IDPBean;
+import com.t1t.apim.beans.idp.KeystoreBean;
 import com.t1t.apim.beans.jwt.IJWT;
+import com.t1t.apim.beans.mail.MailProviderBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.core.IStorage;
@@ -10,6 +13,7 @@ import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.facades.GatewayFacade;
 import com.t1t.apim.gateway.IGatewayLink;
+import com.t1t.apim.idp.IDPClient;
 import com.t1t.apim.idp.IDPLinkFactory;
 import com.t1t.apim.mail.MailService;
 import com.t1t.kong.model.*;
@@ -74,6 +78,40 @@ public class StartupService {
 
     private void verifyEngineDependencies() {
         //TODO - Verify that the engine's datastore is configured correctly and populated with the necessary entries for basic functionality
+        try {
+            verifyIdpRealm();
+        }
+        catch (Exception ex) {
+            _LOG.error("Error creating engine dependencies: {}", ex);
+        }
+    }
+
+    private void verifyIdpRealm() {
+        try {
+            IDPBean idp = query.getDefaultIdp();
+            KeystoreBean keystore = query.getDefaultKeystore();
+            MailProviderBean mailProvider = query.getDefaultMailProvider();
+            if (idp != null && StringUtils.isNotEmpty(idp.getId()) && StringUtils.isNotEmpty(idp.getDefaultRealm())) {
+                IDPClient client = idpLinkFactory.getIDPClient(idp.getId());
+                if (!client.realmExists(idp.getDefaultRealm())) {
+                    client.createRealm(idp.getDefaultRealm(), idp.getDefaultRealm(), keystore, mailProvider);
+                }
+                if (!client.realmKeystoreExists(idp.getDefaultRealm(), keystore.getKid())) {
+                    client.setRealmKeystore(idp.getDefaultRealm(), keystore);
+                }
+                if (!client.realmMailProviderExsists(idp.getDefaultRealm(), mailProvider)) {
+                    client.setRealmMailProvider(idp.getDefaultRealm(), mailProvider);
+                }
+                query.getManagedAppForTypes(Arrays.asList(ManagedApplicationTypes.Publisher, ManagedApplicationTypes.InternalMarketplace, ManagedApplicationTypes.ExternalMarketplace)).forEach(mab -> {
+                    if (StringUtils.isNotEmpty(mab.getIdpClient()) && !client.clientExistsInRealm(mab.getIdpClient(), idp.getDefaultRealm())) {
+
+                    }
+                });
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 
     private void verifyOrCreateGatewayDependencies() throws StorageException {

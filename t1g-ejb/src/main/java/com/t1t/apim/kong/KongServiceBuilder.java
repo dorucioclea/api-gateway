@@ -1,6 +1,5 @@
 package com.t1t.apim.kong;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.apim.kong.adapters.KongSafeTypeAdapterFactory;

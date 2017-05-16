@@ -1,8 +1,6 @@
 package com.t1t.apim.beans.services;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 

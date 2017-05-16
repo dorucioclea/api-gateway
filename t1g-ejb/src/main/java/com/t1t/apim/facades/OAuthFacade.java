@@ -5,7 +5,6 @@ import com.t1t.apim.AppConfig;
 import com.t1t.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.apim.beans.authorization.OAuthApplicationResponse;
 import com.t1t.apim.beans.authorization.OAuthConsumerRequestBean;
-import com.t1t.apim.beans.authorization.OAuthResponseType;
 import com.t1t.apim.beans.authorization.OAuthServiceScopeResponse;
 import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
@@ -33,7 +32,6 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**

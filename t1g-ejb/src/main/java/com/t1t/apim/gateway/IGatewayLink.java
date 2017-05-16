@@ -13,7 +13,6 @@ import com.t1t.apim.gateway.dto.exceptions.RegistrationException;
 import com.t1t.kong.model.*;
 import org.elasticsearch.gateway.GatewayException;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 

@@ -13,6 +13,8 @@ import com.t1t.apim.idp.dto.RealmClient;
  */
 public interface IDPClient {
 
+    Realm createRealm(String realmId, String realmName, KeystoreBean keystore, MailProviderBean mailProvider);
+
     Realm createRealm(OrganizationBean org, KeystoreBean keystore, MailProviderBean mailProvider);
 
     Realm createRealm(OrganizationBean org);
@@ -28,4 +30,16 @@ public interface IDPClient {
     String getRealmPublicKeyInPemFormat(String realmId, String keystoreKid);
 
     String getDefaultPublicKeyInPemFormat();
+
+    boolean realmExists(String realmName);
+
+    boolean realmKeystoreExists(String realmId, String keystoreKid);
+
+    boolean realmMailProviderExsists(String realmId, MailProviderBean mailProvider);
+
+    boolean clientExistsInRealm(String clientId, String realmName);
+
+    void setRealmKeystore(String realmId, KeystoreBean keystore);
+
+    void setRealmMailProvider(String realmId, MailProviderBean mailProvider);
 }

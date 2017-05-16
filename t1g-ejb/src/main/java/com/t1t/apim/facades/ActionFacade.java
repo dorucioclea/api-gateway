@@ -410,13 +410,13 @@ public class ActionFacade {
                         }
                     }
                     Map<Contract, KongPluginConfigList> response = gw.registerApplication(application);
-                    response.entrySet().forEach(entry -> entry.getValue().getData().forEach(plugin -> {
+                    response.forEach((key, value) -> value.getData().forEach(plugin -> {
                         try {
                             if (query.getPolicyByKongPluginId(plugin.getId()) == null) {
                                 NewPolicyBean npb = new NewPolicyBean();
                                 npb.setGatewayId(gw.getGatewayId());
                                 npb.setConfiguration(new Gson().toJson(plugin.getConfig()));
-                                npb.setContractId(entry.getKey().getId());
+                                npb.setContractId(key.getId());
                                 npb.setKongPluginId(plugin.getId());
                                 npb.setDefinitionId(GatewayUtils.convertKongPluginNameToPolicy(plugin.getName()).getPolicyDefId());
                                 //save the policy as a contract policy on the service

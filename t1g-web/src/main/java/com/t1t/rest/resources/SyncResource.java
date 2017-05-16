@@ -35,13 +35,13 @@ public class SyncResource implements ISyncResource {
     }
 
     @Override
-    @ApiOperation(value =  "Sync users",
-            notes = "Sync users")
+    @ApiOperation(value =  "Sync organizations",
+            notes = "Sync organizations")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
     @POST
-    @Path("/users")
+    @Path("/organizations")
     public void syncUsers() {
-        syncFacade.syncUsers();
+        syncFacade.syncOrganizations();
     }
 
     @Override

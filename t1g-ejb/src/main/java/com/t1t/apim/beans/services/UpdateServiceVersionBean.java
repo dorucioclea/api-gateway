@@ -3,9 +3,7 @@ package com.t1t.apim.beans.services;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.apim.beans.visibility.VisibilityBean;
 
-import javax.persistence.Column;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 

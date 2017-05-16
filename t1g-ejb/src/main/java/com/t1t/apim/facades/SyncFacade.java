@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.t1t.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.apim.beans.contracts.ContractBean;
-import com.t1t.apim.beans.plans.PlanVersionBean;
+import com.t1t.apim.beans.idp.KeystoreBean;
+import com.t1t.apim.beans.mail.MailProviderBean;
+import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyType;
@@ -15,6 +17,7 @@ import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.gateway.IGatewayLink;
+import com.t1t.apim.idp.IDPClient;
 import com.t1t.apim.idp.IDPLinkFactory;
 import com.t1t.kong.model.*;
 import com.t1t.util.*;
@@ -43,7 +46,6 @@ public class SyncFacade {
 
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
-    //@Inject private IIdmStorage idmStorage;
     @Inject private GatewayFacade gatewayFacade;
     @Inject private IApiKeyGenerator apiKeyGenerator;
     @Inject private IDPLinkFactory idpLinkFactory;
@@ -53,7 +55,7 @@ public class SyncFacade {
         log.info("===== STARTING ENTIRE SYNC CYCLE =====");
         LocalDateTime start = LocalDateTime.now();
         try {
-            syncUsers();
+            syncOrganizations();
             syncServices();
             syncApplications();
             syncPolicies();
@@ -66,87 +68,59 @@ public class SyncFacade {
         log.info("===== ENTIRE SYNC CYCLE END, COMPLETED IN {} =====", TimeUtil.getTimeSince(start));
     }
 
-    @TransactionTimeout(value = 1, unit = TimeUnit.HOURS)
-    public void syncUsers() {
-
-        /*log.info("==== SYNC USERS START ====");
+    @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
+    public void syncOrganizations() {
+        log.info("==== STARTING ORGANIZATION SYNC ====");
         LocalDateTime start = LocalDateTime.now();
         try {
-            List<IGatewayLink> gateways = query.getAllGateways().stream().map(gwBean -> gatewayFacade.createGatewayLink(gwBean.getId())).collect(Collectors.toList());
-            idmStorage.getAllUsers().forEach(user -> {
-                log.info("=== STARTING SYNC FOR {} WITH ID {} ===", user.getKongUsername(), user.getUsername());
-                String customId = ConsumerConventionUtil.createUserUniqueId(user.getUsername());
-                gateways.forEach(gw -> {
-                    try {
-                        String pubKey = gatewayFacade.get(gw.getGatewayId()).getJWTPubKey();
-                        boolean changed = false;
-                        boolean needsJWtCreds = StringUtils.isEmpty(user.getJwtKey()) || StringUtils.isEmpty(user.getJwtSecret());
-                        KongPluginJWTResponse jwtCred = null;
-                        KongConsumer gwUser = null;
-                        if (StringUtils.isNotEmpty(user.getKongUsername())) {
-                            gwUser = gw.getConsumer(user.getKongUsername());
-                        }
-                        if (gwUser == null) {
-                            gwUser = gw.getConsumerByCustomId(customId);
-                        }
-                        if (gwUser == null) {
-                            gwUser = StringUtils.isEmpty(user.getKongUsername()) ? gw.createConsumerWithCustomId(customId) : gw.createConsumerWithKongId(user.getKongUsername(), customId);
-                            jwtCred = gw.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
-                            log.info("== SYNC USER WITH KONG ID {} AND USERNAME {} AND CREATED JWT CREDENTIALS ==", user.getKongUsername(), customId);
-                        }
-                        else {
-                            List<KongPluginJWTResponse> jwtCreds = gw.getConsumerJWT(gwUser.getId()).getData();
-                            if (!jwtCreds.isEmpty()) {
-                                jwtCreds.stream().filter(jwt -> {
-                                    boolean baseMatch = !jwt.getAlgorithm().equals(JWT_RS256) || !jwt.getRsaPublicKey().equals(pubKey);
-                                    if (!needsJWtCreds) {
-                                        baseMatch = baseMatch || !jwt.getKey().equals(user.getJwtKey()) || !jwt.getSecret().equals(user.getJwtSecret());
-                                    }
-                                    return baseMatch;
-                                }).forEach(jwt -> gw.deleteConsumerJwtCredential(user.getKongUsername(), jwt.getId()));
-                                jwtCreds = gw.getConsumerJWT(gwUser.getId()).getData();
-                            }
-                            if (jwtCreds.isEmpty()) {
-                                jwtCred = gw.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
-                                log.info("== CREATED JWT CREDENTIALS FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
-                            }
-                            else {
-                                jwtCred = jwtCreds.get(0);
-                                log.info("== NO SYNC NEED FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
-                            }
-                        }
-                        if (StringUtils.isEmpty(user.getKongUsername()) && gwUser != null) {
-                            user.setKongUsername(gwUser.getId());
-                            changed = true;
-                        }
-                        if (needsJWtCreds && jwtCred != null) {
-                            user.setJwtKey(jwtCred.getKey());
-                            user.setJwtSecret(jwtCred.getSecret());
-                            changed = true;
-                        }
-                        if (changed) {
-                            try {
-                                idmStorage.updateUser(user);
-                            } catch (StorageException ex) {
-                                ex.printStackTrace();
-                            }
-                        }
+            IDPClient idp = idpLinkFactory.getDefaultIDPClient();
+            List<OrganizationBean> allOrgs = query.getAllOrgs();
+            for (OrganizationBean o : allOrgs) {
+                log.info("=== START SYNC FOR ORGANIZATION: {} ===", o.getName());
+                boolean changed = false;
+                try {
+                    KeystoreBean keystore = query.getDefaultKeystore();
+                    MailProviderBean mailProvider = query.getDefaultMailProvider();
+                    if (StringUtils.isEmpty(o.getKeystoreKid())) {
+                        if (keystore == null) throw ExceptionFactory.keystoreNotFoundException("default");
+                        o.setKeystoreKid(keystore.getKid());
+                        changed = true;
                     }
-                    catch (Exception ex) {
-                        log.error("=== SYNC FAILED FOR USER WITH KONG ID {} AND USERNAME {} ===", user.getKongUsername(), customId);
+                    if (o.getMailProviderId() == null) {
+                        if (mailProvider == null) throw ExceptionFactory.mailProviderNotFoundException(0L);
+                        o.setMailProviderId(mailProvider.getId());
+                        changed = true;
                     }
-                });
-                log.info("=== SYNC END FOR USER WITH KONG ID {} AND USERNAME {} ===", user.getKongUsername(), user.getUsername());
-            });
-        } catch (Exception e) {
-            log.error("==== SYNC USERS FAILED DUE TO {} ====" + e.getMessage());
-            e.printStackTrace();
+                    if (idp.realmExists(o.getId())) {
+                        log.info("=== REALM {} ALREADY EXISTS ON IDP ===", o.getId());
+                        //Check if the keystore and mailprovider are set
+                        if (!idp.realmKeystoreExists(o.getId(), keystore.getKid())) {
+                            idp.setRealmKeystore(o.getId(), keystore);
+                        }
+                        if (!idp.realmMailProviderExsists(o.getId(), mailProvider)) {
+                            idp.setRealmMailProvider(o.getId(), mailProvider);
+                        }
+                    } else {
+                        idp.createRealm(o, keystore, mailProvider);
+                        log.info("=== REALM CREATED ON IDP ===", o.getId());
+                    }
+                    if (changed) storage.updateOrganization(o);
+                }
+                catch (Exception ex) {
+                    ex.printStackTrace();
+                    log.error("=== SYNC FOR ORGANIZATION {} FAILED DUE TO {}", o.getName(), ex.getMessage());
+                }
+                log.info("=== END SYNC FOR ORGANIZATION: {} ===", o.getName());
+            }
         }
-        log.info("==== SYNC USERS END, COMPLETED IN {} ====", TimeUtil.getTimeSince(start));*/
+        catch (Exception ex) {
+            ex.printStackTrace();
+            log.error("==== ORGANIZATION SYNC FAILED DUE TO {} ====", ex.getMessage());
+        }
+        log.info("==== ORGANIZATION SYNC COMPLETED ====");
     }
 
-
-    @TransactionTimeout(value = 1, unit = TimeUnit.HOURS)
+    @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
     public void syncServices() {
         try {
             LocalDateTime start = LocalDateTime.now();
@@ -609,11 +583,9 @@ public class SyncFacade {
         LocalDateTime start = LocalDateTime.now();
         log.info("=== PLAN POLICY SYNC START ===");
         try {
-            query.getPlanVersionContractMap().entrySet().forEach(entry -> {
-                PlanVersionBean pvb = entry.getKey();
+            query.getPlanVersionContractMap().forEach((pvb, contracts) -> {
                 String planId = ServiceConventionUtil.generateServiceUniqueName(pvb.getPlan().getOrganization().getId(), pvb.getPlan().getId(), pvb.getVersion());
                 try {
-                    List<ContractBean> contracts = entry.getValue();
                     List<PolicyBean> planPolicies = query.getPlanPolicies(pvb);
                     contracts.forEach(contract -> {
                         ServiceVersionBean svb = contract.getService();
@@ -650,32 +622,27 @@ public class SyncFacade {
                                         policy.setGatewayId(gw.getGatewayId());
                                         storage.createPolicy(policy);
                                         log.info("== CONTRACT POLICY DOES NOT EXIST FOR CONTRACT {} UNDER PLAN {} ON GATEWAY {}, CREATED ==", contract.getId(), planId, gw.getGatewayId());
-                                    }
-                                    else {
+                                    } else {
                                         KongPluginConfig plugin = gw.getPlugin(pol.getKongPluginId());
                                         if (plugin == null) {
                                             gw.createApiPlugin(svcId, new KongPluginConfig().withApiId(apiId).withConsumerId(consumerId).withEnabled(true).withName(polDef.getKongIdentifier()).withConfig(gson.fromJson(planPol.getConfiguration(), polDef.getClazz())));
                                             log.info("== CONTRACT POLICY MISSING FOR CONTRACT {} UNDER PLAN {} ON GATEWAY {}, CREATED ==", contract.getId(), planId, gw.getGatewayId());
-                                        }
-                                        else {
+                                        } else {
                                             if (gw.updatePlugin(plugin.withConfig(config)) != null) {
                                                 log.info("== CONTRACT POLICY SYNCED FOR CONTRACT {} UNDER PLAN {} ON GATEWAY {} ==", contract.getId(), planId, gw.getGatewayId());
-                                            }
-                                            else {
+                                            } else {
                                                 log.error("== CONTRACT POLICY SYNC FAILED FOR CONTRACT {} UNDER PLAN {} ON GATEWAY {} ==", contract.getId(), planId, gw.getGatewayId());
                                             }
                                         }
                                     }
-                                }
-                                catch (StorageException ex) {
+                                } catch (StorageException ex) {
                                     log.error("== SYNCING PLAN POLICIES FAILED FOR CONTRACT {} ON GATEWAY {} ==", contract.getId(), gw.getGatewayId());
                                     ex.printStackTrace();
                                 }
                             });
                         });
                     });
-                }
-                catch (StorageException ex) {
+                } catch (StorageException ex) {
                     log.error("== SYNCING POLICIES FOR PLAN {} FAILED ==", planId);
                     ex.printStackTrace();
                 }

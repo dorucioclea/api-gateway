@@ -8,8 +8,6 @@ import com.t1t.apim.beans.search.SearchResultsBean;
 import com.t1t.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.apim.beans.user.ClientTokeType;
-import com.t1t.apim.beans.user.SAMLRequest;
 import com.t1t.apim.core.IIdmStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
@@ -21,13 +19,14 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.opensaml.saml2.common.Extensions;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.mockito.Mockito.*;
 

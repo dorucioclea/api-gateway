@@ -1,6 +1,8 @@
 package com.t1t.apim.auth.rest.resources;
 
-import com.t1t.apim.beans.authorization.*;
+import com.t1t.apim.beans.authorization.OAuthApplicationResponse;
+import com.t1t.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.apim.beans.authorization.OAuthServiceScopeResponse;
 import com.t1t.apim.exceptions.OAuthException;
 import com.t1t.kong.model.KongPluginOAuthConsumerResponse;
 

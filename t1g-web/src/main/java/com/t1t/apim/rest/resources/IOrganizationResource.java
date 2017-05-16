@@ -31,7 +31,6 @@ import com.t1t.apim.beans.support.*;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.*;
 
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.util.List;
 

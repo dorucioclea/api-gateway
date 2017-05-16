@@ -27,7 +27,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
