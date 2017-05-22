@@ -8,6 +8,8 @@ import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.idp.dto.Realm;
 import com.t1t.apim.idp.dto.RealmClient;
 
+import java.util.List;
+
 /**
  * Created by michallispashidis on 15/10/15.
  */
@@ -35,11 +37,17 @@ public interface IDPClient {
 
     boolean realmKeystoreExists(String realmId, String keystoreKid);
 
-    boolean realmMailProviderExsists(String realmId, MailProviderBean mailProvider);
+    boolean realmMailProviderExists(String realmId, MailProviderBean mailProvider);
 
     boolean clientExistsInRealm(String clientId, String realmName);
 
     void setRealmKeystore(String realmId, KeystoreBean keystore);
 
     void setRealmMailProvider(String realmId, MailProviderBean mailProvider);
+
+    RealmClient syncClient(ApplicationVersionBean avb);
+
+    String regenerateClientSecret(String realmId, String idpClientId);
+
+    RealmClient createClient(String defaultRealm, String idpClient, String clientName, String clientSecret, List<String> redirectUris);
 }

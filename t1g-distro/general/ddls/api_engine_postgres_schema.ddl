@@ -221,10 +221,10 @@ CREATE TABLE managed_applications
   app_id VARCHAR(255),
   type VARCHAR(255) NOT NULL,
   prefix VARCHAR(255) NOT NULL,
-  gateway_username VARCHAR(255),
   activated BOOLEAN DEFAULT true,
   restricted BOOLEAN DEFAULT false,
-  idp_client VARCHAR(255) DEFAULT NULL
+  idp_client VARCHAR(255) DEFAULT NULL,
+  redirect_uri VARCHAR(255) DEFAULT NULL
 );
 
 CREATE TABLE memberships

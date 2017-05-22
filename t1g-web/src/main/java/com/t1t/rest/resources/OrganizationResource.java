@@ -12,7 +12,6 @@ import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.contracts.ContractCancellationBean;
 import com.t1t.apim.beans.contracts.NewContractBean;
 import com.t1t.apim.beans.contracts.NewContractRequestBean;
-import com.t1t.apim.beans.dto.PolicyDtoBean;
 import com.t1t.apim.beans.dto.ServiceUpstreamsDtoBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.exceptions.ErrorBean;
@@ -1258,7 +1257,7 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Get Service Policy",
             notes = "Use this endpoint to get information about a single Policy in the Service version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PolicyDtoBean.class, message = "Full information about the Policy.")
+            @ApiResponse(code = 200, response = EnrichedPolicySummaryBean.class, message = "Full information about the Policy.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")

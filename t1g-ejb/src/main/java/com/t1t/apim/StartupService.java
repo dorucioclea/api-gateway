@@ -99,12 +99,12 @@ public class StartupService {
                 if (!client.realmKeystoreExists(idp.getDefaultRealm(), keystore.getKid())) {
                     client.setRealmKeystore(idp.getDefaultRealm(), keystore);
                 }
-                if (!client.realmMailProviderExsists(idp.getDefaultRealm(), mailProvider)) {
+                if (!client.realmMailProviderExists(idp.getDefaultRealm(), mailProvider)) {
                     client.setRealmMailProvider(idp.getDefaultRealm(), mailProvider);
                 }
                 query.getManagedAppForTypes(Arrays.asList(ManagedApplicationTypes.Publisher, ManagedApplicationTypes.InternalMarketplace, ManagedApplicationTypes.ExternalMarketplace)).forEach(mab -> {
                     if (StringUtils.isNotEmpty(mab.getIdpClient()) && !client.clientExistsInRealm(mab.getIdpClient(), idp.getDefaultRealm())) {
-
+                        client.createClient(idp.getDefaultRealm(), mab.getIdpClient(), mab.getName(), null, Collections.singletonList(mab.getRedirectUri()));
                     }
                 });
             }

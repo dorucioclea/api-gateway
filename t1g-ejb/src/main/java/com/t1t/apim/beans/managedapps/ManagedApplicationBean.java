@@ -32,8 +32,6 @@ public class ManagedApplicationBean implements Serializable {
     private String name;
     @Column(name = "version")
     private String version;
-    @Column(name = "gateway_username")
-    private String gatewayUsername;
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(name="managed_application_keys", joinColumns=@JoinColumn(name="managed_app_id"))
     @Column(name = "api_key")
@@ -44,6 +42,8 @@ public class ManagedApplicationBean implements Serializable {
     private Boolean activated;
     @Column(name = "idp_client")
     private String idpClient;
+    @Column(name = "redirect_uri")
+    private String redirectUri;
 
     public ManagedApplicationBean() {}
 
@@ -83,14 +83,6 @@ public class ManagedApplicationBean implements Serializable {
         this.name = name;
     }
 
-    public String getGatewayUsername() {
-        return gatewayUsername;
-    }
-
-    public void setGatewayUsername(String gatewayUsername) {
-        this.gatewayUsername = gatewayUsername;
-    }
-
     public Set<String> getApiKeys() {
         return apiKeys;
     }
@@ -127,6 +119,14 @@ public class ManagedApplicationBean implements Serializable {
         this.idpClient = idpClient;
     }
 
+    public String getRedirectUri() {
+        return redirectUri;
+    }
+
+    public void setRedirectUri(String redirectUri) {
+        this.redirectUri = redirectUri;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -135,34 +135,13 @@ public class ManagedApplicationBean implements Serializable {
         ManagedApplicationBean that = (ManagedApplicationBean) o;
 
         if (!id.equals(that.id)) return false;
-        if (type != that.type) return false;
-        if (gatewayId != null ? !gatewayId.equals(that.gatewayId) : that.gatewayId != null) return false;
-        if (!appId.equals(that.appId)) return false;
-        if (!prefix.equals(that.prefix)) return false;
-        if (!name.equals(that.name)) return false;
-        if (!version.equals(that.version)) return false;
-        if (gatewayUsername != null ? !gatewayUsername.equals(that.gatewayUsername) : that.gatewayUsername != null)
-            return false;
-        if (!apiKeys.equals(that.apiKeys)) return false;
-        if (!restricted.equals(that.restricted)) return false;
-        return activated.equals(that.activated);
 
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + type.hashCode();
-        result = 31 * result + (gatewayId != null ? gatewayId.hashCode() : 0);
-        result = 31 * result + appId.hashCode();
-        result = 31 * result + prefix.hashCode();
-        result = 31 * result + name.hashCode();
-        result = 31 * result + version.hashCode();
-        result = 31 * result + (gatewayUsername != null ? gatewayUsername.hashCode() : 0);
-        result = 31 * result + apiKeys.hashCode();
-        result = 31 * result + restricted.hashCode();
-        result = 31 * result + activated.hashCode();
-        return result;
+        return id.hashCode();
     }
 
     @Override
@@ -175,11 +154,11 @@ public class ManagedApplicationBean implements Serializable {
                 ", prefix='" + prefix + '\'' +
                 ", name='" + name + '\'' +
                 ", version='" + version + '\'' +
-                ", gatewayUsername='" + gatewayUsername + '\'' +
                 ", apiKeys=" + apiKeys +
                 ", restricted=" + restricted +
                 ", activated=" + activated +
                 ", idpClient='" + idpClient + '\'' +
+                ", redirectUri='" + redirectUri + '\'' +
                 '}';
     }
 }

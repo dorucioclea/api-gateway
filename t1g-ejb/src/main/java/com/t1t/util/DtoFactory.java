@@ -2,7 +2,6 @@ package com.t1t.util;
 
 import com.t1t.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.apim.beans.dto.GatewayDtoBean;
-import com.t1t.apim.beans.dto.PolicyDtoBean;
 import com.t1t.apim.beans.dto.ServiceUpstreamsDtoBean;
 import com.t1t.apim.beans.dto.UserDtoBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
@@ -60,32 +59,6 @@ public class DtoFactory {
             rval.setBase64pic(user.getBase64pic());
             rval.setJwtKey(user.getJwtKey());
             rval.setJwtSecret(user.getJwtSecret());
-        }
-        return rval;
-    }
-
-    public static PolicyDtoBean createPolicyDtoBean(PolicyBean policy) {
-        PolicyDtoBean rval = null;
-        if (policy != null) {
-            rval = new PolicyDtoBean();
-            rval.setId(policy.getId());
-            rval.setType(policy.getType());
-            rval.setOrganizationId(policy.getOrganizationId());
-            rval.setEntityId(policy.getEntityId());
-            rval.setEntityVersion(policy.getEntityVersion());
-            rval.setName(policy.getName());
-            rval.setDescription(policy.getDescription());
-            rval.setConfiguration(policy.getConfiguration());
-            rval.setCreatedBy(policy.getCreatedBy());
-            rval.setCreatedOn(policy.getCreatedOn());
-            rval.setModifiedBy(policy.getModifiedBy());
-            rval.setModifiedOn(policy.getModifiedOn());
-            rval.setDefinition(policy.getDefinition());
-            rval.setOrderIndex(policy.getOrderIndex());
-            rval.setKongPluginId(policy.getKongPluginId());
-            rval.setContractId(policy.getContractId());
-            rval.setGatewayId(policy.getGatewayId());
-            rval.setEnabled(policy.isEnabled());
         }
         return rval;
     }

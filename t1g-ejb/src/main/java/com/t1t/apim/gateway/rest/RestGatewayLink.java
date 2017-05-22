@@ -22,6 +22,7 @@ import com.t1t.apim.kong.KongClient;
 import com.t1t.apim.kong.KongServiceBuilder;
 import com.t1t.kong.model.*;
 import com.t1t.util.AesEncrypter;
+import com.t1t.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.elasticsearch.gateway.GatewayException;
@@ -541,5 +542,15 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void createOrUpdateServiceUpstreamTarget(String upstreamVirtualHost, ServiceUpstreamTargetBean target) {
         getClient().createOrUpdateServiceUpstreamTargets(upstreamVirtualHost, target);
+    }
+
+    @Override
+    public KongUpstream getServiceUpstream(String organizationId, String serviceId, String version) {
+        return getClient().getServiceUpstream(ServiceConventionUtil.generateServiceUniqueName(organizationId, serviceId, version));
+    }
+
+    @Override
+    public KongUpstream getServiceUpstream(String apiId) {
+        return getClient().getServiceUpstream(apiId);
     }
 }

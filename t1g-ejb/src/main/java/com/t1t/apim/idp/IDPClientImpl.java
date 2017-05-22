@@ -5,6 +5,7 @@ import com.t1t.apim.beans.idp.IDPBean;
 import com.t1t.apim.beans.idp.KeystoreBean;
 import com.t1t.apim.beans.mail.MailProviderBean;
 import com.t1t.apim.beans.orgs.OrganizationBean;
+import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ApplicationAlreadyExistsException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.idp.dto.Realm;
@@ -13,7 +14,10 @@ import com.t1t.util.AesEncrypter;
 import com.t1t.util.ConsumerConventionUtil;
 import com.t1t.util.CustomCollectors;
 import com.t1t.util.KeyUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.ClientResource;
+import org.keycloak.admin.client.resource.ClientsResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -32,7 +36,7 @@ import java.util.stream.Collectors;
  */
 public class IDPClientImpl implements IDPClient {
 
-
+    private static final String RSA = "RSA";
 
     private final Keycloak client;
     private final IDPBean idp;
@@ -71,19 +75,19 @@ public class IDPClientImpl implements IDPClient {
         try {
             String clientId = ConsumerConventionUtil.createAppUniqueId(avb);
             String realmName = avb.getApplication().getOrganization().getId();
-            return createClient(clientId, realmName, new ArrayList<>(avb.getOauthClientRedirects()));
+            return createClient(realmName, clientId, avb.getApplication().getName(), avb.getOauthClientSecret(), new ArrayList<>(avb.getOauthClientRedirects()));
         }
         catch (ApplicationAlreadyExistsException ex) {
             throw ExceptionFactory.applicationVersionAlreadyExistsException(avb.getApplication().getName(), avb.getVersion());
         }
         catch (Exception ex) {
-            log.error("Error creating client on IDP");
+            log.error("Error creating client on IDP", ex);
             deleteClient(avb);
             throw ExceptionFactory.actionException("Couldn't create client on IDP", ex);
         }
     }
 
-    public RealmClient createClient(String clientId, String realmId, List<String> redirectUris) {
+    public RealmClient createClient(String realmId, String clientId, String clientName, String clientSecret, List<String> redirectUris) {
         try {
             if (clientExistsInRealm(clientId, realmId)) {
                 throw ExceptionFactory.applicationVersionAlreadyExistsException(clientId, realmId);
@@ -93,7 +97,9 @@ public class IDPClientImpl implements IDPClient {
             ClientRepresentation cRep = getDefaultClientRepresentation();
 
             cRep.setClientId(clientId);
+            cRep.setName(clientName);
             cRep.setRedirectUris(redirectUris);
+            if (StringUtils.isNotEmpty(clientSecret)) cRep.setSecret(clientSecret);
 
             realm.clients().create(cRep);
             RealmClient rval = new RealmClient();
@@ -104,8 +110,11 @@ public class IDPClientImpl implements IDPClient {
             rval.setId(keycloakId);
             return rval;
         }
+        catch (ApplicationAlreadyExistsException ex) {
+            throw ex;
+        }
         catch (Exception ex) {
-            log.error("Error creating client on IDP");
+            log.error("Error creating client on IDP", ex);
             try {
                 client.realm(realmId).clients().get(clientId).remove();
             }
@@ -165,7 +174,12 @@ public class IDPClientImpl implements IDPClient {
     @Override
     public boolean realmKeystoreExists(String realmId, String keystoreKid) {
         if (realmExists(realmId)) {
-            return client.realm(realmId).keys().getKeyMetadata().getActive().containsKey(keystoreKid);
+            Map<String, String> activeKeys = client
+                    .realm(realmId)
+                    .keys()
+                    .getKeyMetadata()
+                    .getActive();
+            return (activeKeys.containsKey(RSA) && activeKeys.get(RSA).equals(keystoreKid));
         }
         return false;
     }
@@ -187,7 +201,47 @@ public class IDPClientImpl implements IDPClient {
     }
 
     @Override
-    public boolean realmMailProviderExsists(String realmId, MailProviderBean mailProvider) {
+    public String regenerateClientSecret(String realmId, String idpClientId) {
+        if (realmExists(realmId)) {
+            ClientResource cRes = client.realm(realmId).clients().get(idpClientId);
+            if (cRes != null && cRes.toRepresentation()!= null) {
+                return cRes.generateNewSecret().getValue();
+            }
+            else {
+                throw ExceptionFactory.actionException(Messages.i18n.format("idpClientNotFound", idpClientId));
+            }
+        }
+        else throw ExceptionFactory.actionException(Messages.i18n.format("realmNotFound", realmId));
+    }
+
+    @Override
+    public RealmClient syncClient(ApplicationVersionBean avb) {
+        RealmClient rval = new RealmClient();
+        ClientsResource realmClients = client.realm(avb.getApplication().getOrganization().getId()).clients();
+        if (clientExistsInRealm(avb.getApplication().getId(), avb.getApplication().getOrganization().getId())) {
+            ClientResource cRes = realmClients.get(avb.getIdpClientId());
+            ClientRepresentation cRep;
+            if (cRes != null) {
+                cRep = cRes.toRepresentation();
+            }
+            else {
+                cRep = realmClients.findByClientId(avb.getApplication().getId()).get(0);
+            }
+            if (StringUtils.isNotEmpty(avb.getOauthClientSecret())) cRep.setSecret(avb.getJwtSecret());
+            cRep.setRedirectUris(new ArrayList<>(avb.getOauthClientRedirects()));
+            cRes.update(cRep);
+            rval.setId(cRep.getId());
+            rval.setSecret(cRep.getSecret());
+            rval.setRedirectUris(cRep.getRedirectUris());
+        }
+        else {
+            rval = createClient(avb);
+        }
+        return rval;
+    }
+
+    @Override
+    public boolean realmMailProviderExists(String realmId, MailProviderBean mailProvider) {
         boolean equals;
         if (equals = realmExists(realmId)) {
             RealmRepresentation realm = client.realm(realmId).toRepresentation();
@@ -320,6 +374,7 @@ public class IDPClientImpl implements IDPClient {
         rval = response.get(0);
         //Scrub the default client of irrelevant info
         rval.setId(null);
+        rval.setName(null);
         rval.setClientId(null);
         rval.setSecret(null);
         rval.setEnabled(true);

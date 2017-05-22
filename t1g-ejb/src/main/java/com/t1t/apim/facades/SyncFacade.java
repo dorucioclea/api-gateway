@@ -10,6 +10,8 @@ import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyType;
+import com.t1t.apim.beans.services.SchemeType;
+import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.core.IApiKeyGenerator;
 import com.t1t.apim.core.IStorage;
@@ -19,6 +21,7 @@ import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.gateway.IGatewayLink;
 import com.t1t.apim.idp.IDPClient;
 import com.t1t.apim.idp.IDPLinkFactory;
+import com.t1t.apim.idp.dto.RealmClient;
 import com.t1t.kong.model.*;
 import com.t1t.util.*;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
 import javax.inject.Inject;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -97,7 +101,7 @@ public class SyncFacade {
                         if (!idp.realmKeystoreExists(o.getId(), keystore.getKid())) {
                             idp.setRealmKeystore(o.getId(), keystore);
                         }
-                        if (!idp.realmMailProviderExsists(o.getId(), mailProvider)) {
+                        if (!idp.realmMailProviderExists(o.getId(), mailProvider)) {
                             idp.setRealmMailProvider(o.getId(), mailProvider);
                         }
                     } else {
@@ -128,8 +132,32 @@ public class SyncFacade {
             query.getPublishedServiceVersions().forEach(svb -> {
                 String apiId = ServiceConventionUtil.generateServiceUniqueName(svb);
                 try {
+                    if (svb.getUpstreamScheme() == null || svb.getUpstreamTargets().isEmpty()) {
+                        try {
+                            URI endpoint = new URI(svb.getEndpoint());
+                            svb.setUpstreamPath(endpoint.getPath());
+                            svb.setUpstreamScheme(SchemeType.valueOf(endpoint.getScheme().toUpperCase()));
+                            ServiceUpstreamTargetBean target = new ServiceUpstreamTargetBean();
+                            target.setTarget(endpoint.getHost());
+                            target.setPort(endpoint.getPort() == -1 ? 80 : Long.valueOf(endpoint.getPort()));
+                            if (svb.getUpstreamTargets() == null) svb.setUpstreamTargets(new HashSet<>());
+                            svb.getUpstreamTargets().add(target);
+                            storage.updateServiceVersion(svb);
+                        }
+                        catch (Exception ex) {
+                            //Do nothing
+                        }
+                    }
                     log.info("=== BEGINNING SYNC FOR:{} ===", apiId);
                     List<String> requestPaths = GatewayPathUtilities.generateGatewayContextPath(svb.getService().getOrganization().getId(), svb.getService().getBasepaths(), svb.getVersion());
+                    final String upstreamUrl;
+                    if (svb.getUpstreamTargets().size() == 1) {
+                        ServiceUpstreamTargetBean target = svb.getUpstreamTargets().stream().collect(CustomCollectors.getFirstResult());
+                        upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), target.getTarget(), target.getPort(), svb.getUpstreamPath());
+                    }
+                    else {
+                        upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), apiId, null, svb.getUpstreamPath());
+                    }
                     svb.getGateways()
                             .stream()
                             .map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId()))
@@ -141,7 +169,7 @@ public class SyncFacade {
                                                 .withPreserveHost(false)
                                                 .withHosts(new ArrayList<>(svb.getHostnames()))
                                                 .withUris(requestPaths)
-                                                .withUpstreamUrl(svb.getEndpoint())
+                                                .withUpstreamUrl(URIUtils.uriBackslashRemover(upstreamUrl))
                                                 .withName(apiId));
                                         log.info("== API {} MISSING ON GATEWAY {}, CREATED ==", apiId, gw.getGatewayId());
                                     } else {
@@ -152,6 +180,16 @@ public class SyncFacade {
                                         } else {
                                             log.info("== NO SYNC NECESSARY FOR {} ==", apiId);
                                         }
+                                    }
+                                    if (svb.getUpstreamTargets().size() > 1) {
+                                        log.info("== SYNCING API UPSTREAMS ==");
+                                        if (gw.getServiceUpstream(apiId) == null) {
+                                            gw.createServiceUpstream(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion());
+                                        }
+                                        svb.getUpstreamTargets().forEach(target -> {
+                                            gw.createOrUpdateServiceUpstreamTarget(apiId, target);
+                                        });
+                                        log.info("== SYNC END FOR API UPSTREAMS ==");
                                     }
                                 }
                                 catch (Exception ex) {
@@ -183,8 +221,60 @@ public class SyncFacade {
                 String appId = ConsumerConventionUtil.createAppUniqueId(avb);
                 try {
                     log.info("=== SYNC START FOR APPLICATION {} ===", appId);
+                    boolean appModified = false;
+                    boolean needsOAuthCredId = StringUtils.isEmpty(avb.getOauthCredentialId());
 
-                    gatewayFacade.getApplicationVersionGatewayLinks(avb).forEach(gw -> {
+                    if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty()) {
+                        avb.setOauthClientRedirects(new HashSet<>(Collections.singleton(PLACEHOLDER_CALLBACK_URI)));
+                        appModified = true;
+                    }
+
+                    //Sync the application on the IDP
+                    RealmClient idpAppClient = null;
+                    try {
+                        IDPClient idp = idpLinkFactory.getDefaultIDPClient();
+                        if (idp.realmExists(avb.getApplication().getOrganization().getId())) {
+                            idpAppClient = idp.syncClient(avb);
+                        }
+                        else {
+                            log.error("== SYNCING APPLICATION ON IDP FAILED - ORGANIZATION REALM DOES NOT EXIST ==");
+                        }
+                    }
+                    catch (Exception ex) {
+                        log.error("== SYNC APPLICATION \"{}\" ON IDP FAILED DUE TO {}", appId, ex);
+                        throw ex;
+                    }
+
+                    if (StringUtils.isEmpty(avb.getIdpClientId()) || !avb.getIdpClientId().equals(idpAppClient.getId())) {
+                        avb.setIdpClientId(idpAppClient.getId());
+                        appModified = true;
+                    }
+
+                    if (StringUtils.isEmpty(avb.getoAuthClientId())) {
+                        avb.setoAuthClientId(appId);
+                        appModified = true;
+                    }
+                    else if (!avb.getoAuthClientId().equals(appId)) {
+                        avb.setoAuthClientId(appId);
+                        appModified = true;
+                    }
+
+                    if (StringUtils.isEmpty(avb.getOauthClientSecret())) {
+                        avb.setOauthClientSecret(idpAppClient.getSecret());
+                        appModified = true;
+                    }
+
+                    if (StringUtils.isNotEmpty(avb.getJwtKey()) && !avb.getJwtKey().equals(appId)) {
+                        avb.setJwtKey(appId);
+                        appModified = true;
+                    }
+
+                    if (StringUtils.isEmpty(avb.getApikey())) {
+                        avb.setApikey(apiKeyGenerator.generate());
+                        appModified = true;
+                    }
+
+                    for (IGatewayLink gw : gatewayFacade.getApplicationVersionGatewayLinks(avb)) {
                         String gwId = gw.getGatewayId();
                         try {
                             KongConsumer consumer = gw.getConsumer(appId);
@@ -195,38 +285,18 @@ public class SyncFacade {
                             else {
                                 log.info("== NO SYNC NECESSARY FOR APPLICATION {} ON GATEWAY {} ==", appId, gwId);
                             }
-                            boolean appModified = false;
-                            boolean needsOAuthCredId = StringUtils.isEmpty(avb.getOauthCredentialId());
-                            boolean needsJWTcreds = StringUtils.isEmpty(avb.getJwtKey()) || StringUtils.isEmpty(avb.getJwtSecret());
-
-                            if (StringUtils.isEmpty(avb.getoAuthClientId())) {
-                                avb.setoAuthClientId(apiKeyGenerator.generate());
-                                appModified = true;
-                            }
-                            if (StringUtils.isEmpty(avb.getOauthClientSecret())) {
-                                avb.setOauthClientSecret(apiKeyGenerator.generate());
-                                appModified = true;
-                            }
-                            if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty()) {
-                                avb.setOauthClientRedirects(new HashSet<>(Collections.singleton(PLACEHOLDER_CALLBACK_URI)));
-                                appModified = true;
-                            }
-                            if (StringUtils.isEmpty(avb.getApikey())) {
-                                avb.setApikey(apiKeyGenerator.generate());
-                                appModified = true;
-                            }
                             try {
                                 //Sync or create OAuth2 credentials
                                 KongPluginOAuthConsumerResponseList oauthCreds = gw.getConsumerOAuthCredentials(appId);
                                 if (!oauthCreds.getData().isEmpty()) {
                                     oauthCreds.getData().stream()
                                             .filter(oauth -> !oauth.getRedirectUri().equals(avb.getOauthClientRedirects())
-                                                || !oauth.getClientId().equals(avb.getoAuthClientId())
-                                                || !oauth.getClientSecret().equals(avb.getOauthClientSecret()))
+                                                    || !oauth.getClientId().equals(avb.getoAuthClientId())
+                                                    || !oauth.getClientSecret().equals(avb.getOauthClientSecret()))
                                             .forEach(oauth -> {
-                                        //delete the credentials that do not match the stored credentials
-                                        gw.deleteOAuthConsumerPlugin(appId, oauth.getId());
-                                    });
+                                                //delete the credentials that do not match the stored credentials
+                                                gw.deleteOAuthConsumerPlugin(appId, oauth.getId());
+                                            });
                                     oauthCreds = gw.getConsumerOAuthCredentials(appId);
                                 }
                                 if (oauthCreds.getData().isEmpty()) {
@@ -243,6 +313,7 @@ public class SyncFacade {
                                     if (needsOAuthCredId) {
                                         avb.setOauthCredentialId(response.getId());
                                         appModified = true;
+                                        needsOAuthCredId = false;
                                     }
                                     log.info("= NO OAUTH CREDENTIALS FOUND FOR APPLICATION \"{}\" ON GATEWAY \"{}\", CREATED =", appId, gwId);
                                 }
@@ -250,6 +321,7 @@ public class SyncFacade {
                                     if (needsOAuthCredId || !avb.getOauthCredentialId().equals(oauthCreds.getData().get(0).getId())) {
                                         avb.setOauthCredentialId(oauthCreds.getData().get(0).getId());
                                         appModified = true;
+                                        needsOAuthCredId = false;
                                     }
                                     log.info("= NO OAUTH SYNC NECESSARY FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
                                 }
@@ -281,31 +353,27 @@ public class SyncFacade {
                             }
 
                             try {
-                                String pubKey = gatewayFacade.get(gw.getGatewayId()).getJWTPubKey();
-                                //Sync or create JWT credentials
-                                KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(appId);
-                                KongPluginJWTResponse jwtCred = null;
-                                if (!jwtCreds.getData().isEmpty()) {
-                                    jwtCreds.getData().stream().filter(jwt -> {
-                                        boolean baseMatch = !jwt.getAlgorithm().equals(JWTUtils.JWT_RS256) || !jwt.getRsaPublicKey().equals(pubKey);
-                                        if (!needsJWTcreds) {
-                                            baseMatch = baseMatch || !jwt.getKey().equals(avb.getJwtKey());
-                                        }
-                                        return baseMatch;
-                                    }).forEach(jwt -> gw.deleteConsumerJwtCredential(appId, jwt.getId()));
-                                    jwtCreds = gw.getConsumerJWT(appId);
+                                String pubKey = idpLinkFactory.getDefaultIDPClient().getRealmPublicKeyInPemFormat(avb.getApplication().getOrganization());
+                                if (StringUtils.isNotEmpty(pubKey)) {
+                                    //Sync or create JWT credentials
+                                    KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(appId);
+                                    KongPluginJWTResponse jwtCred = null;
+                                    if (!jwtCreds.getData().isEmpty()) {
+                                        jwtCreds.getData().stream().filter(jwt -> {
+                                            return !jwt.getAlgorithm().equals(JWTUtils.JWT_RS256) || !jwt.getRsaPublicKey().equals(pubKey);
+                                        }).forEach(jwt -> gw.deleteConsumerJwtCredential(appId, jwt.getId()));
+                                        jwtCreds = gw.getConsumerJWT(appId);
+                                    }
+                                    if (jwtCreds.getData().isEmpty()) {
+                                        jwtCred = gw.addConsumerJWT(appId, pubKey);
+                                        log.info("= NO JWT CREDENTIALS FOUND FOR APPLICATION \"{}\" ON GATEWAY \"{}\", CREATED =", appId, gwId);
+                                    } else {
+                                        jwtCred = jwtCreds.getData().get(0);
+                                        log.info("= NO JWT SYNC NECESSARY FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
+                                    }
                                 }
-                                if (jwtCreds.getData().isEmpty()) {
-                                    jwtCred = gw.addConsumerJWT(appId, idpLinkFactory.getDefaultIDPClient().getRealmPublicKeyInPemFormat(avb.getApplication().getOrganization()));
-                                    log.info("= NO JWT CREDENTIALS FOUND FOR APPLICATION \"{}\" ON GATEWAY \"{}\", CREATED =", appId, gwId);
-                                } else {
-                                    jwtCred = jwtCreds.getData().get(0);
-                                    log.info("= NO JWT SYNC NECESSARY FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
-                                }
-                                if (needsJWTcreds && jwtCred != null) {
-                                    avb.setJwtKey(jwtCred.getKey());
-                                    avb.setJwtSecret(jwtCred.getSecret());
-                                    appModified = true;
+                                else {
+                                    log.error("= JWT SYNC FAILED FOR APPLICATION \"{}\" ON GATEWAY \"{}\": COULD NOT RETRIEVE IDP PUBLIC KEY", appId, gwId);
                                 }
                             }
                             catch (Exception ex) {
@@ -322,7 +390,7 @@ public class SyncFacade {
                         catch (Exception ex) {
                             log.info("== SYNC FAILED FOR APPLICATION {} ON GATEWAY {} DUE TO {} ==", appId, gwId);
                         }
-                    });
+                    }
                 }
                 catch (Exception ex) {
                     ex.printStackTrace();
@@ -738,7 +806,15 @@ public class SyncFacade {
     /************* PRIVATE METHODS *************/
 
     private KongApi compareServiceApis(KongApi api, ServiceVersionBean svb, List<String> requestPaths, String apiId) {
-        if (!api.getUpstreamUrl().equals(svb.getEndpoint()) ||
+        final String upstreamUrl;
+        if (svb.getUpstreamTargets().size() == 1) {
+            ServiceUpstreamTargetBean target = svb.getUpstreamTargets().stream().collect(CustomCollectors.getFirstResult());
+            upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), target.getTarget(), target.getPort(), svb.getUpstreamPath());
+        }
+        else {
+            upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), apiId, null, svb.getUpstreamPath());
+        }
+        if (!api.getUpstreamUrl().equals(upstreamUrl) ||
                 !new TreeSet<>(api.getHosts()).equals(new TreeSet<>(svb.getHostnames()))||
                 !new TreeSet<>(api.getUris()).equals(new TreeSet<>(requestPaths)) ||
                 api.getPreserveHost() ||
@@ -746,7 +822,7 @@ public class SyncFacade {
             return api.withUris(requestPaths)
                     .withHosts(new ArrayList<>(svb.getHostnames()))
                     .withUris(requestPaths)
-                    .withUpstreamUrl(svb.getEndpoint())
+                    .withUpstreamUrl(upstreamUrl)
                     .withPreserveHost(false)
                     .withStripUri(true);
         }

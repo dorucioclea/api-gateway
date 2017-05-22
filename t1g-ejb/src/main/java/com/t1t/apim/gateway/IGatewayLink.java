@@ -635,4 +635,21 @@ public interface IGatewayLink {
      */
     public void createOrUpdateServiceUpstreamTarget(String upstreamVirtualHost, ServiceUpstreamTargetBean target);
 
+    /**
+     * Retrieve the Kong upstream for a service version
+     * @param organizationId the organization ID
+     * @param serviceId the service ID
+     * @param version the version ID
+     * @return the Kong upstream
+     */
+    public KongUpstream getServiceUpstream(String organizationId, String serviceId, String version);
+
+    /**
+     * Retrieve the upstream for a service using the org.service.version unique identifier
+     *
+     * @param apiId the org.service.version unique identifier
+     * @return the kong upstream
+     */
+    public KongUpstream getServiceUpstream(String apiId);
+
 }

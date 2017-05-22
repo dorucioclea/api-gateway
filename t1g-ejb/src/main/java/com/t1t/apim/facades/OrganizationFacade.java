@@ -3125,8 +3125,8 @@ public class OrganizationFacade {
 
         gateway.createConsumer(appConsumerName, appConsumerName);
         KongPluginJWTResponse jwtCred = gateway.addConsumerJWT(appConsumerName, idpClient.getRealmPublicKeyInPemFormat(application.getOrganization()));
-        newVersion.setJwtKey(jwtCred.getKey());
-        newVersion.setJwtSecret(jwtCred.getSecret());
+        //newVersion.setJwtKey(jwtCred.getKey());
+        //newVersion.setJwtSecret(jwtCred.getSecret());
         gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
         KongPluginOAuthConsumerResponse response = gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
                 .withClientId(newVersion.getoAuthClientId())
@@ -4199,8 +4199,8 @@ public class OrganizationFacade {
             rval.setVersion(avb.getVersion());
             rval.setRevokedClientId(avb.getoAuthClientId());
             rval.setRevokedClientSecret(avb.getOauthClientSecret());
-            avb.setoAuthClientId(apiKeyGenerator.generate());
-            avb.setOauthClientSecret(apiKeyGenerator.generate());
+            String newSecret = idpFactory.getDefaultIDPClient().regenerateClientSecret(avb.getApplication().getOrganization().getId(), avb.getIdpClientId());
+            avb.setOauthClientSecret(newSecret);
             rval.setNewClientId(avb.getoAuthClientId());
             rval.setNewClientSecret(avb.getOauthClientSecret());
             if (!(avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().stream().filter(ValidationUtils::isValidAbsoluteURI).collect(Collectors.toSet()).isEmpty())) {
