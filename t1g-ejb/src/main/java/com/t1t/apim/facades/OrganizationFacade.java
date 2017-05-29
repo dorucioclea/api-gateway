@@ -4504,4 +4504,46 @@ public class OrganizationFacade {
         paging.setPageSize(pgSize);
         return paging;
     }
+
+    public void toggleRateLimitForApplicationVersion(String serviceOrganizationId, String serviceId, String serviceVersion, RateLimitToggleRequest request) {
+        ServiceVersionBean svb = getServiceVersion(serviceOrganizationId, serviceId, serviceVersion);
+        ApplicationVersionBean avb = getAppVersion(request.getOrganizationId(), request.getApplicationId(), request.getApplicationVersion());
+        String apiId = ServiceConventionUtil.generateServiceUniqueName(svb);
+        String consumerId = ConsumerConventionUtil.createAppUniqueId(avb);
+        try {
+            PolicyDefinitionBean polDef = storage.getPolicyDefinition(Policies.RATELIMITING.getPolicyDefId());
+            PolicyBean rateLimitPolicy = query.getContractPolicyForServiceVersionByDefinition(svb, avb, polDef);
+            if (rateLimitPolicy != null) {
+                svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).forEach(gw -> {
+                    Boolean enabled = gw.togglePlugin(rateLimitPolicy.getKongPluginId());
+                    if (enabled == null) {
+                        log.warn("Plugin was not found on gateway, created now: {}", rateLimitPolicy.getKongPluginId());
+                        KongConsumer consumer = gw.getConsumer(consumerId);
+                        KongApi api = gw.getApi(apiId);
+                        if (consumer != null) {
+                            if (api != null) {
+                                KongPluginConfig newPlugin = new KongPluginConfig()
+                                        .withConsumerId(consumer.getId())
+                                        .withId(rateLimitPolicy.getKongPluginId())
+                                        .withName(Policies.RATELIMITING.getKongIdentifier())
+                                        .withApiId(api.getId())
+                                        .withEnabled(!rateLimitPolicy.isEnabled())
+                                        .withConfig(new Gson().fromJson(rateLimitPolicy.getConfiguration(), Policies.RATELIMITING.getClazz()));
+                                gw.createApiPlugin(apiId, newPlugin);
+                            } else {
+                                log.error("API missing on gateway: {}", apiId);
+                            }
+                        } else {
+                            log.error("Consumer missing on gateway: {}", consumerId);
+                        }
+                    }
+                });
+            rateLimitPolicy.setEnabled(!rateLimitPolicy.isEnabled());
+            storage.updatePolicy(rateLimitPolicy);
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
 }

@@ -652,4 +652,11 @@ public interface IGatewayLink {
      */
     public KongUpstream getServiceUpstream(String apiId);
 
+    /**
+     * Toggle a plugin to enabled if disabled and vice versa. Returns the enabled value if the plugin exists, null if it doesn't
+     *
+     * @param kongPluginId
+     * @return
+     */
+    Boolean togglePlugin(String kongPluginId);
 }

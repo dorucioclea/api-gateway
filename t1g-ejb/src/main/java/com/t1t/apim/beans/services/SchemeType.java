@@ -9,13 +9,15 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @since 2017
  */
 public enum SchemeType {
-    HTTP("http"),
-    HTTPS("https");
+    HTTP("http", 80),
+    HTTPS("https", 443);
 
     private String scheme;
+    private Integer port;
 
-    SchemeType(String scheme) {
+    SchemeType(String scheme, Integer port) {
         this.scheme = scheme;
+        this.port = port;
     }
 
     @JsonCreator
@@ -29,4 +31,9 @@ public enum SchemeType {
     public String getScheme() {
         return scheme;
     }
+
+    public Integer getPort() {
+        return port;
+    }
+
 }

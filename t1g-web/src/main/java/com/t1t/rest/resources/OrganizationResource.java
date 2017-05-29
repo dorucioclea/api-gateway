@@ -29,6 +29,7 @@ import com.t1t.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.apim.beans.plans.*;
 import com.t1t.apim.beans.policies.NewPolicyBean;
 import com.t1t.apim.beans.policies.PolicyChainBean;
+import com.t1t.apim.beans.policies.RateLimitToggleRequest;
 import com.t1t.apim.beans.policies.UpdatePolicyBean;
 import com.t1t.apim.beans.search.SearchResultsBean;
 import com.t1t.apim.beans.services.*;
@@ -2414,7 +2415,9 @@ public class OrganizationResource implements IOrganizationResource {
     @DELETE
     @Path("/{organizationId}/services/{serviceId}/brandings/{brandingId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void removeBrandingFromService(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("brandingId") String brandingId) throws NotAuthorizedException {
+    public void removeBrandingFromService(@PathParam("organizationId") String organizationId,
+                                          @PathParam("serviceId") String serviceId,
+                                          @PathParam("brandingId") String brandingId) throws NotAuthorizedException {
         Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && StringUtils.isNotEmpty(brandingId), Messages.i18n.format("emptyValue", "Organization ID, service ID & branding ID"));
         if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
@@ -2422,21 +2425,29 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.removeServiceBranding(organizationId, serviceId, brandingId);
     }
 
-    /*@Override
-    @ApiOperation("Create custom load balancing")
+    @Override
+    @ApiOperation(value = "Toggle Rate-Limit", notes = "Toggles the rate limit on a service, if present, for an application.")
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Successful, no content")
+            @ApiResponse(code = 204, message = "Successful, no content"),
+            @ApiResponse(code = 400, response = ErrorBean.class, message = "Error")
     })
     @POST
-    @Path("/{organizationId}/services/{serviceId}/versions/{version}/loadbalancing/configure")
+    @Path("/{organizationId}/services/{serviceId}/versions/{version}/rate-limit/toggle")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void updateServiceVersionLoadBalancing(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("version") String version, ServiceLoadBalancingConfigurationBean bean) throws NotAuthorizedException {
-        Preconditions.checkArgument(StringUtils.isNotEmpty(organizationId) && StringUtils.isNotEmpty(serviceId) && StringUtils.isNotEmpty(version), Messages.i18n.format("emptyValue", "Organization ID, service ID & version"));
-        if (!securityContext.hasPermission(PermissionType.svcEdit, organizationId)) {
+    public void toggleRateLimitForApplicationVersion(@PathParam("organizationId") String serviceOrganizationId,
+                                                     @PathParam("serviceId") String serviceId,
+                                                     @PathParam("version") String serviceVersion,
+                                                     @ApiParam RateLimitToggleRequest request) throws NotAuthorizedException {
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceOrganizationId), Messages.i18n.format("emptyValue", "\"organizationId\""));
+        if (!securityContext.hasPermission(PermissionType.svcEdit, serviceOrganizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Configuration"));
-        Preconditions.checkNotNull(bean.getCustomLoadBalancing(), Messages.i18n.format("nullValue", "Custom load balancing toggle"));
-        orgFacade.updateServiceVersionLoadBalancing(organizationId, serviceId, version, bean);
-    }*/
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceId), Messages.i18n.format("emptyValue", "\"serviceId\""));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(serviceVersion), Messages.i18n.format("emptyValue", "\"version\""));
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "Request body"));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(request.getOrganizationId()), Messages.i18n.format("emptyValue", "\"organizationId\""));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(request.getApplicationId()), Messages.i18n.format("emptyValue", "\"applicationId\""));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(request.getApplicationVersion()), Messages.i18n.format("emptyValue", "\"applicationVersion\""));
+        orgFacade.toggleRateLimitForApplicationVersion(serviceOrganizationId, serviceId, serviceVersion, request);
+    }
 }

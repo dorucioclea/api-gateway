@@ -553,4 +553,9 @@ public class RestGatewayLink implements IGatewayLink {
     public KongUpstream getServiceUpstream(String apiId) {
         return getClient().getServiceUpstream(apiId);
     }
+
+    @Override
+    public Boolean togglePlugin(String kongPluginId) {
+        return getClient().togglePlugin(kongPluginId);
+    }
 }

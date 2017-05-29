@@ -23,6 +23,7 @@ import com.t1t.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.apim.beans.plans.*;
 import com.t1t.apim.beans.policies.NewPolicyBean;
 import com.t1t.apim.beans.policies.PolicyChainBean;
+import com.t1t.apim.beans.policies.RateLimitToggleRequest;
 import com.t1t.apim.beans.policies.UpdatePolicyBean;
 import com.t1t.apim.beans.search.SearchResultsBean;
 import com.t1t.apim.beans.services.*;
@@ -1597,12 +1598,14 @@ public interface IOrganizationResource {
     public void removeBrandingFromService(String organizationId, String serviceId, String brandingId) throws NotAuthorizedException;
 
     /**
-     * Configures a custom load balancing ring for a service version
-     * @param organizationId
+     * Toggle the rate limit on a service, if present, for an application
+     * @param serviceOrganizationId
      * @param serviceId
-     * @param version
-     * @param bean
+     * @param serviceVersion
+     * @param applicationOrganizationId
+     * @param applicationId
+     * @param applicationVersion
      * @throws NotAuthorizedException
      */
-    //public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) throws NotAuthorizedException;
+    public void toggleRateLimitForApplicationVersion(String serviceOrganizationId, String serviceId, String serviceVersion, RateLimitToggleRequest request) throws NotAuthorizedException;
 }

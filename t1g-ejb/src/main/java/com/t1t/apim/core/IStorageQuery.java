@@ -1201,4 +1201,14 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public String getPolicyDefinitionDefaultConfig(String policyDefId) throws StorageException;
+
+    /**
+     * Returns the contract policies between a service version and an application version for a given policy definition
+     * @param svb
+     * @param avb
+     * @param polDef
+     * @return
+     * @throws StorageException
+     */
+    public PolicyBean getContractPolicyForServiceVersionByDefinition(ServiceVersionBean svb, ApplicationVersionBean avb, PolicyDefinitionBean polDef) throws StorageException;
 }

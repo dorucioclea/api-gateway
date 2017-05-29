@@ -62,10 +62,7 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -3020,6 +3017,22 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                     .setParameter("polDefId", policyDefId).getSingleResult();
         }
         catch (NoResultException ex) {
+            return null;
+        }
+    }
+
+    public PolicyBean getContractPolicyForServiceVersionByDefinition(ServiceVersionBean svb, ApplicationVersionBean avb, PolicyDefinitionBean polDef) throws StorageException {
+        try {
+            return getActiveEntityManager()
+                    .createQuery("SELECT p FROM PolicyBean p WHERE p.type = :pType AND p.definition = :polDef AND p.contractId IN (SELECT c.id FROM ContractBean c WHERE c.application = :app AND c.service = :service)", PolicyBean.class)
+                    //.createQuery("SELECT p FROM PolicyBean p WHERE p.type = :pType AND p.definition = :polDef AND (SELECT c FROM ContractBean c WHERE c.id = p.contractId).application = :app AND c.service = :service", PolicyBean.class)
+                    .setParameter("pType", PolicyType.Contract)
+                    .setParameter("polDef", polDef)
+                    .setParameter("app", avb)
+                    .setParameter("service", svb)
+                    .getSingleResult();
+        }
+        catch (NoResultException | NonUniqueResultException ex) {
             return null;
         }
     }

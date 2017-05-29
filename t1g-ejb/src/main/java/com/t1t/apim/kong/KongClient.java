@@ -83,7 +83,7 @@ public interface KongClient {
     @PUT("/apis/{apinameorid}/plugins/")KongPluginConfig updateOrCreatePluginConfig(@Path("apinameorid")String apiNameOrId,@Body KongPluginConfig pluginConfig);
     @DELETE("/apis/{apinameorid}/plugins/{id}")Object deletePlugin(@Path("apinameorid")String apiNameOrId, @Path("id") String pluginId);
     @GET("/plugins/{pluginId}") KongPluginConfig getPlugin(@Path("pluginId") String pluginId);
-    @PUT("/plugins") KongPluginConfig updatePlugin(@Body KongPluginConfig pluginId);
+    @PUT("/plugins") KongPluginConfig updatePlugin(@Body KongPluginConfig plugin);
     @GET("/plugins") KongPluginConfigList getConsumerPlugins(@Query("consumer_id") String consumerId);
     @GET("/plugins") KongPluginConfigList getConsumerSpecificApiPlugins(@Query("consumer_id") String consumerId, @Query("api_id") String apiId);
     @GET("/plugins") KongPluginConfigList getConsumerSpecificApiPlugins(@Query("consumer_id") String consumerId, @Query("api_id") String apiId, @Query("offset") String offset);

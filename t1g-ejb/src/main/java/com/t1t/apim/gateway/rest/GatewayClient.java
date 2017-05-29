@@ -1229,4 +1229,17 @@ public class GatewayClient {
         }
     }
 
+    public Boolean togglePlugin(String kongPluginId) {
+        try {
+            KongPluginConfig plugin = httpClient.getPlugin(kongPluginId);
+            if (plugin != null) {
+                plugin.setEnabled(!plugin.getEnabled());
+                plugin = httpClient.updatePlugin(plugin);
+            }
+            return plugin.getEnabled();
+        }
+        catch (RetrofitError ex) {
+            return null;
+        }
+    }
 }
