@@ -1,7 +1,9 @@
 package com.t1t.digipolis.apim.rest.resources.filter;
 
 import com.t1t.digipolis.apim.AppConfig;
+import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
+import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.operation.OperatingBean;
 import com.t1t.digipolis.apim.beans.operation.SafeHTTPMethods;
 import com.t1t.digipolis.apim.core.IStorage;
@@ -15,6 +17,7 @@ import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.rest.JaxRsActivator;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import com.t1t.digipolis.util.JWTUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
@@ -103,11 +106,12 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
             ;//allow from idp
         } else {
             //Get apikey - app context - SHOULD BE ALWAYS PROVIDED
+            ManagedApplicationBean mab;
             try {
                 //We shouldn't resolve the application context based on the X-Consumer-id header
                 //We do require the apikey in order to resolve which managed application is linked to the 
                 String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
-                ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
+                mab = query.resolveManagedApplicationByAPIKey(apikey);
                 String managedAppId = mab == null ? "" : ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
                 securityAppContext.setCurrentApplication(managedAppId);
             } catch (StorageException e) {
@@ -121,10 +125,20 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
                 String validatedUser = "";
                 try {
                     JwtClaims jwtClaims = JWTUtils.getUnvalidatedClaims(jwt);
-                    //Check if the JWT comes from a user that authenticated using LDAP
-                    validatedUser = jwtClaims.getSubject() != null ?
-                            jwtClaims.getSubject() : jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) != null ?
-                            jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) : "";
+                    //Check if the JWT is a service account, and if the application has admin rights. if so allow impersonation
+                    if (jwtClaims.hasClaim(IJWT.SERVICE_ACCOUNT)
+                            && jwtClaims.getClaimValue(IJWT.SERVICE_ACCOUNT, Boolean.class)) {
+                        if (mab != null && mab.getType().equals(ManagedApplicationTypes.Admin)
+                                && jwtClaims.hasClaim(IJWT.IMPERSONATE_USER)
+                                && StringUtils.isNotBlank(jwtClaims.getStringClaimValue(IJWT.IMPERSONATE_USER))) {
+                            validatedUser = jwtClaims.getStringClaimValue(IJWT.IMPERSONATE_USER);
+                        }
+                    }
+                    else {
+                        validatedUser = jwtClaims.getSubject() != null ?
+                                jwtClaims.getSubject() : jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) != null ?
+                                jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) : "";
+                    }
                     validatedUser = securityContext.setCurrentUser(ConsumerConventionUtil.createUserUniqueId(validatedUser));
                 } catch (InvalidJwtException | UserNotFoundException | MalformedClaimException ex) {
                     //this shouldnt be thrown because of implicit user creation during initial user intake (saml2 provider and JWT issuance)

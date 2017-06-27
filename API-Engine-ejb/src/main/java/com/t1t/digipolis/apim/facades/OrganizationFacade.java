@@ -28,6 +28,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.beans.jwt.JWTResponse;
+import com.t1t.digipolis.apim.beans.jwt.ServiceAccountTokenRequest;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -4413,7 +4414,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
     }
 
-    public JWTResponse getApplicationJWT() {
+    public JWTResponse getApplicationJWT(ServiceAccountTokenRequest request) {
         try {
             log.info("Non-managed app context:{}", appContext.getNonManagedApplication());
             if (StringUtils.isNotEmpty(appContext.getNonManagedApplication())) {
@@ -4425,6 +4426,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 claims.setClaim(IJWT.SERVICE_ACCOUNT, true);
                 if (StringUtils.isNotEmpty(avb.getApplication().getEmail())) {
                     claims.setClaim(IJWT.EMAIL, avb.getApplication().getEmail());
+                }
+                //If the managad application has admin rights, allow the impersonation of users
+                if (query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix()) && request != null && StringUtils.isNotBlank(request.getImpersonateUser())) {
+                    claims.setStringClaim(IJWT.IMPERSONATE_USER, request.getImpersonateUser());
+                    try {
+                        UserBean user = userFacade.get(request.getImpersonateUser());
+                    }
+                    catch (UserNotFoundException ex) {
+                        log.info("User to impersonate not found, creating now: {}", request.getImpersonateUser());
+                        userFacade.initNewUser(new NewUserBean().withAdmin(false).withUsername((request.getImpersonateUser())));
+                    }
                 }
                 claims.setSubject(appContext.getNonManagedApplication());
                 claims.setIssuer(gateway.getConsumerJWT(appContext.getNonManagedApplication()).getData().stream().filter(cred -> cred.getRsaPublicKey().equals(gatewayBean.getJWTPubKey())).map(KongPluginJWTResponse::getKey).collect(CustomCollectors.getFirstResult()));

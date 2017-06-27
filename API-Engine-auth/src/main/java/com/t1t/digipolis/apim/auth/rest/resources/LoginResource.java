@@ -5,10 +5,7 @@ import com.t1t.digipolis.apim.AppConfig;
 import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
-import com.t1t.digipolis.apim.beans.jwt.JWTRefreshRequestBean;
-import com.t1t.digipolis.apim.beans.jwt.JWTRefreshResponseBean;
-import com.t1t.digipolis.apim.beans.jwt.JWTRequest;
-import com.t1t.digipolis.apim.beans.jwt.JWTResponse;
+import com.t1t.digipolis.apim.beans.jwt.*;
 import com.t1t.digipolis.apim.beans.scim.ExternalUserRequest;
 import com.t1t.digipolis.apim.beans.user.ClientTokeType;
 import com.t1t.digipolis.apim.beans.user.SAMLLogoutRequest;
@@ -25,10 +22,7 @@ import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.util.CacheUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
@@ -395,14 +389,28 @@ public class LoginResource implements ILoginResource {
     }
 
     @ApiOperation(value = "Retrieve a JWT for an application",
-            notes = "This endpoint can be used to to generate a JWT for an application based on it's API key")
+            notes = "This endpoint can be used to to generate a JWT for an application based on its API key")
     @ApiResponses({
             @ApiResponse(code = 200, response = JWTResponse.class, message = "Application JWT")
     })
     @GET
     @Path("/application/token")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public JWTResponse getAppJWT() {
-        return orgFacade.getApplicationJWT();
+        return orgFacade.getApplicationJWT(null);
+    }
+
+    @ApiOperation(value = "Retrieve a JWT for an admin application",
+            notes = "This endpoint can be used to to generate a JWT for an application based on its API key, and if the application has admin rights, allow to impersonate a user")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = JWTResponse.class, message = "Application JWT")
+    })
+    @POST
+    @Path("/application/token")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public JWTResponse getAppJWTWithImpersonation(@ApiParam ServiceAccountTokenRequest request) {
+        return orgFacade.getApplicationJWT(request);
     }
 }

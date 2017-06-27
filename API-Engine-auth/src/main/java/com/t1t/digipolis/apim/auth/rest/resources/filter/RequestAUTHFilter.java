@@ -63,21 +63,19 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
                 ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
                 String managedAppId = mab == null ? "" : ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
                 securityAppContext.setCurrentApplication(managedAppId);
-                if (StringUtils.isEmpty(managedAppId)) {
-                    String nonManagedAppId = containerRequestContext.getHeaderString(HEADER_X_CONSUMER_USERNAME);
-                    if (StringUtils.isNotEmpty(apikey)) {
-                        ApplicationVersionSummaryBean avsb = search.resolveApiKey(apikey);
-                        String resolvedApiKey = avsb == null ? "" : ConsumerConventionUtil.createAppUniqueId(avsb.getOrganizationId(), avsb.getId(), avsb.getVersion());
-                        if (nonManagedAppId != null && !resolvedApiKey.equals(nonManagedAppId)) {
-                            throw ExceptionFactory.applicationVersionNotFoundException(Messages.i18n.format("ApiKeyDoesNotMatchConsumerName", apikey, nonManagedAppId));
-                        }
-                        else {
-                            securityAppContext.setNonManagedApplication(resolvedApiKey);
-                        }
+                String nonManagedAppId = containerRequestContext.getHeaderString(HEADER_X_CONSUMER_USERNAME);
+                if (StringUtils.isNotEmpty(apikey)) {
+                    ApplicationVersionSummaryBean avsb = search.resolveApiKey(apikey);
+                    String resolvedApiKey = avsb == null ? "" : ConsumerConventionUtil.createAppUniqueId(avsb.getOrganizationId(), avsb.getId(), avsb.getVersion());
+                    if (nonManagedAppId != null && !resolvedApiKey.equals(nonManagedAppId)) {
+                        throw ExceptionFactory.applicationVersionNotFoundException(Messages.i18n.format("ApiKeyDoesNotMatchConsumerName", apikey, nonManagedAppId));
                     }
-                    else if (StringUtils.isNotEmpty(nonManagedAppId)) {
-                        securityAppContext.setNonManagedApplication(nonManagedAppId);
+                    else {
+                        securityAppContext.setNonManagedApplication(resolvedApiKey);
                     }
+                }
+                else if (StringUtils.isNotEmpty(nonManagedAppId)) {
+                    securityAppContext.setNonManagedApplication(nonManagedAppId);
                 }
             }
         } catch (ApplicationNotFoundException|StorageException ex) {
