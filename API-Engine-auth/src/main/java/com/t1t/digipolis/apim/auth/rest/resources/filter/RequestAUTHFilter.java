@@ -67,11 +67,11 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
                 if (StringUtils.isNotEmpty(apikey)) {
                     ApplicationVersionSummaryBean avsb = search.resolveApiKey(apikey);
                     String resolvedApiKey = avsb == null ? "" : ConsumerConventionUtil.createAppUniqueId(avsb.getOrganizationId(), avsb.getId(), avsb.getVersion());
-                    if (nonManagedAppId != null && !resolvedApiKey.equals(nonManagedAppId)) {
+                    if (nonManagedAppId != null && !nonManagedAppId.equals(managedAppId) && !resolvedApiKey.equals(nonManagedAppId)) {
                         throw ExceptionFactory.applicationVersionNotFoundException(Messages.i18n.format("ApiKeyDoesNotMatchConsumerName", apikey, nonManagedAppId));
                     }
                     else {
-                        securityAppContext.setNonManagedApplication(resolvedApiKey);
+                        if (!nonManagedAppId.equals(managedAppId)) securityAppContext.setNonManagedApplication(resolvedApiKey);
                     }
                 }
                 else if (StringUtils.isNotEmpty(nonManagedAppId)) {
