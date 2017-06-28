@@ -20,6 +20,7 @@ import com.t1t.digipolis.apim.beans.categories.TagBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.dto.PolicyDtoBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.events.EventType;
 import com.t1t.digipolis.apim.beans.events.NewEventBean;
@@ -27,6 +28,7 @@ import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.idm.*;
 import com.t1t.digipolis.apim.beans.jwt.IJWT;
 import com.t1t.digipolis.apim.beans.jwt.JWTResponse;
+import com.t1t.digipolis.apim.beans.jwt.ServiceAccountTokenRequest;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
@@ -64,22 +66,6 @@ import com.t1t.digipolis.apim.kong.KongConstants;
 import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.kong.model.*;
-import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongOAuthTokenList;
-import com.t1t.digipolis.kong.model.KongPluginACL;
-import com.t1t.digipolis.kong.model.KongPluginACLResponse;
-import com.t1t.digipolis.kong.model.KongPluginConfig;
-import com.t1t.digipolis.kong.model.KongPluginConfigList;
-import com.t1t.digipolis.kong.model.KongPluginHttpLog;
-import com.t1t.digipolis.kong.model.KongPluginJWTResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuth;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerRequest;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseList;
-import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
-import com.t1t.digipolis.kong.model.MetricsResponseStatsList;
-import com.t1t.digipolis.kong.model.MetricsResponseSummaryList;
-import com.t1t.digipolis.kong.model.MetricsUsageList;
 import com.t1t.digipolis.util.*;
 import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
@@ -98,7 +84,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.t1t.digipolis.util.CustomCollectors;
+
 import javax.ejb.*;
 import javax.enterprise.event.Event;
 import javax.enterprise.inject.spi.DefinitionException;
@@ -109,7 +95,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.rmi.server.UID;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -1107,7 +1092,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return doGetPolicy(PolicyType.Service, organizationId, serviceId, version, policyId);
     }
 
-    public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
+    public PolicyDtoBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         try {
             return scrubPolicy(getServicePolicyInternal(organizationId, serviceId, version, policyId));
         }
@@ -1116,27 +1101,39 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         }
     }
 
-    private PolicyBean scrubPolicy(PolicyBean policy) throws StorageException {
+    private PolicyDtoBean scrubPolicy(PolicyBean policy) throws StorageException {
         //TODO - scrub the sensitive information out of policy configurations
         boolean doFilter = !query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix());
-
+        PolicyDtoBean rval = DtoFactory.createPolicyDtoBean(policy);
         if (doFilter) {
-            switch (Policies.valueOf(policy.getDefinition().getId().toUpperCase())) {
+            Gson gson = new Gson();
+            switch (Policies.valueOf(rval.getDefinition().getId().toUpperCase())) {
                 case OAUTH2:
-                    Gson gson = new Gson();
-                    KongPluginOAuth oauthConfig = gson.fromJson(policy.getConfiguration(), KongPluginOAuth.class);
+                    KongPluginOAuth oauthConfig = gson.fromJson(rval.getConfiguration(), KongPluginOAuth.class);
                     oauthConfig.setProvisionKey(null);
-                    policy.setConfiguration(gson.toJson(oauthConfig));
+                    rval.setConfiguration(gson.toJson(oauthConfig));
                     break;
                 case REQUESTTRANSFORMER:
+                    KongPluginRequestTransformer reqConfig = new KongPluginRequestTransformer();
+                    reqConfig.setAdd(new KongPluginRequestTransformerAdd());
+                    reqConfig.setRemove(new KongPluginRequestTransformerRemove());
+                    rval.setConfiguration(gson.toJson(reqConfig));
+                    break;
                 case RESPONSETRANSFORMER:
+                    KongPluginResponseTransformer respConfig = new KongPluginResponseTransformer();
+                    respConfig.setAdd(new KongPluginResponseTransformerAdd());
+                    respConfig.setRemove(new KongPluginResponseTransformerRemove());
+                    rval.setConfiguration(gson.toJson(respConfig));
+                    break;
                 case LDAPAUTHENTICATION:
-                    policy.setConfiguration(null);
+                    KongPluginLDAP ldapConfig = new KongPluginLDAP();
+                    rval.setConfiguration(gson.toJson(ldapConfig));
+                    break;
                 default:
                     break;
             }
         }
-        return policy;
+        return rval;
     }
 
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
@@ -4401,7 +4398,7 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
     }
 
-    public JWTResponse getApplicationJWT() {
+    public JWTResponse getApplicationJWT(ServiceAccountTokenRequest request) {
         try {
             log.info("Non-managed app context:{}", appContext.getNonManagedApplication());
             if (StringUtils.isNotEmpty(appContext.getNonManagedApplication())) {
@@ -4413,6 +4410,17 @@ public class OrganizationFacade {//extends AbstractFacade<OrganizationBean>
                 claims.setClaim(IJWT.SERVICE_ACCOUNT, true);
                 if (StringUtils.isNotEmpty(avb.getApplication().getEmail())) {
                     claims.setClaim(IJWT.EMAIL, avb.getApplication().getEmail());
+                }
+                //If the managad application has admin rights, allow the impersonation of users
+                if (query.getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix()) && request != null && StringUtils.isNotBlank(request.getImpersonateUser())) {
+                    claims.setStringClaim(IJWT.IMPERSONATE_USER, request.getImpersonateUser());
+                    try {
+                        UserBean user = userFacade.get(request.getImpersonateUser());
+                    }
+                    catch (UserNotFoundException ex) {
+                        log.info("User to impersonate not found, creating now: {}", request.getImpersonateUser());
+                        userFacade.initNewUser(new NewUserBean().withAdmin(false).withUsername((request.getImpersonateUser())));
+                    }
                 }
                 claims.setSubject(appContext.getNonManagedApplication());
                 claims.setIssuer(gateway.getConsumerJWT(appContext.getNonManagedApplication()).getData().stream().filter(cred -> cred.getRsaPublicKey().equals(gatewayBean.getJWTPubKey())).map(KongPluginJWTResponse::getKey).collect(CustomCollectors.getFirstResult()));

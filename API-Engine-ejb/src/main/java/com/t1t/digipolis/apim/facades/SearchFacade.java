@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.facades;
 
-import com.t1t.digipolis.apim.beans.idm.PermissionType;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;

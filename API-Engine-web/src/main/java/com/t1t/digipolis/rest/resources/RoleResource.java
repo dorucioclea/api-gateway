@@ -10,7 +10,6 @@ import com.t1t.digipolis.apim.core.IIdmStorage;
 import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.*;
 import com.t1t.digipolis.apim.exceptions.NotAuthorizedException;
-import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
 import com.t1t.digipolis.apim.facades.RoleFacade;
 import com.t1t.digipolis.apim.rest.impl.util.SearchCriteriaUtil;
 import com.t1t.digipolis.apim.rest.resources.IRoleResource;

@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.beans.authorization;
 
 import com.t1t.digipolis.kong.model.KongConsumer;
-import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.digipolis.kong.model.KongPluginOAuthConsumerResponseDTO;
 
 import java.util.Map;

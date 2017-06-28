@@ -1,10 +1,13 @@
 package com.t1t.digipolis.apim.exceptions;
 
 
+import javax.ejb.ApplicationException;
+
 /**
  * Base class for all API ENGINE errors coming out of the REST layer.
  *
  */
+@ApplicationException(rollback = true)
 public abstract class AbstractRestException extends RuntimeException {
 
     private static final long serialVersionUID = -2406210413693314452L;

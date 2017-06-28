@@ -12,12 +12,17 @@ import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractCancellationBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.dto.PolicyDtoBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.exceptions.ErrorBean;
-import com.t1t.digipolis.apim.beans.idm.*;
+import com.t1t.digipolis.apim.beans.idm.GrantRoleBean;
+import com.t1t.digipolis.apim.beans.idm.PermissionType;
+import com.t1t.digipolis.apim.beans.idm.TransferOwnershipBean;
 import com.t1t.digipolis.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
-import com.t1t.digipolis.apim.beans.metrics.*;
+import com.t1t.digipolis.apim.beans.metrics.AppUsagePerServiceBean;
+import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
+import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
@@ -208,7 +213,8 @@ public class OrganizationResource implements IOrganizationResource {
     public ApplicationBean createApp(@PathParam("organizationId") String organizationId, NewApplicationBean bean) throws OrganizationNotFoundException, ApplicationAlreadyExistsException, NotAuthorizedException, InvalidNameException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New application"));
-        Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
+        if (bean.getBase64logo() == null) bean.setBase64logo("");
+        Preconditions.checkArgument(StringUtils.isBlank(bean.getBase64logo()) || bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createApp(organizationId, bean);
     }
@@ -1231,15 +1237,15 @@ public class OrganizationResource implements IOrganizationResource {
     @ApiOperation(value = "Get Service Policy",
             notes = "Use this endpoint to get information about a single Policy in the Service version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full information about the Policy.")
+            @ApiResponse(code = 200, response = PolicyDtoBean.class, message = "Full information about the Policy.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean getServicePolicy(@PathParam("organizationId") String organizationId,
-                                       @PathParam("serviceId") String serviceId,
-                                       @PathParam("version") String version,
-                                       @PathParam("policyId") long policyId)
+    public PolicyDtoBean getServicePolicy(@PathParam("organizationId") String organizationId,
+                                          @PathParam("serviceId") String serviceId,
+                                          @PathParam("version") String version,
+                                          @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, ServiceVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Service organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));

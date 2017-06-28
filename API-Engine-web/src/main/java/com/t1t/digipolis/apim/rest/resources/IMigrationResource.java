@@ -1,15 +1,10 @@
 package com.t1t.digipolis.apim.rest.resources;
 
-import com.t1t.digipolis.apim.beans.contracts.ContractBean;
-import com.t1t.digipolis.apim.beans.policies.Policies;
-import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.AbstractRestException;
 import com.t1t.digipolis.apim.exceptions.GatewayNotFoundException;
 import com.t1t.digipolis.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.digipolis.apim.exceptions.ServiceVersionNotFoundException;
-
-import java.util.List;
 
 /**
  * @author Guillaume Vandecasteele

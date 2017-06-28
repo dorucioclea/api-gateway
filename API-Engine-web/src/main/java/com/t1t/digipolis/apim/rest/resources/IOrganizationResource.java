@@ -9,11 +9,14 @@ import com.t1t.digipolis.apim.beans.contracts.ContractBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractCancellationBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractBean;
 import com.t1t.digipolis.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.digipolis.apim.beans.dto.PolicyDtoBean;
 import com.t1t.digipolis.apim.beans.events.EventBean;
 import com.t1t.digipolis.apim.beans.idm.GrantRoleBean;
 import com.t1t.digipolis.apim.beans.idm.TransferOwnershipBean;
 import com.t1t.digipolis.apim.beans.members.MemberBean;
-import com.t1t.digipolis.apim.beans.metrics.*;
+import com.t1t.digipolis.apim.beans.metrics.AppUsagePerServiceBean;
+import com.t1t.digipolis.apim.beans.metrics.HistogramIntervalType;
+import com.t1t.digipolis.apim.beans.metrics.ServiceMarketInfo;
 import com.t1t.digipolis.apim.beans.orgs.NewOrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.OrganizationBean;
 import com.t1t.digipolis.apim.beans.orgs.UpdateOrganizationBean;
@@ -829,7 +832,7 @@ public interface IOrganizationResource {
      * @throws PolicyNotFoundException when trying to get, update, or remove a policy that does not exist
      * @throws NotAuthorizedException when the user attempts to do or see something that they are not authorized (do not have permission) to
      */
-    public PolicyBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) throws OrganizationNotFoundException, ServiceVersionNotFoundException,
+    public PolicyDtoBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) throws OrganizationNotFoundException, ServiceVersionNotFoundException,
             PolicyNotFoundException, NotAuthorizedException;
 
     /**

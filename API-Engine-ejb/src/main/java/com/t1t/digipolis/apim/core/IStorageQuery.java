@@ -5,7 +5,6 @@ import com.t1t.digipolis.apim.beans.apps.ApplicationBean;
 import com.t1t.digipolis.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.digipolis.apim.beans.audit.AuditEntityType;
 import com.t1t.digipolis.apim.beans.audit.AuditEntryBean;
-import com.t1t.digipolis.apim.beans.audit.AuditEntryType;
 import com.t1t.digipolis.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.digipolis.apim.beans.authorization.OAuthAppBean;
 import com.t1t.digipolis.apim.beans.contracts.ContractBean;
@@ -29,16 +28,12 @@ import com.t1t.digipolis.apim.beans.search.PagingBean;
 import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.beans.search.SearchResultsBean;
 import com.t1t.digipolis.apim.beans.services.ServiceBean;
-import com.t1t.digipolis.apim.beans.services.ServiceGatewayBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.SupportBean;
 import com.t1t.digipolis.apim.beans.support.SupportComment;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import com.t1t.digipolis.apim.gateway.dto.Contract;
-import com.t1t.digipolis.apim.gateway.dto.Policy;
-import org.opensaml.xml.encryption.Public;
 
 import java.util.List;
 import java.util.Map;
@@ -1171,5 +1166,18 @@ public interface IStorageQuery {
      */
     public PolicyBean getPolicyByContractIdAndDefinitionForEntity(String organizationId, String entityId, String version, String polDef, Long contractId, String gatewayId) throws StorageException;
 
+    /**
+     * Get policy based in the Kong plugin ID
+     * @param kongPluginId
+     * @return
+     * @throws StorageException
+     */
     public PolicyBean getPolicyByKongPluginId(String kongPluginId) throws StorageException;
+
+    /**
+     * Get a count for the number of tokens that are backed up
+     * @return
+     * @throws StorageException
+     */
+    public Long getOAuth2TokenCount() throws StorageException;
 }

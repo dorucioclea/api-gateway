@@ -159,6 +159,30 @@ $ docker run --add-host=localhost:84.198.85.191 -d --name konglocal --link cassa
 
 See [Docker-info](https://docs.docker.com/engine/reference/commandline/run/#add-entries-to-container-hosts-file-add-host)
 
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.8
+=======================================================
+
+## Story
+
+*   [[T1G-402](https://trust1t.atlassian.net/browse/T1G-402)] - Allow service accounts to impersonate users
+
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.7
+=======================================================
+
+## Bug
+
+*   [[T1G-335](https://trust1t.atlassian.net/browse/T1G-335)] - Retrieving a user's services creates an internal server error
+
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.6
+-------------------------------------------------------
+
+## Bug
+
+*   [[T1G-333](https://trust1t.atlassian.net/browse/T1G-333)] - Remove public & private keys from gateway response object
+*   [[T1G-334](https://trust1t.atlassian.net/browse/T1G-334)] - Remove JWT key and secret from user response object
+*   [[T1G-335](https://trust1t.atlassian.net/browse/T1G-335)] - Retrieving a user's services creates an internal server error
+*   [[T1G-336](https://trust1t.atlassian.net/browse/T1G-336)] - Transaction times out when backing up/restoring large amount of tokens
+
 Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.5
 -------------------------------------------------------
 

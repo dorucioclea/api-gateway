@@ -1,6 +1,5 @@
 package com.t1t.digipolis.apim.beans.metrics;
 
-import com.t1t.digipolis.kong.model.MetricsConsumerUsage;
 import com.t1t.digipolis.kong.model.MetricsConsumerUsageList;
 
 import java.util.HashMap;

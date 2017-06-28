@@ -15,7 +15,6 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.exceptions.ExceptionFactory;
-import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.gateway.IGatewayLink;
 import com.t1t.digipolis.apim.gateway.rest.GatewayValidation;
 import com.t1t.digipolis.kong.model.*;
@@ -713,6 +712,7 @@ public class SyncFacade {
         }
     }
 
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void deleteBackedUpTokens() {
         try {
             query.deleteAllOAuthTokens();
@@ -722,36 +722,28 @@ public class SyncFacade {
         }
     }
 
+    @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
     public void backUpOAuthTokens() {
         log.info("==== START TOKEN BACKUP ====");
         LocalDateTime start = LocalDateTime.now();
         try {
-            query.deleteAllOAuthTokens();
-            Set<OAuth2TokenBean> tokens = new HashSet<>();
+            deleteBackedUpTokens();
             query.getAllGateways().stream().map(gatewayBean -> gatewayFacade.createGatewayLink(gatewayBean.getId())).forEach(gateway -> {
                 KongOAuthTokenList tokenList = gateway.getAllOAuth2Tokens(null);
                 long total = tokenList.getTotal().longValue();
                 long i = 0;
-                tokens.addAll(tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).collect(Collectors.toList()));
+                tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).forEach(this::updateOrCreateToken);
                 while (tokenList.getOffset() != null && i < total/100) {
                     tokenList = gateway.getAllOAuth2Tokens(tokenList.getOffset());
-                    tokens.addAll(tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).collect(Collectors.toList()));
+                    tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).forEach(this::updateOrCreateToken);
                     i++;
                 }
             });
-            tokens.forEach(token -> {
-                try {
-                    storage.updateOAuth2TokenBean(token);
-                }
-                catch (StorageException ex) {
-                    throw ExceptionFactory.systemErrorException(ex);
-                }
-            });
-            log.info("==== TOKEN BACKUP COMPLETED, {} TOKENS IN {}", tokens.size(), TimeUtil.getTimeSince(start));
+            log.info("==== TOKEN BACKUP COMPLETED, {} TOKENS IN {}", query.getOAuth2TokenCount(), TimeUtil.getTimeSince(start));
         }
-        catch (StorageException ex) {
+        catch (Exception ex) {
+            ex.printStackTrace();
             log.error("==== TOKEN BACKUP FAILED DUE TO {} ====", ex.getMessage());
-            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
@@ -810,25 +802,25 @@ public class SyncFacade {
             gatewayLink = gatewayFacade.createGatewayLink(token.getGatewayId());
         }
         try {
-            boolean restored = false;
-            if (gatewayLink.getGatewayOAuthToken(token.getAccessToken()) == null) {
-                restored = gatewayLink.createOAuthToken(token) != null;
-            }
-            else {
+            if (gatewayLink.createOAuthToken(token) == null) {
                 log.info("== SYNC FOR TOKEN {} NOT NECESSARY ==", token.getAccessToken());
-                restored = true;
             }
-            if (restored) {
-                storage.deleteOAuth2Token(token);
-            }
-            else {
-                log.error("=== FAILED TO SYNC TOKEN {} ===", token.getAccessToken());
-            }
+            storage.deleteOAuth2Token(token);
         }
         catch (Exception ex) {
-            gatewayLink.revokeOAuthToken(token.getId());
             log.error("=== FAILED TO SYNC TOKEN {} ===", token.getAccessToken());
             ex.printStackTrace();
+        }
+    }
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    private void updateOrCreateToken(OAuth2TokenBean token) {
+        try {
+            storage.updateOAuth2TokenBean(token);
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+            log.error("Failed to backup token: {}", ex.getMessage());
         }
     }
 }

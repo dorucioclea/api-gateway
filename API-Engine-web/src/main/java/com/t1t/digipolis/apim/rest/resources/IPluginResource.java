@@ -9,7 +9,7 @@ import com.t1t.digipolis.apim.exceptions.PluginNotFoundException;
 import com.t1t.digipolis.apim.exceptions.PluginResourceNotFoundException;
 import com.t1t.digipolis.apim.exceptions.PolicyDefinitionNotFoundException;
 
-import javax.ws.rs.*;
+import javax.ws.rs.NotAuthorizedException;
 import java.util.List;
 
 /**

@@ -2,15 +2,11 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.beans.announcements.AnnouncementBean;
+import com.t1t.digipolis.apim.beans.dto.PolicyDtoBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
-import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
 import com.t1t.digipolis.apim.beans.services.ServiceDefinitionType;
-import com.t1t.digipolis.apim.beans.summary.ContractSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.ServicePlanSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.ServiceVersionEndpointSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.ServiceVersionSummaryBean;
-import com.t1t.digipolis.apim.beans.summary.ServiceVersionVisibilityBean;
-import com.t1t.digipolis.apim.beans.summary.PolicySummaryBean;
+import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
+import com.t1t.digipolis.apim.beans.summary.*;
 import com.t1t.digipolis.apim.beans.support.SupportBean;
 import com.t1t.digipolis.apim.core.i18n.Messages;
 import com.t1t.digipolis.apim.exceptions.*;
@@ -156,15 +152,15 @@ public class OrganizationResource {
     @ApiOperation(value = "Get Service Policy",
             notes = "Use this endpoint to get information about a single Policy in the Service version.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = PolicyBean.class, message = "Full information about the Policy.")
+            @ApiResponse(code = 200, response = PolicyDtoBean.class, message = "Full information about the Policy.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public PolicyBean getServicePolicy(@PathParam("organizationId") String organizationId,
-                                       @PathParam("serviceId") String serviceId,
-                                       @PathParam("version") String version,
-                                       @PathParam("policyId") long policyId)
+    public PolicyDtoBean getServicePolicy(@PathParam("organizationId") String organizationId,
+                                          @PathParam("serviceId") String serviceId,
+                                          @PathParam("version") String version,
+                                          @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, ServiceVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by michallispashidis on 3/09/15.

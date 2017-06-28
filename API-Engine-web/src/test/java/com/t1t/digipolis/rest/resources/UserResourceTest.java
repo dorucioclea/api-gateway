@@ -2,8 +2,6 @@ package com.t1t.digipolis.rest.resources;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 /**
  * Created by michallispashidis on 4/05/16.
  */

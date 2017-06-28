@@ -3,7 +3,6 @@ package com.t1t.digipolis.apim.beans.events;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
-
 import java.io.Serializable;
 import java.util.Date;
 

@@ -1,28 +1,21 @@
 package com.t1t.digipolis.util;
 
-import com.t1t.digipolis.apim.beans.services.ServiceVersionBean;
-import com.t1t.digipolis.apim.core.exceptions.StorageException;
-import io.swagger.models.Scheme;
 import io.swagger.models.Swagger;
-import io.swagger.parser.SwaggerParser;
-import io.swagger.util.Json;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 
-import java.io.*;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.InputStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Created by michallispashidis on 8/10/15.

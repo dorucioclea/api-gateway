@@ -9,7 +9,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Set;
 
 /**
  * Models an application.
