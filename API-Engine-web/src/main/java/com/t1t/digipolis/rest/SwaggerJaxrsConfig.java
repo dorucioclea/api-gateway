@@ -20,7 +20,7 @@ public class SwaggerJaxrsConfig extends HttpServlet {
             super.init(servletConfig);
             BeanConfig beanConfig = new BeanConfig();
             beanConfig.setTitle("API Engine");
-            beanConfig.setVersion("v1");
+            beanConfig.setVersion("v0.9.8");
             beanConfig.setBasePath("API-Engine-web/v1");
             beanConfig.setResourcePackage("com.t1t.digipolis.rest.resources");
             beanConfig.setScan(true);
