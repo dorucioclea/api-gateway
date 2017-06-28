@@ -16,4 +16,5 @@ public interface IJWT {
     String GIVEN_NAME = "given_name";
     String SURNAME = "family_name";
     String SERVICE_ACCOUNT = "isServiceAccount";
+    String IMPERSONATE_USER = "impersonateUser";
 }

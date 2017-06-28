@@ -23,6 +23,16 @@ public class NewUserBean {
         isAdmin = admin;
     }
 
+    public NewUserBean withAdmin(Boolean admin) {
+        setAdmin(admin);
+        return this;
+    }
+
+    public NewUserBean withUsername(String username) {
+        setUsername(username);
+        return this;
+    }
+
     @Override
     public String toString() {
         return "NewUserBean{" +
