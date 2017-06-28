@@ -1,9 +1,9 @@
 package com.t1t.digipolis.util;
 
+import com.t1t.digipolis.apim.beans.dto.GatewayDtoBean;
 import com.t1t.digipolis.apim.beans.dto.PolicyDtoBean;
 import com.t1t.digipolis.apim.beans.dto.UserDtoBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
-import com.t1t.digipolis.apim.beans.dto.GatewayDtoBean;
 import com.t1t.digipolis.apim.beans.idm.UserBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyBean;
 

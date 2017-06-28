@@ -1,33 +1,21 @@
 package com.t1t.digipolis.apim.jpa.roles;
 
 import com.t1t.digipolis.apim.beans.idm.UserBean;
-import com.t1t.digipolis.apim.beans.search.PagingBean;
-import com.t1t.digipolis.apim.beans.search.SearchCriteriaBean;
 import com.t1t.digipolis.apim.facades.UserFacade;
-import junit.framework.TestCase;
-import org.hibernate.jpa.criteria.CriteriaBuilderImpl;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.saml2.common.Extensions;
-import org.opensaml.ws.wssecurity.Username;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.util.*;
 
 import static org.mockito.Mockito.*;
-
-import javax.persistence.EntityManager;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by michallispashidis on 2/03/16.

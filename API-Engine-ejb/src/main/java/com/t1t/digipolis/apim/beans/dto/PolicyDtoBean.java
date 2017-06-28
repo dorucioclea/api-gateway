@@ -3,6 +3,7 @@ package com.t1t.digipolis.apim.beans.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.digipolis.apim.beans.policies.PolicyDefinitionBean;
 import com.t1t.digipolis.apim.beans.policies.PolicyType;
+
 import java.io.Serializable;
 import java.util.Date;
 

@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.saml2;
 
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
-import com.t1t.digipolis.apim.exceptions.ResourceNotAvailableException;
 import com.t1t.digipolis.apim.idp.IDPClient;
 import retrofit.client.Response;
 

@@ -1,7 +1,6 @@
 package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestBasicAuthBean;
-import com.t1t.digipolis.apim.beans.authorization.AuthConsumerRequestKeyAuthBean;
 import com.t1t.digipolis.apim.exceptions.ApplicationNotFoundException;
 
 import javax.ws.rs.core.Response;

@@ -1,8 +1,5 @@
 package com.t1t.digipolis.apim.beans.events;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
 import java.util.Date;
 

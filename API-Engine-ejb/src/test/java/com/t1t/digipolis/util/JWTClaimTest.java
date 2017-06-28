@@ -20,11 +20,12 @@ import org.jose4j.lang.JoseException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.*;
 
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * Created by michallispashidis on 11/11/15.

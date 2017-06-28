@@ -2,7 +2,10 @@ package com.t1t.digipolis.apim.beans.authorization;
 
 import com.t1t.digipolis.kong.model.KongOAuthToken;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * @author Guillaume Vandecasteele

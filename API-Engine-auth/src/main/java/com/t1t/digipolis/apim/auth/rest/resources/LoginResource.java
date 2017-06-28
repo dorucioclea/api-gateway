@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.digipolis.apim.AppConfig;
-import com.t1t.digipolis.apim.beans.authorization.ProxyAuthRequest;
 import com.t1t.digipolis.apim.beans.cache.WebClientCacheBean;
 import com.t1t.digipolis.apim.beans.idm.ExternalUserBean;
 import com.t1t.digipolis.apim.beans.jwt.*;
@@ -16,7 +15,9 @@ import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
 import com.t1t.digipolis.apim.core.i18n.Messages;
-import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.AbstractRestException;
+import com.t1t.digipolis.apim.exceptions.SAMLAuthException;
+import com.t1t.digipolis.apim.exceptions.SystemErrorException;
 import com.t1t.digipolis.apim.facades.OAuthFacade;
 import com.t1t.digipolis.apim.facades.OrganizationFacade;
 import com.t1t.digipolis.apim.facades.UserFacade;
@@ -24,23 +25,16 @@ import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.util.CacheUtil;
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
-import org.jose4j.jwt.MalformedClaimException;
-import org.jose4j.jwt.consumer.InvalidJwtException;
-import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.http.Query;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 
 /**
  * Created by michallispashidis on 26/11/15.

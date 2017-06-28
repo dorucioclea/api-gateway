@@ -2,7 +2,6 @@ package com.t1t.digipolis.apim.beans.idm;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.common.netty.util.internal.StringUtil;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;

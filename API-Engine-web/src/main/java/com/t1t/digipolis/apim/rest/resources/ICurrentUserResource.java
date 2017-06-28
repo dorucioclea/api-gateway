@@ -9,7 +9,8 @@ import com.t1t.digipolis.apim.beans.pagination.OAuth2TokenPaginationBean;
 import com.t1t.digipolis.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.digipolis.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.digipolis.apim.exceptions.*;
+import com.t1t.digipolis.apim.exceptions.EventNotFoundException;
+import com.t1t.digipolis.apim.exceptions.InvalidEventException;
 
 import java.util.List;
 

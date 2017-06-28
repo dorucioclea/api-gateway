@@ -16,8 +16,6 @@ import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-import static com.t1t.digipolis.apim.mail.MailTopic.MEMBERSHIP_ADMIN_NEW;
-
 /**
  * Simple mailprovider, no templating and no dynamic substitutions.
  * For a straight forward impl, only text messages supported, with inline replacements.

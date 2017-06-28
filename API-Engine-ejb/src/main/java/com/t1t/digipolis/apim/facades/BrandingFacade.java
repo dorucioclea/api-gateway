@@ -4,7 +4,6 @@ import com.t1t.digipolis.apim.beans.BeanUtils;
 import com.t1t.digipolis.apim.beans.audit.data.EntityUpdatedData;
 import com.t1t.digipolis.apim.beans.brandings.NewServiceBrandingBean;
 import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingBean;
-import com.t1t.digipolis.apim.beans.brandings.ServiceBrandingSummaryBean;
 import com.t1t.digipolis.apim.beans.services.ServiceBean;
 import com.t1t.digipolis.apim.beans.services.ServiceStatus;
 import com.t1t.digipolis.apim.core.IStorage;
@@ -21,10 +20,8 @@ import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.inject.Inject;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Guillaume Vandecasteele

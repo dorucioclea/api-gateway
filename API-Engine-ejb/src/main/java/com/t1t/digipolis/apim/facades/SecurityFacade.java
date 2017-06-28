@@ -6,7 +6,6 @@ import com.t1t.digipolis.apim.beans.apps.NewApiKeyBean;
 import com.t1t.digipolis.apim.beans.apps.NewOAuthCredentialsBean;
 import com.t1t.digipolis.apim.beans.gateways.GatewayBean;
 import com.t1t.digipolis.apim.beans.gateways.UpdateGatewayBean;
-import com.t1t.digipolis.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.digipolis.apim.core.IStorage;
 import com.t1t.digipolis.apim.core.IStorageQuery;
 import com.t1t.digipolis.apim.core.exceptions.StorageException;
@@ -20,7 +19,6 @@ import com.t1t.digipolis.apim.security.ISecurityAppContext;
 import com.t1t.digipolis.apim.security.ISecurityContext;
 import com.t1t.digipolis.apim.security.JWTExpTimeResponse;
 import com.t1t.digipolis.apim.security.OAuthExpTimeResponse;
-import com.t1t.digipolis.kong.model.KongOAuthToken;
 import com.t1t.digipolis.util.ConsumerConventionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +30,6 @@ import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created by michallispashidis on 10/04/16.

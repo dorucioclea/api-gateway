@@ -3,7 +3,7 @@ package com.t1t.digipolis.util;
 import com.t1t.digipolis.apim.gateway.dto.Service;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by michallispashidis on 8/09/15.
