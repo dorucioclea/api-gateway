@@ -23,7 +23,7 @@ public interface ISecurityContext {
      * Sets the current username to be validated, and validates by calling getCurrentUser.
      * @return
      */
-    public String setCurrentUser(JwtClaims claims) throws MalformedClaimException;
+    public String setCurrentUser(JwtClaims claims, String validatedUser) throws MalformedClaimException;
 
     /**
      * Sets the current username to be validated, and validates by calling getCurrentUser.

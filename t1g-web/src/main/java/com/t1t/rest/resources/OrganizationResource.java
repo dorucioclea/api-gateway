@@ -170,7 +170,8 @@ public class OrganizationResource implements IOrganizationResource {
     public ApplicationBean createApp(@PathParam("organizationId") String organizationId, NewApplicationBean bean) throws OrganizationNotFoundException, ApplicationAlreadyExistsException, NotAuthorizedException, InvalidNameException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New application"));
-        Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
+        if (bean.getBase64logo() == null) bean.setBase64logo("");
+        Preconditions.checkArgument(StringUtils.isBlank(bean.getBase64logo()) || bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
         FieldValidator.validateName(bean.getName());
         return orgFacade.createApp(organizationId, bean);
     }

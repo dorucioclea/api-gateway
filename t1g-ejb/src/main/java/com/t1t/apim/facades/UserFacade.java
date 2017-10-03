@@ -286,16 +286,15 @@ public class UserFacade implements Serializable {
      *
      * */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public UserBean initNewUser(JwtClaims claims) throws MalformedClaimException {
+    public UserBean initNewUser(JwtClaims claims, String validatedUser) throws MalformedClaimException {
         log.info("Init new user with attributes:{}", claims);
         try {
             //create user
             UserBean newUser = new UserBean();
-            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(claims.getSubject()));
+            newUser.setUsername(ConsumerConventionUtil.createUserUniqueId(StringUtils.isNotBlank(validatedUser) ? validatedUser : claims.getSubject()));
             if (claims.hasClaim(IJWT.GIVEN_NAME) && claims.hasClaim(IJWT.SURNAME)) {
-
+                newUser.setFullName(claims.getStringClaimValue(IJWT.GIVEN_NAME) + " " + claims.getStringClaimValue(IJWT.SURNAME));
             }
-            newUser.setFullName(claims.getStringClaimValue(IJWT.GIVEN_NAME) + " " + claims.getStringClaimValue(IJWT.SURNAME));
             newUser.setAdmin(false);
             //TODO - parse the roles and organizations from the JWT claims
             idmStorage.createUser(newUser);

@@ -82,17 +82,15 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
         permissions = null;
     }
 
-    public String setCurrentUser(JwtClaims claims) throws MalformedClaimException {
-        this.currentUser = claims.getSubject() != null ?
-                claims.getSubject() : claims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) != null ?
-                claims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) : "";
+    public String setCurrentUser(JwtClaims claims, String validatedUser) throws MalformedClaimException {
+        this.currentUser = validatedUser;
         //calling get to perform a validation
         try {
             return getCurrentUser();
         }
         catch (Exception ex) {
             try {
-                userFacade.initNewUser(claims);
+                userFacade.initNewUser(claims, validatedUser);
                 return currentUser;
             }
             catch (Exception e) {

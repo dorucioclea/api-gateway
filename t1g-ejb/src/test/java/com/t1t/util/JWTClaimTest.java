@@ -24,6 +24,8 @@ import java.security.interfaces.RSAPublicKey;
 
 import static org.junit.Assert.*;
 
+import static org.junit.Assert.*;
+
 /**
  * Created by michallispashidis on 11/11/15.
  */

@@ -3,14 +3,12 @@ package com.t1t.apim.auth.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.idm.ExternalUserBean;
 import com.t1t.apim.beans.jwt.JWTResponse;
+import com.t1t.apim.beans.jwt.ServiceAccountTokenRequest;
 import com.t1t.apim.beans.scim.ExternalUserRequest;
 import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.facades.OrganizationFacade;
 import com.t1t.apim.facades.UserFacade;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -72,6 +70,20 @@ public class LoginResource {
     @Path("/application/token")
     @Produces(MediaType.APPLICATION_JSON)
     public JWTResponse getAppJWT() {
-        return orgFacade.getApplicationJWT();
+        return orgFacade.getApplicationJWT(null);
     }
+
+    @ApiOperation(value = "Retrieve a JWT for an admin application",
+            notes = "This endpoint can be used to to generate a JWT for an application based on its API key, and if the application has admin rights, allow to impersonate a user")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = JWTResponse.class, message = "Application JWT")
+    })
+    @POST
+    @Path("/application/token")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public JWTResponse getAppJWTWithImpersonation(@ApiParam ServiceAccountTokenRequest request) {
+        return orgFacade.getApplicationJWT(request);
+    }
+
 }
