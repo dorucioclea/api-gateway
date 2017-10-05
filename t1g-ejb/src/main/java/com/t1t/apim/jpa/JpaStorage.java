@@ -42,6 +42,7 @@ import com.t1t.apim.beans.support.SupportComment;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
+import com.t1t.apim.idp.IdpIssuerBean;
 import com.t1t.apim.mail.MailTopic;
 import com.t1t.apim.security.ISecurityAppContext;
 import com.t1t.apim.security.ISecurityContext;
@@ -2770,5 +2771,25 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         catch (NoResultException | NonUniqueResultException ex) {
             return null;
         }
+    }
+
+    @Override
+    public void createIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException {
+        super.create(idpIssuer);
+    }
+
+    @Override
+    public void updateIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException {
+        super.update(idpIssuer);
+    }
+
+    @Override
+    public void deleteIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException {
+        super.delete(idpIssuer);
+    }
+
+    @Override
+    public IdpIssuerBean getIdpIssuer(String id) throws StorageException {
+        return super.get(id, IdpIssuerBean.class);
     }
 }

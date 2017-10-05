@@ -415,6 +415,13 @@ UPDATE policydefs SET icon = 'fa-paw' WHERE id = 'DataDog';
 ALTER TABLE managed_applications DROP COLUMN IF EXISTS gateway_username;
 ALTER TABLE managed_applications DROP COLUMN IF EXISTS gateway_id;
 
+CREATE TABLE idp_issuers(issuer VARCHAR(255) NOT NULL, public_key_field_name VARCHAR(255) NOT NULL);
+ALTER TABLE idp_issuers ADD PRIMARY KEY (issuer);
+INSERT INTO idp_issuers(issuer, public_key_field_name) VALUES
+  ('https://idp.t1t.be/auth/realms/Trust1Connector', 'public_key'),
+  ('https://idp.t1t.be/auth/realms/Trust1Gateway', 'public_key'),
+  ('https://idp.t1t.be/auth/realms/Signbox', 'public_key');
+
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release
 
 --------- UPGRADE TO 1.0.1 STARTS HERE ---------

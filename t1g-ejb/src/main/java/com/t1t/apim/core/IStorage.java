@@ -26,6 +26,7 @@ import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.support.SupportBean;
 import com.t1t.apim.beans.support.SupportComment;
 import com.t1t.apim.core.exceptions.StorageException;
+import com.t1t.apim.idp.IdpIssuerBean;
 import com.t1t.apim.mail.MailTopic;
 
 import java.io.InputStream;
@@ -63,6 +64,7 @@ public interface IStorage {
     public void createConfig(ConfigBean config) throws StorageException;
     public void createBranding(ServiceBrandingBean branding) throws StorageException;
     public void createOAuth2Token(OAuth2TokenBean token) throws StorageException;
+    public void createIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
@@ -92,6 +94,7 @@ public interface IStorage {
     public void updateBranding(ServiceBrandingBean branding) throws StorageException;
     public void updateOperatingBean(OperatingBean operatingBean) throws StorageException;
     public void updateOAuth2TokenBean(OAuth2TokenBean token) throws StorageException;
+    public void updateIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
@@ -119,6 +122,7 @@ public interface IStorage {
     public void deleteConfig(ConfigBean configBean) throws StorageException;
     public void deleteBranding(ServiceBrandingBean branding) throws StorageException;
     public void deleteOAuth2Token(OAuth2TokenBean token) throws StorageException;
+    public void deleteIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
@@ -146,6 +150,7 @@ public interface IStorage {
     public DefaultsBean getDefaults(String id) throws StorageException;
     public List<ConfigBean> getDefaultConfig() throws StorageException;
     public ServiceBrandingBean getBranding(String id) throws StorageException;
+    public IdpIssuerBean getIdpIssuer(String id) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!

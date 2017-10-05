@@ -265,9 +265,19 @@ public final class ErrorCodes {
     public static final String SYSTEM_MAINTENANCE_INFO          = null;
 
     //
-    // Error Message keys
+    // IDP
     //
 
+    public static final int UNAUTHORIZED_ISSUER                 = 21001;
+
+    public static final String UNAUTHORIZED_ISSUER_INFO              = null;
+
+    //
+    // Error message keys
+    //
+
+    public static final String REQUEST_NULL = "nullValue";
+    public static final String UNAUTHORIZED_ISSUER_KEY = "unauthorizedIssuer";
     public static final String ERROR_LOADING_PERMISSIONS        = "errorLoadingPermissions";
     public static final String CONFIG_PROPERTY_MISSING          = "configPropertyMissing";
     public static final String GATEWAY_NOT_RUNNING              = "gatewayNotRunning";

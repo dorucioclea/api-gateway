@@ -1,7 +1,6 @@
 package com.t1t.apim.facades;
 
 import com.google.gson.Gson;
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.T1G;
 import com.t1t.apim.beans.BeanUtils;
@@ -29,7 +28,7 @@ import com.t1t.apim.beans.events.NewEventBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.idm.*;
 import com.t1t.apim.beans.jwt.IJWT;
-import com.t1t.apim.beans.jwt.JWTResponse;
+import com.t1t.apim.beans.jwt.JWT;
 import com.t1t.apim.beans.jwt.ServiceAccountTokenRequest;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
@@ -4404,12 +4403,12 @@ public class OrganizationFacade {
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
     }
 
-    public JWTResponse getApplicationJWT(ServiceAccountTokenRequest request) {
+    public JWT getApplicationJWT(ServiceAccountTokenRequest request) {
         try {
             log.info("Non-managed app context:{}", appContext.getNonManagedApplication());
             if (StringUtils.isNotEmpty(appContext.getNonManagedApplication())) {
                 ApplicationVersionBean avb = getApplicationVersionByUniqueId(appContext.getNonManagedApplication());
-                JWTResponse rval = new JWTResponse();
+                JWT rval = new JWT();
                 GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
                 IGatewayLink gateway = gatewayFacade.getDefaultGatewayLink();
                 JwtClaims claims = new JwtClaims();

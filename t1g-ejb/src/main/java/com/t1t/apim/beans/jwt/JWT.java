@@ -3,7 +3,7 @@ package com.t1t.apim.beans.jwt;
 /**
  * Created by michallispashidis on 18/01/16.
  */
-public class JWTResponse {
+public class JWT {
     private String token;
 
     public String getToken() {

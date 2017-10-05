@@ -678,4 +678,8 @@ public final class ExceptionFactory {
     public static EncryptionFailedException encryptionFailed(final String type, final String value, final Throwable e) {
         return new EncryptionFailedException(Messages.i18n.format("EncryptionFailed", type, value), e);
     }
+
+    public static final UnauthorizedIssuerException unauthorizedIssuerException(String issuer) {
+        return new UnauthorizedIssuerException(Messages.i18n.format(ErrorCodes.UNAUTHORIZED_ISSUER_KEY, issuer));
+    }
 }
