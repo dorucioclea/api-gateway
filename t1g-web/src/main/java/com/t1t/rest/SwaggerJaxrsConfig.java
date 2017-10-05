@@ -14,6 +14,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @WebServlet(name = "SwaggerJaxrsConfig", loadOnStartup = 2)
 public class SwaggerJaxrsConfig extends HttpServlet {
@@ -27,13 +30,9 @@ public class SwaggerJaxrsConfig extends HttpServlet {
             super.init(servletConfig);
             BeanConfig beanConfig = new BeanConfig();
             beanConfig.setTitle("Trust1Gateway");
-            beanConfig.setVersion("v1");
-            beanConfig.setBasePath("t1g-web/v1");
-            beanConfig.setResourcePackage("com.t1t.rest.resources");
-            beanConfig.setTitle("Trust1Gateway");
             beanConfig.setVersion(config.getVersion());
             beanConfig.setBasePath("t1g-web/v1");
-            beanConfig.setResourcePackage("com.t1t.digipolis.rest.resources");
+            beanConfig.setResourcePackage("com.t1t.rest.resources");
             beanConfig.setScan(true);
 
             //information
@@ -45,16 +44,19 @@ public class SwaggerJaxrsConfig extends HttpServlet {
                     .license(new License().name("Trust1Gateway").url("license@url.com"));
             ServletContext context = servletConfig.getServletContext();
 
+            List<Scheme> schemes = new ArrayList<>();
+            schemes.add(Scheme.HTTP);
+            schemes.add(Scheme.HTTPS);
+
             //configuration
             Swagger swagger = new Swagger().info(info);
             swagger.externalDocs(new ExternalDocs("Find out more about the Trust1Gateway", "http://trust1team.com"));
-            swagger.scheme(Scheme.HTTP);
+            swagger.schemes(schemes);
             swagger.host("localhost:8080");
             swagger.basePath("t1g-web/v1");
             context.setAttribute("swagger", swagger);
         } catch (ServletException e) {
             e.printStackTrace();
         }
-
     }
 }

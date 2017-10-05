@@ -10,13 +10,13 @@ ALTER TABLE service_hosts ADD CONSTRAINT fk_service_hosts_1 FOREIGN KEY (service
 ALTER TABLE service_hosts ADD CONSTRAINT uk_service_hosts_1 UNIQUE (service_version_id, hostname);
 CREATE INDEX idx_service_hosts_1 ON service_hosts (service_version_id);
 
-ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_connect_timeout BIGINT DEFAULT 60000;
-ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_send_timeout BIGINT DEFAULT 60000;
-ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_read_timeout BIGINT DEFAULT 60000;
+ALTER TABLE service_versions ADD COLUMN upstream_connect_timeout BIGINT DEFAULT 60000;
+ALTER TABLE service_versions ADD COLUMN upstream_send_timeout BIGINT DEFAULT 60000;
+ALTER TABLE service_versions ADD COLUMN upstream_read_timeout BIGINT DEFAULT 60000;
 
-ALTER TABLE policydefs ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT NULL;
-ALTER TABLE policydefs ADD COLUMN IF NOT EXISTS marketplace_description VARCHAR(4096) DEFAULT NULL;
-ALTER TABLE policydefs ADD COLUMN IF NOT EXISTS popover_template VARCHAR(4096) DEFAULT NULL;
+ALTER TABLE policydefs ADD COLUMN logo TEXT DEFAULT NULL;
+ALTER TABLE policydefs ADD COLUMN marketplace_description VARCHAR(4096) DEFAULT NULL;
+ALTER TABLE policydefs ADD COLUMN popover_template VARCHAR(4096) DEFAULT NULL;
 ALTER TABLE policydefs ALTER COLUMN form SET DATA TYPE TEXT;
 ALTER TABLE policydefs ALTER COLUMN form SET DEFAULT NULL;
 
@@ -398,10 +398,10 @@ UPDATE policydefs SET logo = 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAbF
 
 UPDATE policydefs SET logo = 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAVFBMVEXa2tra2tra2tra2tra2tra2tr////a2toAfd6izPLvzPnRfvDYteSKr86zas0Aar4AhODY6vr3+Prx8v2Kv+9aqOk3muUOj+N5t+211vXhqfW01fXvn55GAAAABnRSTlMC9s/Hbhsvz/I3AAABVklEQVRo3u3b3Y6CMBCG4SJYhnV/KD+K7v3f57bN7AFJTcDUmZB+74lH5EmMA5hmjK+pq1awqm5M6HxqxTudPSzssmxM06rUmDp8DFawIYi1qYRdlisTeCtcMAGnAgwYMGDAgJ8GGPDB4B8frepnl9cZH5d1374E7GmX1WVuA0xzTvixA+5zwpc0/OXrVgU5N/yx6tMHGDBgwIABvxmeiBZhmF3fPMjDFLuOSjDdnBJMvVOAb1G+y8PjlUKdOGyHOcpLJniiDfEVC/FYZYA3unxFx2OVAd7sTjZ073msRGB2Yy7KvcsC2z05Hitx2P6PVTEwf9W/h/5xvTBOB76ByN8ydzRRzofELln1schjVNCrTxyjsl5vtV7ol7L+tAEGDLhMWOAw5ADHPxIHXmpHfAWepgJOBBgwYMCAAT8NMGDAgJOw2hKO2tqR2qKV1mqZ3jKd2vrgH/W3idgykdWgAAAAAElFTkSuQmCC', marketplace_description = 'Request and response logs are sent to a server via UDP', popover_template = '<p class="text-light">Logs are sent to <b>{{host}}:{{port}}</b>.</p><p class="text-light">Timeout in ms: {{timeout}}.</p>' WHERE id = 'UDPLog';
 
-ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS custom_load_balancing BOOLEAN DEFAULT FALSE;
+ALTER TABLE service_versions ADD COLUMN custom_load_balancing BOOLEAN DEFAULT FALSE;
 
-ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_path VARCHAR(255) DEFAULT NULL;
-ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_scheme VARCHAR(255) DEFAULT NULL;
+ALTER TABLE service_versions ADD COLUMN upstream_path VARCHAR(255) DEFAULT NULL;
+ALTER TABLE service_versions ADD COLUMN upstream_scheme VARCHAR(255) DEFAULT NULL;
 
 CREATE TABLE service_upstream_targets (service_version_id BIGINT NOT NULL, target VARCHAR(255) NOT NULL, port BIGINT NOT NULL DEFAULT 8000, weight BIGINT DEFAULT 100 CHECK (weight >= 0 AND weight <= 1000));
 ALTER TABLE service_upstream_targets ADD CONSTRAINT fk_service_upstream_targets_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
@@ -422,6 +422,8 @@ ALTER TABLE managed_applications DROP COLUMN IF EXISTS gateway_id;
 DROP TABLE IF EXISTS oauth_apps;
 
 DROP TABLE IF EXISTS plugins;
+
+DROP TABLE IF EXISTS key_mapping;
 
 ALTER TABLE application_versions DROP COLUMN IF EXISTS oauth_client_id;
 

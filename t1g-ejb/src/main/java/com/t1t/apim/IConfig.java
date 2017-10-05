@@ -45,16 +45,4 @@ public interface IConfig {
     String GWD_CLUSTER_INFO_REQUEST_PATH = "apiapp.gateway_dependencies.cluster_info.request_path";
     String GWD_CLUSTER_INFO_UPSTREAM_URL = "apiapp.gateway_dependencies.cluster_info.upstream_url";
     String GWD_CLUSTER_INFO_STRIP_REQUEST_PATH = "apiapp.gateway_dependencies.cluster_info.strip_request_path";
-
-    String IDP_ENTITY_ID = "apiapp.idp.entity_id";
-    String IDP_NOTBEFORE_DELAY = "apiapp.idp.not-before-delay";
-    /*String IDP_SAML_ENDPOINT = "apiapp.idp.saml_endpoint_url";
-    String IDP_NAMEID_FORMAT = "apiapp.idp.nameid_format";
-    String IDP_SCIM_ENDPOINT= "apiapp.idp.scim_endpoint_url";
-    String IDP_SCIM_USER_LOGIN = "apiapp.idp.scim_user_login";
-    String IDP_SCIM_USER_PWD = "apiapp.idp.scim_user_password";
-    String IDP_OAUTH_TOKEN_ENDPOINT = "apiapp.idp.oauth_endpoint_url";
-    String IDP_OAUTH_CLIENT_ID = "apiapp.idp.client_id";
-    String IDP_OAUTH_CLIENT_SECRET = "apiapp.idp.client_secret";
-    String IDP_SCIM_ACTIVATE = "apiapp.idp.enable_scim";*/
 }

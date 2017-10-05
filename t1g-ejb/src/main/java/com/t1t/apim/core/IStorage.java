@@ -12,7 +12,6 @@ import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.defaults.DefaultsBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
-import com.t1t.apim.beans.idp.KeyMappingBean;
 import com.t1t.apim.beans.mail.MailTemplateBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.operation.OperatingBean;
@@ -60,7 +59,6 @@ public interface IStorage {
     public void createEvent(EventBean eventBean) throws StorageException;
     public void createMailTemplate(MailTemplateBean mailTemplateBean) throws Exception;
     public void createManagedApplication(ManagedApplicationBean manapp)throws Exception;
-    public void createKeyMapping(KeyMappingBean keyMappingBean) throws Exception;
     public void createDefaults(DefaultsBean defaultsBean) throws StorageException;
     public void createConfig(ConfigBean config) throws StorageException;
     public void createBranding(ServiceBrandingBean branding) throws StorageException;
@@ -89,7 +87,6 @@ public interface IStorage {
     public void updateEvent(EventBean event)throws StorageException;
     public void updateManagedApplication(ManagedApplicationBean manapp) throws StorageException;
     public void updateAuditEntry(AuditEntryBean audit) throws StorageException;
-    public void updateKeyMapping(KeyMappingBean keyMappingBean) throws StorageException;
     public void updateDefaults(DefaultsBean defaultsBean) throws StorageException;
     public void updateConfig(ConfigBean config) throws StorageException;
     public void updateBranding(ServiceBrandingBean branding) throws StorageException;
@@ -118,7 +115,6 @@ public interface IStorage {
     public void deleteEvent(EventBean eventBean) throws StorageException;
     public void deleteMailTemplate (MailTemplateBean mailTemplateBean) throws StorageException;
     public void deleteManagedApplication(ManagedApplicationBean manapp)throws StorageException;
-    public void deleteKeyMapping(KeyMappingBean keyMappingBean) throws StorageException;
     public void deleteDefaults(DefaultsBean defaultsBean) throws StorageException;
     public void deleteConfig(ConfigBean configBean) throws StorageException;
     public void deleteBranding(ServiceBrandingBean branding) throws StorageException;
@@ -147,7 +143,6 @@ public interface IStorage {
     public MailTemplateBean getMailTemplate (MailTopic mailTopic) throws StorageException;
     public ManagedApplicationBean getManagedApplicationBean(Long id) throws StorageException;
     public ManagedApplicationBean getManagedApplicationBean (AppIdentifier app) throws StorageException;
-    public KeyMappingBean getKeyMappingBean(String fromSpecType, String toSpecType, String fromSpecClaim)throws StorageException;
     public DefaultsBean getDefaults(String id) throws StorageException;
     public List<ConfigBean> getDefaultConfig() throws StorageException;
     public ServiceBrandingBean getBranding(String id) throws StorageException;

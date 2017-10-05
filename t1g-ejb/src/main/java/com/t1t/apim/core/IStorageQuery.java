@@ -10,7 +10,6 @@ import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.gateways.GatewayBean;
-import com.t1t.apim.beans.idp.KeyMappingBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.operation.OperatingBean;
@@ -858,25 +857,6 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<OrganizationBean> getAllOrgs() throws StorageException;
-
-    /**
-     * Returns all key mapping available for all registered specifications
-     *
-     * @return
-     * @throws StorageException
-     */
-    public List<KeyMappingBean> getAllKeyMapping() throws StorageException;
-
-    /**
-     * Returns key mapping collection for given fromSpec, toSpec.
-     * This returns for example all key/claim mappings needed from SAML to JWT.
-     *
-     * @param fromSpec
-     * @param toSpec
-     * @return
-     * @throws StorageException
-     */
-    public List<KeyMappingBean> getKeyMapping(String fromSpec, String toSpec) throws StorageException;
 
     /**
      * Return prefixes for managed applications of given types

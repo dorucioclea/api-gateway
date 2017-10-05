@@ -18,7 +18,6 @@ import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.GatewayType;
 import com.t1t.apim.beans.idm.PermissionType;
-import com.t1t.apim.beans.idp.KeyMappingBean;
 import com.t1t.apim.beans.mail.MailTemplateBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
@@ -290,11 +289,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(audit);
     }
 
-    @Override
-    public void updateKeyMapping(KeyMappingBean keyMappingBean) throws StorageException {
-        super.update(keyMappingBean);
-    }
-
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -471,11 +465,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void deleteManagedApplication(ManagedApplicationBean manapp) throws StorageException {
         super.delete(manapp);
-    }
-
-    @Override
-    public void deleteKeyMapping(KeyMappingBean keyMappingBean) throws StorageException {
-        super.delete(keyMappingBean);
     }
 
     /**
@@ -827,11 +816,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createManagedApplication(ManagedApplicationBean manapp) throws Exception {
         super.create(manapp);
-    }
-
-    @Override
-    public void createKeyMapping(KeyMappingBean keyMappingBean) throws Exception {
-        super.create(keyMappingBean);
     }
 
     /**
@@ -1969,19 +1953,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public KeyMappingBean getKeyMappingBean(String fromSpecType, String toSpecType, String fromSpecClaim)throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT k FROM KeyMappingBean k WHERE k.fromSpecType = :fromSpecType AND k.toSpecType = :toSpecType AND k.fromSpecClaim = :fromSpecClaim";
-        Query query = entityManager.createQuery(jpql);
-        query.setParameter("fromSpecType", fromSpecType);
-        query.setParameter("toSpecType", toSpecType);
-        query.setParameter("fromSpecClaim", fromSpecClaim);
-        List<KeyMappingBean> rows = query.getResultList();
-        if(rows.size()>0)return rows.get(0);
-        else return null;
-    }
-
-    @Override
     public EventBean getEventByOriginDestinationAndType(String origin, String destination, EventType type) throws StorageException {
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT e FROM EventBean e WHERE e.originId = :origin AND e.destinationId = :destination AND e.type = :eventType";
@@ -2346,23 +2317,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT o FROM OrganizationBean o";
         return em.createQuery(jpql)
-                .getResultList();
-    }
-
-    @Override
-    public List<KeyMappingBean> getAllKeyMapping() throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT k FROM KeyMappingBean k";
-        return em.createQuery(jpql).getResultList();
-    }
-
-    @Override
-    public List<KeyMappingBean> getKeyMapping(String fromSpec, String toSpec) throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT k FROM KeyMappingBean k WHERE k.fromSpecType = :fromSpecType AND k.toSpecType = :toSpecType";
-        return em.createQuery(jpql)
-                .setParameter("fromSpecType", fromSpec)
-                .setParameter("toSpecType", toSpec)
                 .getResultList();
     }
 
