@@ -48,8 +48,6 @@ public class ApplicationVersionBean implements Serializable {
     private Date publishedOn;
     @Column(name = "retired_on")
     private Date retiredOn;
-    @Column(name = "oauth_client_id")
-    private String oAuthClientId;
     @Column(name = "oauth_client_secret")
     private String oauthClientSecret;
     @ElementCollection(fetch = FetchType.EAGER)
@@ -60,12 +58,6 @@ public class ApplicationVersionBean implements Serializable {
     private String apikey;
     @Column(name = "oauth_credential_id")
     private String oauthCredentialId;
-    @Column(name="jwt_key")
-    private String jwtKey;
-    @Column(name="jwt_secret")
-    private String jwtSecret;
-    @Column(name = "idp_client_id")
-    private String idpClientId;
 
 
     /**
@@ -215,20 +207,6 @@ public class ApplicationVersionBean implements Serializable {
     }
 
     /**
-     * @return the OAuth client id
-     */
-    public String getoAuthClientId() {
-        return oAuthClientId;
-    }
-
-    /**
-     * @param oAuthClientId the OAuth client id to set
-     */
-    public void setoAuthClientId(String oAuthClientId) {
-        this.oAuthClientId = oAuthClientId;
-    }
-
-    /**
      * @return the OAuth client secret
      */
     public String getOauthClientSecret() {
@@ -285,48 +263,6 @@ public class ApplicationVersionBean implements Serializable {
     }
 
     /**
-     * @return the Gateway JWT key
-     */
-    public String getJwtKey() {
-        return jwtKey;
-    }
-
-    /**
-     * @param jwtKey the Gateway JWT key to set
-     */
-    public void setJwtKey(String jwtKey) {
-        this.jwtKey = jwtKey;
-    }
-
-    /**
-     * @return the Gateway JWT secret
-     */
-    public String getJwtSecret() {
-        return jwtSecret;
-    }
-
-    /**
-     * @param jwtSecret the Gateway JWT secret to set
-     */
-    public void setJwtSecret(String jwtSecret) {
-        this.jwtSecret = jwtSecret;
-    }
-
-    /**
-     * @return the IDP client ID
-     */
-    public String getIdpClientId() {
-        return idpClientId;
-    }
-
-    /**
-     * @param idpClientId the IDP client ID to set
-     */
-    public void setIdpClientId(String idpClientId) {
-        this.idpClientId = idpClientId;
-    }
-
-    /**
      * @see Object#hashCode()
      */
     @Override
@@ -370,14 +306,9 @@ public class ApplicationVersionBean implements Serializable {
                 ", modifiedOn=" + modifiedOn +
                 ", publishedOn=" + publishedOn +
                 ", retiredOn=" + retiredOn +
-                ", oAuthClientId='" + oAuthClientId + '\'' +
-                ", oauthClientSecret='" + oauthClientSecret + '\'' +
                 ", oauthClientRedirects=" + oauthClientRedirects +
                 ", apikey='" + apikey + '\'' +
                 ", oauthCredentialId='" + oauthCredentialId + '\'' +
-                ", jwtKey='" + jwtKey + '\'' +
-                ", jwtSecret='" + jwtSecret + '\'' +
-                ", idpClientId='" + idpClientId + '\'' +
                 '}';
     }
 }

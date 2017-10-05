@@ -20,7 +20,7 @@ import static org.junit.Assert.assertThat;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class AppConfigTest {
-    private static AppConfig config;
+    private static AppConfigBean config;
 
     @Rule
     public Timeout globalTimeout =  new Timeout(1000);
@@ -29,19 +29,15 @@ public class AppConfigTest {
     public static void init() throws Exception {
         ConfigBean configBean = new ConfigBean();
         configBean.setConfigPath("src/test/resources/application-test.conf");
-        config = new AppConfig();
-        config.initConfig(configBean);
+        AppConfig conf = new AppConfig();
+        conf.initConfig(configBean);
+        config = conf.getConfig();
     }
 
     @Test
     public void testGetEnvironment() throws Exception {
         assertThat(config.getEnvironment().trim(), is(not("")));
         assertFalse(StringUtils.isEmpty(config.getEnvironment()));
-    }
-
-    @Test
-    public void testGetKongEndpoint() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getKongEndpoint()));
     }
 
     @Test
@@ -55,27 +51,17 @@ public class AppConfigTest {
     }
 
     @Test
-    public void testGetConfigurationFile() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getConfigurationFile()));
-    }
-
-    @Test
-    public void testGetKongManagementEndpoint() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getKongManagementEndpoint()));
-    }
-
-    @Test
     public void testGetDataDogMetricsApiKey() throws Exception {
         assertFalse(StringUtils.isEmpty(config.getDataDogMetricsApiKey()));
     }
 
     @Test
     public void testGetDataDogMetricsURI() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsURI()));
+        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsUri()));
     }
 
     @Test
     public void testGetDataDogMetricsApplicationKey() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsURI()));
+        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsApplicationKey()));
     }
 }

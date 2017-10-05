@@ -2,9 +2,9 @@ package com.t1t.rest.resources;
 
 import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.services.DefaultServiceTermsBean;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.NotAuthorizedException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.DefaultsFacade;
 import com.t1t.apim.maintenance.MaintenanceController;
 import com.t1t.apim.rest.resources.IAdminResource;

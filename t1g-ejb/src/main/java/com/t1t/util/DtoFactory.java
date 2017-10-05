@@ -47,7 +47,6 @@ public class DtoFactory {
         if (user != null) {
             rval = new UserDtoBean();
             rval.setUsername(user.getUsername());
-            rval.setKongUsername(user.getKongUsername());
             rval.setFullName(user.getFullName());
             rval.setEmail(user.getEmail());
             rval.setJoinedOn(user.getJoinedOn());
@@ -57,8 +56,6 @@ public class DtoFactory {
             rval.setWebsite(user.getWebsite());
             rval.setBio(user.getBio());
             rval.setBase64pic(user.getBase64pic());
-            rval.setJwtKey(user.getJwtKey());
-            rval.setJwtSecret(user.getJwtSecret());
         }
         return rval;
     }

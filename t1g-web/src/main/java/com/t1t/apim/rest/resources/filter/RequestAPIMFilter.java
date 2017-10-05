@@ -1,6 +1,8 @@
 package com.t1t.apim.rest.resources.filter;
 
 import com.t1t.apim.AppConfig;
+import com.t1t.apim.AppConfigBean;
+import com.t1t.apim.T1G;
 import com.t1t.apim.beans.jwt.IJWT;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
@@ -59,7 +61,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
     //Security context
     @Inject private ISecurityContext securityContext;
     @Inject private ISecurityAppContext securityAppContext;
-    @Inject private AppConfig config;
+    @Inject @T1G private AppConfigBean config;
     @Inject private IStorageQuery query;
     @Inject private MaintenanceController maintenance;
 

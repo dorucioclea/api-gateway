@@ -36,7 +36,7 @@ public class JaxRsActivator extends Application {
     private void addRestResourceClasses(Set<Class<?>> resources) {
         //resources.add(KeyAuthorizationResource.class); TODO enable?
         //resources.add(BasicAuthorizationResource.class); TODO enable?
-        //resources.add(LoginResource.class);
+        resources.add(LoginResource.class);
         resources.add(OAuthResource.class);
         resources.add(OrganizationResource.class);
         resources.add(SearchResource.class);

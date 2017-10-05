@@ -632,12 +632,8 @@ public class GatewayClient {
     }
 
     public KongPluginJWTResponse createConsumerJWT(String consumerName, String publicRsaKey) {
-        return createConsumerJWT(consumerName, consumerName, publicRsaKey);
-    }
-
-    public KongPluginJWTResponse createConsumerJWT(String consumerName, String key, String publicRsaKey) {
         KongPluginJWTRequest jwtRequest = new KongPluginJWTRequest()
-                .withKey(key)
+                .withKey(consumerName)
                 .withAlgorithm(JWTUtils.JWT_RS256)
                 .withRsaPublicKey(publicRsaKey);
         return httpClient.createConsumerJWTCredentials(consumerName, jwtRequest);

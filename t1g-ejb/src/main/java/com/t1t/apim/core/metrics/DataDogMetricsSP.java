@@ -2,6 +2,7 @@ package com.t1t.apim.core.metrics;
 
 import com.google.gson.Gson;
 import com.t1t.apim.AppConfig;
+import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
@@ -118,9 +119,9 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
     }
 
     @Override
-    public synchronized void setConfig(AppConfig config) {
+    public synchronized void setConfig(AppConfigBean config) {
         if (this.httpClient == null) {
-            this.httpClient = new RestDataDogMetricsBuilder().getService(config.getDataDogMetricsURI(), config.getDataDogMetricsApiKey(), config.getDataDogMetricsApplicationKey(), DataDogMetricsClient.class);
+            this.httpClient = new RestDataDogMetricsBuilder().getService(config.getDataDogMetricsUri(), config.getDataDogMetricsApiKey(), config.getDataDogMetricsApplicationKey(), DataDogMetricsClient.class);
         }
         if (StringUtils.isEmpty(this.environment)) {
             this.environment = config.getEnvironment();

@@ -4,9 +4,7 @@ import com.google.gson.Gson;
 import com.t1t.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.apim.beans.contracts.ContractBean;
-import com.t1t.apim.beans.idp.KeystoreBean;
-import com.t1t.apim.beans.mail.MailProviderBean;
-import com.t1t.apim.beans.orgs.OrganizationBean;
+import com.t1t.apim.beans.plans.PlanVersionBean;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyType;
@@ -14,14 +12,12 @@ import com.t1t.apim.beans.services.SchemeType;
 import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.core.IApiKeyGenerator;
+import com.t1t.apim.core.IIdmStorage;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.gateway.IGatewayLink;
-import com.t1t.apim.idp.IDPClient;
-import com.t1t.apim.idp.IDPLinkFactory;
-import com.t1t.apim.idp.dto.RealmClient;
 import com.t1t.kong.model.*;
 import com.t1t.util.*;
 import org.apache.commons.lang3.StringUtils;
@@ -49,17 +45,16 @@ public class SyncFacade {
     private static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
 
     @Inject private IStorage storage;
+    @Inject private IIdmStorage idmStorage;
     @Inject private IStorageQuery query;
     @Inject private GatewayFacade gatewayFacade;
     @Inject private IApiKeyGenerator apiKeyGenerator;
-    @Inject private IDPLinkFactory idpLinkFactory;
 
     @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
     public void syncAll() {
         log.info("===== STARTING ENTIRE SYNC CYCLE =====");
         LocalDateTime start = LocalDateTime.now();
         try {
-            syncOrganizations();
             syncServices();
             syncApplications();
             syncPolicies();
@@ -70,58 +65,6 @@ public class SyncFacade {
             log.error("===== SYNC CYCLE FAILED DUE TO {} =====", ex.getMessage());
         }
         log.info("===== ENTIRE SYNC CYCLE END, COMPLETED IN {} =====", TimeUtil.getTimeSince(start));
-    }
-
-    @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
-    public void syncOrganizations() {
-        log.info("==== STARTING ORGANIZATION SYNC ====");
-        LocalDateTime start = LocalDateTime.now();
-        try {
-            IDPClient idp = idpLinkFactory.getDefaultIDPClient();
-            List<OrganizationBean> allOrgs = query.getAllOrgs();
-            for (OrganizationBean o : allOrgs) {
-                log.info("=== START SYNC FOR ORGANIZATION: {} ===", o.getName());
-                boolean changed = false;
-                try {
-                    KeystoreBean keystore = query.getDefaultKeystore();
-                    MailProviderBean mailProvider = query.getDefaultMailProvider();
-                    if (StringUtils.isEmpty(o.getKeystoreKid())) {
-                        if (keystore == null) throw ExceptionFactory.keystoreNotFoundException("default");
-                        o.setKeystoreKid(keystore.getKid());
-                        changed = true;
-                    }
-                    if (o.getMailProviderId() == null) {
-                        if (mailProvider == null) throw ExceptionFactory.mailProviderNotFoundException(0L);
-                        o.setMailProviderId(mailProvider.getId());
-                        changed = true;
-                    }
-                    if (idp.realmExists(o.getId())) {
-                        log.info("=== REALM {} ALREADY EXISTS ON IDP ===", o.getId());
-                        //Check if the keystore and mailprovider are set
-                        if (!idp.realmKeystoreExists(o.getId(), keystore.getKid())) {
-                            idp.setRealmKeystore(o.getId(), keystore);
-                        }
-                        if (!idp.realmMailProviderExists(o.getId(), mailProvider)) {
-                            idp.setRealmMailProvider(o.getId(), mailProvider);
-                        }
-                    } else {
-                        idp.createRealm(o, keystore, mailProvider);
-                        log.info("=== REALM CREATED ON IDP ===", o.getId());
-                    }
-                    if (changed) storage.updateOrganization(o);
-                }
-                catch (Exception ex) {
-                    ex.printStackTrace();
-                    log.error("=== SYNC FOR ORGANIZATION {} FAILED DUE TO {}", o.getName(), ex.getMessage());
-                }
-                log.info("=== END SYNC FOR ORGANIZATION: {} ===", o.getName());
-            }
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            log.error("==== ORGANIZATION SYNC FAILED DUE TO {} ====", ex.getMessage());
-        }
-        log.info("==== ORGANIZATION SYNC COMPLETED ====");
     }
 
     @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
@@ -229,43 +172,8 @@ public class SyncFacade {
                         appModified = true;
                     }
 
-                    //Sync the application on the IDP
-                    RealmClient idpAppClient = null;
-                    try {
-                        IDPClient idp = idpLinkFactory.getDefaultIDPClient();
-                        if (idp.realmExists(avb.getApplication().getOrganization().getId())) {
-                            idpAppClient = idp.syncClient(avb);
-                        }
-                        else {
-                            log.error("== SYNCING APPLICATION ON IDP FAILED - ORGANIZATION REALM DOES NOT EXIST ==");
-                        }
-                    }
-                    catch (Exception ex) {
-                        log.error("== SYNC APPLICATION \"{}\" ON IDP FAILED DUE TO {}", appId, ex);
-                        throw ex;
-                    }
-
-                    if (StringUtils.isEmpty(avb.getIdpClientId()) || !avb.getIdpClientId().equals(idpAppClient.getId())) {
-                        avb.setIdpClientId(idpAppClient.getId());
-                        appModified = true;
-                    }
-
-                    if (StringUtils.isEmpty(avb.getoAuthClientId())) {
-                        avb.setoAuthClientId(appId);
-                        appModified = true;
-                    }
-                    else if (!avb.getoAuthClientId().equals(appId)) {
-                        avb.setoAuthClientId(appId);
-                        appModified = true;
-                    }
-
                     if (StringUtils.isEmpty(avb.getOauthClientSecret())) {
-                        avb.setOauthClientSecret(idpAppClient.getSecret());
-                        appModified = true;
-                    }
-
-                    if (StringUtils.isNotEmpty(avb.getJwtKey()) && !avb.getJwtKey().equals(appId)) {
-                        avb.setJwtKey(appId);
+                        avb.setOauthClientSecret(apiKeyGenerator.generate());
                         appModified = true;
                     }
 
@@ -291,7 +199,7 @@ public class SyncFacade {
                                 if (!oauthCreds.getData().isEmpty()) {
                                     oauthCreds.getData().stream()
                                             .filter(oauth -> !oauth.getRedirectUri().equals(avb.getOauthClientRedirects())
-                                                    || !oauth.getClientId().equals(avb.getoAuthClientId())
+                                                    || !oauth.getClientId().equals(appId)
                                                     || !oauth.getClientSecret().equals(avb.getOauthClientSecret()))
                                             .forEach(oauth -> {
                                                 //delete the credentials that do not match the stored credentials
@@ -301,7 +209,7 @@ public class SyncFacade {
                                 }
                                 if (oauthCreds.getData().isEmpty()) {
                                     KongPluginOAuthConsumerRequest request = new KongPluginOAuthConsumerRequest()
-                                            .withClientId(avb.getoAuthClientId())
+                                            .withClientId(appId)
                                             .withClientSecret(avb.getOauthClientSecret())
                                             .withRedirectUri(avb.getOauthClientRedirects())
                                             .withName(appId);
@@ -353,7 +261,7 @@ public class SyncFacade {
                             }
 
                             try {
-                                String pubKey = idpLinkFactory.getDefaultIDPClient().getRealmPublicKeyInPemFormat(avb.getApplication().getOrganization());
+                                String pubKey = gatewayFacade.get(gw.getGatewayId()).getJWTPubKey();
                                 if (StringUtils.isNotEmpty(pubKey)) {
                                     //Sync or create JWT credentials
                                     KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(appId);

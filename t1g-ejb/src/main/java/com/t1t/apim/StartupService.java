@@ -1,10 +1,7 @@
 package com.t1t.apim;
 
 import com.google.gson.Gson;
-import com.t1t.apim.beans.idp.IDPBean;
-import com.t1t.apim.beans.idp.KeystoreBean;
 import com.t1t.apim.beans.jwt.IJWT;
-import com.t1t.apim.beans.mail.MailProviderBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.core.IStorage;
@@ -13,13 +10,10 @@ import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.facades.GatewayFacade;
 import com.t1t.apim.gateway.IGatewayLink;
-import com.t1t.apim.idp.IDPClient;
-import com.t1t.apim.idp.IDPLinkFactory;
 import com.t1t.apim.mail.MailService;
 import com.t1t.kong.model.*;
 import com.t1t.util.ConsumerConventionUtil;
 import com.t1t.util.GatewayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,11 +40,10 @@ import java.util.stream.Collectors;
 public class StartupService {
     private static final Logger _LOG = LoggerFactory.getLogger(StartupService.class.getName());
     @Inject private MailService mailService;
-    @Inject private AppConfig config;
+    @Inject @T1G private AppConfigBean config;
     @Inject private GatewayFacade gatewayFacade;
     @Inject private IStorageQuery query;
     @Inject private IStorage storage;
-    @Inject private IDPLinkFactory idpLinkFactory;
 
 
     /**
@@ -78,40 +71,6 @@ public class StartupService {
 
     private void verifyEngineDependencies() {
         //TODO - Verify that the engine's datastore is configured correctly and populated with the necessary entries for basic functionality
-        try {
-            verifyIdpRealm();
-        }
-        catch (Exception ex) {
-            _LOG.error("Error creating engine dependencies: {}", ex);
-        }
-    }
-
-    private void verifyIdpRealm() {
-        try {
-            IDPBean idp = query.getDefaultIdp();
-            KeystoreBean keystore = query.getDefaultKeystore();
-            MailProviderBean mailProvider = query.getDefaultMailProvider();
-            if (idp != null && StringUtils.isNotEmpty(idp.getId()) && StringUtils.isNotEmpty(idp.getDefaultRealm())) {
-                IDPClient client = idpLinkFactory.getIDPClient(idp.getId());
-                if (!client.realmExists(idp.getDefaultRealm())) {
-                    client.createRealm(idp.getDefaultRealm(), idp.getDefaultRealm(), keystore, mailProvider);
-                }
-                if (!client.realmKeystoreExists(idp.getDefaultRealm(), keystore.getKid())) {
-                    client.setRealmKeystore(idp.getDefaultRealm(), keystore);
-                }
-                if (!client.realmMailProviderExists(idp.getDefaultRealm(), mailProvider)) {
-                    client.setRealmMailProvider(idp.getDefaultRealm(), mailProvider);
-                }
-                query.getManagedAppForTypes(Arrays.asList(ManagedApplicationTypes.Publisher, ManagedApplicationTypes.InternalMarketplace, ManagedApplicationTypes.ExternalMarketplace)).forEach(mab -> {
-                    if (StringUtils.isNotEmpty(mab.getIdpClient()) && !client.clientExistsInRealm(mab.getIdpClient(), idp.getDefaultRealm())) {
-                        client.createClient(idp.getDefaultRealm(), mab.getIdpClient(), mab.getName(), null, Collections.singletonList(mab.getRedirectUri()));
-                    }
-                });
-            }
-        }
-        catch (StorageException ex) {
-            throw ExceptionFactory.systemErrorException(ex);
-        }
     }
 
     private void verifyOrCreateGatewayDependencies() throws StorageException {
@@ -134,7 +93,7 @@ public class StartupService {
                 .withUris(Collections.singletonList(config.getApiEngineRequestPath()))
                 .withName(config.getApiEngineName())
                 .withStripUri(config.getApiEngineStripRequestPath())
-                .withUpstreamUrl(config.getApiEngineUpstream());
+                .withUpstreamUrl(config.getApiEngineUpstreamUrl());
 
         api = verifyApi(gw, api);
         List<Policies> policies = new ArrayList<>();
@@ -255,7 +214,7 @@ public class StartupService {
                 plugin.setConfig(new Gson().fromJson(storage.getPolicyDefinition(polDef.getPolicyDefId()).getDefaultConfig(), polDef.getClazz()));
                 break;
             case JWT:
-                plugin.setConfig(new KongPluginJWT().withClaimsToVerify(Arrays.asList(IJWT.EXPIRATION_CLAIM)).withKeyClaimName(IJWT.AUDIENCE_CLAIM));
+                plugin.setConfig(new KongPluginJWT().withClaimsToVerify(Arrays.asList(IJWT.EXPIRATION_CLAIM)).withKeyClaimName(IJWT.ISSUER_CLAIM));
                 break;
             default:
                 throw new IllegalArgumentException("Not a valid policy for required api's: " + polDef.toString());
@@ -264,7 +223,7 @@ public class StartupService {
     }
 
     private void verifyOrCreateConsumers(IGatewayLink gw) throws StorageException {
-        String pemPublicKey = idpLinkFactory.getDefaultIDPClient().getDefaultPublicKeyInPemFormat();
+        String pemPublicKey = gatewayFacade.getDefaultGatewayPublicKey();
         query.getManagedAppForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.InternalMarketplace, ManagedApplicationTypes.ExternalMarketplace))
                 .forEach(mab -> {
             String id = ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
@@ -289,22 +248,20 @@ public class StartupService {
                         }
                     });
                 }
-                if (StringUtils.isNotEmpty(mab.getIdpClient())) {
-                    KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(id);
-                    if (jwtCreds != null && jwtCreds.getData().isEmpty()) {
-                        gw.addConsumerJWT(id, mab.getIdpClient(), pemPublicKey);
-                    } else if (jwtCreds != null) {
-                        List<KongPluginJWTResponse> removed = new ArrayList<>();
-                        jwtCreds.getData().forEach(cred -> {
-                            if (!cred.getRsaPublicKey().trim().equals(pemPublicKey.trim())) {
-                                gw.deleteConsumerJwtCredential(id, cred.getId());
-                                removed.add(cred);
-                            }
-                        });
-                        jwtCreds.getData().removeAll(removed);
-                        if (jwtCreds.getData().isEmpty()) {
-                            gw.addConsumerJWT(id, mab.getIdpClient(), pemPublicKey);
+                KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(id);
+                if (jwtCreds != null && jwtCreds.getData().isEmpty()) {
+                    gw.addConsumerJWT(id, pemPublicKey);
+                } else if (jwtCreds != null) {
+                    List<KongPluginJWTResponse> removed = new ArrayList<>();
+                    jwtCreds.getData().forEach(cred -> {
+                        if (!cred.getRsaPublicKey().trim().equals(pemPublicKey.trim())) {
+                            gw.deleteConsumerJwtCredential(id, cred.getId());
+                            removed.add(cred);
                         }
+                    });
+                    jwtCreds.getData().removeAll(removed);
+                    if (jwtCreds.getData().isEmpty()) {
+                        gw.addConsumerJWT(id, pemPublicKey);
                     }
                 }
             }

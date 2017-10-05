@@ -10,7 +10,6 @@ import java.util.Map;
  */
 public class OAuthApplicationResponse {
     KongPluginOAuthConsumerResponse consumerResponse;
-    KongConsumer consumer;
     Map<String,String> scopes;
     String base64AppLogo;
     String appVersion;
@@ -27,14 +26,6 @@ public class OAuthApplicationResponse {
 
     public void setConsumerResponse(KongPluginOAuthConsumerResponse consumerResponse) {
         this.consumerResponse = consumerResponse;
-    }
-
-    public KongConsumer getConsumer() {
-        return consumer;
-    }
-
-    public void setConsumer(KongConsumer consumer) {
-        this.consumer = consumer;
     }
 
     public Map<String, String> getScopes() {
@@ -81,7 +72,6 @@ public class OAuthApplicationResponse {
     public String toString() {
         return "OAuthApplicationResponse{" +
                 "consumerResponse=" + consumerResponse +
-                ", consumer=" + consumer +
                 ", scopes=" + scopes +
                 ", base64AppLogo='" + base64AppLogo + '\'' +
                 ", appVersion='" + appVersion + '\'' +

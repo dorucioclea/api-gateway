@@ -1,6 +1,8 @@
 package com.t1t.apim.auth.rest.resources.filter;
 
 import com.t1t.apim.AppConfig;
+import com.t1t.apim.AppConfigBean;
+import com.t1t.apim.T1G;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.apim.core.IStorageQuery;
@@ -42,7 +44,7 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
 
     //Security context
     @Inject private ISecurityAppContext securityAppContext;
-    @Inject private AppConfig config;
+    @Inject @T1G private AppConfigBean config;
     @Inject private IStorageQuery query;
     @Inject private SearchFacade search;
 

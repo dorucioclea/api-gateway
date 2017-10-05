@@ -1,8 +1,8 @@
 package com.t1t.apim.facades;
 
 import com.t1t.apim.AppConfig;
-import com.t1t.apim.beans.iprestriction.BlacklistBean;
-import com.t1t.apim.beans.iprestriction.WhitelistBean;
+import com.t1t.apim.AppConfigBean;
+import com.t1t.apim.T1G;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.services.AvailabilityBean;
 import com.t1t.apim.beans.system.SystemStatusBean;
@@ -35,7 +35,7 @@ public class SystemFacade {
 
     @Inject private IStorage storage;
     @Inject private IStorageQuery query;
-    @Inject private AppConfig config;
+    @Inject @T1G private AppConfigBean config;
     @Inject private GatewayFacade gatewayFacade;
     @Inject private MaintenanceController maintenance;
 
@@ -46,14 +46,6 @@ public class SystemFacade {
             result.put(mb.getPrefix(),new AvailabilityBean(mb.getPrefix(),mb.getName()));
         }
         return result;
-    }
-
-    public List<WhitelistBean> getWhitelistRecords()throws StorageException{
-        return query.listWhitelistRecords();
-    }
-
-    public List<BlacklistBean> getBlacklistRecords()throws StorageException{
-        return query.listBlacklistRecords();
     }
 
     public SystemStatusBean getStatus() throws StorageException, GatewayAuthenticationException {

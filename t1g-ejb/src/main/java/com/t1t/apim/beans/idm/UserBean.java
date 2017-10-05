@@ -26,8 +26,6 @@ public class UserBean implements Serializable {
     @Id
     @Column(updatable=false, nullable=false)
     private String username;
-    @Column(name = "kong_username")
-    private String kongUsername;//to retrieve consumer from Kong
     @Column(name = "full_name")
     private String fullName;
     private String email;
@@ -49,10 +47,6 @@ public class UserBean implements Serializable {
     @Lob
     @Basic(fetch=FetchType.EAGER)
     private byte[] base64pic;
-    @Column(name="jwt_key")
-    private String jwtKey;
-    @Column(name="jwt_secret")
-    private String jwtSecret;
 
 
     /**
@@ -159,30 +153,6 @@ public class UserBean implements Serializable {
         this.bio = bio;
     }
 
-    public String getKongUsername() {
-        return kongUsername;
-    }
-
-    public void setKongUsername(String kongUsername) {
-        this.kongUsername = kongUsername;
-    }
-
-    public String getJwtKey() {
-        return jwtKey;
-    }
-
-    public void setJwtKey(String jwtKey) {
-        this.jwtKey = jwtKey;
-    }
-
-    public String getJwtSecret() {
-        return jwtSecret;
-    }
-
-    public void setJwtSecret(String jwtSecret) {
-        this.jwtSecret = jwtSecret;
-    }
-
     /**
      * @see Object#hashCode()
      */
@@ -226,7 +196,6 @@ public class UserBean implements Serializable {
     public String toString() {
         return "UserBean{" +
                 "username='" + username + '\'' +
-                ", kongUsername='" + kongUsername + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
                 ", joinedOn=" + joinedOn +
@@ -236,8 +205,6 @@ public class UserBean implements Serializable {
                 ", website='" + website + '\'' +
                 ", bio='" + bio + '\'' +
                 ", base64pic=" + Arrays.toString(base64pic) +
-                ", jwtKey='" + jwtKey + '\'' +
-                ", jwtSecret='" + jwtSecret + '\'' +
                 '}';
     }
 }

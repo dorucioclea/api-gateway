@@ -2,6 +2,8 @@ package com.t1t.apim.facades;
 
 import com.google.gson.Gson;
 import com.t1t.apim.AppConfig;
+import com.t1t.apim.AppConfigBean;
+import com.t1t.apim.T1G;
 import com.t1t.apim.beans.BeanUtils;
 import com.t1t.apim.beans.announcements.AnnouncementBean;
 import com.t1t.apim.beans.announcements.NewAnnouncementBean;
@@ -26,11 +28,9 @@ import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.events.NewEventBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.idm.*;
-import com.t1t.apim.beans.idp.KeystoreBean;
 import com.t1t.apim.beans.jwt.IJWT;
 import com.t1t.apim.beans.jwt.JWTResponse;
 import com.t1t.apim.beans.jwt.ServiceAccountTokenRequest;
-import com.t1t.apim.beans.mail.MailProviderBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.members.MemberBean;
@@ -64,9 +64,6 @@ import com.t1t.apim.gateway.IGatewayLinkFactory;
 import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.apim.gateway.rest.GatewayValidation;
-import com.t1t.apim.idp.IDPClient;
-import com.t1t.apim.idp.IDPLinkFactory;
-import com.t1t.apim.idp.dto.RealmClient;
 import com.t1t.apim.kong.KongConstants;
 import com.t1t.apim.security.ISecurityAppContext;
 import com.t1t.apim.security.ISecurityContext;
@@ -121,11 +118,10 @@ public class OrganizationFacade {
     @Inject private UserFacade userFacade;
     @Inject private RoleFacade roleFacade;
     @Inject private BrandingFacade brandingFacade;
-    @Inject private AppConfig config;
+    @Inject @T1G private AppConfigBean config;
     @Inject private Event<NewEventBean> event;
     @Inject private Event<AnnouncementBean> announcement;
     @Inject private GatewayValidation gatewayValidation;
-    @Inject private IDPLinkFactory idpFactory;
 
     public final static String MARKET_SEPARATOR = "-";
 
@@ -172,30 +168,6 @@ public class OrganizationFacade {
         orgBean.setModifiedBy(securityContext.getCurrentUser());
         orgBean.setOrganizationPrivate(bean.getOrganizationPrivate() == null ? true : bean.getOrganizationPrivate());
 
-        MailProviderBean mpb;
-        if (bean.getMailProviderId() != null) {
-            mpb = storage.getMailProvider(bean.getMailProviderId());
-            if (mpb == null) {
-                throw ExceptionFactory.mailProviderNotFoundException(bean.getMailProviderId());
-            }
-        }
-        else {
-            mpb = query.getDefaultMailProvider();
-        }
-        orgBean.setMailProviderId(mpb.getId());
-
-        KeystoreBean kpb;
-        if (bean.getKeystoreKid() != null) {
-            kpb = storage.getKeystore(bean.getKeystoreKid());
-            if (kpb == null) {
-                throw ExceptionFactory.keystoreNotFoundException(bean.getKeystoreKid());
-            }
-        }
-        else {
-            kpb = query.getDefaultKeystore();
-        }
-        orgBean.setKeystoreKid(kpb.getKid());
-
         if (bean.getFriendlyName() != null) {
             if (!securityContext.isAdmin()) {
                 throw ExceptionFactory.notAuthorizedException();
@@ -209,9 +181,6 @@ public class OrganizationFacade {
             }
             storage.createOrganization(orgBean);
             storage.createAuditEntry(AuditUtils.organizationCreated(orgBean, securityContext));
-            //Create the corresponding realm on the IDP
-            IDPClient idp = idpFactory.getDefaultIDPClient();
-            idp.createRealm(orgBean, kpb, mpb);
 
             // Auto-grant memberships in roles to the creator of the organization
             for (RoleBean roleBean : autoGrantedRoles) {
@@ -397,11 +366,11 @@ public class OrganizationFacade {
             avb.setOauthClientRedirects(uri.getUris());
             //register application credentials for OAuth2
             //create OAuth2 application credentials on the application consumer - should only been done once for this application
-            if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
+            if (avb != null && !StringUtils.isEmpty(avb.getOauthClientSecret())) {
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                 //String uniqueUserId = securityContext.getCurrentUser();
                 KongPluginOAuthConsumerRequest OAuthRequest = new KongPluginOAuthConsumerRequest()
-                        .withClientId(avb.getoAuthClientId())
+                        .withClientId(appConsumerName)
                         .withClientSecret(avb.getOauthClientSecret())
                         .withName(avb.getApplication().getName())
                         .withRedirectUri(avb.getOauthClientRedirects())
@@ -882,8 +851,6 @@ public class OrganizationFacade {
             }
             // Delete related application events
             query.deleteAllEventsForEntity(ConsumerConventionUtil.createAppUniqueId(avb));
-            // Delete the client on the IDP
-            idpFactory.getDefaultIDPClient().deleteClient(avb);
             // Finally delete the application
             storage.deleteApplicationVersion(avb);
         } catch (StorageException ex) {
@@ -3108,29 +3075,19 @@ public class OrganizationFacade {
         newVersion.setVersion(bean.getVersion());
         newVersion.setApikey(apiKeyGenerator.generate());
         String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion);
-
-        //TODO - remove the oauth client id property once backwards compatability is no longer required
-        newVersion.setoAuthClientId(appConsumerName);
         newVersion.setOauthClientRedirects(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI)));
-
-        //Create the corresponding IDP client and set the app version idp id
-        IDPClient idpClient = idpFactory.getDefaultIDPClient();
-        RealmClient rc = idpClient.createClient(newVersion);
-        newVersion.setIdpClientId(rc.getId());
-
-        newVersion.setOauthClientSecret(rc.getSecret());
 
         //create consumer on gateway
         //We create the new application version consumer
         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
 
         gateway.createConsumer(appConsumerName, appConsumerName);
-        KongPluginJWTResponse jwtCred = gateway.addConsumerJWT(appConsumerName, idpClient.getRealmPublicKeyInPemFormat(application.getOrganization()));
+        KongPluginJWTResponse jwtCred = gateway.addConsumerJWT(appConsumerName, gatewayFacade.getDefaultGatewayPublicKey());
         //newVersion.setJwtKey(jwtCred.getKey());
         //newVersion.setJwtSecret(jwtCred.getSecret());
         gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
         KongPluginOAuthConsumerResponse response = gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
-                .withClientId(newVersion.getoAuthClientId())
+                .withClientId(appConsumerName)
                 .withClientSecret(newVersion.getOauthClientSecret())
                 .withName(application.getName())
                 .withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
@@ -3381,7 +3338,6 @@ public class OrganizationFacade {
         newVersion.setModifiedOn(new Date());
         newVersion.setStatus(ServiceStatus.Created);
         newVersion.setService(service);
-        newVersion.setCustomLoadBalancing(false);
         //If the service is designated as an admin service, do not enable auto contract acceptance
         newVersion.setAutoAcceptContracts(service.isAdmin() != null && !service.isAdmin());
         if (gateway != null && newVersion.getGateways() == null) {
@@ -4093,9 +4049,6 @@ public class OrganizationFacade {
                 }
             }
             deleteOrganizationInternal(org);
-
-            //Finally, delete the corresponding realm
-            idpFactory.getDefaultIDPClient().deleteRealm(org);
         }
         catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
@@ -4189,7 +4142,7 @@ public class OrganizationFacade {
     public NewOAuthCredentialsBean reissueApplicationVersionOAuthCredentials(ApplicationVersionBean avb) {
         try {
             //Check if the app version has Oauthcredentials
-            if (avb.getoAuthClientId() == null || avb.getOauthClientSecret() == null) {
+            if (avb.getOauthClientSecret() == null) {
                 return null;
             }
             //Check if the app has a callback uri, if it doesn't it isn't a consumer on the gateway(s), but we still want to
@@ -4198,15 +4151,13 @@ public class OrganizationFacade {
             rval.setOrganizationId(avb.getApplication().getOrganization().getId());
             rval.setApplicationId(avb.getApplication().getId());
             rval.setVersion(avb.getVersion());
-            rval.setRevokedClientId(avb.getoAuthClientId());
             rval.setRevokedClientSecret(avb.getOauthClientSecret());
-            String newSecret = idpFactory.getDefaultIDPClient().regenerateClientSecret(avb.getApplication().getOrganization().getId(), avb.getIdpClientId());
-            avb.setOauthClientSecret(newSecret);
-            rval.setNewClientId(avb.getoAuthClientId());
+            avb.setOauthClientSecret(apiKeyGenerator.generate());
             rval.setNewClientSecret(avb.getOauthClientSecret());
+            String appConsumerName = ConsumerConventionUtil.createAppUniqueId(avb);
             if (!(avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().stream().filter(ValidationUtils::isValidAbsoluteURI).collect(Collectors.toSet()).isEmpty())) {
                 KongPluginOAuthConsumerRequest oAuthConsumerRequest = new KongPluginOAuthConsumerRequest()
-                        .withClientId(avb.getoAuthClientId())
+                        .withClientId(appConsumerName)
                         .withClientSecret(avb.getOauthClientSecret())
                         .withRedirectUri(avb.getOauthClientRedirects())
                         .withName(avb.getApplication().getName())
@@ -4240,7 +4191,6 @@ public class OrganizationFacade {
                 }
             }
             EntityUpdatedData data = new EntityUpdatedData();
-            data.addChange("OAuth2 Client ID", rval.getRevokedClientId(), rval.getNewClientId());
             data.addChange("OAuth2 Client Secret", rval.getRevokedClientSecret(), rval.getNewClientSecret());
             storage.updateApplicationVersion(avb);
             storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.OAuth2Reissuance, securityContext));

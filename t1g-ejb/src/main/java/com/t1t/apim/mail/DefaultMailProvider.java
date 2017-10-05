@@ -1,6 +1,8 @@
 package com.t1t.apim.mail;
 
 import com.t1t.apim.AppConfig;
+import com.t1t.apim.AppConfigBean;
+import com.t1t.apim.T1G;
 import com.t1t.apim.beans.mail.BaseMailBean;
 import com.t1t.apim.exceptions.MailProviderException;
 import org.slf4j.Logger;
@@ -24,7 +26,7 @@ public class DefaultMailProvider implements MailProvider {
     private final static Logger _LOG = LoggerFactory.getLogger(DefaultMailProvider.class.getName());
     @Resource(mappedName="java:jboss/mail/Default")
     private Session mailSession;
-    @Inject private AppConfig config;
+    @Inject @T1G private AppConfigBean config;
 
     @PostConstruct
     public void init(){

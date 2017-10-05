@@ -36,7 +36,6 @@ import com.t1t.apim.gateway.dto.Contract;
 import com.t1t.apim.gateway.dto.Policy;
 import com.t1t.apim.gateway.dto.Service;
 import com.t1t.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.apim.idp.IDPLinkFactory;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.kong.model.KongConsumer;
 import com.t1t.kong.model.KongPluginACLResponse;
@@ -71,7 +70,6 @@ public class ActionFacade {
     @Inject private IServiceValidator serviceValidator;
     @Inject private IApplicationValidator applicationValidator;
     @Inject private GatewayFacade gatewayFacade;
-    @Inject private IDPLinkFactory idpLinkFactory;
 
     public void performAction(ActionBean action){
         switch (action.getType()) {
@@ -396,12 +394,12 @@ public class ActionFacade {
                             gw.createConsumer(appConsumerName);
                             gw.addConsumerKeyAuth(appConsumerName, versionBean.getApikey());
                             gw.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
-                                    .withClientId(versionBean.getoAuthClientId())
+                                    .withClientId(appConsumerName)
                                     .withClientSecret(versionBean.getOauthClientSecret())
                                     .withName(versionBean.getApplication().getName())
                                     .withId(versionBean.getOauthCredentialId())
                                     .withRedirectUri(versionBean.getOauthClientRedirects()));
-                            String publicKey = idpLinkFactory.getDefaultIDPClient().getRealmPublicKeyInPemFormat(versionBean.getApplication().getOrganization());
+                            String publicKey = gatewayFacade.getDefaultGatewayPublicKey();
                             gw.addConsumerJWT(appConsumerName, publicKey);
                         } catch (Exception ex) {
                             //Delete the consumer on the gateway so the gateway and engine remain in sync

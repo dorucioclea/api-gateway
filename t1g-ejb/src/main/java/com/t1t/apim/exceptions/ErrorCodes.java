@@ -265,14 +265,10 @@ public final class ErrorCodes {
     public static final String SYSTEM_MAINTENANCE_INFO          = null;
 
     //
-    // IDP related
+    // Error Message keys
     //
 
-    public static final int IDP_NOT_FOUND                       = 21004;
-    public static final int MAIL_PROVIDER_NOT_FOUND             = 21005;
-    public static final int KEYSTORE_NOT_FOUND                  = 21006;
-
-    public static final String IDP_NOT_FOUND_INFO               = null;
-    public static final String MAIL_PROVIDER_NOT_FOUND_INFO     = null;
-    public static final String KEYSTORE_NOT_FOUND_INFO          = null;
+    public static final String ERROR_LOADING_PERMISSIONS        = "errorLoadingPermissions";
+    public static final String CONFIG_PROPERTY_MISSING          = "configPropertyMissing";
+    public static final String GATEWAY_NOT_RUNNING              = "gatewayNotRunning";
 }

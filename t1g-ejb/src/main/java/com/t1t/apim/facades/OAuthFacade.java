@@ -106,7 +106,7 @@ public class OAuthFacade {
             if (contract == null) {
                 throw ExceptionFactory.applicationOAuthInformationNotFoundException(clientId, serviceId + " " + version);
             }
-            Preconditions.checkNotNull(query.listGateways().size() > 0);
+            Preconditions.checkArgument(query.listGateways().size() > 0);
             String defaultGateway = query.listGateways().get(0).getId();
             response.setAuthorizationUrl(getOAuth2AuthorizeEndpoint(orgId, serviceId, version));
             response.setTokenUrl(getOAuth2TokenEndpoint(orgId, serviceId, version));
@@ -120,23 +120,13 @@ public class OAuthFacade {
                     ApplicationVersionBean applicationForOAuth = query.getApplicationForOAuth(response.getConsumerResponse().getClientId(), response.getConsumerResponse().getClientSecret());
                     response.setBase64AppLogo(applicationForOAuth.getApplication().getBase64logo());
                     response.setAppVersion(applicationForOAuth.getVersion());
-                    //retrieve the Kong consumer
-                    /*if (appInfoList.getData() != null && appInfoList.getData().size() > 0) {
-                        String consumerId = appInfoList.getData().get(0).getConsumerId();
-                        if (!StringUtils.isEmpty(consumerId)) {
-                            response.setConsumer(gatewayLink.getConsumer(consumerId));
-                        }
-                    }*/
-                    //
-                    UserBean user = idmStorage.getUser(applicationForOAuth.getCreatedBy());
-                    response.setConsumer(gatewayLink.getConsumer(user.getKongUsername()));
                 } catch (StorageException ex) {
                   ex.printStackTrace();
                 } catch (Exception e) {
                     throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e); //$NON-NLS-1$
                 }
                 //add scope information to the response
-                if (response.getConsumer() != null && response.getConsumerResponse() != null) {
+                if (response.getConsumerResponse() != null) {
                     //retrieve scopes for targeted service
                     ServiceVersionBean serviceVersion = contract.getService();
                     //verify if it's an OAuth enabled service

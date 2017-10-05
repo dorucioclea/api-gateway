@@ -13,9 +13,9 @@ import com.t1t.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.apim.core.exceptions.StorageException;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.NotAuthorizedException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.UserFacade;
 import com.t1t.apim.rest.resources.IUserResource;
 import com.t1t.apim.security.ISecurityContext;
@@ -58,10 +58,6 @@ public class UserResource implements IUserResource {
     public UserDtoBean get(@PathParam("userId") String userId) throws UserNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         UserDtoBean rval = DtoFactory.createUserDtoBean(userFacade.get(userId));
-        if (!securityContext.isAdmin()) {
-            rval.setJwtKey(null);
-            rval.setJwtSecret(null);
-        }
         return rval;
     }
 

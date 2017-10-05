@@ -10,12 +10,7 @@ import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.gateways.GatewayBean;
-import com.t1t.apim.beans.idp.IDPBean;
 import com.t1t.apim.beans.idp.KeyMappingBean;
-import com.t1t.apim.beans.idp.KeystoreBean;
-import com.t1t.apim.beans.iprestriction.BlacklistBean;
-import com.t1t.apim.beans.iprestriction.WhitelistBean;
-import com.t1t.apim.beans.mail.MailProviderBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.operation.OperatingBean;
@@ -455,26 +450,6 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public List<ManagedApplicationBean> listAvailableMarkets() throws StorageException;
-
-    /**
-     * Returns the default whitelist records. This can be used for an implicit IP Restriction policy.
-     * This is the case for example when exposing services, that are not visible in the API marketplace, but should
-     * be exposed to the outside world with IP restrictions.
-     *
-     * @return
-     * @throws StorageException
-     */
-    public List<WhitelistBean> listWhitelistRecords() throws StorageException;
-
-    /**
-     * Returns the default blacklist records. This can be used for an implicit IP Restriction policy.
-     * This is the case for example when exposing services, that are not visible in the API marketplace, but should
-     * be exposed to the outside world with IP restrictions.
-     *
-     * @return
-     * @throws StorageException
-     */
-    public List<BlacklistBean> listBlacklistRecords() throws StorageException;
 
     /**
      * Returns an ACL policybean for a given application
@@ -1172,27 +1147,6 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public Long getOAuth2TokenCount() throws StorageException;
-
-    /**
-     * Returns the default IDP
-     * @return
-     * @throws StorageException
-     */
-    public IDPBean getDefaultIdp() throws StorageException;
-
-    /**
-     * Returns the default keystore
-     * @return
-     * @throws StorageException
-     */
-    public KeystoreBean getDefaultKeystore()throws StorageException;
-
-    /**
-     * Returns the default mail provider
-     * @return
-     * @throws StorageException
-     */
-    public MailProviderBean getDefaultMailProvider() throws StorageException;
 
     /**
      * Returns a string with the JSON default policy config for the given policy definition ID

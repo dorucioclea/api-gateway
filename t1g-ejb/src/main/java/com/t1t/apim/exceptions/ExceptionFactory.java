@@ -670,15 +670,6 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
-     * @param id
-     * @return
-     */
-    public static final IDPNotFoundException idpNotFoundException(String id) {
-        return new IDPNotFoundException(Messages.i18n.format("idpNotFound", id));
-    }
-
-    /**
-     * Creates an exception
      * @param type
      * @param value
      * @param e
@@ -686,23 +677,5 @@ public final class ExceptionFactory {
      */
     public static EncryptionFailedException encryptionFailed(final String type, final String value, final Throwable e) {
         return new EncryptionFailedException(Messages.i18n.format("EncryptionFailed", type, value), e);
-    }
-
-    /**
-     * Creates an exception
-     * @param kid
-     * @return
-     */
-    public static KeystoreNotFoundException keystoreNotFoundException(String kid) {
-        return new KeystoreNotFoundException(Messages.i18n.format("keystoreNotFound", kid));
-    }
-
-    /**
-     * Creates an exception
-     * @param id
-     * @return
-     */
-    public static MailProviderNotFoundException mailProviderNotFoundException(Long id) {
-        return new MailProviderNotFoundException(Messages.i18n.format("mailproviderNotFound", id));
     }
 }

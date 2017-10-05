@@ -1,7 +1,5 @@
 package com.t1t.rest.resources;
 
-import com.t1t.apim.beans.iprestriction.BlacklistBean;
-import com.t1t.apim.beans.iprestriction.WhitelistBean;
 import com.t1t.apim.beans.summary.ServiceVersionAvailabilityBean;
 import com.t1t.apim.beans.system.SystemStatusBean;
 import com.t1t.apim.core.exceptions.StorageException;
@@ -57,25 +55,5 @@ public class SystemResource implements ISystemResource {
         ServiceVersionAvailabilityBean svab = new ServiceVersionAvailabilityBean();
         svab.setAvailableMarketplaces(systemFacade.getAvailableMarketplaces());
         return svab;
-    }
-
-    @ApiOperation(value = "Get general whitelist records",
-                  notes = "Use this endpoint to retrieve the general whitelist records. Those will be default applied for exposed services which are not visible on any API Marketplace.")
-    @ApiResponses({@ApiResponse(code = 200,responseContainer = "List", response = WhitelistBean.class, message = "Default whitelist records.")})
-    @GET
-    @Path("/whitelist/records")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<WhitelistBean> getWhitelistRecords() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
-        return systemFacade.getWhitelistRecords();
-    }
-
-    @ApiOperation(value = "Get general blacklist records",
-                  notes = "Use this endpoint to retrieve the general blacklist records. Those will be default applied for exposed services which are not visible on any API Marketplace.")
-    @ApiResponses({@ApiResponse(code = 200,responseContainer = "List", response = BlacklistBean.class, message = "Default blacklist records.")})
-    @GET
-    @Path("/blacklist/records")
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<BlacklistBean> getBlacklistRecords() throws ServiceVersionNotFoundException, InvalidServiceStatusException, GatewayNotFoundException, StorageException {
-        return systemFacade.getBlacklistRecords();
     }
 }

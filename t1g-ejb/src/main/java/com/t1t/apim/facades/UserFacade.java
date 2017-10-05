@@ -49,9 +49,6 @@ import java.util.Set;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class UserFacade implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(UserFacade.class.getName());
-    private static final String SAML2_KEY_RELAY_STATE = "RelayState=";
-    //private static final String SAML2_KEY_RESPONSE = "SAMLResponse=";
-    private static final String SAML2_KEY_REQUEST = "SAMLRequest=";
 
     @Inject private ISecurityContext securityContext;
     @Inject private ISecurityAppContext securityAppContext;

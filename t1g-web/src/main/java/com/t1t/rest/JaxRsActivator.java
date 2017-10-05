@@ -39,7 +39,6 @@ public class JaxRsActivator extends Application {
         resources.add(CurrentUserResource.class);
         resources.add(GatewayResource.class);
         resources.add(PermissionsResource.class);
-        resources.add(PluginResource.class);
         resources.add(PolicyDefinitionResource.class);
         resources.add(RoleResource.class);
         resources.add(SearchResource.class);

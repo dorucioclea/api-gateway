@@ -4,18 +4,24 @@ import com.google.gson.GsonBuilder;
 import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.apim.kong.adapters.KongSafeTypeAdapterFactory;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit.RestAdapter;
 import retrofit.converter.GsonConverter;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by michallispashidis on 07/08/2015.
  * Application scoped bean, adding the header information to a VisiREG server instantce call.
  */
 public class KongServiceBuilder {
+
+    private static final String BASIC_PREFIX = "Basic ";
+    private static final String CREDENTIAL_SEPARATOR = ":";
+    private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
     private static Logger _LOG = LoggerFactory.getLogger(KongServiceBuilder.class.getName());
 
     /**
@@ -25,16 +31,14 @@ public class KongServiceBuilder {
      * @return
      */
     private static synchronized String getBasicAuthValue(RestGatewayConfigBean config) {
-        String authHeader = "";
-        try {
-            String username = config.getUsername();
-            String password = config.getPassword();
-            String up = username + ":" + password; //$NON-NLS-1$
-            String base64 = null; //$NON-NLS-1$
-            base64 = new String(Base64.encodeBase64(up.getBytes("UTF-8")));
-            authHeader = "Basic " + base64; //$NON-NLS-1$
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        String authHeader = null;
+        String username;
+        String password;
+        if (StringUtils.isNoneBlank((username = config.getUsername()), (password = config.getPassword()))) {
+            String up = username + CREDENTIAL_SEPARATOR + password;
+            String base64 = null;
+            base64 = new String(Base64.encodeBase64(up.getBytes(StandardCharsets.UTF_8)));
+            authHeader = BASIC_PREFIX + base64;
         }
         return authHeader;
     }
@@ -47,30 +51,17 @@ public class KongServiceBuilder {
      * @return
      */
     public <T> T getService(RestGatewayConfigBean config, Class<T> iFace) {
-        //optional GSON converter
-        //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         StringBuilder kongURL = new StringBuilder(config.getEndpoint());
-        RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(kongURL.toString())
+        String authHeader;
+        RestAdapter.Builder builder = new RestAdapter.Builder().setEndpoint(kongURL.toString())
                 .setLogLevel(RestAdapter.LogLevel.FULL)
                 .setLog(msg -> _LOG.info("retrofit - KONG:{}", msg))
-                .setRequestInterceptor(requestFacade ->
-                    requestFacade.addHeader("Authorization", getBasicAuthValue(config)))
-                .setConverter(new GsonConverter(new GsonBuilder().registerTypeAdapterFactory(new KongSafeTypeAdapterFactory()).create()))
-/*                .setErrorHandler(new ErrorHandler() {
-                    @Override
-                    public Throwable handleError(RetrofitError retrofitError) {
-                        switch (retrofitError.getResponse().getStatus()) {
-                            case ErrorCodes.HTTP_STATUS_CODE_INVALID_INPUT:
-                                throw new GatewayNotFoundException(retrofitError.getMessage());
-                            case ErrorCodes.HTTP_STATUS_CODE_INVALID_STATE:
-                                throw new AlreadyExistsException(retrofitError.getResponse().getReason());
-                            default:
-                                throw new RuntimeException("");
-                        }
-                    }
-                })*/
-                .build();
+                .setConverter(new GsonConverter(new GsonBuilder().registerTypeAdapterFactory(new KongSafeTypeAdapterFactory()).create()));
+        if ((authHeader = getBasicAuthValue(config)) != null) {
+            builder.setRequestInterceptor(requestFacade ->
+                    requestFacade.addHeader(AUTHORIZATION_HEADER_NAME, authHeader));
+        }
         _LOG.info("Kong connection string:{}", kongURL.toString());
-        return restAdapter.create(iFace);
+        return builder.build().create(iFace);
     }
 }

@@ -11,9 +11,7 @@ import java.io.Serializable;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewOAuthCredentialsBean implements Serializable {
-    private String revokedClientId;
     private String revokedClientSecret;
-    private String newClientId;
     private String newClientSecret;
     private String organizationId;
     private String applicationId;
@@ -23,9 +21,7 @@ public class NewOAuthCredentialsBean implements Serializable {
     }
 
     public NewOAuthCredentialsBean(String revokedClientId, String revokedClientSecret, String newClientId, String newClientSecret, String organizationId, String applicationId, String version) {
-        this.revokedClientId = revokedClientId;
         this.revokedClientSecret = revokedClientSecret;
-        this.newClientId = newClientId;
         this.newClientSecret = newClientSecret;
         this.organizationId = organizationId;
         this.applicationId = applicationId;
@@ -56,28 +52,12 @@ public class NewOAuthCredentialsBean implements Serializable {
         this.version = version;
     }
 
-    public String getRevokedClientId() {
-        return revokedClientId;
-    }
-
-    public void setRevokedClientId(String revokedClientId) {
-        this.revokedClientId = revokedClientId;
-    }
-
     public String getRevokedClientSecret() {
         return revokedClientSecret;
     }
 
     public void setRevokedClientSecret(String revokedClientSecret) {
         this.revokedClientSecret = revokedClientSecret;
-    }
-
-    public String getNewClientId() {
-        return newClientId;
-    }
-
-    public void setNewClientId(String newClientId) {
-        this.newClientId = newClientId;
     }
 
     public String getNewClientSecret() {
@@ -91,30 +71,26 @@ public class NewOAuthCredentialsBean implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof NewOAuthCredentialsBean)) return false;
 
         NewOAuthCredentialsBean that = (NewOAuthCredentialsBean) o;
 
-        if (revokedClientId != null ? !revokedClientId.equals(that.revokedClientId) : that.revokedClientId != null)
-            return false;
         if (revokedClientSecret != null ? !revokedClientSecret.equals(that.revokedClientSecret) : that.revokedClientSecret != null)
             return false;
-        if (newClientId != null ? !newClientId.equals(that.newClientId) : that.newClientId != null) return false;
         if (newClientSecret != null ? !newClientSecret.equals(that.newClientSecret) : that.newClientSecret != null)
             return false;
         if (organizationId != null ? !organizationId.equals(that.organizationId) : that.organizationId != null)
             return false;
         if (applicationId != null ? !applicationId.equals(that.applicationId) : that.applicationId != null)
             return false;
-        return version != null ? version.equals(that.version) : that.version == null;
+        if (version != null ? !version.equals(that.version) : that.version != null) return false;
 
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = revokedClientId != null ? revokedClientId.hashCode() : 0;
-        result = 31 * result + (revokedClientSecret != null ? revokedClientSecret.hashCode() : 0);
-        result = 31 * result + (newClientId != null ? newClientId.hashCode() : 0);
+        int result = revokedClientSecret != null ? revokedClientSecret.hashCode() : 0;
         result = 31 * result + (newClientSecret != null ? newClientSecret.hashCode() : 0);
         result = 31 * result + (organizationId != null ? organizationId.hashCode() : 0);
         result = 31 * result + (applicationId != null ? applicationId.hashCode() : 0);
@@ -125,9 +101,7 @@ public class NewOAuthCredentialsBean implements Serializable {
     @Override
     public String toString() {
         return "NewOAuthCredentialsBean{" +
-                "revokedClientId='" + revokedClientId + '\'' +
-                ", revokedClientSecret='" + revokedClientSecret + '\'' +
-                ", newClientId='" + newClientId + '\'' +
+                "revokedClientSecret='" + revokedClientSecret + '\'' +
                 ", newClientSecret='" + newClientSecret + '\'' +
                 ", organizationId='" + organizationId + '\'' +
                 ", applicationId='" + applicationId + '\'' +

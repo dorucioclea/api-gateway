@@ -5,7 +5,7 @@ import com.t1t.apim.beans.idm.ExternalUserBean;
 import com.t1t.apim.beans.jwt.JWTResponse;
 import com.t1t.apim.beans.jwt.ServiceAccountTokenRequest;
 import com.t1t.apim.beans.scim.ExternalUserRequest;
-import com.t1t.apim.core.i18n.Messages;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.OrganizationFacade;
 import com.t1t.apim.facades.UserFacade;
 import io.swagger.annotations.*;
@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response;
 /**
  * Created by michallispashidis on 26/11/15.
  */
-@Api(value = "/login", description = "The JWT-based .")
+@Api(value = "/login", description = "Various login-credential related methods")
 @Path("/login")
 @ApplicationScoped
 public class LoginResource {

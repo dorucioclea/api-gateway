@@ -9,7 +9,9 @@ import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
 import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.core.IStorage;
+import com.t1t.apim.exceptions.ErrorCodes;
 import com.t1t.apim.exceptions.ExceptionFactory;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.gateway.GatewayAuthenticationException;
 import com.t1t.apim.gateway.IGatewayLink;
 import com.t1t.apim.gateway.dto.*;
@@ -17,7 +19,6 @@ import com.t1t.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.apim.gateway.dto.exceptions.RegistrationException;
-import com.t1t.apim.gateway.i18n.Messages;
 import com.t1t.apim.kong.KongClient;
 import com.t1t.apim.kong.KongServiceBuilder;
 import com.t1t.kong.model.*;
@@ -257,7 +258,7 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public Service publishService(Service service) throws PublishingException, GatewayAuthenticationException {
         if (!isGatewayUp()) {
-            throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
+            throw new PublishingException(Messages.i18n.format(ErrorCodes.GATEWAY_NOT_RUNNING)); //$NON-NLS-1$
         }
         return getClient().publish(service);
     }
@@ -265,7 +266,7 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void publishGatewayOAuthEndpoint(Gateway gateway) throws PublishingException, GatewayAuthenticationException {
         if (!isGatewayUp()) {
-            throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
+            throw new PublishingException(Messages.i18n.format(ErrorCodes.GATEWAY_NOT_RUNNING)); //$NON-NLS-1$
         }
         getClient().publishGatewayOAuthEndpoint(gateway);
     }
@@ -288,7 +289,7 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void retireService(Service service) throws PublishingException, GatewayAuthenticationException {
         if (!isGatewayUp()) {
-            throw new PublishingException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
+            throw new PublishingException(Messages.i18n.format(ErrorCodes.GATEWAY_NOT_RUNNING)); //$NON-NLS-1$
         }
         getClient().retire(service);
     }
@@ -299,7 +300,7 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public Map<Contract, KongPluginConfigList> registerApplication(Application application) throws RegistrationException, GatewayAuthenticationException {
         if (!isGatewayUp()) {
-            throw new RegistrationException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
+            throw new RegistrationException(Messages.i18n.format(ErrorCodes.GATEWAY_NOT_RUNNING)); //$NON-NLS-1$
         }
         return getClient().register(application);
     }
@@ -310,7 +311,7 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public void unregisterApplication(Application application) throws RegistrationException, GatewayAuthenticationException {
         if (!isGatewayUp()) {
-            throw new RegistrationException(Messages.i18n.format("RestGatewayLink.GatewayNotRunning")); //$NON-NLS-1$
+            throw new RegistrationException(Messages.i18n.format(ErrorCodes.GATEWAY_NOT_RUNNING)); //$NON-NLS-1$
         }
         getClient().unregister(application.getOrganizationId(), application.getApplicationId(), application.getVersion());
     }
@@ -522,11 +523,6 @@ public class RestGatewayLink implements IGatewayLink {
     @Override
     public KongPluginConfigList getConsumerSpecificApiPlugins(String consumerId, String apiId) {
         return getClient().getConsumerSpecificApiPlugins(consumerId, apiId);
-    }
-
-    @Override
-    public KongPluginJWTResponse addConsumerJWT(String consumerName, String key, String publicRsaKey) {
-        return getClient().createConsumerJWT(consumerName, key, publicRsaKey);
     }
 
     @Override

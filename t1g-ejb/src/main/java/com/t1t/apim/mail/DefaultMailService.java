@@ -1,6 +1,8 @@
 package com.t1t.apim.mail;
 
 import com.t1t.apim.AppConfig;
+import com.t1t.apim.AppConfigBean;
+import com.t1t.apim.T1G;
 import com.t1t.apim.beans.mail.*;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.exceptions.StorageException;
@@ -27,7 +29,7 @@ import java.util.Map;
 @Default
 public class DefaultMailService implements MailService {
     private final static Logger _LOG = LoggerFactory.getLogger(DefaultMailService.class.getName());
-    @Inject private AppConfig config;
+    @Inject @T1G private AppConfigBean config;
     @Inject @Default private MailProvider mailProvider;
     @Inject private IStorage storage;
     private static final String KEY_START = "{";

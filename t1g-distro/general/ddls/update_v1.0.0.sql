@@ -1,36 +1,5 @@
 --------- UPGRADE TO 1.0.0 STARTS HERE ----------
 
-CREATE TABLE idps (id VARCHAR(255) NOT NULL, server_url VARCHAR(255) NOT NULL, master_realm VARCHAR(255) NOT NULL, client_id VARCHAR(255) NOT NULL, encrypted_client_secret VARCHAR(255) NOT NULL, default_login_theme_id VARCHAR(255) DEFAULT NULL, default_realm VARCHAR(255) DEFAULT NULL, default_client VARCHAR(255) DEFAULT NULL, default_idp BOOLEAN DEFAULT FALSE);
-ALTER TABLE idps ADD PRIMARY KEY (id);
-CREATE UNIQUE INDEX uk_idps_1 ON idps (default_idp) WHERE default_idp = true;
-
--- Replace the client secret with actual encrypted value
-INSERT INTO idps (id, server_url, master_realm, client_id, encrypted_client_secret, default_login_theme_id, default_realm, default_client, default_idp) VALUES ('Keycloak','https://devidp.t1t.be/auth', 'master', 'admin-cli', 'INSERT_ENCRYPTED_SECRET_HERE', 't1g', 'Trust1Gateway','DefaultClient', TRUE);
-
--- Store the IDP ids
-ALTER TABLE application_versions ADD COLUMN idp_client_id VARCHAR(255) DEFAULT NULL;
-
-CREATE TABLE keystores (kid VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, path VARCHAR(255) NOT NULL, encrypted_keystore_password VARCHAR(255) NOT NULL, encrypted_key_password VARCHAR(255) NOT NULL, private_key_alias VARCHAR(255) NOT NULL, priority BIGINT NOT NULL DEFAULT 150, default_keystore BOOLEAN DEFAULT FALSE);
-ALTER TABLE keystores ADD PRIMARY KEY (kid);
-CREATE UNIQUE INDEX uk_keystores_1 ON keystores (default_keystore) WHERE default_keystore = true;
-
-CREATE TABLE mail_providers (id BIGINT NOT NULL, host VARCHAR(255) NOT NULL, port BIGINT NOT NULL, auth BOOLEAN DEFAULT TRUE, mail_from VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL, encrypted_password VARCHAR(255) NOT NULL, default_mail_provider BOOLEAN DEFAULT FALSE);
-ALTER TABLE mail_providers ADD PRIMARY KEY (id);
-CREATE UNIQUE INDEX uk_mail_providers_1 ON mail_providers (default_mail_provider) WHERE default_mail_provider = true;
-
--- Replace the passwords with their actual encrypted values before inserting
-
-INSERT INTO keystores (kid, name, path, encrypted_keystore_password, encrypted_key_password, private_key_alias, default_keystore) VALUES ('INSERT_KEYSTORE_KID_FROM_IDP_HERE', 'T1T-IDP-JKS', '/usr/local/keystores/idp_kc_store.jks', 'INSERT_ENCRYPTED_KEYSTORE_PASSWORD_HERE', 'INSERT_ENCRYPTED_PRIVATE_KEY_PASSWORD_HERE', 'idp.t1t.be', TRUE);
-INSERT INTO mail_providers (id, host, port, auth, mail_from, username, encrypted_password, default_mail_provider) VALUES (700, 'smtp.mailgun.org', 2525, TRUE, 'postmaster@saas.t1t.be', 'postmaster@saas.t1t.be', 'INSERT_ENCRYPTED_PASSWORD_HERE', TRUE);
-
-ALTER TABLE organizations ADD COLUMN mail_provider_id BIGINT NULL;
-ALTER TABLE organizations ADD COLUMN keystore_kid VARCHAR(255) NULL;
-
-ALTER TABLE organizations ADD CONSTRAINT fk_organizations_1 FOREIGN KEY (mail_provider_id) REFERENCES mail_providers (id);
-ALTER TABLE organizations ADD CONSTRAINT fk_organizations_2 FOREIGN KEY (keystore_kid) REFERENCES keystores (kid);
-
--- Kong 0.10.1 Upgrade
-
 CREATE TABLE service_basepaths AS SELECT services.organization_id AS servicebean_organization_id, services.id AS servicebean_id, services.basepath FROM services;
 ALTER TABLE service_basepaths ADD CONSTRAINT fk_service_basepaths_1 FOREIGN KEY (servicebean_organization_id, servicebean_id) REFERENCES services (organization_id, id);
 ALTER TABLE service_basepaths ADD CONSTRAINT uk_service_basepaths_1 UNIQUE (servicebean_organization_id, servicebean_id, basepath);
@@ -41,18 +10,13 @@ ALTER TABLE service_hosts ADD CONSTRAINT fk_service_hosts_1 FOREIGN KEY (service
 ALTER TABLE service_hosts ADD CONSTRAINT uk_service_hosts_1 UNIQUE (service_version_id, hostname);
 CREATE INDEX idx_service_hosts_1 ON service_hosts (service_version_id);
 
-ALTER TABLE service_versions ADD COLUMN upstream_connect_timeout BIGINT DEFAULT 60000;
-ALTER TABLE service_versions ADD COLUMN upstream_send_timeout BIGINT DEFAULT 60000;
-ALTER TABLE service_versions ADD COLUMN upstream_read_timeout BIGINT DEFAULT 60000;
+ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_connect_timeout BIGINT DEFAULT 60000;
+ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_send_timeout BIGINT DEFAULT 60000;
+ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_read_timeout BIGINT DEFAULT 60000;
 
-ALTER TABLE managed_applications ADD COLUMN idp_client VARCHAR(255) DEFAULT NULL;
-UPDATE managed_applications SET idp_client = 'T1G-Publisher-ENV' WHERE name = 'Publisher';
-UPDATE managed_applications SET idp_client = 'T1G-MarketplaceInt-ENV' WHERE name = 'Internal Marketplace';
-UPDATE managed_applications SET idp_client = 'T1G-MarketplaceExt-ENV' WHERE name = 'External Marketplace';
-
-ALTER TABLE policydefs ADD COLUMN logo TEXT DEFAULT NULL;
-ALTER TABLE policydefs ADD COLUMN marketplace_description VARCHAR(4096) DEFAULT NULL;
-ALTER TABLE policydefs ADD COLUMN popover_template VARCHAR(4096) DEFAULT NULL;
+ALTER TABLE policydefs ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT NULL;
+ALTER TABLE policydefs ADD COLUMN IF NOT EXISTS marketplace_description VARCHAR(4096) DEFAULT NULL;
+ALTER TABLE policydefs ADD COLUMN IF NOT EXISTS popover_template VARCHAR(4096) DEFAULT NULL;
 ALTER TABLE policydefs ALTER COLUMN form SET DATA TYPE TEXT;
 ALTER TABLE policydefs ALTER COLUMN form SET DEFAULT NULL;
 
@@ -434,10 +398,10 @@ UPDATE policydefs SET logo = 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAbF
 
 UPDATE policydefs SET logo = 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAMAAAAOusbgAAAAVFBMVEXa2tra2tra2tra2tra2tra2tr////a2toAfd6izPLvzPnRfvDYteSKr86zas0Aar4AhODY6vr3+Prx8v2Kv+9aqOk3muUOj+N5t+211vXhqfW01fXvn55GAAAABnRSTlMC9s/Hbhsvz/I3AAABVklEQVRo3u3b3Y6CMBCG4SJYhnV/KD+K7v3f57bN7AFJTcDUmZB+74lH5EmMA5hmjK+pq1awqm5M6HxqxTudPSzssmxM06rUmDp8DFawIYi1qYRdlisTeCtcMAGnAgwYMGDAgJ8GGPDB4B8frepnl9cZH5d1374E7GmX1WVuA0xzTvixA+5zwpc0/OXrVgU5N/yx6tMHGDBgwIABvxmeiBZhmF3fPMjDFLuOSjDdnBJMvVOAb1G+y8PjlUKdOGyHOcpLJniiDfEVC/FYZYA3unxFx2OVAd7sTjZ073msRGB2Yy7KvcsC2z05Hitx2P6PVTEwf9W/h/5xvTBOB76ByN8ydzRRzofELln1schjVNCrTxyjsl5vtV7ol7L+tAEGDLhMWOAw5ADHPxIHXmpHfAWepgJOBBgwYMCAAT8NMGDAgJOw2hKO2tqR2qKV1mqZ3jKd2vrgH/W3idgykdWgAAAAAElFTkSuQmCC', marketplace_description = 'Request and response logs are sent to a server via UDP', popover_template = '<p class="text-light">Logs are sent to <b>{{host}}:{{port}}</b>.</p><p class="text-light">Timeout in ms: {{timeout}}.</p>' WHERE id = 'UDPLog';
 
-ALTER TABLE service_versions ADD COLUMN custom_load_balancing BOOLEAN DEFAULT FALSE;
+ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS custom_load_balancing BOOLEAN DEFAULT FALSE;
 
-ALTER TABLE service_versions ADD COLUMN upstream_path VARCHAR(255) DEFAULT NULL;
-ALTER TABLE service_versions ADD COLUMN upstream_scheme VARCHAR(255) DEFAULT NULL;
+ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_path VARCHAR(255) DEFAULT NULL;
+ALTER TABLE service_versions ADD COLUMN IF NOT EXISTS upstream_scheme VARCHAR(255) DEFAULT NULL;
 
 CREATE TABLE service_upstream_targets (service_version_id BIGINT NOT NULL, target VARCHAR(255) NOT NULL, port BIGINT NOT NULL DEFAULT 8000, weight BIGINT DEFAULT 100 CHECK (weight >= 0 AND weight <= 1000));
 ALTER TABLE service_upstream_targets ADD CONSTRAINT fk_service_upstream_targets_1 FOREIGN KEY (service_version_id) REFERENCES service_versions (id) ON UPDATE CASCADE;
@@ -448,20 +412,17 @@ UPDATE policydefs SET scope_service = TRUE WHERE id = 'HTTPLog';
 UPDATE policydefs SET icon = 'fa-share-square' WHERE id = 'HAL';
 UPDATE policydefs SET icon = 'fa-paw' WHERE id = 'DataDog';
 
-ALTER TABLE managed_applications ADD COLUMN redirect_uri VARCHAR(255) DEFAULT NULL;
-
-UPDATE managed_applications SET redirect_uri = 'https://accmkt.t1t.be' WHERE name = 'External Marketplace';
-UPDATE managed_applications SET redirect_uri = 'https://accmkt.t1t.be' WHERE name = 'Interntal Marketplace';
-UPDATE managed_applications SET redirect_uri = 'https://accpub.t1t.be' WHERE name = 'Publisher';
-
 ALTER TABLE managed_applications DROP COLUMN IF EXISTS gateway_username;
+ALTER TABLE managed_applications DROP COLUMN IF EXISTS gateway_id;
 
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release
 
 --------- UPGRADE TO 1.0.1 STARTS HERE ---------
 
-DROP TABLE oauth_apps;
+DROP TABLE IF EXISTS oauth_apps;
 
-ALTER TABLE application_versions DROP COLUMN oauth_client_id;
+DROP TABLE IF EXISTS plugins;
 
-ALTER TABLE services DROP COLUMN basepath;
+ALTER TABLE application_versions DROP COLUMN IF EXISTS oauth_client_id;
+
+ALTER TABLE services DROP COLUMN IF EXISTS basepath;

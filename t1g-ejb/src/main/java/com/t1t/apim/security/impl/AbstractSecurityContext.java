@@ -4,8 +4,9 @@ import com.t1t.apim.beans.idm.PermissionBean;
 import com.t1t.apim.beans.idm.PermissionType;
 import com.t1t.apim.core.IIdmStorage;
 import com.t1t.apim.core.exceptions.StorageException;
+import com.t1t.apim.exceptions.ErrorCodes;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.security.ISecurityContext;
-import com.t1t.apim.security.i18n.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,7 @@ public abstract class AbstractSecurityContext implements ISecurityContext, Seria
         try {
             return new IndexedPermissions(getIdmStorage().getPermissions(userId));
         } catch (StorageException e) {
-            logger.error(Messages.getString("AbstractSecurityContext.ErrorLoadingPermissions") + userId, e); //$NON-NLS-1$
+            logger.error(Messages.i18n.format(ErrorCodes.ERROR_LOADING_PERMISSIONS, userId, e.getMessage()));
             return new IndexedPermissions(new HashSet<PermissionBean>());
         }
     }

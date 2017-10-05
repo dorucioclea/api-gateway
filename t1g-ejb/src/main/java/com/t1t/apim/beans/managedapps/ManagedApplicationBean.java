@@ -22,8 +22,6 @@ public class ManagedApplicationBean implements Serializable {
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private ManagedApplicationTypes type;
-    @Column(name = "gateway_id")
-    private String gatewayId;
     @Column(name = "app_id")
     private String appId;
     @Column(name = "prefix",unique=true)
@@ -40,10 +38,6 @@ public class ManagedApplicationBean implements Serializable {
     private Boolean restricted;
     @Column(name = "activated")
     private Boolean activated;
-    @Column(name = "idp_client")
-    private String idpClient;
-    @Column(name = "redirect_uri")
-    private String redirectUri;
 
     public ManagedApplicationBean() {}
 
@@ -61,14 +55,6 @@ public class ManagedApplicationBean implements Serializable {
 
     public void setType(ManagedApplicationTypes type) {
         this.type = type;
-    }
-
-    public String getGatewayId() {
-        return gatewayId;
-    }
-
-    public void setGatewayId(String gatewayId) {
-        this.gatewayId = gatewayId;
     }
 
     public String getPrefix() {return prefix;}
@@ -111,22 +97,6 @@ public class ManagedApplicationBean implements Serializable {
 
     public void setActivated(Boolean activated) {this.activated = activated;}
 
-    public String getIdpClient() {
-        return idpClient;
-    }
-
-    public void setIdpClient(String idpClient) {
-        this.idpClient = idpClient;
-    }
-
-    public String getRedirectUri() {
-        return redirectUri;
-    }
-
-    public void setRedirectUri(String redirectUri) {
-        this.redirectUri = redirectUri;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -149,7 +119,6 @@ public class ManagedApplicationBean implements Serializable {
         return "ManagedApplicationBean{" +
                 "id=" + id +
                 ", type=" + type +
-                ", gatewayId='" + gatewayId + '\'' +
                 ", appId='" + appId + '\'' +
                 ", prefix='" + prefix + '\'' +
                 ", name='" + name + '\'' +
@@ -157,8 +126,6 @@ public class ManagedApplicationBean implements Serializable {
                 ", apiKeys=" + apiKeys +
                 ", restricted=" + restricted +
                 ", activated=" + activated +
-                ", idpClient='" + idpClient + '\'' +
-                ", redirectUri='" + redirectUri + '\'' +
                 '}';
     }
 }

@@ -2,6 +2,8 @@ package com.t1t.apim.gateway.rest;
 
 import com.google.gson.Gson;
 import com.t1t.apim.AppConfig;
+import com.t1t.apim.AppConfigBean;
+import com.t1t.apim.T1G;
 import com.t1t.apim.beans.jwt.JWTFormBean;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.beans.policies.PolicyType;
@@ -34,7 +36,8 @@ public class GatewayValidation {
     private static final String JWT_URI_PARAM_NAME = "jwt";
 
     @Inject private IStorageQuery query;
-    @Inject private AppConfig config;
+    @Inject @T1G
+    private AppConfigBean config;
 
     {
         environment = "";

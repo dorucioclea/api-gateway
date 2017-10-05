@@ -33,11 +33,6 @@ public interface ISyncResource {
     public void syncApplications();
 
     /**
-     * Sync users
-     */
-    public void syncUsers();
-
-    /**
      * Sync service policies
      */
     public void syncServicePolicies();

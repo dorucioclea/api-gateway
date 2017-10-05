@@ -18,12 +18,7 @@ import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.GatewayType;
 import com.t1t.apim.beans.idm.PermissionType;
-import com.t1t.apim.beans.idp.IDPBean;
 import com.t1t.apim.beans.idp.KeyMappingBean;
-import com.t1t.apim.beans.idp.KeystoreBean;
-import com.t1t.apim.beans.iprestriction.BlacklistBean;
-import com.t1t.apim.beans.iprestriction.WhitelistBean;
-import com.t1t.apim.beans.mail.MailProviderBean;
 import com.t1t.apim.beans.mail.MailTemplateBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
@@ -33,7 +28,6 @@ import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.plans.PlanBean;
 import com.t1t.apim.beans.plans.PlanStatus;
 import com.t1t.apim.beans.plans.PlanVersionBean;
-import com.t1t.apim.beans.plugins.PluginBean;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyDefinitionBean;
@@ -119,15 +113,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     public void createGateway(GatewayBean gateway) throws StorageException {
         super.create(gateway);
-    }
-
-    /**
-     * @see IStorage#createPlugin(PluginBean)
-     */
-    @Override
-
-    public void createPlugin(PluginBean plugin) throws StorageException {
-        super.create(plugin);
     }
 
     /**
@@ -451,14 +436,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     /**
-     * @see IStorage#deletePlugin(PluginBean)
-     */
-    @Override
-    public void deletePlugin(PluginBean plugin) throws StorageException {
-        super.delete(plugin);
-    }
-
-    /**
      * @see IStorage#deletePolicyDefinition(PolicyDefinitionBean)
      */
     @Override
@@ -479,16 +456,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void deleteServiceSupportComment(SupportComment commentBean) throws StorageException {
         super.delete(commentBean);
-    }
-
-    @Override
-    public void deleteWhitelistRecord(WhitelistBean whitelistBean) throws StorageException {
-        super.delete(whitelistBean);
-    }
-
-    @Override
-    public void deleteBalcklistRecord(BlacklistBean blacklistBean) throws StorageException {
-        super.delete(blacklistBean);
     }
 
     @Override
@@ -583,54 +550,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     /**
-     * @see IStorage#getPlugin(long)
-     */
-    @Override
-    public PluginBean getPlugin(long id) throws StorageException {
-        return super.get(id, PluginBean.class);
-    }
-
-    /**
-     * @see IStorage#getPlugin(String, String)
-     */
-    @Override
-    public PluginBean getPlugin(String groupId, String artifactId) throws StorageException {
-        try {
-            EntityManager entityManager = getActiveEntityManager();
-
-            @SuppressWarnings("nls")
-            String sql =
-                    "SELECT p.id, p.artifact_id, p.group_id, p.version, p.classifier, p.type, p.name, p.description, p.created_by, p.created_on" +
-                            "  FROM plugins p" +
-                            " WHERE p.group_id = ? AND p.artifact_id = ?";
-            Query query = entityManager.createNativeQuery(sql);
-            query.setParameter(1, groupId);
-            query.setParameter(2, artifactId);
-            List<Object[]> rows = (List<Object[]>) query.getResultList();
-            if (rows.size() > 0) {
-                Object[] row = rows.get(0);
-                PluginBean plugin = new PluginBean();
-                plugin.setId(((Number) row[0]).longValue());
-                plugin.setArtifactId(String.valueOf(row[1]));
-                plugin.setGroupId(String.valueOf(row[2]));
-                plugin.setVersion(String.valueOf(row[3]));
-                plugin.setClassifier((String) row[4]);
-                plugin.setType((String) row[5]);
-                plugin.setName(String.valueOf(row[6]));
-                plugin.setDescription(String.valueOf(row[7]));
-                plugin.setCreatedBy(String.valueOf(row[8]));
-                plugin.setCreatedOn((Date) row[9]);
-                return plugin;
-            } else {
-                return null;
-            }
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        }
-    }
-
-    /**
      * @see IStorage#getPolicyDefinition(String)
      */
     @Override
@@ -651,16 +570,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public SupportComment getServiceSupportComment(Long id) throws StorageException {
         return super.get(id, SupportComment.class);
-    }
-
-    @Override
-    public WhitelistBean getWhitelistRecord(String id) throws StorageException {
-        return super.get(id, WhitelistBean.class);
-    }
-
-    @Override
-    public BlacklistBean getBlacklistRecord(String id) throws StorageException {
-        return super.get(id, BlacklistBean.class);
     }
 
     /**
@@ -903,16 +812,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createServiceSupportComment(SupportComment commentBean) throws StorageException {
         super.create(commentBean);
-    }
-
-    @Override
-    public void createWhilelistRecord(WhitelistBean whitelistBean) throws StorageException {
-        super.create(whitelistBean);
-    }
-
-    @Override
-    public void createBlacklistRecord(BlacklistBean blacklistBean) throws StorageException {
-        super.create(blacklistBean);
     }
 
     @Override
@@ -1922,24 +1821,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public List<WhitelistBean> listWhitelistRecords() throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT w FROM WhitelistBean w";
-        Query query = entityManager.createQuery(jpql);
-        List<WhitelistBean> rows = query.getResultList();
-        return rows;
-    }
-
-    @Override
-    public List<BlacklistBean> listBlacklistRecords() throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT b FROM BlacklistBean b";
-        Query query = entityManager.createQuery(jpql);
-        List<BlacklistBean> rows = query.getResultList();
-        return rows;
-    }
-
-    @Override
     public PolicyBean getApplicationACLPolicy(String organizationId, String applicationId, String version, Long contractId, String gatewayId) throws StorageException {
         try {
             EntityManager entityManager = getActiveEntityManager();
@@ -2331,7 +2212,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     public ServiceBean getServiceByBasepath(String organizationId, String basepath) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT s FROM ServiceBean s JOIN s.basepaths sb WHERE :bpath IN sb AND s.organization.id = :orgId";
+        String jpql = "SELECT s FROM ServiceBean s JOIN s.basepaths sb WHERE :bpath IN (sb) AND s.organization.id = :orgId";
         try {
             return (ServiceBean) em.createQuery(jpql)
                     .setParameter("bpath", basepath)
@@ -2906,106 +2787,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         }
         catch (NoResultException ex) {
             return 0L;
-        }
-    }
-
-    @Override
-    public void createIDP(IDPBean idp) throws StorageException {
-        super.create(idp);
-    }
-
-    @Override
-    public void updateIDPBean(IDPBean idp) throws StorageException {
-        super.update(idp);
-    }
-
-    @Override
-    public void deleteIDP(IDPBean idp) throws StorageException {
-        super.delete(idp);
-    }
-
-    @Override
-    public IDPBean getIDP(String id) throws StorageException {
-        return super.get(id, IDPBean.class);
-    }
-
-    @Override
-    public IDPBean getOrCreateIDP(IDPBean idp) throws StorageException {
-        IDPBean rval = getIDP(idp.getId());
-        if (rval == null) {
-            createIDP(idp);
-            rval = idp;
-        }
-        return rval;
-    }
-
-    @Override
-    public IDPBean getDefaultIdp() throws StorageException {
-        try {
-            return (IDPBean) getActiveEntityManager().createQuery("SELECT i FROM IDPBean i WHERE i.defaultIdp = TRUE").getSingleResult();
-        }
-        catch (NoResultException ex) {
-            return null;
-        }
-    }
-
-    @Override
-    public void createKeystore(KeystoreBean keystore) throws StorageException {
-        super.create(keystore);
-    }
-
-    @Override
-    public void createMailProvider(MailProviderBean mailProvider) throws StorageException {
-        super.create(mailProvider);
-    }
-
-    @Override
-    public void updateKeystoreBean(KeystoreBean keystore) throws StorageException {
-        super.update(keystore);
-    }
-
-    @Override
-    public void updateMailProviderBean(MailProviderBean mailProvider) throws StorageException {
-        super.update(mailProvider);
-    }
-
-    @Override
-    public void deleteKeystore(KeystoreBean keystore) throws StorageException {
-        super.delete(keystore);
-    }
-
-    @Override
-    public void deleteMailProvider(MailProviderBean mailProvider) throws StorageException {
-        super.delete(mailProvider);
-    }
-
-    @Override
-    public KeystoreBean getKeystore(String kid) throws StorageException {
-        return super.get(kid, KeystoreBean.class);
-    }
-
-    @Override
-    public MailProviderBean getMailProvider(Long id) throws StorageException {
-        return super.get(id, MailProviderBean.class);
-    }
-
-    @Override
-    public KeystoreBean getDefaultKeystore() throws StorageException {
-        try {
-            return (KeystoreBean) getActiveEntityManager().createQuery("SELECT k FROM KeystoreBean k WHERE k.defaultKeystore = TRUE").getSingleResult();
-        }
-        catch (NoResultException ex) {
-            return null;
-        }
-    }
-
-    @Override
-    public MailProviderBean getDefaultMailProvider() throws StorageException {
-        try {
-            return (MailProviderBean) getActiveEntityManager().createQuery("SELECT m FROM MailProviderBean m WHERE m.defaultMailProvider = TRUE").getSingleResult();
-        }
-        catch (NoResultException ex) {
-            return null;
         }
     }
 

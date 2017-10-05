@@ -1,6 +1,8 @@
 package com.t1t.apim.facades;
 
 import com.t1t.apim.AppConfig;
+import com.t1t.apim.AppConfigBean;
+import com.t1t.apim.T1G;
 import com.t1t.apim.beans.defaults.DefaultsBean;
 import com.t1t.apim.beans.services.DefaultServiceTermsBean;
 import com.t1t.apim.core.IStorage;
@@ -30,8 +32,8 @@ public class DefaultsFacade {
 
     private static final Logger _LOG = LoggerFactory.getLogger(DefaultsFacade.class);
 
-    @Inject
-    private AppConfig config;
+    @Inject @T1G
+    private AppConfigBean config;
 
     @Inject
     private IStorage storage;
