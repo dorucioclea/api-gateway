@@ -2,7 +2,6 @@ package com.t1t.apim.core.exceptions;
 
 /**
  * Thrown if the plugin is invalid
- *
  */
 public class InvalidPluginException extends Exception {
 
@@ -13,9 +12,10 @@ public class InvalidPluginException extends Exception {
      */
     public InvalidPluginException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public InvalidPluginException(String message) {
@@ -24,16 +24,18 @@ public class InvalidPluginException extends Exception {
 
     /**
      * Constructor.
+     *
      * @param cause the exception cause cause of the exception
      */
     public InvalidPluginException(Throwable cause) {
         super(cause);
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
-     * @param cause the exception cause cause of the exception
+     * @param cause   the exception cause cause of the exception
      */
     public InvalidPluginException(String message, Throwable cause) {
         super(message, cause);

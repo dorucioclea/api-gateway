@@ -13,36 +13,36 @@ import java.util.Set;
  * other specifics of the application, such as endpoint information
  * and configured policies are associated with a particular version
  * of that Application.  This class represents that version.
- *
  */
 @Entity
 @Table(name = "application_versions",
-       uniqueConstraints = { @UniqueConstraint(columnNames = { "app_id", "app_org_id", "version" }) })
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"app_id", "app_org_id", "version"})})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApplicationVersionBean implements Serializable {
 
     private static final long serialVersionUID = -2218697175049442690L;
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="app_id", referencedColumnName="id"),
-        @JoinColumn(name="app_org_id", referencedColumnName="organization_id")
+            @JoinColumn(name = "app_id", referencedColumnName = "id"),
+            @JoinColumn(name = "app_org_id", referencedColumnName = "organization_id")
     })
     private ApplicationBean application;
-    @Column(updatable=true, nullable=false)
+    @Column(updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
-    @Column(updatable=false, nullable=false)
+    @Column(updatable = false, nullable = false)
     private String version;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(name = "modified_by", updatable=true, nullable=false)
+    @Column(name = "modified_by", updatable = true, nullable = false)
     private String modifiedBy;
-    @Column(name = "modified_on", updatable=true, nullable=false)
+    @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
     @Column(name = "published_on")
     private Date publishedOn;
@@ -51,7 +51,7 @@ public class ApplicationVersionBean implements Serializable {
     @Column(name = "oauth_client_secret")
     private String oauthClientSecret;
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name="app_oauth_redirect_uris", joinColumns=@JoinColumn(name="application_version_id"))
+    @CollectionTable(name = "app_oauth_redirect_uris", joinColumns = @JoinColumn(name = "application_version_id"))
     @Column(name = "oauth_client_redirect")
     private Set<String> oauthClientRedirects;
     @Column(name = "apikey")

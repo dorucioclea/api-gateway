@@ -3,15 +3,10 @@ package com.t1t.apim.exceptions;
 /**
  * Created by michallispashidis on 31/07/16.
  */
-public class JWTPubKeyException extends AbstractRestException {
+public class JwtPubKeyException extends AbstractSecurityException {
 
-    public JWTPubKeyException(String message) {
+    public JwtPubKeyException(String message) {
         super(message);
-    }
-
-    @Override
-    public int getHttpCode() {
-        return ErrorCodes.HTTP_STATUS_CODE_SYSTEM_ERROR;
     }
 
     @Override

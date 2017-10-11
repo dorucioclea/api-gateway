@@ -22,6 +22,7 @@ public class ContractData implements Serializable {
 
     /**
      * Constructor.
+     *
      * @param bean the contract
      */
     public ContractData(ContractBean bean) {

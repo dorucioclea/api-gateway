@@ -33,14 +33,16 @@ import java.util.*;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class SearchFacade {
 
-    @Inject private IStorageQuery query;
-    @Inject private OrganizationFacade orgFacade;
-    @Inject private ISecurityAppContext appContext;
-
     private static final String NAME = "name";
     private static final String STATUS = "status";
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private OrganizationFacade orgFacade;
+    @Inject
+    private ISecurityAppContext appContext;
 
-    private SearchCriteriaFilterBean getAppContextFilter(){
+    private SearchCriteriaFilterBean getAppContextFilter() {
         SearchCriteriaFilterBean appContextFilter = new SearchCriteriaFilterBean();
         appContextFilter.setName("context");
         appContextFilter.setValue(appContext.getApplicationPrefix());
@@ -106,7 +108,7 @@ public class SearchFacade {
         }
     }
 
-    public List<ServiceVersionWithMarketInfoBean> searchServicesByStatus(ServiceStatus status){
+    public List<ServiceVersionWithMarketInfoBean> searchServicesByStatus(ServiceStatus status) {
         try {
             return enrichServiceVersionsWithMarketInfo(query.findServiceByStatus(status));
         } catch (StorageException e) {
@@ -115,7 +117,7 @@ public class SearchFacade {
     }
 
 
-    public Set<String> searchCategories(){
+    public Set<String> searchCategories() {
         try {
             return query.findAllUniqueCategories();
         } catch (StorageException e) {
@@ -123,7 +125,7 @@ public class SearchFacade {
         }
     }
 
-    public Set<String> searchPublishedCategories(){
+    public Set<String> searchPublishedCategories() {
         try {
             return query.findAllUniquePublishedCategories();
         } catch (StorageException e) {
@@ -131,7 +133,7 @@ public class SearchFacade {
         }
     }
 
-    public List<ServiceVersionBean> searchServicesPublishedInCategories(List<String> categories){
+    public List<ServiceVersionBean> searchServicesPublishedInCategories(List<String> categories) {
         try {
             Set<String> consentPrefixes = new HashSet<>();
             consentPrefixes.addAll(query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Consent)));
@@ -153,11 +155,11 @@ public class SearchFacade {
         try {
             final List<ManagedApplicationBean> manappList = query.findManagedApplication(type);
 
-            if (manappList==null) {
+            if (manappList == null) {
                 throw ExceptionFactory.availabilityNotFoundException();
             }
 
-            for(ManagedApplicationBean mb:manappList){
+            for (ManagedApplicationBean mb : manappList) {
                 List<ServiceVersionBean> svbs = query.findServiceVersionsByAvailability(mb.getPrefix());
                 svbs.forEach(sv -> {
                     returnValue.add(new StringBuilder("/")
@@ -170,8 +172,7 @@ public class SearchFacade {
                             .toString());
                 });
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
         return returnValue;
@@ -184,15 +185,14 @@ public class SearchFacade {
         String name = null;
         ServiceStatus status = null;
         for (SearchCriteriaFilterBean filter : criteria.getFilters()) {
-            switch(filter.getName()) {
+            switch (filter.getName()) {
                 case NAME:
                     name = filter.getValue();
                     break;
                 case STATUS:
                     try {
                         status = ServiceStatus.valueOf(filter.getValue());
-                    }
-                    catch (IllegalArgumentException ex) {
+                    } catch (IllegalArgumentException ex) {
                         throw ExceptionFactory.invalidServiceStatusException();
                     }
                     break;
@@ -206,14 +206,12 @@ public class SearchFacade {
                 if (name != null) {
                     svmibs.addAll(
                             enrichServiceVersionsWithMarketInfo(query.findLatestServiceVersionByStatusAndServiceName(name, status)));
-                }
-                else {
+                } else {
                     svmibs.addAll(
                             enrichServiceVersionsWithMarketInfo(query.findLatestServiceVersionByStatus(status)));
                 }
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
         rval.setBeans(svmibs);
@@ -224,8 +222,7 @@ public class SearchFacade {
     public List<ServiceVersionWithMarketInfoBean> searchLatestPublishedServiceVersionsInCategory(List<String> category) {
         try {
             return enrichServiceVersionsWithMarketInfo(query.findLatestServicesWithCategory(category));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -243,8 +240,7 @@ public class SearchFacade {
     public ApplicationVersionSummaryBean resolveApiKey(String apikey) {
         try {
             return query.resolveApplicationVersionByAPIKey(apikey);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }

@@ -2,6 +2,7 @@ package com.t1t.util;
 
 import com.t1t.apim.beans.jwt.IJWT;
 import com.t1t.apim.beans.jwt.JWTRequestBean;
+import com.t1t.apim.exceptions.ErrorCodes;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.i18n.Messages;
 import org.jose4j.jwk.JsonWebKeySet;
@@ -31,9 +32,10 @@ import java.util.Set;
  * Created by michallispashidis on 19/11/15.
  */
 public class JWTUtils {
-    private static Logger _LOG = LoggerFactory.getLogger(JWTUtils.class.getName());
     public static final String JWT_HS256 = "HS256";
     public static final String JWT_RS256 = "RS256";
+    private static final String NO_LONGER_VALID = "The JWT is no longer valid";
+    private static Logger _LOG = LoggerFactory.getLogger(JWTUtils.class.getName());
 
 
     /*public static JwtContext validateRSAToken(String jwtToken, String publicKey, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException {
@@ -102,7 +104,7 @@ public class JWTUtils {
         Iterator<String> it = publicKeys.iterator();
         //Try all available public keys until the signature validates
         while (context == null && it.hasNext()) {
-            String pubkey =  it.next();
+            String pubkey = it.next();
             try {
                 context = builder.setVerificationKeyResolver(
                         new JwksVerificationKeyResolver(
@@ -112,16 +114,51 @@ public class JWTUtils {
                         .build()
                         .process(jwt);
                 _LOG.debug("Key used for verification:{}", pubkey);
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 _LOG.debug("Failed to verify signature with key:{}", pubkey);
                 ex.printStackTrace();
             }
         }
         if (context == null) {
-            throw ExceptionFactory.jwtInvalidException(Messages.i18n.format("JWTsignatureVerificationFailure"));
+            throw ExceptionFactory.jwtInvalidException(Messages.i18n.format(ErrorCodes.JWT_SIGNATURE_VERIFICATION_ERROR));
         }
         return context;
+    }
+
+    /**
+     * Validate token signed with RSA algorithm.
+     *
+     * @param jwt
+     * @param expectedIssuer
+     * @param publicKeys
+     * @return
+     * @throws InvalidJwtException
+     */
+    public static JwtContext validateRSAToken(String jwt, String expectedIssuer, String publicKey) throws InvalidJwtException {
+        try {
+            JwtContext context = null;
+            JsonWebKeySet jsonWebKeySet = new JsonWebKeySet();
+            JwtConsumerBuilder builder = new JwtConsumerBuilder()
+                    .setExpectedIssuer(expectedIssuer)
+                    .setRequireSubject()
+                    .setAllowedClockSkewInSeconds(30)
+                    .setRequireExpirationTime()
+                    .setSkipDefaultAudienceValidation()
+                    .setVerificationKey(KeyUtils.getPublicKey(publicKey));
+
+            context = builder.build().process(jwt);
+            _LOG.debug("Key used for verification:{}", publicKey);
+            if (context == null) {
+                throw ExceptionFactory.jwtInvalidException(Messages.i18n.format(ErrorCodes.JWT_SIGNATURE_VERIFICATION_ERROR));
+            }
+            return context;
+        } catch (InvalidJwtException ex) {
+            if (ex.getMessage().contains(NO_LONGER_VALID)) {
+                throw ExceptionFactory.jwtExpiredException(Messages.i18n.format(ErrorCodes.EXPIRED_JWT), ex);
+            } else {
+                throw ExceptionFactory.jwtInvalidException(Messages.i18n.format(ErrorCodes.JWT_SIGNATURE_VERIFICATION_ERROR), ex);
+            }
+        }
     }
 
     /**
@@ -132,7 +169,7 @@ public class JWTUtils {
      * @throws InvalidJwtException
      * @throws UnsupportedEncodingException
      */
-    public static JwtContext consumeUnvalidatedToken(String jwtToken)throws InvalidJwtException,UnsupportedEncodingException,MalformedClaimException{
+    public static JwtContext consumeUnvalidatedToken(String jwtToken) throws InvalidJwtException, UnsupportedEncodingException, MalformedClaimException {
         return getUnvalidatedContext(jwtToken);
     }
 
@@ -149,19 +186,18 @@ public class JWTUtils {
     }
 
 
-
     public static JwtContext validateHMACToken(String jwtToken, String secret, String expectedIssuer, String expectedAudience, Boolean skipDefaultValidators) throws InvalidJwtException, UnsupportedEncodingException {
         JwtConsumer jwtConsumer = null;
         // Build a JwtConsumer that doesn't check signatures or do any validation.
-        if(skipDefaultValidators){
-            jwtConsumer =  new JwtConsumerBuilder()
+        if (skipDefaultValidators) {
+            jwtConsumer = new JwtConsumerBuilder()
                     .setSkipAllDefaultValidators()
                     .setDisableRequireSignature()
                     .setSkipSignatureVerification()
                     .build();
             //.setVerificationKey(new HmacKey(secret.getBytes()))
             //.setRelaxVerificationKeyValidation() // allow shorter HMAC keys when used w/ HSxxx algs
-        }else{
+        } else {
             jwtConsumer = new JwtConsumerBuilder()
                     .setRequireExpirationTime() // the JWT must have an expiration time
                     .setAllowedClockSkewInSeconds(30) // allow some leeway in validating time based claims to account for clock skew
@@ -178,14 +214,18 @@ public class JWTUtils {
         return jwtContext;
     }
 
-    public static String getJwtWithExpirationTime(JwtClaims jwtClaims, Integer jwtExpirationTime, Key privateKey, String pubKeyEndpoint, String algorithm)throws JoseException, UnsupportedEncodingException{
+    public static String getJwtWithExpirationTime(JwtClaims jwtClaims, Integer jwtExpirationTime, Key privateKey, String pubKeyEndpoint, String algorithm) {
         //add optional claims
         jwtClaims.setExpirationTimeMinutesInTheFuture(jwtExpirationTime.floatValue() / 60); // time when the token will expire (10 minutes from now)
         jwtClaims.setNotBeforeMinutesInThePast(2);//TODO fix this issue on the gateway
-        return composeJWT(jwtClaims, privateKey, pubKeyEndpoint, algorithm);
+        try {
+            return composeJWT(jwtClaims, privateKey, pubKeyEndpoint, algorithm);
+        } catch (JoseException | UnsupportedEncodingException ex) {
+            throw ExceptionFactory.jwtEncodingException(Messages.i18n.format(ErrorCodes.JWT_ENCODING_ERROR, ex.getMessage()), ex);
+        }
     }
 
-    public static String composeJWT(JwtClaims jwtClaims, Key privateKey, String pubKeyEndpoint, String algorithm)throws JoseException, UnsupportedEncodingException{
+    public static String composeJWT(JwtClaims jwtClaims, Key privateKey, String pubKeyEndpoint, String algorithm) throws JoseException, UnsupportedEncodingException {
 
         // The JWT is signed using the private key
         // A JWT is a JWS and/or a JWE with JSON claims as the payload.
@@ -195,8 +235,8 @@ public class JWTUtils {
         jws.setAlgorithmHeaderValue(algorithm);
         jws.setKey(privateKey);
         if (algorithm.equals(JWT_RS256)) {
-                jws.setHeader(IJWT.HEADER_X5U,pubKeyEndpoint);
-                jws.setHeader(IJWT.HEADER_TYPE,IJWT.HEADER_TYPE_VALUE);
+            jws.setHeader(IJWT.HEADER_X5U, pubKeyEndpoint);
+            jws.setHeader(IJWT.HEADER_TYPE, IJWT.HEADER_TYPE_VALUE);
         }
 
         jws.setDoKeyValidation(false); // relaxes the key length requirement
@@ -212,7 +252,7 @@ public class JWTUtils {
         //add optional claims
         //List<String> groups = Arrays.asList("group-one", "other-group", "group-three");
         //claims.setStringListClaim("groups", groups); // multi-valued claims work too and will end up as a JSON array
-        addOptionalClaims(claims,jwtRequestBean.getOptionalClaims());
+        addOptionalClaims(claims, jwtRequestBean.getOptionalClaims());
         //It's important to set the optional claims before, otherwise fix claims can be overriden
         claims.setIssuer(jwtRequestBean.getIssuer());  // who creates the token and signs it
         claims.setAudience(jwtRequestBean.getAudience()); // to whom the token is intended to be sent
@@ -236,9 +276,11 @@ public class JWTUtils {
      * @param optionalClaims
      */
     private static void addOptionalClaims(JwtClaims claims, Map<String, String> optionalClaims) {
-        if(optionalClaims!=null && optionalClaims.size()>0){
+        if (optionalClaims != null && optionalClaims.size() > 0) {
             Set<String> claimKeySet = optionalClaims.keySet();
-            claimKeySet.stream().forEach(key -> {claims.setStringClaim(key, optionalClaims.get(key));});
+            claimKeySet.stream().forEach(key -> {
+                claims.setStringClaim(key, optionalClaims.get(key));
+            });
         }
     }
 

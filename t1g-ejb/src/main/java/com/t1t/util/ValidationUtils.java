@@ -1,7 +1,6 @@
 package com.t1t.util;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.regex.Pattern;
@@ -30,6 +29,7 @@ public class ValidationUtils {
     /**
      * Validates an absolute URI based on <a href="https://tools.ietf.org/html/rfc3986#section-4.3">RFC 3986, 4.3</a>
      * and makes use of regular expression found <a href="http://jmrware.com/articles/2009/uri_regexp/URI_regex.html">here</a>
+     *
      * @param URI
      * @return
      */

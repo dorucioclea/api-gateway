@@ -1,4 +1,4 @@
-package com.t1t.apim.kong;
+package com.t1t.apim.rest;
 
 import com.google.gson.Gson;
 import com.t1t.apim.beans.policies.Policies;
@@ -19,7 +19,7 @@ public class PluginFormTest {
     private static Logger _LOG = LoggerFactory.getLogger(PluginFormTest.class.getName());
 
     @Test
-    public void testRequestTransformerFromJSON(){
+    public void testRequestTransformerFromJSON() {
         String json = "{\"remove\":{\"querystring\":[null],\"form\":[null],\"headers\":[\"someheader\"]},\"add\":{\"querystring\":[null],\"form\":[null],\"headers\":[\"another:test\",null]}}";
         Gson gson = new Gson();
         KongPluginRequestTransformer kongPluginRequestTransformer = gson.fromJson(json, KongPluginRequestTransformer.class);
@@ -30,10 +30,10 @@ public class PluginFormTest {
         _LOG.info(kongPluginRequestTransformer.getAdd().toString());
         _LOG.info("" + kongPluginRequestTransformer.getAdd().getHeaders().size());
         assertNotNull(kongPluginRequestTransformer.getAdd().getHeaders());
-        assertTrue(kongPluginRequestTransformer.getAdd().getHeaders().size()>0);
-        for(String header:kongPluginRequestTransformer.getAdd().getHeaders()){
-            _LOG.info("Header:{}",header);
-            if(header==null)_LOG.info("found null header");
+        assertTrue(kongPluginRequestTransformer.getAdd().getHeaders().size() > 0);
+        for (String header : kongPluginRequestTransformer.getAdd().getHeaders()) {
+            _LOG.info("Header:{}", header);
+            if (header == null) _LOG.info("found null header");
         }
         _LOG.info(kongPluginRequestTransformer.getRemove().toString());
         //create initConfig policy

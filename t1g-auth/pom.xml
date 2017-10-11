@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>api-gateway</artifactId>
@@ -168,7 +168,9 @@
                 <configuration>
                     <instructions>
                         <Export-Package>com.t1t.apim.rest.impl*</Export-Package>
-                        <Import-Package>!org.jboss.errai.common.client.api.annotations,!javax.enterprise.context,!javax.enterprise.inject,!javax.inject,*</Import-Package>
+                        <Import-Package>
+                            !org.jboss.errai.common.client.api.annotations,!javax.enterprise.context,!javax.enterprise.inject,!javax.inject,*
+                        </Import-Package>
                     </instructions>
                 </configuration>
             </plugin>

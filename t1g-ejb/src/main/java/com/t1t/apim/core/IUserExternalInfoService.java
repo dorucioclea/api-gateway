@@ -10,13 +10,16 @@ public interface IUserExternalInfoService {
     /**
      * Get user information based on a user property and it's value.
      *
-     * @param key       the user property to look for
-     * @param value     the user value for the given key
+     * @param key   the user property to look for
+     * @param value the user value for the given key
      * @return
      */
-    ExternalUserBean getUserInfoByQuery(String key, String value)throws ExternalUserNotFoundException;
-    ExternalUserBean getUserInfoByUsername(String username)throws ExternalUserNotFoundException;
-    ExternalUserBean getUserInfoByMail(String email)throws ExternalUserNotFoundException;
-    ExternalUserBean getUserInfoByUserId(String userId)throws ExternalUserNotFoundException;
+    ExternalUserBean getUserInfoByQuery(String key, String value) throws ExternalUserNotFoundException;
+
+    ExternalUserBean getUserInfoByUsername(String username) throws ExternalUserNotFoundException;
+
+    ExternalUserBean getUserInfoByMail(String email) throws ExternalUserNotFoundException;
+
+    ExternalUserBean getUserInfoByUserId(String userId) throws ExternalUserNotFoundException;
 
 }

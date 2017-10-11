@@ -7,7 +7,6 @@ import java.util.Set;
 /**
  * Models the currently authenticated user.  This bean extends the simple
  * user bean but also includes all of the user's permissions.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CurrentUserBean extends UserBean {

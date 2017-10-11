@@ -27,6 +27,6 @@ public class GatewayPathUtilitiesTest {
 
     @Test
     public void testGenerateGatewayContextPathByStringParams() throws Exception {
-        assertEquals(GatewayPathUtilities.generateGatewayContextPath(ORGID,Collections.singleton(BASEPATH),VERSION),PATH);
+        assertEquals(GatewayPathUtilities.generateGatewayContextPath(ORGID, Collections.singleton(BASEPATH), VERSION), PATH);
     }
 }

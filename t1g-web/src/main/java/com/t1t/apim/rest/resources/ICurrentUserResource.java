@@ -23,87 +23,97 @@ public interface ICurrentUserResource {
 
     /**
      * Use this endpoint to get information about the currently authenticated user.
+     *
+     * @return Information about the authenticated user.
      * @summary Get Current User Information
      * @statuscode 200 If the information is correctly returned.
-     * @return Information about the authenticated user.
      */
     public CurrentUserBean getInfo();
 
     /**
      * This endpoint allows updating information about the authenticated user.
-     * @summary Update Current User Information
+     *
      * @param info Data to use when updating the user.
+     * @summary Update Current User Information
      * @statuscode 204 If the update is successful.
      */
     public void updateInfo(UpdateUserBean info);
-    
+
     /**
      * This endpoint returns a list of all the organizations for which the current user
      * has permission to edit applications.  For example, when creating a new Application,
      * the user interface must ask the user to choose within which Organization to create
      * it.  This endpoint lists the valid choices for the current user.
+     *
+     * @return A list of organizations.
      * @summary Get Organizations (app-edit)
      * @statuscode 200 If the organizations are successfully returned.
-     * @return A list of organizations.
      */
     public List<OrganizationSummaryBean> getAppOrganizations();
-    
+
     /**
      * This endpoint returns a list of all the organizations for which the current user
      * has permission to edit services.  For example, when creating a new Service,
      * the user interface must ask the user to choose within which Organization to create
      * it.  This endpoint lists the valid choices for the current user.
+     *
+     * @return A list of organizations.
      * @summary Get Organizations (svc-edit)
      * @statuscode 200 If the organizations are successfully returned.
-     * @return A list of organizations.
      */
     public List<OrganizationSummaryBean> getServiceOrganizations();
-    
+
     /**
      * This endpoint returns a list of all the organizations for which the current user
      * has permission to edit plans.  For example, when creating a new Plan,
      * the user interface must ask the user to choose within which Organization to create
      * it.  This endpoint lists the valid choices for the current user.
+     *
+     * @return A list of organizations.
      * @summary Get Organizations (plan-edit)
      * @statuscode 200 If the organizations are successfully returned.
-     * @return A list of organizations.
      */
     public List<OrganizationSummaryBean> getPlanOrganizations();
 
     /**
      * Use this endpoint to list all of the Applications the current user has permission
-     * to edit.  This includes all Applications from all Organizations the user has 
+     * to edit.  This includes all Applications from all Organizations the user has
      * application edit privileges for.
+     *
+     * @return A list of Applications.
      * @summary Get Current User's Applications
      * @statuscode 200 If the applications are successfully returned.
-     * @return A list of Applications.
      */
     public List<ApplicationSummaryBean> getApplications();
 
     /**
      * Use this endpoint to list all of the Services the current user has permission
-     * to edit.  This includes all Services from all Organizations the user has 
+     * to edit.  This includes all Services from all Organizations the user has
      * service edit privileges for.
+     *
+     * @return A list of Services.
      * @summary Get Current User's Services
      * @statuscode 200 If the services are successfully returned.
-     * @return A list of Services.
      */
     public List<ServiceSummaryBean> getServices();
 
     /**
      * Use this endpoint to retrieve all incoming events for the current user
+     *
      * @return
      */
     public List<EventBean> getCurrentUserAllIncomingEvents();
 
     /**
      * Use this endpoint to retrieve all outgoing event for the current user
+     *
      * @return
      */
     public List<EventBean> getCurrentUserAllOutgoingEvents();
 
     /**
      * Use this endpoint to retrieve the current user's outgoing events by type and status
+     *
      * @param type
      * @param <T>
      * @return
@@ -112,6 +122,7 @@ public interface ICurrentUserResource {
 
     /**
      * Use this endpoint to retrieve the current user's incoming events by type and status
+     *
      * @param type
      * @param <T>
      * @return
@@ -120,6 +131,7 @@ public interface ICurrentUserResource {
 
     /**
      * Delete an event
+     *
      * @param id
      * @throws NotAuthorizedException
      * @throws InvalidEventException
@@ -129,12 +141,14 @@ public interface ICurrentUserResource {
 
     /**
      * Get all events for the current user that require no action on the user's behalf
+     *
      * @return
      */
     public List<EventAggregateBean> getAllNonActionEvents();
 
     /**
      * Get all events for the current user that require an action on the user's behalf
+     *
      * @return
      */
     public List<EventAggregateBean> getAllActionEvents();
@@ -146,12 +160,14 @@ public interface ICurrentUserResource {
 
     /**
      * Retrieve the current user's OAuth2 tokens
+     *
      * @return
      */
     public OAuth2TokenPaginationBean getCurrentUserOAuthTokens(String offset);
 
     /**
      * Revoke a current user's OAuth2 token
+     *
      * @param token
      */
     public void revokeCurrentUserOAuthToken(OAuth2TokenRevokeBean token);

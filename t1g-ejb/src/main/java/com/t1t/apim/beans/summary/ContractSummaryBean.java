@@ -8,7 +8,6 @@ import java.util.Date;
 /**
  * A summary bean for a contract.  Includes information useful for displaying
  * the contract in a list in a UI.
- *
  */
 public class ContractSummaryBean implements Serializable {
 

@@ -35,34 +35,20 @@ import java.util.Set;
 @Path("/security")
 @ApplicationScoped
 public class SecurityResource implements ISecurityResource {
-    @Inject private SecurityFacade securityFacade;
-    @Inject private ISecurityContext securityContext;
-    @Inject private SystemFacade systemFacade;
-    @Inject private OrganizationFacade orgFacade;
-
-    @ApiOperation(value = "Set OAuth2 expiration time (in seconds)",
-                  notes = "Use this endpoint to set the central OAuth2 token expiration time (in seconds)")
-    @ApiResponses({
-                          @ApiResponse(code = 204, message = "successful, no content")
-                  })
-    @POST
-    @Path("/oauth/expiration-time")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public void setOAuthExpTime(OAuthExpTimeRequest request) throws NotAuthorizedException {
-        //only admin can perform this action
-        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "OAuth expiration time request"));
-        Preconditions.checkNotNull(request.getExpirationTime(), Messages.i18n.format("emptyValue", "Expiration time"));
-        Preconditions.checkArgument(request.getExpirationTime()>=0, "Expiration time must be equal to or greater than 0.");
-        securityFacade.setOAuthExpTime(request.getExpirationTime());
-    }
+    @Inject
+    private SecurityFacade securityFacade;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private SystemFacade systemFacade;
+    @Inject
+    private OrganizationFacade orgFacade;
 
     @ApiOperation(value = "Get OAuth2 expiration time (in seconds)",
-                  notes = "Use this endpoint to get the central OAuth2 token expiration time (in seconds).")
+            notes = "Use this endpoint to get the central OAuth2 token expiration time (in seconds).")
     @ApiResponses({
-                          @ApiResponse(code = 200, response = OAuthExpTimeResponse.class, message = "OAuth2 central token issuance expiration time.")
-                  })
+            @ApiResponse(code = 200, response = OAuthExpTimeResponse.class, message = "OAuth2 central token issuance expiration time.")
+    })
     @GET
     @Path("/oauth/expiration-time")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -73,11 +59,44 @@ public class SecurityResource implements ISecurityResource {
         return securityFacade.getOAuthExpTime();
     }
 
-    @ApiOperation(value = "Set JWT expiration time (in seconds)",
-                  notes = "Use this endpoint to set the central JWT token expiration time (in seconds)")
+    @ApiOperation(value = "Set OAuth2 expiration time (in seconds)",
+            notes = "Use this endpoint to set the central OAuth2 token expiration time (in seconds)")
     @ApiResponses({
-                          @ApiResponse(code = 204, message = "successful, no content")
-                  })
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
+    @POST
+    @Path("/oauth/expiration-time")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void setOAuthExpTime(OAuthExpTimeRequest request) throws NotAuthorizedException {
+        //only admin can perform this action
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "OAuth expiration time request"));
+        Preconditions.checkNotNull(request.getExpirationTime(), Messages.i18n.format("emptyValue", "Expiration time"));
+        Preconditions.checkArgument(request.getExpirationTime() >= 0, "Expiration time must be equal to or greater than 0.");
+        securityFacade.setOAuthExpTime(request.getExpirationTime());
+    }
+
+    @ApiOperation(value = "Get JWT expiration time (in seconds)",
+            notes = "Use this endpoint to get the central JWT token expiration time (in seconds).")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = OAuthExpTimeResponse.class, message = "JWT central token issuance expiration time.")
+    })
+    @GET
+    @Path("/jwt/expiration-time")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public JWTExpTimeResponse getJWTExpTime() throws NotAuthorizedException {
+        //only admin can perform this action
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        return securityFacade.getJWTExpTime();
+    }
+
+    @ApiOperation(value = "Set JWT expiration time (in seconds)",
+            notes = "Use this endpoint to set the central JWT token expiration time (in seconds)")
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
     @POST
     @Path("/jwt/expiration-time")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -87,23 +106,8 @@ public class SecurityResource implements ISecurityResource {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkNotNull(request, Messages.i18n.format("nullValue", "JWT expiration time request"));
         Preconditions.checkNotNull(request.getExpirationTime(), Messages.i18n.format("", "Expiration time"));
-        Preconditions.checkArgument(request.getExpirationTime()>=0, "Expiration time must be equal to or greater than 0.");
+        Preconditions.checkArgument(request.getExpirationTime() >= 0, "Expiration time must be equal to or greater than 0.");
         securityFacade.setJWTExpTime(request.getExpirationTime());
-    }
-
-    @ApiOperation(value = "Get JWT expiration time (in seconds)",
-                  notes = "Use this endpoint to get the central JWT token expiration time (in seconds).")
-    @ApiResponses({
-                          @ApiResponse(code = 200, response = OAuthExpTimeResponse.class, message = "JWT central token issuance expiration time.")
-                  })
-    @GET
-    @Path("/jwt/expiration-time")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public JWTExpTimeResponse getJWTExpTime() throws NotAuthorizedException {
-        //only admin can perform this action
-        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        return securityFacade.getJWTExpTime();
     }
 
     @Override
@@ -137,10 +141,10 @@ public class SecurityResource implements ISecurityResource {
     }
 
     @ApiOperation(value = "Get System Cluster Status",
-                  notes = "This endpoint simply returns the status of the api engine system. This is a useful endpoint to use when testing a client's connection to the API Manager REST services.")
+            notes = "This endpoint simply returns the status of the api engine system. This is a useful endpoint to use when testing a client's connection to the API Manager REST services.")
     @ApiResponses({
-                          @ApiResponse(code = 200, response = SystemStatusBean.class, message = "System status information")
-                  })
+            @ApiResponse(code = 200, response = SystemStatusBean.class, message = "System status information")
+    })
     @GET
     @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
@@ -151,7 +155,7 @@ public class SecurityResource implements ISecurityResource {
 
     @Override
     @ApiOperation(value = "Revoke Application Version Oauth2 Token",
-                  notes = "Deprecated, please use the DELETE method")
+            notes = "Deprecated, please use the DELETE method")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Succesful, no content")
     })

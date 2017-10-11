@@ -6,7 +6,6 @@ import java.util.List;
 
 /**
  * Models a user as a member of an organization.
- *
  */
 public class MemberBean implements Serializable {
 

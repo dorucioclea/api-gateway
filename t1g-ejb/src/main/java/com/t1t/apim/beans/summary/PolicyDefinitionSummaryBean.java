@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 /**
  * A summary of a policy definition.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PolicyDefinitionSummaryBean implements Serializable {

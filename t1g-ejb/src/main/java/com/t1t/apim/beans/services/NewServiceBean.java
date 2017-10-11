@@ -7,7 +7,6 @@ import java.util.Set;
 
 /**
  * Bean used when creating a service.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewServiceBean implements Serializable {

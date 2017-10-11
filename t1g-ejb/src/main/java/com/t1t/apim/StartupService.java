@@ -39,17 +39,22 @@ import java.util.stream.Collectors;
 @Startup
 public class StartupService {
     private static final Logger _LOG = LoggerFactory.getLogger(StartupService.class.getName());
-    @Inject private MailService mailService;
-    @Inject @T1G private AppConfigBean config;
-    @Inject private GatewayFacade gatewayFacade;
-    @Inject private IStorageQuery query;
-    @Inject private IStorage storage;
+    @Inject
+    private MailService mailService;
+    @Inject
+    @T1G
+    private AppConfigBean config;
+    @Inject
+    private GatewayFacade gatewayFacade;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private IStorage storage;
 
 
     /**
      * Verify if the necessary apis and consumers necessary for the API Manager are present on the gateway and
      * configured correctly and if not create them
-     *
      */
     @PostConstruct
     public void init() {
@@ -57,8 +62,7 @@ public class StartupService {
             verifyEngineDependencies();
             verifyOrCreateGatewayDependencies();
             sendTestMail();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             _LOG.error(ex.getMessage());
         }
@@ -81,8 +85,7 @@ public class StartupService {
                 verifyOrCreateGatewayKeys(gw);
                 verifyOrCreateClusterInfo(gw);
                 verifyOrCreateConsumers(gw);
-            }
-            catch (StorageException ex){
+            } catch (StorageException ex) {
                 throw ExceptionFactory.systemErrorException(ex);
             }
         });
@@ -147,14 +150,13 @@ public class StartupService {
 
     private KongApi verifyApi(IGatewayLink gw, KongApi api) {
         KongApi existingApi = gw.getApi(api.getName());
-        if (existingApi != null)  {
+        if (existingApi != null) {
             if (!existingApi.getStripUri().equals(api.getStripUri()) ||
                     !existingApi.getUpstreamUrl().equals(api.getUpstreamUrl()) ||
                     !existingApi.getUris().equals(api.getUris())) {
                 existingApi = gw.updateOrCreateApi(existingApi.withStripUri(api.getStripUri()).withUris(api.getUris()).withUpstreamUrl(api.getUpstreamUrl()));
             }
-        }
-        else {
+        } else {
             existingApi = gw.createApi(api);
         }
         return existingApi;
@@ -168,14 +170,12 @@ public class StartupService {
                 Policies pluginDef = GatewayUtils.convertKongPluginNameToPolicy(plugin.getName());
                 if (!policies.contains(pluginDef)) {
                     gw.deleteApiPlugin(api.getId(), plugin.getId());
-                }
-                else {
+                } else {
                     try {
                         plugin = getDefaultConfigs(pluginDef, plugin);
                         gw.updatePlugin(plugin);
                         policiesOnGateway.add(pluginDef);
-                    }
-                    catch (StorageException ex) {
+                    } catch (StorageException ex) {
                         throw ExceptionFactory.systemErrorException(ex);
                     }
                 }
@@ -186,20 +186,17 @@ public class StartupService {
                     KongPluginConfig plugin = new KongPluginConfig().withName(polDef.getKongIdentifier());
                     plugin = getDefaultConfigs(polDef, plugin);
                     gw.createApiPlugin(api.getId(), plugin);
-                }
-                catch (StorageException ex) {
+                } catch (StorageException ex) {
                     throw ExceptionFactory.systemErrorException(ex);
                 }
             });
-        }
-        else if (plugins != null) {
+        } else if (plugins != null) {
             policies.forEach(polDef -> {
                 try {
                     KongPluginConfig plugin = new KongPluginConfig().withName(polDef.getKongIdentifier());
                     plugin = getDefaultConfigs(polDef, plugin);
                     gw.createApiPlugin(api.getId(), plugin);
-                }
-                catch (StorageException ex) {
+                } catch (StorageException ex) {
                     throw ExceptionFactory.systemErrorException(ex);
                 }
             });
@@ -226,49 +223,48 @@ public class StartupService {
         String pemPublicKey = gatewayFacade.getDefaultGatewayPublicKey();
         query.getManagedAppForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Publisher, ManagedApplicationTypes.InternalMarketplace, ManagedApplicationTypes.ExternalMarketplace))
                 .forEach(mab -> {
-            String id = ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
-            KongConsumer consumer = gw.getConsumer(id);
-            if (consumer == null) {
-                consumer = gw.createConsumer(id);
-            }
-            if (consumer != null) {
-                KongPluginKeyAuthResponseList keyAuth = gw.getConsumerKeyAuth(id);
-                if (keyAuth != null && keyAuth.getData().isEmpty()) {
-                    mab.getApiKeys().forEach(key -> gw.addConsumerKeyAuth(id, key));
-                } else if (keyAuth != null) {
-                    Set<String> gwKeys = keyAuth.getData().stream().map(KongPluginKeyAuthResponse::getKey).collect(Collectors.toSet());
-                    gwKeys.forEach(apikey -> {
-                        if (!mab.getApiKeys().contains(apikey)) {
-                            gw.deleteConsumerKeyAuth(id, apikey);
-                        }
-                    });
-                    mab.getApiKeys().forEach(apikey -> {
-                        if (!gwKeys.contains(apikey)) {
-                            gw.addConsumerKeyAuth(id, apikey);
-                        }
-                    });
-                }
-                KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(id);
-                if (jwtCreds != null && jwtCreds.getData().isEmpty()) {
-                    gw.addConsumerJWT(id, pemPublicKey);
-                } else if (jwtCreds != null) {
-                    List<KongPluginJWTResponse> removed = new ArrayList<>();
-                    jwtCreds.getData().forEach(cred -> {
-                        if (!cred.getRsaPublicKey().trim().equals(pemPublicKey.trim())) {
-                            gw.deleteConsumerJwtCredential(id, cred.getId());
-                            removed.add(cred);
-                        }
-                    });
-                    jwtCreds.getData().removeAll(removed);
-                    if (jwtCreds.getData().isEmpty()) {
-                        gw.addConsumerJWT(id, pemPublicKey);
+                    String id = ConsumerConventionUtil.createManagedApplicationConsumerName(mab);
+                    KongConsumer consumer = gw.getConsumer(id);
+                    if (consumer == null) {
+                        consumer = gw.createConsumer(id);
                     }
-                }
-            }
-            else {
-                throw ExceptionFactory.gatewayNotFoundException(gw.getGatewayId());
-            }
-        });
+                    if (consumer != null) {
+                        KongPluginKeyAuthResponseList keyAuth = gw.getConsumerKeyAuth(id);
+                        if (keyAuth != null && keyAuth.getData().isEmpty()) {
+                            mab.getApiKeys().forEach(key -> gw.addConsumerKeyAuth(id, key));
+                        } else if (keyAuth != null) {
+                            Set<String> gwKeys = keyAuth.getData().stream().map(KongPluginKeyAuthResponse::getKey).collect(Collectors.toSet());
+                            gwKeys.forEach(apikey -> {
+                                if (!mab.getApiKeys().contains(apikey)) {
+                                    gw.deleteConsumerKeyAuth(id, apikey);
+                                }
+                            });
+                            mab.getApiKeys().forEach(apikey -> {
+                                if (!gwKeys.contains(apikey)) {
+                                    gw.addConsumerKeyAuth(id, apikey);
+                                }
+                            });
+                        }
+                        KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(id);
+                        if (jwtCreds != null && jwtCreds.getData().isEmpty()) {
+                            gw.addConsumerJWT(id, pemPublicKey);
+                        } else if (jwtCreds != null) {
+                            List<KongPluginJWTResponse> removed = new ArrayList<>();
+                            jwtCreds.getData().forEach(cred -> {
+                                if (!cred.getRsaPublicKey().trim().equals(pemPublicKey.trim())) {
+                                    gw.deleteConsumerJwtCredential(id, cred.getId());
+                                    removed.add(cred);
+                                }
+                            });
+                            jwtCreds.getData().removeAll(removed);
+                            if (jwtCreds.getData().isEmpty()) {
+                                gw.addConsumerJWT(id, pemPublicKey);
+                            }
+                        }
+                    } else {
+                        throw ExceptionFactory.gatewayNotFoundException(gw.getGatewayId());
+                    }
+                });
 
     }
 }

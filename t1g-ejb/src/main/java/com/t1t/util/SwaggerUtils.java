@@ -28,21 +28,23 @@ public class SwaggerUtils {
         return getSwaggerObject(new FileInputStream(file));
     }
 
-    public static Map<String, Path> getSwaggerPaths(Swagger swaggerObject){
+    public static Map<String, Path> getSwaggerPaths(Swagger swaggerObject) {
         return swaggerObject.getPaths();
     }
 
-    public static void printSwaggerPaths(Swagger swaggerObject){
-        log.info(""+swaggerObject.getInfo().getTitle());
-        for(String key:swaggerObject.getPaths().keySet()){
+    public static void printSwaggerPaths(Swagger swaggerObject) {
+        log.info("" + swaggerObject.getInfo().getTitle());
+        for (String key : swaggerObject.getPaths().keySet()) {
             Path path = swaggerObject.getPaths().get(key);
-            path.getOperations().forEach(op -> {log.info(op.getSummary());});
+            path.getOperations().forEach(op -> {
+                log.info(op.getSummary());
+            });
         }
     }
 
-    public static void printSwaggerSecurity(Swagger swaggerObject){
-        log.info("Security info for {}",swaggerObject.getInfo().getTitle());
-        for(String key:swaggerObject.getSecurityDefinitions().keySet()){
+    public static void printSwaggerSecurity(Swagger swaggerObject) {
+        log.info("Security info for {}", swaggerObject.getInfo().getTitle());
+        for (String key : swaggerObject.getSecurityDefinitions().keySet()) {
             SecuritySchemeDefinition securitySchemeDefinition = swaggerObject.getSecurityDefinitions().get(key);
             log.info("Type:{}", securitySchemeDefinition.getType());
         }

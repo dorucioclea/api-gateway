@@ -4,7 +4,6 @@ import org.apache.commons.lang.text.StrLookup;
 
 /**
  * Allows users to AesEncrypt their properties in apiman.properties.
- *
  */
 public class EnvLookup extends StrLookup {
 

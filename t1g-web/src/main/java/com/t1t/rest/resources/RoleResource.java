@@ -30,12 +30,14 @@ import java.util.List;
 @Path("/roles")
 @ApplicationScoped
 public class RoleResource implements IRoleResource {
-    
+
     @Inject
     IIdmStorage idmStorage;
     @Inject
     ISecurityContext securityContext;
-    @Inject private RoleFacade roleFacade;
+    @Inject
+    private RoleFacade roleFacade;
+
     /**
      * Constructor.
      */
@@ -100,7 +102,7 @@ public class RoleResource implements IRoleResource {
     @ApiOperation(value = "List all Roles",
             notes = "This endpoint lists all of the roles currently defined in apiman.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = SearchCriteriaBean.class, message = "A list of roles.")
+            @ApiResponse(code = 200, responseContainer = "List", response = SearchCriteriaBean.class, message = "A list of roles.")
     })
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -111,7 +113,7 @@ public class RoleResource implements IRoleResource {
     @ApiOperation(value = "Search for Roles",
             notes = "This endpoint provides a way to search for roles. The search criteria is provided in the body of the request, including filters, order-by, and paging information.")
     @ApiResponses({
-            @ApiResponse(code = 200,response = SearchResultsBean.class, message = "A list of roles.")
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "A list of roles.")
     })
     @POST
     @Path("/search")

@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by michallispashidis on 4/09/15.
  */
-public class SAMLLogoutRequest implements Serializable{
+public class SAMLLogoutRequest implements Serializable {
     private String idpUrl;
     private String spName;
     private String username;

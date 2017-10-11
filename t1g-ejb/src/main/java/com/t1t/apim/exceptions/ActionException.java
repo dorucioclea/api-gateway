@@ -3,7 +3,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when an action is performed but an error occurs during processing.
- *
  */
 public class ActionException extends AbstractUserException {
 
@@ -14,9 +13,10 @@ public class ActionException extends AbstractUserException {
      */
     public ActionException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public ActionException(String message) {
@@ -25,8 +25,9 @@ public class ActionException extends AbstractUserException {
 
     /**
      * Constructor.
+     *
      * @param message the exception message
-     * @param cause the exception cause
+     * @param cause   the exception cause
      */
     public ActionException(String message, Throwable cause) {
         super(message, cause);
@@ -39,7 +40,7 @@ public class ActionException extends AbstractUserException {
     public int getErrorCode() {
         return ErrorCodes.ACTION_ERROR;
     }
-    
+
     /**
      */
     @Override

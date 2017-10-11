@@ -1,6 +1,5 @@
 package com.t1t.apim.core.metrics;
 
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.T1G;
 import com.t1t.apim.beans.metrics.ServiceMetricsBean;
@@ -31,7 +30,8 @@ public class MetricsService {
 
     private static ServiceLoader<MetricsSPI> loader = ServiceLoader.load(MetricsSPI.class);
 
-    @Inject @T1G
+    @Inject
+    @T1G
     private AppConfigBean config;
     @Inject
     private IStorageQuery query;
@@ -55,17 +55,14 @@ public class MetricsService {
                     if (!query.getEntityPoliciesByDefinitionId(serviceVersion.getService().getOrganization().getId(), serviceVersion.getService().getId(), serviceVersion.getVersion(), PolicyType.Service, Policies.DATADOG).isEmpty()) {
                         rval = command.withSpi(service).execute();
                     }
-                }
-                else {
+                } else {
                     rval = command.withSpi(service).execute();
                 }
             }
-        }
-        catch (ServiceConfigurationError serviceError) {
+        } catch (ServiceConfigurationError serviceError) {
             rval = null;
             serviceError.printStackTrace();
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
         return rval;

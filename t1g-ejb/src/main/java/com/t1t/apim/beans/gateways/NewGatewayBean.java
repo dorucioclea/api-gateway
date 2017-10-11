@@ -5,7 +5,6 @@ import java.io.Serializable;
 
 /**
  * The bean used when creating a new Gateway.
- *
  */
 public class NewGatewayBean implements Serializable {
 
@@ -16,6 +15,7 @@ public class NewGatewayBean implements Serializable {
     private GatewayType type;
     private String configuration;
     private String endpoint;
+
     /**
      * Constructor.
      */
@@ -93,7 +93,7 @@ public class NewGatewayBean implements Serializable {
     @SuppressWarnings("nls")
     public String toString() {
         return "NewGatewayBean [name=" + name + ", description=" + description + ", type=" + type
-                + ", endpoint="+endpoint
+                + ", endpoint=" + endpoint
                 + ", configuration=***]";
     }
 

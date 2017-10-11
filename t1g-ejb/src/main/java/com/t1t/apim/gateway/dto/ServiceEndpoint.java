@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * Service endpoint.
- *
  */
 public class ServiceEndpoint implements Serializable {
 

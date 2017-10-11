@@ -1,5 +1,7 @@
 package com.t1t.apim.rest.resources;
 
+import javax.ws.rs.core.Response;
+
 /**
  * @author Guillaume Vandecasteele
  * @since 2016
@@ -9,56 +11,56 @@ public interface ISyncResource {
     /**
      * Back up the gateways OAuth tokens (for example, prior to a gateway rebuild
      */
-    public void backupTokens();
+    public Response backupTokens();
 
     /**
      * Sync the OAuth tokens
      */
-    public void syncTokens();
+    public Response syncTokens();
 
     /**
      * Delete the backed up tokens
      */
 
-    public void deleteTokenBackup();
+    public Response deleteTokenBackup();
 
     /**
      * Sync services
      */
-    public void syncServices();
+    public Response syncServices();
 
     /**
      * Sync applications
      */
-    public void syncApplications();
+    public Response syncApplications();
 
     /**
      * Sync service policies
      */
-    public void syncServicePolicies();
+    public Response syncServicePolicies();
 
     /**
      * Sync consent policies
      */
-    public void syncConsentPolicies();
+    public Response syncConsentPolicies();
 
     /**
      * Sync plan policies
      */
-    public void syncPlanPolicies();
+    public Response syncPlanPolicies();
 
     /**
      * Sync contract policies
      */
-    public void syncContractPolicies();
+    public Response syncContractPolicies();
 
     /**
      * Sync all policies
      */
-    public void syncAllPolicies();
+    public Response syncAllPolicies();
 
     /**
      * Sync everything
      */
-    public void syncAll();
+    public Response syncAll();
 }

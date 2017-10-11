@@ -17,7 +17,7 @@ public class ConfigBean implements Serializable {
     @Column(nullable = false)
     private Long id;
 
-    @Column(name = "config_path",nullable = false)
+    @Column(name = "config_path", nullable = false)
     private String configPath;
 
     public Long getId() {

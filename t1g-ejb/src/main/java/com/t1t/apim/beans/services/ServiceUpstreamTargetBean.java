@@ -10,11 +10,11 @@ import java.io.Serializable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceUpstreamTargetBean implements Serializable {
 
-    @Column(name = "target", nullable=false)
+    @Column(name = "target", nullable = false)
     private String target;
     @Column(name = "port")
     private Long port;
-    @Column(name = "weight", nullable=false)
+    @Column(name = "weight", nullable = false)
     private Long weight;
 
     public String getTarget() {

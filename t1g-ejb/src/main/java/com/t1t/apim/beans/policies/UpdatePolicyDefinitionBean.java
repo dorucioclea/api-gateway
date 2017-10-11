@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 /**
  * The bean/model used when updating a new policy definition.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdatePolicyDefinitionBean implements Serializable {

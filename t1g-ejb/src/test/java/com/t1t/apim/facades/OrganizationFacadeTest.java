@@ -51,22 +51,38 @@ public class OrganizationFacadeTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Mock private EntityManager em;
-    @Mock private ISecurityContext securityContext;
-    @Mock private ISecurityAppContext appContext;
-    @Mock private IStorage storage;
-    @Mock private IStorageQuery query;
-    @Mock private IIdmStorage idmStorage;
-    @Mock private IApiKeyGenerator apiKeyGenerator;
-    @Mock private IApplicationValidator applicationValidator;
-    @Mock private IServiceValidator serviceValidator;
-    @Mock private MetricsService metrics;
-    @Mock private GatewayFacade gatewayFacade;
-    @Mock private GatewayValidation gatewayValidation;
-    @Mock private IGatewayLinkFactory gatewayLinkFactory;
-    @Mock private UserFacade userFacade;
-    @Mock private RoleFacade roleFacade;
-    @InjectMocks private OrganizationFacade orgFacade;
+    @Mock
+    private EntityManager em;
+    @Mock
+    private ISecurityContext securityContext;
+    @Mock
+    private ISecurityAppContext appContext;
+    @Mock
+    private IStorage storage;
+    @Mock
+    private IStorageQuery query;
+    @Mock
+    private IIdmStorage idmStorage;
+    @Mock
+    private IApiKeyGenerator apiKeyGenerator;
+    @Mock
+    private IApplicationValidator applicationValidator;
+    @Mock
+    private IServiceValidator serviceValidator;
+    @Mock
+    private MetricsService metrics;
+    @Mock
+    private GatewayFacade gatewayFacade;
+    @Mock
+    private GatewayValidation gatewayValidation;
+    @Mock
+    private IGatewayLinkFactory gatewayLinkFactory;
+    @Mock
+    private UserFacade userFacade;
+    @Mock
+    private RoleFacade roleFacade;
+    @InjectMocks
+    private OrganizationFacade orgFacade;
 
     @Test
     public void sanity() throws Exception {
@@ -131,15 +147,15 @@ public class OrganizationFacadeTest {
 
     @Test
     public void testUpdateNullObject() throws Exception {
-        when(securityContext.hasPermission(anyObject(),anyString())).thenReturn(true);
+        when(securityContext.hasPermission(anyObject(), anyString())).thenReturn(true);
         when(storage.getOrganization(anyString())).thenReturn(null);
         thrown.expect(OrganizationNotFoundException.class);
-        orgFacade.update("someorg",new UpdateOrganizationBean());
+        orgFacade.update("someorg", new UpdateOrganizationBean());
     }
 
     @Test
     public void testUpdate() throws Exception {
-        when(securityContext.hasPermission(anyObject(),anyString())).thenReturn(true);
+        when(securityContext.hasPermission(anyObject(), anyString())).thenReturn(true);
         when(storage.getOrganization(anyString())).thenReturn(new OrganizationBean());
         orgFacade.update("someorg", getDefaultUpdateOrganization());
         verify(storage).updateOrganization(anyObject());
@@ -157,16 +173,16 @@ public class OrganizationFacadeTest {
 
     @Test
     public void testActivityLowerLimit() throws Exception {
-        orgFacade.activity("someorg",0,0);
+        orgFacade.activity("someorg", 0, 0);
         PagingBean paging = new PagingBean();
         paging.setPage(1);
         paging.setPageSize(20);
-        verify(query).auditEntity("someorg",null,null,null,paging);
+        verify(query).auditEntity("someorg", null, null, null, paging);
     }
 
     @Test
     public void testCreateAppNotAuthorized() throws Exception {
-        when(securityContext.hasPermission(anyObject(),anyString())).thenReturn(false);
+        when(securityContext.hasPermission(anyObject(), anyString())).thenReturn(false);
         thrown.expect(NotAuthorizedException.class);
         orgFacade.createApp("someorg", new NewApplicationBean());
     }
@@ -302,7 +318,7 @@ public class OrganizationFacadeTest {
         when(storage.getApplicationVersion(anyString(), anyString(), anyString())).thenReturn(avb);
         when(storage.getPolicyDefinition(anyString())).thenReturn(pdb);
         when(securityContext.getCurrentUser()).thenReturn("admin");
-        when(gatewayValidation.validate(anyObject(), PolicyType.Application)).thenReturn(new Policy("somepolicy","{}", "someorg.someapp.someversion"));
+        when(gatewayValidation.validate(anyObject(), PolicyType.Application)).thenReturn(new Policy("somepolicy", "{}", "someorg.someapp.someversion"));
         orgFacade.createAppPolicy("someorg", "someapp", "someversion", npb);
         verify(storage).createPolicy(anyObject());
         verify(storage).createAuditEntry(anyObject());
@@ -525,7 +541,7 @@ public class OrganizationFacadeTest {
         when(Policies.valueOf(anyString())).thenReturn(Policies.BASICAUTHENTICATION);
         when(gValidation.validateBasicAuth(anyObject())).thenReturn(new Policy());
         when(gValidation.validate(anyObject(), PolicyType.Plan)).thenReturn(new Policy());
-        when(gValidation.validate(anyObject(),PolicyType.Plan)).thenReturn(new Policy());
+        when(gValidation.validate(anyObject(), PolicyType.Plan)).thenReturn(new Policy());
         when(query.getMaxPolicyOrderIndex(anyString(), anyString(), anyString(), anyObject())).thenReturn(0);
         when(storage.getPlanVersion(anyString(), anyString(), anyString())).thenReturn(new PlanVersionBean());
         when(storage.getPolicyDefinition(anyString())).thenReturn(new PolicyDefinitionBean());
@@ -536,7 +552,7 @@ public class OrganizationFacadeTest {
         newPolicyBean.setConfiguration("defaultconfig");
         newPolicyBean.setDefinitionId("defaultdefid");
         orgFacade.createPlanPolicy("someorg", "someplanx", "someverionsx", newPolicyBean);
-        verify(orgFacade).doCreatePolicy("someorg","someplanx","someversionx",anyObject(),PolicyType.Plan);
+        verify(orgFacade).doCreatePolicy("someorg", "someplanx", "someversionx", anyObject(), PolicyType.Plan);
     }
 
     @Test
@@ -949,7 +965,7 @@ public class OrganizationFacadeTest {
         //Empty - to do
     }
 
-    private OrganizationBean getDefaultOrganization(){
+    private OrganizationBean getDefaultOrganization() {
         OrganizationBean org = new OrganizationBean();
         org.setCreatedBy("admin");
         org.setCreatedOn(new Date());
@@ -959,20 +975,20 @@ public class OrganizationFacadeTest {
         return org;
     }
 
-    private NewOrganizationBean getDefaultNewOrganization(){
+    private NewOrganizationBean getDefaultNewOrganization() {
         NewOrganizationBean newOrganizationBean = new NewOrganizationBean();
         newOrganizationBean.setDescription("someorg");
         newOrganizationBean.setName("someorg");
         return newOrganizationBean;
     }
 
-    private UpdateOrganizationBean getDefaultUpdateOrganization(){
+    private UpdateOrganizationBean getDefaultUpdateOrganization() {
         UpdateOrganizationBean updateOrganization = new UpdateOrganizationBean();
         updateOrganization.setDescription("updatedesc");
         return updateOrganization;
     }
 
-    private SearchResultsBean<RoleBean> getDefaultSearchResultRoleBeans(){
+    private SearchResultsBean<RoleBean> getDefaultSearchResultRoleBeans() {
         SearchResultsBean<RoleBean> roleResult = new SearchResultsBean<RoleBean>();
         List<RoleBean> roleBeans = new ArrayList<>();
         RoleBean rb = new RoleBean();

@@ -17,56 +17,56 @@ import java.util.Set;
  * other specifics of the service, such as endpoint information
  * and configured policies are associated with a particular version
  * of that Service.  This class represents that version.
- *
  */
 @Entity
-@Table(name = "service_versions", uniqueConstraints = { @UniqueConstraint(columnNames = { "service_id", "service_org_id", "version" }) })
+@Table(name = "service_versions", uniqueConstraints = {@UniqueConstraint(columnNames = {"service_id", "service_org_id", "version"})})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceVersionBean implements Serializable {
 
     //key for endpoint properties
     public static final String PROP_PATH = "service_path";
     private static final long serialVersionUID = -2218697175049442690L;
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="service_id", referencedColumnName="id"),
-        @JoinColumn(name="service_org_id", referencedColumnName="organization_id")
+            @JoinColumn(name = "service_id", referencedColumnName = "id"),
+            @JoinColumn(name = "service_org_id", referencedColumnName = "organization_id")
     })
     private ServiceBean service;
-    @Column(updatable=true, nullable=false)
+    @Column(updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private ServiceStatus status;
     private String endpoint;
     @Column(name = "endpoint_type")
     @Enumerated(EnumType.STRING)
     private EndpointType endpointType;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @MapKeyColumn(name="name")
-    @Column(name="value")
-    @CollectionTable(name="endpoint_properties", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @MapKeyColumn(name = "name")
+    @Column(name = "value")
+    @CollectionTable(name = "endpoint_properties", joinColumns = @JoinColumn(name = "service_version_id"))
     private Map<String, String> endpointProperties = new HashMap<>();
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="svc_gateways", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "svc_gateways", joinColumns = @JoinColumn(name = "service_version_id"))
     private Set<ServiceGatewayBean> gateways;
-    @Column(name = "public_service", updatable=true, nullable=false)
+    @Column(name = "public_service", updatable = true, nullable = false)
     private boolean publicService;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="svc_plans", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "svc_plans", joinColumns = @JoinColumn(name = "service_version_id"))
     private Set<ServicePlanBean> plans;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="svc_visibility", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "svc_visibility", joinColumns = @JoinColumn(name = "service_version_id"))
     private Set<VisibilityBean> visibility;
-    @Column(updatable=false)
+    @Column(updatable = false)
     private String version;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(name = "modified_by", updatable=true, nullable=false)
+    @Column(name = "modified_by", updatable = true, nullable = false)
     private String modifiedBy;
-    @Column(name = "modified_on", updatable=true, nullable=false)
+    @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
     @Column(name = "published_on")
     private Date publishedOn;
@@ -81,28 +81,28 @@ public class ServiceVersionBean implements Serializable {
     private String provisionKey;
     @Column(name = "onlinedoc")
     private String onlinedoc;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="oauth_scopes")
-    @MapKeyColumn(name="oauth_scopes")
-    @Column(name="oauth_scopes_desc")
-    private Map<String,String> oauthScopes;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "oauth_scopes")
+    @MapKeyColumn(name = "oauth_scopes")
+    @Column(name = "oauth_scopes_desc")
+    private Map<String, String> oauthScopes;
     @Column(name = "auto_accept_contracts")
     private Boolean autoAcceptContracts;
     @Lob
-    @Column(name="readme")
+    @Column(name = "readme")
     @Type(type = "org.hibernate.type.TextType")
     private String readme;
     @Column(name = "terms_agreement_required")
     private Boolean termsAgreementRequired;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="service_hosts", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "service_hosts", joinColumns = @JoinColumn(name = "service_version_id"))
     @Column(name = "hostname")
     private Set<String> hostnames;
-    @Column(name ="upstream_connect_timeout")
+    @Column(name = "upstream_connect_timeout")
     private Long upstreamConnectTimeout;
-    @Column(name ="upstream_send_timeout")
+    @Column(name = "upstream_send_timeout")
     private Long upstreamSendTimeout;
-    @Column(name ="upstream_read_timeout")
+    @Column(name = "upstream_read_timeout")
     private Long upstreamReadTimeout;
     @Column(name = "custom_load_balancing")
     private Boolean customLoadBalancing;
@@ -111,8 +111,8 @@ public class ServiceVersionBean implements Serializable {
     private SchemeType upstreamScheme;
     @Column(name = "upstream_path")
     private String upstreamPath;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="service_upstream_targets", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "service_upstream_targets", joinColumns = @JoinColumn(name = "service_version_id"))
     private Set<ServiceUpstreamTargetBean> upstreamTargets;
 
     /**

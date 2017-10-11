@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 /**
  * Bean used when creating a new organization.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewOrganizationBean implements Serializable {

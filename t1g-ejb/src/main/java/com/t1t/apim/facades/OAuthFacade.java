@@ -8,7 +8,6 @@ import com.t1t.apim.beans.authorization.OAuthConsumerRequestBean;
 import com.t1t.apim.beans.authorization.OAuthServiceScopeResponse;
 import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
-import com.t1t.apim.beans.idm.UserBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.core.IIdmStorage;
 import com.t1t.apim.core.IStorage;
@@ -19,7 +18,7 @@ import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.OAuthException;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.gateway.IGatewayLink;
-import com.t1t.apim.kong.KongConstants;
+import com.t1t.apim.rest.KongConstants;
 import com.t1t.kong.model.KongPluginOAuthConsumerRequest;
 import com.t1t.kong.model.KongPluginOAuthConsumerResponse;
 import com.t1t.kong.model.KongPluginOAuthConsumerResponseList;
@@ -40,11 +39,16 @@ import java.util.stream.Collectors;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OAuthFacade {
-    @Inject private IStorageQuery query;
-    @Inject private IStorage storage;
-    @Inject private IIdmStorage idmStorage;
-    @Inject private GatewayFacade gatewayFacade;
-    @Inject private AppConfig config;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IIdmStorage idmStorage;
+    @Inject
+    private GatewayFacade gatewayFacade;
+    @Inject
+    private AppConfig config;
 
     /**
      * This method should be called only for the consumer registering the OAuth service, and thus not for each consumer using the OAuth
@@ -121,7 +125,7 @@ public class OAuthFacade {
                     response.setBase64AppLogo(applicationForOAuth.getApplication().getBase64logo());
                     response.setAppVersion(applicationForOAuth.getVersion());
                 } catch (StorageException ex) {
-                  ex.printStackTrace();
+                    ex.printStackTrace();
                 } catch (Exception e) {
                     throw ExceptionFactory.actionException(Messages.i18n.format("OAuth error"), e); //$NON-NLS-1$
                 }
@@ -168,7 +172,6 @@ public class OAuthFacade {
     public String getOAuth2AuthorizeEndpoint(String orgId, String serviceId, String version) {
         //there must be a gateway
         try {
-            Preconditions.checkNotNull(query.listGateways().size() > 0);
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
             ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);
@@ -191,7 +194,6 @@ public class OAuthFacade {
     public String getOAuth2TokenEndpoint(String orgId, String serviceId, String version) {
         //there must be a gateway
         try {
-            Preconditions.checkNotNull(query.listGateways().size() > 0);
             String defaultGateway = query.listGateways().get(0).getId();
             GatewayBean gateway = storage.getGateway(defaultGateway);
             ServiceVersionBean svb = storage.getServiceVersion(orgId, serviceId, version);

@@ -1,7 +1,6 @@
 package com.t1t.apim.core.metrics;
 
 import com.google.gson.Gson;
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
@@ -106,8 +105,7 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
                 Double seriesTotal = pointlist.stream().map(array -> array.get(1)).filter(Objects::nonNull).max(Double::compareTo).get();
                 if (i == 0) {
                     totalCount += seriesTotal;
-                }
-                else {
+                } else {
                     totalErrors += seriesTotal;
                 }
             }
@@ -135,8 +133,7 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
                 builder.append(QUERY_SEPARATOR).append(String.format(CUMSUM_QUERY, String.format(QUERY, AVG_PREFIX, error, environment)));
             }
             return builder.toString();
-        }
-        else return null;
+        } else return null;
     }
 
     private synchronized DataDogMetricsQuery query(DateTime from, DateTime to, String query) {
@@ -156,16 +153,13 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
             if (query.endsWith(REQUEST_COUNT)) {
                 if (query.endsWith(datadogServiceId + "." + REQUEST_COUNT)) {
                     return true;
-                }
-                else {
+                } else {
                     //Given query "kong.<api>.<consumer>.request.count", get the consumer id
                     if (consumerIds.contains(query.split("\\.")[2])) {
                         return true;
-                    }
-                    else return false;
+                    } else return false;
                 }
-            }
-            else return true;
+            } else return true;
         }).collect(Collectors.toList());
     }
 

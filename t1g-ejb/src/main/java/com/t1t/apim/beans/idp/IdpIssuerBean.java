@@ -1,12 +1,6 @@
-package com.t1t.apim.idp;
+package com.t1t.apim.beans.idp;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * @author Guillaume Vandecasteele
@@ -18,8 +12,9 @@ public class IdpIssuerBean {
 
     @Id
     private String issuer;
-    @Column(name = "public_key_field_name")
-    private String publicKeyFieldName;
+    @Column(name = "type")
+    @Enumerated(EnumType.STRING)
+    private IdpType type;
 
     public String getIssuer() {
         return issuer;
@@ -29,12 +24,12 @@ public class IdpIssuerBean {
         this.issuer = issuer;
     }
 
-    public String getPublicKeyFieldName() {
-        return publicKeyFieldName;
+    public IdpType getType() {
+        return type;
     }
 
-    public void setPublicKeyFieldName(String publicKeyFieldName) {
-        this.publicKeyFieldName = publicKeyFieldName;
+    public void setType(IdpType type) {
+        this.type = type;
     }
 
     @Override
@@ -58,7 +53,7 @@ public class IdpIssuerBean {
     public String toString() {
         return "IdpIssuerBean{" +
                 "issuer='" + issuer + '\'' +
-                ", publicKeyFieldName='" + publicKeyFieldName + '\'' +
+                ", type=" + type +
                 '}';
     }
 }

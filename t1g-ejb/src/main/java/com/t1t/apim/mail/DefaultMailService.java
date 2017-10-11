@@ -1,6 +1,5 @@
 package com.t1t.apim.mail;
 
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.T1G;
 import com.t1t.apim.beans.mail.*;
@@ -29,11 +28,16 @@ import java.util.Map;
 @Default
 public class DefaultMailService implements MailService {
     private final static Logger _LOG = LoggerFactory.getLogger(DefaultMailService.class.getName());
-    @Inject @T1G private AppConfigBean config;
-    @Inject @Default private MailProvider mailProvider;
-    @Inject private IStorage storage;
     private static final String KEY_START = "{";
     private static final String KEY_END = "}";
+    @Inject
+    @T1G
+    private AppConfigBean config;
+    @Inject
+    @Default
+    private MailProvider mailProvider;
+    @Inject
+    private IStorage storage;
 
     public void sendTestMail() throws MailServiceException {
         BaseMailBean mail = new BaseMailBean();
@@ -135,32 +139,33 @@ public class DefaultMailService implements MailService {
     }
 
     private void createAndSendMail(MailTopic topic, BaseMailBean bean) {
-        try{
+        try {
             bean.setEnvironment(config.getEnvironment());
             //get the mail template
             MailTemplateBean mailTemplate = storage.getMailTemplate(topic);
             //prepare map
             Map<String, String> keymap = BeanUtilsBean.getInstance().describe(bean);
-            final StrSubstitutor sub = new StrSubstitutor(keymap,KEY_START,KEY_END);
-            prepAndSendMail(sub,mailTemplate, bean.getTo());
-        }catch(StorageException |NoSuchMethodException|IllegalAccessException|InvocationTargetException ex){
+            final StrSubstitutor sub = new StrSubstitutor(keymap, KEY_START, KEY_END);
+            prepAndSendMail(sub, mailTemplate, bean.getTo());
+        } catch (StorageException | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
             throw new MailServiceException(ex.getMessage());
         }
     }
 
     /**
      * Utility endpoint to prepare and send generic mail.
+     *
      * @param sub
      * @param mailTemplate
      * @param to
      * @throws StorageException
      */
-    private void prepAndSendMail(StrSubstitutor sub,MailTemplateBean mailTemplate,String to) throws StorageException {
+    private void prepAndSendMail(StrSubstitutor sub, MailTemplateBean mailTemplate, String to) throws StorageException {
         BaseMailBean mailBean = new BaseMailBean();
         mailBean.setSubject(sub.replace(mailTemplate.getSubject()));
         mailBean.setContent(sub.replace(mailTemplate.getTemplate()));
         mailBean.setTo(to);
-        _LOG.debug("Sending mail: {}",mailBean);
+        _LOG.debug("Sending mail: {}", mailBean);
         mailProvider.sendMail(mailProvider.composeMessage(mailBean));
     }
 }

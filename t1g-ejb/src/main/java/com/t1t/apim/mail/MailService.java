@@ -15,60 +15,70 @@ public interface MailService {
 
     /**
      * Send status mail.
+     *
      * @param statusMailBean
      */
     void sendStatusMail(StatusMailBean statusMailBean) throws MailServiceException;
 
     /**
      * Send request membership information.
+     *
      * @param membershipRequestMailBean
      */
-    void sendRequestMembership (MembershipRequestMailBean membershipRequestMailBean)throws MailServiceException;
+    void sendRequestMembership(MembershipRequestMailBean membershipRequestMailBean) throws MailServiceException;
 
     /**
      * Send approval for request membership.
+     *
      * @param bean
      */
-    void approveRequestMembership(MembershipRequestMailBean bean)throws MailServiceException;
+    void approveRequestMembership(MembershipRequestMailBean bean) throws MailServiceException;
 
     /**
      * Send reject for request membership.
+     *
      * @param bean
      */
-    void rejectRequestMembership(MembershipRequestMailBean bean)throws MailServiceException;
+    void rejectRequestMembership(MembershipRequestMailBean bean) throws MailServiceException;
 
     /**
      * Send update membership information.
+     *
      * @param updateMemberMailBean
      */
-    void sendUpdateMember(UpdateMemberMailBean updateMemberMailBean)throws MailServiceException;
+    void sendUpdateMember(UpdateMemberMailBean updateMemberMailBean) throws MailServiceException;
 
     /**
      * Send update admin membership information.
+     *
      * @param updateAdminMailBean
      */
-    void sendUpdateAdmin(UpdateAdminMailBean updateAdminMailBean)throws MailServiceException;
+    void sendUpdateAdmin(UpdateAdminMailBean updateAdminMailBean) throws MailServiceException;
 
     /**
      * Send contract request.
+     *
      * @param contractMailBean
      */
-    void sendContractRequest(ContractMailBean contractMailBean)throws MailServiceException;
+    void sendContractRequest(ContractMailBean contractMailBean) throws MailServiceException;
 
     /**
      * Send mail for contract request approval.
+     *
      * @param contractMailBean
      */
-    void approveContractRequest(ContractMailBean contractMailBean)throws MailServiceException;
+    void approveContractRequest(ContractMailBean contractMailBean) throws MailServiceException;
 
     /**
      * Send reject for contract request.
+     *
      * @param contractMailBean
      */
-    void rejectContractRequest(ContractMailBean contractMailBean)throws MailServiceException;
+    void rejectContractRequest(ContractMailBean contractMailBean) throws MailServiceException;
 
     /**
      * Send cancellation mail for membership request
+     *
      * @param bean
      * @throws MailServiceException
      */
@@ -76,6 +86,7 @@ public interface MailService {
 
     /**
      * Send cancellation mail for contract request
+     *
      * @param bean
      * @throws MailServiceException
      */

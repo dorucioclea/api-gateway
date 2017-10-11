@@ -15,19 +15,19 @@ public class SupportBean implements Serializable {
     @Id
     @GeneratedValue
     private Long id;
-    @Column(name = "organization_id",nullable=false)
+    @Column(name = "organization_id", nullable = false)
     private String organizationId;
-    @Column(name = "service_id",nullable=false)
+    @Column(name = "service_id", nullable = false)
     private String serviceId;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String title;
     private String status;
     @Lob
     @Type(type = "org.hibernate.type.TextType")
     private String description;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
     @Column(name = "total_comments")
     private int totalComments;

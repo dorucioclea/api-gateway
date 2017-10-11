@@ -14,15 +14,16 @@ public class ServiceDefinitionNotFoundException extends AbstractNotFoundExceptio
      */
     public ServiceDefinitionNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public ServiceDefinitionNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -30,7 +31,7 @@ public class ServiceDefinitionNotFoundException extends AbstractNotFoundExceptio
     public int getErrorCode() {
         return ErrorCodes.SERVICE_DEFINITION_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

@@ -13,15 +13,16 @@ public class PolicyDefinitionAlreadyExistsException extends AbstractAlreadyExist
      */
     public PolicyDefinitionAlreadyExistsException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public PolicyDefinitionAlreadyExistsException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -29,7 +30,7 @@ public class PolicyDefinitionAlreadyExistsException extends AbstractAlreadyExist
     public int getErrorCode() {
         return ErrorCodes.POLICY_DEF_ALREADY_EXISTS;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

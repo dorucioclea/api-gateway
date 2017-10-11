@@ -3,7 +3,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to create a Gateway that already exists.
- *
  */
 public class GatewayAlreadyExistsException extends AbstractAlreadyExistsException {
 
@@ -14,15 +13,16 @@ public class GatewayAlreadyExistsException extends AbstractAlreadyExistsExceptio
      */
     public GatewayAlreadyExistsException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the message
      */
     public GatewayAlreadyExistsException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -30,7 +30,7 @@ public class GatewayAlreadyExistsException extends AbstractAlreadyExistsExceptio
     public int getErrorCode() {
         return ErrorCodes.GATEWAY_ALREADY_EXISTS;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

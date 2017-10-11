@@ -19,7 +19,7 @@ public class ServiceConventionUtil {
         return generateServiceUniqueName(service.getOrganizationId(), service.getServiceId(), service.getVersion());
     }
 
-    public static String generateServiceUniqueName(String orgId, String serviceId, String serviceVersionsId){
+    public static String generateServiceUniqueName(String orgId, String serviceId, String serviceVersionsId) {
         StringBuilder serviceGatewayName = new StringBuilder(orgId)
                 .append(".")
                 .append(serviceId)

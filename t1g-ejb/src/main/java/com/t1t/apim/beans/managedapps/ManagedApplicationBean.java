@@ -24,14 +24,14 @@ public class ManagedApplicationBean implements Serializable {
     private ManagedApplicationTypes type;
     @Column(name = "app_id")
     private String appId;
-    @Column(name = "prefix",unique=true)
+    @Column(name = "prefix", unique = true)
     private String prefix;
     @Column(name = "name")
     private String name;
     @Column(name = "version")
     private String version;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="managed_application_keys", joinColumns=@JoinColumn(name="managed_app_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "managed_application_keys", joinColumns = @JoinColumn(name = "managed_app_id"))
     @Column(name = "api_key")
     private Set<String> apiKeys;
     @Column(name = "restricted")
@@ -39,7 +39,8 @@ public class ManagedApplicationBean implements Serializable {
     @Column(name = "activated")
     private Boolean activated;
 
-    public ManagedApplicationBean() {}
+    public ManagedApplicationBean() {
+    }
 
     public Long getId() {
         return id;
@@ -57,9 +58,13 @@ public class ManagedApplicationBean implements Serializable {
         this.type = type;
     }
 
-    public String getPrefix() {return prefix;}
+    public String getPrefix() {
+        return prefix;
+    }
 
-    public void setPrefix(String prefix) {this.prefix = prefix;}
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
 
     public String getName() {
         return name;
@@ -85,17 +90,29 @@ public class ManagedApplicationBean implements Serializable {
         this.version = version;
     }
 
-    public String getAppId() {return appId;}
+    public String getAppId() {
+        return appId;
+    }
 
-    public void setAppId(String appId) {this.appId = appId;}
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
 
-    public Boolean getRestricted() {return restricted;}
+    public Boolean getRestricted() {
+        return restricted;
+    }
 
-    public void setRestricted(Boolean restricted) {this.restricted = restricted;}
+    public void setRestricted(Boolean restricted) {
+        this.restricted = restricted;
+    }
 
-    public Boolean getActivated() {return activated;}
+    public Boolean getActivated() {
+        return activated;
+    }
 
-    public void setActivated(Boolean activated) {this.activated = activated;}
+    public void setActivated(Boolean activated) {
+        this.activated = activated;
+    }
 
     @Override
     public boolean equals(Object o) {

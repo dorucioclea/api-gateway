@@ -43,24 +43,28 @@ import static com.t1t.apim.beans.events.EventType.*;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class EventFacade {
     private static final Logger _LOG = LoggerFactory.getLogger(EventFacade.class);
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private ISecurityContext securityContext;
-    @Inject private UserFacade userFacade;
-    @Inject private OrganizationFacade orgFacade;
-    @Inject private MailService mailService;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private UserFacade userFacade;
+    @Inject
+    private OrganizationFacade orgFacade;
+    @Inject
+    private MailService mailService;
 
     public EventBean get(Long id) {
         try {
             EventBean event = storage.getEvent(id);
             if (event != null) {
                 return event;
-            }
-            else {
+            } else {
                 throw ExceptionFactory.eventNotFoundException();
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -70,12 +74,10 @@ public class EventFacade {
             EventBean rval = query.getEventByOriginDestinationAndType(origin, dest, type);
             if (rval != null) {
                 return rval;
-            }
-            else {
+            } else {
                 throw ExceptionFactory.eventNotFoundException();
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -191,8 +193,7 @@ public class EventFacade {
     private void deleteEventInternal(EventBean event) {
         try {
             storage.deleteEvent(event);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -210,14 +211,12 @@ public class EventFacade {
             orgIds.forEach(orgId -> {
                 try {
                     events.addAll(filterIncomingOrganizationResults(query.getAllIncomingNonActionEvents(validateOrgId(orgId)), orgId));
-                }
-                catch (StorageException ex) {
+                } catch (StorageException ex) {
                     throw new SystemErrorException(ex);
                 }
             });
             return convertToAggregateBeans(events);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -233,8 +232,7 @@ public class EventFacade {
         orgIds.forEach(orgId -> {
             try {
                 events.addAll(filterIncomingOrganizationResults(query.getAllIncomingActionEvents(validateOrgId(orgId)), orgId));
-            }
-            catch (StorageException ex) {
+            } catch (StorageException ex) {
                 throw new SystemErrorException(ex);
             }
         });
@@ -253,22 +251,21 @@ public class EventFacade {
             orgIds.forEach(orgId -> {
                 try {
                     events.addAll(filterIncomingOrganizationResults(query.getAllIncomingNonActionEvents(validateOrgId(orgId)), orgId));
-                }
-                catch (StorageException ex) {
+                } catch (StorageException ex) {
                     throw new SystemErrorException(ex);
                 }
             });
             for (EventBean event : events) {
                 deleteEvent(event);
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
 
     /*****************/
     /* Evenlisteners */
+
     /*****************/
     //TODO provide mail service methods here insteaf of in facades - as result of an event (instead of implicitly in the facade)
     public void onNewEventBean(@Observes NewEventBean bean) {
@@ -306,8 +303,7 @@ public class EventFacade {
             verifyAndCreate(event);
             _LOG.debug("Event created:{}", event);
             sendMail(event);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -324,14 +320,15 @@ public class EventFacade {
      */
     public void verifyAndCreate(EventBean event) throws StorageException {
         final EventBean uniqueEvent = query.getUniqueEvent(event);
-        if(uniqueEvent!=null){
+        if (uniqueEvent != null) {
             event.setId(uniqueEvent.getId());
             storage.updateEvent(event);
-        }else storage.createEvent(event);
+        } else storage.createEvent(event);
     }
 
     /*******************/
     /* Private Methods */
+
     /*******************/
 
     private void eventCleanup(EventBean event) {
@@ -379,8 +376,7 @@ public class EventFacade {
             if (origin != null && destination != null && type != null) {
                 deleteEventByOriginDestinationAndType(origin, destination, type);
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -417,13 +413,11 @@ public class EventFacade {
                 //Check if there still is a previous announcement from that service to that user, and delete it if necessary
                 try {
                     verifyAndCreate(event);
-                }
-                catch (StorageException ex) {
+                } catch (StorageException ex) {
                     throw new SystemErrorException(ex);
                 }
             });
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -431,8 +425,7 @@ public class EventFacade {
     private List<EventBean> getOutgoingEvents(String origin) {
         try {
             return query.getAllOutgoingEvents(origin);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -440,8 +433,7 @@ public class EventFacade {
     private List<EventBean> getIncomingEvents(String destination) {
         try {
             return query.getAllIncomingEvents(destination);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -449,8 +441,7 @@ public class EventFacade {
     private List<EventBean> getOutgoingEventsByType(String origin, String type) {
         try {
             return query.getOutgoingEventsByType(origin, getEventType(type));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -458,8 +449,7 @@ public class EventFacade {
     private List<EventBean> getIncomingEventsByType(String destination, String type) {
         try {
             return query.getIncomingEventsByType(destination, getEventType(type));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -467,8 +457,7 @@ public class EventFacade {
     private EventType getEventType(String type) {
         try {
             return valueOf(type.toUpperCase());
-        }
-        catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             throw ExceptionFactory.invalidEventException(type);
         }
     }
@@ -480,8 +469,7 @@ public class EventFacade {
                 throw ExceptionFactory.organizationNotFoundException(organizationId);
             }
             return org;
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
     }
@@ -513,7 +501,7 @@ public class EventFacade {
     }
 
     private <T> List<T> convertToMembershipRequests(List<EventBean> events) {
-        List<T> membershipRequests =  new ArrayList<>();
+        List<T> membershipRequests = new ArrayList<>();
         events.forEach(event -> {
             MembershipRequest request = new MembershipRequest(event);
             switch (event.getType()) {
@@ -566,7 +554,7 @@ public class EventFacade {
     }
 
     private List<EventAggregateBean> convertToAggregateBeans(List<EventBean> events) {
-        List<EventAggregateBean> eabs =  new ArrayList<>();
+        List<EventAggregateBean> eabs = new ArrayList<>();
         Gson gson = new Gson();
         events.forEach(event -> {
             EventAggregateBean eab = new EventAggregateBean();
@@ -627,12 +615,10 @@ public class EventFacade {
                         svb = storage.getServiceVersion(svc[0], svc[1], svc[2]);
                         if (avb == null || svb == null) {
                             storage.deleteEvent(event);
-                        }
-                        else {
+                        } else {
                             eabs.add(finishEventAggregateBeanCreation(eab, avb, svb, null));
                         }
-                    }
-                    catch (StorageException ex) {
+                    } catch (StorageException ex) {
                         throw new SystemErrorException(ex);
                     }
                     break;
@@ -648,8 +634,7 @@ public class EventFacade {
                         svb = storage.getServiceVersion(svc[0], svc[1], svc[2]);
                         if (avb == null || svb == null) {
                             storage.deleteEvent(event);
-                        }
-                        else {
+                        } else {
                             PlanVersionSummaryBean pvsb = gson.fromJson(eab.getBody(), PlanVersionSummaryBean.class);
                             eab.setPlanId(pvsb.getId());
                             eab.setPlanName(pvsb.getName());
@@ -657,8 +642,7 @@ public class EventFacade {
 
                             eabs.add(finishEventAggregateBeanCreation(eab, avb, svb, null));
                         }
-                    }
-                    catch (StorageException ex) {
+                    } catch (StorageException ex) {
                         throw new SystemErrorException(ex);
                     }
                     break;
@@ -688,8 +672,7 @@ public class EventFacade {
                             eab.setServiceOrgFriendlyName(service.getOrganization().getFriendlyName());
                             eab.setAnnouncementId(Long.valueOf(event.getBody()));
                             eabs.add(finishEventAggregateBeanCreation(eab, null, null, service));
-                        }
-                        catch (StorageException ex) {
+                        } catch (StorageException ex) {
                             throw ExceptionFactory.systemErrorException(ex);
                         }
                     }
@@ -771,8 +754,7 @@ public class EventFacade {
                     //Do nothing
                     break;
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             _LOG.error("Error sending mail:{}", ex.getMessage());
         }
     }
@@ -876,7 +858,7 @@ public class EventFacade {
             switch (event.getType()) {
                 case MEMBERSHIP_GRANTED:
                 case MEMBERSHIP_REJECTED:
-                    MembershipRequestMailBean bean =  new MembershipRequestMailBean();
+                    MembershipRequestMailBean bean = new MembershipRequestMailBean();
                     bean.setTo(user.getEmail());
                     bean.setOrgFriendlyName(org.getFriendlyName());
                     bean.setOrgName(org.getName());

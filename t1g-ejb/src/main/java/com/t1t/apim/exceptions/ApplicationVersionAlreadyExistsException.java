@@ -3,7 +3,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to create an Application that already exists.
- *
  */
 public class ApplicationVersionAlreadyExistsException extends AbstractAlreadyExistsException {
 
@@ -17,6 +16,7 @@ public class ApplicationVersionAlreadyExistsException extends AbstractAlreadyExi
 
     /**
      * Constructor.
+     *
      * @param message the message
      */
     public ApplicationVersionAlreadyExistsException(String message) {

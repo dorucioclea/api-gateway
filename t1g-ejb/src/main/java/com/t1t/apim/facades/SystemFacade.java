@@ -1,6 +1,5 @@
 package com.t1t.apim.facades;
 
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.T1G;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
@@ -33,17 +32,23 @@ public class SystemFacade {
     private static final String MORE_INFO = "http://www.trust1team.com";
     private static final String NAME = "API Manager REST API";
 
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject @T1G private AppConfigBean config;
-    @Inject private GatewayFacade gatewayFacade;
-    @Inject private MaintenanceController maintenance;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    @T1G
+    private AppConfigBean config;
+    @Inject
+    private GatewayFacade gatewayFacade;
+    @Inject
+    private MaintenanceController maintenance;
 
     public Map<String, AvailabilityBean> getAvailableMarketplaces() throws StorageException {
         final List<ManagedApplicationBean> managedApplicationList = query.listAvailableMarkets();
-        Map<String,AvailabilityBean> result = new HashMap<>();
-        for(ManagedApplicationBean mb:managedApplicationList){
-            result.put(mb.getPrefix(),new AvailabilityBean(mb.getPrefix(),mb.getName()));
+        Map<String, AvailabilityBean> result = new HashMap<>();
+        for (ManagedApplicationBean mb : managedApplicationList) {
+            result.put(mb.getPrefix(), new AvailabilityBean(mb.getPrefix(), mb.getName()));
         }
         return result;
     }

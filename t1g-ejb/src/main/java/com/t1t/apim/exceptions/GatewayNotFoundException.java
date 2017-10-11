@@ -3,7 +3,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to get, update, or remove a gateay that does not exist.
- *
  */
 public class GatewayNotFoundException extends AbstractNotFoundException {
 
@@ -14,15 +13,16 @@ public class GatewayNotFoundException extends AbstractNotFoundException {
      */
     public GatewayNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the message
      */
     public GatewayNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -30,7 +30,7 @@ public class GatewayNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.GATEWAY_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

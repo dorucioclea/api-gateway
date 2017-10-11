@@ -10,22 +10,22 @@ import java.util.Date;
  * A role is qualified by an Organization ID.  The purpose of a role is
  * to grant permissions to a user.  A role might grant CREATE-APPLICATION
  * and VIEW-SERVICE permissions for a particular Organization.
- *
  */
 @Entity
 @Table(name = "memberships",
-       uniqueConstraints={@UniqueConstraint(columnNames={"user_id","role_id","org_id"})})
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "role_id", "org_id"})})
 public class RoleMembershipBean implements Serializable {
 
     private static final long serialVersionUID = 7798709783947356888L;
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
-    @Column(name="user_id")
+    @Column(name = "user_id")
     private String userId;
-    @Column(name="role_id")
+    @Column(name = "role_id")
     private String roleId;
-    @Column(name="org_id")
+    @Column(name = "org_id")
     private String organizationId;
     @Column(name = "created_on")
     private Date createdOn;

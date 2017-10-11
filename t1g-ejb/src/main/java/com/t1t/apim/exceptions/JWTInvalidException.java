@@ -4,23 +4,18 @@ package com.t1t.apim.exceptions;
  * @author Guillaume Vandecasteele
  * @since 2016
  */
-public class JWTInvalidException extends AbstractUserException {
+public class JwtInvalidException extends AbstractSecurityException {
 
-    public JWTInvalidException(String message) {
+    public JwtInvalidException(String message) {
         super(message);
     }
 
-    public JWTInvalidException() {
+    public JwtInvalidException() {
         super();
     }
 
-    public JWTInvalidException(String message, Throwable cause) {
+    public JwtInvalidException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    @Override
-    public int getHttpCode() {
-        return ErrorCodes.HTTP_STATUS_CODE_INVALID_INPUT;
     }
 
     @Override

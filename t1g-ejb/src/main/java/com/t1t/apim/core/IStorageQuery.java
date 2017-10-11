@@ -38,7 +38,6 @@ import java.util.Set;
 
 /**
  * Specific querying of the storage layer.
- *
  */
 public interface IStorageQuery {
 
@@ -491,6 +490,7 @@ public interface IStorageQuery {
 
     /**
      * Returns a list of all non-retired service versions
+     *
      * @return
      * @throws StorageException
      */
@@ -869,6 +869,7 @@ public interface IStorageQuery {
 
     /**
      * Returns managed applications for give types
+     *
      * @param types
      * @return
      * @throws StorageException
@@ -1014,6 +1015,7 @@ public interface IStorageQuery {
 
     /**
      * Returns a list of all unpublished policies (i.e. policies that do not have a kong plugin id value)
+     *
      * @return
      * @throws StorageException
      */
@@ -1021,18 +1023,21 @@ public interface IStorageQuery {
 
     /**
      * Delete all tokens that are backed up
+     *
      * @throws StorageException
      */
     public void deleteAllOAuthTokens() throws StorageException;
 
     /**
      * Retrieves all oauth tokens
+     *
      * @throws StorageException
      */
     public List<OAuth2TokenBean> getAllOAuthTokens() throws StorageException;
 
     /**
      * Returns a list of services that are either published or deprecated
+     *
      * @return
      * @throws StorageException
      */
@@ -1040,6 +1045,7 @@ public interface IStorageQuery {
 
     /**
      * Retrieves a list of acl policies for consent apps
+     *
      * @return
      * @throws StorageException
      */
@@ -1047,6 +1053,7 @@ public interface IStorageQuery {
 
     /**
      * Returns a list of gateways with services  where an application
+     *
      * @param avb
      * @return
      * @throws StorageException
@@ -1055,6 +1062,7 @@ public interface IStorageQuery {
 
     /**
      * Retrieves all policies for a given type
+     *
      * @param type
      * @return
      * @throws StorageException
@@ -1063,6 +1071,7 @@ public interface IStorageQuery {
 
     /**
      * Retrieve policies associated with a contract
+     *
      * @param contractId
      * @return
      * @throws StorageException
@@ -1071,6 +1080,7 @@ public interface IStorageQuery {
 
     /**
      * Retrieve a list of contract policies that correspond to a plan policy
+     *
      * @param planPolicyId
      * @param policyDefinition
      * @return
@@ -1080,6 +1090,7 @@ public interface IStorageQuery {
 
     /**
      * Retrtieve a map of plan versions and the contracts that use the plan
+     *
      * @return
      * @throws StorageException
      */
@@ -1087,6 +1098,7 @@ public interface IStorageQuery {
 
     /**
      * Get all policies for a given plan
+     *
      * @param pvb
      * @return
      * @throws StorageException
@@ -1095,6 +1107,7 @@ public interface IStorageQuery {
 
     /**
      * Returns a list of all contracts
+     *
      * @return
      * @throws StorageException
      */
@@ -1102,6 +1115,7 @@ public interface IStorageQuery {
 
     /**
      * Get a policy for an entity based on contract id and definition
+     *
      * @param organizationId
      * @param entityId
      * @param version
@@ -1115,6 +1129,7 @@ public interface IStorageQuery {
 
     /**
      * Get policy based in the Kong plugin ID
+     *
      * @param kongPluginId
      * @return
      * @throws StorageException
@@ -1123,6 +1138,7 @@ public interface IStorageQuery {
 
     /**
      * Get a count for the number of tokens that are backed up
+     *
      * @return
      * @throws StorageException
      */
@@ -1130,6 +1146,7 @@ public interface IStorageQuery {
 
     /**
      * Returns a string with the JSON default policy config for the given policy definition ID
+     *
      * @param policyDefId
      * @return
      * @throws StorageException
@@ -1138,6 +1155,7 @@ public interface IStorageQuery {
 
     /**
      * Returns the contract policies between a service version and an application version for a given policy definition
+     *
      * @param svb
      * @param avb
      * @param polDef

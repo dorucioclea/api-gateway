@@ -8,10 +8,10 @@ import retrofit.RestAdapter;
  * Created by michallispashidis on 07/08/2015.
  */
 public class RestDataDogMetricsBuilder {
-    private static Logger _LOG = LoggerFactory.getLogger(RestDataDogMetricsBuilder.class.getName());
-    private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(RestDataDogMetricsBuilder.class.getName());
     private final static String API_KEY_PARAM = "api_key";
     private final static String APPLICATION_KEY_PARAM = "application_key";
+    private static Logger _LOG = LoggerFactory.getLogger(RestDataDogMetricsBuilder.class.getName());
+    private static java.util.logging.Logger log = java.util.logging.Logger.getLogger(RestDataDogMetricsBuilder.class.getName());
 
     /**
      * Returns the service requestes throught the restAdapter.
@@ -25,7 +25,7 @@ public class RestDataDogMetricsBuilder {
         //Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(uri)
-                .setRequestInterceptor(request-> {
+                .setRequestInterceptor(request -> {
                     request.addQueryParam(API_KEY_PARAM, apiKey);
                     request.addQueryParam(APPLICATION_KEY_PARAM, applicationKey);
                 })

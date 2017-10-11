@@ -3,32 +3,33 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when an action is performed but an error occurs during processing.
- *
  */
-public class JWTException extends AbstractUserException {
+public class JwtException extends AbstractUserException {
 
     private static final long serialVersionUID = -5626995900681339688L;
 
     /**
      * Constructor.
      */
-    public JWTException() {
+    public JwtException() {
     }
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
-    public JWTException(String message) {
+    public JwtException(String message) {
         super(message);
     }
 
     /**
      * Constructor.
+     *
      * @param message the exception message
-     * @param cause the exception cause
+     * @param cause   the exception cause
      */
-    public JWTException(String message, Throwable cause) {
+    public JwtException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -39,7 +40,7 @@ public class JWTException extends AbstractUserException {
     public int getErrorCode() {
         return ErrorCodes.ACTION_ERROR;
     }
-    
+
     /**
      */
     @Override

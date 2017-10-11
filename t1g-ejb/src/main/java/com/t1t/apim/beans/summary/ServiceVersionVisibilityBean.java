@@ -9,7 +9,7 @@ import java.util.Map;
  * Created by michallispashidis on 12/02/16.
  */
 public class ServiceVersionVisibilityBean implements Serializable {
-    private Map<String,VisibilityBean> availableMarketplaces;
+    private Map<String, VisibilityBean> availableMarketplaces;
 
     public Map<String, VisibilityBean> getAvailableMarketplaces() {
         return availableMarketplaces;

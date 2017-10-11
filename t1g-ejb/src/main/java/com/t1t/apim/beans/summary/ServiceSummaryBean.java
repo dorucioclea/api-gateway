@@ -8,7 +8,6 @@ import java.util.Date;
 /**
  * A bean modeling a summary of a Service.  Typically used when listing
  * all Services visible to a user.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceSummaryBean implements Serializable, Comparable<ServiceSummaryBean> {
@@ -160,8 +159,7 @@ public class ServiceSummaryBean implements Serializable, Comparable<ServiceSumma
         if (this.equals(o)) returnValue = 0;
         if (this.getId() != null && o.getId() != null) {
             returnValue = this.getId().compareTo(o.getId());
-        }
-        else {
+        } else {
             if (this.getOrganizationId() != null && o.getOrganizationId() != null) {
                 returnValue = this.getOrganizationId().compareTo(o.getOrganizationId());
             }

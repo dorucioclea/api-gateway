@@ -16,6 +16,7 @@ public class AlreadyExistsException extends AbstractAlreadyExistsException {
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public AlreadyExistsException(String message) {

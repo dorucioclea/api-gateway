@@ -6,8 +6,8 @@
     "data": {
       "id": "kongConsumer",
       "type": "array",
-       "items": {
-         "$ref":"KongConsumer.json"
+      "items": {
+        "$ref": "KongConsumer.json"
       }
     },
     "next": {

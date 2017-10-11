@@ -1,4 +1,4 @@
-package com.t1t.apim.kong.adapters;
+package com.t1t.apim.rest.adapters;
 
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
@@ -29,8 +29,7 @@ public class KongSafeTypeAdapterFactory implements TypeAdapterFactory {
             public void write(JsonWriter out, T value) throws IOException {
                 try {
                     delegate.write(out, value);
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     log.error("GSon Serialization error, skipping value: {}", ex.getMessage());
                     delegate.write(out, null);
                 }
@@ -40,14 +39,12 @@ public class KongSafeTypeAdapterFactory implements TypeAdapterFactory {
             public T read(JsonReader in) throws IOException {
                 try {
                     return delegate.read(in);
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     if (ex.getMessage().contains(EXPECTED_ARRAY)) {
                         log.error("GSon Deserialization error, skipping value: {}", ex.getMessage());
                         in.skipValue();
                         return null;
-                    }
-                    else throw ex;
+                    } else throw ex;
                 }
             }
         };

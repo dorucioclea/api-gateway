@@ -10,35 +10,35 @@ import java.util.Date;
  * other specifics of the plan, such as endpoint information
  * and configured policies are associated with a particular version
  * of that Plan.  This class represents that version.
- *
  */
 @Entity
 @Table(name = "plan_versions",
-       uniqueConstraints = { @UniqueConstraint(columnNames = { "plan_id", "plan_org_id", "version" }) })
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"plan_id", "plan_org_id", "version"})})
 public class PlanVersionBean implements Serializable {
 
     private static final long serialVersionUID = -2218697175049442690L;
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="plan_id", referencedColumnName="id"),
-        @JoinColumn(name="plan_org_id", referencedColumnName="organization_id")
+            @JoinColumn(name = "plan_id", referencedColumnName = "id"),
+            @JoinColumn(name = "plan_org_id", referencedColumnName = "organization_id")
     })
     private PlanBean plan;
-    @Column(nullable=false)
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PlanStatus status;
-    @Column(updatable=false, nullable=false)
+    @Column(updatable = false, nullable = false)
     private String version;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(name = "modified_by", updatable=true, nullable=false)
+    @Column(name = "modified_by", updatable = true, nullable = false)
     private String modifiedBy;
-    @Column(name = "modified_on", updatable=true, nullable=false)
+    @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
     @Column(name = "locked_on")
     private Date lockedOn;

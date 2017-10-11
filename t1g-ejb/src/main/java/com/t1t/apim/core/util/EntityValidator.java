@@ -17,7 +17,6 @@ import java.util.List;
 
 /**
  * Validates the state of various entities, including services and applications.
- *
  */
 @ApplicationScoped
 @Default
@@ -50,8 +49,7 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
                     ready = !StringUtils.isEmpty(application.getoAuthClientId()) && !application.getOauthClientRedirects().isEmpty();
                 }
             }*/
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
 
@@ -88,7 +86,7 @@ public class EntityValidator implements IServiceValidator, IApplicationValidator
         if (service.getGateways() == null || service.getGateways().isEmpty()) {
             ready = false;
         }
-        if(service.getVisibility() == null || service.getVisibility().isEmpty()){
+        if (service.getVisibility() == null || service.getVisibility().isEmpty()) {
             ready = false;
         }
         if (!service.getAutoAcceptContracts() && StringUtils.isEmpty(service.getReadme())) {

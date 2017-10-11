@@ -2,7 +2,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to get a member of an organization.
- *
  */
 public class MemberNotFoundException extends AbstractNotFoundException {
 
@@ -13,15 +12,16 @@ public class MemberNotFoundException extends AbstractNotFoundException {
      */
     public MemberNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public MemberNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -29,7 +29,7 @@ public class MemberNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.MEMBER_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

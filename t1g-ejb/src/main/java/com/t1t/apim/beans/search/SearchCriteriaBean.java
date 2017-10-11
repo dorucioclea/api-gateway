@@ -6,7 +6,6 @@ import java.util.List;
 
 /**
  * Generic search criteria used when searching for beans.
- *
  */
 public class SearchCriteriaBean implements Serializable {
 
@@ -24,8 +23,9 @@ public class SearchCriteriaBean implements Serializable {
 
     /**
      * Adds a single filter to the criteria.
-     * @param name the filter name
-     * @param value the filter value
+     *
+     * @param name     the filter name
+     * @param value    the filter value
      * @param operator the operator type
      */
     public void addFilter(String name, String value, SearchCriteriaFilterOperator operator) {
@@ -55,7 +55,7 @@ public class SearchCriteriaBean implements Serializable {
     }
 
     /**
-     * @param name the name
+     * @param name      the name
      * @param ascending whether is ascending
      */
     public void setOrder(String name, boolean ascending) {

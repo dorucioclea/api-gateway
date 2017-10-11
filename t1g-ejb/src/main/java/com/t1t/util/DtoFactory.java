@@ -6,7 +6,6 @@ import com.t1t.apim.beans.dto.ServiceUpstreamsDtoBean;
 import com.t1t.apim.beans.dto.UserDtoBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.idm.UserBean;
-import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.apim.beans.summary.ServiceVersionSummaryBean;

@@ -63,7 +63,7 @@ import com.t1t.apim.gateway.IGatewayLinkFactory;
 import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.apim.gateway.rest.GatewayValidation;
-import com.t1t.apim.kong.KongConstants;
+import com.t1t.apim.rest.KongConstants;
 import com.t1t.apim.security.ISecurityAppContext;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.kong.model.*;
@@ -75,7 +75,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 import org.jose4j.jwt.JwtClaims;
-import org.jose4j.lang.JoseException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -89,7 +88,6 @@ import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -102,29 +100,46 @@ import static com.t1t.util.ServiceConventionUtil.generateServiceUniqueName;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OrganizationFacade {
-    private static final Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
-    @Inject private ISecurityContext securityContext;
-    @Inject private ISecurityAppContext appContext;
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private IIdmStorage idmStorage;
-    @Inject private IApiKeyGenerator apiKeyGenerator;
-    @Inject private IApplicationValidator applicationValidator;
-    @Inject private IServiceValidator serviceValidator;
-    @Inject private MetricsService metrics;
-    @Inject private GatewayFacade gatewayFacade;
-    @Inject private IGatewayLinkFactory gatewayLinkFactory;
-    @Inject private UserFacade userFacade;
-    @Inject private RoleFacade roleFacade;
-    @Inject private BrandingFacade brandingFacade;
-    @Inject @T1G private AppConfigBean config;
-    @Inject private Event<NewEventBean> event;
-    @Inject private Event<AnnouncementBean> announcement;
-    @Inject private GatewayValidation gatewayValidation;
-
     public final static String MARKET_SEPARATOR = "-";
-
     public static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
+    private static final Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private ISecurityAppContext appContext;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private IIdmStorage idmStorage;
+    @Inject
+    private IApiKeyGenerator apiKeyGenerator;
+    @Inject
+    private IApplicationValidator applicationValidator;
+    @Inject
+    private IServiceValidator serviceValidator;
+    @Inject
+    private MetricsService metrics;
+    @Inject
+    private GatewayFacade gatewayFacade;
+    @Inject
+    private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject
+    private UserFacade userFacade;
+    @Inject
+    private RoleFacade roleFacade;
+    @Inject
+    private BrandingFacade brandingFacade;
+    @Inject
+    @T1G
+    private AppConfigBean config;
+    @Inject
+    private Event<NewEventBean> event;
+    @Inject
+    private Event<AnnouncementBean> announcement;
+    @Inject
+    private GatewayValidation gatewayValidation;
 
     //create organization
     public OrganizationBean create(NewOrganizationBean bean) throws StorageException {
@@ -150,7 +165,7 @@ public class OrganizationFacade {
         //verify if organization is created in marketplace (aka not publisher or consent type)
         ManagedApplicationBean managedApp = query.findManagedApplication(appContext.getApplicationPrefix());
         if (managedApp != null && (
-                        managedApp.getType().equals(ManagedApplicationTypes.InternalMarketplace) ||
+                managedApp.getType().equals(ManagedApplicationTypes.InternalMarketplace) ||
                         managedApp.getType().equals(ManagedApplicationTypes.ExternalMarketplace)
         )) {
             //the request comes from a marketplace => prefix the org
@@ -327,8 +342,7 @@ public class OrganizationFacade {
                         ncb.setServiceVersion(contract.getServiceVersion());
                         ncb.setTermsAgreed(contract.getTermsAgreed());
                         createContract(organizationId, applicationId, newVersion.getVersion(), ncb);
-                    }
-                    else {
+                    } else {
                         NewContractRequestBean request = new NewContractRequestBean();
                         request.setTermsAgreed(true);
                         request.setApplicationOrg(organizationId);
@@ -359,7 +373,8 @@ public class OrganizationFacade {
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if (avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
             for (String redirectURI : uri.getUris()) {
-                if (!ValidationUtils.isValidAbsoluteURI(redirectURI)) throw ExceptionFactory.invalidArgumentException("invalidAbsoluteURI", redirectURI);
+                if (!ValidationUtils.isValidAbsoluteURI(redirectURI))
+                    throw ExceptionFactory.invalidArgumentException("invalidAbsoluteURI", redirectURI);
             }
             Set<String> previousURIs = avb.getOauthClientRedirects();
             avb.setOauthClientRedirects(uri.getUris());
@@ -574,8 +589,7 @@ public class OrganizationFacade {
                             doCreatePolicy(organizationId, applicationId, version, npb, PolicyType.Contract);
                         }
                     }
-                }
-                catch (StorageException | GatewayAuthenticationException ex) {
+                } catch (StorageException | GatewayAuthenticationException ex) {
                     throw ExceptionFactory.systemErrorException(ex);
                 }
             });
@@ -1004,8 +1018,7 @@ public class OrganizationFacade {
             //policy.setConfiguration(newPolicy.getPolicyJsonConfig());
             try {
                 storage.updatePolicy(policy);
-            }
-            catch (StorageException ex) {
+            } catch (StorageException ex) {
                 throw ExceptionFactory.systemErrorException(ex);
             }
         }
@@ -1041,8 +1054,7 @@ public class OrganizationFacade {
     public EnrichedPolicySummaryBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         try {
             return scrubPolicy(getServicePolicyInternal(organizationId, serviceId, version, policyId));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -1081,19 +1093,16 @@ public class OrganizationFacade {
                         gw.updateServiceVersionOnGateway(svb);
                     }
                     gw.createOrUpdateServiceUpstreamTarget(gwId, target);
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
 
                 }
             }
-        }
-        else {
+        } else {
             try {
                 if (serviceValidator.isReady(svb)) {
                     svb.setStatus(ServiceStatus.Ready);
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 log.error("Error validating service readiness: {}", ex);
             }
         }
@@ -1137,15 +1146,13 @@ public class OrganizationFacade {
                     });
                     break;
             }
-        }
-        else {
+        } else {
             svb.getUpstreamTargets().remove(targetToBeRemoved);
             try {
                 if (serviceValidator.isReady(svb)) {
                     svb.setStatus(ServiceStatus.Ready);
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 log.error("Error validating service readiness: {}", ex);
             }
         }
@@ -1492,7 +1499,7 @@ public class OrganizationFacade {
 
     private ServiceBrandingBean validateServiceBranding(ServiceBean service, String branding) {
         ServiceBrandingBean rval = null;
-        Set<ServiceBrandingBean> validatedBranding =  validateServiceBrandings(service, new HashSet<>(Collections.singleton(branding)));
+        Set<ServiceBrandingBean> validatedBranding = validateServiceBrandings(service, new HashSet<>(Collections.singleton(branding)));
         if (!validatedBranding.isEmpty()) {
             rval = validatedBranding.iterator().next();
         }
@@ -1599,8 +1606,7 @@ public class OrganizationFacade {
                     e = (Exception) t;
                 }
             }
-        }
-        else {
+        } else {
             createDefaultServicePolicies(newVersion, false);
         }
         return newVersion;
@@ -1716,8 +1722,7 @@ public class OrganizationFacade {
                 KongConsumer consumer = gw.getConsumer(ConsumerConventionUtil.createAppUniqueId(contract.getApplication()));
                 if (consumer != null && StringUtils.isNotEmpty(consumer.getId())) {
                     return DtoFactory.createApplicationVersionSummarBeanWithConsumerId(contract.getApplication(), consumer.getId());
-                }
-                else return null;
+                } else return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
             ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(getServiceVersion(organizationId, serviceId, version), consumers, from, to);
             if (serviceMetrics != null) {
@@ -1725,8 +1730,7 @@ public class OrganizationFacade {
             } else {
                 throw ExceptionFactory.metricsUnavailableException();
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -1740,8 +1744,7 @@ public class OrganizationFacade {
             marketInfo.setFollowers(svb.getService().getFollowers().size());
             marketInfo.setDistinctUsers(query.getServiceContracts(organizationId, serviceId, version).size());
             return marketInfo;
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -1818,15 +1821,13 @@ public class OrganizationFacade {
                     query.getApplicationVersionContractPolicies(organizationId, applicationId, version, contractId)
                             .stream().filter(policy -> policy.getGatewayId().equals(gw.getGatewayId()))
                             .forEach(policy -> {
-                        try {
-                            deleteContractPolicy(contract, policy, gw);
-                        }
-                        catch (StorageException ex) {
-                            throw ExceptionFactory.systemErrorException(ex);
-                        }
-                    });
-                }
-                catch (StorageException ex) {
+                                try {
+                                    deleteContractPolicy(contract, policy, gw);
+                                } catch (StorageException ex) {
+                                    throw ExceptionFactory.systemErrorException(ex);
+                                }
+                            });
+                } catch (StorageException ex) {
                     throw ExceptionFactory.systemErrorException(ex);
                 }
             });
@@ -1998,12 +1999,10 @@ public class OrganizationFacade {
         try {
             if (query.getPlanVersions(organizationId, planId).size() == 1) {
                 deletePlan(organizationId, planId);
-            }
-            else {
+            } else {
                 deletePlanVersionInternal(pvb);
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -2063,13 +2062,11 @@ public class OrganizationFacade {
         try {
             if (query.getServiceVersions(organizationId, serviceId).size() == 1) {
                 deleteService(organizationId, serviceId);
-            }
-            else {
+            } else {
                 ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
                 deleteServiceVersionInternal(svb);
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -2201,8 +2198,7 @@ public class OrganizationFacade {
     public ServiceBean updateServiceBasepaths(String organizationId, String serviceId) {
         try {
             return updateServiceBasepaths(storage.getService(organizationId, serviceId));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -2219,8 +2215,7 @@ public class OrganizationFacade {
                 }
             }
             return service;
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -2256,8 +2251,7 @@ public class OrganizationFacade {
                 storage.updateService(service);
                 storage.createAuditEntry(AuditUtils.serviceUpdated(service, data, securityContext));
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -2286,8 +2280,7 @@ public class OrganizationFacade {
             data.addChange("brandings", originalSet, service.getBrandings().toString());
             storage.updateService(service);
             storage.createAuditEntry(AuditUtils.serviceUpdated(service, data, securityContext));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
 
         }
 
@@ -3373,6 +3366,7 @@ public class OrganizationFacade {
 
     /**
      * create the default service policies
+     *
      * @param svb
      */
     public void createDefaultServicePolicies(ServiceVersionBean svb, boolean checkForConflicts) {
@@ -3386,7 +3380,7 @@ public class OrganizationFacade {
                     if (checkForConflicts &&
                             type == Policies.KEYAUTHENTICATION &&
                             !query.getEntityPoliciesByDefinitionId(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service, Policies.OAUTH2).isEmpty()) {
-                            continue;
+                        continue;
                     }
 
                     String policyJsonConfig;
@@ -3425,8 +3419,7 @@ public class OrganizationFacade {
                     storage.createAuditEntry(AuditUtils.policyAdded(policy, PolicyType.Service, securityContext));
                 }
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -4006,7 +3999,7 @@ public class OrganizationFacade {
      * This implementation deletes an organization only when no services or applications are present,
      * All plans must be removed as well.
      * The method will remove the organization and the existing memberships from users.
-     *
+     * <p>
      * TODO implement method that cleansup an organization when no contracts are present.
      *
      * @param orgId
@@ -4048,8 +4041,7 @@ public class OrganizationFacade {
                 }
             }
             deleteOrganizationInternal(org);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
 
@@ -4265,8 +4257,7 @@ public class OrganizationFacade {
             try {
                 storage.updateService(service);
                 storage.createAuditEntry(entry);
-            }
-            catch (StorageException ex) {
+            } catch (StorageException ex) {
                 throw ExceptionFactory.systemErrorException(ex);
             }
         }
@@ -4289,12 +4280,10 @@ public class OrganizationFacade {
                 svb.setProvisionKey(null);
             }*/
             return svb;
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
-
 
 
     public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, String offset) {
@@ -4302,7 +4291,7 @@ public class OrganizationFacade {
         Set<OAuth2Token> tmpResults = new HashSet<>();
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         try {
-            Map<String, Set<String>> credentialIds =  new HashMap<>();
+            Map<String, Set<String>> credentialIds = new HashMap<>();
             Map<String, String> offsets = StringUtils.isEmpty(offset) ? new HashMap<>() : GatewayPaginationUtil.decodeOffsets(offset);
             Map<String, String> nextOffsets = new HashMap<>();
             //create gatewayclients for every gateway the application is registered on
@@ -4316,9 +4305,8 @@ public class OrganizationFacade {
                                 KongOAuthTokenList gwResult = null;
                                 if (!offsets.isEmpty()) {
                                     if (offsets.containsKey(gwId))
-                                    gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, offsets.get(gwId));
-                                }
-                                else {
+                                        gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, offsets.get(gwId));
+                                } else {
                                     gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, null);
                                 }
                                 if (gwResult != null) {
@@ -4337,8 +4325,7 @@ public class OrganizationFacade {
                 rval.setNextPage(nextOffsets.isEmpty() ? null : GatewayPaginationUtil.encodeOffsets(nextOffsets));
             }
             rval.setData(tmpResults);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
         return rval;
@@ -4374,7 +4361,7 @@ public class OrganizationFacade {
     }
 
     public void deleteContractsForSummaries(List<ContractSummaryBean> contractBeans) {
-        for(ContractSummaryBean contractSumBean:contractBeans){
+        for (ContractSummaryBean contractSumBean : contractBeans) {
             ContractBean contract = null;
             try {
                 contract = storage.getContract(contractSumBean.getContractId());
@@ -4421,22 +4408,19 @@ public class OrganizationFacade {
                     claims.setStringClaim(IJWT.IMPERSONATE_USER, request.getImpersonateUser());
                     try {
                         UserBean user = userFacade.get(request.getImpersonateUser());
-                    }
-                    catch (UserNotFoundException ex) {
+                    } catch (UserNotFoundException ex) {
                         log.info("User to impersonate not found, creating now: {}", request.getImpersonateUser());
                         userFacade.initNewUser(new NewUserBean().withAdmin(false).withUsername((request.getImpersonateUser())));
                     }
                 }
                 claims.setSubject(appContext.getNonManagedApplication());
                 claims.setIssuer(gateway.getConsumerJWT(appContext.getNonManagedApplication()).getData().stream().filter(cred -> cred.getRsaPublicKey().equals(gatewayBean.getJWTPubKey())).map(KongPluginJWTResponse::getKey).collect(CustomCollectors.getFirstResult()));
-                rval.setToken(JWTUtils.getJwtWithExpirationTime(claims, gatewayBean.getJWTExpTime(), KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint(), JWTUtils.JWT_RS256));
+                rval.setToken(JWTUtils.getJwtWithExpirationTime(claims, gatewayBean.getJWTExpTime(), KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint() + gatewayBean.getJWTPubKeyEndpoint(), JWTUtils.JWT_RS256));
                 return rval;
-            }
-            else {
+            } else {
                 throw ExceptionFactory.actionException(Messages.i18n.format("ResolveApiKeyError"));
             }
-        }
-        catch (UnsupportedEncodingException | JoseException | StorageException ex){
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -4445,8 +4429,7 @@ public class OrganizationFacade {
         String[] split = UID.split("\\.");
         if (split.length != 3) {
             return null;
-        }
-        else {
+        } else {
             return split;
         }
     }
@@ -4499,11 +4482,10 @@ public class OrganizationFacade {
                         }
                     }
                 });
-            rateLimitPolicy.setEnabled(!rateLimitPolicy.isEnabled());
-            storage.updatePolicy(rateLimitPolicy);
+                rateLimitPolicy.setEnabled(!rateLimitPolicy.isEnabled());
+                storage.updatePolicy(rateLimitPolicy);
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

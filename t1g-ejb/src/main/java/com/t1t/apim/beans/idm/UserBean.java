@@ -11,7 +11,6 @@ import java.util.Date;
 
 /**
  * Models a single user.
- *
  */
 @Entity
 @Table(name = "users")
@@ -24,28 +23,28 @@ public class UserBean implements Serializable {
      * Be carefull the SAML2 Subject ID is used for single logout and is persisted in a distributed cache.
      */
     @Id
-    @Column(updatable=false, nullable=false)
+    @Column(updatable = false, nullable = false)
     private String username;
     @Column(name = "full_name")
     private String fullName;
     private String email;
-    @Column(name = "joined_on", updatable=false)
+    @Column(name = "joined_on", updatable = false)
     private Date joinedOn;
-    @Column(name="admin")
-    private Boolean admin=false;//default
-    @Column(name="company")
+    @Column(name = "admin")
+    private Boolean admin = false;//default
+    @Column(name = "company")
     private String company;
-    @Column(name="location")
+    @Column(name = "location")
     private String location;
-    @Column(name="website")
+    @Column(name = "website")
     private String website;
     @Lob
-    @Column(name="bio")
+    @Column(name = "bio")
     @Type(type = "org.hibernate.type.TextType")
     private String bio;
     @Column(name = "pic")
     @Lob
-    @Basic(fetch=FetchType.EAGER)
+    @Basic(fetch = FetchType.EAGER)
     private byte[] base64pic;
 
 
@@ -112,12 +111,12 @@ public class UserBean implements Serializable {
     }
 
     public String getBase64pic() {
-        if(base64pic!=null) return Base64.encodeBase64String(base64pic);
+        if (base64pic != null) return Base64.encodeBase64String(base64pic);
         else return "";
     }
 
     public void setBase64pic(String base64pic) {
-        if(!StringUtils.isEmpty(base64pic)) this.base64pic = Base64.decodeBase64(base64pic.getBytes());
+        if (!StringUtils.isEmpty(base64pic)) this.base64pic = Base64.decodeBase64(base64pic.getBytes());
         else this.base64pic = null;
     }
 

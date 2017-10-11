@@ -4,7 +4,6 @@ import java.util.Map;
 
 /**
  * Options parser for TLS/SSL.
- *
  */
 public class TLSOptions extends AbstractOptions {
     public static final String PREFIX = "tls."; //$NON-NLS-1$
@@ -34,6 +33,7 @@ public class TLSOptions extends AbstractOptions {
 
     /**
      * Constructor. Parses options immediately.
+     *
      * @param options the options
      */
     public TLSOptions(Map<String, String> options) {

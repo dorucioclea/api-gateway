@@ -8,7 +8,7 @@ import org.junit.Test;
 public class SAMLValidationTest {
 
     @Test
-    public void testSAMLExternalValidation()throws Exception{
+    public void testSAMLExternalValidation() throws Exception {
         //
     }
 }

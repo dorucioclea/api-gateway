@@ -7,7 +7,7 @@
       "id": "kongPluginACLResponse",
       "type": "array",
       "items": {
-        "$ref":"KongPluginACLResponse.json"
+        "$ref": "KongPluginACLResponse.json"
       }
     },
     "next": {

@@ -2,7 +2,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Base class for any exception that indicates "invalid input".
- *
  */
 public abstract class AbstractInvalidInputException extends AbstractUserException {
 
@@ -16,20 +15,22 @@ public abstract class AbstractInvalidInputException extends AbstractUserExceptio
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public AbstractInvalidInputException(String message) {
         super(message);
     }
-    
+
     /**
      * Constructor.
+     *
      * @param cause the exception cause the exception cause
      */
     public AbstractInvalidInputException(Throwable cause) {
         super(cause);
     }
-    
+
     /**
      * @see AbstractRestException#getHttpCode()
      */

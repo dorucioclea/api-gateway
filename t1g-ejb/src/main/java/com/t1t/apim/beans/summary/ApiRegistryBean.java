@@ -12,7 +12,6 @@ import java.util.List;
  * used to get a list of all APIs that can be consumed by a single version of a single
  * application.  Most importantly it includes the live endpoint information and API
  * keys for all of the app's service contracts/APIs.
- *
  */
 @XmlRootElement(name = "apiRegistry")
 @XmlAccessorType(XmlAccessType.FIELD)

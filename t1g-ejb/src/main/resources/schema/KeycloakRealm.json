@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {},
+  "properties": {
+    "account-service": {
+      "type": "string"
+    },
+    "admin-api": {
+      "type": "string"
+    },
+    "public_key": {
+      "type": "string"
+    },
+    "realm": {
+      "type": "string"
+    },
+    "token-service": {
+      "type": "string"
+    },
+    "tokens-not-before": {
+      "type": "integer"
+    }
+  },
+  "type": "object"
+}

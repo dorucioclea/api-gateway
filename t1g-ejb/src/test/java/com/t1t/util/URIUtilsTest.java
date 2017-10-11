@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class URIUtilsTest {
     private final String urlWithoutEndBackslash = "http://www.google.com/something/all";
-    private final String urlWithEndBackslash = urlWithoutEndBackslash+"/";
+    private final String urlWithEndBackslash = urlWithoutEndBackslash + "/";
 
     @Test
     public void testUriBackslashAppender() throws Exception {
@@ -19,7 +19,7 @@ public class URIUtilsTest {
 
     @Test
     public void testUriBackslashRemover() throws Exception {
-        assertEquals(urlWithoutEndBackslash.trim(),URIUtils.uriBackslashRemover(urlWithEndBackslash).trim());
-        assertEquals(urlWithoutEndBackslash.trim(),URIUtils.uriBackslashRemover(urlWithoutEndBackslash).trim());
+        assertEquals(urlWithoutEndBackslash.trim(), URIUtils.uriBackslashRemover(urlWithEndBackslash).trim());
+        assertEquals(urlWithoutEndBackslash.trim(), URIUtils.uriBackslashRemover(urlWithoutEndBackslash).trim());
     }
 }

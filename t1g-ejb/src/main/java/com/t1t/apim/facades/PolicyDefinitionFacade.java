@@ -25,10 +25,12 @@ import java.util.List;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class PolicyDefinitionFacade {
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
 
-    public List<PolicyDefinitionSummaryBean> list(){
+    public List<PolicyDefinitionSummaryBean> list() {
         try {
             return query.listPolicyDefinitions();
         } catch (StorageException e) {
@@ -36,7 +38,7 @@ public class PolicyDefinitionFacade {
         }
     }
 
-    public PolicyDefinitionBean create(PolicyDefinitionBean bean){
+    public PolicyDefinitionBean create(PolicyDefinitionBean bean) {
         // Auto-generate an ID if one isn't provided.
         if (bean.getId() == null || bean.getId().trim().isEmpty()) {
             bean.setId(BeanUtils.idFromName(bean.getName()));
@@ -60,7 +62,7 @@ public class PolicyDefinitionFacade {
         }
     }
 
-    public PolicyDefinitionBean get(String policyDefinitionId){
+    public PolicyDefinitionBean get(String policyDefinitionId) {
         try {
             PolicyDefinitionBean bean = storage.getPolicyDefinition(policyDefinitionId);
             if (bean == null) {
@@ -74,7 +76,7 @@ public class PolicyDefinitionFacade {
         }
     }
 
-    public void update (String policyDefinitionId, UpdatePolicyDefinitionBean bean){
+    public void update(String policyDefinitionId, UpdatePolicyDefinitionBean bean) {
         try {
             PolicyDefinitionBean pdb = storage.getPolicyDefinition(policyDefinitionId);
             if (pdb == null) {
@@ -97,7 +99,7 @@ public class PolicyDefinitionFacade {
         }
     }
 
-    public void delete(String policyDefinitionId){
+    public void delete(String policyDefinitionId) {
         try {
             PolicyDefinitionBean pdb = storage.getPolicyDefinition(policyDefinitionId);
             if (pdb == null) {

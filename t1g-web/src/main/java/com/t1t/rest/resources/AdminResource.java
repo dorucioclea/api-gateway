@@ -97,8 +97,7 @@ public class AdminResource implements IAdminResource, IMaintenanceResource {
     private boolean isAdmin() {
         if (securityContext.isAdmin()) {
             return true;
-        }
-        else {
+        } else {
             throw ExceptionFactory.notAuthorizedException();
         }
     }

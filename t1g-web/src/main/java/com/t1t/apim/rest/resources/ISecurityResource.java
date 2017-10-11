@@ -14,6 +14,7 @@ import java.util.Set;
 public interface ISecurityResource {
     /**
      * Sets the cental OAuth token expiration time for issued tokens.
+     *
      * @param request
      * @throws NotAuthorizedException
      */
@@ -21,6 +22,7 @@ public interface ISecurityResource {
 
     /**
      * Reissue all API keys
+     *
      * @return
      * @throws NotAuthorizedException
      */
@@ -28,6 +30,7 @@ public interface ISecurityResource {
 
     /**
      * Reissue all OAuth2 credentials
+     *
      * @return
      * @throws NotAuthorizedException
      */
@@ -35,13 +38,13 @@ public interface ISecurityResource {
 
     /**
      * Revoke an application version's OAuth token
+     *
      * @param token
      * @throws NotAuthorizedException
      */
     void revokeApplicationVersionOAuthToken(OAuth2TokenRevokeBean token) throws NotAuthorizedException;
 
     /**
-     *
      * @param token
      */
     void revokeOAuthToken(String token);

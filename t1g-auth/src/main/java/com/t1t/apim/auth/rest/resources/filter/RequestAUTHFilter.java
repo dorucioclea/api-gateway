@@ -1,6 +1,5 @@
 package com.t1t.apim.auth.rest.resources.filter;
 
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.T1G;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
@@ -43,17 +42,22 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
     //private static final String JWT_PUB_KEY_PATH = "/gtw/tokens/pub";
 
     //Security context
-    @Inject private ISecurityAppContext securityAppContext;
-    @Inject @T1G private AppConfigBean config;
-    @Inject private IStorageQuery query;
-    @Inject private SearchFacade search;
+    @Inject
+    private ISecurityAppContext securityAppContext;
+    @Inject
+    @T1G
+    private AppConfigBean config;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private SearchFacade search;
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         //Get the API key
         String apikey = containerRequestContext.getHeaderString(HEADER_API_KEY);
         try {
-            if(!config.getRestAuthResourceSecurity()){
+            if (!config.getRestAuthResourceSecurity()) {
                 securityAppContext.setCurrentApplication("dummyorg.dummyapp.version");
             } else {
                 ManagedApplicationBean mab = query.resolveManagedApplicationByAPIKey(apikey);
@@ -65,16 +69,15 @@ public class RequestAUTHFilter implements ContainerRequestFilter {
                     String resolvedApiKey = avsb == null ? "" : ConsumerConventionUtil.createAppUniqueId(avsb.getOrganizationId(), avsb.getId(), avsb.getVersion());
                     if (nonManagedAppId != null && !nonManagedAppId.equals(managedAppId) && !resolvedApiKey.equals(nonManagedAppId)) {
                         throw ExceptionFactory.applicationVersionNotFoundException(Messages.i18n.format("ApiKeyDoesNotMatchConsumerName", apikey, nonManagedAppId));
+                    } else {
+                        if (!nonManagedAppId.equals(managedAppId))
+                            securityAppContext.setNonManagedApplication(resolvedApiKey);
                     }
-                    else {
-                        if (!nonManagedAppId.equals(managedAppId)) securityAppContext.setNonManagedApplication(resolvedApiKey);
-                    }
-                }
-                else if (StringUtils.isNotEmpty(nonManagedAppId)) {
+                } else if (StringUtils.isNotEmpty(nonManagedAppId)) {
                     securityAppContext.setNonManagedApplication(nonManagedAppId);
                 }
             }
-        } catch (ApplicationNotFoundException|StorageException ex) {
+        } catch (ApplicationNotFoundException | StorageException ex) {
             LOG.info("Unauthorized application:{}", apikey);
             containerRequestContext.abortWith(Response
                     .status(Response.Status.UNAUTHORIZED)

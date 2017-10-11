@@ -7,7 +7,7 @@
       "id": "kongApi",
       "type": "array",
       "items": {
-        "$ref":"KongApi.json"
+        "$ref": "KongApi.json"
       }
     },
     "total": {

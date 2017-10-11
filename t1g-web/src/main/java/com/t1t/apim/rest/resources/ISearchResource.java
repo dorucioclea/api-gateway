@@ -87,6 +87,7 @@ public interface ISearchResource {
 
     /**
      * Use this endpoint to search for all ServiceVersions within given categories.
+     *
      * @param searchBean
      * @return
      */

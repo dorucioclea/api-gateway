@@ -10,6 +10,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from a username.
+     *
      * @param username the username
      * @return the exception
      */
@@ -19,6 +20,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from a username.
+     *
      * @param username the username
      * @return the exception
      */
@@ -28,6 +30,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates a not authorized exception.
+     *
      * @return the exception
      */
     public static final NotAuthorizedException notAuthorizedException() {
@@ -36,6 +39,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an organization name.
+     *
      * @param organizationName the organization name
      * @return the exception
      */
@@ -45,6 +49,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an organization id.
+     *
      * @param organizationId the organization id
      * @return the exception
      */
@@ -54,6 +59,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an role id.
+     *
      * @param roleId the role id
      * @return the exception
      */
@@ -63,6 +69,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from a username.
+     *
      * @param roleId the role id
      * @return the exception
      */
@@ -72,6 +79,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an application name.
+     *
      * @param applicationName the application name
      * @return the exception
      */
@@ -81,8 +89,9 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an application name.
+     *
      * @param applicationName the application name
-     * @param version the version
+     * @param version         the version
      * @return the exception
      */
     public static final ApplicationVersionAlreadyExistsException applicationVersionAlreadyExistsException(String applicationName, String version) {
@@ -91,6 +100,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception.
+     *
      * @return the exception
      */
     public static final ContractAlreadyExistsException contractAlreadyExistsException() {
@@ -99,6 +109,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an application id.
+     *
      * @param applicationId the application id
      * @return the exception
      */
@@ -108,6 +119,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an contract id.
+     *
      * @param contractId the contract id
      * @return the exception
      */
@@ -117,8 +129,9 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an application id and version.
+     *
      * @param applicationId the application id
-     * @param version the application version
+     * @param version       the application version
      * @return the exception
      */
     public static final ApplicationVersionNotFoundException applicationVersionNotFoundException(String applicationId, String version) {
@@ -127,6 +140,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @return the exception
      */
     public static final ApplicationVersionNotFoundException applicationVersionNotFoundException(String message) {
@@ -135,6 +149,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an invalid service status exception.
+     *
      * @return the exception
      */
     public static final InvalidApplicationStatusException invalidApplicationStatusException() {
@@ -143,6 +158,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an service name.
+     *
      * @param serviceName the service name
      * @return the exception
      */
@@ -152,8 +168,9 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an service name.
+     *
      * @param serviceName the service name
-     * @param version the version
+     * @param version     the version
      * @return the exception
      */
     public static final ServiceVersionAlreadyExistsException serviceVersionAlreadyExistsException(String serviceName, String version) {
@@ -162,6 +179,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an service id.
+     *
      * @param serviceId the service id
      * @return the exception
      */
@@ -171,8 +189,9 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an service id and version.
+     *
      * @param serviceId the service id
-     * @param version the service version
+     * @param version   the service version
      * @return the exception
      */
     public static final ServiceVersionNotFoundException serviceVersionNotFoundException(String serviceId, String version) {
@@ -181,8 +200,9 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an service id and version.
+     *
      * @param serviceId the service id
-     * @param version the service version
+     * @param version   the service version
      * @return the exception
      */
     public static final ServiceDefinitionNotFoundException serviceDefinitionNotFoundException(String serviceId, String version) {
@@ -191,6 +211,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an invalid service status exception.
+     *
      * @return the exception
      */
     public static final InvalidServiceStatusException invalidServiceStatusException() {
@@ -199,6 +220,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an invalid plan status exception.
+     *
      * @return the exception
      */
     public static final InvalidServiceStatusException invalidPlanStatusException() {
@@ -207,6 +229,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an member id.
+     *
      * @param memberId the member id
      * @return the exception
      */
@@ -216,6 +239,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an plan name.
+     *
      * @param planName the plan name
      * @return the exception
      */
@@ -225,8 +249,9 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an plan name.
+     *
      * @param planName the plan name
-     * @param version the version
+     * @param version  the version
      * @return the exception
      */
     public static final PlanVersionAlreadyExistsException planVersionAlreadyExistsException(String planName, String version) {
@@ -235,6 +260,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an plan id.
+     *
      * @param planId the plan id
      * @return the exception
      */
@@ -244,7 +270,8 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an plan id and version.
-     * @param planId the plan id
+     *
+     * @param planId  the plan id
      * @param version the version id
      * @return the exception
      */
@@ -254,6 +281,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an action exception.
+     *
      * @param message the exception message
      * @return the exception
      */
@@ -263,8 +291,9 @@ public final class ExceptionFactory {
 
     /**
      * Creates an action exception.
+     *
      * @param message the exception message
-     * @param cause the exception cause
+     * @param cause   the exception cause
      * @return the exception
      */
     public static ActionException actionException(String message, Exception cause) {
@@ -273,6 +302,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from a policy id.
+     *
      * @param policyId the policy id
      * @return the exception
      */
@@ -282,6 +312,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an policyDef name.
+     *
      * @param policyDefName the policy definition name
      * @return the exception
      */
@@ -291,6 +322,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an policyDef id.
+     *
      * @param policyDefId the policy definition id
      * @return the exception
      */
@@ -300,6 +332,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception.
+     *
      * @param message the exception message
      * @return the exception
      */
@@ -309,6 +342,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an gateway name.
+     *
      * @param gatewayName the gateway name
      * @return the exception
      */
@@ -318,6 +352,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an gateway id.
+     *
      * @param gatewayId the gateway id
      * @return the exception
      */
@@ -327,6 +362,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an plugin name.
+     *
      * @return the exception
      */
     public static final PluginAlreadyExistsException pluginAlreadyExistsException() {
@@ -335,6 +371,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception from an plugin id.
+     *
      * @param pluginId the plugin id
      * @return the exception
      */
@@ -344,18 +381,20 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception.
+     *
      * @param resourceName the resource name
-     * @param coordinates the maven coordinates
+     * @param coordinates  the maven coordinates
      * @return the exception
      */
     public static final PluginResourceNotFoundException pluginResourceNotFoundException(String resourceName,
-            PluginCoordinates coordinates) {
+                                                                                        PluginCoordinates coordinates) {
         return new PluginResourceNotFoundException(Messages.i18n.format(
                 "PluginResourceNotFound", resourceName, coordinates.toString())); //$NON-NLS-1$
     }
 
     /**
      * Creates an exception.
+     *
      * @param message
      * @return the exception
      */
@@ -365,6 +404,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception.
+     *
      * @param message
      */
     public static final InvalidNameException invalidNameException(String message) {
@@ -373,6 +413,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception.
+     *
      * @param message
      */
     public static final InvalidVersionException invalidVersionException(String message) {
@@ -381,6 +422,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception.
+     *
      * @param message
      * @return
      */
@@ -390,6 +432,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception.
+     *
      * @param message
      * @return
      */
@@ -399,6 +442,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @return
      */
     public static final AvailabilityNotFoundException availabilityNotFoundException() {
@@ -407,6 +451,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @return
      */
     public static final MemberShipRequestFailedException membershipRequestFailedException(String message) {
@@ -415,6 +460,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -424,6 +470,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @return
      */
     public static final EventNotFoundException eventNotFoundException() {
@@ -432,6 +479,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -441,6 +489,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -450,6 +499,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -459,6 +509,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param organizationName
      * @param basepath
      * @return
@@ -469,24 +520,27 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
-    public static final OrganizationCannotBeDeletedException orgCannotBeDeleted(String message){
+    public static final OrganizationCannotBeDeletedException orgCannotBeDeleted(String message) {
         return new OrganizationCannotBeDeletedException(message);
     }
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
-    public static final PlanCannotBeDeletedException planCannotBeDeleted(String message){
+    public static final PlanCannotBeDeletedException planCannotBeDeleted(String message) {
         return new PlanCannotBeDeletedException(message);
     }
 
     /**
      * Creates an exception
+     *
      * @return
      */
     public static final MetricsUnavailableException metricsUnavailableException() {
@@ -495,6 +549,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @return
      */
     public static final ContractNotFoundException contractNotFoundException() {
@@ -502,7 +557,6 @@ public final class ExceptionFactory {
     }
 
     /**
-     *
      * @param apiKey
      * @return
      */
@@ -512,6 +566,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param throwable
      * @return
      */
@@ -521,6 +576,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -530,6 +586,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -539,6 +596,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -548,6 +606,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -557,6 +616,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param serviceId
      * @param version
      * @return
@@ -567,24 +627,27 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
-    public static final JWTInvalidException jwtInvalidException(String message, Throwable ex) {
-        return new JWTInvalidException(message, ex);
+    public static final JwtInvalidException jwtInvalidException(String message, Throwable ex) {
+        return new JwtInvalidException(message, ex);
     }
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
-    public static final JWTInvalidException jwtInvalidException(String message) {
-        return new JWTInvalidException(message);
+    public static final JwtInvalidException jwtInvalidException(String message) {
+        return new JwtInvalidException(message);
     }
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -594,6 +657,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -603,6 +667,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param messageId
      * @param args
      * @return
@@ -613,6 +678,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param brandingId
      * @return
      */
@@ -622,6 +688,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an Exception
+     *
      * @param message
      * @param args
      * @return
@@ -632,6 +699,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param clientId
      * @param serviceId
      * @return
@@ -642,6 +710,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -651,6 +720,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @return
      */
@@ -660,6 +730,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param message
      * @param errorCode
      * @return
@@ -670,6 +741,7 @@ public final class ExceptionFactory {
 
     /**
      * Creates an exception
+     *
      * @param type
      * @param value
      * @param e
@@ -679,7 +751,52 @@ public final class ExceptionFactory {
         return new EncryptionFailedException(Messages.i18n.format("EncryptionFailed", type, value), e);
     }
 
+    /**
+     * Creates an exception
+     *
+     * @param issuer
+     * @return
+     */
     public static final UnauthorizedIssuerException unauthorizedIssuerException(String issuer) {
         return new UnauthorizedIssuerException(Messages.i18n.format(ErrorCodes.UNAUTHORIZED_ISSUER_KEY, issuer));
+    }
+
+    /**
+     * Creates an exception
+     *
+     * @param message
+     * @return
+     */
+    public static TokenNotVerifiedException tokenNotVerifiedException(String message) {
+        return new TokenNotVerifiedException(message);
+    }
+
+    /**
+     * Creates an exception
+     *
+     * @param message
+     * @param cause
+     * @return
+     */
+    public static JwtEncodingException jwtEncodingException(String message, Throwable cause) {
+        return new JwtEncodingException(message, cause);
+    }
+
+    /**
+     * Creates an exception
+     * @param message
+     * @param cause
+     * @return
+     */
+    public static JwtExpiredException jwtExpiredException(String message, Throwable cause) {
+        return new JwtExpiredException(message, cause);
+    }
+
+    /**
+     * Creates an exception
+     * @return
+     */
+    public static ApplicationContextMissingException applicationContextMissing() {
+        return new ApplicationContextMissingException(Messages.i18n.format(ErrorCodes.APP_CONTEXT_MISSING));
     }
 }

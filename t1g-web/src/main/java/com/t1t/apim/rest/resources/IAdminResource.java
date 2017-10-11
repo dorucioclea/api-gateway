@@ -11,6 +11,7 @@ public interface IAdminResource {
 
     /**
      * Update/set the default service terms & conditions
+     *
      * @param bean
      * @throws NotAuthorizedException
      */

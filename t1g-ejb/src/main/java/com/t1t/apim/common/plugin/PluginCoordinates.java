@@ -5,18 +5,17 @@ import java.io.Serializable;
 /**
  * A simple bean that models unique plugin coordinates.  A plugin is uniquely identified
  * by its Maven properties:
- * 
+ * <p>
  * groupId
  * artifactId
  * version
  * classifier (optional)
  * type (optional defaults to war)
- *
  */
 public class PluginCoordinates implements Serializable {
-    
+
     private static final long serialVersionUID = -1368521324833902631L;
-    
+
     private String groupId;
     private String artifactId;
     private String version;
@@ -25,9 +24,10 @@ public class PluginCoordinates implements Serializable {
 
     /**
      * Constructor.
-     * @param groupId Maven group id
-     * @param artifactId Maven artifact id 
-     * @param version Maven version
+     *
+     * @param groupId    Maven group id
+     * @param artifactId Maven artifact id
+     * @param version    Maven version
      */
     public PluginCoordinates(String groupId, String artifactId, String version) {
         setGroupId(groupId);
@@ -37,11 +37,12 @@ public class PluginCoordinates implements Serializable {
 
     /**
      * Constructor.
-     * @param groupId  Maven group id
-     * @param artifactId Maven artifact id 
-     * @param version Maven version
+     *
+     * @param groupId    Maven group id
+     * @param artifactId Maven artifact id
+     * @param version    Maven version
      * @param classifier Maven classifier
-     * @param type Maven type
+     * @param type       Maven type
      */
     public PluginCoordinates(String groupId, String artifactId, String version, String classifier, String type) {
         setGroupId(groupId);
@@ -51,6 +52,39 @@ public class PluginCoordinates implements Serializable {
         if (type != null) {
             setType(type);
         }
+    }
+
+    /**
+     * Returns the plugin coordinates associated with the given plugin policy specification.  The format
+     * of a plugin policy specification is:
+     * <p>
+     * plugin:groupId:artifactId:version[:classifier][:type]/org.example.plugins.PluginImpl
+     *
+     * @param pluginPolicySpec the policy specification
+     * @return plugin coordinates
+     */
+    public static final PluginCoordinates fromPolicySpec(String pluginPolicySpec) {
+        if (pluginPolicySpec == null) {
+            return null;
+        }
+        int startIdx = 7;
+        int endIdx = pluginPolicySpec.indexOf('/');
+
+        String[] split = pluginPolicySpec.substring(startIdx, endIdx).split(":"); //$NON-NLS-1$
+        String groupId = split[0];
+        String artifactId = split[1];
+        String version = split[2];
+        String classifier = null;
+        String type = null;
+        if (split.length == 4) {
+            type = split[3];
+        }
+        if (split.length == 5) {
+            classifier = split[3];
+            type = split[4];
+        }
+        PluginCoordinates rval = new PluginCoordinates(groupId, artifactId, version, classifier, type);
+        return rval;
     }
 
     /**
@@ -200,39 +234,6 @@ public class PluginCoordinates implements Serializable {
         }
 
         return builder.toString();
-    }
-    
-    /**
-     * Returns the plugin coordinates associated with the given plugin policy specification.  The format
-     * of a plugin policy specification is:
-     * 
-     * plugin:groupId:artifactId:version[:classifier][:type]/org.example.plugins.PluginImpl
-     * 
-     * @param pluginPolicySpec the policy specification
-     * @return plugin coordinates
-     */
-    public static final PluginCoordinates fromPolicySpec(String pluginPolicySpec) {
-        if (pluginPolicySpec == null) {
-            return null;
-        }
-        int startIdx = 7;
-        int endIdx = pluginPolicySpec.indexOf('/');
-        
-        String [] split = pluginPolicySpec.substring(startIdx, endIdx).split(":"); //$NON-NLS-1$
-        String groupId = split[0];
-        String artifactId = split[1];
-        String version = split[2];
-        String classifier = null;
-        String type = null;
-        if (split.length == 4) {
-            type = split[3];
-        }
-        if (split.length == 5) {
-            classifier = split[3];
-            type = split[4];
-        }
-        PluginCoordinates rval = new PluginCoordinates(groupId, artifactId, version, classifier, type);
-        return rval;
     }
 
 }

@@ -4,10 +4,10 @@ package com.t1t.apim.beans.mail;
  * Created by michallispashidis on 10/04/16.
  */
 public class BaseMailBean {
+    String environment;
     private String to;
     private String subject;
     private String content;
-    String environment;
 
     public String getEnvironment() {
         return environment;

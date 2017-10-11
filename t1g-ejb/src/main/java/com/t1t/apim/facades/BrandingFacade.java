@@ -40,8 +40,7 @@ public class BrandingFacade {
         try {
 
             return storage.getAllBrandings();
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -53,8 +52,7 @@ public class BrandingFacade {
                 throw ExceptionFactory.brandingNotFoundException(id);
             }
             return rval;
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -73,8 +71,7 @@ public class BrandingFacade {
             newBranding.setName(nsbb.getName());
             storage.createBranding(newBranding);
             return newBranding;
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -94,8 +91,7 @@ public class BrandingFacade {
                 storage.createAuditEntry(AuditUtils.serviceUpdated(service, data, security));
             }
             storage.deleteBranding(branding);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

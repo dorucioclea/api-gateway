@@ -1,20 +1,26 @@
-package com.t1t.apim.beans.gateways;
+package com.t1t.apim.beans.services;
 
 
 /**
  * Models the configuration of a REST gateway.
- *
  */
-public class RestGatewayConfigBean {
+public class RestServiceConfig {
 
     private String endpoint;
     private String username;
     private String password;
 
-    /**
-     * Constructor.
-     */
-    public RestGatewayConfigBean() {
+    public RestServiceConfig() {
+    }
+
+    public RestServiceConfig(String endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public RestServiceConfig(String endpoint, String username, String password) {
+        this.endpoint = endpoint;
+        this.username = username;
+        this.password = password;
     }
 
     /**

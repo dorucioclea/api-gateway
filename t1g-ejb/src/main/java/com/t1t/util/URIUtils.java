@@ -35,23 +35,21 @@ public class URIUtils {
         }
     }
 
-    public static String uriBackslashAppender(String uri){
-        if(!uri.endsWith("/"))return uri+"/";
+    public static String uriBackslashAppender(String uri) {
+        if (!uri.endsWith("/")) return uri + "/";
         else return uri;
     }
 
-    public static String uriBackslashRemover(String uri){
-        if(uri.endsWith("/")){
-            return uri.substring(0,uri.length()-1);
-        }
-        else return uri;
+    public static String uriBackslashRemover(String uri) {
+        if (uri.endsWith("/")) {
+            return uri.substring(0, uri.length() - 1);
+        } else return uri;
     }
 
     public static String buildEndpoint(SchemeType scheme, String host, Long port, String path) {
         try {
             return new URI(scheme.getScheme(), null, host, port == null ? -1 : port.intValue(), path, null, null).toString();
-        }
-        catch (URISyntaxException ex) {
+        } catch (URISyntaxException ex) {
             ex.printStackTrace();
             return null;
         }

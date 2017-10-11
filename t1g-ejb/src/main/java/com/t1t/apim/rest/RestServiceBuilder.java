@@ -1,8 +1,8 @@
-package com.t1t.apim.kong;
+package com.t1t.apim.rest;
 
 import com.google.gson.GsonBuilder;
-import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
-import com.t1t.apim.kong.adapters.KongSafeTypeAdapterFactory;
+import com.google.gson.TypeAdapterFactory;
+import com.t1t.apim.beans.services.RestServiceConfig;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -10,19 +10,18 @@ import org.slf4j.LoggerFactory;
 import retrofit.RestAdapter;
 import retrofit.converter.GsonConverter;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 /**
  * Created by michallispashidis on 07/08/2015.
  * Application scoped bean, adding the header information to a VisiREG server instantce call.
  */
-public class KongServiceBuilder {
+public class RestServiceBuilder {
 
     private static final String BASIC_PREFIX = "Basic ";
     private static final String CREDENTIAL_SEPARATOR = ":";
     private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
-    private static Logger _LOG = LoggerFactory.getLogger(KongServiceBuilder.class.getName());
+    private static Logger _LOG = LoggerFactory.getLogger(RestServiceBuilder.class.getName());
 
     /**
      * Provides the basic authentication header based on the username and password provided in the configuration.
@@ -30,7 +29,7 @@ public class KongServiceBuilder {
      * @param config
      * @return
      */
-    private static synchronized String getBasicAuthValue(RestGatewayConfigBean config) {
+    private static synchronized String getBasicAuthValue(RestServiceConfig config) {
         String authHeader = null;
         String username;
         String password;
@@ -50,18 +49,24 @@ public class KongServiceBuilder {
      * @param <T>
      * @return
      */
-    public <T> T getService(RestGatewayConfigBean config, Class<T> iFace) {
+    public static synchronized <T> T getService(Class<T> iFace, RestServiceConfig config, TypeAdapterFactory typeAdapterFactory) {
         StringBuilder kongURL = new StringBuilder(config.getEndpoint());
         String authHeader;
         RestAdapter.Builder builder = new RestAdapter.Builder().setEndpoint(kongURL.toString())
                 .setLogLevel(RestAdapter.LogLevel.FULL)
-                .setLog(msg -> _LOG.info("retrofit - KONG:{}", msg))
-                .setConverter(new GsonConverter(new GsonBuilder().registerTypeAdapterFactory(new KongSafeTypeAdapterFactory()).create()));
+                .setLog(msg -> _LOG.info("retrofit - REST:{}", msg));
         if ((authHeader = getBasicAuthValue(config)) != null) {
             builder.setRequestInterceptor(requestFacade ->
                     requestFacade.addHeader(AUTHORIZATION_HEADER_NAME, authHeader));
         }
-        _LOG.info("Kong connection string:{}", kongURL.toString());
+        if (typeAdapterFactory != null) {
+            builder.setConverter(new GsonConverter(new GsonBuilder().registerTypeAdapterFactory(typeAdapterFactory).create()));
+        }
+        _LOG.info("REST connection string:{}", kongURL.toString());
         return builder.build().create(iFace);
+    }
+
+    public static synchronized <T> T getService(Class<T> iFace, RestServiceConfig restServiceConfig) {
+        return getService(iFace, restServiceConfig, null);
     }
 }

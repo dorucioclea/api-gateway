@@ -28,7 +28,8 @@ import javax.ws.rs.core.MediaType;
 @ApplicationScoped
 public class ActionResource implements IActionResource {
 
-    @Inject private ActionFacade actionFacade;
+    @Inject
+    private ActionFacade actionFacade;
 
     /**
      * Constructor.

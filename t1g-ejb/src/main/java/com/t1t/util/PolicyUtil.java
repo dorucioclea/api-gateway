@@ -15,7 +15,6 @@ import org.apache.commons.lang3.text.StrSubstitutor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -54,8 +53,7 @@ public class PolicyUtil {
             if (config != null && StringUtils.isNotEmpty(pb.getDefinition().getPopoverTemplate())) {
                 try {
                     rval.setPopover(getPopover(pb, polDef, config));
-                }
-                catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassCastException ex) {
+                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassCastException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -88,8 +86,7 @@ public class PolicyUtil {
         Policies polDef;
         try {
             polDef = Policies.valueOf(pdb.getId().toUpperCase());
-        }
-        catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             polDef = null;
         }
         return polDef;
@@ -117,8 +114,7 @@ public class PolicyUtil {
                         break;
                 }
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return rval;
@@ -139,7 +135,7 @@ public class PolicyUtil {
     }
 
     private static String getPopover(PolicyBean pb, Policies polDef, KongConfigValue config) throws ClassCastException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        Map<String, String> keyMap =BeanUtilsBean.getInstance().describe(config).entrySet().stream()
+        Map<String, String> keyMap = BeanUtilsBean.getInstance().describe(config).entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> StringUtils.isEmpty(entry.getValue()) ? NOT_CONFIGURED : entry.getValue()));
         switch (polDef) {
             case CORS:
@@ -190,7 +186,7 @@ public class PolicyUtil {
 
     private static void modifyKeyMapForOAuthPopover(Map<String, String> keyMap, KongConfigValue config) {
         KongPluginOAuth oAuth = (KongPluginOAuth) config;
-        keyMap.put("scopes", isCollectionEmpty(oAuth.getScopes()) ? NOT_CONFIGURED :  convertToCommaSeparatedString(oAuth.getScopes().stream().map(scope -> scope.getScopeDesc()).collect(Collectors.toList())));
+        keyMap.put("scopes", isCollectionEmpty(oAuth.getScopes()) ? NOT_CONFIGURED : convertToCommaSeparatedString(oAuth.getScopes().stream().map(scope -> scope.getScopeDesc()).collect(Collectors.toList())));
     }
 
     private static void modifyKeyMapForRequestTransformerPopover(Map<String, String> keyMap, KongConfigValue config) {

@@ -1,6 +1,5 @@
 package com.t1t.apim.facades;
 
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.T1G;
 import com.t1t.apim.beans.defaults.DefaultsBean;
@@ -32,7 +31,8 @@ public class DefaultsFacade {
 
     private static final Logger _LOG = LoggerFactory.getLogger(DefaultsFacade.class);
 
-    @Inject @T1G
+    @Inject
+    @T1G
     private AppConfigBean config;
 
     @Inject
@@ -50,15 +50,13 @@ public class DefaultsFacade {
                         _LOG.debug("Defaults Updated:{}", defaults);
                     }
                 }
-            }
-            else {
+            } else {
                 defaults = new DefaultsBean(config.getEnvironment(), readLocalTerms());
                 storage.createDefaults(defaults);
                 _LOG.debug("Defaults Created:{}", defaults);
             }
             return new DefaultServiceTermsBean(defaults.getServiceTerms());
-        }
-        catch (IOException | StorageException ex) {
+        } catch (IOException | StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
 
@@ -71,8 +69,7 @@ public class DefaultsFacade {
             storage.updateDefaults(defaults);
             _LOG.debug("Defaults Updated:{}", defaults);
             return bean;
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }/*
         try {
@@ -92,8 +89,7 @@ public class DefaultsFacade {
     private String readLocalTerms() throws IOException {
         try {
             return new String(Files.readAllBytes(Paths.get(config.getLocalFilePath(), "terms.md")), Charset.forName("UTF-8"));
-        }
-        catch (NoSuchFileException ex) {
+        } catch (NoSuchFileException ex) {
             //Return an empty string if file is not found
             return "";
         }

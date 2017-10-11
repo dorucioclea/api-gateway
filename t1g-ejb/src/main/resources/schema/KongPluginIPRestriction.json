@@ -2,15 +2,21 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "id": "/",
   "type": "object",
-  "javaInterfaces" : ["com.t1t.kong.model.KongConfigValue"],
+  "javaInterfaces": [
+    "com.t1t.kong.model.KongConfigValue"
+  ],
   "properties": {
     "blacklist": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     },
     "whitelist": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

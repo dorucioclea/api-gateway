@@ -28,9 +28,9 @@ public class RestExceptionMapper implements ExceptionMapper<AbstractRestExceptio
         error.setType(data.getClass().getSimpleName());
         error.setErrorCode(data.getErrorCode());
         error.setMessage(data.getMessage());
-        if(StringUtils.isEmpty(data.getMoreInfoUrl())){
+        if (StringUtils.isEmpty(data.getMoreInfoUrl())) {
             error.setMoreInfoUrl("not available");
-        }else{
+        } else {
             error.setMoreInfoUrl(data.getMoreInfoUrl());
         }
         //error.setStacktrace(getStackTrace(data));

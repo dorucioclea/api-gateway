@@ -10,7 +10,6 @@ import java.util.List;
 /**
  * Models the list of policies that would get applied if a service were invoked
  * via a particular plan.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PolicyChainBean implements Serializable {

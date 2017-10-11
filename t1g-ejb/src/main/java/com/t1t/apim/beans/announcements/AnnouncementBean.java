@@ -1,30 +1,32 @@
 package com.t1t.apim.beans.announcements;
+
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
+
 /**
  * Created by michallispashidis on 3/10/15.
  */
 @Entity
 @Table(name = "announcements")
-public class AnnouncementBean implements Serializable{
+public class AnnouncementBean implements Serializable {
     @Id
     @GeneratedValue
     private Long id;
-    @Column(name = "organization_id",nullable=false)
+    @Column(name = "organization_id", nullable = false)
     private String organizationId;
-    @Column(name = "service_id",nullable=false)
+    @Column(name = "service_id", nullable = false)
     private String serviceId;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String title;
     @Lob
     @Type(type = "org.hibernate.type.TextType")
     private String description;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
 
     public AnnouncementBean() {

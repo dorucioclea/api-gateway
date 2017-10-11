@@ -6,10 +6,10 @@ import java.util.Map;
 /**
  * Created by michallispashidis on 14/10/15.
  */
-public class ProxyAuthRequest implements Serializable{
+public class ProxyAuthRequest implements Serializable {
     private String username;
     private String password;
-    private Map<String,String> optionalClaimset;
+    private Map<String, String> optionalClaimset;
     private String expectedAudience;
 
     public ProxyAuthRequest() {

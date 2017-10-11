@@ -12,6 +12,7 @@ public class FieldValidator {
 
     /**
      * Validates an entity name.
+     *
      * @param name
      * @throws InvalidNameException
      */
@@ -23,6 +24,7 @@ public class FieldValidator {
 
     /**
      * Validates an version.
+     *
      * @param name
      * @throws InvalidNameException
      */

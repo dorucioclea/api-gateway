@@ -5,7 +5,6 @@ import java.io.Serializable;
 /**
  * Created by michallispashidis on 6/04/16.
  * Gateway DTO used for example in OAuth endpoint publication.
- *
  */
 public class Gateway implements Serializable {
     private String id;

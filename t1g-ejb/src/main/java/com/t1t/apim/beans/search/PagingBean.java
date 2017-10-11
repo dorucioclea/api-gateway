@@ -6,7 +6,6 @@ import java.io.Serializable;
  * Encapsulates paging information.  Useful when listing beans or searching
  * for beans.  In these cases the criteria might match a large number of
  * beans, and we only want to return a certain number of them.
- *
  */
 public class PagingBean implements Serializable {
 

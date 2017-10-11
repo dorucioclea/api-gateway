@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by michallispashidis on 29/11/15.
  */
-public class ExternalUserRequest implements Serializable{
+public class ExternalUserRequest implements Serializable {
     private String userName;
     private String userMail;
 

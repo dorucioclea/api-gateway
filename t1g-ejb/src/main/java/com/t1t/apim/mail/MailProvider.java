@@ -10,5 +10,6 @@ import javax.mail.internet.MimeMessage;
  */
 public interface MailProvider {
     <K extends MimeMessage> void sendMail(K message) throws MailProviderException;
-    <K extends MimeMessage> K composeMessage(BaseMailBean mailContent)throws MailProviderException;
+
+    <K extends MimeMessage> K composeMessage(BaseMailBean mailContent) throws MailProviderException;
 }

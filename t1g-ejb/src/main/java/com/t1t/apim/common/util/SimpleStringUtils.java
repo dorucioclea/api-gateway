@@ -3,16 +3,15 @@ package com.t1t.apim.common.util;
 /**
  * Some simple string utils. Useful in places where we want to avoid pulling in large dependencies for small
  * tasks.
- * 
+ * <p>
  * Where possible, handles null cases gracefully by returning the original string or null instead of
  * exceptions.
- *
  */
 public class SimpleStringUtils {
 
     /**
      * Trim string of whitespace.
-     * 
+     *
      * @param string string to trim
      * @return trimmed string, or null if null was provided.
      */
@@ -24,9 +23,9 @@ public class SimpleStringUtils {
      * Join together varargs using a join sequence.
      * <p>
      * <tt>join("-", a, b, c) => a-b-c</tt>
-     * 
+     *
      * @param joinChar character to join string
-     * @param args strings to join
+     * @param args     strings to join
      * @return joined string
      */
     public static String join(String joinChar, String... args) {
@@ -43,7 +42,7 @@ public class SimpleStringUtils {
 
     /**
      * Cumulative length of strings in varargs
-     * 
+     *
      * @param args vararg strings
      * @return cumulative length of strings
      */

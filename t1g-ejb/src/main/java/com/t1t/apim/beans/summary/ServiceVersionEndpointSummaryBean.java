@@ -8,7 +8,6 @@ import java.util.Set;
 
 /**
  * Returns managed endpoint information.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceVersionEndpointSummaryBean implements Serializable {

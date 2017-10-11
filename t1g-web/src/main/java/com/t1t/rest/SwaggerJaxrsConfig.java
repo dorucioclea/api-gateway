@@ -1,6 +1,5 @@
 package com.t1t.rest;
 
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.T1G;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -12,16 +11,14 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @WebServlet(name = "SwaggerJaxrsConfig", loadOnStartup = 2)
 public class SwaggerJaxrsConfig extends HttpServlet {
-    
-    @Inject @T1G
+
+    @Inject
+    @T1G
     private AppConfigBean config;
 
     @Override

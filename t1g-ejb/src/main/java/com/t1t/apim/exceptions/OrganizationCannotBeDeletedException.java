@@ -2,7 +2,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to create an Organization that already exists.
- *
  */
 public class OrganizationCannotBeDeletedException extends AbstractAlreadyExistsException {
 
@@ -16,12 +15,13 @@ public class OrganizationCannotBeDeletedException extends AbstractAlreadyExistsE
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public OrganizationCannotBeDeletedException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -29,7 +29,7 @@ public class OrganizationCannotBeDeletedException extends AbstractAlreadyExistsE
     public int getErrorCode() {
         return ErrorCodes.ORG_CANNOT_BE_DELETED;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

@@ -6,14 +6,13 @@ import java.io.Serializable;
 
 /**
  * Models a gateway that a service should be published to.
- *
  */
 @Embeddable
 public class ServiceGatewayBean implements Serializable {
 
     private static final long serialVersionUID = 3128363408009800282L;
 
-    @Column(name = "gateway_id", nullable=false)
+    @Column(name = "gateway_id", nullable = false)
     private String gatewayId;
 
     /**

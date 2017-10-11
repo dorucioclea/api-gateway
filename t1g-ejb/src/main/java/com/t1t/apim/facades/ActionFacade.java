@@ -63,15 +63,22 @@ import java.util.stream.Collectors;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class ActionFacade {
     private static Logger log = LoggerFactory.getLogger(ActionFacade.class.getName());
-    @Inject private ISecurityContext securityContext;
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private OrganizationFacade orgFacade;
-    @Inject private IServiceValidator serviceValidator;
-    @Inject private IApplicationValidator applicationValidator;
-    @Inject private GatewayFacade gatewayFacade;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private OrganizationFacade orgFacade;
+    @Inject
+    private IServiceValidator serviceValidator;
+    @Inject
+    private IApplicationValidator applicationValidator;
+    @Inject
+    private GatewayFacade gatewayFacade;
 
-    public void performAction(ActionBean action){
+    public void performAction(ActionBean action) {
         switch (action.getType()) {
             case publishService:
                 publishService(action);
@@ -202,9 +209,7 @@ public class ActionFacade {
                         pb.setGatewayId(gatewayLink.getGatewayId());
                         pb.setKongPluginId(policy.getKongPluginId());
                         storage.updatePolicy(pb);
-                    }
-
-                    else {
+                    } else {
                         log.error("Plugin present on service {} but no corresponding policy/missing policy id:{}", ServiceConventionUtil.generateServiceUniqueName(versionBean), policy);
                     }
                 }
@@ -254,8 +259,7 @@ public class ActionFacade {
             if (!query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 1000).isEmpty()) {
                 throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
 
@@ -304,13 +308,12 @@ public class ActionFacade {
         if (versionBean.getStatus() != ServiceStatus.Published) {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidServiceStatus")); //$NON-NLS-1$
         }
-            versionBean.setStatus(ServiceStatus.Deprecated);
-            versionBean.setDeprecatedOn(new Date());
+        versionBean.setStatus(ServiceStatus.Deprecated);
+        versionBean.setDeprecatedOn(new Date());
         try {
             storage.updateServiceVersion(versionBean);
             storage.createAuditEntry(AuditUtils.serviceRetired(versionBean, securityContext));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.actionException(Messages.i18n.format("DeprecateError"), ex); //$NON-NLS-1$
         }
     }
@@ -424,8 +427,7 @@ public class ActionFacade {
                             throw ExceptionFactory.systemErrorException(ex);
                         }
                     }));
-                }
-                catch (GatewayAuthenticationException ex) {
+                } catch (GatewayAuthenticationException ex) {
                     throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), ex); //$NON-NLS-1$
                 }
             });
@@ -583,7 +585,8 @@ public class ActionFacade {
      * @param action
      */
     private void lockPlan(ActionBean action) throws ActionException {
-        if (!securityContext.hasPermission(PermissionType.planAdmin, action.getOrganizationId())) throw ExceptionFactory.notAuthorizedException();
+        if (!securityContext.hasPermission(PermissionType.planAdmin, action.getOrganizationId()))
+            throw ExceptionFactory.notAuthorizedException();
 
         PlanVersionBean versionBean = null;
         try {

@@ -33,7 +33,9 @@ public class PermissionsResource implements IPermissionsResource {
     IIdmStorage idmStorage;
     @Inject
     ISecurityContext securityContext;
-    @Inject private PermissionsFacade permissionsFacade;
+    @Inject
+    private PermissionsFacade permissionsFacade;
+
     /**
      * Constructor.
      */

@@ -23,7 +23,7 @@ public class AppConfigTest {
     private static AppConfigBean config;
 
     @Rule
-    public Timeout globalTimeout =  new Timeout(1000);
+    public Timeout globalTimeout = new Timeout(1000);
 
     @BeforeClass
     public static void init() throws Exception {

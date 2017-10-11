@@ -4,7 +4,6 @@ package com.t1t.apim.exceptions;
 /**
  * Thrown when trying to get, update, or remove a application version that does not
  * exist.
- *
  */
 public class ApplicationVersionNotFoundException extends AbstractNotFoundException {
 
@@ -15,15 +14,16 @@ public class ApplicationVersionNotFoundException extends AbstractNotFoundExcepti
      */
     public ApplicationVersionNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the message
      */
     public ApplicationVersionNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see io.apiman.manager.api.rest.contract.exceptions.AbstractRestException#getErrorCode()
      */
@@ -31,7 +31,7 @@ public class ApplicationVersionNotFoundException extends AbstractNotFoundExcepti
     public int getErrorCode() {
         return ErrorCodes.APP_VERSION_NOT_FOUND;
     }
-    
+
     /**
      * @see io.apiman.manager.api.rest.contract.exceptions.AbstractRestException#getMoreInfoUrl()
      */

@@ -5,7 +5,6 @@ import java.io.Serializable;
 
 /**
  * The bean used when updating an existing Gateway.
- *
  */
 public class UpdateGatewayBean implements Serializable {
 
@@ -72,7 +71,7 @@ public class UpdateGatewayBean implements Serializable {
     @Override
     @SuppressWarnings("nls")
     public String toString() {
-        return "UpdateGatewayBean [description=" + description+ ",jwtexptime="+ jwtExpTime + ", type=" + type + ", configuration=***]";
+        return "UpdateGatewayBean [description=" + description + ",jwtexptime=" + jwtExpTime + ", type=" + type + ", configuration=***]";
     }
 
 }

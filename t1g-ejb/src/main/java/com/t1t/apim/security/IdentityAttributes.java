@@ -13,7 +13,7 @@ public class IdentityAttributes implements Serializable {
     private String userName;
     private String emails;
     private String givenName;
-    private Map<String,String> optionalMap;
+    private Map<String, String> optionalMap;
 
     public String getId() {
         return id;

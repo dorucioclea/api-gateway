@@ -1,6 +1,5 @@
 package com.t1t.apim.beans.authorization;
 
-import com.t1t.kong.model.KongConsumer;
 import com.t1t.kong.model.KongPluginOAuthConsumerResponse;
 
 import java.util.Map;
@@ -10,7 +9,7 @@ import java.util.Map;
  */
 public class OAuthApplicationResponse {
     KongPluginOAuthConsumerResponse consumerResponse;
-    Map<String,String> scopes;
+    Map<String, String> scopes;
     String base64AppLogo;
     String appVersion;
     String serviceProvisionKey;

@@ -10,6 +10,7 @@ public interface IDefaultsResource {
 
     /**
      * Retrieve the default service terms & conditions
+     *
      * @return
      */
     public DefaultServiceTermsBean getDefaultServiceTerms();

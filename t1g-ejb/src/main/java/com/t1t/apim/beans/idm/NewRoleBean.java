@@ -5,7 +5,6 @@ import java.util.Set;
 
 /**
  * Bean used when creating a new role.
- *
  */
 public class NewRoleBean implements Serializable {
 

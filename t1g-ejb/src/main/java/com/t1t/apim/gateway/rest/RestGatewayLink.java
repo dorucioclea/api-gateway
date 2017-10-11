@@ -5,7 +5,7 @@ import com.t1t.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.apim.beans.gateways.Gateway;
 import com.t1t.apim.beans.gateways.GatewayBean;
-import com.t1t.apim.beans.gateways.RestGatewayConfigBean;
+import com.t1t.apim.beans.services.RestServiceConfig;
 import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.core.IStorage;
@@ -19,8 +19,9 @@ import com.t1t.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerException;
 import com.t1t.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.apim.gateway.dto.exceptions.RegistrationException;
-import com.t1t.apim.kong.KongClient;
-import com.t1t.apim.kong.KongServiceBuilder;
+import com.t1t.apim.rest.KongClient;
+import com.t1t.apim.rest.RestServiceBuilder;
+import com.t1t.apim.rest.adapters.KongSafeTypeAdapterFactory;
 import com.t1t.kong.model.*;
 import com.t1t.util.AesEncrypter;
 import com.t1t.util.ServiceConventionUtil;
@@ -37,18 +38,18 @@ import java.util.Set;
  * API to publish Services.
  */
 public class RestGatewayLink implements IGatewayLink {
-    private static KongServiceBuilder kongServiceBuilder;
+    private static final ObjectMapper mapper = new ObjectMapper();
+    private static RestServiceBuilder restServiceBuilder;
 
     static {
-        kongServiceBuilder = new KongServiceBuilder();
+        restServiceBuilder = new RestServiceBuilder();
     }
 
-    private static final ObjectMapper mapper = new ObjectMapper();
     @SuppressWarnings("unused")
     private GatewayBean gateway;
     private KongClient httpClient;
     private GatewayClient gatewayClient;
-    private RestGatewayConfigBean config;
+    private RestServiceConfig config;
     private AppConfig appConfig;
     private IStorage storage;
     private GatewayValidation gatewayValidation;
@@ -64,17 +65,17 @@ public class RestGatewayLink implements IGatewayLink {
             this.storage = storage;
             this.appConfig = appConfig;
             String cfg = gateway.getConfiguration();
-            setConfig((RestGatewayConfigBean) mapper.reader(RestGatewayConfigBean.class).readValue(cfg));
+            setConfig((RestServiceConfig) mapper.reader(RestServiceConfig.class).readValue(cfg));
             getConfig().setPassword(AesEncrypter.decrypt(getConfig().getPassword()));
             //setup http client with applicable interfaces
-            httpClient = kongServiceBuilder.getService(config, KongClient.class);
+            httpClient = restServiceBuilder.getService(KongClient.class, config, new KongSafeTypeAdapterFactory());
             this.gatewayValidation = gatewayValidation;
         } catch (IOException e) {
             throw ExceptionFactory.systemErrorException(e);
         }
     }
 
-    public KongPluginConfig createACLPlugin(Service service){
+    public KongPluginConfig createACLPlugin(Service service) {
         return getClient().createACLPlugin(service);
     }
 
@@ -111,7 +112,7 @@ public class RestGatewayLink implements IGatewayLink {
         return getClient().createConsumer(userId, customId);
     }
 
-    public KongConsumer createConsumerWithKongId(String kongId, String customId) throws ConsumerAlreadyExistsException{
+    public KongConsumer createConsumerWithKongId(String kongId, String customId) throws ConsumerAlreadyExistsException {
         return getClient().createConsumerWithKongID(kongId, customId);
     }
 
@@ -336,14 +337,14 @@ public class RestGatewayLink implements IGatewayLink {
     /**
      * @return the config
      */
-    public RestGatewayConfigBean getConfig() {
+    public RestServiceConfig getConfig() {
         return config;
     }
 
     /**
      * @param config the config to set
      */
-    public void setConfig(RestGatewayConfigBean config) {
+    public void setConfig(RestServiceConfig config) {
         this.config = config;
     }
 

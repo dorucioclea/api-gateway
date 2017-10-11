@@ -6,11 +6,6 @@ package com.t1t.apim.exceptions;
  */
 public abstract class AbstractInvalidStateException extends AbstractSystemException {
 
-    @Override
-    public int getHttpCode() {
-        return ErrorCodes.HTTP_STATUS_CODE_INVALID_STATE;
-    }
-
     public AbstractInvalidStateException() {
         super();
     }
@@ -21,5 +16,10 @@ public abstract class AbstractInvalidStateException extends AbstractSystemExcept
 
     public AbstractInvalidStateException(Throwable cause) {
         super(cause);
+    }
+
+    @Override
+    public int getHttpCode() {
+        return ErrorCodes.HTTP_STATUS_CODE_INVALID_STATE;
     }
 }

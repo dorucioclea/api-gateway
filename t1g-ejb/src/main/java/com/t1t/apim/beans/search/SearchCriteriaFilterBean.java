@@ -5,7 +5,6 @@ import java.io.Serializable;
 /**
  * Represents a single filter or search criteria.  This is used when searching
  * for beans.
- *
  */
 public class SearchCriteriaFilterBean implements Serializable {
 

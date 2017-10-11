@@ -41,7 +41,8 @@ public class AppConfig implements Serializable {
     private transient Properties properties;
     private AppConfigBean configBean;
 
-    @Inject private IStorage storageService;
+    @Inject
+    private IStorage storageService;
 
     @PostConstruct
     public void postInit() {

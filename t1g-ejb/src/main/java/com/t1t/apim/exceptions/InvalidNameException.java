@@ -2,7 +2,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when the user attempts to create an entity with an invalid name.
- *
  */
 public class InvalidNameException extends AbstractInvalidInputException {
 

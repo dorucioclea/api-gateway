@@ -4,6 +4,8 @@ import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.security.KeyFactory;
@@ -18,15 +20,17 @@ import java.security.spec.X509EncodedKeySpec;
  * Created by michallispashidis on 17/11/15.
  */
 public class KeyUtils {
-    public static PublicKey getKey(String key){
-        try{
+
+    public static final Logger log = LoggerFactory.getLogger(KeyUtils.class);
+
+    public static PublicKey getKey(String key) {
+        try {
             byte[] byteKey = Base64.decode(key.getBytes());
             //byte[] byteKey = Base64.decode(key.getBytes(), Base64.DEFAULT);
             X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(byteKey);
             KeyFactory kf = KeyFactory.getInstance("RSA");
             return kf.generatePublic(X509publicKey);
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -44,7 +48,7 @@ public class KeyUtils {
     public static PrivateKey getPrivateKey(File file) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         FileInputStream fis = new FileInputStream(file);
         DataInputStream dis = new DataInputStream(fis);
-        byte[] keyBytes = new byte[(int)file.length()];
+        byte[] keyBytes = new byte[(int) file.length()];
         dis.readFully(keyBytes);
         dis.close();
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
@@ -61,10 +65,10 @@ public class KeyUtils {
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      */
-    public static PublicKey getPublicKey(File file) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException  {
+    public static PublicKey getPublicKey(File file) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         FileInputStream fis = new FileInputStream(file);
         DataInputStream dis = new DataInputStream(fis);
-        byte[] keyBytes = new byte[(int)file.length()];
+        byte[] keyBytes = new byte[(int) file.length()];
         dis.readFully(keyBytes);
         dis.close();
         X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
@@ -85,8 +89,7 @@ public class KeyUtils {
             PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(content);
             KeyFactory kf = KeyFactory.getInstance("RSA");
             return kf.generatePrivate(spec);
-        }
-        catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
             return null;
         }
     }
@@ -104,13 +107,24 @@ public class KeyUtils {
             X509EncodedKeySpec spec = new X509EncodedKeySpec(content);
             KeyFactory kf = KeyFactory.getInstance("RSA");
             return kf.generatePublic(spec);
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException | NullPointerException ex) {
+            return getPublicKeyFromNonPem(pubKey);
         }
-        catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
+    }
+
+    public static PublicKey getPublicKeyFromNonPem(String pubKey) {
+        try {
+            PemReader pemReader = new PemReader(new StringReader(convertPubKeyToPEM(pubKey)));
+            byte[] content = pemReader.readPemObject().getContent();
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(content);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return kf.generatePublic(spec);
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException ex) {
             return null;
         }
     }
 
-    public static  String convertPubKeyToPEM(String publicKey) throws IOException {
+    public static String convertPubKeyToPEM(String publicKey) throws IOException {
         PublicKey key = getKey(publicKey);
         if (key != null) {
             StringWriter writer = new StringWriter();
@@ -118,8 +132,9 @@ public class KeyUtils {
             pemWriter.writeObject(new PemObject("PUBLIC KEY", key.getEncoded()));
             pemWriter.flush();
             pemWriter.close();
+            String pemKey = writer.toString();
+            log.debug("Public key (PEM): {}", pemKey);
             return writer.toString();
-        }
-        else return null;
+        } else return null;
     }
 }

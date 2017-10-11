@@ -8,12 +8,11 @@ import java.util.*;
 
 /**
  * Models a Service published to the API Management runtime.
- *
  */
 public class Service implements Serializable {
 
     private static final long serialVersionUID = -294764695917891050L;
-    
+
     private boolean publicService;
     private String organizationId;
     private String serviceId;
@@ -28,7 +27,7 @@ public class Service implements Serializable {
     private Set<String> brandings;
     private boolean customLoadBalancing;
     private List<ServiceUpstreamTargetBean> upstreamTargets;
-    
+
     /**
      * Constructor.
      */
@@ -37,6 +36,7 @@ public class Service implements Serializable {
 
     /**
      * Parametrized constructor
+     *
      * @param organizationId
      * @param serviceId
      * @param version

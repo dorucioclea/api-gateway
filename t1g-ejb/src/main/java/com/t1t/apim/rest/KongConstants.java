@@ -1,4 +1,4 @@
-package com.t1t.apim.kong;
+package com.t1t.apim.rest;
 
 /**
  * Created by michallispashidis on 7/08/15.

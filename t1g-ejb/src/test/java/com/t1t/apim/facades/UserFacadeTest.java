@@ -36,20 +36,25 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UserFacade.class)
 public class UserFacadeTest extends TestCase {
-    @Rule public ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
-    @Mock private AppConfig config;
-    @Mock private IStorageQuery query;
-    @Mock private IIdmStorage idmStorage;
-    @InjectMocks private UserFacade userFacade;
+    @Mock
+    private AppConfig config;
+    @Mock
+    private IStorageQuery query;
+    @Mock
+    private IIdmStorage idmStorage;
+    @InjectMocks
+    private UserFacade userFacade;
 
     public void testURIUtilForRelayState() throws URISyntaxException {
         String uriA = "https://someurl.com/?token=my&type=nothingspecial";
         String uriB = "https://someurl.com/endpoint/test";
         URI A = new URI(uriA);
         URI B = new URI(uriB);
-        assertEquals("someurl.com",A.getHost());
-        assertEquals("someurl.com",B.getHost());
+        assertEquals("someurl.com", A.getHost());
+        assertEquals("someurl.com", B.getHost());
     }
 
     public void testURIUtilForQueryString() throws URISyntaxException {
@@ -57,10 +62,10 @@ public class UserFacadeTest extends TestCase {
         String uriB = "https://someurl.com/endpoint/test";
         URI A = new URI(uriA);
         URI B = new URI(uriB);
-        System.out.println("Query:"+A.getQuery());
-        System.out.println("Raw query:"+A.getRawQuery());
-        System.out.println("Query:"+B.getQuery());
-        System.out.println("Raw query:"+B.getRawQuery());
+        System.out.println("Query:" + A.getQuery());
+        System.out.println("Raw query:" + A.getRawQuery());
+        System.out.println("Query:" + B.getQuery());
+        System.out.println("Raw query:" + B.getRawQuery());
     }
 
     public void testGet() throws Exception {
@@ -122,13 +127,13 @@ public class UserFacadeTest extends TestCase {
     public void testUpdateStorageException() throws Exception {
         when(idmStorage.getUser(anyString())).thenThrow(new StorageException());
         thrown.expect(SystemErrorException.class);
-        userFacade.update("someuser",anyObject());
+        userFacade.update("someuser", anyObject());
     }
 
     public void testUpdateUserNotFound() throws Exception {
         when(idmStorage.getUser(anyString())).thenReturn(null);
         thrown.expect(UserNotFoundException.class);
-        userFacade.update("someuser",anyObject());
+        userFacade.update("someuser", anyObject());
     }
 
     public void testUpdateException() throws Exception {
@@ -202,7 +207,7 @@ public class UserFacadeTest extends TestCase {
         userFacade.getActivity("someuserid", 1, 1);
     }
 
-    public void testInitNewUser()throws Exception{
+    public void testInitNewUser() throws Exception {
         NewUserBean newUserBean = new NewUserBean();
         newUserBean.setAdmin(true);
         newUserBean.setUsername("michallis@trust1team.com");

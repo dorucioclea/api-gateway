@@ -9,7 +9,6 @@ import java.util.List;
 
 /**
  * Models a service contract published to the API Management runtime.
- *
  */
 public class Contract implements Serializable {
 

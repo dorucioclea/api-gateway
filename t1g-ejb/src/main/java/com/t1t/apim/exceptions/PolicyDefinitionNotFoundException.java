@@ -13,15 +13,16 @@ public class PolicyDefinitionNotFoundException extends AbstractNotFoundException
      */
     public PolicyDefinitionNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public PolicyDefinitionNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -29,7 +30,7 @@ public class PolicyDefinitionNotFoundException extends AbstractNotFoundException
     public int getErrorCode() {
         return ErrorCodes.POLICY_DEF_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

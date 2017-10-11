@@ -22,13 +22,12 @@ public class TimeUtil {
                     seconds / 3600,
                     (seconds % 3600) / 60,
                     seconds % 60);
-        }
-        else {
+        } else {
             return NEGATIVE_TIME;
         }
     }
 
-    public static Duration getDurationSince(LocalDateTime start)  {
+    public static Duration getDurationSince(LocalDateTime start) {
         return Duration.between(start, LocalDateTime.now());
     }
 

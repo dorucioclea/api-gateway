@@ -20,7 +20,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.List;
 
 /**
  * Implementation of the System API.
@@ -30,7 +29,8 @@ import java.util.List;
 @ApplicationScoped
 public class SystemResource implements ISystemResource {
 
-    @Inject private SystemFacade systemFacade;
+    @Inject
+    private SystemFacade systemFacade;
 
     @ApiOperation(value = "Get System Status",
             notes = "This endpoint simply returns the status of the api engine system. This is a useful endpoint to use when testing a client's connection to the API Manager REST services.")
@@ -46,7 +46,7 @@ public class SystemResource implements ISystemResource {
     }
 
     @ApiOperation(value = "Get Service Availabilities",
-                  notes = "Use this endpoint to get information about the available marketplaces that are defined on the API.")
+            notes = "Use this endpoint to get information about the available marketplaces that are defined on the API.")
     @ApiResponses({@ApiResponse(code = 200, response = ServiceVersionAvailabilityBean.class, message = "Available API marketplaces information.")})
     @GET
     @Path("/marketplaces")

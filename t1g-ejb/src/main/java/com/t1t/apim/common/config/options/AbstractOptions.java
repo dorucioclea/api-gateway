@@ -7,26 +7,20 @@ import java.util.Map;
 
 /**
  * Base class for all options.
- *
  */
 public abstract class AbstractOptions {
 
     /**
      * Constructor. Parses options immediately.
+     *
      * @param options the options
      */
     public AbstractOptions(Map<String, String> options) {
         parse(options);
     }
 
-    /**
-     * Called to parse a map into a set of specific options.
-     * @param options the option map
-     */
-    protected abstract void parse(Map<String, String> options);
-
     protected static String getVar(Map<String, String> optionsMap, String varName) {
-        if(optionsMap.get(varName) == null || optionsMap.get(varName).isEmpty()) {
+        if (optionsMap.get(varName) == null || optionsMap.get(varName).isEmpty()) {
             return null;
         }
         return optionsMap.get(varName);
@@ -59,4 +53,11 @@ public abstract class AbstractOptions {
             return BooleanUtils.toBoolean(value);
         }
     }
+
+    /**
+     * Called to parse a map into a set of specific options.
+     *
+     * @param options the option map
+     */
+    protected abstract void parse(Map<String, String> options);
 }

@@ -9,7 +9,6 @@ import java.util.Set;
 
 /**
  * Bean used when updating a version of a service.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateServiceVersionBean implements Serializable {
@@ -125,6 +124,13 @@ public class UpdateServiceVersionBean implements Serializable {
     }
 
     /**
+     * @param endpointProperties the endpointProperties to set
+     */
+    public void setEndpointProperties(Map<String, String> endpointProperties) {
+        this.endpointProperties = endpointProperties;
+    }
+
+    /**
      * @return the online doc
      */
     public String getOnlinedoc() {
@@ -150,13 +156,6 @@ public class UpdateServiceVersionBean implements Serializable {
      */
     public void setVisibility(Set<VisibilityBean> visibility) {
         this.visibility = visibility;
-    }
-
-    /**
-     * @param endpointProperties the endpointProperties to set
-     */
-    public void setEndpointProperties(Map<String, String> endpointProperties) {
-        this.endpointProperties = endpointProperties;
     }
 
     /**

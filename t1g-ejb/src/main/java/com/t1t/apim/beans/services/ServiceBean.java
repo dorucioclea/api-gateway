@@ -15,7 +15,6 @@ import java.util.Set;
 
 /**
  * Models an service.
- *
  */
 @Entity
 @Table(name = "services")
@@ -28,43 +27,43 @@ public class ServiceBean implements Serializable {
     @Id
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="organization_id", referencedColumnName="id")
+            @JoinColumn(name = "organization_id", referencedColumnName = "id")
     })
     private OrganizationBean organization;
     @Id
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String id;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String name;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="categories")
-    @Column(name="category")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "categories")
+    @Column(name = "category")
     private Set<String> categories;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "service_brandings", joinColumns = {@JoinColumn(name = "organization_id", referencedColumnName = "organization_id"), @JoinColumn(name = "service_id", referencedColumnName = "id")}, inverseJoinColumns = @JoinColumn(name = "branding_id", referencedColumnName = "id"))
     private Set<ServiceBrandingBean> brandings;
-    @Column(updatable=true, nullable=true, length=512)
+    @Column(updatable = true, nullable = true, length = 512)
     private String description;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
     @Lob
-    @Column(name="terms")
+    @Column(name = "terms")
     @Type(type = "org.hibernate.type.TextType")
     private String terms;
     @Column(name = "logo")
     @Lob
-    @Basic(fetch=FetchType.EAGER)
+    @Basic(fetch = FetchType.EAGER)
     private byte[] base64logo;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="followers")
-    @Column(name="user_id")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "followers")
+    @Column(name = "user_id")
     private Set<String> followers;
     @Column(name = "admin")
     private Boolean admin;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="service_basepaths")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "service_basepaths")
     @Column(name = "basepath")
     private Set<String> basepaths;
 
@@ -159,19 +158,19 @@ public class ServiceBean implements Serializable {
         return organization;
     }
 
+    /**
+     * @param organization the organization to set
+     */
+    public void setOrganization(OrganizationBean organization) {
+        this.organization = organization;
+    }
+
     public String getTerms() {
         return terms;
     }
 
     public void setTerms(String terms) {
         this.terms = terms;
-    }
-
-    /**
-     * @param organization the organization to set
-     */
-    public void setOrganization(OrganizationBean organization) {
-        this.organization = organization;
     }
 
     /**

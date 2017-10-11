@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 /**
  * Simple error bean used to serialize error information to JSON when
  * responding to a REST call with an error.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorBean {

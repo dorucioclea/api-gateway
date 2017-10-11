@@ -24,6 +24,6 @@ public class ApplicationBeanList {
 
     public void setApps(Set<ApplicationBean> apps) {
         this.apps = apps;
-        if(apps!=null&&apps.size()>0) this.length = apps.size();
+        if (apps != null && apps.size() > 0) this.length = apps.size();
     }
 }

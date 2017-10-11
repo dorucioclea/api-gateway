@@ -5,7 +5,7 @@
     "data": {
       "type": "array",
       "items": {
-        "$ref":"KongUpstreamTarget.json"
+        "$ref": "KongUpstreamTarget.json"
       }
     },
     "total": {

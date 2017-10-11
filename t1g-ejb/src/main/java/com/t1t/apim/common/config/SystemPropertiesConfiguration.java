@@ -14,7 +14,6 @@ import java.util.Set;
  * because it pulls the system properties live, rather than caching them
  * when the configuration instance is created.  This allows configuration to
  * change by modifying the system properties at runtime.
- *
  */
 public class SystemPropertiesConfiguration extends AbstractConfiguration {
 

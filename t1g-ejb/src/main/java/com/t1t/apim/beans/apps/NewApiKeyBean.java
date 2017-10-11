@@ -22,7 +22,8 @@ public class NewApiKeyBean implements Serializable {
 
     private String newKey;
 
-    public NewApiKeyBean() {}
+    public NewApiKeyBean() {
+    }
 
     public NewApiKeyBean(String organizationId, String applicationId, String version, String revokedKey, String newKey) {
         this.organizationId = organizationId;

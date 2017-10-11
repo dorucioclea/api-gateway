@@ -11,7 +11,7 @@ import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ApplicationNotFoundException;
 import com.t1t.apim.exceptions.ExceptionFactory;
-import com.t1t.apim.exceptions.JWTException;
+import com.t1t.apim.exceptions.JwtException;
 import com.t1t.apim.security.JWTExpTimeResponse;
 import com.t1t.apim.security.OAuthExpTimeResponse;
 import com.t1t.util.ConsumerConventionUtil;
@@ -33,54 +33,57 @@ import java.util.Set;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class SecurityFacade {
     private static final Logger _LOG = LoggerFactory.getLogger(SecurityFacade.class.getName());
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private AppConfig config;
-    @Inject private GatewayFacade gatewayFacade;
-    @Inject private OrganizationFacade orgFacade;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private AppConfig config;
+    @Inject
+    private GatewayFacade gatewayFacade;
+    @Inject
+    private OrganizationFacade orgFacade;
 
-    public void setOAuthExpTime(Integer expTime){
+    public OAuthExpTimeResponse getOAuthExpTime() {
+        try {
+            OAuthExpTimeResponse oAuthExpTimeResponse = new OAuthExpTimeResponse();
+            oAuthExpTimeResponse.setExpirationTime(query.getDefaultGateway().getOAuthExpTime());
+            return oAuthExpTimeResponse;
+        } catch (StorageException e) {
+            throw new ApplicationNotFoundException(e.getMessage());
+        }
+    }
+
+    public void setOAuthExpTime(Integer expTime) {
         try {
             List<GatewayBean> gateways = query.getAllGateways();
             for (GatewayBean gw : gateways) {
                 gw.setOAuthExpTime(expTime);
                 storage.updateGateway(gw);
             }
-        }
-        catch (StorageException e) {
-            throw new ApplicationNotFoundException(e.getMessage());
-        }
-    }
-
-    public OAuthExpTimeResponse getOAuthExpTime(){
-        try {
-            OAuthExpTimeResponse oAuthExpTimeResponse = new OAuthExpTimeResponse();
-            oAuthExpTimeResponse.setExpirationTime(query.getDefaultGateway().getOAuthExpTime());
-            return oAuthExpTimeResponse;
-        }
-        catch (StorageException e) {
-            throw new ApplicationNotFoundException(e.getMessage());
-        }
-    }
-
-    public void setJWTExpTime(Integer expTime){
-        try {
-            UpdateGatewayBean updateGatewayBean = new UpdateGatewayBean();
-            updateGatewayBean.setJwtExpTime(expTime);
-            gatewayFacade.update(gatewayFacade.getDefaultGateway().getId(),updateGatewayBean);
         } catch (StorageException e) {
-            throw new JWTException("Could not update the JWT expiration time:"+e.getMessage());
+            throw new ApplicationNotFoundException(e.getMessage());
         }
     }
 
-    public JWTExpTimeResponse getJWTExpTime(){
+    public JWTExpTimeResponse getJWTExpTime() {
         try {
             Integer exptime = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId()).getJWTExpTime();
             JWTExpTimeResponse response = new JWTExpTimeResponse();
             response.setExpirationTime(exptime);
             return response;
         } catch (StorageException e) {
-            throw new JWTException("Could not return the JWT expiration time:"+e.getMessage());
+            throw new JwtException("Could not return the JWT expiration time:" + e.getMessage());
+        }
+    }
+
+    public void setJWTExpTime(Integer expTime) {
+        try {
+            UpdateGatewayBean updateGatewayBean = new UpdateGatewayBean();
+            updateGatewayBean.setJwtExpTime(expTime);
+            gatewayFacade.update(gatewayFacade.getDefaultGateway().getId(), updateGatewayBean);
+        } catch (StorageException e) {
+            throw new JwtException("Could not update the JWT expiration time:" + e.getMessage());
         }
     }
 
@@ -92,8 +95,7 @@ public class SecurityFacade {
                 if (nakb != null) {
                     rval.add(nakb);
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 //Log the error, but continue the reissuance process
                 _LOG.error("Key Auth Reissuance FAILED for {}, caused by:{}", ConsumerConventionUtil.createAppUniqueId(avb), ex);
             }
@@ -109,8 +111,7 @@ public class SecurityFacade {
                 if (nocb != null) {
                     rval.add(nocb);
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 //Log the error, but continue the reissuance process
                 _LOG.error("OAuth2 Credentials Reissuance FAILED for {}, caused by:{}", ConsumerConventionUtil.createAppUniqueId(avb), ex);
             }
@@ -121,8 +122,7 @@ public class SecurityFacade {
     private List<ApplicationVersionBean> getAllNonRetiredApplicationVersions() {
         try {
             return query.getAllNonRetiredApplicationVersions();
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -133,8 +133,7 @@ public class SecurityFacade {
                     .map(GatewayBean::getId)
                     .map(gatewayFacade::createGatewayLink)
                     .forEach(gw -> gw.revokeGatewayOAuthToken(accessToken));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

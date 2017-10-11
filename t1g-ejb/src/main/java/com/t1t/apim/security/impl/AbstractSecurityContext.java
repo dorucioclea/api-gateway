@@ -17,15 +17,15 @@ import java.util.Set;
 
 /**
  * Base class for security context implementations.
- *
  */
 public abstract class AbstractSecurityContext implements ISecurityContext, Serializable {
 
     protected static Logger logger = LoggerFactory.getLogger(AbstractSecurityContext.class);
-    
+
     protected IndexedPermissions permissions;
 
-    @Inject private IIdmStorage idmStorage;
+    @Inject
+    private IIdmStorage idmStorage;
 
     /**
      * @see ISecurityContext#hasPermission(PermissionType, String)
@@ -45,7 +45,7 @@ public abstract class AbstractSecurityContext implements ISecurityContext, Seria
     public Set<String> getPermittedOrganizations(PermissionType permission) {
         return getPermissions().getOrgQualifiers(permission);
     }
-    
+
     /**
      * @return the user permissions for the current user
      */
@@ -53,7 +53,7 @@ public abstract class AbstractSecurityContext implements ISecurityContext, Seria
         IndexedPermissions rval = permissions;
         if (rval == null) {
             rval = loadPermissions();
-            permissions=rval;
+            permissions = rval;
         }
         return rval;
     }
@@ -70,7 +70,7 @@ public abstract class AbstractSecurityContext implements ISecurityContext, Seria
             return new IndexedPermissions(new HashSet<PermissionBean>());
         }
     }
-    
+
     /**
      * Called to clear the current thread local permissions bean.
      */

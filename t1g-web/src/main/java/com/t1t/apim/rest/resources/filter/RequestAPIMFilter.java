@@ -1,6 +1,5 @@
 package com.t1t.apim.rest.resources.filter;
 
-import com.t1t.apim.AppConfig;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.T1G;
 import com.t1t.apim.beans.jwt.IJWT;
@@ -59,11 +58,17 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
 
 
     //Security context
-    @Inject private ISecurityContext securityContext;
-    @Inject private ISecurityAppContext securityAppContext;
-    @Inject @T1G private AppConfigBean config;
-    @Inject private IStorageQuery query;
-    @Inject private MaintenanceController maintenance;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private ISecurityAppContext securityAppContext;
+    @Inject
+    @T1G
+    private AppConfigBean config;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private MaintenanceController maintenance;
 
 
     @Override
@@ -75,8 +80,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
                 && !path.startsWith(BASE_PATH + SYNC_PATH)) {
             try {
                 SafeHTTPMethods.valueOf(containerRequestContext.getMethod());
-            }
-            catch (IllegalArgumentException ex) {
+            } catch (IllegalArgumentException ex) {
                 throw ExceptionFactory.maintenanceException(maintenance.getMessage());
             }
         }
@@ -126,8 +130,7 @@ public class RequestAPIMFilter implements ContainerRequestFilter {
                                 && StringUtils.isNotBlank(jwtClaims.getStringClaimValue(IJWT.IMPERSONATE_USER))) {
                             validatedUser = jwtClaims.getStringClaimValue(IJWT.IMPERSONATE_USER);
                         }
-                    }
-                    else {
+                    } else {
                         validatedUser = jwtClaims.getSubject() != null ?
                                 jwtClaims.getSubject() : jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) != null ?
                                 jwtClaims.getStringClaimValue(HEADER_CREDENTIAL_USERNAME) : "";

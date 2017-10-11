@@ -5,7 +5,6 @@ import java.io.Serializable;
 /**
  * A bean modeling a summary of an Organization.  Typically used when listing
  * all Organizations visible to a user.
- *
  */
 public class OrganizationSummaryBean implements Serializable {
 
@@ -99,6 +98,10 @@ public class OrganizationSummaryBean implements Serializable {
         return numMembers;
     }
 
+    public void setNumMembers(int numMembers) {
+        this.numMembers = numMembers;
+    }
+
     public String getFriendlyName() {
         return friendlyName;
     }
@@ -160,10 +163,6 @@ public class OrganizationSummaryBean implements Serializable {
         } else if (!id.equals(other.id))
             return false;
         return true;
-    }
-
-    public void setNumMembers(int numMembers) {
-        this.numMembers = numMembers;
     }
 
     @Override

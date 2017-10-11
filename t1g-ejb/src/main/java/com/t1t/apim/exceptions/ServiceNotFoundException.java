@@ -13,15 +13,16 @@ public class ServiceNotFoundException extends AbstractNotFoundException {
      */
     public ServiceNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public ServiceNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -29,7 +30,7 @@ public class ServiceNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.SERVICE_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

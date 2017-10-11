@@ -2,7 +2,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to create an Organization that already exists.
- *
  */
 public class UserAlreadyExistsException extends AbstractAlreadyExistsException {
 
@@ -16,12 +15,13 @@ public class UserAlreadyExistsException extends AbstractAlreadyExistsException {
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public UserAlreadyExistsException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -29,7 +29,7 @@ public class UserAlreadyExistsException extends AbstractAlreadyExistsException {
     public int getErrorCode() {
         return ErrorCodes.USER_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */
