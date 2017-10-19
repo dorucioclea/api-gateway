@@ -275,18 +275,23 @@ public final class ErrorCodes {
     public static final int PUB_KEY_RETRIEVAL_ERROR                             = 21002;
     public static final int JWT_ENCODING_FAILED                                 = 21003;
     public static final int JWT_EXPIRED_ERROR                                   = 21004;
+    public static final int ISSUER_ALREADY_EXISTS_ERROR                         = 21005;
+    public static final int ISSUER_NOT_FOUND_ERROR                              = 21006;
 
     public static final String UNAUTHORIZED_ISSUER_INFO                         = null;
     public static final String PUB_KEY_RETRIEVAL_ERROR_INFO                     = null;
     public static final String JWT_ENCODING_FAILED_INFO                         = null;
     public static final String JWT_EXPIRED_INFO                                 = null;
+    public static final String ISSUER_ALREADY_EXISTS_INFO                       = null;
+    public static final String ISSUER_NOT_FOUND_INFO                            = null;
 
     //
     // Error message keys
     //
 
-    public static final String REQUEST_NULL                                     = "nullValue";
     public static final String UNAUTHORIZED_ISSUER_KEY                          = "unauthorizedIssuer";
+    public static final String REQUEST_NULL                                     = "nullValue";
+    public static final String EMPTY_VALUE                                      = "emptyValue";
     public static final String ERROR_LOADING_PERMISSIONS                        = "errorLoadingPermissions";
     public static final String CONFIG_PROPERTY_MISSING                          = "configPropertyMissing";
     public static final String GATEWAY_NOT_RUNNING                              = "gatewayNotRunning";
@@ -294,5 +299,9 @@ public final class ErrorCodes {
     public static final String JWT_ENCODING_ERROR                               = "jwtEncodingError";
     public static final String JWT_SIGNATURE_VERIFICATION_ERROR                 = "jwtSignatureVerificationFailure";
     public static final String EXPIRED_JWT                                      = "expiredJwt";
+    public static final String JWT_INVALID_MSG                                  = "jwtInvalid";
     public static final String APP_CONTEXT_MISSING                              = "applicationContextMissing";
+    public static final String EMPTY_FIELD                                      = "emptyField";
+    public static final String ISSUER_ALREADY_EXISTS_MSG                        = "issuerAlreadyExists";
+    public static final String ISSUER_NOT_FOUND_MSG                             = "issuerNotFound";
 }

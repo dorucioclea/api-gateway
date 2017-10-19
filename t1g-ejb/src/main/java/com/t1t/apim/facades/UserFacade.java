@@ -11,7 +11,6 @@ import com.t1t.apim.beans.jwt.JWT;
 import com.t1t.apim.beans.search.PagingBean;
 import com.t1t.apim.beans.search.SearchCriteriaBean;
 import com.t1t.apim.beans.search.SearchResultsBean;
-import com.t1t.apim.beans.services.RestServiceConfig;
 import com.t1t.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
@@ -22,15 +21,15 @@ import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.gateway.IGatewayLink;
-import com.t1t.apim.rest.KeycloakClient;
-import com.t1t.apim.rest.RestServiceBuilder;
 import com.t1t.apim.security.ISecurityAppContext;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.kong.model.KongPluginJWTResponse;
 import com.t1t.util.ConsumerConventionUtil;
 import com.t1t.util.CustomCollectors;
 import com.t1t.util.JWTUtils;
+import com.t1t.util.KeyUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jose4j.jwk.HttpsJwks;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
@@ -340,27 +339,19 @@ public class UserFacade implements Serializable {
                 String issuer = unvalidatedContext.getJwtClaims().getIssuer();
                 IdpIssuerBean idpIssuer = storage.getIdpIssuer(issuer);
                 if (idpIssuer == null) {
-                    throw ExceptionFactory.notAuthorizedException();
+                    throw ExceptionFactory.idpIssuerNotFoundException(issuer);
                 }
-                String pemPublicKey = null;
-                switch (idpIssuer.getType()) {
-                    case GATEWAY:
-                        pemPublicKey = gatewayFacade.getDefaultGatewayPublicKey();
-                        break;
-                    case KEYCLOAK:
-                    default:
-                        KeycloakClient client = RestServiceBuilder.getService(KeycloakClient.class, new RestServiceConfig(idpIssuer.getIssuer()));
-                        try {
-                            pemPublicKey = client.get().getPublicKey();
-                        } catch (RetrofitError ex) {
-                            log.error("Error retrieving public key from IDP: ", ex);
-                        }
-                        break;
+                JwtClaims validatedClaims = null;
+                try {
+                    HttpsJwks jwks = new HttpsJwks(idpIssuer.getJwksUri());
+                    validatedClaims = JWTUtils.validateRSAToken(token, issuer, jwks).getJwtClaims();
+                } catch (RetrofitError ex) {
+                    log.error("Error retrieving public key from IDP: ", ex);
+                    throw ExceptionFactory.tokenNotVerifiedException(Messages.i18n.format(ErrorCodes.PUB_KEY_IRRETRIEVABLE, idpIssuer.getJwksUri()));
                 }
-                if (StringUtils.isBlank(pemPublicKey)) {
+                if (validatedClaims == null) {
                     throw ExceptionFactory.tokenNotVerifiedException(Messages.i18n.format(ErrorCodes.PUB_KEY_IRRETRIEVABLE, issuer));
                 }
-                JwtClaims validatedClaims = JWTUtils.validateRSAToken(token, issuer, pemPublicKey).getJwtClaims();
                 IGatewayLink gw = gatewayFacade.getDefaultGatewayLink();
                 String consumingApplicationId = securityAppContext.getNonManagedApplication();
                 if (StringUtils.isBlank(consumingApplicationId)) {
@@ -384,4 +375,20 @@ public class UserFacade implements Serializable {
         }
     }
 
+    public JWT refreshToken(String token) {
+        try {
+            JwtClaims unvalidatedClaims = JWTUtils.getUnvalidatedClaims(token);
+            if (unvalidatedClaims != null) {
+                JwtClaims validatedClaims = JWTUtils.validateRSAToken(token, unvalidatedClaims.getIssuer(), gatewayFacade.getDefaultGatewayPublicKey()).getJwtClaims();
+                if (validatedClaims != null) {
+                    return new JWT(JWTUtils.getJwtWithExpirationTime(validatedClaims, gatewayFacade.getDefaultGatewayJwtExpirationTime(), gatewayFacade.getDefaultGatewayPrivateKey(), gatewayFacade.getDefaultGatewayPublicKeyEnpoint(), JWTUtils.JWT_RS256));
+                }
+            }
+            throw ExceptionFactory.jwtInvalidException(Messages.i18n.format(ErrorCodes.JWT_INVALID_MSG, "JWT not validated"));
+        }
+        catch (InvalidJwtException | MalformedClaimException ex) {
+            log.error("Error refreshing token: ", ex);
+            throw ExceptionFactory.jwtInvalidException(Messages.i18n.format(ErrorCodes.JWT_INVALID_MSG, ex.getMessage()));
+        }
+    }
 }

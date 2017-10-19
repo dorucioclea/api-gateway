@@ -9,12 +9,8 @@ public interface IConfig {
 
     String PROP_FILE_DATE = "date";
     String PROP_FILE_VERSION = "version";
-    String PROP_FILE_CONFIG_FILE = "configuration.file";
 
     String APP_ENVIRONMENT = "apiapp.environment";
-    String KONG_URL = "apiapp.kong.endpoint_url";
-    String KONG_HOST = "apiapp.kong.host";
-    String KONG_URL_MANAGEMENT = "apiapp.kong.management_url";
 
     String DATADOG_METRICS_URI = "apiapp.metrics.datadog.url";
     String DATADOG_METRICS_API_KEY = "apiapp.metrics.datadog.api_key";

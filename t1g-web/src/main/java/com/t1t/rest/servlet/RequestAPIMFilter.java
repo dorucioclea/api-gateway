@@ -1,4 +1,4 @@
-package com.t1t.apim.rest.resources.filter;
+package com.t1t.rest.servlet;
 
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.T1G;

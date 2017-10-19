@@ -5,6 +5,7 @@ import com.t1t.apim.beans.jwt.JWTRequestBean;
 import com.t1t.apim.exceptions.ErrorCodes;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.i18n.Messages;
+import org.jose4j.jwk.HttpsJwks;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jws.AlgorithmIdentifiers;
@@ -16,6 +17,7 @@ import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.keys.HmacKey;
+import org.jose4j.keys.resolvers.HttpsJwksVerificationKeyResolver;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
 import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.security.Key;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +86,7 @@ public class JWTUtils {
     }*/
 
     /**
-     * Validate token signed with RSA algorithm.
+     * Validate token signed with RSA algorithm
      *
      * @param jwt
      * @param expectedIssuer
@@ -94,35 +97,35 @@ public class JWTUtils {
     public static JwtContext validateRSAToken(String jwt, String expectedIssuer, Set<String> publicKeys) throws InvalidJwtException {
         JwtContext context = null;
         JsonWebKeySet jsonWebKeySet = new JsonWebKeySet();
-        JwtConsumerBuilder builder = new JwtConsumerBuilder()
-                .setExpectedIssuer(expectedIssuer)
-                .setRequireSubject()
-                .setAllowedClockSkewInSeconds(30)
-                .setRequireExpirationTime()
-                .setSkipDefaultAudienceValidation()
-                .setVerificationKeyResolver(new JwksVerificationKeyResolver(jsonWebKeySet.getJsonWebKeys()));
-        Iterator<String> it = publicKeys.iterator();
-        //Try all available public keys until the signature validates
-        while (context == null && it.hasNext()) {
-            String pubkey = it.next();
-            try {
-                context = builder.setVerificationKeyResolver(
-                        new JwksVerificationKeyResolver(
-                                new JsonWebKeySet(
-                                        new RsaJsonWebKey((RSAPublicKey) KeyUtils.getPublicKey(pubkey))).getJsonWebKeys()
-                        ))
-                        .build()
-                        .process(jwt);
-                _LOG.debug("Key used for verification:{}", pubkey);
-            } catch (Exception ex) {
-                _LOG.debug("Failed to verify signature with key:{}", pubkey);
-                ex.printStackTrace();
-            }
-        }
-        if (context == null) {
-            throw ExceptionFactory.jwtInvalidException(Messages.i18n.format(ErrorCodes.JWT_SIGNATURE_VERIFICATION_ERROR));
-        }
-        return context;
+        publicKeys.forEach(key -> {
+            jsonWebKeySet.addJsonWebKey(new RsaJsonWebKey((RSAPublicKey) KeyUtils.getPublicKey(key)));
+        });
+        return validateRSAToken(jwt, expectedIssuer, jsonWebKeySet, null);
+    }
+
+    /**
+     * Validate token signed with RSA algorithm
+     *
+     * @param token
+     * @param issuer
+     * @param jwks
+     * @return
+     */
+    public static JwtContext validateRSAToken(String token, String issuer, HttpsJwks jwks) throws InvalidJwtException {
+        return validateRSAToken(token, issuer, null, jwks);
+    }
+
+    /**
+     * Validate token signed with RSA algorithm
+     *
+     * @param jwt
+     * @param expectedIssuer
+     * @param publicKey
+     * @return
+     * @throws InvalidJwtException
+     */
+    public static JwtContext validateRSAToken(String jwt, String expectedIssuer, String publicKey) throws InvalidJwtException {
+        return validateRSAToken(jwt, expectedIssuer, Collections.singleton(publicKey));
     }
 
     /**
@@ -134,20 +137,26 @@ public class JWTUtils {
      * @return
      * @throws InvalidJwtException
      */
-    public static JwtContext validateRSAToken(String jwt, String expectedIssuer, String publicKey) throws InvalidJwtException {
+    public static JwtContext validateRSAToken(String jwt, String expectedIssuer, JsonWebKeySet jsonWebKeySet, HttpsJwks jwks) throws InvalidJwtException {
         try {
             JwtContext context = null;
-            JsonWebKeySet jsonWebKeySet = new JsonWebKeySet();
             JwtConsumerBuilder builder = new JwtConsumerBuilder()
                     .setExpectedIssuer(expectedIssuer)
                     .setRequireSubject()
                     .setAllowedClockSkewInSeconds(30)
                     .setRequireExpirationTime()
-                    .setSkipDefaultAudienceValidation()
-                    .setVerificationKey(KeyUtils.getPublicKey(publicKey));
+                    .setSkipDefaultAudienceValidation();
+            if (jsonWebKeySet != null) {
+                builder.setVerificationKeyResolver(new JwksVerificationKeyResolver(jsonWebKeySet.getJsonWebKeys()));
+            }
+            else if (jwks != null) {
+                builder.setVerificationKeyResolver(new HttpsJwksVerificationKeyResolver(jwks));
+            }
+            else {
+                throw ExceptionFactory.tokenNotVerifiedException(Messages.i18n.format(ErrorCodes.PUB_KEY_IRRETRIEVABLE, expectedIssuer));
+            }
 
             context = builder.build().process(jwt);
-            _LOG.debug("Key used for verification:{}", publicKey);
             if (context == null) {
                 throw ExceptionFactory.jwtInvalidException(Messages.i18n.format(ErrorCodes.JWT_SIGNATURE_VERIFICATION_ERROR));
             }

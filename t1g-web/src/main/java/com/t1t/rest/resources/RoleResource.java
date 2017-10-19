@@ -11,9 +11,8 @@ import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.NotAuthorizedException;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.RoleFacade;
-import com.t1t.apim.rest.impl.util.SearchCriteriaUtil;
-import com.t1t.apim.rest.resources.IRoleResource;
 import com.t1t.apim.security.ISecurityContext;
+import com.t1t.util.SearchCriteriaUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -29,7 +28,7 @@ import java.util.List;
 @Api(value = "/roles", description = "The Role API. Used to manage roles. Note: not used to manage users or user membership in roles. This API simply provides a way to create and manage role definitions. Typically this API is only available to system admins.")
 @Path("/roles")
 @ApplicationScoped
-public class RoleResource implements IRoleResource {
+public class RoleResource {
 
     @Inject
     IIdmStorage idmStorage;

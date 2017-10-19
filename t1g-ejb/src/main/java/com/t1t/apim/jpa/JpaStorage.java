@@ -2782,4 +2782,9 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public IdpIssuerBean getIdpIssuer(String id) throws StorageException {
         return super.get(id, IdpIssuerBean.class);
     }
+
+    @Override
+    public List<IdpIssuerBean> getAllIdpIssuers() throws StorageException {
+        return getActiveEntityManager().createQuery("SELECT i FROM IdpIssuerBean i", IdpIssuerBean.class).getResultList();
+    }
 }

@@ -5,8 +5,10 @@ import com.t1t.apim.beans.apps.NewApiKeyBean;
 import com.t1t.apim.beans.apps.NewOAuthCredentialsBean;
 import com.t1t.apim.beans.authorization.OAuth2TokenRevokeBean;
 import com.t1t.apim.beans.idm.PermissionType;
+import com.t1t.apim.beans.idp.IdpIssuerBean;
 import com.t1t.apim.beans.system.SystemStatusBean;
 import com.t1t.apim.core.exceptions.StorageException;
+import com.t1t.apim.exceptions.ErrorCodes;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.NotAuthorizedException;
 import com.t1t.apim.exceptions.i18n.Messages;
@@ -14,18 +16,15 @@ import com.t1t.apim.facades.OrganizationFacade;
 import com.t1t.apim.facades.SecurityFacade;
 import com.t1t.apim.facades.SystemFacade;
 import com.t1t.apim.gateway.GatewayAuthenticationException;
-import com.t1t.apim.rest.resources.ISecurityResource;
 import com.t1t.apim.security.*;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Set;
 
 /**
@@ -34,7 +33,7 @@ import java.util.Set;
 @Api(value = "/security", description = "Security Endpoint. Central security settings")
 @Path("/security")
 @ApplicationScoped
-public class SecurityResource implements ISecurityResource {
+public class SecurityResource {
     @Inject
     private SecurityFacade securityFacade;
     @Inject
@@ -110,7 +109,7 @@ public class SecurityResource implements ISecurityResource {
         securityFacade.setJWTExpTime(request.getExpirationTime());
     }
 
-    @Override
+
     @ApiOperation(value = "Reissue all API keys", notes = "Use this endpoint to revoke all current API keys and issue new ones")
     @ApiResponses({
             @ApiResponse(code = 204, responseContainer = "List", response = NewApiKeyBean.class, message = "API keys reissued")
@@ -125,7 +124,7 @@ public class SecurityResource implements ISecurityResource {
         return securityFacade.reissueAllApiKeys();
     }
 
-    @Override
+
     @ApiOperation(value = "Reissue all OAuth2 credentials", notes = "Use this endpoint to revoke all current OAuth2 credentials and issue new ones")
     @ApiResponses({
             @ApiResponse(code = 204, responseContainer = "List", response = NewOAuthCredentialsBean.class, message = "OAuth2 credentials reissued")
@@ -153,7 +152,7 @@ public class SecurityResource implements ISecurityResource {
         return systemFacade.getAdminStatus();
     }
 
-    @Override
+
     @ApiOperation(value = "Revoke Application Version Oauth2 Token",
             notes = "Deprecated, please use the DELETE method")
     @ApiResponses({
@@ -172,7 +171,7 @@ public class SecurityResource implements ISecurityResource {
         orgFacade.revokeApplicationVersionOAuthToken(token);
     }
 
-    @Override
+
     @ApiOperation(value = "Revoke Oauth2 Token")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Succesful, no content")
@@ -182,5 +181,69 @@ public class SecurityResource implements ISecurityResource {
     public void revokeOAuthToken(@QueryParam("token") String token) {
         Preconditions.checkArgument(StringUtils.isNotEmpty(token), Messages.i18n.format("emptyValue", "Token"));
         securityFacade.revokeOAuthToken(token);
+    }
+
+    @ApiOperation(value = "Get trusted IDP issuers")
+    @ApiResponses({
+            @ApiResponse(code = 200, responseContainer = "List", response = IdpIssuerBean.class, message = "Trusted issuers")
+    })
+    @GET
+    @Path("/idp/issuers")
+    public Response getIdpIssuers() {
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        return Response.ok().entity(securityFacade.getIdpIssuers()).build();
+    }
+
+    @ApiOperation(value = "Get trusted IDP issuer")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = IdpIssuerBean.class, message = "Trusted issuer")
+    })
+    @GET
+    @Path("/idp/issuers/{issuerId}")
+    public Response getIdpIssuer(@PathParam("issuerId") String issuerId) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(issuerId), Messages.i18n.format(ErrorCodes.EMPTY_VALUE, "Issuer ID"));
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        return Response.ok().entity(securityFacade.getIdpIssuer(issuerId)).build();
+    }
+
+    @ApiOperation(value = "Create trusted IDP issuer")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = IdpIssuerBean.class, message = "Created")
+    })
+    @POST
+    @Path("/idp/issuers")
+    public Response createIdpIssuer(@ApiParam IdpIssuerBean idpIssuer) {
+        Preconditions.checkNotNull(idpIssuer, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
+        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getIssuer()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
+        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getJwksUri()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        return Response.ok().entity(securityFacade.createIdpIssuer(idpIssuer)).build();
+    }
+
+    @ApiOperation(value = "Update trusted IDP issuer")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = IdpIssuerBean.class, message = "Updated")
+    })
+    @PUT
+    @Path("/idp/issuers")
+    public Response updateIdpIssuer(@ApiParam IdpIssuerBean idpIssuer) {
+        Preconditions.checkNotNull(idpIssuer, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
+        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getIssuer()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
+        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getJwksUri()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        return Response.ok().entity(securityFacade.updateIdpIssuer(idpIssuer)).build();
+    }
+
+    @ApiOperation(value = "Update trusted IDP issuer")
+    @ApiResponses({
+            @ApiResponse(code = 204, response = IdpIssuerBean.class, message = "Updated")
+    })
+    @DELETE
+    @Path("/idp/issuers/{idpIssuer}")
+    public Response updateIdpIssuer(@PathParam("idpIssuer") String issuerId) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(issuerId), Messages.i18n.format(ErrorCodes.EMPTY_VALUE, "Issuer ID"));
+        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
+        securityFacade.deleteIdpIssuer(issuerId);
+        return Response.noContent().build();
     }
 }

@@ -12,9 +12,8 @@ public class IdpIssuerBean {
 
     @Id
     private String issuer;
-    @Column(name = "type")
-    @Enumerated(EnumType.STRING)
-    private IdpType type;
+    @Column(name = "jwks_uri")
+    private String jwksUri;
 
     public String getIssuer() {
         return issuer;
@@ -24,12 +23,12 @@ public class IdpIssuerBean {
         this.issuer = issuer;
     }
 
-    public IdpType getType() {
-        return type;
+    public String getJwksUri() {
+        return jwksUri;
     }
 
-    public void setType(IdpType type) {
-        this.type = type;
+    public void setJwksUri(String jwksUri) {
+        this.jwksUri = jwksUri;
     }
 
     @Override
@@ -53,7 +52,7 @@ public class IdpIssuerBean {
     public String toString() {
         return "IdpIssuerBean{" +
                 "issuer='" + issuer + '\'' +
-                ", type=" + type +
+                ", jwksUri='" + jwksUri + '\'' +
                 '}';
     }
 }

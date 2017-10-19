@@ -1,9 +1,9 @@
 package com.t1t.rest;
 
-import com.t1t.apim.rest.impl.mappers.IllegalArgumentExceptionMapper;
-import com.t1t.apim.rest.impl.mappers.NullPointerExceptionMapper;
-import com.t1t.apim.rest.impl.mappers.RestExceptionMapper;
-import com.t1t.apim.rest.resources.filter.RequestAPIMFilter;
+import com.t1t.rest.mappers.IllegalArgumentExceptionMapper;
+import com.t1t.rest.mappers.NullPointerExceptionMapper;
+import com.t1t.rest.mappers.RestExceptionMapper;
+import com.t1t.rest.servlet.RequestAPIMFilter;
 import com.t1t.rest.resources.*;
 
 import javax.ws.rs.ApplicationPath;

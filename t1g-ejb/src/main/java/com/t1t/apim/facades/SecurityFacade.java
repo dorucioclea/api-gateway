@@ -6,6 +6,7 @@ import com.t1t.apim.beans.apps.NewApiKeyBean;
 import com.t1t.apim.beans.apps.NewOAuthCredentialsBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.UpdateGatewayBean;
+import com.t1t.apim.beans.idp.IdpIssuerBean;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
@@ -133,6 +134,58 @@ public class SecurityFacade {
                     .map(GatewayBean::getId)
                     .map(gatewayFacade::createGatewayLink)
                     .forEach(gw -> gw.revokeGatewayOAuthToken(accessToken));
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public List<IdpIssuerBean> getIdpIssuers() {
+        try {
+            return query.getAllIdpIssuers();
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public IdpIssuerBean getIdpIssuer(String issuerId) {
+        try {
+            IdpIssuerBean iib = storage.getIdpIssuer(issuerId);
+            if (iib == null) {
+                throw ExceptionFactory.idpIssuerNotFoundException(issuerId);
+            }
+            return iib;
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public IdpIssuerBean createIdpIssuer(IdpIssuerBean idpIssuer) {
+        try {
+            if (getIdpIssuer(idpIssuer.getIssuer()) != null) {
+                throw ExceptionFactory.idpIssuerAlreadyExistsException(idpIssuer.getIssuer());
+            }
+            storage.createIdpIssuer(idpIssuer);
+            return idpIssuer;
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public IdpIssuerBean updateIdpIssuer(IdpIssuerBean idpIssuer) {
+        try {
+            IdpIssuerBean existingIssuer = getIdpIssuer(idpIssuer.getIssuer());
+            existingIssuer.setJwksUri(idpIssuer.getJwksUri());
+            storage.updateIdpIssuer(existingIssuer);
+            return existingIssuer;
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public void deleteIdpIssuer(String issuerId) {
+        try {
+            IdpIssuerBean idpIssuer = getIdpIssuer(issuerId);
+            storage.deleteIdpIssuer(idpIssuer);
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }

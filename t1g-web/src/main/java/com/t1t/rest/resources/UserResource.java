@@ -17,7 +17,6 @@ import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.NotAuthorizedException;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.UserFacade;
-import com.t1t.apim.rest.resources.IUserResource;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.util.DtoFactory;
 import io.swagger.annotations.Api;
@@ -36,7 +35,7 @@ import java.util.List;
 @Api(value = "/users", description = "The User API.")
 @Path("/users")
 @ApplicationScoped
-public class UserResource implements IUserResource {
+public class UserResource {
 
     @Inject
     private ISecurityContext securityContext;

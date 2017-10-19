@@ -799,4 +799,23 @@ public final class ExceptionFactory {
     public static ApplicationContextMissingException applicationContextMissing() {
         return new ApplicationContextMissingException(Messages.i18n.format(ErrorCodes.APP_CONTEXT_MISSING));
     }
+
+    /**
+     * Creates an exception
+     * @param issuerId
+     * @return
+     */
+    public static IdpIssuerNotFoundException idpIssuerNotFoundException(String issuerId) {
+        return new IdpIssuerNotFoundException(Messages.i18n.format(ErrorCodes.ISSUER_NOT_FOUND_MSG, issuerId));
+    }
+
+    /**
+     * Creates an exception
+     *
+     * @param issuerId
+     * @return
+     */
+    public static IdpIssuerAlreadyExistsException idpIssuerAlreadyExistsException(String issuerId) {
+        return new IdpIssuerAlreadyExistsException(Messages.i18n.format(ErrorCodes.ISSUER_ALREADY_EXISTS_MSG, issuerId));
+    }
 }

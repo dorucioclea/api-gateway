@@ -8,7 +8,6 @@ import com.t1t.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.apim.exceptions.ServiceVersionNotFoundException;
 import com.t1t.apim.facades.SystemFacade;
 import com.t1t.apim.gateway.GatewayAuthenticationException;
-import com.t1t.apim.rest.resources.ISystemResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -27,7 +26,7 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/system", description = "Test endpoint. Can be used to validate the url endpoint.")
 @Path("/system")
 @ApplicationScoped
-public class SystemResource implements ISystemResource {
+public class SystemResource {
 
     @Inject
     private SystemFacade systemFacade;

@@ -87,7 +87,6 @@ public class AppConfig implements Serializable {
             configBean = new AppConfigBean();
             configBean.setConfigPath(defaultConfig.getConfigPath());
             configBean.setEnvironment(getEnvironment());
-            configBean.setKongHost(getKongHost());
             configBean.setVersion(getVersion());
             configBean.setBuildDate(getBuildDate());
 
@@ -135,7 +134,6 @@ public class AppConfig implements Serializable {
                 log.info("General - Local file path: {}", configBean.getLocalFilePath());
                 log.info("Security - REST resource security: {}", configBean.getRestResourceSecurity());
                 log.info("Security - REST AUTH resource security: {}", configBean.getRestAuthResourceSecurity());
-                log.info("Gateway - Kong host: {}", configBean.getKongHost());
                 log.info("Notifications - Debug enabled? {}", configBean.getNotificationsEnableDebug());
                 log.info("Notifications - Startup mail will be sent to {}", configBean.getNotificationStartupMail());
                 log.info("Notifications - Mail will be send from {}", configBean.getNotificationMailFrom());
@@ -160,10 +158,6 @@ public class AppConfig implements Serializable {
 
     private String getEnvironment() {
         return getStringProperty(IConfig.APP_ENVIRONMENT);
-    }
-
-    private String getKongHost() {
-        return getStringProperty(IConfig.KONG_HOST);
     }
 
     private String getVersion() {

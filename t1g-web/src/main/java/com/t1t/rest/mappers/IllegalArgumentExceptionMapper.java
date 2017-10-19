@@ -1,4 +1,4 @@
-package com.t1t.apim.rest.impl.mappers;
+package com.t1t.rest.mappers;
 
 import com.t1t.apim.beans.exceptions.ErrorBean;
 import com.t1t.apim.exceptions.ErrorCodes;
@@ -17,13 +17,13 @@ import javax.ws.rs.ext.Provider;
  */
 @Provider
 @ApplicationScoped
-public class NullPointerExceptionMapper implements ExceptionMapper<NullPointerException> {
+public class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalArgumentException> {
 
     /**
      * @see ExceptionMapper#toResponse(Throwable)
      */
     @Override
-    public Response toResponse(NullPointerException data) {
+    public Response toResponse(IllegalArgumentException data) {
 
         ErrorBean error = new ErrorBean();
         error.setMessage(data.getMessage());

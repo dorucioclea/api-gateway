@@ -588,14 +588,17 @@ ALTER TABLE managed_applications
 
 CREATE TABLE idp_issuers (
   issuer VARCHAR(255) NOT NULL,
-  type   VARCHAR(255) NOT NULL
+  jwks_uri VARCHAR(255) NOT NULL
 );
 ALTER TABLE idp_issuers
   ADD PRIMARY KEY (issuer);
-INSERT INTO idp_issuers (issuer, type) VALUES
-  ('https://idp.t1t.be/auth/realms/Trust1Connector', 'KEYCLOAK'),
-  ('https://idp.t1t.be/auth/realms/Trust1Gateway', 'KEYCLOAK'),
-  ('https://idp.t1t.be/auth/realms/Signbox', 'KEYCLOAK');
+INSERT INTO idp_issuers (issuer, jwks_uri) VALUES
+  ('https://idp.t1t.be/auth/realms/Trust1Connector', 'https://idp.t1t.be/auth/realms/Trust1Connector/protocol/openid-connect/certs'),
+  ('https://idp.t1t.be/auth/realms/Trust1Gateway', 'https://idp.t1t.be/auth/realms/Trust1Gateway/protocol/openid-connect/certs'),
+  ('https://idp.t1t.be/auth/realms/Signbox', 'https://idp.t1t.be/auth/realms/Signbox/protocol/openid-connect/certs');
+
+DELETE FROM managed_application_keys WHERE managed_app_id IN (SELECT id FROM managed_applications WHERE prefix = 'acpaas');
+DELETE FROM managed_applications WHERE prefix = 'acpaas';
 
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release
 

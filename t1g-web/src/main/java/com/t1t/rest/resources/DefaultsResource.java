@@ -3,7 +3,6 @@ package com.t1t.rest.resources;
 import com.t1t.apim.beans.exceptions.ErrorBean;
 import com.t1t.apim.beans.services.DefaultServiceTermsBean;
 import com.t1t.apim.facades.DefaultsFacade;
-import com.t1t.apim.rest.resources.IDefaultsResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -23,12 +22,12 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/defaults", description = "The Defaults API.")
 @Path("/defaults")
 @ApplicationScoped
-public class DefaultsResource implements IDefaultsResource {
+public class DefaultsResource {
 
     @Inject
     private DefaultsFacade defFacade;
 
-    @Override
+
     @ApiOperation(value = "Retrieve the default service terms")
     @ApiResponses({
             @ApiResponse(code = 200, response = DefaultServiceTermsBean.class, message = "Default terms"),

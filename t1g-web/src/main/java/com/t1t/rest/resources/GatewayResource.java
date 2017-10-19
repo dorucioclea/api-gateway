@@ -13,7 +13,6 @@ import com.t1t.apim.exceptions.GatewayNotFoundException;
 import com.t1t.apim.exceptions.NotAuthorizedException;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.GatewayFacade;
-import com.t1t.apim.rest.resources.IGatewayResource;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.util.DtoFactory;
 import io.swagger.annotations.Api;
@@ -31,7 +30,7 @@ import java.util.List;
 @Api(value = "/gateways", description = "The Gateway API.")
 @Path("/gateways")
 @ApplicationScoped
-public class GatewayResource implements IGatewayResource {
+public class GatewayResource {
 
     @Inject
     private ISecurityContext securityContext;

@@ -8,7 +8,6 @@ import com.t1t.apim.exceptions.NotAuthorizedException;
 import com.t1t.apim.exceptions.UserNotFoundException;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.PermissionsFacade;
-import com.t1t.apim.rest.resources.IPermissionsResource;
 import com.t1t.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,7 +26,7 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/permissions", description = "The Permissions API.")
 @Path("/permissions")
 @ApplicationScoped
-public class PermissionsResource implements IPermissionsResource {
+public class PermissionsResource {
 
     @Inject
     IIdmStorage idmStorage;

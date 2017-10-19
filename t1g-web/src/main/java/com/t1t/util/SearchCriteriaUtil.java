@@ -1,4 +1,4 @@
-package com.t1t.apim.rest.impl.util;
+package com.t1t.util;
 
 import com.t1t.apim.beans.search.SearchCriteriaBean;
 import com.t1t.apim.beans.search.SearchCriteriaFilterBean;

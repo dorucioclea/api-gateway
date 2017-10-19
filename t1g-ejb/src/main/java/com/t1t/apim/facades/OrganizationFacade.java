@@ -3479,7 +3479,7 @@ public class OrganizationFacade {
 
             //empty host
             json.remove("host");
-            json.put("host", config.getKongHost());
+            json.put("host", gatewayFacade.getDefaultGatewayHost());
 
             //add only https schema
             json.remove("schemes");

@@ -42,8 +42,6 @@ import com.t1t.apim.exceptions.NotAuthorizedException;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.EventFacade;
 import com.t1t.apim.facades.OrganizationFacade;
-import com.t1t.apim.rest.impl.util.FieldValidator;
-import com.t1t.apim.rest.resources.IOrganizationResource;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.kong.model.KongPluginConfigList;
 import com.t1t.util.ResponseFactory;
@@ -84,7 +82,7 @@ import static javax.ws.rs.core.Response.Status.*;
 @Api(value = "/organizations", description = "The Organization API.")
 @Path("/organizations")
 @ApplicationScoped
-public class OrganizationResource implements IOrganizationResource {
+public class OrganizationResource {
 
     @Inject
     private IStorageQuery query;
@@ -113,7 +111,7 @@ public class OrganizationResource implements IOrganizationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public OrganizationBean create(NewOrganizationBean bean) throws OrganizationAlreadyExistsException, InvalidNameException, StorageException {
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New organization"));
-        FieldValidator.validateName(bean.getName());
+        Preconditions.checkArgument(StringUtils.isNotEmpty(bean.getName()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "name"));
         return orgFacade.create(bean);
     }
 
@@ -125,7 +123,7 @@ public class OrganizationResource implements IOrganizationResource {
     @GET
     @Path("/{organizationId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Override
+
     public OrganizationBean get(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         return orgFacade.get(organizationId);
@@ -177,7 +175,7 @@ public class OrganizationResource implements IOrganizationResource {
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New application"));
         if (bean.getBase64logo() == null) bean.setBase64logo("");
         Preconditions.checkArgument(StringUtils.isBlank(bean.getBase64logo()) || bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
-        FieldValidator.validateName(bean.getName());
+        Preconditions.checkArgument(StringUtils.isNotEmpty(bean.getName()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "name"));
         return orgFacade.createApp(organizationId, bean);
     }
 
@@ -295,7 +293,7 @@ public class OrganizationResource implements IOrganizationResource {
         }
         Preconditions.checkArgument(!StringUtils.isEmpty(applicationId), Messages.i18n.format("emptyValue", "Application ID"));
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New application version"));
-        FieldValidator.validateVersion(bean.getVersion());
+        Preconditions.checkArgument(StringUtils.isNotEmpty(bean.getVersion()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "version"));
         return orgFacade.createAppVersion(organizationId, applicationId, bean);
     }
 
@@ -321,7 +319,7 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
     }
 
-    @Override
+
     @ApiOperation(value = "Reissue Application version's API key",
             notes = "Use this endpoint to revoke the application version's current API key and assign a new one")
     @ApiResponses({
@@ -339,7 +337,7 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.reissueApplicationVersionApiKey(orgId, appId, version);
     }
 
-    @Override
+
     @ApiOperation(value = "Reissue Application version's OAuth2 credentials",
             notes = "Use this endpoint to revoke the application version's current OAuth2 credentials and assign new credentials")
     @ApiResponses({
@@ -392,7 +390,7 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getAppVersionActivity(organizationId, applicationId, version, page, pageSize);
     }
 
-    @Override
+
     @ApiOperation(value = "Get App Usage Metrics (per Service)",
             notes = "Retrieves metrics/analytics information for a specific application.  This will return request count data broken down by service.  It basically answers the question \"which services is my app really using?\".")
     @ApiResponses({
@@ -707,7 +705,7 @@ public class OrganizationResource implements IOrganizationResource {
         }
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New service"));
         Preconditions.checkArgument(bean.getBase64logo().getBytes().length <= 150_000, "Logo should not be greater than 100k");
-        FieldValidator.validateName(bean.getName());
+        Preconditions.checkArgument(StringUtils.isNotEmpty(bean.getName()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "name"));
         return orgFacade.createService(organizationId, bean);
     }
 
@@ -931,7 +929,7 @@ public class OrganizationResource implements IOrganizationResource {
         }
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New service version"));
-        FieldValidator.validateVersion(bean.getVersion());
+        Preconditions.checkArgument(StringUtils.isNotEmpty(bean.getVersion()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "version"));
         return orgFacade.createServiceVersion(organizationId, serviceId, bean);
     }
 
@@ -1662,7 +1660,7 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.listServiceSupportTicketComments(Long.parseLong(supportId.trim(), 10));
     }
 
-    @Override
+
     @ApiOperation(value = "Get Service Usage Metrics",
             notes = "Retrieves metrics/analytics information for a specific service.  This will return a full histogram of request count data based on the provided date range and interval.  Valid intervals are:  month, week, day, hour, minute")
     @ApiResponses({
@@ -1699,7 +1697,7 @@ public class OrganizationResource implements IOrganizationResource {
             PlanAlreadyExistsException, NotAuthorizedException, InvalidNameException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        FieldValidator.validateName(bean.getName());
+        Preconditions.checkArgument(StringUtils.isNotEmpty(bean.getName()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "name"));
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "New plan"));
         return orgFacade.createPlan(organizationId, bean);
@@ -1781,7 +1779,7 @@ public class OrganizationResource implements IOrganizationResource {
     public PlanVersionBean createPlanVersion(@PathParam("organizationId") String organizationId, @PathParam("planId") String planId, NewPlanVersionBean bean) throws PlanNotFoundException, NotAuthorizedException, InvalidVersionException, PlanVersionAlreadyExistsException {
         if (!securityContext.hasPermission(PermissionType.planEdit, organizationId))
             throw ExceptionFactory.notAuthorizedException();
-        FieldValidator.validateVersion(bean.getVersion());
+        Preconditions.checkArgument(StringUtils.isNotEmpty(bean.getVersion()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "version"));
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(planId), Messages.i18n.format("emptyValue", "Plan ID"));
         return orgFacade.createPlanVersion(organizationId, planId, bean);
@@ -2094,7 +2092,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.requestMembership(organizationId);
     }
 
-    @Override
+
     @ApiOperation(value = "Reject a user's membership request",
             notes = "Call this endpoint to reject a user's membership requests to your organization")
     @ApiResponses({
@@ -2113,7 +2111,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.rejectMembershipRequest(organizationId, userId);
     }
 
-    @Override
+
     @ApiOperation(value = "Get all incoming events for organization",
             notes = "Call this endpoint to get an organization's incoming events (only users with owner rights can call this endpoint)")
     @ApiResponses({
@@ -2131,7 +2129,7 @@ public class OrganizationResource implements IOrganizationResource {
         return eventFacade.getOrganizationIncomingEvents(organizationId);
     }
 
-    @Override
+
     @ApiOperation(value = "Get all outgoing events for an organization",
             notes = "Call this endpoint to get all outgoing events for an organization")
     @ApiResponses({
@@ -2149,7 +2147,7 @@ public class OrganizationResource implements IOrganizationResource {
         return eventFacade.getOrganizationOutgoingEvents(organizationId);
     }
 
-    @Override
+
     @ApiOperation(value = "Get an organization's incoming events by type",
             notes = "Call this endpoint to get an organization's incoming events by type (MEMBERSHIP_PENDING, CONTRACT_PENDING, CONTRACT_ACCEPTED, CONTRACT_REJECTED)")
     @ApiResponses({
@@ -2168,7 +2166,7 @@ public class OrganizationResource implements IOrganizationResource {
         return eventFacade.getOrganizationIncomingEventsByType(organizationId, type);
     }
 
-    @Override
+
     @ApiOperation(value = "Get an organization's outgoing events by type",
             notes = "Call this endpoint to get an organization's outgoing events by type ((MEMBERSHIP_GRANTED, MEMBERSHIP_REFUSED, CONTRACT_PENDING, CONTRACT_ACCEPTED, CONTRACT_REJECTED)")
     @ApiResponses({
@@ -2187,7 +2185,7 @@ public class OrganizationResource implements IOrganizationResource {
         return eventFacade.getOrganizationOutgoingEventsByType(organizationId, type);
     }
 
-    @Override
+
     @ApiOperation(value = "Clear an incoming notification",
             notes = "Call this endpoint to delete a notification addressed to the organization. Notifications with a \"Pending\" status cannot be deleted")
     @ApiResponses({
@@ -2203,7 +2201,7 @@ public class OrganizationResource implements IOrganizationResource {
         eventFacade.deleteOrgEvent(organizationId, id);
     }
 
-    @Override
+
     @ApiOperation(value = "Cancel an pending contract request",
             notes = "Call this endpoint to cancel a pending contract request.")
     @ApiResponses({
@@ -2226,7 +2224,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.cancelContractRequest(organizationId, serviceId, version, request.getOrganizationId(), request.getApplicationId(), request.getVersion());
     }
 
-    @Override
+
     @ApiOperation(value = "Cancel a pending membership request",
             notes = "Call this endpoint to cancel a pending membership request")
     @ApiResponses({
@@ -2241,7 +2239,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.cancelMembershipRequest(organizationId);
     }
 
-    @Override
+
     @ApiOperation(value = "Request a Service Contract",
             notes = "Use this endpoint to request a Contract between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Service.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
@@ -2264,7 +2262,7 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.requestContract(organizationId, serviceId, version, bean);
     }
 
-    @Override
+
     @ApiOperation(value = "Reject an Application's Contract Request",
             notes = "Use this endpoint to reject a Contract request between an Application and the Service.  In order to reject a request, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
@@ -2284,7 +2282,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.rejectContractRequest(organizationId, applicationId, version, response);
     }
 
-    @Override
+
     @ApiOperation(value = "Accept an Application's Contract Request",
             notes = "Use this endpoint to accpet a Contract request between an Application and the Service.  In order to create a Contract, the caller must specify the Organization, ID, and Version of the Application.  Additionally the caller must specify the ID of the Plan it wished to use for the Contract with the Service.")
     @ApiResponses({
@@ -2323,7 +2321,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.deleteServiceVersion(organizationId, serviceId, version);
     }
 
-    @Override
+
     @ApiOperation(value = "Get Service tags")
     @ApiResponses({
             @ApiResponse(code = 200, response = ServiceTagsBean.class, message = "Service tags")
@@ -2337,7 +2335,7 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getServiceTags(organizationId, serviceId);
     }
 
-    @Override
+
     @ApiOperation("Update Service Tags")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
@@ -2355,7 +2353,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.updateServiceTags(organizationId, serviceId, tags);
     }
 
-    @Override
+
     @ApiOperation("Delete Service Tag")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
@@ -2373,7 +2371,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.deleteServiceTag(organizationId, serviceId, tag);
     }
 
-    @Override
+
     @ApiOperation("Add Service Tag")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
@@ -2391,7 +2389,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.addServiceTag(organizationId, serviceId, tag);
     }
 
-    @Override
+
     @ApiOperation("Retrieve Application Version Oauth2 Tokens")
     @ApiResponses({
             @ApiResponse(code = 200, responseContainer = "List", response = OAuth2TokenPaginationBean.class, message = "OAuth2 Tokens")
@@ -2407,7 +2405,7 @@ public class OrganizationResource implements IOrganizationResource {
         return orgFacade.getApplicationVersionOAuthTokens(organizationId, applicationId, version, offset);
     }
 
-    @Override
+
     @ApiOperation("Add branding to service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
@@ -2423,7 +2421,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.addServiceBranding(organizationId, serviceId, branding.getId());
     }
 
-    @Override
+
     @ApiOperation("Remove branding from service")
     @ApiResponses({
             @ApiResponse(code = 204, message = "successful, no content")
@@ -2441,7 +2439,7 @@ public class OrganizationResource implements IOrganizationResource {
         orgFacade.removeServiceBranding(organizationId, serviceId, brandingId);
     }
 
-    @Override
+
     @ApiOperation(value = "Toggle Rate-Limit", notes = "Toggles the rate limit on a service, if present, for an application.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Successful, no content"),

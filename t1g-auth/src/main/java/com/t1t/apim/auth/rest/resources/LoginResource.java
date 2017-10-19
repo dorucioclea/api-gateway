@@ -101,8 +101,25 @@ public class LoginResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response exchangeExternalToken(@ApiParam JWT jwt) {
-        Preconditions.checkNotNull(jwt, Messages.i18n.format(ErrorCodes.REQUEST_NULL));
+        Preconditions.checkNotNull(jwt, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
+        Preconditions.checkArgument(StringUtils.isNotBlank(jwt.getToken()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "token"));
         return Response.ok().entity(userFacade.exchangeExternalToken(jwt.getToken())).build();
+    }
+
+    @ApiOperation(value = "Refresh token",
+            notes = "Use this endpoint to refresh a still valid token")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = JWT.class, message = "T1G token"),
+            @ApiResponse(code = 400, response = ErrorBean.class, message = "Invalid token")
+    })
+    @POST
+    @Path("/token/refresh")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response refreshToken(@ApiParam JWT jwt) {
+        Preconditions.checkNotNull(jwt, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
+        Preconditions.checkArgument(StringUtils.isNotBlank(jwt.getToken()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "token"));
+        return Response.ok().entity(userFacade.refreshToken(jwt.getToken())).build();
     }
 
 }

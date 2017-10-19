@@ -7,8 +7,6 @@ import com.t1t.apim.exceptions.NotAuthorizedException;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.DefaultsFacade;
 import com.t1t.apim.maintenance.MaintenanceController;
-import com.t1t.apim.rest.resources.IAdminResource;
-import com.t1t.apim.rest.resources.IMaintenanceResource;
 import com.t1t.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,7 +27,7 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/admin", description = "The Admin API.")
 @Path("/admin")
 @ApplicationScoped
-public class AdminResource implements IAdminResource, IMaintenanceResource {
+public class AdminResource {
 
 
     @Inject
@@ -39,7 +37,7 @@ public class AdminResource implements IAdminResource, IMaintenanceResource {
     @Inject
     private MaintenanceController maintenance;
 
-    @Override
+
     @ApiOperation(value = "Update or set the default service terms")
     @ApiResponses({
             @ApiResponse(code = 200, response = DefaultServiceTermsBean.class, message = "Default terms updated")
@@ -55,7 +53,7 @@ public class AdminResource implements IAdminResource, IMaintenanceResource {
         return defFacade.updateDefaultServiceTerms(bean);
     }
 
-    @Override
+
     @ApiOperation(value = "Enable maintenance mode",
             notes = "If the maintenance mode is enabled, only HTTP safe methods will be allowed through. Unsafe methods will return a MaintenanceException with the message provided in this call.")
     @ApiResponses({
@@ -69,7 +67,7 @@ public class AdminResource implements IAdminResource, IMaintenanceResource {
         maintenance.enableMaintenanceMode(message);
     }
 
-    @Override
+
     @ApiOperation(value = "Disable maintenance mode")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Maintenance mode disabled")
@@ -81,7 +79,7 @@ public class AdminResource implements IAdminResource, IMaintenanceResource {
         maintenance.disableMaintenanceMode();
     }
 
-    @Override
+
     @ApiOperation(value = "Update maintenance message", notes = "Update the maintenance mode message if it is enabled.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Maintenance message updated")

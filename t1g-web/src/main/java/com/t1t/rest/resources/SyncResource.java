@@ -1,7 +1,6 @@
 package com.t1t.rest.resources;
 
 import com.t1t.apim.facades.SyncFacade;
-import com.t1t.apim.rest.resources.ISyncResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -22,12 +21,12 @@ import javax.ws.rs.core.Response;
 @Api(value = "/sync", description = "Endpoints that serve to sync the manager data with the gateway")
 @Path("/sync")
 @ApplicationScoped
-public class SyncResource implements ISyncResource {
+public class SyncResource {
 
     @Inject
     private SyncFacade syncFacade;
 
-    @Override
+
     @ApiOperation(value = "Sync everything",
             notes = "Sync everything")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -37,7 +36,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Sync services",
             notes = "Sync services")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -48,7 +47,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Sync applications",
             notes = "Sync applications")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -59,7 +58,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Sync all policies",
             notes = "Sync all policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -70,7 +69,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Sync service policies",
             notes = "Sync service policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -81,7 +80,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Sync contracts policies",
             notes = "Sync contracts policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -92,7 +91,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Sync consent policies",
             notes = "Sync consent policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -103,7 +102,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Sync plan policies",
             notes = "Sync plan policies")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -114,7 +113,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Backup tokens for rebuild",
             notes = "Backup oauth tokens prior to a gateway rebuild")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -125,7 +124,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Sync tokens",
             notes = "Sync tokens")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})
@@ -136,7 +135,7 @@ public class SyncResource implements ISyncResource {
         return Response.noContent().build();
     }
 
-    @Override
+
     @ApiOperation(value = "Delete back",
             notes = "Sync everything")
     @ApiResponses({@ApiResponse(code = 204, message = "sync complete")})

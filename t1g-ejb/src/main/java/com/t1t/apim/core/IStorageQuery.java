@@ -10,6 +10,7 @@ import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.gateways.GatewayBean;
+import com.t1t.apim.beans.idp.IdpIssuerBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.operation.OperatingBean;
@@ -1163,4 +1164,11 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     public PolicyBean getContractPolicyForServiceVersionByDefinition(ServiceVersionBean svb, ApplicationVersionBean avb, PolicyDefinitionBean polDef) throws StorageException;
+
+    /**
+     * Returns a list of all trusted IDP issuers
+     *
+     * @throws StorageException
+     */
+    List<IdpIssuerBean> getAllIdpIssuers() throws StorageException;
 }

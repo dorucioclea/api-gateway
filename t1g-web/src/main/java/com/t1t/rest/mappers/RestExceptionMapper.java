@@ -1,4 +1,4 @@
-package com.t1t.apim.rest.impl.mappers;
+package com.t1t.rest.mappers;
 
 import com.t1t.apim.beans.exceptions.ErrorBean;
 import com.t1t.apim.exceptions.AbstractRestException;

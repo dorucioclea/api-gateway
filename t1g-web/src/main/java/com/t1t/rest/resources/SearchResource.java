@@ -16,9 +16,8 @@ import com.t1t.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.apim.exceptions.OrganizationNotFoundException;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.SearchFacade;
-import com.t1t.apim.rest.impl.util.SearchCriteriaUtil;
-import com.t1t.apim.rest.resources.ISearchResource;
 import com.t1t.apim.security.ISecurityContext;
+import com.t1t.util.SearchCriteriaUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -34,7 +33,7 @@ import java.util.Set;
 @Api(value = "/search", description = "The Search API.")
 @Path("/search")
 @ApplicationScoped
-public class SearchResource implements ISearchResource {
+public class SearchResource {
     @Inject
     private SearchFacade searchFacade;
     @Inject
@@ -137,7 +136,7 @@ public class SearchResource implements ISearchResource {
         return searchFacade.searchServicesPublishedInCategories(catSearch.getCategories());
     }
 
-    @Override
+
     @ApiOperation(value = "Search for latest Service versions within given category list",
             notes = "Use this endpoint to search for the latest PUBLISHED service versions, having a category defined in the given category list.")
     @ApiResponses({
@@ -160,7 +159,7 @@ public class SearchResource implements ISearchResource {
     @Path("/services/versions/latest")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Override
+
     public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria) throws OrganizationNotFoundException, InvalidSearchCriteriaException {
         return searchFacade.searchLatestServiceVersions(criteria);
     }
