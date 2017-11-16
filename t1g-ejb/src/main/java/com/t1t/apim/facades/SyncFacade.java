@@ -46,8 +46,6 @@ public class SyncFacade {
     @Inject
     private IStorage storage;
     @Inject
-    private IIdmStorage idmStorage;
-    @Inject
     private IStorageQuery query;
     @Inject
     private GatewayFacade gatewayFacade;

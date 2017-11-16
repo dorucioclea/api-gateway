@@ -599,6 +599,7 @@ INSERT INTO idp_issuers (issuer, jwks_uri) VALUES
 
 DELETE FROM managed_application_keys WHERE managed_app_id IN (SELECT id FROM managed_applications WHERE prefix = 'acpaas');
 DELETE FROM managed_applications WHERE prefix = 'acpaas';
+DELETE FROM policies WHERE organization_id = 'acpaas';
 
 -- These sections are for breaking changes. We attempt to always be able to roll back one version/release
 
