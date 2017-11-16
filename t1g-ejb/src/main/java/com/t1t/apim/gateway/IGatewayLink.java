@@ -3,6 +3,8 @@ package com.t1t.apim.gateway;
 import com.t1t.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.apim.beans.gateways.Gateway;
+import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
+import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerException;
@@ -12,6 +14,7 @@ import com.t1t.kong.model.*;
 import org.elasticsearch.gateway.GatewayException;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Links the design time API with a Gateway.  This allows the design time API
@@ -22,8 +25,9 @@ public interface IGatewayLink {
 
     /**
      * Gets the current status of the gateway.
+     *
      * @return the system status
-     * @throws GatewayAuthenticationException when unable to authenticate with gateway 
+     * @throws GatewayAuthenticationException when unable to authenticate with gateway
      */
     public SystemStatus getStatus() throws GatewayAuthenticationException;
 
@@ -54,9 +58,10 @@ public interface IGatewayLink {
 
     /**
      * Publishes a new {@link Service}.
+     *
      * @param service the service being published
-     * @throws PublishingException when unable to publish service
-     * @throws GatewayAuthenticationException when unable to authenticate with gateway  
+     * @throws PublishingException            when unable to publish service
+     * @throws GatewayAuthenticationException when unable to authenticate with gateway
      */
     public Service publishService(Service service) throws PublishingException, GatewayAuthenticationException;
 
@@ -67,7 +72,7 @@ public interface IGatewayLink {
      * @throws PublishingException
      * @throws GatewayAuthenticationException
      */
-    public void publishGatewayOAuthEndpoint(Gateway gateway)throws PublishingException, GatewayAuthenticationException;
+    public void publishGatewayOAuthEndpoint(Gateway gateway) throws PublishingException, GatewayAuthenticationException;
 
     /**
      * Add the OAuth scopes enabled on the api to the centralized OAuth endpoints.
@@ -76,10 +81,11 @@ public interface IGatewayLink {
      * @throws PublishingException
      * @throws GatewayAuthenticationException
      */
-    public void addGatewayOAuthScopes(String serviceId)throws PublishingException, GatewayAuthenticationException;
+    public void addGatewayOAuthScopes(String serviceId) throws PublishingException, GatewayAuthenticationException;
 
     /**
      * Removes the OAuth scopes from the given api (oauth policies) on the central oauth api
+     *
      * @param serviceId
      * @throws PublishingException
      * @throws GatewayAuthenticationException
@@ -88,41 +94,45 @@ public interface IGatewayLink {
 
     /**
      * Retires (removes) a {@link Service} from the registry.
+     *
      * @param service the service to retire/remove
-     * @throws PublishingException when unable to retire service
-     * @throws GatewayAuthenticationException when unable to authenticate with gateway  
+     * @throws PublishingException            when unable to retire service
+     * @throws GatewayAuthenticationException when unable to authenticate with gateway
      */
     public void retireService(Service service) throws PublishingException, GatewayAuthenticationException;
-    
+
     /**
      * Registers a new {@link Application}.  An application is ultimately a collection of
      * contracts to managed services.
+     *
      * @param application the application being registered
      * @return a map with a contract as key and the plugin configs for that contract as value
-     * @throws RegistrationException when unable to register application
-     * @throws GatewayAuthenticationException when unable to authenticate with gateway  
-     * @throws PublishingException when unable to publish application
+     * @throws RegistrationException          when unable to register application
+     * @throws GatewayAuthenticationException when unable to authenticate with gateway
+     * @throws PublishingException            when unable to publish application
      */
     public Map<Contract, KongPluginConfigList> registerApplication(Application application) throws RegistrationException, GatewayAuthenticationException;
 
     /**
      * Removes an {@link Application} from the registry.
+     *
      * @param application the application to remove
-     * @throws RegistrationException when unable to register
-     * @throws GatewayAuthenticationException when unable to authenticate with gateway  
+     * @throws RegistrationException          when unable to register
+     * @throws GatewayAuthenticationException when unable to authenticate with gateway
      */
     public void unregisterApplication(Application application) throws RegistrationException, GatewayAuthenticationException;
 
     /**
      * Gets the service endpoint from the gateway.
-     * @param basePath the base path declared in the service definition
+     *
+     * @param basePath       the base path declared in the service definition
      * @param organizationId the org id
-     * @param serviceId the service id
-     * @param version the version
+     * @param serviceId      the service id
+     * @param version        the version
      * @return the service endpoint
      * @throws GatewayAuthenticationException when unable to authenticate with gateway
      */
-    public ServiceEndpoint getServiceEndpoint(String basePath, String organizationId, String serviceId, String version)
+    public ServiceEndpoint getServiceEndpoint(Set<String> basePaths, String organizationId, String serviceId, String version)
             throws GatewayAuthenticationException;
 
     /**
@@ -133,7 +143,7 @@ public interface IGatewayLink {
      * @param consumer
      * @throws GatewayAuthenticationException
      */
-    public void registerAppConsumer(Application application, KongConsumer consumer)throws GatewayAuthenticationException;
+    public void registerAppConsumer(Application application, KongConsumer consumer) throws GatewayAuthenticationException;
 
     /**
      * Close down the gateway link when it's no longer needed.
@@ -156,7 +166,7 @@ public interface IGatewayLink {
      * @param id
      * @throws ConsumerException
      */
-    public void deleteConsumer(String id)throws ConsumerException;
+    public void deleteConsumer(String id) throws ConsumerException;
 
     /**
      * Retrieve a consumer information with it's API key.
@@ -170,7 +180,7 @@ public interface IGatewayLink {
     /**
      * Creates a new consumer.
      *
-     * @param userId    unique username used by Kong
+     * @param userId unique username used by Kong
      * @return
      * @throws ConsumerException
      */
@@ -184,13 +194,13 @@ public interface IGatewayLink {
      * @return
      * @throws ConsumerAlreadyExistsException
      */
-    public KongConsumer createConsumerWithCustomId(String customId)throws ConsumerAlreadyExistsException;
+    public KongConsumer createConsumerWithCustomId(String customId) throws ConsumerAlreadyExistsException;
 
     /**
      * Create a new consumer
      *
-     * @param userId    unique username used by Kong
-     * @param customId  customId for the API service to use
+     * @param userId   unique username used by Kong
+     * @param customId customId for the API service to use
      * @return
      * @throws ConsumerAlreadyExistsException
      */
@@ -208,6 +218,7 @@ public interface IGatewayLink {
 
     /**
      * Adds key auth to a consumer, generating a new API Key.
+     *
      * @param id
      * @return
      * @throws ConsumerException
@@ -216,15 +227,17 @@ public interface IGatewayLink {
 
     /**
      * Add key auth to a consumer with given API Key.
+     *
      * @param id
      * @param apiKey
      * @return
      * @throws ConsumerException
      */
-    public KongPluginKeyAuthResponse addConsumerKeyAuth(String id,String apiKey) throws ConsumerException;
+    public KongPluginKeyAuthResponse addConsumerKeyAuth(String id, String apiKey) throws ConsumerException;
 
     /**
      * Adds JWT to a consumer, generating a new key/secret on the API Engine.
+     *
      * @param consumerName
      * @param publicRsaKey
      * @return
@@ -249,10 +262,11 @@ public interface IGatewayLink {
      * @param apiKey
      * @throws ConsumerException
      */
-    public void deleteConsumerKeyAuth(String id, String apiKey)throws ConsumerException;
+    public void deleteConsumerKeyAuth(String id, String apiKey) throws ConsumerException;
 
     /**
      * Adds basic authentication with a username and password
+     *
      * @param userId
      * @param userLoginName
      * @param userLoginPassword
@@ -263,6 +277,7 @@ public interface IGatewayLink {
 
     /**
      * Returns a list of basic credentials for a given user
+     *
      * @param id
      * @return
      * @throws ConsumerException
@@ -358,6 +373,7 @@ public interface IGatewayLink {
 
     /**
      * Updates a plugin on the gateway
+     *
      * @param config
      * @return
      */
@@ -374,6 +390,7 @@ public interface IGatewayLink {
 
     /**
      * Remove a consumer from a service's ACL
+     *
      * @param consumerId
      * @param pluginId
      */
@@ -381,12 +398,14 @@ public interface IGatewayLink {
 
     /**
      * Get a list of consumers
+     *
      * @return KongConsumerList
      */
     public KongConsumerList getConsumers();
 
     /**
      * Get a list of consumers
+     *
      * @param offset
      * @return
      */
@@ -394,6 +413,7 @@ public interface IGatewayLink {
 
     /**
      * Update or create a consumer
+     *
      * @param consumer
      * @return
      */
@@ -408,7 +428,7 @@ public interface IGatewayLink {
      * @param upstreamURL
      * @return KongApi
      */
-    public KongApi updateApiUpstreamURL(String organizationId, String serviceId, String version, String upstreamURL);
+    public KongApi updateServiceVersionOnGateway(ServiceVersionBean svb);
 
     /**
      * @return the gateway link's id
@@ -417,6 +437,7 @@ public interface IGatewayLink {
 
     /**
      * Delete a service plugin
+     *
      * @param KongApiId
      * @param pluginId
      */
@@ -424,6 +445,7 @@ public interface IGatewayLink {
 
     /**
      * Update a consumer on the gateway
+     *
      * @param kongConsumerId
      * @return
      */
@@ -431,28 +453,32 @@ public interface IGatewayLink {
 
     /**
      * Retrieve a consumer's OAuth2 tokens
+     *
      * @param consumerOAuthCredentialId
-     * @param offset base64 encoded page number
+     * @param offset                    base64 encoded page number
      * @return
      */
     public KongOAuthTokenList getConsumerOAuthTokenList(String consumerOAuthCredentialId, String offset);
 
     /**
      * Delete a token on the gateway corresponding to the id
+     *
      * @param tokenId
      */
     public void revokeOAuthToken(String tokenId);
 
     /**
      * Retrieve oauth tokens by authenticated user id
+     *
      * @param authenticatedUserId
-     * @param offset base64 encoded page number
+     * @param offset              base64 encoded page number
      * @return
      */
     public KongOAuthTokenList getConsumerOAuthTokenListByUserId(String authenticatedUserId, String offset);
 
     /**
      * Retrieve OAuth information based on credential id
+     *
      * @param credentialId
      * @return
      */
@@ -460,6 +486,7 @@ public interface IGatewayLink {
 
     /**
      * Retrieve an OAuth token from the gateway
+     *
      * @param tokenId
      * @return
      */
@@ -467,6 +494,7 @@ public interface IGatewayLink {
 
     /**
      * Delete a consumer's JWT credential
+     *
      * @param consumerId
      * @param credentialId
      */
@@ -474,6 +502,7 @@ public interface IGatewayLink {
 
     /**
      * Return a service plugin
+     *
      * @param pluginId
      * @return
      */
@@ -481,6 +510,7 @@ public interface IGatewayLink {
 
     /**
      * Creates a service policy/plugin on the gateway
+     *
      * @param organizationId
      * @param serviceId
      * @param version
@@ -492,18 +522,21 @@ public interface IGatewayLink {
 
     /**
      * Create a service branding api on the gateway
+     *
      * @param service
      */
     public void createServiceBranding(Service service, ServiceBrandingBean branding);
 
     /**
      * Delete an API on the gateway
+     *
      * @param apiName
      */
     public void deleteApi(String apiName);
 
     /**
      * Get the gateway OAuth token corresponding to an access token
+     *
      * @param token
      * @return
      */
@@ -511,18 +544,21 @@ public interface IGatewayLink {
 
     /**
      * Revoke an OAuth token on the gateway corresponding to the access token
+     *
      * @param accessToken
      */
     public void revokeGatewayOAuthToken(String accessToken);
 
     /**
      * Retrieve all oauth tokens on the gateway
+     *
      * @param offset
      */
     public KongOAuthTokenList getAllOAuth2Tokens(String offset);
 
     /**
      * Create a token on the gateway
+     *
      * @param token
      * @return
      */
@@ -530,6 +566,7 @@ public interface IGatewayLink {
 
     /**
      * Create an api on the gateway
+     *
      * @param api
      * @return
      */
@@ -537,6 +574,7 @@ public interface IGatewayLink {
 
     /**
      * Create or update the api on the gateway
+     *
      * @param api
      * @return
      */
@@ -544,6 +582,7 @@ public interface IGatewayLink {
 
     /**
      * Create an api plugin on the gateway
+     *
      * @param apiId
      * @param plugin
      * @return
@@ -552,6 +591,7 @@ public interface IGatewayLink {
 
     /**
      * Update an consumer acl plugin on the gateway
+     *
      * @param acl
      * @return
      */
@@ -559,6 +599,7 @@ public interface IGatewayLink {
 
     /**
      * Retrieve a consumer's acl plugin
+     *
      * @param consumerId
      * @param kongPluginId
      * @return
@@ -568,6 +609,7 @@ public interface IGatewayLink {
     /**
      * Return a consumer based on it's custom id. Returns null if no consumer is found, returns the consumer with the latest
      * creation date if multiple are present
+     *
      * @param customId
      * @return
      */
@@ -575,6 +617,7 @@ public interface IGatewayLink {
 
     /**
      * Update a plugin on the gateway
+     *
      * @param plugin
      * @return
      */
@@ -582,6 +625,7 @@ public interface IGatewayLink {
 
     /**
      * Retrieves plugins for a given consumer id
+     *
      * @param consumerId
      * @return
      */
@@ -589,6 +633,7 @@ public interface IGatewayLink {
 
     /**
      * Retrieves all consumer acl groups
+     *
      * @param consumerId
      * @return
      */
@@ -596,6 +641,7 @@ public interface IGatewayLink {
 
     /**
      * Retrieve consumer-specific api plugin
+     *
      * @param consumerId
      * @param apiId
      * @return
@@ -603,12 +649,52 @@ public interface IGatewayLink {
     public KongPluginConfigList getConsumerSpecificApiPlugins(String consumerId, String apiId);
 
     /**
-     * Adds JWT credentials to a consumer with the given key and public key
-     * @param consumerName
-     * @param key
-     * @param publicRsaKey
+     * Deletes an upstream virtual host on the gateway
+     *
+     * @param upstreamVirtualHost
+     */
+    public void deleteServiceUpstream(String upstreamVirtualHost);
+
+    /**
+     * Creates an upstream virtual host and its targets on the gateway
+     *
+     * @param organizationId
+     * @param serviceId
+     * @param version
+     */
+    public void createServiceUpstream(String organizationId, String serviceId, String version);
+
+    /**
+     * Updates an upstream virtual host's targets on the gateway
+     *
+     * @param upstreamVirtualHost
+     * @param target
+     */
+    public void createOrUpdateServiceUpstreamTarget(String upstreamVirtualHost, ServiceUpstreamTargetBean target);
+
+    /**
+     * Retrieve the Kong upstream for a service version
+     *
+     * @param organizationId the organization ID
+     * @param serviceId      the service ID
+     * @param version        the version ID
+     * @return the Kong upstream
+     */
+    public KongUpstream getServiceUpstream(String organizationId, String serviceId, String version);
+
+    /**
+     * Retrieve the upstream for a service using the org.service.version unique identifier
+     *
+     * @param apiId the org.service.version unique identifier
+     * @return the kong upstream
+     */
+    public KongUpstream getServiceUpstream(String apiId);
+
+    /**
+     * Toggle a plugin to enabled if disabled and vice versa. Returns the enabled value if the plugin exists, null if it doesn't
+     *
+     * @param kongPluginId
      * @return
      */
-    public KongPluginJWTResponse addConsumerJWT(String consumerName, String key, String publicRsaKey);
-
+    Boolean togglePlugin(String kongPluginId);
 }

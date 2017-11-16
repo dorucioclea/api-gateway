@@ -4,7 +4,6 @@ package com.t1t.apim.exceptions;
 /**
  * Thrown when trying to get, update, or remove a plan version that does not
  * exist.
- *
  */
 public class PlanVersionNotFoundException extends AbstractNotFoundException {
 
@@ -15,15 +14,16 @@ public class PlanVersionNotFoundException extends AbstractNotFoundException {
      */
     public PlanVersionNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public PlanVersionNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */

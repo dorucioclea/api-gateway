@@ -17,6 +17,7 @@ public class BasicAuthOptions extends AbstractOptions {
 
     /**
      * Constructor. Parses options immediately.
+     *
      * @param options the options
      */
     public BasicAuthOptions(Map<String, String> options) {

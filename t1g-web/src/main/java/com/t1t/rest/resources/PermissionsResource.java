@@ -3,12 +3,11 @@ package com.t1t.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.idm.UserPermissionsBean;
 import com.t1t.apim.core.IIdmStorage;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.NotAuthorizedException;
 import com.t1t.apim.exceptions.UserNotFoundException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.PermissionsFacade;
-import com.t1t.apim.rest.resources.IPermissionsResource;
 import com.t1t.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,13 +26,15 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/permissions", description = "The Permissions API.")
 @Path("/permissions")
 @ApplicationScoped
-public class PermissionsResource implements IPermissionsResource {
+public class PermissionsResource {
 
     @Inject
     IIdmStorage idmStorage;
     @Inject
     ISecurityContext securityContext;
-    @Inject private PermissionsFacade permissionsFacade;
+    @Inject
+    private PermissionsFacade permissionsFacade;
+
     /**
      * Constructor.
      */

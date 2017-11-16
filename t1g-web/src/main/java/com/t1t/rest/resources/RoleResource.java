@@ -7,13 +7,12 @@ import com.t1t.apim.beans.idm.UpdateRoleBean;
 import com.t1t.apim.beans.search.SearchCriteriaBean;
 import com.t1t.apim.beans.search.SearchResultsBean;
 import com.t1t.apim.core.IIdmStorage;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.NotAuthorizedException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.RoleFacade;
-import com.t1t.apim.rest.impl.util.SearchCriteriaUtil;
-import com.t1t.apim.rest.resources.IRoleResource;
 import com.t1t.apim.security.ISecurityContext;
+import com.t1t.util.SearchCriteriaUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -29,13 +28,15 @@ import java.util.List;
 @Api(value = "/roles", description = "The Role API. Used to manage roles. Note: not used to manage users or user membership in roles. This API simply provides a way to create and manage role definitions. Typically this API is only available to system admins.")
 @Path("/roles")
 @ApplicationScoped
-public class RoleResource implements IRoleResource {
-    
+public class RoleResource {
+
     @Inject
     IIdmStorage idmStorage;
     @Inject
     ISecurityContext securityContext;
-    @Inject private RoleFacade roleFacade;
+    @Inject
+    private RoleFacade roleFacade;
+
     /**
      * Constructor.
      */
@@ -100,7 +101,7 @@ public class RoleResource implements IRoleResource {
     @ApiOperation(value = "List all Roles",
             notes = "This endpoint lists all of the roles currently defined in apiman.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = SearchCriteriaBean.class, message = "A list of roles.")
+            @ApiResponse(code = 200, responseContainer = "List", response = SearchCriteriaBean.class, message = "A list of roles.")
     })
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -111,7 +112,7 @@ public class RoleResource implements IRoleResource {
     @ApiOperation(value = "Search for Roles",
             notes = "This endpoint provides a way to search for roles. The search criteria is provided in the body of the request, including filters, order-by, and paging information.")
     @ApiResponses({
-            @ApiResponse(code = 200,response = SearchResultsBean.class, message = "A list of roles.")
+            @ApiResponse(code = 200, response = SearchResultsBean.class, message = "A list of roles.")
     })
     @POST
     @Path("/search")

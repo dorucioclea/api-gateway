@@ -3,10 +3,9 @@ package com.t1t.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.actions.ActionBean;
 import com.t1t.apim.beans.actions.SwaggerDocBean;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ActionException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.ActionFacade;
-import com.t1t.apim.rest.resources.IActionResource;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -26,9 +25,10 @@ import javax.ws.rs.core.MediaType;
 @Api(value = "/actions", description = "The Action API.  This API allows callers to perform actions on various entities - actions other than the standard REST crud actions.")
 @Path("/actions")
 @ApplicationScoped
-public class ActionResource implements IActionResource {
+public class ActionResource {
 
-    @Inject private ActionFacade actionFacade;
+    @Inject
+    private ActionFacade actionFacade;
 
     /**
      * Constructor.

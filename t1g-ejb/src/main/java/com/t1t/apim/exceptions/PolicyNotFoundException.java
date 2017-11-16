@@ -1,7 +1,6 @@
 package com.t1t.apim.exceptions;
 
 
-
 /**
  * Thrown when trying to get, update, or remove a policy that does not exist.
  */
@@ -17,6 +16,7 @@ public class PolicyNotFoundException extends AbstractNotFoundException {
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public PolicyNotFoundException(String message) {

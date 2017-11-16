@@ -6,13 +6,12 @@ import com.t1t.apim.beans.policies.UpdatePolicyDefinitionBean;
 import com.t1t.apim.beans.summary.PolicyDefinitionSummaryBean;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.NotAuthorizedException;
 import com.t1t.apim.exceptions.PolicyDefinitionAlreadyExistsException;
 import com.t1t.apim.exceptions.PolicyDefinitionNotFoundException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.PolicyDefinitionFacade;
-import com.t1t.apim.rest.resources.IPolicyDefinitionResource;
 import com.t1t.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,7 +28,7 @@ import java.util.List;
 @Api(value = "/policyDefs", description = "The Policy Definition API.")
 @Path("/policyDefs")
 @ApplicationScoped
-public class PolicyDefinitionResource implements IPolicyDefinitionResource {
+public class PolicyDefinitionResource {
 
     @Inject
     IStorage storage;

@@ -1,7 +1,6 @@
 package com.t1t.apim.exceptions;
 
 
-
 /**
  * Thrown when trying to create a Role that already exists.
  */
@@ -14,15 +13,16 @@ public class RoleAlreadyExistsException extends AbstractAlreadyExistsException {
      */
     public RoleAlreadyExistsException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public RoleAlreadyExistsException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -30,7 +30,7 @@ public class RoleAlreadyExistsException extends AbstractAlreadyExistsException {
     public int getErrorCode() {
         return ErrorCodes.ROLE_ALREADY_EXISTS;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

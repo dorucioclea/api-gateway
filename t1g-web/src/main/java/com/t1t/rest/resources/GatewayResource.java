@@ -7,13 +7,12 @@ import com.t1t.apim.beans.gateways.NewGatewayBean;
 import com.t1t.apim.beans.gateways.UpdateGatewayBean;
 import com.t1t.apim.beans.summary.GatewaySummaryBean;
 import com.t1t.apim.beans.summary.GatewayTestResultBean;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.GatewayAlreadyExistsException;
 import com.t1t.apim.exceptions.GatewayNotFoundException;
 import com.t1t.apim.exceptions.NotAuthorizedException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.GatewayFacade;
-import com.t1t.apim.rest.resources.IGatewayResource;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.util.DtoFactory;
 import io.swagger.annotations.Api;
@@ -31,10 +30,12 @@ import java.util.List;
 @Api(value = "/gateways", description = "The Gateway API.")
 @Path("/gateways")
 @ApplicationScoped
-public class GatewayResource implements IGatewayResource {
+public class GatewayResource {
 
-    @Inject private ISecurityContext securityContext;
-    @Inject private GatewayFacade gatewayFacade;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private GatewayFacade gatewayFacade;
 
     @ApiOperation(value = "Test a Gateway",
             notes = "This endpoint is used to test the Gateway his settings prior to either creating or updating it.  The information will be used to attempt to create a link between the API Manager and the Gateway, by simply trying to ping the Gateway his status endpoint.")
@@ -105,7 +106,7 @@ public class GatewayResource implements IGatewayResource {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         Preconditions.checkArgument(!StringUtils.isEmpty(gatewayId), Messages.i18n.format("emptyValue", "Gateway ID"));
         Preconditions.checkNotNull(bean, Messages.i18n.format("nullValue", "Updated gateway"));
-        gatewayFacade.update(gatewayId,bean);
+        gatewayFacade.update(gatewayId, bean);
     }
 
     @ApiOperation(value = "Delete a Gateway",

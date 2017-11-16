@@ -3,6 +3,8 @@ package com.t1t.util;
 import com.t1t.apim.gateway.dto.Service;
 import org.junit.Test;
 
+import java.util.Collections;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -18,13 +20,13 @@ public class GatewayPathUtilitiesTest {
     public void testGenerateGatewayContextPathByService() throws Exception {
         Service tempService = new Service();
         tempService.setOrganizationId(ORGID);
-        tempService.setBasepath(BASEPATH);
+        tempService.setBasepaths(Collections.singleton(BASEPATH));
         tempService.setVersion(VERSION);
         assertEquals(GatewayPathUtilities.generateGatewayContextPath(tempService), PATH);
     }
 
     @Test
     public void testGenerateGatewayContextPathByStringParams() throws Exception {
-        assertEquals(GatewayPathUtilities.generateGatewayContextPath(ORGID,BASEPATH,VERSION),PATH);
+        assertEquals(GatewayPathUtilities.generateGatewayContextPath(ORGID, Collections.singleton(BASEPATH), VERSION), PATH);
     }
 }

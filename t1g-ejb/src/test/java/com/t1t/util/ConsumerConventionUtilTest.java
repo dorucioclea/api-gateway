@@ -61,7 +61,7 @@ public class ConsumerConventionUtilTest {
         List<String> availableScopes = new ArrayList<>();
         availableScopes.add("int");
         AppIdentifier appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(tobeParsed);
-        assertEquals(appExpectedId,appIdentifier);
+        assertEquals(appExpectedId, appIdentifier);
     }
 
     @Test

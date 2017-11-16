@@ -3,7 +3,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to get, update, or remove a plugin that does not exist.
- *
  */
 public class PluginNotFoundException extends AbstractNotFoundException {
 
@@ -14,32 +13,35 @@ public class PluginNotFoundException extends AbstractNotFoundException {
      */
     public PluginNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
-     */ 
+     */
     public PluginNotFoundException(String message) {
         super(message);
     }
 
     /**
      * Constructor.
+     *
      * @param cause the exception cause
      */
     public PluginNotFoundException(Throwable cause) {
         super(cause);
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
-     * @param cause the exception cause
+     * @param cause   the exception cause
      */
     public PluginNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -47,7 +49,7 @@ public class PluginNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.PLUGIN_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

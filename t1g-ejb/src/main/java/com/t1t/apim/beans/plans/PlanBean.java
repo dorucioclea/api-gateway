@@ -10,7 +10,6 @@ import java.util.Date;
 
 /**
  * Models an application.
- *
  */
 @Entity
 @Table(name = "plans")
@@ -23,19 +22,19 @@ public class PlanBean implements Serializable {
     @Id
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="organization_id", referencedColumnName="id")
+            @JoinColumn(name = "organization_id", referencedColumnName = "id")
     })
     private OrganizationBean organization;
     @Id
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String id;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String name;
-    @Column(updatable=true, nullable=true, length=512)
+    @Column(updatable = true, nullable = true, length = 512)
     private String description;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
 
     /**

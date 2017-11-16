@@ -13,8 +13,10 @@ import java.io.ObjectOutputStream;
  */
 public class ObjectCloner {
     private static final Logger _LOG = LoggerFactory.getLogger(ObjectCloner.class.getName());
+
     //prohibit instantiation
-    private ObjectCloner() {}
+    private ObjectCloner() {
+    }
 
     // returns a deep copy of an object
     static public Object deepCopy(Object oldObj) throws Exception {
@@ -29,7 +31,7 @@ public class ObjectCloner {
             ois = new ObjectInputStream(bin);
             return ois.readObject();
         } catch (Exception e) {
-            _LOG.error("Exception in ObjectCloner: {}",e.getMessage());
+            _LOG.error("Exception in ObjectCloner: {}", e.getMessage());
             throw (e);
         } finally {
             oos.close();

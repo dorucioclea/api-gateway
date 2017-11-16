@@ -5,7 +5,6 @@ import java.util.Set;
 
 /**
  * All of a user's permissions.
- *
  */
 public class UserPermissionsBean implements Serializable {
 

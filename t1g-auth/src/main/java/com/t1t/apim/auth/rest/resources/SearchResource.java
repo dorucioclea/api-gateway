@@ -16,9 +16,9 @@ import com.t1t.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.apim.beans.summary.ServiceVersionSummaryBean;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.NotAuthorizedException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.OrganizationFacade;
 import com.t1t.apim.facades.SearchFacade;
 import com.t1t.apim.util.SearchCriteriaUtil;
@@ -40,10 +40,14 @@ import java.util.Set;
 @ApplicationScoped
 public class SearchResource {
 
-    @Inject IStorage storage;
-    @Inject IStorageQuery query;
-    @Inject private SearchFacade searchFacade;
-    @Inject private OrganizationFacade orgFacade;
+    @Inject
+    IStorage storage;
+    @Inject
+    IStorageQuery query;
+    @Inject
+    private SearchFacade searchFacade;
+    @Inject
+    private OrganizationFacade orgFacade;
 
     /**
      * Constructor.
@@ -147,11 +151,12 @@ public class SearchResource {
     public List<ServiceVersionBean> searchServiceVersionForCategories(CategorySearchBean catSearch) {
         return searchFacade.searchServicesPublishedInCategories(catSearch.getCategories());
     }
+
     @ApiOperation(value = "Get Service Market information",
-                  notes = "Retrieves the service uptime during the last month, and the distinct active consumers of the service.")
+            notes = "Retrieves the service uptime during the last month, and the distinct active consumers of the service.")
     @ApiResponses({
-                          @ApiResponse(code = 200, response = ServiceMarketInfoBean.class, message = "Service market information.")
-                  })
+            @ApiResponse(code = 200, response = ServiceMarketInfoBean.class, message = "Service market information.")
+    })
     @GET
     @Path("/organizations/{organizationId}/services/{serviceId}/versions/{version}/market/info")
     @Produces(MediaType.APPLICATION_JSON)
@@ -166,10 +171,10 @@ public class SearchResource {
     }
 
     @ApiOperation(value = "Get Service Version",
-                  notes = "Use this endpoint to get detailed information about a single version of a Service.")
+            notes = "Use this endpoint to get detailed information about a single version of a Service.")
     @ApiResponses({
-                          @ApiResponse(code = 200, response = ServiceVersionBean.class, message = "A Service version.")
-                  })
+            @ApiResponse(code = 200, response = ServiceVersionBean.class, message = "A Service version.")
+    })
     @GET
     @Path("/organizations/{organizationId}/services/{serviceId}/versions/{version}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -183,10 +188,10 @@ public class SearchResource {
     }
 
     @ApiOperation(value = "List Service Versions",
-                  notes = "Use this endpoint to list all of the versions of a Service.")
+            notes = "Use this endpoint to list all of the versions of a Service.")
     @ApiResponses({
-                          @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionSummaryBean.class, message = "A list of Services.")
-                  })
+            @ApiResponse(code = 200, responseContainer = "List", response = ServiceVersionSummaryBean.class, message = "A list of Services.")
+    })
     @GET
     @Path("/organizations/{organizationId}/services/{serviceId}/versions")
     @Produces(MediaType.APPLICATION_JSON)
@@ -198,19 +203,19 @@ public class SearchResource {
     }
 
     @ApiOperation(value = "List consumer apps for the specified service",
-                  notes = "Use this endpoint to list all consumer apps using the specified service.")
+            notes = "Use this endpoint to list all consumer apps using the specified service.")
     @ApiResponses({
-                          @ApiResponse(code = 200, response = ApplicationBeanList.class, message = "A list of consumer applications.")
-                  })
+            @ApiResponse(code = 200, response = ApplicationBeanList.class, message = "A list of consumer applications.")
+    })
     @GET
     @Path("/organizations/{organizationId}/services/{serviceId}/consumers")
     @Produces(MediaType.APPLICATION_JSON)
     public ApplicationBeanList listServiceConsumers(@PathParam("organizationId") String organizationId,
-                                                         @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException {
+                                                    @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         ApplicationBeanList appList = new ApplicationBeanList();
-        appList.setApps(orgFacade.listServiceConsumers(organizationId,serviceId));
+        appList.setApps(orgFacade.listServiceConsumers(organizationId, serviceId));
         return appList;
     }
 

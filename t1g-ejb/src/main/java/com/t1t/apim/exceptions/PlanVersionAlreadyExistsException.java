@@ -3,7 +3,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to create an Plan that already exists.
- *
  */
 public class PlanVersionAlreadyExistsException extends AbstractAlreadyExistsException {
 
@@ -17,6 +16,7 @@ public class PlanVersionAlreadyExistsException extends AbstractAlreadyExistsExce
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public PlanVersionAlreadyExistsException(String message) {

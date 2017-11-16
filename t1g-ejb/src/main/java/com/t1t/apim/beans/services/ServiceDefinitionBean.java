@@ -6,7 +6,6 @@ import java.util.Arrays;
 
 /**
  * Bean used to store a service definition.
- *
  */
 @Entity
 @Table(name = "service_defs")
@@ -16,8 +15,8 @@ public class ServiceDefinitionBean implements Serializable {
 
     @Id
     private long id;
-    @OneToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="service_version_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_version_id")
     private ServiceVersionBean serviceVersion;
     @Lob
     private byte[] data;

@@ -17,20 +17,8 @@ public class ConfigBean implements Serializable {
     @Column(nullable = false)
     private Long id;
 
-    @Column(name = "config_path",nullable = false)
+    @Column(name = "config_path", nullable = false)
     private String configPath;
-
-    /*    @PrePersist @PreUpdate
-    protected void encryptData() {
-        // Encrypt the endpoint properties.
-        configuration = AesEncrypter.encrypt(configuration);
-    }
-
-    @PostPersist @PostUpdate @PostLoad
-    protected void decryptData() {
-        // Encrypt the endpoint properties.
-        configuration = AesEncrypter.decrypt(configuration);
-    }*/
 
     public Long getId() {
         return id;

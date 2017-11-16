@@ -23,7 +23,8 @@ import javax.ws.rs.core.MediaType;
 @Path("/system")
 @ApplicationScoped
 public class SystemResource {
-    @Inject private SystemFacade systemFacade;
+    @Inject
+    private SystemFacade systemFacade;
 
     @ApiOperation(value = "Get System Status",
             notes = "This endpoint simply returns the status of the api engine system. This is a useful endpoint to use when testing a client's connection to the API Manager REST services.")

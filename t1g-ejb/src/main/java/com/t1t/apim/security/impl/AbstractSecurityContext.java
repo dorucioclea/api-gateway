@@ -4,8 +4,9 @@ import com.t1t.apim.beans.idm.PermissionBean;
 import com.t1t.apim.beans.idm.PermissionType;
 import com.t1t.apim.core.IIdmStorage;
 import com.t1t.apim.core.exceptions.StorageException;
+import com.t1t.apim.exceptions.ErrorCodes;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.security.ISecurityContext;
-import com.t1t.apim.security.i18n.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,15 +17,15 @@ import java.util.Set;
 
 /**
  * Base class for security context implementations.
- *
  */
 public abstract class AbstractSecurityContext implements ISecurityContext, Serializable {
 
     protected static Logger logger = LoggerFactory.getLogger(AbstractSecurityContext.class);
-    
+
     protected IndexedPermissions permissions;
 
-    @Inject private IIdmStorage idmStorage;
+    @Inject
+    private IIdmStorage idmStorage;
 
     /**
      * @see ISecurityContext#hasPermission(PermissionType, String)
@@ -44,7 +45,7 @@ public abstract class AbstractSecurityContext implements ISecurityContext, Seria
     public Set<String> getPermittedOrganizations(PermissionType permission) {
         return getPermissions().getOrgQualifiers(permission);
     }
-    
+
     /**
      * @return the user permissions for the current user
      */
@@ -52,7 +53,7 @@ public abstract class AbstractSecurityContext implements ISecurityContext, Seria
         IndexedPermissions rval = permissions;
         if (rval == null) {
             rval = loadPermissions();
-            permissions=rval;
+            permissions = rval;
         }
         return rval;
     }
@@ -65,11 +66,11 @@ public abstract class AbstractSecurityContext implements ISecurityContext, Seria
         try {
             return new IndexedPermissions(getIdmStorage().getPermissions(userId));
         } catch (StorageException e) {
-            logger.error(Messages.getString("AbstractSecurityContext.ErrorLoadingPermissions") + userId, e); //$NON-NLS-1$
+            logger.error(Messages.i18n.format(ErrorCodes.ERROR_LOADING_PERMISSIONS, userId, e.getMessage()));
             return new IndexedPermissions(new HashSet<PermissionBean>());
         }
     }
-    
+
     /**
      * Called to clear the current thread local permissions bean.
      */

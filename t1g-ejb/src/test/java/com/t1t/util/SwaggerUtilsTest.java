@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class SwaggerUtilsTest {
     @Rule
-    public ExpectedException thrown= ExpectedException.none();
+    public ExpectedException thrown = ExpectedException.none();
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
     @Rule
@@ -69,17 +69,17 @@ public class SwaggerUtilsTest {
         JSONObject externalDocs = json.getJSONObject("externalDocs");
         String docUrl = externalDocs.getString("url");
         System.out.println("host:" + a);
-        System.out.println("schema's:"+arr);
-        System.out.println("doc url:"+docUrl);
+        System.out.println("schema's:" + arr);
+        System.out.println("doc url:" + docUrl);
 
         //update json
         externalDocs = new JSONObject();
-        externalDocs.put("url","http://malakia.com");
+        externalDocs.put("url", "http://malakia.com");
         json.remove("externalDocs");
-        json.put("externalDocs",externalDocs);
+        json.put("externalDocs", externalDocs);
 
         File testfile = folder.newFile("testfile.json");
-        if(!testfile.exists())testfile.createNewFile();
+        if (!testfile.exists()) testfile.createNewFile();
         BufferedWriter bw = new BufferedWriter(new FileWriter(testfile));
         bw.write(json.toString());
         bw.close();

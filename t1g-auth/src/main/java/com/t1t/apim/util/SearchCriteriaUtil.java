@@ -13,8 +13,9 @@ import java.util.Set;
  * Some utility methods related to searches and search criteria.
  */
 public final class SearchCriteriaUtil {
-    
+
     public static final Set<SearchCriteriaFilterOperator> validOperators = new HashSet<>();
+
     static {
         validOperators.add(SearchCriteriaFilterOperator.eq);
         validOperators.add(SearchCriteriaFilterOperator.gt);
@@ -27,6 +28,7 @@ public final class SearchCriteriaUtil {
 
     /**
      * Validates that the search criteria bean is complete and makes sense.
+     *
      * @param criteria the search criteria
      * @throws InvalidSearchCriteriaException when the search criteria is not valid
      */

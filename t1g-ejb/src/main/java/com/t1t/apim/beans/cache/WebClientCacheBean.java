@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Created by michallispashidis on 23/11/15.
  */
-public class WebClientCacheBean implements Serializable{
+public class WebClientCacheBean implements Serializable {
     private Integer tokenExpirationTimeSeconds;
     private String clientAppRedirect;//only used as audience claim for JWT - optional for other tokentypes
     private ClientTokeType token;

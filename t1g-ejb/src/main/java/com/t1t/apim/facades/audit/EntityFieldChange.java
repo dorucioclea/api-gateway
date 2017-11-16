@@ -4,10 +4,10 @@ package com.t1t.apim.facades.audit;
  * Models a change in an entity field's value for auditing purposes.
  */
 public class EntityFieldChange {
-    
+
     private String before;
     private String after;
-    
+
     /**
      * Constructor.
      */
@@ -16,8 +16,9 @@ public class EntityFieldChange {
 
     /**
      * Constructor.
+     *
      * @param before the before state
-     * @param after the after state
+     * @param after  the after state
      */
     public EntityFieldChange(String before, String after) {
         this.setBefore(before);

@@ -2,10 +2,9 @@ package com.t1t.apim.common.plugin;
 
 /**
  * The plugin spec.
- *
  */
 public class PluginSpec {
-    
+
     private double frameworkVersion = 1.0;
     private String name;
     private String description;

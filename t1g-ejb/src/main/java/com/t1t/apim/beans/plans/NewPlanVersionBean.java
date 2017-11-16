@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * Bean used when creating a new version of a plan.
- *
  */
 public class NewPlanVersionBean implements Serializable {
 

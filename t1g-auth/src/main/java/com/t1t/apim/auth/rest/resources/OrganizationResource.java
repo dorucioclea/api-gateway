@@ -7,9 +7,9 @@ import com.t1t.apim.beans.services.ServiceDefinitionType;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.*;
 import com.t1t.apim.beans.support.SupportBean;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.NotAuthorizedException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.OrganizationFacade;
 import com.t1t.kong.model.KongPluginConfigList;
 import io.swagger.annotations.Api;
@@ -57,7 +57,7 @@ public class OrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/support/{supportId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public SupportBean getServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId,@PathParam("supportId") String supportId) throws ServiceNotFoundException, NotAuthorizedException {
+    public SupportBean getServiceSupportTicket(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId, @PathParam("supportId") String supportId) throws ServiceNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(supportId), Messages.i18n.format("emptyValue", "Support ID"));
@@ -99,13 +99,13 @@ public class OrganizationResource {
     @ApiOperation(value = "Retrieve all announcement for given service.",
             notes = "Use this endpoint to retrieve all announcement.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = AnnouncementBean.class, message = "List of announcements.")
+            @ApiResponse(code = 200, responseContainer = "List", response = AnnouncementBean.class, message = "List of announcements.")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/announcement/all")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public List<AnnouncementBean> getServiceAnnouncements(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException{
+    public List<AnnouncementBean> getServiceAnnouncements(@PathParam("organizationId") String organizationId, @PathParam("serviceId") String serviceId) throws ServiceNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
         return orgFacade.getServiceAnnouncements(organizationId, serviceId);
@@ -157,9 +157,9 @@ public class OrganizationResource {
     @Path("/{organizationId}/services/{serviceId}/versions/{version}/policies/{policyId}")
     @Produces(MediaType.APPLICATION_JSON)
     public EnrichedPolicySummaryBean getServicePolicy(@PathParam("organizationId") String organizationId,
-                                          @PathParam("serviceId") String serviceId,
-                                          @PathParam("version") String version,
-                                          @PathParam("policyId") long policyId)
+                                                      @PathParam("serviceId") String serviceId,
+                                                      @PathParam("version") String version,
+                                                      @PathParam("policyId") long policyId)
             throws OrganizationNotFoundException, ServiceVersionNotFoundException, PolicyNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
@@ -293,7 +293,7 @@ public class OrganizationResource {
     @ApiOperation(value = "Retrieve a list of all support tickets for a service.",
             notes = "Use this endpoint to retrieve a list of all support tickets for a service.")
     @ApiResponses({
-            @ApiResponse(code = 200,responseContainer = "List", response = SupportBean.class, message = "Service support tickets")
+            @ApiResponse(code = 200, responseContainer = "List", response = SupportBean.class, message = "Service support tickets")
     })
     @GET
     @Path("/{organizationId}/services/{serviceId}/support")

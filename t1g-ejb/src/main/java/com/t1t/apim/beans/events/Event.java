@@ -13,7 +13,8 @@ public abstract class Event implements Serializable {
     private Date createdOn;
     private String body;
 
-    public Event() {}
+    public Event() {
+    }
 
     public Event(EventBean event) {
         this.setId(event.getId());

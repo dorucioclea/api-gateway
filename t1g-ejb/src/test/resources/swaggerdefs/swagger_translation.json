@@ -1334,8 +1334,13 @@
             "type": "array",
             "items": {
               "type": "string"
-            }, 
-            "default": ["untranslated", "translated", "needsmorework", "verified"]
+            },
+            "default": [
+              "untranslated",
+              "translated",
+              "needsmorework",
+              "verified"
+            ]
           },
           {
             "name": "search",
@@ -1419,7 +1424,7 @@
             "description": "A list of new Labels",
             "required": true,
             "items": {
-                "$ref": "#/definitions/Label"
+              "$ref": "#/definitions/Label"
             }
           },
           {
@@ -2592,9 +2597,14 @@
           "minLength": 0
         },
         "status": {
-          "type" : "string",
+          "type": "string",
           "description": "The status of this translation",
-          "enum": ["untranslated", "translated", "needsmorework", "verified"]
+          "enum": [
+            "untranslated",
+            "translated",
+            "needsmorework",
+            "verified"
+          ]
         },
         "translator": {
           "$ref": "#/definitions/Translator"
@@ -2742,7 +2752,9 @@
     },
     "Comment": {
       "type": "object",
-      "required": ["text"],
+      "required": [
+        "text"
+      ],
       "properties": {
         "id": {
           "type": "string",

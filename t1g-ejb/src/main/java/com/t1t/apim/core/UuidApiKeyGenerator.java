@@ -6,9 +6,9 @@ import java.util.UUID;
 
 /**
  * A simple api key generator using java UUIDs.
- *
  */
-@ApplicationScoped @Default
+@ApplicationScoped
+@Default
 public class UuidApiKeyGenerator implements IApiKeyGenerator {
 
     /**

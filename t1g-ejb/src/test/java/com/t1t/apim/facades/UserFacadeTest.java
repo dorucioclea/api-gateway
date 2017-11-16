@@ -8,8 +8,6 @@ import com.t1t.apim.beans.search.SearchResultsBean;
 import com.t1t.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.apim.beans.user.ClientTokeType;
-import com.t1t.apim.beans.user.SAMLRequest;
 import com.t1t.apim.core.IIdmStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
@@ -21,13 +19,14 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.opensaml.saml2.common.Extensions;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.mockito.Mockito.*;
 
@@ -37,20 +36,25 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UserFacade.class)
 public class UserFacadeTest extends TestCase {
-    @Rule public ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
-    @Mock private AppConfig config;
-    @Mock private IStorageQuery query;
-    @Mock private IIdmStorage idmStorage;
-    @InjectMocks private UserFacade userFacade;
+    @Mock
+    private AppConfig config;
+    @Mock
+    private IStorageQuery query;
+    @Mock
+    private IIdmStorage idmStorage;
+    @InjectMocks
+    private UserFacade userFacade;
 
     public void testURIUtilForRelayState() throws URISyntaxException {
         String uriA = "https://someurl.com/?token=my&type=nothingspecial";
         String uriB = "https://someurl.com/endpoint/test";
         URI A = new URI(uriA);
         URI B = new URI(uriB);
-        assertEquals("someurl.com",A.getHost());
-        assertEquals("someurl.com",B.getHost());
+        assertEquals("someurl.com", A.getHost());
+        assertEquals("someurl.com", B.getHost());
     }
 
     public void testURIUtilForQueryString() throws URISyntaxException {
@@ -58,10 +62,10 @@ public class UserFacadeTest extends TestCase {
         String uriB = "https://someurl.com/endpoint/test";
         URI A = new URI(uriA);
         URI B = new URI(uriB);
-        System.out.println("Query:"+A.getQuery());
-        System.out.println("Raw query:"+A.getRawQuery());
-        System.out.println("Query:"+B.getQuery());
-        System.out.println("Raw query:"+B.getRawQuery());
+        System.out.println("Query:" + A.getQuery());
+        System.out.println("Raw query:" + A.getRawQuery());
+        System.out.println("Query:" + B.getQuery());
+        System.out.println("Raw query:" + B.getRawQuery());
     }
 
     public void testGet() throws Exception {
@@ -123,13 +127,13 @@ public class UserFacadeTest extends TestCase {
     public void testUpdateStorageException() throws Exception {
         when(idmStorage.getUser(anyString())).thenThrow(new StorageException());
         thrown.expect(SystemErrorException.class);
-        userFacade.update("someuser",anyObject());
+        userFacade.update("someuser", anyObject());
     }
 
     public void testUpdateUserNotFound() throws Exception {
         when(idmStorage.getUser(anyString())).thenReturn(null);
         thrown.expect(UserNotFoundException.class);
-        userFacade.update("someuser",anyObject());
+        userFacade.update("someuser", anyObject());
     }
 
     public void testUpdateException() throws Exception {
@@ -203,52 +207,7 @@ public class UserFacadeTest extends TestCase {
         userFacade.getActivity("someuserid", 1, 1);
     }
 
-    public void testGenerateSAML2AuthRequest() throws Exception {
-        String idpUrl = "http://google.com";
-        String spUrl = "http://google.com";
-        String spName = "apimarket";
-        String clientUrl = "http://localhost:4000";
-        ClientTokeType tokeType = ClientTokeType.jwt;
-        Map<String, String> optClaimMap = new HashMap<>();
-        when(config.getJWTDefaultTokenExpInSeconds()).thenReturn(10);
-        thrown.expect(IllegalArgumentException.class);//some issue bootstrapping context
-        SAMLRequest samlRequest = new SAMLRequest();
-        samlRequest.setClientAppRedirect(clientUrl);
-        samlRequest.setIdpUrl(idpUrl);
-        samlRequest.setSpName(spName);
-        samlRequest.setSpUrl(spUrl);
-        samlRequest.setToken(tokeType);
-        samlRequest.setOptionalClaimMap(optClaimMap);
-        userFacade.generateSAML2AuthRequest(samlRequest);
-    }
-
-    public void testGenerateSAML2LogoutRequest() throws Exception {
-        String idpUrl = "http://google.com";
-        String user = "testuser";
-        String spName = "apimarket";
-        thrown.expect(IllegalArgumentException.class);//issue bootstrapping opensaml context
-        userFacade.generateSAML2LogoutRequest(idpUrl, spName, user);
-    }
-
-    public void testBuildExtensions() throws Exception {
-        String clientUrl = "someclienturi";
-        Extensions ext = userFacade.buildExtensions(clientUrl);
-        assertNotNull(ext);
-    }
-
-    public void testProcessSAML2Response() throws Exception {
-        //Empty test - to do
-    }
-
-    public void testUserFromSAML2BearerToken() throws Exception {
-        //Empty test - to do
-    }
-
-    public void testGetDecryptedAssertion() throws Exception {
-        //Empty test - to do
-    }
-
-    public void testInitNewUser()throws Exception{
+    public void testInitNewUser() throws Exception {
         NewUserBean newUserBean = new NewUserBean();
         newUserBean.setAdmin(true);
         newUserBean.setUsername("michallis@trust1team.com");

@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 /**
  * A summary of an individual service version.
- *
  */
 public class ServiceVersionSummaryBean implements Serializable {
 

@@ -5,7 +5,6 @@ import java.io.Serializable;
 /**
  * Bean used to transfer organization ownership from one organization member
  * to another.
- *
  */
 public class TransferOwnershipBean implements Serializable {
 

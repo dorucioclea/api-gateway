@@ -18,12 +18,7 @@ import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.GatewayType;
 import com.t1t.apim.beans.idm.PermissionType;
-import com.t1t.apim.beans.idp.IDPBean;
-import com.t1t.apim.beans.idp.KeyMappingBean;
-import com.t1t.apim.beans.idp.KeystoreBean;
-import com.t1t.apim.beans.iprestriction.BlacklistBean;
-import com.t1t.apim.beans.iprestriction.WhitelistBean;
-import com.t1t.apim.beans.mail.MailProviderBean;
+import com.t1t.apim.beans.idp.IdpIssuerBean;
 import com.t1t.apim.beans.mail.MailTemplateBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
@@ -33,7 +28,6 @@ import com.t1t.apim.beans.orgs.OrganizationBean;
 import com.t1t.apim.beans.plans.PlanBean;
 import com.t1t.apim.beans.plans.PlanStatus;
 import com.t1t.apim.beans.plans.PlanVersionBean;
-import com.t1t.apim.beans.plugins.PluginBean;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyDefinitionBean;
@@ -62,10 +56,7 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -84,9 +75,12 @@ import java.util.stream.Collectors;
 public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorageQuery {
 
     private static Logger logger = LoggerFactory.getLogger(JpaStorage.class);
-    @Inject private AppConfig config;
-    @Inject private ISecurityAppContext appContext;
-    @Inject private ISecurityContext security;
+    @Inject
+    private AppConfig config;
+    @Inject
+    private ISecurityAppContext appContext;
+    @Inject
+    private ISecurityContext security;
 
     /**
      * @see IStorage#createApplication(ApplicationBean)
@@ -122,15 +116,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     public void createGateway(GatewayBean gateway) throws StorageException {
         super.create(gateway);
-    }
-
-    /**
-     * @see IStorage#createPlugin(PluginBean)
-     */
-    @Override
-
-    public void createPlugin(PluginBean plugin) throws StorageException {
-        super.create(plugin);
     }
 
     /**
@@ -308,11 +293,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         super.update(audit);
     }
 
-    @Override
-    public void updateKeyMapping(KeyMappingBean keyMappingBean) throws StorageException {
-        super.update(keyMappingBean);
-    }
-
     /**
      * @see IStorage#updateService(ServiceBean)
      */
@@ -454,14 +434,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     /**
-     * @see IStorage#deletePlugin(PluginBean)
-     */
-    @Override
-    public void deletePlugin(PluginBean plugin) throws StorageException {
-        super.delete(plugin);
-    }
-
-    /**
      * @see IStorage#deletePolicyDefinition(PolicyDefinitionBean)
      */
     @Override
@@ -485,16 +457,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public void deleteWhitelistRecord(WhitelistBean whitelistBean) throws StorageException {
-        super.delete(whitelistBean);
-    }
-
-    @Override
-    public void deleteBalcklistRecord(BlacklistBean blacklistBean) throws StorageException {
-        super.delete(blacklistBean);
-    }
-
-    @Override
     public void deleteEvent(EventBean eventBean) throws StorageException {
         super.delete(eventBean);
     }
@@ -507,11 +469,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void deleteManagedApplication(ManagedApplicationBean manapp) throws StorageException {
         super.delete(manapp);
-    }
-
-    @Override
-    public void deleteKeyMapping(KeyMappingBean keyMappingBean) throws StorageException {
-        super.delete(keyMappingBean);
     }
 
     /**
@@ -586,54 +543,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     /**
-     * @see IStorage#getPlugin(long)
-     */
-    @Override
-    public PluginBean getPlugin(long id) throws StorageException {
-        return super.get(id, PluginBean.class);
-    }
-
-    /**
-     * @see IStorage#getPlugin(String, String)
-     */
-    @Override
-    public PluginBean getPlugin(String groupId, String artifactId) throws StorageException {
-        try {
-            EntityManager entityManager = getActiveEntityManager();
-
-            @SuppressWarnings("nls")
-            String sql =
-                    "SELECT p.id, p.artifact_id, p.group_id, p.version, p.classifier, p.type, p.name, p.description, p.created_by, p.created_on" +
-                            "  FROM plugins p" +
-                            " WHERE p.group_id = ? AND p.artifact_id = ?";
-            Query query = entityManager.createNativeQuery(sql);
-            query.setParameter(1, groupId);
-            query.setParameter(2, artifactId);
-            List<Object[]> rows = (List<Object[]>) query.getResultList();
-            if (rows.size() > 0) {
-                Object[] row = rows.get(0);
-                PluginBean plugin = new PluginBean();
-                plugin.setId(((Number) row[0]).longValue());
-                plugin.setArtifactId(String.valueOf(row[1]));
-                plugin.setGroupId(String.valueOf(row[2]));
-                plugin.setVersion(String.valueOf(row[3]));
-                plugin.setClassifier((String) row[4]);
-                plugin.setType((String) row[5]);
-                plugin.setName(String.valueOf(row[6]));
-                plugin.setDescription(String.valueOf(row[7]));
-                plugin.setCreatedBy(String.valueOf(row[8]));
-                plugin.setCreatedOn((Date) row[9]);
-                return plugin;
-            } else {
-                return null;
-            }
-        } catch (Throwable t) {
-            logger.error(t.getMessage(), t);
-            throw new StorageException(t);
-        }
-    }
-
-    /**
      * @see IStorage#getPolicyDefinition(String)
      */
     @Override
@@ -656,16 +565,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         return super.get(id, SupportComment.class);
     }
 
-    @Override
-    public WhitelistBean getWhitelistRecord(String id) throws StorageException {
-        return super.get(id, WhitelistBean.class);
-    }
-
-    @Override
-    public BlacklistBean getBlacklistRecord(String id) throws StorageException {
-        return super.get(id, BlacklistBean.class);
-    }
-
     /**
      * @see IStorage#reorderPolicies(PolicyType, String, String, String, List)
      */
@@ -684,25 +583,18 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public OrganizationBean getDefaultOrganizationForConsumers() throws StorageException {
-        String defaultOrgId = config.getDefaultOrganization();
-        return super.get(defaultOrgId, OrganizationBean.class);
-    }
-
-    @Override
     public Set<String> getAllOrganizations() throws StorageException {
         Query query;
         if (!getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
             query = getActiveEntityManager().createQuery("SELECT o FROM OrganizationBean o WHERE o.context = :oContext");
             query.setParameter("oContext", appContext.getApplicationPrefix());
-        }
-        else {
+        } else {
             query = getActiveEntityManager().createQuery("SELECT o FROM OrganizationBean o");
         }
         List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
-        logger.info("dborgs all:{}",orgs);
+        logger.info("dborgs all:{}", orgs);
         Set<String> orgNames = new TreeSet<>();
-        for(OrganizationBean org:orgs){
+        for (OrganizationBean org : orgs) {
             orgNames.add(org.getId());
         }
         return orgNames;
@@ -747,11 +639,11 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         //filter Applications along scope
         SearchResultsBean<ApplicationBean> tempResult = find(criteria, ApplicationBean.class);
         SearchResultsBean<ApplicationBean> result = new SearchResultsBean<>();
-        if(!StringUtils.isEmpty(appContext.getApplicationPrefix())){
+        if (!StringUtils.isEmpty(appContext.getApplicationPrefix())) {
             List<ApplicationBean> appBeans = tempResult.getBeans().stream().filter(a -> a.getContext().equalsIgnoreCase(appContext.getApplicationPrefix())).collect(Collectors.toList());
             result.setBeans(appBeans);
             result.setTotalSize(appBeans.size());
-        }else {
+        } else {
             result = tempResult;
         }
 
@@ -807,12 +699,12 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                 .setParameter("name", name)
                 .setParameter("status", ServiceStatus.Published)
                 .getResultList();
-        return  doNotFilterServices() ? rval : ServiceScopeUtil.resolveSVBScope(rval, appContext.getApplicationPrefix(), security.isAdmin());
+        return doNotFilterServices() ? rval : ServiceScopeUtil.resolveSVBScope(rval, appContext.getApplicationPrefix(), security.isAdmin());
     }
 
     public List<ServiceVersionBean> findServiceByStatus(ServiceStatus status) throws StorageException {
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(status);
-        return doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix(), security.isAdmin());
+        return doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus, appContext.getApplicationPrefix(), security.isAdmin());
     }
 
     @Override
@@ -827,7 +719,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     public List<ServiceVersionBean> findAllServicesWithCategory(List<String> categories) throws StorageException {
         List<ServiceVersionBean> allServicesForCat = findAllServiceVersionsInCategory(categories);
-        return doNotFilterServices() ? allServicesForCat : ServiceScopeUtil.resolveSVBScope(allServicesForCat,appContext.getApplicationPrefix(), security.isAdmin());
+        return doNotFilterServices() ? allServicesForCat : ServiceScopeUtil.resolveSVBScope(allServicesForCat, appContext.getApplicationPrefix(), security.isAdmin());
     }
 
     public List<ServiceVersionBean> findLatestServicesWithCategory(List<String> categories) throws StorageException {
@@ -837,14 +729,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public Set<String> findAllUniqueCategories() throws StorageException {
         List<ServiceBean> services = new ArrayList<>();
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
-        List<ServiceVersionBean> allServicesFiltered = doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix(), security.isAdmin());
-        for(ServiceVersionBean svb:allServicesFiltered){
+        List<ServiceVersionBean> allServicesFiltered = doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus, appContext.getApplicationPrefix(), security.isAdmin());
+        for (ServiceVersionBean svb : allServicesFiltered) {
             services.add(svb.getService());
         }
         //extract all categories in a set
         Set<String> catSet = new TreeSet<>();
         for (ServiceBean sb : services) {
-            for (String cat : sb.getCategories()) catSet.add(cat);
+            catSet.addAll(sb.getCategories());
         }
         return catSet;
     }
@@ -852,8 +744,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public Set<String> findAllUniquePublishedCategories() throws StorageException {
         List<ServiceBean> services = new ArrayList<>();
         List<ServiceVersionBean> allServicesByStatus = super.findAllServicesByStatus(ServiceStatus.Published);
-        List<ServiceVersionBean> allServicesFiltered = doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus,appContext.getApplicationPrefix(), security.isAdmin());
-        for(ServiceVersionBean svb:allServicesFiltered){
+        List<ServiceVersionBean> allServicesFiltered = doNotFilterServices() ? allServicesByStatus : ServiceScopeUtil.resolveSVBScope(allServicesByStatus, appContext.getApplicationPrefix(), security.isAdmin());
+        for (ServiceVersionBean svb : allServicesFiltered) {
             services.add(svb.getService());
         }
         Set<String> catSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
@@ -915,16 +807,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public void createWhilelistRecord(WhitelistBean whitelistBean) throws StorageException {
-        super.create(whitelistBean);
-    }
-
-    @Override
-    public void createBlacklistRecord(BlacklistBean blacklistBean) throws StorageException {
-        super.create(blacklistBean);
-    }
-
-    @Override
     public void createEvent(EventBean eventBean) throws StorageException {
         super.create(eventBean);
     }
@@ -937,11 +819,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public void createManagedApplication(ManagedApplicationBean manapp) throws Exception {
         super.create(manapp);
-    }
-
-    @Override
-    public void createKeyMapping(KeyMappingBean keyMappingBean) throws Exception {
-        super.create(keyMappingBean);
     }
 
     /**
@@ -1035,7 +912,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public GatewayBean getDefaultGateway() throws StorageException {
         final List<GatewayBean> gatewayBeans = listGatewayBeans();
-        if(gatewayBeans!=null && gatewayBeans.size()>0)return gatewayBeans.get(0);
+        if (gatewayBeans != null && gatewayBeans.size() > 0) return gatewayBeans.get(0);
         return null;
     }
 
@@ -1161,18 +1038,18 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public List<ApplicationSummaryBean> getApplicationsInOrgs(Set<String> orgIds) throws StorageException {
         List<ApplicationSummaryBean> rval = new ArrayList<>();
-        if(orgIds!=null && orgIds.size()>0){
+        if (orgIds != null && orgIds.size() > 0) {
             EntityManager entityManager = getActiveEntityManager();
             String jpql = "SELECT a FROM ApplicationBean a JOIN a.organization o WHERE o.id IN :orgs ORDER BY a.id ASC"; //$NON-NLS-1$
             Query query = entityManager.createQuery(jpql);
             query.setParameter("orgs", orgIds); //$NON-NLS-1$
             List resultList = query.getResultList();
-            if(resultList.size()>0){
+            if (resultList.size() > 0) {
                 List<ApplicationBean> qr = (List<ApplicationBean>) query.getResultList();
                 List<ApplicationBean> qrFiltered = new ArrayList<>();
-                if(!StringUtils.isEmpty(appContext.getApplicationPrefix())){
+                if (!StringUtils.isEmpty(appContext.getApplicationPrefix())) {
                     qrFiltered = qr.stream().filter(app -> app.getContext().equalsIgnoreCase(appContext.getApplicationPrefix())).collect(Collectors.toList());
-                }else qrFiltered = qr;
+                } else qrFiltered = qr;
 
                 for (ApplicationBean bean : qrFiltered) {
                     ApplicationSummaryBean summary = new ApplicationSummaryBean();
@@ -1376,7 +1253,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             }
             //TODO - secure who can see the provision key
             //if (security.hasPermission(PermissionType.svcView, organizationId) || getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
-                csb.setProvisionKey(contractBean.getService().getProvisionKey());
+            csb.setProvisionKey(contractBean.getService().getProvisionKey());
             //}
             csb.setAppId(application.getId());
             csb.setAppOrganizationId(application.getOrganization().getId());
@@ -1426,7 +1303,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager entityManager = getActiveEntityManager();
         String jpql = "SELECT c from ContractBean c JOIN c.plan pvs WHERE pvs.id = :planvId";
         Query query = entityManager.createQuery(jpql);
-        query.setParameter("planvId",planVersionId);
+        query.setParameter("planvId", planVersionId);
         return (List<ContractBean>) query.getResultList();
     }
 
@@ -1534,7 +1411,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             csb.setPlanId(plan.getId());
             //TODO -  re-enable security on provision key
             //if (getManagedAppPrefixesForTypes(Arrays.asList(ManagedApplicationTypes.Consent, ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix()) || security.hasPermission(PermissionType.svcView, svcOrg.getId())) {
-                csb.setProvisionKey(contractBean.getService().getProvisionKey());
+            csb.setProvisionKey(contractBean.getService().getProvisionKey());
             //}
             csb.setPlanName(plan.getName());
             if (security.hasPermission(PermissionType.appView, organizationId)) {
@@ -1931,24 +1808,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public List<WhitelistBean> listWhitelistRecords() throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT w FROM WhitelistBean w";
-        Query query = entityManager.createQuery(jpql);
-        List<WhitelistBean> rows = query.getResultList();
-        return rows;
-    }
-
-    @Override
-    public List<BlacklistBean> listBlacklistRecords() throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT b FROM BlacklistBean b";
-        Query query = entityManager.createQuery(jpql);
-        List<BlacklistBean> rows = query.getResultList();
-        return rows;
-    }
-
-    @Override
     public PolicyBean getApplicationACLPolicy(String organizationId, String applicationId, String version, Long contractId, String gatewayId) throws StorageException {
         try {
             EntityManager entityManager = getActiveEntityManager();
@@ -2034,7 +1893,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT p FROM PlanBean p WHERE organization = :orgId";
         return (List<PlanBean>) em.createQuery(jpql)
-                .setParameter("orgId",organizationId)
+                .setParameter("orgId", organizationId)
                 .getResultList();
     }
 
@@ -2043,8 +1902,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT p FROM PlanVersionBean p WHERE plan_id = :planId AND plan_org_id = :orgId";
         return (List<PlanVersionBean>) em.createQuery(jpql)
-                .setParameter("orgId",organizationId)
-                .setParameter("planId",planId)
+                .setParameter("orgId", organizationId)
+                .setParameter("planId", planId)
                 .getResultList();
     }
 
@@ -2073,7 +1932,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public MailTemplateBean getMailTemplate(MailTopic mailTopic) throws StorageException {
-        return super.get(mailTopic.getTopicName(),MailTemplateBean.class);
+        return super.get(mailTopic.getTopicName(), MailTemplateBean.class);
     }
 
     @Override
@@ -2084,29 +1943,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     @Override
     public ManagedApplicationBean getManagedApplicationBean(AppIdentifier app) throws StorageException {
         EntityManager entityManager = getActiveEntityManager();
-        if(app!=null){
+        if (app != null) {
             String jpql = "SELECT m FROM ManagedApplicationBean m WHERE m.prefix = :appPrefix AND m.appId = :appId AND m.version = :appVersion";
             Query query = entityManager.createQuery(jpql);
             query.setParameter("appPrefix", app.getPrefix());
             query.setParameter("appId", app.getAppId());
             query.setParameter("appVersion", app.getVersion());
             List<ManagedApplicationBean> rows = query.getResultList();
-            if(rows.size()>0)return rows.get(0);
+            if (rows.size() > 0) return rows.get(0);
             else return null;
-        }else return null;
-    }
-
-    @Override
-    public KeyMappingBean getKeyMappingBean(String fromSpecType, String toSpecType, String fromSpecClaim)throws StorageException {
-        EntityManager entityManager = getActiveEntityManager();
-        String jpql = "SELECT k FROM KeyMappingBean k WHERE k.fromSpecType = :fromSpecType AND k.toSpecType = :toSpecType AND k.fromSpecClaim = :fromSpecClaim";
-        Query query = entityManager.createQuery(jpql);
-        query.setParameter("fromSpecType", fromSpecType);
-        query.setParameter("toSpecType", toSpecType);
-        query.setParameter("fromSpecClaim", fromSpecClaim);
-        List<KeyMappingBean> rows = query.getResultList();
-        if(rows.size()>0)return rows.get(0);
-        else return null;
+        } else return null;
     }
 
     @Override
@@ -2119,8 +1965,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                     .setParameter("destination", destination)
                     .setParameter("eventType", type)
                     .getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             logger.debug("problem:{}", ex);
             return null;
         }
@@ -2171,7 +2016,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         EntityManager em = getActiveEntityManager();
         String jpql = "SELECT count(e.id) FROM EventBean e WHERE (e.destinationId LIKE :orgIdDelimited OR e.destinationId = :orgId) AND (e.type = :eventContractRQPending OR e.type = :eventMemberRQPending)";
         Query query = em.createQuery(jpql);
-        query.setParameter("orgIdDelimited", orgId+".%");//orgid ends with '.'
+        query.setParameter("orgIdDelimited", orgId + ".%");//orgid ends with '.'
         query.setParameter("orgId", orgId);
         query.setParameter("eventContractRQPending", EventType.CONTRACT_PENDING);
         query.setParameter("eventMemberRQPending", EventType.MEMBERSHIP_PENDING);
@@ -2180,17 +2025,17 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     @Override
     public EventBean getUniqueEvent(EventBean bean) throws StorageException {
-        try{
+        try {
             EntityManager em = getActiveEntityManager();
             String jpql = "SELECT e FROM EventBean e WHERE e.destinationId = :destination AND e.originId = :origin AND e.type = :eventType";
             Object res = em.createQuery(jpql)
-                    .setParameter("destination",bean.getDestinationId())
-                    .setParameter("origin",bean.getOriginId())
-                    .setParameter("eventType",bean.getType())
+                    .setParameter("destination", bean.getDestinationId())
+                    .setParameter("origin", bean.getOriginId())
+                    .setParameter("eventType", bean.getType())
                     .getSingleResult();
-            if(res!=null && res instanceof EventBean ) return (EventBean)res;
+            if (res != null && res instanceof EventBean) return (EventBean) res;
             else return null;
-        }catch(NoResultException nre){
+        } catch (NoResultException nre) {
             //ignore
             return null;
         }
@@ -2293,8 +2138,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return (ManagedApplicationBean) em.createQuery(jpql)
                     .setParameter("apiKey", apiKey)
                     .getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             return null;
         }
     }
@@ -2306,7 +2150,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         Query query = entityManager.createQuery(jpql);
         query.setParameter("appPrefix", prefix);
         List<ManagedApplicationBean> rows = query.getResultList();
-        if(rows.size()>0)return rows.get(0);
+        if (rows.size() > 0) return rows.get(0);
         else return null;
     }
 
@@ -2340,14 +2184,13 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
 
     public ServiceBean getServiceByBasepath(String organizationId, String basepath) throws StorageException {
         EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT s FROM ServiceBean s WHERE s.basepath = :bpath AND s.organization.id = :orgId";
+        String jpql = "SELECT s FROM ServiceBean s JOIN s.basepaths sb WHERE :bpath IN (sb) AND s.organization.id = :orgId";
         try {
             return (ServiceBean) em.createQuery(jpql)
                     .setParameter("bpath", basepath)
                     .setParameter("orgId", organizationId)
                     .getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             return null;
         }
     }
@@ -2478,23 +2321,6 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     @Override
-    public List<KeyMappingBean> getAllKeyMapping() throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT k FROM KeyMappingBean k";
-        return em.createQuery(jpql).getResultList();
-    }
-
-    @Override
-    public List<KeyMappingBean> getKeyMapping(String fromSpec, String toSpec) throws StorageException {
-        EntityManager em = getActiveEntityManager();
-        String jpql = "SELECT k FROM KeyMappingBean k WHERE k.fromSpecType = :fromSpecType AND k.toSpecType = :toSpecType";
-        return em.createQuery(jpql)
-                .setParameter("fromSpecType", fromSpec)
-                .setParameter("toSpecType", toSpec)
-                .getResultList();
-    }
-
-    @Override
     public void createDefaults(DefaultsBean defaultsBean) throws StorageException {
         super.create(defaultsBean);
     }
@@ -2607,8 +2433,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return (ServiceBean) em.createQuery(jpql)
                     .setParameter("name", name.toLowerCase())
                     .getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             return null;
         }
     }
@@ -2747,8 +2572,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                     .setParameter("version", version)
                     .setParameter("clientId", clientId)
                     .getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             return null;
         }
     }
@@ -2760,8 +2584,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return (OperatingBean) getActiveEntityManager().createQuery(jpql)
                     .setParameter("mode", OperatingModes.MAINTENANCE)
                     .getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             return null;
         }
     }
@@ -2847,15 +2670,14 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
         getAllContracts().stream()
                 .filter(contract -> !contract.getApplication().getStatus().equals(ApplicationStatus.Retired))
                 .forEach(contract -> {
-            if (rval.containsKey(contract.getPlan())) {
-                if (!rval.get(contract.getPlan()).contains(contract)) {
-                    rval.get(contract.getPlan()).add(contract);
-                }
-            }
-            else {
-                rval.put(contract.getPlan(), new ArrayList<>(Arrays.asList(contract)));
-            }
-        });
+                    if (rval.containsKey(contract.getPlan())) {
+                        if (!rval.get(contract.getPlan()).contains(contract)) {
+                            rval.get(contract.getPlan()).add(contract);
+                        }
+                    } else {
+                        rval.put(contract.getPlan(), new ArrayList<>(Arrays.asList(contract)));
+                    }
+                });
         return rval;
     }
 
@@ -2872,8 +2694,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                     .setParameter("cId", contractId)
                     .setParameter("gwId", gatewayId)
                     .getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             ex.printStackTrace();
             return null;
         }
@@ -2902,8 +2723,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
                     .createQuery("SELECT p FROM PolicyBean p WHERE p.kongPluginId = :plId")
                     .setParameter("plId", kongPluginId)
                     .getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             return null;
         }
     }
@@ -2912,109 +2732,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public Long getOAuth2TokenCount() throws StorageException {
         try {
             return (Long) getActiveEntityManager().createQuery("SELECT COUNT(o) FROM OAuth2TokenBean o").getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             return 0L;
-        }
-    }
-
-    @Override
-    public void createIDP(IDPBean idp) throws StorageException {
-        super.create(idp);
-    }
-
-    @Override
-    public void updateIDPBean(IDPBean idp) throws StorageException {
-        super.update(idp);
-    }
-
-    @Override
-    public void deleteIDP(IDPBean idp) throws StorageException {
-        super.delete(idp);
-    }
-
-    @Override
-    public IDPBean getIDP(String id) throws StorageException {
-        return super.get(id, IDPBean.class);
-    }
-
-    @Override
-    public IDPBean getOrCreateIDP(IDPBean idp) throws StorageException {
-        IDPBean rval = getIDP(idp.getId());
-        if (rval == null) {
-            createIDP(idp);
-            rval = idp;
-        }
-        return rval;
-    }
-
-    @Override
-    public IDPBean getDefaultIdp() throws StorageException {
-        try {
-            return (IDPBean) getActiveEntityManager().createQuery("SELECT i FROM IDPBean i WHERE i.defaultIdp = TRUE").getSingleResult();
-        }
-        catch (NoResultException ex) {
-            return null;
-        }
-    }
-
-    @Override
-    public void createKeystore(KeystoreBean keystore) throws StorageException {
-        super.create(keystore);
-    }
-
-    @Override
-    public void createMailProvider(MailProviderBean mailProvider) throws StorageException {
-        super.create(mailProvider);
-    }
-
-    @Override
-    public void updateKeystoreBean(KeystoreBean keystore) throws StorageException {
-        super.update(keystore);
-    }
-
-    @Override
-    public void updateMailProviderBean(MailProviderBean mailProvider) throws StorageException {
-        super.update(mailProvider);
-    }
-
-    @Override
-    public void deleteKeystore(KeystoreBean keystore) throws StorageException {
-        super.delete(keystore);
-    }
-
-    @Override
-    public void deleteMailProvider(MailProviderBean mailProvider) throws StorageException {
-        super.delete(mailProvider);
-    }
-
-    @Override
-    public KeystoreBean getKeystore(String kid) throws StorageException {
-        return super.get(kid, KeystoreBean.class);
-    }
-
-    @Override
-    public MailProviderBean getMailProvider(Long id) throws StorageException {
-        return super.get(id, MailProviderBean.class);
-    }
-
-    @Override
-    public KeystoreBean getDefaultKeystore() throws StorageException {
-        try {
-            return (KeystoreBean) getActiveEntityManager().createQuery("SELECT k FROM KeystoreBean k WHERE k.defaultKeystore = TRUE").getSingleResult();
-        }
-        catch (NoResultException ex) {
-            return null;
-        }
-    }
-
-    @Override
-    public MailProviderBean getDefaultMailProvider() throws StorageException {
-        try {
-            return (MailProviderBean) getActiveEntityManager().createQuery("SELECT m FROM MailProviderBean m WHERE m.defaultMailProvider = TRUE").getSingleResult();
-        }
-        catch (NoResultException ex) {
-            return null;
         }
     }
 
@@ -3024,9 +2743,48 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             return (String) getActiveEntityManager()
                     .createQuery("SELECT p.defaultConfig FROM PolicyDefinitionBean p WHERE p.id = :polDefId")
                     .setParameter("polDefId", policyDefId).getSingleResult();
-        }
-        catch (NoResultException ex) {
+        } catch (NoResultException ex) {
             return null;
         }
+    }
+
+    public PolicyBean getContractPolicyForServiceVersionByDefinition(ServiceVersionBean svb, ApplicationVersionBean avb, PolicyDefinitionBean polDef) throws StorageException {
+        try {
+            return getActiveEntityManager()
+                    .createQuery("SELECT p FROM PolicyBean p WHERE p.type = :pType AND p.definition = :polDef AND p.contractId IN (SELECT c.id FROM ContractBean c WHERE c.application = :app AND c.service = :service)", PolicyBean.class)
+                    //.createQuery("SELECT p FROM PolicyBean p WHERE p.type = :pType AND p.definition = :polDef AND (SELECT c FROM ContractBean c WHERE c.id = p.contractId).application = :app AND c.service = :service", PolicyBean.class)
+                    .setParameter("pType", PolicyType.Contract)
+                    .setParameter("polDef", polDef)
+                    .setParameter("app", avb)
+                    .setParameter("service", svb)
+                    .getSingleResult();
+        } catch (NoResultException | NonUniqueResultException ex) {
+            return null;
+        }
+    }
+
+    @Override
+    public void createIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException {
+        super.create(idpIssuer);
+    }
+
+    @Override
+    public void updateIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException {
+        super.update(idpIssuer);
+    }
+
+    @Override
+    public void deleteIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException {
+        super.delete(idpIssuer);
+    }
+
+    @Override
+    public IdpIssuerBean getIdpIssuer(String id) throws StorageException {
+        return super.get(id, IdpIssuerBean.class);
+    }
+
+    @Override
+    public List<IdpIssuerBean> getAllIdpIssuers() throws StorageException {
+        return getActiveEntityManager().createQuery("SELECT i FROM IdpIssuerBean i", IdpIssuerBean.class).getResultList();
     }
 }

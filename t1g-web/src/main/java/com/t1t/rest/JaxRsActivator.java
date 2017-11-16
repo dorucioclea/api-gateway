@@ -1,8 +1,9 @@
 package com.t1t.rest;
 
-import com.t1t.apim.rest.impl.mappers.IllegalArgumentExceptionMapper;
-import com.t1t.apim.rest.impl.mappers.RestExceptionMapper;
-import com.t1t.apim.rest.resources.filter.RequestAPIMFilter;
+import com.t1t.rest.mappers.IllegalArgumentExceptionMapper;
+import com.t1t.rest.mappers.NullPointerExceptionMapper;
+import com.t1t.rest.mappers.RestExceptionMapper;
+import com.t1t.rest.servlet.RequestAPIMFilter;
 import com.t1t.rest.resources.*;
 
 import javax.ws.rs.ApplicationPath;
@@ -34,24 +35,25 @@ public class JaxRsActivator extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(SystemResource.class);
         resources.add(ActionResource.class);
+        resources.add(AdminResource.class);
+        resources.add(BrandingResource.class);
         resources.add(CurrentUserResource.class);
+        resources.add(DefaultsResource.class);
         resources.add(GatewayResource.class);
+        resources.add(OrganizationResource.class);
         resources.add(PermissionsResource.class);
-        resources.add(PluginResource.class);
         resources.add(PolicyDefinitionResource.class);
         resources.add(RoleResource.class);
         resources.add(SearchResource.class);
-        resources.add(UserResource.class);
-        resources.add(OrganizationResource.class);
         resources.add(SecurityResource.class);
+        resources.add(SyncResource.class);
+        resources.add(SystemResource.class);
+        resources.add(UserResource.class);
+
         resources.add(RestExceptionMapper.class);
         resources.add(IllegalArgumentExceptionMapper.class);
-        resources.add(AdminResource.class);
-        resources.add(DefaultsResource.class);
-        resources.add(BrandingResource.class);
-        resources.add(SyncResource.class);
+        resources.add(NullPointerExceptionMapper.class);
         //resources.add(CORSRequestFilter.class);//CORS Request filter
         //resources.add(CORSResponseFilter.class);//CORS Response filter
     }

@@ -5,29 +5,26 @@ import java.util.*;
 
 /**
  * Base class for i18n messages classes.
- *
  */
 public class AbstractMessages {
 
     public static final List<String> FORMATS = Collections.unmodifiableList(Arrays.asList("java.properties")); //$NON-NLS-1$
 
     private static Map<String, ResourceBundle> bundles = new HashMap<>();
-
-    private Class<? extends AbstractMessages> clazz;
     private static ThreadLocal<Locale> tlocale = new ThreadLocal<>();
-    public static void setLocale(Locale locale) {
-        tlocale.set(locale);
-    }
-    public static void clearLocale() {
-        tlocale.set(null);
-    }
+    private Class<? extends AbstractMessages> clazz;
 
     /**
      * Constructor.
+     *
      * @param c the class
      */
     public AbstractMessages(Class<? extends AbstractMessages> c) {
         clazz = c;
+    }
+
+    public static void clearLocale() {
+        tlocale.set(null);
     }
 
     /**
@@ -71,6 +68,7 @@ public class AbstractMessages {
     /**
      * Gets the locale to use when finding a bundle.  The locale to use is either from the
      * thread local value, if set, or else the system default locale.
+     *
      * @return the locale
      */
     public Locale getLocale() {
@@ -81,14 +79,19 @@ public class AbstractMessages {
         }
     }
 
+    public static void setLocale(Locale locale) {
+        tlocale.set(locale);
+    }
+
     /**
      * Look up a message in the i18n resource message bundle by key, then format the
      * message with the given params and return the result.
-     * @param key the key
+     *
+     * @param key    the key
      * @param params the parameters
      * @return formatted string
      */
-    public String format(String key, Object ... params) {
+    public String format(String key, Object... params) {
         ResourceBundle bundle = getBundle();
         if (bundle.containsKey(key)) {
             String msg = bundle.getString(key);
@@ -97,7 +100,7 @@ public class AbstractMessages {
             return MessageFormat.format("!!{0}!!", key); //$NON-NLS-1$
         }
     }
-    
+
     /**
      * @return all strings in the bundle
      */

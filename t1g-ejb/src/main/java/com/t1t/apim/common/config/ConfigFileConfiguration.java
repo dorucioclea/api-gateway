@@ -12,12 +12,22 @@ import java.net.URL;
  * A configuration that comes from a properties configuration file.  This
  * implementation will load the properties config file from wherever it can
  * reasonably find it.
- *
  */
 public class ConfigFileConfiguration extends PropertiesConfiguration {
 
     /**
+     * Constructor.
+     *
+     * @param configFileName
+     * @throws ConfigurationException
+     */
+    private ConfigFileConfiguration(String configFileName) throws ConfigurationException {
+        super(discoverConfigFileUrl(configFileName));
+    }
+
+    /**
      * Returns a URL to a file with the given name inside the given directory.
+     *
      * @param directory
      */
     protected static URL findConfigUrlInDirectory(File directory, String configName) {
@@ -66,15 +76,6 @@ public class ConfigFileConfiguration extends PropertiesConfiguration {
         // If not found, use an empty file.
         ////////////////////////////////////////
         return ConfigFileConfiguration.class.getResource("empty.properties"); //$NON-NLS-1$
-    }
-
-    /**
-     * Constructor.
-     * @param configFileName
-     * @throws ConfigurationException
-     */
-    private ConfigFileConfiguration(String configFileName) throws ConfigurationException {
-        super(discoverConfigFileUrl(configFileName));
     }
 
 }

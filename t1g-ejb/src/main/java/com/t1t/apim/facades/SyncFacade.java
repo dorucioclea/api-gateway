@@ -4,18 +4,19 @@ import com.google.gson.Gson;
 import com.t1t.apim.beans.apps.ApplicationVersionBean;
 import com.t1t.apim.beans.authorization.OAuth2TokenBean;
 import com.t1t.apim.beans.contracts.ContractBean;
-import com.t1t.apim.beans.plans.PlanVersionBean;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyType;
+import com.t1t.apim.beans.services.SchemeType;
+import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.core.IApiKeyGenerator;
+import com.t1t.apim.core.IIdmStorage;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.gateway.IGatewayLink;
-import com.t1t.apim.idp.IDPLinkFactory;
 import com.t1t.kong.model.*;
 import com.t1t.util.*;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.*;
 import javax.inject.Inject;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -41,112 +43,34 @@ public class SyncFacade {
     private static final Logger log = LoggerFactory.getLogger(SyncFacade.class);
     private static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
 
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    //@Inject private IIdmStorage idmStorage;
-    @Inject private GatewayFacade gatewayFacade;
-    @Inject private IApiKeyGenerator apiKeyGenerator;
-    @Inject private IDPLinkFactory idpLinkFactory;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IIdmStorage idmStorage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private GatewayFacade gatewayFacade;
+    @Inject
+    private IApiKeyGenerator apiKeyGenerator;
 
     @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
     public void syncAll() {
         log.info("===== STARTING ENTIRE SYNC CYCLE =====");
         LocalDateTime start = LocalDateTime.now();
         try {
-            syncUsers();
             syncServices();
             syncApplications();
             syncPolicies();
             syncTokens();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             log.error("===== SYNC CYCLE FAILED DUE TO {} =====", ex.getMessage());
         }
         log.info("===== ENTIRE SYNC CYCLE END, COMPLETED IN {} =====", TimeUtil.getTimeSince(start));
     }
 
-    @TransactionTimeout(value = 1, unit = TimeUnit.HOURS)
-    public void syncUsers() {
-
-        /*log.info("==== SYNC USERS START ====");
-        LocalDateTime start = LocalDateTime.now();
-        try {
-            List<IGatewayLink> gateways = query.getAllGateways().stream().map(gwBean -> gatewayFacade.createGatewayLink(gwBean.getId())).collect(Collectors.toList());
-            idmStorage.getAllUsers().forEach(user -> {
-                log.info("=== STARTING SYNC FOR {} WITH ID {} ===", user.getKongUsername(), user.getUsername());
-                String customId = ConsumerConventionUtil.createUserUniqueId(user.getUsername());
-                gateways.forEach(gw -> {
-                    try {
-                        String pubKey = gatewayFacade.get(gw.getGatewayId()).getJWTPubKey();
-                        boolean changed = false;
-                        boolean needsJWtCreds = StringUtils.isEmpty(user.getJwtKey()) || StringUtils.isEmpty(user.getJwtSecret());
-                        KongPluginJWTResponse jwtCred = null;
-                        KongConsumer gwUser = null;
-                        if (StringUtils.isNotEmpty(user.getKongUsername())) {
-                            gwUser = gw.getConsumer(user.getKongUsername());
-                        }
-                        if (gwUser == null) {
-                            gwUser = gw.getConsumerByCustomId(customId);
-                        }
-                        if (gwUser == null) {
-                            gwUser = StringUtils.isEmpty(user.getKongUsername()) ? gw.createConsumerWithCustomId(customId) : gw.createConsumerWithKongId(user.getKongUsername(), customId);
-                            jwtCred = gw.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
-                            log.info("== SYNC USER WITH KONG ID {} AND USERNAME {} AND CREATED JWT CREDENTIALS ==", user.getKongUsername(), customId);
-                        }
-                        else {
-                            List<KongPluginJWTResponse> jwtCreds = gw.getConsumerJWT(gwUser.getId()).getData();
-                            if (!jwtCreds.isEmpty()) {
-                                jwtCreds.stream().filter(jwt -> {
-                                    boolean baseMatch = !jwt.getAlgorithm().equals(JWT_RS256) || !jwt.getRsaPublicKey().equals(pubKey);
-                                    if (!needsJWtCreds) {
-                                        baseMatch = baseMatch || !jwt.getKey().equals(user.getJwtKey()) || !jwt.getSecret().equals(user.getJwtSecret());
-                                    }
-                                    return baseMatch;
-                                }).forEach(jwt -> gw.deleteConsumerJwtCredential(user.getKongUsername(), jwt.getId()));
-                                jwtCreds = gw.getConsumerJWT(gwUser.getId()).getData();
-                            }
-                            if (jwtCreds.isEmpty()) {
-                                jwtCred = gw.addConsumerJWT(user.getKongUsername(), JWT_RS256, user.getJwtKey(), user.getJwtSecret());
-                                log.info("== CREATED JWT CREDENTIALS FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
-                            }
-                            else {
-                                jwtCred = jwtCreds.get(0);
-                                log.info("== NO SYNC NEED FOR USER WITH KONG ID {} AND USERNAME {} ==", user.getKongUsername(), customId);
-                            }
-                        }
-                        if (StringUtils.isEmpty(user.getKongUsername()) && gwUser != null) {
-                            user.setKongUsername(gwUser.getId());
-                            changed = true;
-                        }
-                        if (needsJWtCreds && jwtCred != null) {
-                            user.setJwtKey(jwtCred.getKey());
-                            user.setJwtSecret(jwtCred.getSecret());
-                            changed = true;
-                        }
-                        if (changed) {
-                            try {
-                                idmStorage.updateUser(user);
-                            } catch (StorageException ex) {
-                                ex.printStackTrace();
-                            }
-                        }
-                    }
-                    catch (Exception ex) {
-                        log.error("=== SYNC FAILED FOR USER WITH KONG ID {} AND USERNAME {} ===", user.getKongUsername(), customId);
-                    }
-                });
-                log.info("=== SYNC END FOR USER WITH KONG ID {} AND USERNAME {} ===", user.getKongUsername(), user.getUsername());
-            });
-        } catch (Exception e) {
-            log.error("==== SYNC USERS FAILED DUE TO {} ====" + e.getMessage());
-            e.printStackTrace();
-        }
-        log.info("==== SYNC USERS END, COMPLETED IN {} ====", TimeUtil.getTimeSince(start));*/
-    }
-
-
-    @TransactionTimeout(value = 1, unit = TimeUnit.HOURS)
+    @TransactionTimeout(value = 2, unit = TimeUnit.HOURS)
     public void syncServices() {
         try {
             LocalDateTime start = LocalDateTime.now();
@@ -154,8 +78,30 @@ public class SyncFacade {
             query.getPublishedServiceVersions().forEach(svb -> {
                 String apiId = ServiceConventionUtil.generateServiceUniqueName(svb);
                 try {
+                    if (svb.getUpstreamScheme() == null || svb.getUpstreamTargets().isEmpty()) {
+                        try {
+                            URI endpoint = new URI(svb.getEndpoint());
+                            svb.setUpstreamPath(endpoint.getPath());
+                            svb.setUpstreamScheme(SchemeType.valueOf(endpoint.getScheme().toUpperCase()));
+                            ServiceUpstreamTargetBean target = new ServiceUpstreamTargetBean();
+                            target.setTarget(endpoint.getHost());
+                            target.setPort(endpoint.getPort() == -1 ? svb.getUpstreamScheme().getPort() : Long.valueOf(endpoint.getPort()));
+                            if (svb.getUpstreamTargets() == null) svb.setUpstreamTargets(new HashSet<>());
+                            svb.getUpstreamTargets().add(target);
+                            storage.updateServiceVersion(svb);
+                        } catch (Exception ex) {
+                            //Do nothing
+                        }
+                    }
                     log.info("=== BEGINNING SYNC FOR:{} ===", apiId);
-                    String requestPath = GatewayPathUtilities.generateGatewayContextPath(svb.getService().getOrganization().getId(), svb.getService().getBasepath(), svb.getVersion());
+                    List<String> requestPaths = GatewayPathUtilities.generateGatewayContextPath(svb.getService().getOrganization().getId(), svb.getService().getBasepaths(), svb.getVersion());
+                    final String upstreamUrl;
+                    if (svb.getUpstreamTargets().size() == 1) {
+                        ServiceUpstreamTargetBean target = svb.getUpstreamTargets().stream().collect(CustomCollectors.getFirstResult());
+                        upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), target.getTarget(), target.getPort(), svb.getUpstreamPath());
+                    } else {
+                        upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), apiId, null, svb.getUpstreamPath());
+                    }
                     svb.getGateways()
                             .stream()
                             .map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId()))
@@ -163,15 +109,15 @@ public class SyncFacade {
                                 try {
                                     KongApi api = gw.getApi(apiId);
                                     if (api == null) {
-                                        gw.createApi(new KongApi().withStripRequestPath(true)
+                                        gw.createApi(new KongApi().withStripUri(true)
                                                 .withPreserveHost(false)
-                                                .withRequestHost(apiId)
-                                                .withRequestPath(requestPath)
-                                                .withUpstreamUrl(svb.getEndpoint())
+                                                .withHosts(new ArrayList<>(svb.getHostnames()))
+                                                .withUris(requestPaths)
+                                                .withUpstreamUrl(URIUtils.uriBackslashRemover(upstreamUrl))
                                                 .withName(apiId));
                                         log.info("== API {} MISSING ON GATEWAY {}, CREATED ==", apiId, gw.getGatewayId());
                                     } else {
-                                        api = compareServiceApis(api, svb, requestPath, apiId);
+                                        api = compareServiceApis(api, svb, requestPaths, apiId);
                                         if (api != null) {
                                             gw.updateOrCreateApi(api);
                                             log.info("== API {} OUT OF SYNC, RESYNCED ==", apiId);
@@ -179,23 +125,30 @@ public class SyncFacade {
                                             log.info("== NO SYNC NECESSARY FOR {} ==", apiId);
                                         }
                                     }
-                                }
-                                catch (Exception ex) {
+                                    if (svb.getUpstreamTargets().size() > 1) {
+                                        log.info("== SYNCING API UPSTREAMS ==");
+                                        if (gw.getServiceUpstream(apiId) == null) {
+                                            gw.createServiceUpstream(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion());
+                                        }
+                                        svb.getUpstreamTargets().forEach(target -> {
+                                            gw.createOrUpdateServiceUpstreamTarget(apiId, target);
+                                        });
+                                        log.info("== SYNC END FOR API UPSTREAMS ==");
+                                    }
+                                } catch (Exception ex) {
                                     log.error("== SYNC FOR {} FAILED ON GATEWAY {} ==", apiId, gw.getGatewayId());
                                     ex.printStackTrace();
                                 }
                                 log.info("== SYNC END FOR {} ON GATEWAY {} ==", apiId, gw.getGatewayId());
                             });
                     log.info("=== SYNC END FOR SERVICE {} ===", apiId);
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     log.error("=== SYNC FAILED FOR SERVICE {} DUE TO {} ===", apiId, ex.getMessage());
                     ex.printStackTrace();
                 }
             });
             log.info("==== SYNCING SERVICES END, COMPLETED IN {} ====", TimeUtil.getTimeSince(start));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -209,37 +162,33 @@ public class SyncFacade {
                 String appId = ConsumerConventionUtil.createAppUniqueId(avb);
                 try {
                     log.info("=== SYNC START FOR APPLICATION {} ===", appId);
+                    boolean appModified = false;
+                    boolean needsOAuthCredId = StringUtils.isEmpty(avb.getOauthCredentialId());
 
-                    gatewayFacade.getApplicationVersionGatewayLinks(avb).forEach(gw -> {
+                    if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty()) {
+                        avb.setOauthClientRedirects(new HashSet<>(Collections.singleton(PLACEHOLDER_CALLBACK_URI)));
+                        appModified = true;
+                    }
+
+                    if (StringUtils.isEmpty(avb.getOauthClientSecret())) {
+                        avb.setOauthClientSecret(apiKeyGenerator.generate());
+                        appModified = true;
+                    }
+
+                    if (StringUtils.isEmpty(avb.getApikey())) {
+                        avb.setApikey(apiKeyGenerator.generate());
+                        appModified = true;
+                    }
+
+                    for (IGatewayLink gw : gatewayFacade.getApplicationVersionGatewayLinks(avb)) {
                         String gwId = gw.getGatewayId();
                         try {
                             KongConsumer consumer = gw.getConsumer(appId);
                             if (consumer == null) {
                                 consumer = gw.createConsumer(appId);
                                 log.info("== APPLICATION {} MISSING ON GATEWAY {}, CREATED ==", appId, gwId);
-                            }
-                            else {
+                            } else {
                                 log.info("== NO SYNC NECESSARY FOR APPLICATION {} ON GATEWAY {} ==", appId, gwId);
-                            }
-                            boolean appModified = false;
-                            boolean needsOAuthCredId = StringUtils.isEmpty(avb.getOauthCredentialId());
-                            boolean needsJWTcreds = StringUtils.isEmpty(avb.getJwtKey()) || StringUtils.isEmpty(avb.getJwtSecret());
-
-                            if (StringUtils.isEmpty(avb.getoAuthClientId())) {
-                                avb.setoAuthClientId(apiKeyGenerator.generate());
-                                appModified = true;
-                            }
-                            if (StringUtils.isEmpty(avb.getOauthClientSecret())) {
-                                avb.setOauthClientSecret(apiKeyGenerator.generate());
-                                appModified = true;
-                            }
-                            if (avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().isEmpty()) {
-                                avb.setOauthClientRedirects(new HashSet<>(Collections.singleton(PLACEHOLDER_CALLBACK_URI)));
-                                appModified = true;
-                            }
-                            if (StringUtils.isEmpty(avb.getApikey())) {
-                                avb.setApikey(apiKeyGenerator.generate());
-                                appModified = true;
                             }
                             try {
                                 //Sync or create OAuth2 credentials
@@ -247,17 +196,17 @@ public class SyncFacade {
                                 if (!oauthCreds.getData().isEmpty()) {
                                     oauthCreds.getData().stream()
                                             .filter(oauth -> !oauth.getRedirectUri().equals(avb.getOauthClientRedirects())
-                                                || !oauth.getClientId().equals(avb.getoAuthClientId())
-                                                || !oauth.getClientSecret().equals(avb.getOauthClientSecret()))
+                                                    || !oauth.getClientId().equals(appId)
+                                                    || !oauth.getClientSecret().equals(avb.getOauthClientSecret()))
                                             .forEach(oauth -> {
-                                        //delete the credentials that do not match the stored credentials
-                                        gw.deleteOAuthConsumerPlugin(appId, oauth.getId());
-                                    });
+                                                //delete the credentials that do not match the stored credentials
+                                                gw.deleteOAuthConsumerPlugin(appId, oauth.getId());
+                                            });
                                     oauthCreds = gw.getConsumerOAuthCredentials(appId);
                                 }
                                 if (oauthCreds.getData().isEmpty()) {
                                     KongPluginOAuthConsumerRequest request = new KongPluginOAuthConsumerRequest()
-                                            .withClientId(avb.getoAuthClientId())
+                                            .withClientId(appId)
                                             .withClientSecret(avb.getOauthClientSecret())
                                             .withRedirectUri(avb.getOauthClientRedirects())
                                             .withName(appId);
@@ -269,18 +218,18 @@ public class SyncFacade {
                                     if (needsOAuthCredId) {
                                         avb.setOauthCredentialId(response.getId());
                                         appModified = true;
+                                        needsOAuthCredId = false;
                                     }
                                     log.info("= NO OAUTH CREDENTIALS FOUND FOR APPLICATION \"{}\" ON GATEWAY \"{}\", CREATED =", appId, gwId);
-                                }
-                                else {
+                                } else {
                                     if (needsOAuthCredId || !avb.getOauthCredentialId().equals(oauthCreds.getData().get(0).getId())) {
                                         avb.setOauthCredentialId(oauthCreds.getData().get(0).getId());
                                         appModified = true;
+                                        needsOAuthCredId = false;
                                     }
                                     log.info("= NO OAUTH SYNC NECESSARY FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
                                 }
-                            }
-                            catch (Exception ex) {
+                            } catch (Exception ex) {
                                 ex.printStackTrace();
                                 log.error("= OAUTH SYNC FAILED FOR APPLICATION \"{}\" ON GATEWAY \"{}\" DUE TO {} =", appId, gwId, ex.getMessage());
                             }
@@ -300,41 +249,34 @@ public class SyncFacade {
                                 } else {
                                     log.info("= NO KEY AUTHENTICATION SYNC NECESSARY FOR APPLICATION  \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
                                 }
-                            }
-                            catch (Exception ex) {
+                            } catch (Exception ex) {
                                 ex.printStackTrace();
                                 log.error("= KEY AUTHENTICATION FAILED FOR APPLICATION \"{}\" ON GATEWAY \"{}\" DUE TO {} =", appId, gwId, ex.getMessage());
                             }
 
                             try {
                                 String pubKey = gatewayFacade.get(gw.getGatewayId()).getJWTPubKey();
-                                //Sync or create JWT credentials
-                                KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(appId);
-                                KongPluginJWTResponse jwtCred = null;
-                                if (!jwtCreds.getData().isEmpty()) {
-                                    jwtCreds.getData().stream().filter(jwt -> {
-                                        boolean baseMatch = !jwt.getAlgorithm().equals(JWTUtils.JWT_RS256) || !jwt.getRsaPublicKey().equals(pubKey);
-                                        if (!needsJWTcreds) {
-                                            baseMatch = baseMatch || !jwt.getKey().equals(avb.getJwtKey());
-                                        }
-                                        return baseMatch;
-                                    }).forEach(jwt -> gw.deleteConsumerJwtCredential(appId, jwt.getId()));
-                                    jwtCreds = gw.getConsumerJWT(appId);
-                                }
-                                if (jwtCreds.getData().isEmpty()) {
-                                    jwtCred = gw.addConsumerJWT(appId, idpLinkFactory.getDefaultIDPClient().getRealmPublicKeyInPemFormat(avb.getApplication().getOrganization()));
-                                    log.info("= NO JWT CREDENTIALS FOUND FOR APPLICATION \"{}\" ON GATEWAY \"{}\", CREATED =", appId, gwId);
+                                if (StringUtils.isNotEmpty(pubKey)) {
+                                    //Sync or create JWT credentials
+                                    KongPluginJWTResponseList jwtCreds = gw.getConsumerJWT(appId);
+                                    KongPluginJWTResponse jwtCred = null;
+                                    if (!jwtCreds.getData().isEmpty()) {
+                                        jwtCreds.getData().stream().filter(jwt -> {
+                                            return !jwt.getAlgorithm().equals(JWTUtils.JWT_RS256) || !jwt.getRsaPublicKey().equals(pubKey);
+                                        }).forEach(jwt -> gw.deleteConsumerJwtCredential(appId, jwt.getId()));
+                                        jwtCreds = gw.getConsumerJWT(appId);
+                                    }
+                                    if (jwtCreds.getData().isEmpty()) {
+                                        jwtCred = gw.addConsumerJWT(appId, pubKey);
+                                        log.info("= NO JWT CREDENTIALS FOUND FOR APPLICATION \"{}\" ON GATEWAY \"{}\", CREATED =", appId, gwId);
+                                    } else {
+                                        jwtCred = jwtCreds.getData().get(0);
+                                        log.info("= NO JWT SYNC NECESSARY FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
+                                    }
                                 } else {
-                                    jwtCred = jwtCreds.getData().get(0);
-                                    log.info("= NO JWT SYNC NECESSARY FOR APPLICATION \"{}\" ON GATEWAY \"{}\" =", appId, gwId);
+                                    log.error("= JWT SYNC FAILED FOR APPLICATION \"{}\" ON GATEWAY \"{}\": COULD NOT RETRIEVE IDP PUBLIC KEY", appId, gwId);
                                 }
-                                if (needsJWTcreds && jwtCred != null) {
-                                    avb.setJwtKey(jwtCred.getKey());
-                                    avb.setJwtSecret(jwtCred.getSecret());
-                                    appModified = true;
-                                }
-                            }
-                            catch (Exception ex) {
+                            } catch (Exception ex) {
                                 ex.printStackTrace();
                                 log.error("= JWT SYNC FAILED FOR APPLICATION \"{}\" ON GATEWAY \"{}\" DUE TO {} =", appId, gwId, ex.getMessage());
                             }
@@ -344,13 +286,11 @@ public class SyncFacade {
                             if (appModified) {
                                 storage.updateApplicationVersion(avb);
                             }
-                        }
-                        catch (Exception ex) {
+                        } catch (Exception ex) {
                             log.info("== SYNC FAILED FOR APPLICATION {} ON GATEWAY {} DUE TO {} ==", appId, gwId);
                         }
-                    });
-                }
-                catch (Exception ex) {
+                    }
+                } catch (Exception ex) {
                     ex.printStackTrace();
                     log.info("=== SYNC FAILED FOR APPLICATION {} DUE TO {} ===", appId, ex.getMessage());
                 }
@@ -372,8 +312,7 @@ public class SyncFacade {
             syncContractPolicies();
             syncConsentPolicies();
             syncPlanPolicies();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.error("==== SYNC POLICES FAILED DUE TO {} ====", ex.getMessage());
         }
         log.info("==== SYNC POLICIES END, COMPLETED IN {} ====", TimeUtil.getTimeSince(start));
@@ -413,13 +352,11 @@ public class SyncFacade {
                                                     .withId(policy.getKongPluginId())
                                                     .withName(kongPluginIdentifier)
                                                     .withConfig(config));
-                                        }
-                                        else {
+                                        } else {
                                             gwPlugin.setConfig(config);
-                                            if (gw.updatePlugin(gwPlugin)!= null) {
+                                            if (gw.updatePlugin(gwPlugin) != null) {
                                                 log.info("= POLICY {} SYNCED FOR SERVICE {} =", policy.getDefinition().getName(), serviceId);
-                                            }
-                                            else {
+                                            } else {
                                                 log.error("= POLICY {} SYNC FOR SERVICE {} FAILED =", policy.getDefinition().getName(), serviceId);
                                             }
                                         }
@@ -439,20 +376,17 @@ public class SyncFacade {
                                     }
                                     storage.updatePolicy(policy);
                                     log.info("= SYNC END FOR {} POLICY FOR SERVICE {} =", policy.getName(), serviceId);
-                                }
-                                catch (Exception ex) {
+                                } catch (Exception ex) {
                                     ex.printStackTrace();
                                     log.error("= SYNC FAILED FOR {} POLICY FOR SERVICE {} DUE TO {} =", policy.getName(), serviceId, ex.getMessage());
                                 }
                             });
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                     log.error("== SYNC FAiLED FOR SERVICE {} DUE TO {} ==", serviceId, ex.getMessage());
                 }
             });
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             log.warn("=== SYNC SERVICES FAILED DUE TO {} ===", ex.getMessage());
         }
@@ -473,13 +407,11 @@ public class SyncFacade {
                     ContractBean contract = null;
                     if (contracts.containsKey(policy.getContractId()) && contracts.get(policy.getContractId()) != null) {
                         contract = contracts.get(policy.getContractId());
-                    }
-                    else {
+                    } else {
                         contract = storage.getContract(policy.getContractId());
                         if (contract == null) {
                             throw ExceptionFactory.contractNotFoundException(policy.getContractId());
-                        }
-                        else {
+                        } else {
                             contracts.put(contract.getId(), contract);
                         }
                     }
@@ -498,22 +430,18 @@ public class SyncFacade {
                                 if (acl != null) {
                                     policy.setKongPluginId(acl.getId());
                                     log.info("== CONTRACT {} POLICY OUT OF SYNC FOR {}, SYNCED ==", policy.getName(), entityId);
-                                }
-                                else {
+                                } else {
                                     policy.setKongPluginId(gw.addConsumerToACL(appId, group).getId());
                                     log.info("== CONTRACT {} POLICY NOT FOUND FOR {}, CREATED", policy.getName(), entityId);
                                 }
                                 storage.updatePolicy(policy);
-                            }
-                            else if (acl.getGroup().equals(group)){
+                            } else if (acl.getGroup().equals(group)) {
                                 log.info("== NO SYNC NECESSARY FOR {} ==", policy.getName(), entityId);
-                            }
-                            else {
+                            } else {
                                 gw.updateConsumerACL(acl.withGroup(group));
                                 log.info("== CONTRACT {} POLICY FOR {} SYNCED ==", policy.getName(), entityId);
                             }
-                        }
-                        else {
+                        } else {
                             KongPluginConfig plugin = gw.getPlugin(policy.getKongPluginId());
                             if (plugin == null) {
                                 plugin = gw.getConsumerSpecificApiPlugins(consumerId, apiId).getData()
@@ -523,35 +451,30 @@ public class SyncFacade {
                                     storage.updatePolicy(policy);
                                     log.info("== CONTRACT {} POLICY OUT OF SYNC FOR {}, SYNCED ==", policy.getName(), entityId);
                                 } else if (gw.createApiPlugin(apiId, new KongPluginConfig()
-                                        .withConfig(gson.fromJson(policy.getConfiguration(),  polDef.getClazz()))
+                                        .withConfig(gson.fromJson(policy.getConfiguration(), polDef.getClazz()))
                                         .withApiId(apiId)
                                         .withConsumerId(consumerId)
                                         .withEnabled(policy.isEnabled())
                                         .withCreatedAt((double) new Date().getTime())
                                         .withId(policy.getKongPluginId()).withName(polDef.getKongIdentifier())) != null) {
                                     log.info("== CONTRACT {} POLICY NOT FOUND FOR {}, CREATED ==", policy.getName(), entityId);
-                                }
-                                else {
+                                } else {
                                     log.error("== CONTRACT {} POLICY NOT FOUND FOR {}, CREATION FAILED ==", policy.getName(), entityId);
                                 }
-                            }
-                            else if (gw.updatePlugin(plugin
-                                    .withConfig(gson.fromJson(policy.getConfiguration(),  polDef.getClazz()))) != null) {
+                            } else if (gw.updatePlugin(plugin
+                                    .withConfig(gson.fromJson(policy.getConfiguration(), polDef.getClazz()))) != null) {
                                 log.info("== CONTRACT {} POLICY FOR {} SYNCED ==", policy.getName(), entityId);
-                            }
-                            else {
+                            } else {
                                 log.info("== CONTRACT {} POLICY FOR {} SYNC FAILED ==", policy.getName(), entityId);
                             }
                         }
                     }
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                     log.error("== SYNC FAILED FOR CONTRACT POLICY {} DUE TO {} ==", policy.getName(), ex.getMessage());
                 }
             });
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             log.info("=== CONTRACT POLICY SYNC FAILED DUE TO {} ===", ex.getMessage());
         }
@@ -582,23 +505,20 @@ public class SyncFacade {
                                 policy.setKongPluginId(gw.addConsumerToACL(consentAppId, engineACLGroup).getId());
                                 storage.updatePolicy(policy);
                                 log.info("= CONSENT ACL {} MISSING ON GATEWAY {}, CREATED =", engineACLGroup);
-                            }
-                            catch (StorageException ex) {
+                            } catch (StorageException ex) {
                                 ex.printStackTrace();
                                 log.error("= FAILED TO UPDATE KONG PLUGIN ID =");
                             }
                         }
                         log.info("== SYNC CONSENT ACL ENDED FOR {} ==", engineACLGroup);
                     }
-                }
-                else {
+                } else {
                     //TODO - Implement other consent policies if any
                     log.warn("== UNSUPPORTED CONSENT POLICY TYPE: {} ==", policy.getDefinition().getId());
                 }
             });
             log.info("=== CONSENT ACLS SYNC ENDED, COMPLETED IN {} ===", TimeUtil.getTimeSince(start));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.error("=== SYNC CONSENT POLICIES FAILED DUE TO {} ===", ex.getMessage());
         }
     }
@@ -609,11 +529,9 @@ public class SyncFacade {
         LocalDateTime start = LocalDateTime.now();
         log.info("=== PLAN POLICY SYNC START ===");
         try {
-            query.getPlanVersionContractMap().entrySet().forEach(entry -> {
-                PlanVersionBean pvb = entry.getKey();
+            query.getPlanVersionContractMap().forEach((pvb, contracts) -> {
                 String planId = ServiceConventionUtil.generateServiceUniqueName(pvb.getPlan().getOrganization().getId(), pvb.getPlan().getId(), pvb.getVersion());
                 try {
-                    List<ContractBean> contracts = entry.getValue();
                     List<PolicyBean> planPolicies = query.getPlanPolicies(pvb);
                     contracts.forEach(contract -> {
                         ServiceVersionBean svb = contract.getService();
@@ -650,38 +568,32 @@ public class SyncFacade {
                                         policy.setGatewayId(gw.getGatewayId());
                                         storage.createPolicy(policy);
                                         log.info("== CONTRACT POLICY DOES NOT EXIST FOR CONTRACT {} UNDER PLAN {} ON GATEWAY {}, CREATED ==", contract.getId(), planId, gw.getGatewayId());
-                                    }
-                                    else {
+                                    } else {
                                         KongPluginConfig plugin = gw.getPlugin(pol.getKongPluginId());
                                         if (plugin == null) {
                                             gw.createApiPlugin(svcId, new KongPluginConfig().withApiId(apiId).withConsumerId(consumerId).withEnabled(true).withName(polDef.getKongIdentifier()).withConfig(gson.fromJson(planPol.getConfiguration(), polDef.getClazz())));
                                             log.info("== CONTRACT POLICY MISSING FOR CONTRACT {} UNDER PLAN {} ON GATEWAY {}, CREATED ==", contract.getId(), planId, gw.getGatewayId());
-                                        }
-                                        else {
+                                        } else {
                                             if (gw.updatePlugin(plugin.withConfig(config)) != null) {
                                                 log.info("== CONTRACT POLICY SYNCED FOR CONTRACT {} UNDER PLAN {} ON GATEWAY {} ==", contract.getId(), planId, gw.getGatewayId());
-                                            }
-                                            else {
+                                            } else {
                                                 log.error("== CONTRACT POLICY SYNC FAILED FOR CONTRACT {} UNDER PLAN {} ON GATEWAY {} ==", contract.getId(), planId, gw.getGatewayId());
                                             }
                                         }
                                     }
-                                }
-                                catch (StorageException ex) {
+                                } catch (StorageException ex) {
                                     log.error("== SYNCING PLAN POLICIES FAILED FOR CONTRACT {} ON GATEWAY {} ==", contract.getId(), gw.getGatewayId());
                                     ex.printStackTrace();
                                 }
                             });
                         });
                     });
-                }
-                catch (StorageException ex) {
+                } catch (StorageException ex) {
                     log.error("== SYNCING POLICIES FOR PLAN {} FAILED ==", planId);
                     ex.printStackTrace();
                 }
             });
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             log.error("=== SYNC PLAN POLICIES FAILED DUE TO {} ===", ex.getMessage());
         }
@@ -697,8 +609,7 @@ public class SyncFacade {
             Map<String, IGatewayLink> tokenGws = tokens.stream().map(OAuth2TokenBean::getGatewayId).distinct().collect(Collectors.toMap(gwId -> gwId, gwId -> gatewayFacade.createGatewayLink(gwId)));
             tokens.forEach(token -> syncToken(token, tokenGws.get(token.getGatewayId())));
             log.info("==== START TOKEN SYNC, COMPLETED IN {} ====", TimeUtil.getTimeSince(start));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             log.error("==== TOKEN SYNC FAILED DUE TO {} ====", ex.getMessage());
         }
@@ -708,8 +619,7 @@ public class SyncFacade {
     public void deleteBackedUpTokens() {
         try {
             query.deleteAllOAuthTokens();
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -725,22 +635,21 @@ public class SyncFacade {
                 long total = tokenList.getTotal().longValue();
                 long i = 0;
                 tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).forEach(this::updateOrCreateToken);
-                while (tokenList.getOffset() != null && i < total/100) {
+                while (tokenList.getOffset() != null && i < total / 100) {
                     tokenList = gateway.getAllOAuth2Tokens(tokenList.getOffset());
                     tokenList.getData().stream().map(oauthToken -> new OAuth2TokenBean(oauthToken, gateway.getGatewayId())).forEach(this::updateOrCreateToken);
                     i++;
                 }
             });
             log.info("==== TOKEN BACKUP COMPLETED, {} TOKENS IN {}", query.getOAuth2TokenCount(), TimeUtil.getTimeSince(start));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             log.error("==== TOKEN BACKUP FAILED DUE TO {} ====", ex.getMessage());
         }
     }
 
     public void syncEmptyKongPluginIds() {
-        try{
+        try {
             List<PolicyBean> policies = query.getDefaultUnpublishedPolicies();
             policies.forEach(policy -> {
                 try {
@@ -754,36 +663,39 @@ public class SyncFacade {
                             storage.updatePolicy(policy);
                         }
                     }
-                }
-                catch (StorageException ex) {
+                } catch (StorageException ex) {
                     throw ExceptionFactory.systemErrorException(ex);
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     //do nothing
                 }
             });
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
     /************* PRIVATE METHODS *************/
 
-    private KongApi compareServiceApis(KongApi api, ServiceVersionBean svb, String requestPath, String apiId) {
-        if (!api.getUpstreamUrl().equals(svb.getEndpoint()) ||
-                !api.getRequestHost().equals(apiId) ||
-                !api.getRequestPath().equals(requestPath) ||
-                api.getPreserveHost() ||
-                !api.getStripRequestPath()) {
-            return api.withRequestPath(requestPath)
-                    .withRequestHost(apiId)
-                    .withRequestPath(requestPath)
-                    .withUpstreamUrl(svb.getEndpoint())
-                    .withPreserveHost(false)
-                    .withStripRequestPath(true);
+    private KongApi compareServiceApis(KongApi api, ServiceVersionBean svb, List<String> requestPaths, String apiId) {
+        final String upstreamUrl;
+        if (svb.getUpstreamTargets().size() == 1) {
+            ServiceUpstreamTargetBean target = svb.getUpstreamTargets().stream().collect(CustomCollectors.getFirstResult());
+            upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), target.getTarget(), target.getPort(), svb.getUpstreamPath());
+        } else {
+            upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), apiId, null, svb.getUpstreamPath());
         }
-        else {
+        if (!api.getUpstreamUrl().equals(upstreamUrl) ||
+                !new TreeSet<>(api.getHosts() == null ? Collections.emptyList() : api.getHosts()).equals(new TreeSet<>(svb.getHostnames() == null ? Collections.emptyList() : svb.getHostnames())) ||
+                !new TreeSet<>(api.getUris() == null ? Collections.emptyList() : api.getUris()).equals(new TreeSet<>(requestPaths)) ||
+                api.getPreserveHost() ||
+                !api.getStripUri()) {
+            return api.withUris(requestPaths)
+                    .withHosts(new ArrayList<>(svb.getHostnames()))
+                    .withUris(requestPaths)
+                    .withUpstreamUrl(upstreamUrl)
+                    .withPreserveHost(false)
+                    .withStripUri(true);
+        } else {
             return null;
         }
     }
@@ -799,8 +711,7 @@ public class SyncFacade {
                 log.info("== SYNC FOR TOKEN {} NOT NECESSARY ==", token.getAccessToken());
             }
             storage.deleteOAuth2Token(token);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.error("=== FAILED TO SYNC TOKEN {} ===", token.getAccessToken());
             ex.printStackTrace();
         }
@@ -810,8 +721,7 @@ public class SyncFacade {
     private void updateOrCreateToken(OAuth2TokenBean token) {
         try {
             storage.updateOAuth2TokenBean(token);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             log.error("Failed to backup token: {}", ex.getMessage());
         }

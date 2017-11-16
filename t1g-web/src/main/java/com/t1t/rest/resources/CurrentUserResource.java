@@ -11,14 +11,13 @@ import com.t1t.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.apim.beans.system.SystemStatusBean;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.EventNotFoundException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.InvalidEventException;
 import com.t1t.apim.exceptions.NotAuthorizedException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.CurrentUserFacade;
 import com.t1t.apim.facades.EventFacade;
-import com.t1t.apim.rest.resources.ICurrentUserResource;
 import com.t1t.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -38,7 +37,7 @@ import java.util.List;
 @Api(value = "/currentuser", description = "The Current User API. Returns information about the authenticated")
 @Path("/currentuser")
 @ApplicationScoped
-public class CurrentUserResource implements ICurrentUserResource {
+public class CurrentUserResource {
     @Inject
     private ISecurityContext securityContext;
     @Inject
@@ -137,7 +136,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         return currentUserFacade.getServices();
     }
 
-    @Override
+
     @ApiOperation(value = "Get all incoming events for current user",
             notes = "Call this endpoint to get all incoming events for the current user")
     @ApiResponses({
@@ -150,7 +149,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         return eventFacade.getCurrentUserAllIncomingEvents();
     }
 
-    @Override
+
     @ApiOperation(value = "Get all outgoing events for current user",
             notes = "Call this endpoint to get all outgoing events for the current user")
     @ApiResponses({
@@ -163,7 +162,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         return eventFacade.getCurrentUserAllOutgoingEvents();
     }
 
-    @Override
+
     @ApiOperation(value = "Get the current user's incoming event by type and status",
             notes = "Call this endpoint to get the current user's incoming events by type (MEMBERSHIP_GRANTED, MEMBERSHIP_REJECTED)")
     @ApiResponses({
@@ -177,7 +176,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         return eventFacade.getCurrentUserIncomingEventsByType(type);
     }
 
-    @Override
+
     @ApiOperation(value = "Get the current user's outgoing events by type and status",
             notes = "Call this endpoint to get the current user's outgoing events by type (MEMBERSHIP_PENDING)")
     @ApiResponses({
@@ -191,7 +190,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         return eventFacade.getCurrentUserOutgoingEventsByType(type);
     }
 
-    @Override
+
     @ApiOperation(value = "Clear an incoming notification",
             notes = "Call this endpoint to delete a notification addressed to the current user")
     @ApiResponses({
@@ -203,7 +202,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         eventFacade.deleteUserEvent(id);
     }
 
-    @Override
+
     @ApiOperation(value = "Get current user's organization notifications",
             notes = "Call this endpoint to get all of the current user's incoming notifications that do not require action, including those meant for organizations the current user has owner rights to")
     @ApiResponses({
@@ -216,7 +215,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         return eventFacade.getAllNonActionEvents(currentUserFacade.getInfo());
     }
 
-    @Override
+
     @ApiOperation(value = "Get current user's pending organization notifications",
             notes = "Call this endpoint to get all of the current user's incoming notifications that require action, including those meant for organizations the current user has owner rights to")
     @ApiResponses({
@@ -229,7 +228,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         return eventFacade.getAllIncomingActionEvents(currentUserFacade.getInfo());
     }
 
-    @Override
+
     @ApiOperation(value = "Clear all incoming notification",
             notes = "Call this endpoint to delete all informative notifications addressed to the current user")
     @ApiResponses({
@@ -241,7 +240,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         eventFacade.deleteAllEvents(currentUserFacade.getInfo());
     }
 
-    @Override
+
     @ApiOperation("Retrieve current user's Oauth2 tokens")
     @ApiResponses({
             @ApiResponse(code = 200, response = OAuth2TokenPaginationBean.class, message = "OAuth2 Tokens")
@@ -253,7 +252,7 @@ public class CurrentUserResource implements ICurrentUserResource {
         return currentUserFacade.getCurrentUserOAuth2Tokens(offset);
     }
 
-    @Override
+
     @ApiOperation(value = "Revoke current user's Oauth2 Token", notes = "Deprecated, please use the /security/oauth2/tokens/revoke/{token} DELETE endpoint")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Succesful, no content")

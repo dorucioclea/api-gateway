@@ -4,7 +4,7 @@ import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.jwt.JWTPubKeyResponse;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
-import com.t1t.apim.exceptions.JWTPubKeyException;
+import com.t1t.apim.exceptions.JwtPubKeyException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -27,12 +27,14 @@ import java.util.List;
 @Path("/gtw")
 @ApplicationScoped
 public class GatewayResource {
-    @Inject private IStorageQuery storageQuery;
+    @Inject
+    private IStorageQuery storageQuery;
+
     @ApiOperation(value = "Retrieve the gateway's public key",
-                  notes = "Retrieve the gateway's public key")
+            notes = "Retrieve the gateway's public key")
     @ApiResponses({
-                          @ApiResponse(code = 200, response = JWTPubKeyResponse.class, message = "Public Key PEM formatted - base64 encoded")
-                  })
+            @ApiResponse(code = 200, response = JWTPubKeyResponse.class, message = "Public Key PEM formatted - base64 encoded")
+    })
     @GET
     @Path("/tokens/pub")
     @Produces(MediaType.APPLICATION_JSON)
@@ -40,12 +42,12 @@ public class GatewayResource {
         String jwtPubkey = "";
         try {
             List<GatewayBean> gatewayBean = storageQuery.listGatewayBeans();
-            if(gatewayBean!=null&&gatewayBean.size()>0){
+            if (gatewayBean != null && gatewayBean.size() > 0) {
                 //get default - first gateway
                 jwtPubkey = gatewayBean.get(0).getJWTPubKey();
             }
         } catch (StorageException e) {
-            throw new JWTPubKeyException("Could not retrieve the JWT Pub Key");
+            throw new JwtPubKeyException("Could not retrieve the JWT Pub Key");
         }
         JWTPubKeyResponse response = new JWTPubKeyResponse(Base64.encode(jwtPubkey.getBytes()));
         return Response.ok().entity(response).build();

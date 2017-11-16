@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 /**
  * Bean used when creating a new version of a service.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewServiceVersionBean implements Serializable {

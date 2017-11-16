@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by michallispashidis on 25/11/15.
  */
-public class JWTRefreshRequestBean implements Serializable{
+public class JWTRefreshRequestBean implements Serializable {
 
     private String originalJWT;
 

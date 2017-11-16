@@ -15,180 +15,186 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-      <artifactId>api-gateway</artifactId>
-      <groupId>com.t1t</groupId>
-      <version>1.0.0-SNAPSHOT</version>
-   </parent>
+        <artifactId>api-gateway</artifactId>
+        <groupId>com.t1t</groupId>
+        <version>0.9.9-SNAPSHOT</version>
+    </parent>
 
-   <artifactId>t1g-web</artifactId>
-   <packaging>war</packaging>
+    <artifactId>t1g-web</artifactId>
+    <packaging>war</packaging>
 
-   <name>t1g-web</name>
+    <name>t1g-web</name>
 
-   <url>http://wildfly.org</url>
-   <licenses>
-      <license>
-         <name>Apache License, Version 2.0</name>
-         <distribution>repo</distribution>
-         <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-      </license>
-   </licenses>
+    <url>http://wildfly.org</url>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <distribution>repo</distribution>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
 
     <modelVersion>4.0.0</modelVersion>
     <properties>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
     </properties>
 
-   <dependencies>
-      <!-- Dependency on the EJB module so we can use it's services if needed -->
-      <dependency>
-         <groupId>com.t1t</groupId>
-         <artifactId>t1g-ejb</artifactId>
-          <version>${project.version}</version>
-         <type>ejb</type>
-         <scope>provided</scope>
-      </dependency>
-      <!-- Import the JAX-RS API, we use provided scope as the API is included in JBoss WildFly -->
-      <dependency>
-         <groupId>org.jboss.resteasy</groupId>
-         <artifactId>jaxrs-api</artifactId>
-         <scope>provided</scope>
-      </dependency>
-       <dependency>
-           <groupId>org.jboss.resteasy</groupId>
-           <artifactId>resteasy-jaxb-provider</artifactId>
-           <version>3.0.11.Final</version>
-           <scope>provided</scope>
-       </dependency>
-       <dependency>
-           <groupId>org.jboss.resteasy</groupId>
-           <artifactId>resteasy-jaxrs</artifactId>
-           <version>3.0.11.Final</version>
-           <scope>provided</scope>
-       </dependency>
-      <!-- Import the CDI API, we use provided scope as the API is included in JBoss WildFly -->
-      <dependency>
-         <groupId>javax.enterprise</groupId>
-         <artifactId>cdi-api</artifactId>
-         <scope>provided</scope>
-      </dependency>
-      <!-- Import the JSF API, we use provided scope as the API is included in JBoss WildFly -->
-      <dependency>
-         <groupId>org.jboss.spec.javax.faces</groupId>
-         <artifactId>jboss-jsf-api_2.2_spec</artifactId>
-         <scope>provided</scope>
-      </dependency>
-      <!-- Import the JPA API, we use provided scope as the API is included in JBoss WildFly -->
-      <dependency>
-         <groupId>org.hibernate.javax.persistence</groupId>
-         <artifactId>hibernate-jpa-2.1-api</artifactId>
-         <scope>provided</scope>
-      </dependency>
-       <!--REST-->
-       <dependency>
-           <groupId>javax.ws.rs</groupId>
-           <artifactId>javax.ws.rs-api</artifactId>
-       </dependency>
-       <dependency>
-           <groupId>org.jboss.spec.javax.servlet</groupId>
-           <artifactId>jboss-servlet-api_3.0_spec</artifactId>
-           <scope>provided</scope>
-       </dependency>
+    <dependencies>
+        <!-- Dependency on the EJB module so we can use it's services if needed -->
+        <dependency>
+            <groupId>com.t1t</groupId>
+            <artifactId>t1g-ejb</artifactId>
+            <version>${project.version}</version>
+            <type>ejb</type>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Import the JAX-RS API, we use provided scope as the API is included in JBoss WildFly -->
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>jaxrs-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jaxb-provider</artifactId>
+            <version>3.0.11.Final</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jaxrs</artifactId>
+            <version>3.0.11.Final</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Import the CDI API, we use provided scope as the API is included in JBoss WildFly -->
+        <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Import the JSF API, we use provided scope as the API is included in JBoss WildFly -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.faces</groupId>
+            <artifactId>jboss-jsf-api_2.2_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Import the JPA API, we use provided scope as the API is included in JBoss WildFly -->
+        <dependency>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.1-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!--REST-->
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.servlet</groupId>
+            <artifactId>jboss-servlet-api_3.0_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
-       <!-- REST API documentation via swagger-->
-       <dependency>
-           <groupId>io.swagger</groupId>
-           <artifactId>swagger-jaxrs</artifactId>
-           <version>${swagger.version}</version>
-       </dependency>
-       <dependency>
-           <groupId>io.swagger</groupId>
-           <artifactId>swagger-core</artifactId>
-           <version>${swagger.version}</version>
-       </dependency>
+        <!-- REST API documentation via swagger-->
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-jaxrs</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-core</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
 
-       <!--Javax.servlet dependency-->
-       <dependency>
-           <groupId>javax.servlet</groupId>
-           <artifactId>servlet-api</artifactId>
-           <version>2.5</version>
-           <scope>provided</scope>
-       </dependency>
-       <dependency>
-           <groupId>javax.servlet</groupId>
-           <artifactId>javax.servlet-api</artifactId>
-           <version>${javax.servlet-api.version}</version>
-           <scope>provided</scope>
-       </dependency>
+        <!--Javax.servlet dependency-->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${javax.servlet-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
 
-       <!-- JSR-303 (Bean Validation) Implementation -->
-       <!-- Provides portable constraints such as @Email -->
-       <!-- Hibernate Validator is shipped in JBoss WildFly -->
-       <dependency>
-           <groupId>org.hibernate</groupId>
-           <artifactId>hibernate-validator</artifactId>
-           <scope>provided</scope>
-           <exclusions>
-               <exclusion>
-                   <groupId>org.slf4j</groupId>
-                   <artifactId>slf4j-api</artifactId>
-               </exclusion>
-           </exclusions>
-       </dependency>
-       <!-- Test Scope Dependencies -->
-       <dependency>
-           <groupId>junit</groupId>
-           <artifactId>junit</artifactId>
-           <scope>test</scope>
-       </dependency>
-   </dependencies>
+        <!-- JSR-303 (Bean Validation) Implementation -->
+        <!-- Provides portable constraints such as @Email -->
+        <!-- Hibernate Validator is shipped in JBoss WildFly -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Test Scope Dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency><!-- Apache commons validators -->
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+        </dependency>
+    </dependencies>
 
-   <build>
-      <finalName>${project.artifactId}</finalName>
-      <plugins>
-          <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-deploy-plugin</artifactId>
-              <version>${version.deploy.plugin}</version>
-              <configuration>
-                  <skip>true</skip>
-              </configuration>
-          </plugin>
-          <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <version>${version.compiler.plugin}</version>
-              <configuration>
-                  <source>1.8</source>
-                  <target>1.8</target>
-              </configuration>
-          </plugin>
-         <plugin>
-            <artifactId>maven-war-plugin</artifactId>
-            <version>${version.war.plugin}</version>
-            <configuration>
-               <!-- Java EE 7 doesn't require web.xml, Maven needs to catch up! -->
-               <failOnMissingWebXml>false</failOnMissingWebXml>
-            </configuration>
-         </plugin>
-          <plugin>
-              <groupId>org.apache.felix</groupId>
-              <artifactId>maven-bundle-plugin</artifactId>
-              <version>${version.bundle.plugin}</version>
-              <extensions>true</extensions>
-              <configuration>
-                  <instructions>
-                      <Export-Package>com.t1t.apim.rest.impl*</Export-Package>
-                      <Import-Package>!org.jboss.errai.common.client.api.annotations,!javax.enterprise.context,!javax.enterprise.inject,!javax.inject,*</Import-Package>
-                  </instructions>
-              </configuration>
-          </plugin>
-      </plugins>
-   </build>
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${version.deploy.plugin}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${version.compiler.plugin}</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>${version.war.plugin}</version>
+                <configuration>
+                    <!-- Java EE 7 doesn't require web.xml, Maven needs to catch up! -->
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${version.bundle.plugin}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Export-Package>com.t1t.apim.rest.impl*</Export-Package>
+                        <Import-Package>
+                            !org.jboss.errai.common.client.api.annotations,!javax.enterprise.context,!javax.enterprise.inject,!javax.inject,*
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

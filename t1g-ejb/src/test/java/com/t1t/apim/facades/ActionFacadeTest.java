@@ -17,7 +17,8 @@ import static org.junit.Assert.assertTrue;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ActionFacade.class)
 public class ActionFacadeTest {
-    @Rule public ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testPerformActionLockPlan() throws Exception {

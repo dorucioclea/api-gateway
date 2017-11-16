@@ -12,7 +12,6 @@ import java.util.Date;
 /**
  * An APIMan Organization.  This is an important top level entity in the APIMan
  * data model.  It contains the Services, Plans, etc.
- *
  */
 @Entity
 @Table(name = "organizations")
@@ -22,30 +21,26 @@ public class OrganizationBean implements Serializable {
     private static final long serialVersionUID = -506427154633682906L;
 
     @Id
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String id;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String name;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String context;
-    @Column(updatable=true, nullable=true, length=512)
+    @Column(updatable = true, nullable = true, length = 512)
     private String description;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(name = "modified_by", updatable=true, nullable=false)
+    @Column(name = "modified_by", updatable = true, nullable = false)
     private String modifiedBy;
-    @Column(name = "modified_on", updatable=true, nullable=false)
+    @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
     @Column(name = "friendly_name", updatable = true)
     private String friendlyName;
     @Column(name = "private")
     private boolean organizationPrivate;
-    @Column(name = "mail_provider_id")
-    private Long mailProviderId;
-    @Column(name = "keystore_kid")
-    private String keystoreKid;
 
     /**
      * Constructor.
@@ -194,34 +189,6 @@ public class OrganizationBean implements Serializable {
     }
 
     /**
-     * @return the mail provider ID
-     */
-    public Long getMailProviderId() {
-        return mailProviderId;
-    }
-
-    /**
-     * @param mailProviderId the mail provider ID to set
-     */
-    public void setMailProviderId(Long mailProviderId) {
-        this.mailProviderId = mailProviderId;
-    }
-
-    /**
-     * @return the keystore ID
-     */
-    public String getKeystoreKid() {
-        return keystoreKid;
-    }
-
-    /**
-     * @param keystoreId the keystore ID to set
-     */
-    public void setKeystoreKid(String keystoreId) {
-        this.keystoreKid = keystoreId;
-    }
-
-    /**
      * @see Object#hashCode()
      */
     @Override
@@ -265,8 +232,6 @@ public class OrganizationBean implements Serializable {
                 ", modifiedOn=" + modifiedOn +
                 ", friendlyName='" + friendlyName + '\'' +
                 ", organizationPrivate=" + organizationPrivate +
-                ", mailProviderId=" + mailProviderId +
-                ", keystoreKid=" + keystoreKid +
                 '}';
     }
 }

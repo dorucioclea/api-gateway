@@ -6,6 +6,7 @@ package com.t1t.apim.exceptions;
 public class SAMLAuthException extends AbstractUserException {
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public SAMLAuthException(String message) {

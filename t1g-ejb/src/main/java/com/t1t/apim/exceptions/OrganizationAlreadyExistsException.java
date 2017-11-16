@@ -2,7 +2,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to create an Organization that already exists.
- *
  */
 public class OrganizationAlreadyExistsException extends AbstractAlreadyExistsException {
 
@@ -13,15 +12,16 @@ public class OrganizationAlreadyExistsException extends AbstractAlreadyExistsExc
      */
     public OrganizationAlreadyExistsException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public OrganizationAlreadyExistsException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -29,7 +29,7 @@ public class OrganizationAlreadyExistsException extends AbstractAlreadyExistsExc
     public int getErrorCode() {
         return ErrorCodes.ORG_ALREADY_EXISTS;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

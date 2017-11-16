@@ -17,57 +17,56 @@ import java.util.Set;
  * other specifics of the service, such as endpoint information
  * and configured policies are associated with a particular version
  * of that Service.  This class represents that version.
- *
  */
 @Entity
-@Table(name = "service_versions", uniqueConstraints = { @UniqueConstraint(columnNames = { "service_id", "service_org_id", "version" }) })
+@Table(name = "service_versions", uniqueConstraints = {@UniqueConstraint(columnNames = {"service_id", "service_org_id", "version"})})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceVersionBean implements Serializable {
 
-    private static final long serialVersionUID = -2218697175049442690L;
     //key for endpoint properties
     public static final String PROP_PATH = "service_path";
-
-    @Id @GeneratedValue
+    private static final long serialVersionUID = -2218697175049442690L;
+    @Id
+    @GeneratedValue
     private Long id;
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="service_id", referencedColumnName="id"),
-        @JoinColumn(name="service_org_id", referencedColumnName="organization_id")
+            @JoinColumn(name = "service_id", referencedColumnName = "id"),
+            @JoinColumn(name = "service_org_id", referencedColumnName = "organization_id")
     })
     private ServiceBean service;
-    @Column(updatable=true, nullable=false)
+    @Column(updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private ServiceStatus status;
     private String endpoint;
     @Column(name = "endpoint_type")
     @Enumerated(EnumType.STRING)
     private EndpointType endpointType;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @MapKeyColumn(name="name")
-    @Column(name="value")
-    @CollectionTable(name="endpoint_properties", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @MapKeyColumn(name = "name")
+    @Column(name = "value")
+    @CollectionTable(name = "endpoint_properties", joinColumns = @JoinColumn(name = "service_version_id"))
     private Map<String, String> endpointProperties = new HashMap<>();
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="svc_gateways", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "svc_gateways", joinColumns = @JoinColumn(name = "service_version_id"))
     private Set<ServiceGatewayBean> gateways;
-    @Column(name = "public_service", updatable=true, nullable=false)
+    @Column(name = "public_service", updatable = true, nullable = false)
     private boolean publicService;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="svc_plans", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "svc_plans", joinColumns = @JoinColumn(name = "service_version_id"))
     private Set<ServicePlanBean> plans;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="svc_visibility", joinColumns=@JoinColumn(name="service_version_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "svc_visibility", joinColumns = @JoinColumn(name = "service_version_id"))
     private Set<VisibilityBean> visibility;
-    @Column(updatable=false)
+    @Column(updatable = false)
     private String version;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(name = "modified_by", updatable=true, nullable=false)
+    @Column(name = "modified_by", updatable = true, nullable = false)
     private String modifiedBy;
-    @Column(name = "modified_on", updatable=true, nullable=false)
+    @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
     @Column(name = "published_on")
     private Date publishedOn;
@@ -82,19 +81,39 @@ public class ServiceVersionBean implements Serializable {
     private String provisionKey;
     @Column(name = "onlinedoc")
     private String onlinedoc;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="oauth_scopes")
-    @MapKeyColumn(name="oauth_scopes")
-    @Column(name="oauth_scopes_desc")
-    private Map<String,String> oauthScopes;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "oauth_scopes")
+    @MapKeyColumn(name = "oauth_scopes")
+    @Column(name = "oauth_scopes_desc")
+    private Map<String, String> oauthScopes;
     @Column(name = "auto_accept_contracts")
     private Boolean autoAcceptContracts;
     @Lob
-    @Column(name="readme")
+    @Column(name = "readme")
     @Type(type = "org.hibernate.type.TextType")
     private String readme;
     @Column(name = "terms_agreement_required")
     private Boolean termsAgreementRequired;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "service_hosts", joinColumns = @JoinColumn(name = "service_version_id"))
+    @Column(name = "hostname")
+    private Set<String> hostnames;
+    @Column(name = "upstream_connect_timeout")
+    private Long upstreamConnectTimeout;
+    @Column(name = "upstream_send_timeout")
+    private Long upstreamSendTimeout;
+    @Column(name = "upstream_read_timeout")
+    private Long upstreamReadTimeout;
+    @Column(name = "custom_load_balancing")
+    private Boolean customLoadBalancing;
+    @Column(name = "upstream_scheme")
+    @Enumerated(EnumType.STRING)
+    private SchemeType upstreamScheme;
+    @Column(name = "upstream_path")
+    private String upstreamPath;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "service_upstream_targets", joinColumns = @JoinColumn(name = "service_version_id"))
+    private Set<ServiceUpstreamTargetBean> upstreamTargets;
 
     /**
      * @return the id
@@ -349,60 +368,214 @@ public class ServiceVersionBean implements Serializable {
         this.endpointProperties = endpointProperties;
     }
 
+    /**
+     * @return the provision key
+     */
     public String getProvisionKey() {
         return provisionKey;
     }
 
+    /**
+     * @param provisionKey the provision key to set
+     */
     public void setProvisionKey(String provisionKey) {
         this.provisionKey = provisionKey;
     }
 
+    /**
+     * @return the oauth scopes
+     */
     public Map<String, String> getOauthScopes() {
         return oauthScopes;
     }
 
+    /**
+     * @param oauthScopes the oauth scopes to set
+     */
     public void setOauthScopes(Map<String, String> oauthScopes) {
         this.oauthScopes = oauthScopes;
     }
 
+    /**
+     * @return the online doc
+     */
     public String getOnlinedoc() {
         return onlinedoc;
     }
 
+    /**
+     * @param onlinedoc the online doc to set
+     */
     public void setOnlinedoc(String onlinedoc) {
         this.onlinedoc = onlinedoc;
     }
 
+    /**
+     * @return the deprecation date
+     */
     public Date getDeprecatedOn() {
         return deprecatedOn;
     }
 
+    /**
+     * @param deprecatedOn the deprecation date to set
+     */
     public void setDeprecatedOn(Date deprecatedOn) {
         this.deprecatedOn = deprecatedOn;
     }
 
+    /**
+     * @return the auto accept contracts value
+     */
     public Boolean getAutoAcceptContracts() {
         return autoAcceptContracts;
     }
 
+    /**
+     * @param autoAcceptContracts the auto accepts contracts value to set
+     */
     public void setAutoAcceptContracts(Boolean autoAcceptContracts) {
         this.autoAcceptContracts = autoAcceptContracts;
     }
 
+    /**
+     * @return the readme
+     */
     public String getReadme() {
         return readme;
     }
 
+    /**
+     * @param readme the readme to set
+     */
     public void setReadme(String readme) {
         this.readme = readme;
     }
 
+    /**
+     * @return the terms agreement required value
+     */
     public Boolean getTermsAgreementRequired() {
         return termsAgreementRequired;
     }
 
+    /**
+     * @param termsAgreementRequired the terms agreement required value to set
+     */
     public void setTermsAgreementRequired(Boolean termsAgreementRequired) {
         this.termsAgreementRequired = termsAgreementRequired;
+    }
+
+    /**
+     * @return the service hosts
+     */
+    public Set<String> getHostnames() {
+        return hostnames;
+    }
+
+    /**
+     * @param serviceHosts the service hosts to set
+     */
+    public void setHostnames(Set<String> hostnames) {
+        this.hostnames = hostnames;
+    }
+
+    /**
+     * @return the upstream connect timeout
+     */
+    public Long getUpstreamConnectTimeout() {
+        return upstreamConnectTimeout;
+    }
+
+    /**
+     * @param upstreamConnectTimeout the upstream connect timeout to set
+     */
+    public void setUpstreamConnectTimeout(Long upstreamConnectTimeout) {
+        this.upstreamConnectTimeout = upstreamConnectTimeout;
+    }
+
+    /**
+     * @return the upstream send timeout
+     */
+    public Long getUpstreamSendTimeout() {
+        return upstreamSendTimeout;
+    }
+
+    /**
+     * @param upstreamConnectTimeout the upstream send timeout to set
+     */
+    public void setUpstreamSendTimeout(Long upstreamSendTimeout) {
+        this.upstreamSendTimeout = upstreamSendTimeout;
+    }
+
+    /**
+     * @return the upstream read timeout
+     */
+    public Long getUpstreamReadTimeout() {
+        return upstreamReadTimeout;
+    }
+
+    /**
+     * @param upstreamConnectTimeout the upstream read timeout to set
+     */
+    public void setUpstreamReadTimeout(Long upstreamReadTimeout) {
+        this.upstreamReadTimeout = upstreamReadTimeout;
+    }
+
+    /**
+     * @return the custom load balancing value
+     */
+    public Boolean getCustomLoadBalancing() {
+        return customLoadBalancing;
+    }
+
+    /**
+     * @param customLoadBalancing the custom load balancing value to set
+     */
+    public void setCustomLoadBalancing(Boolean customLoadBalancing) {
+        this.customLoadBalancing = customLoadBalancing;
+    }
+
+    /**
+     * @return the upstream targets
+     */
+    public Set<ServiceUpstreamTargetBean> getUpstreamTargets() {
+        return upstreamTargets;
+    }
+
+    /**
+     * @param upstreamTargets the upstream targets to set
+     */
+    public void setUpstreamTargets(Set<ServiceUpstreamTargetBean> upstreamTargets) {
+        this.upstreamTargets = upstreamTargets;
+    }
+
+    /**
+     * @return the upstream scheme
+     */
+    public SchemeType getUpstreamScheme() {
+        return upstreamScheme;
+    }
+
+    /**
+     * @param upstreamScheme the upstream scheme to set
+     */
+    public void setUpstreamScheme(SchemeType upstreamScheme) {
+        this.upstreamScheme = upstreamScheme;
+    }
+
+    /**
+     * @return the upstream path
+     */
+    public String getUpstreamPath() {
+        return upstreamPath;
+    }
+
+    /**
+     * @param upstreamPath the upstream path to set
+     */
+    public void setUpstreamPath(String upstreamPath) {
+        this.upstreamPath = upstreamPath;
     }
 
     /**
@@ -458,12 +631,20 @@ public class ServiceVersionBean implements Serializable {
                 ", retiredOn=" + retiredOn +
                 ", deprecatedOn=" + deprecatedOn +
                 ", definitionType=" + definitionType +
-                ", provisionKey='" + provisionKey + '\'' +
+                ", provisionKey='***************'" +
                 ", onlinedoc='" + onlinedoc + '\'' +
                 ", oauthScopes=" + oauthScopes +
                 ", autoAcceptContracts=" + autoAcceptContracts +
                 ", readme='" + readme + '\'' +
                 ", termsAgreementRequired=" + termsAgreementRequired +
+                ", hostnames=" + hostnames +
+                ", upstreamConnectTimeout=" + upstreamConnectTimeout +
+                ", upstreamSendTimeout=" + upstreamSendTimeout +
+                ", upstreamReadTimeout=" + upstreamReadTimeout +
+                ", customLoadBalancing=" + customLoadBalancing +
+                ", upstreamScheme='" + upstreamScheme + '\'' +
+                ", upstreamPath='" + upstreamPath + '\'' +
+                ", upstreamTargets=" + upstreamTargets +
                 '}';
     }
 }

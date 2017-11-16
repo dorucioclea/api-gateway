@@ -23,7 +23,8 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     //Logger
     private static Logger LOG = LoggerFactory.getLogger(ApiEngineAppSecurityContext.class.getName());
 
-    @Inject private IStorageQuery query;
+    @Inject
+    private IStorageQuery query;
 
     private String nonManagedApplication;
     private String currentApplication;
@@ -47,7 +48,7 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
      * A scope is retrieved by the prefix of the API Engine consumer. Be sure that the consumer uses the conventional dotted-notation for a consumer name, aka:
      * - prefix.name.version
      * - prefix.name
-     *
+     * <p>
      * Examples:
      * - int.apimktinternal.v1
      * - ext.apimktexternal
@@ -59,10 +60,10 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
     public String setCurrentApplication(String currentApplication) throws StorageException {
         this.currentApplication = currentApplication;
         this.appIdentifier = ConsumerConventionUtil.parseApplicationIdentifier(this.currentApplication);
-        if(appIdentifier!=null && appIdentifier.getPrefix()!=null){
+        if (appIdentifier != null && appIdentifier.getPrefix() != null) {
             final ManagedApplicationBean managedApplication = query.findManagedApplication(appIdentifier.getPrefix());
-            if(managedApplication!=null){
-                LOG.debug("Managed application used for request: {}",managedApplication);
+            if (managedApplication != null) {
+                LOG.debug("Managed application used for request: {}", managedApplication);
             }
         }
         return getApplication();
@@ -75,9 +76,10 @@ public class ApiEngineAppSecurityContext extends AbstractSecurityAppContext impl
 
     @Override
     public String getApplicationPrefix() {
-        if(appIdentifier!=null && !StringUtils.isEmpty(appIdentifier.getPrefix())){
+        if (appIdentifier != null && !StringUtils.isEmpty(appIdentifier.getPrefix())) {
             return appIdentifier.getPrefix();
-        }return "";
+        }
+        return "";
     }
 
     @Override

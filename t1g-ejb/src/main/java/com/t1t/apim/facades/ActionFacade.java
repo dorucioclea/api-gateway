@@ -36,7 +36,6 @@ import com.t1t.apim.gateway.dto.Contract;
 import com.t1t.apim.gateway.dto.Policy;
 import com.t1t.apim.gateway.dto.Service;
 import com.t1t.apim.gateway.dto.exceptions.PublishingException;
-import com.t1t.apim.idp.IDPLinkFactory;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.kong.model.KongConsumer;
 import com.t1t.kong.model.KongPluginACLResponse;
@@ -64,16 +63,22 @@ import java.util.stream.Collectors;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class ActionFacade {
     private static Logger log = LoggerFactory.getLogger(ActionFacade.class.getName());
-    @Inject private ISecurityContext securityContext;
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private OrganizationFacade orgFacade;
-    @Inject private IServiceValidator serviceValidator;
-    @Inject private IApplicationValidator applicationValidator;
-    @Inject private GatewayFacade gatewayFacade;
-    @Inject private IDPLinkFactory idpLinkFactory;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private OrganizationFacade orgFacade;
+    @Inject
+    private IServiceValidator serviceValidator;
+    @Inject
+    private IApplicationValidator applicationValidator;
+    @Inject
+    private GatewayFacade gatewayFacade;
 
-    public void performAction(ActionBean action){
+    public void performAction(ActionBean action) {
         switch (action.getType()) {
             case publishService:
                 publishService(action);
@@ -140,15 +145,19 @@ public class ActionFacade {
         }
 
         Service gatewaySvc = new Service();
-        gatewaySvc.setEndpoint(versionBean.getEndpoint());
+        //gatewaySvc.setEndpoint(versionBean.getEndpoint());
+        gatewaySvc.setUpstreamScheme(versionBean.getUpstreamScheme());
+        gatewaySvc.setUpstreamPath(versionBean.getUpstreamPath());
         gatewaySvc.setEndpointType(versionBean.getEndpointType().toString());
         gatewaySvc.setEndpointProperties(versionBean.getEndpointProperties());
         gatewaySvc.setOrganizationId(versionBean.getService().getOrganization().getId());
         gatewaySvc.setServiceId(versionBean.getService().getId());
-        gatewaySvc.setBasepath(versionBean.getService().getBasepath());
+        gatewaySvc.setBasepaths(versionBean.getService().getBasepaths());
         gatewaySvc.setVersion(versionBean.getVersion());
         gatewaySvc.setPublicService(versionBean.isPublicService());
         gatewaySvc.setBrandings(versionBean.getService().getBrandings().stream().map(ServiceBrandingBean::getId).collect(Collectors.toSet()));
+        gatewaySvc.setUpstreamTargets(new ArrayList<>(versionBean.getUpstreamTargets()));
+        gatewaySvc.setCustomLoadBalancing(versionBean.getCustomLoadBalancing());
 
         try {
             //we don't restrict the application of service policies for only the public services
@@ -200,9 +209,7 @@ public class ActionFacade {
                         pb.setGatewayId(gatewayLink.getGatewayId());
                         pb.setKongPluginId(policy.getKongPluginId());
                         storage.updatePolicy(pb);
-                    }
-
-                    else {
+                    } else {
                         log.error("Plugin present on service {} but no corresponding policy/missing policy id:{}", ServiceConventionUtil.generateServiceUniqueName(versionBean), policy);
                     }
                 }
@@ -252,8 +259,7 @@ public class ActionFacade {
             if (!query.getServiceContracts(gatewaySvc.getOrganizationId(), gatewaySvc.getServiceId(), gatewaySvc.getVersion(), 1, 1000).isEmpty()) {
                 throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw new SystemErrorException(ex);
         }
 
@@ -302,13 +308,12 @@ public class ActionFacade {
         if (versionBean.getStatus() != ServiceStatus.Published) {
             throw ExceptionFactory.actionException(Messages.i18n.format("InvalidServiceStatus")); //$NON-NLS-1$
         }
-            versionBean.setStatus(ServiceStatus.Deprecated);
-            versionBean.setDeprecatedOn(new Date());
+        versionBean.setStatus(ServiceStatus.Deprecated);
+        versionBean.setDeprecatedOn(new Date());
         try {
             storage.updateServiceVersion(versionBean);
             storage.createAuditEntry(AuditUtils.serviceRetired(versionBean, securityContext));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.actionException(Messages.i18n.format("DeprecateError"), ex); //$NON-NLS-1$
         }
     }
@@ -392,12 +397,12 @@ public class ActionFacade {
                             gw.createConsumer(appConsumerName);
                             gw.addConsumerKeyAuth(appConsumerName, versionBean.getApikey());
                             gw.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
-                                    .withClientId(versionBean.getoAuthClientId())
+                                    .withClientId(appConsumerName)
                                     .withClientSecret(versionBean.getOauthClientSecret())
                                     .withName(versionBean.getApplication().getName())
                                     .withId(versionBean.getOauthCredentialId())
                                     .withRedirectUri(versionBean.getOauthClientRedirects()));
-                            String publicKey = idpLinkFactory.getDefaultIDPClient().getRealmPublicKeyInPemFormat(versionBean.getApplication().getOrganization());
+                            String publicKey = gatewayFacade.getDefaultGatewayPublicKey();
                             gw.addConsumerJWT(appConsumerName, publicKey);
                         } catch (Exception ex) {
                             //Delete the consumer on the gateway so the gateway and engine remain in sync
@@ -406,13 +411,13 @@ public class ActionFacade {
                         }
                     }
                     Map<Contract, KongPluginConfigList> response = gw.registerApplication(application);
-                    response.entrySet().forEach(entry -> entry.getValue().getData().forEach(plugin -> {
+                    response.forEach((key, value) -> value.getData().forEach(plugin -> {
                         try {
                             if (query.getPolicyByKongPluginId(plugin.getId()) == null) {
                                 NewPolicyBean npb = new NewPolicyBean();
                                 npb.setGatewayId(gw.getGatewayId());
                                 npb.setConfiguration(new Gson().toJson(plugin.getConfig()));
-                                npb.setContractId(entry.getKey().getId());
+                                npb.setContractId(key.getId());
                                 npb.setKongPluginId(plugin.getId());
                                 npb.setDefinitionId(GatewayUtils.convertKongPluginNameToPolicy(plugin.getName()).getPolicyDefId());
                                 //save the policy as a contract policy on the service
@@ -422,8 +427,7 @@ public class ActionFacade {
                             throw ExceptionFactory.systemErrorException(ex);
                         }
                     }));
-                }
-                catch (GatewayAuthenticationException ex) {
+                } catch (GatewayAuthenticationException ex) {
                     throw ExceptionFactory.actionException(Messages.i18n.format("RegisterError"), ex); //$NON-NLS-1$
                 }
             });
@@ -581,7 +585,8 @@ public class ActionFacade {
      * @param action
      */
     private void lockPlan(ActionBean action) throws ActionException {
-        if (!securityContext.hasPermission(PermissionType.planAdmin, action.getOrganizationId())) throw ExceptionFactory.notAuthorizedException();
+        if (!securityContext.hasPermission(PermissionType.planAdmin, action.getOrganizationId()))
+            throw ExceptionFactory.notAuthorizedException();
 
         PlanVersionBean versionBean = null;
         try {

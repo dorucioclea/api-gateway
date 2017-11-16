@@ -12,37 +12,36 @@ import java.util.Date;
 
 /**
  * Models an application.
- *
  */
 @Entity
 @Table(name = "applications")
 @IdClass(OrganizationBasedCompositeId.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApplicationBean implements Comparable<ApplicationBean>,Serializable {
+public class ApplicationBean implements Comparable<ApplicationBean>, Serializable {
 
     private static final long serialVersionUID = -197129444021040365L;
 
     @Id
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="organization_id", referencedColumnName="id")
+            @JoinColumn(name = "organization_id", referencedColumnName = "id")
     })
     private OrganizationBean organization;
     @Id
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String id;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String name;
-    @Column(updatable=true, nullable=true, length=512)
+    @Column(updatable = true, nullable = true, length = 512)
     private String description;
     private String context;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
     @Column(name = "logo")
     @Lob
-    @Basic(fetch=FetchType.EAGER)
+    @Basic(fetch = FetchType.EAGER)
     private byte[] base64logo;
     @Column(name = "email")
     private String email;
@@ -125,6 +124,13 @@ public class ApplicationBean implements Comparable<ApplicationBean>,Serializable
     }
 
     /**
+     * @param createdBy the createdBy to set
+     */
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    /**
      * @return the context
      */
     public String getContext() {
@@ -133,13 +139,6 @@ public class ApplicationBean implements Comparable<ApplicationBean>,Serializable
 
     public void setContext(String context) {
         this.context = context;
-    }
-
-    /**
-     * @param createdBy the createdBy to set
-     */
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
     }
 
     /**

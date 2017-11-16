@@ -13,15 +13,16 @@ public class PlanAlreadyExistsException extends AbstractAlreadyExistsException {
      */
     public PlanAlreadyExistsException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public PlanAlreadyExistsException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -29,7 +30,7 @@ public class PlanAlreadyExistsException extends AbstractAlreadyExistsException {
     public int getErrorCode() {
         return ErrorCodes.PLAN_ALREADY_EXISTS;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

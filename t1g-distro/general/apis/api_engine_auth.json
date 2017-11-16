@@ -5,28 +5,39 @@
     "title": "API Engine Authorization"
   },
   "basePath": "/t1g-auth/v1",
-  "tags": [{
-    "name": "login"
-  }, {
-    "name": "oauth"
-  }],
-  "schemes": ["http"],
+  "tags": [
+    {
+      "name": "login"
+    },
+    {
+      "name": "oauth"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
   "paths": {
     "/login/idp/callback": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "The service provider for the SAML2 Authentication request",
         "description": "This endpoint should be used by an IDP who's responding with a SAML2 Authentication response. The endpoint will provide an authorization token in return, towards the configured client URL (provided with the /idp/redirect request).",
         "operationId": "executeSAML2Callback",
-        "produces": ["text/plain"],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": false,
-          "schema": {
-            "type": "string"
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
-        }],
+        ],
         "responses": {
           "200": {
             "description": "SAML2 authentication request",
@@ -45,20 +56,28 @@
     },
     "/login/idp/logout": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "User logout",
         "description": "This endpoint performs actions upon an IDP triggered SAML2 logout request.",
         "operationId": "logout",
-        "consumes": ["application/json"],
-        "produces": ["text/plain"],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": false,
-          "schema": {
-            "$ref": "#/definitions/SAMLLogoutRequest"
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/SAMLLogoutRequest"
+            }
           }
-        }],
+        ],
         "responses": {
           "200": {
             "description": "User specific logout.",
@@ -71,20 +90,28 @@
     },
     "/login/idp/redirect": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "IDP Callback URL for the Marketplace",
         "description": "Use this endpoint if no user is logged in, and a redirect to the IDP is needed. This enpoint is generating the SAML2 SSO redirect request using OpenSAML and the provided IDP URL. The requests specifies the client token expectations, 'jwt' token supported. The clientAppName property is optional and will serve as the JWT audience claim.When the token expiration time is set to 0, the token will be valid for all times. The optional claims map can be provided by the consuming application. The claim set can be changed upon refreshing the JWT.",
         "operationId": "getSAML2AuthRequestUri",
-        "consumes": ["application/json"],
-        "produces": ["text/plain"],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": false,
-          "schema": {
-            "$ref": "#/definitions/SAMLRequest"
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/SAMLRequest"
+            }
           }
-        }],
+        ],
         "responses": {
           "200": {
             "description": "SAML2 authentication request",
@@ -103,11 +130,15 @@
     },
     "/login/idp/slo": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "IDP single logout",
         "description": "This endpoint can be used by an IDP to logout a user.",
         "operationId": "singleIDPLogout",
-        "produces": ["text/plain"],
+        "produces": [
+          "text/plain"
+        ],
         "parameters": [],
         "responses": {
           "200": {
@@ -121,20 +152,28 @@
     },
     "/login/idp/token/refresh": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Refresh an existing valid JWT. When no expiration time is provided, default applies. When no callback is provided, the result will be returned in JSON body else the callback will be called with a jwt querystring parameter.",
         "description": "Use this endpoint to refresh and prolong your JWT expiration time. If 0 is provided as expiration configuration, the JWT will be infinitly valid. The consuming application can provide at this moment optionally a custom claim map.",
         "operationId": "refreshToken",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": false,
-          "schema": {
-            "$ref": "#/definitions/JWTRefreshRequestBean"
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/JWTRefreshRequestBean"
+            }
           }
-        }],
+        ],
         "responses": {
           "200": {
             "description": "Refreshed JWT.",
@@ -153,20 +192,28 @@
     },
     "/login/idp/user/mail": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Performs a search on user email towards the coupled Identity Provider.",
         "description": "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.",
         "operationId": "getUserByMail",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": false,
-          "schema": {
-            "$ref": "#/definitions/ExternalUserRequest"
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/ExternalUserRequest"
+            }
           }
-        }],
+        ],
         "responses": {
           "200": {
             "description": "External and initialized user.",
@@ -179,20 +226,28 @@
     },
     "/login/idp/user/name": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Performs a search on user unique name towards the coupled Identity Provider.",
         "description": "This endpoint can be used to search for users - external to the system - but discoverable through a coupled Identity Provider. The user - if not know in the API Manager - will be initialized and set ready for use.",
         "operationId": "getUserByUsername",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": false,
-          "schema": {
-            "$ref": "#/definitions/ExternalUserRequest"
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/ExternalUserRequest"
+            }
           }
-        }],
+        ],
         "responses": {
           "200": {
             "description": "External and initialized user.",
@@ -205,20 +260,28 @@
     },
     "/login/proxy-auth/user": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Authentication proxy endpoint, authenticates the user through trusted application.",
         "description": "Utility method. The client application serves as a OAuth service provider, and is know to the IDP. The client application uses OAuth client credentials to authenticate the user's provided credentials.",
         "operationId": "ipdClientCredGrantForUserAuthentication",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": false,
-          "schema": {
-            "$ref": "#/definitions/ProxyAuthRequest"
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/ProxyAuthRequest"
+            }
           }
-        }],
+        ],
         "responses": {
           "200": {
             "description": "When authenticated succesfull, the user will be returned, else null response.",
@@ -231,33 +294,44 @@
     },
     "/oauth/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}": {
       "get": {
-        "tags": ["oauth"],
+        "tags": [
+          "oauth"
+        ],
         "summary": "Retrieve Application OAuth2 information for targeted service.",
         "description": "Retrive the Application OAuth2 information in order to inform the user through a consent page for a specific service.",
         "operationId": "getApplicationInfo",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "parameters": [{
-          "name": "clientId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "orgId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "serviceId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "version",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "The result unique username and generated KeyAuth token.",
@@ -276,33 +350,44 @@
     },
     "/oauth/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}/scopes": {
       "get": {
-        "tags": ["oauth"],
+        "tags": [
+          "oauth"
+        ],
         "summary": "Information endpoint to retrieve service version scopes.",
         "description": "Returns a list of string values representing available service versions copes",
         "operationId": "getServiceVersionScopes",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "parameters": [{
-          "name": "clientId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "orgId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "serviceId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "version",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "list of service version scopes.",
@@ -321,20 +406,28 @@
     },
     "/oauth/consumer": {
       "post": {
-        "tags": ["oauth"],
+        "tags": [
+          "oauth"
+        ],
         "summary": "Enable an application consumer for OAuth2 in the context of the application.",
         "description": "The client application is identified with a client_id and client_password. Both are needed to provide the application name and redirect URL in order to register a consumer for OAuth2.",
         "operationId": "enableOAuthForConsumer",
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": false,
-          "schema": {
-            "$ref": "#/definitions/OAuthConsumerRequestBean"
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/OAuthConsumerRequestBean"
+            }
           }
-        }],
+        ],
         "responses": {
           "200": {
             "description": "The result unique username and generated KeyAuth token.",
@@ -353,51 +446,68 @@
     },
     "/oauth/redirect/{responseType}/user/{userId}/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}": {
       "post": {
-        "tags": ["oauth"],
+        "tags": [
+          "oauth"
+        ],
         "summary": "Utility endpoint to composes a redirect request for user authorization.",
         "description": "Returns a redirect URI that will forward the user to an authorization page (Authorization/Implicit Grant). The response type can be - code - for Authorization Code Grant; or - token - for Implicit Grant ",
         "operationId": "getAuthorizationRedirect",
-        "consumes": ["application/json"],
-        "produces": ["text/plain"],
-        "parameters": [{
-          "name": "responseType",
-          "in": "path",
-          "required": true,
-          "type": "string",
-          "enum": ["CODE", "TOKEN"]
-        }, {
-          "name": "userId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "clientId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "orgId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "serviceId",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "name": "version",
-          "in": "path",
-          "required": true,
-          "type": "string"
-        }, {
-          "in": "body",
-          "name": "body",
-          "required": false,
-          "schema": {
-            "$ref": "#/definitions/OAuthServiceScopeRequest"
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "name": "responseType",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "CODE",
+              "TOKEN"
+            ]
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "serviceId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/OAuthServiceScopeRequest"
+            }
           }
-        }],
+        ],
         "responses": {
           "200": {
             "description": "The authorization redirect URI.",
@@ -433,7 +543,11 @@
         },
         "token": {
           "type": "string",
-          "enum": ["opaque", "saml2bearer", "jwt"]
+          "enum": [
+            "opaque",
+            "saml2bearer",
+            "jwt"
+          ]
         },
         "optionalClaimMap": {
           "type": "object",

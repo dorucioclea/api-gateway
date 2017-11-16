@@ -11,14 +11,13 @@ import com.t1t.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.InvalidSearchCriteriaException;
 import com.t1t.apim.exceptions.OrganizationNotFoundException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.SearchFacade;
-import com.t1t.apim.rest.impl.util.SearchCriteriaUtil;
-import com.t1t.apim.rest.resources.ISearchResource;
 import com.t1t.apim.security.ISecurityContext;
+import com.t1t.util.SearchCriteriaUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -34,7 +33,7 @@ import java.util.Set;
 @Api(value = "/search", description = "The Search API.")
 @Path("/search")
 @ApplicationScoped
-public class SearchResource implements ISearchResource {
+public class SearchResource {
     @Inject
     private SearchFacade searchFacade;
     @Inject
@@ -137,7 +136,7 @@ public class SearchResource implements ISearchResource {
         return searchFacade.searchServicesPublishedInCategories(catSearch.getCategories());
     }
 
-    @Override
+
     @ApiOperation(value = "Search for latest Service versions within given category list",
             notes = "Use this endpoint to search for the latest PUBLISHED service versions, having a category defined in the given category list.")
     @ApiResponses({
@@ -160,13 +159,13 @@ public class SearchResource implements ISearchResource {
     @Path("/services/versions/latest")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Override
+
     public SearchResultsBean<ServiceVersionWithMarketInfoBean> searchLatestServiceVersions(SearchCriteriaBean criteria) throws OrganizationNotFoundException, InvalidSearchCriteriaException {
         return searchFacade.searchLatestServiceVersions(criteria);
     }
 
     @ApiOperation(value = "Search for an application by API key",
-                 notes = "Use this endpoint to search for an application version that makes use of a specified API key. You need administrator priviledges to consult this endpoint")
+            notes = "Use this endpoint to search for an application version that makes use of a specified API key. You need administrator priviledges to consult this endpoint")
     @ApiResponses({
             @ApiResponse(code = 200, response = ApplicationVersionSummaryBean.class, message = "If the search is successful.")
     })

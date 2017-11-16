@@ -6,8 +6,8 @@
     "data": {
       "id": "kongPluginBasicAuthResponse",
       "type": "array",
-       "items": {
-         "$ref":"KongPluginBasicAuthResponse.json"
+      "items": {
+        "$ref": "KongPluginBasicAuthResponse.json"
       }
     },
     "next": {

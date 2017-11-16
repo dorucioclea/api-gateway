@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * Models order-by for a search.
- *
  */
 public class OrderByBean implements Serializable {
 

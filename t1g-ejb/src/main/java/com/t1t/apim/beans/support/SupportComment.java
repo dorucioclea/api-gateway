@@ -21,9 +21,9 @@ public class SupportComment implements Serializable {
     @Column(name = "comment")
     @Type(type = "org.hibernate.type.TextType")
     private String comment;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
 
     public Long getId() {

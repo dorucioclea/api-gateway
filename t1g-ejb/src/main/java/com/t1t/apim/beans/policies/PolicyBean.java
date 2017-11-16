@@ -11,7 +11,6 @@ import java.util.Date;
  * A Policy is the primary unit of work for the runtime engine, which is
  * essentially a chain of policies that are applied to the Request and
  * Response of a service.
- *
  */
 @Entity
 @Table(name = "policies")
@@ -20,37 +19,38 @@ public class PolicyBean implements Serializable {
 
     private static final long serialVersionUID = -8534463608508756791L;
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
-    @Column(updatable=false, nullable=false)
+    @Column(updatable = false, nullable = false)
     @Enumerated(EnumType.STRING)
     private PolicyType type;
-    @Column(name = "organization_id", updatable=false, nullable=false)
+    @Column(name = "organization_id", updatable = false, nullable = false)
     private String organizationId;
-    @Column(name = "entity_id", updatable=false, nullable=false)
+    @Column(name = "entity_id", updatable = false, nullable = false)
     private String entityId;
-    @Column(name = "entity_version", updatable=false, nullable=false)
+    @Column(name = "entity_version", updatable = false, nullable = false)
     private String entityVersion;
-    @Column(updatable=true, nullable=false)
+    @Column(updatable = true, nullable = false)
     private String name;
     // description is generated using MVEL
     @Transient
     private String description;
     @Lob
-    @Column(updatable=true, nullable=true)
+    @Column(updatable = true, nullable = true)
     @Type(type = "org.hibernate.type.TextType")
     private String configuration;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(name = "modified_by", updatable=true, nullable=false)
+    @Column(name = "modified_by", updatable = true, nullable = false)
     private String modifiedBy;
-    @Column(name = "modified_on", updatable=true, nullable=false)
+    @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
-    @ManyToOne(fetch=FetchType.EAGER, optional=false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private PolicyDefinitionBean definition;
-    @Column(name = "order_index", updatable=true, nullable=false)
+    @Column(name = "order_index", updatable = true, nullable = false)
     private int orderIndex;
     @Column(name = "kong_plugin_id", updatable = true, nullable = true)
     private String kongPluginId;
@@ -258,7 +258,6 @@ public class PolicyBean implements Serializable {
     }
 
     /**
-     *
      * @return the policyId
      */
     public String getKongPluginId() {
@@ -266,7 +265,6 @@ public class PolicyBean implements Serializable {
     }
 
     /**
-     *
      * @param policyId the policyId to set
      */
     public void setKongPluginId(String policyId) {

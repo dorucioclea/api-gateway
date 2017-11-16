@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 /**
  * Bean used when updating an organization.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateOrganizationBean implements Serializable {
@@ -44,6 +43,12 @@ public class UpdateOrganizationBean implements Serializable {
         return friendlyName;
     }
 
+    /**
+     * @param friendlyName the user-friendly name to set
+     */
+    public void setFriendlyName(String friendlyName) {
+        this.friendlyName = friendlyName;
+    }
 
     /**
      * @return the organization privacy boolean
@@ -57,13 +62,6 @@ public class UpdateOrganizationBean implements Serializable {
      */
     public void setOrganizationPrivate(Boolean organizationPrivate) {
         this.organizationPrivate = organizationPrivate;
-    }
-
-    /**
-     * @param friendlyName the user-friendly name to set
-     */
-    public void setFriendlyName(String friendlyName) {
-        this.friendlyName = friendlyName;
     }
 
     /* (non-Javadoc)

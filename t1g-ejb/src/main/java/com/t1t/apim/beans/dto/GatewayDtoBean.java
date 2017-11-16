@@ -137,9 +137,13 @@ public class GatewayDtoBean implements Serializable {
         this.JWTPubKeyEndpoint = JWTPubKeyEndpoint;
     }
 
-    public String getJWTPrivKey() {return JWTPrivKey;}
+    public String getJWTPrivKey() {
+        return JWTPrivKey;
+    }
 
-    public void setJWTPrivKey(String JWTPrivKeyEndpoint) {this.JWTPrivKey = JWTPrivKeyEndpoint;}
+    public void setJWTPrivKey(String JWTPrivKeyEndpoint) {
+        this.JWTPrivKey = JWTPrivKeyEndpoint;
+    }
 
     @Override
     public String toString() {

@@ -2,8 +2,6 @@ package com.t1t.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.t1t.apim.beans.iprestriction.IPRestrictionBean;
-import com.t1t.apim.beans.iprestriction.IPRestrictionFlavor;
 import com.t1t.apim.beans.policies.Policies;
 import com.t1t.apim.beans.policies.PolicyBean;
 import com.t1t.apim.beans.policies.PolicyDefinitionBean;
@@ -17,7 +15,6 @@ import org.apache.commons.lang3.text.StrSubstitutor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -30,23 +27,6 @@ public class PolicyUtil {
     private static final String KEY_START = "{{";
     private static final String KEY_END = "}}";
     private static final String NOT_CONFIGURED = "Not configured";
-
-    public static KongPluginIPRestriction createDefaultIPRestriction(IPRestrictionFlavor flavor, List<? extends IPRestrictionBean> ipRestrictionBeanList){
-        KongPluginIPRestriction kpip = null;
-        List<String> transformedIPList = null;
-        if(ipRestrictionBeanList!=null && ipRestrictionBeanList.size()>0){
-             transformedIPList = ipRestrictionBeanList.stream().map(wt -> wt.getNetwValue()).collect(Collectors.toList());
-        }
-        if(transformedIPList!=null && transformedIPList.size()>0){
-            kpip = new KongPluginIPRestriction();
-            switch (flavor){
-                case WHITELIST:kpip.setWhitelist(transformedIPList);break;
-                case BLACKLIST:kpip.setBlacklist(transformedIPList);break;
-                default:break;
-            }
-            return kpip;
-        }else return null;
-    }
 
     public static EnrichedPolicySummaryBean createEnrichedPolicySummary(PolicyBean pb, Boolean scrubSensitiveInfo) {
         EnrichedPolicySummaryBean rval = null;
@@ -73,8 +53,7 @@ public class PolicyUtil {
             if (config != null && StringUtils.isNotEmpty(pb.getDefinition().getPopoverTemplate())) {
                 try {
                     rval.setPopover(getPopover(pb, polDef, config));
-                }
-                catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassCastException ex) {
+                } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassCastException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -107,8 +86,7 @@ public class PolicyUtil {
         Policies polDef;
         try {
             polDef = Policies.valueOf(pdb.getId().toUpperCase());
-        }
-        catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             polDef = null;
         }
         return polDef;
@@ -136,8 +114,7 @@ public class PolicyUtil {
                         break;
                 }
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return rval;
@@ -158,7 +135,7 @@ public class PolicyUtil {
     }
 
     private static String getPopover(PolicyBean pb, Policies polDef, KongConfigValue config) throws ClassCastException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        Map<String, String> keyMap =BeanUtilsBean.getInstance().describe(config).entrySet().stream()
+        Map<String, String> keyMap = BeanUtilsBean.getInstance().describe(config).entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> StringUtils.isEmpty(entry.getValue()) ? NOT_CONFIGURED : entry.getValue()));
         switch (polDef) {
             case CORS:
@@ -192,7 +169,7 @@ public class PolicyUtil {
 
     private static void modifyKeyMapForCorsPopover(Map<String, String> keyMap, KongConfigValue config) {
         KongPluginCors cors = (KongPluginCors) config;
-        keyMap.put("methods", isCollectionEmpty(cors.getMethods()) ? NOT_CONFIGURED : convertToCommaSeparatedString(cors.getMethods().stream().map(Method::toString).collect(Collectors.toList())));
+        keyMap.put("methods", isCollectionEmpty(cors.getMethods()) ? NOT_CONFIGURED : convertToCommaSeparatedString(cors.getMethods().stream().map(method -> method.toString()).collect(Collectors.toList())));
         keyMap.put("origin", StringUtils.isEmpty(cors.getOrigin()) ? NOT_CONFIGURED : cors.getOrigin());
     }
 
@@ -209,7 +186,7 @@ public class PolicyUtil {
 
     private static void modifyKeyMapForOAuthPopover(Map<String, String> keyMap, KongConfigValue config) {
         KongPluginOAuth oAuth = (KongPluginOAuth) config;
-        keyMap.put("scopes", isCollectionEmpty(oAuth.getScopes()) ? NOT_CONFIGURED :  convertToCommaSeparatedString(oAuth.getScopes().stream().map(scope -> scope.getScopeDesc()).collect(Collectors.toList())));
+        keyMap.put("scopes", isCollectionEmpty(oAuth.getScopes()) ? NOT_CONFIGURED : convertToCommaSeparatedString(oAuth.getScopes().stream().map(scope -> scope.getScopeDesc()).collect(Collectors.toList())));
     }
 
     private static void modifyKeyMapForRequestTransformerPopover(Map<String, String> keyMap, KongConfigValue config) {

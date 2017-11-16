@@ -3,7 +3,6 @@ package com.t1t.apim.beans.idm;
 
 /**
  * Bean used when updating a role.
- *
  */
 public class UpdateRoleBean extends NewRoleBean {
 

@@ -17,7 +17,7 @@ import java.io.Serializable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MailTemplateBean extends BaseEntity implements Serializable {
     @Id
-    @Column(name="topic", nullable = false)
+    @Column(name = "topic", nullable = false)
     private String id;
 
     @Column(name = "content")

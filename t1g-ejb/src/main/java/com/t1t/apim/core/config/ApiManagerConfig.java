@@ -10,7 +10,6 @@ import java.util.*;
 
 /**
  * Configuration object for the API Manager.
- *
  */
 @ApplicationScoped
 public class ApiManagerConfig {

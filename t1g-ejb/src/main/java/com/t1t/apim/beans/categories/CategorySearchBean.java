@@ -9,10 +9,10 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CategorySearchBean {
+    private List<String> categories;
+
     public CategorySearchBean() {
     }
-
-    private List<String> categories;
 
     public List<String> getCategories() {
         return categories;

@@ -7,7 +7,7 @@
       "id": "KongPluginOAuthConsumerResponse",
       "type": "array",
       "items": {
-        "$ref":"KongPluginOAuthConsumerResponse.json"
+        "$ref": "KongPluginOAuthConsumerResponse.json"
       }
     },
     "next": {

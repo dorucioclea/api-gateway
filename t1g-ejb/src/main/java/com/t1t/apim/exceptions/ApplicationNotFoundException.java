@@ -1,10 +1,8 @@
 package com.t1t.apim.exceptions;
 
 
-
 /**
  * Thrown when trying to get, update, or remove an application that does not exist.
- *
  */
 public class ApplicationNotFoundException extends AbstractNotFoundException {
 
@@ -15,15 +13,16 @@ public class ApplicationNotFoundException extends AbstractNotFoundException {
      */
     public ApplicationNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the message
      */
     public ApplicationNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see io.apiman.manager.api.rest.contract.exceptions.AbstractRestException#getErrorCode()
      */
@@ -31,7 +30,7 @@ public class ApplicationNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.APP_NOT_FOUND;
     }
-    
+
     /**
      * @see io.apiman.manager.api.rest.contract.exceptions.AbstractRestException#getMoreInfoUrl()
      */

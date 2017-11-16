@@ -16,9 +16,10 @@ public class EntityUpdatedData implements Serializable {
 
     /**
      * Adds a single change.
-     * @param name the name
+     *
+     * @param name   the name
      * @param before the before state
-     * @param after the after state
+     * @param after  the after state
      */
     public void addChange(String name, String before, String after) {
         addChange(new EntityFieldChange(name, before, after));
@@ -26,9 +27,10 @@ public class EntityUpdatedData implements Serializable {
 
     /**
      * Adds a single change.
-     * @param name the name
+     *
+     * @param name   the name
      * @param before the before state
-     * @param after the after state
+     * @param after  the after state
      */
     public void addChange(String name, Enum<?> before, Enum<?> after) {
         String beforeStr = before != null ? before.name() : null;
@@ -38,6 +40,7 @@ public class EntityUpdatedData implements Serializable {
 
     /**
      * Adds a single change.
+     *
      * @param change change to add
      */
     public void addChange(EntityFieldChange change) {

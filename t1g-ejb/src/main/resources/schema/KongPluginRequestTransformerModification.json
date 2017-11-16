@@ -4,19 +4,25 @@
   "type": "object",
   "properties": {
     "querystring": {
-      "id":"querystring",
+      "id": "querystring",
       "type": "array",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     },
     "body": {
-      "id":"body",
+      "id": "body",
       "type": "array",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     },
     "headers": {
-      "id":"headers",
+      "id": "headers",
       "type": "array",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

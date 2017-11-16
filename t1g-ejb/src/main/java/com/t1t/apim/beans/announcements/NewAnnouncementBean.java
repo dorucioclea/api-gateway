@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by michallispashidis on 3/10/15.
  */
-public class NewAnnouncementBean implements Serializable{
+public class NewAnnouncementBean implements Serializable {
     private String title;
     private String description;
 

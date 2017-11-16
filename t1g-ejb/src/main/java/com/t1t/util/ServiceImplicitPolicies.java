@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
  */
 public class ServiceImplicitPolicies {
     private static String EXTERNAL_MKT_PREFIX = "ext";
+
     /**
      * Verify if the service has a visibility for the external marketplace.
      * This bean should be more generic, but here, it's implemented as an extra functionality.
@@ -19,13 +20,13 @@ public class ServiceImplicitPolicies {
      * @param svb
      * @return
      */
-    public static boolean verifyIfIPRestrictionShouldBeSet(ServiceVersionBean svb, boolean admin){
+    public static boolean verifyIfIPRestrictionShouldBeSet(ServiceVersionBean svb, boolean admin) {
         Set<VisibilityBean> visibilities = svb.getVisibility();
-        if(visibilities!=null && visibilities.size()>0){
+        if (visibilities != null && visibilities.size() > 0) {
             List<VisibilityBean> filteredCollection = visibilities.stream().filter(vs ->
-                vs.getCode().trim().equalsIgnoreCase(EXTERNAL_MKT_PREFIX) && (!vs.getShow() || admin)
+                    vs.getCode().trim().equalsIgnoreCase(EXTERNAL_MKT_PREFIX) && (!vs.getShow() || admin)
             ).collect(Collectors.toList());
-            if(filteredCollection.size()>0)return true;
+            if (filteredCollection.size() > 0) return true;
         }
         return false;
     }

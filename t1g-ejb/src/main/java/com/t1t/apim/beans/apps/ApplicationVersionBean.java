@@ -13,59 +13,51 @@ import java.util.Set;
  * other specifics of the application, such as endpoint information
  * and configured policies are associated with a particular version
  * of that Application.  This class represents that version.
- *
  */
 @Entity
 @Table(name = "application_versions",
-       uniqueConstraints = { @UniqueConstraint(columnNames = { "app_id", "app_org_id", "version" }) })
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"app_id", "app_org_id", "version"})})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApplicationVersionBean implements Serializable {
 
     private static final long serialVersionUID = -2218697175049442690L;
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="app_id", referencedColumnName="id"),
-        @JoinColumn(name="app_org_id", referencedColumnName="organization_id")
+            @JoinColumn(name = "app_id", referencedColumnName = "id"),
+            @JoinColumn(name = "app_org_id", referencedColumnName = "organization_id")
     })
     private ApplicationBean application;
-    @Column(updatable=true, nullable=false)
+    @Column(updatable = true, nullable = false)
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
-    @Column(updatable=false, nullable=false)
+    @Column(updatable = false, nullable = false)
     private String version;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(name = "modified_by", updatable=true, nullable=false)
+    @Column(name = "modified_by", updatable = true, nullable = false)
     private String modifiedBy;
-    @Column(name = "modified_on", updatable=true, nullable=false)
+    @Column(name = "modified_on", updatable = true, nullable = false)
     private Date modifiedOn;
     @Column(name = "published_on")
     private Date publishedOn;
     @Column(name = "retired_on")
     private Date retiredOn;
-    @Column(name = "oauth_client_id")
-    private String oAuthClientId;
     @Column(name = "oauth_client_secret")
     private String oauthClientSecret;
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name="app_oauth_redirect_uris", joinColumns=@JoinColumn(name="application_version_id"))
+    @CollectionTable(name = "app_oauth_redirect_uris", joinColumns = @JoinColumn(name = "application_version_id"))
     @Column(name = "oauth_client_redirect")
     private Set<String> oauthClientRedirects;
     @Column(name = "apikey")
     private String apikey;
     @Column(name = "oauth_credential_id")
     private String oauthCredentialId;
-    @Column(name="jwt_key")
-    private String jwtKey;
-    @Column(name="jwt_secret")
-    private String jwtSecret;
-    @Column(name = "idp_client_id")
-    private String idpClientId;
 
 
     /**
@@ -215,20 +207,6 @@ public class ApplicationVersionBean implements Serializable {
     }
 
     /**
-     * @return the OAuth client id
-     */
-    public String getoAuthClientId() {
-        return oAuthClientId;
-    }
-
-    /**
-     * @param oAuthClientId the OAuth client id to set
-     */
-    public void setoAuthClientId(String oAuthClientId) {
-        this.oAuthClientId = oAuthClientId;
-    }
-
-    /**
      * @return the OAuth client secret
      */
     public String getOauthClientSecret() {
@@ -285,48 +263,6 @@ public class ApplicationVersionBean implements Serializable {
     }
 
     /**
-     * @return the Gateway JWT key
-     */
-    public String getJwtKey() {
-        return jwtKey;
-    }
-
-    /**
-     * @param jwtKey the Gateway JWT key to set
-     */
-    public void setJwtKey(String jwtKey) {
-        this.jwtKey = jwtKey;
-    }
-
-    /**
-     * @return the Gateway JWT secret
-     */
-    public String getJwtSecret() {
-        return jwtSecret;
-    }
-
-    /**
-     * @param jwtSecret the Gateway JWT secret to set
-     */
-    public void setJwtSecret(String jwtSecret) {
-        this.jwtSecret = jwtSecret;
-    }
-
-    /**
-     * @return the IDP client ID
-     */
-    public String getIdpClientId() {
-        return idpClientId;
-    }
-
-    /**
-     * @param idpClientId the IDP client ID to set
-     */
-    public void setIdpClientId(String idpClientId) {
-        this.idpClientId = idpClientId;
-    }
-
-    /**
      * @see Object#hashCode()
      */
     @Override
@@ -370,14 +306,9 @@ public class ApplicationVersionBean implements Serializable {
                 ", modifiedOn=" + modifiedOn +
                 ", publishedOn=" + publishedOn +
                 ", retiredOn=" + retiredOn +
-                ", oAuthClientId='" + oAuthClientId + '\'' +
-                ", oauthClientSecret='" + oauthClientSecret + '\'' +
                 ", oauthClientRedirects=" + oauthClientRedirects +
                 ", apikey='" + apikey + '\'' +
                 ", oauthCredentialId='" + oauthCredentialId + '\'' +
-                ", jwtKey='" + jwtKey + '\'' +
-                ", jwtSecret='" + jwtSecret + '\'' +
-                ", idpClientId='" + idpClientId + '\'' +
                 '}';
     }
 }

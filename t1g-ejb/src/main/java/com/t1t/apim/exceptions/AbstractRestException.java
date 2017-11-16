@@ -5,32 +5,33 @@ import javax.ejb.ApplicationException;
 
 /**
  * Base class for all API ENGINE errors coming out of the REST layer.
- *
  */
 @ApplicationException(rollback = true)
 public abstract class AbstractRestException extends RuntimeException {
 
     private static final long serialVersionUID = -2406210413693314452L;
-    
+
     // The stacktrace is only set on the client/UI side
     private transient String serverStack;
-    
+
     /**
      * Constructor.
      */
     public AbstractRestException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public AbstractRestException(String message) {
         super(message);
     }
-    
+
     /**
      * Constructor.
+     *
      * @param cause the exception cause
      */
     public AbstractRestException(Throwable cause) {
@@ -39,8 +40,9 @@ public abstract class AbstractRestException extends RuntimeException {
 
     /**
      * Constructor.
+     *
      * @param message the exception message
-     * @param cause the exception cause
+     * @param cause   the exception cause
      */
     public AbstractRestException(String message, Throwable cause) {
         super(message, cause);

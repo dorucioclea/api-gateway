@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 /**
  * Bean used when creating a new organization.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewOrganizationBean implements Serializable {
@@ -17,8 +16,6 @@ public class NewOrganizationBean implements Serializable {
     private String description;
     private String friendlyName;
     private Boolean organizationPrivate;
-    private Long mailProviderId;
-    private String keystoreKid;
 
     /**
      * @return the name
@@ -74,33 +71,5 @@ public class NewOrganizationBean implements Serializable {
      */
     public void setOrganizationPrivate(Boolean organizationPrivate) {
         this.organizationPrivate = organizationPrivate;
-    }
-
-    /**
-     * @return the mail provider id
-     */
-    public Long getMailProviderId() {
-        return mailProviderId;
-    }
-
-    /**
-     * @param mailProviderId the mail provider id to set
-     */
-    public void setMailProviderId(Long mailProviderId) {
-        this.mailProviderId = mailProviderId;
-    }
-
-    /**
-     * @return the keystore KID
-     */
-    public String getKeystoreKid() {
-        return keystoreKid;
-    }
-
-    /**
-     * @param keystoreKid the keystore KID to set
-     */
-    public void setKeystoreKid(String keystoreKid) {
-        this.keystoreKid = keystoreKid;
     }
 }

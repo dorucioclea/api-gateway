@@ -7,7 +7,6 @@ import java.io.Serializable;
 /**
  * A bean modeling a summary of a Plan.  Typically used when listing
  * plans in an org.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PlanSummaryBean implements Serializable {
@@ -19,6 +18,13 @@ public class PlanSummaryBean implements Serializable {
     private String id;
     private String name;
     private String description;
+
+    /**
+     * @return the serialversionuid
+     */
+    public static long getSerialversionuid() {
+        return serialVersionUID;
+    }
 
     /**
      * @return the organizationId
@@ -88,13 +94,6 @@ public class PlanSummaryBean implements Serializable {
      */
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    /**
-     * @return the serialversionuid
-     */
-    public static long getSerialversionuid() {
-        return serialVersionUID;
     }
 
     /**

@@ -14,15 +14,16 @@ public class ServiceVersionNotFoundException extends AbstractNotFoundException {
      */
     public ServiceVersionNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public ServiceVersionNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -30,7 +31,7 @@ public class ServiceVersionNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.SERVICE_VERSION_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

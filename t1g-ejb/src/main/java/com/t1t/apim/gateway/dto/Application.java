@@ -6,17 +6,16 @@ import java.util.Set;
 
 /**
  * Models an Application registered with the API Management runtime.
- *
  */
 public class Application implements Serializable {
-    
+
     private static final long serialVersionUID = 4515000941548789924L;
     private String applicationName;
     private String organizationId;
     private String applicationId;
     private String version;
     private Set<Contract> contracts = new HashSet<>();
-    
+
     /**
      * Constructor.
      */
@@ -77,19 +76,19 @@ public class Application implements Serializable {
     public Set<Contract> getContracts() {
         return contracts;
     }
-    
-    /**
-     * @param contract the contract to add
-     */
-    public void addContract(Contract contract) {
-        contracts.add(contract);
-    }
 
     /**
      * @param contracts the contracts to set
      */
     public void setContracts(Set<Contract> contracts) {
         this.contracts = contracts;
+    }
+
+    /**
+     * @param contract the contract to add
+     */
+    public void addContract(Contract contract) {
+        contracts.add(contract);
     }
 
     public String getApplicationName() {

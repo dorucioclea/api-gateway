@@ -7,7 +7,6 @@ import java.io.Serializable;
  * are granted to users by membership in one or more roles.  Membership in a
  * role is qualified by organization, allowing a user to have different roles
  * in different organizations.
- *
  */
 public class PermissionBean implements Serializable {
 

@@ -6,7 +6,6 @@ import java.util.Date;
 /**
  * Models a single gateway configured by an admin.  When publishing services,
  * the user must specific which Plugin to publish to.
- *
  */
 public class PluginSummaryBean implements Serializable {
 

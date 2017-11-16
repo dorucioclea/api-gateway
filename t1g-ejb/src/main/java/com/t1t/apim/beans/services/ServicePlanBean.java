@@ -7,16 +7,15 @@ import java.io.Serializable;
 /**
  * Models a plan+version that is available for use with a particular Service.  This
  * makes the Plan available when forming a Contract between an app and a Service.
- *
  */
 @Embeddable
 public class ServicePlanBean implements Serializable {
 
     private static final long serialVersionUID = 7972763768594076697L;
 
-    @Column(name = "plan_id", nullable=false)
+    @Column(name = "plan_id", nullable = false)
     private String planId;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String version;
 
     /**

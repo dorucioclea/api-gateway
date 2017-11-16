@@ -5,7 +5,6 @@ import java.util.Map;
 /**
  * Interface for accessing JPA/hibernate properties.  Must be provided by the
  * platform.
- *
  */
 public interface IJpaProperties {
 

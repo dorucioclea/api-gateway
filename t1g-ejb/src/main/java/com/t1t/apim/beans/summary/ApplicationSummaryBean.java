@@ -7,7 +7,6 @@ import java.io.Serializable;
 /**
  * A bean modeling a summary of an Application.  Typically used when listing
  * all Applications visible to a user.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApplicationSummaryBean implements Serializable {
@@ -21,6 +20,13 @@ public class ApplicationSummaryBean implements Serializable {
     private String description;
     private int numContracts;
     private String base64logo;
+
+    /**
+     * @return the serialversionuid
+     */
+    public static long getSerialversionuid() {
+        return serialVersionUID;
+    }
 
     /**
      * @return the organizationId
@@ -104,13 +110,6 @@ public class ApplicationSummaryBean implements Serializable {
      */
     public void setNumContracts(int numContracts) {
         this.numContracts = numContracts;
-    }
-
-    /**
-     * @return the serialversionuid
-     */
-    public static long getSerialversionuid() {
-        return serialVersionUID;
     }
 
     public String getBase64logo() {

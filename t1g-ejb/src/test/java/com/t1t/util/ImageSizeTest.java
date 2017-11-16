@@ -21,8 +21,8 @@ public class ImageSizeTest {
                 .append(logoPart2)
                 .append(logoPart3)
                 .toString();
-        LOG.info("size="+logo.getBytes().length);
-        assertTrue(logo.getBytes().length<=150_000L);
+        LOG.info("size=" + logo.getBytes().length);
+        assertTrue(logo.getBytes().length <= 150_000L);
 
     }
 }

@@ -11,7 +11,6 @@ import java.io.Serializable;
  * A Policy Definition describes a type of policy that can be added to
  * an application, service, or plan.  A policy cannot be added unless a
  * definition is first created for it.
- *
  */
 @Entity
 @Table(name = "policydefs")
@@ -21,33 +20,33 @@ public class PolicyDefinitionBean implements Serializable {
     private static final long serialVersionUID = 1801150127602136865L;
 
     @Id
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String id;
-    @Column(updatable=true, nullable=false)
+    @Column(updatable = true, nullable = false)
     private String name;
-    @Column(updatable=true, nullable=false, length=512)
+    @Column(updatable = true, nullable = false, length = 512)
     private String description;
-    @Column(updatable=true, nullable=false)
+    @Column(updatable = true, nullable = false)
     private String icon;
-    @Column(name = "plugin_id", updatable=false, nullable=true)
+    @Column(name = "plugin_id", updatable = false, nullable = true)
     private Long pluginId;
-    @Column(name = "form_type", updatable=false, nullable=true)
+    @Column(name = "form_type", updatable = false, nullable = true)
     @Enumerated(EnumType.STRING)
     private PolicyFormType formType;
-    @Column(updatable=false, nullable=true)
+    @Column(updatable = false, nullable = true)
     private String form;
-    @Column(name="scope_service")
+    @Column(name = "scope_service")
     private Boolean scopeService;
-    @Column(name="scope_plan")
+    @Column(name = "scope_plan")
     private Boolean scopePlan;
-    @Column(name="scope_auto")
+    @Column(name = "scope_auto")
     private Boolean scopeAuto;
-    @Column(name="form_override")
+    @Column(name = "form_override")
     private String formOverride;
     @Column(name = "default_config")
     private String defaultConfig;
     @Lob
-    @Column(name="logo")
+    @Column(name = "logo")
     @Type(type = "org.hibernate.type.TextType")
     private String base64logo;
     @Column(name = "marketplace_description", length = 4096)

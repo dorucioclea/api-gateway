@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 /**
  * A summary bean for {@link GatewayBean}.
- *
  */
 public class GatewaySummaryBean implements Serializable {
 

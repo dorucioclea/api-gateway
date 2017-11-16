@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * The bean used when updating a user.
- *
  */
 public class UpdateUserBean implements Serializable {
 
