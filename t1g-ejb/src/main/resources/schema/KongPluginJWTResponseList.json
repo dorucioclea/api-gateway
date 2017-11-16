@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "data": {
+      "id": "kongPluginJWTResponse",
+      "type": "array",
+      "items": {
+        "$ref": "KongPluginJWTResponse.json"
+      }
+    },
+    "total": {
+      "id": "total",
+      "type": "integer"
+    },
+    "next": {
+      "id": "next",
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "id": {
+      "id": "id",
+      "type": "string"
+    },
+    "api_id": {
+      "id": "api_id",
+      "type": "string"
+    },
+    "consumer_id": {
+      "id": "consumer_id",
+      "type": "string"
+    },
+    "name": {
+      "id": "name",
+      "type": "string"
+    },
+    "config": {
+      "id": "config",
+      "javaInterfaces": [
+        "com.t1t.kong.model.KongConfigValue"
+      ]
+    },
+    "enabled": {
+      "id": "enabled",
+      "type": "boolean"
+    },
+    "created_at": {
+      "id": "created_at",
+      "type": "number"
+    }
+  }
+}

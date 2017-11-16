@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces": [
+    "com.t1t.kong.model.KongConfigValue"
+  ],
+  "properties": {
+    "allowed_payload_size": {
+      "type": "number",
+      "default": 128
+    }
+  }
+}

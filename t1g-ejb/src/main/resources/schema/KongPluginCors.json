@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces": [
+    "com.t1t.kong.model.KongConfigValue"
+  ],
+  "properties": {
+    "methods": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "HEAD",
+          "GET",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE"
+        ]
+      }
+    },
+    "credentials": {
+      "type": "boolean",
+      "default": false
+    },
+    "exposed_headers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "origin": {
+      "type": "string"
+    },
+    "max_age": {
+      "type": "integer"
+    },
+    "preflight_continue": {
+      "type": "boolean",
+      "default": false
+    },
+    "headers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

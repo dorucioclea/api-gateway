@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string"
+    },
+    "weight": {
+      "type": "integer"
+    },
+    "upstream_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "id": "created_at",
+      "type": "number"
+    }
+  }
+}

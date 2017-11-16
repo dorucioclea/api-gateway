@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces": [
+    "com.t1t.kong.model.KongConfigValue"
+  ],
+  "properties": {
+    "host": {
+      "type": "string"
+    },
+    "timeout": {
+      "type": "integer"
+    },
+    "port": {
+      "type": "integer"
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "request_count",
+          "latency",
+          "request_size",
+          "status_count",
+          "response_size",
+          "unique_users",
+          "request_per_user",
+          "upstream_latency"
+        ]
+      }
+    },
+    "tags": {
+      "type": "object",
+      "properties": {
+        "latency": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "request_per_user": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unique_users": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "request_count": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "request_size": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "upstream_latency": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "response_size": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status_count": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "data": {
+      "id": "kongClusterItem",
+      "type": "array",
+      "items": {
+        "$ref": "KongClusterItem.json"
+      }
+    },
+    "total": {
+      "id": "total",
+      "type": "integer"
+    }
+  }
+}

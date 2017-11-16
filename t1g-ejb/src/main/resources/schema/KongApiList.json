@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "data": {
+      "id": "kongApi",
+      "type": "array",
+      "items": {
+        "$ref": "KongApi.json"
+      }
+    },
+    "total": {
+      "id": "total",
+      "type": "integer"
+    }
+  }
+}

@@ -1,14 +1,14 @@
-API-Engine: API Management Services based on Mashape's KONG gateway
+API-Gateway: API Management Services based on Mashape's KONG gateway
 ===================================================================
 Author: Michallis Pashidis, Guillaume Vandecasteele
 Technologies: EAR, JPA, Java EE, CDI
 Summary: API Engine
-Target Project: Digipolis API Engine
-Source: <https://bitbucket.org/Trust1T/digi-api-engine-javaee>
+Target Project: Trust1Team Trust1Gateway
+Source: <https://github.com/Trust1Team/api-gateway>
 
 Kong version
 ------------
-Kong 0.9.3
+Kong 0.10.1
 
 Build
 -----
@@ -27,7 +27,7 @@ You can customize artifact and define profile at the same time, for example:
 Build and prepare a docker container
 `clean install -DskipTests=true -Pdocker`
 
-If you want to build an API-Engine with specific profile, but prepare it for a docker container, you can combine profiles:
+If you want to build an API-Gateway with specific profile, but prepare it for a docker container, you can combine profiles:
 `clean install -DskipTests=true -Pt1t-dev,docker`
 
 Docker - Demo
@@ -37,11 +37,11 @@ TODO docker compose for demo setup
 
 Docker - Development environment
 --------------------------------
-In the target folder of API-Engine-distro you can find 2 artifacts:
+In the target folder of t1g-distro you can find 2 artifacts:
 - docker
 - docker-postgres
 
-Off course first you should provide a postgres container, a kong container, and after that run an api-engine container linked to the postgres container.
+Off course first you should provide a postgres container, a kong container, and after that run an api-gateway container linked to the postgres container.
 ### Prerequisites
 Install docker on your machine
 
@@ -60,7 +60,7 @@ $ eval $(docker-machine env apiengine)
 ```
 
 ### More information
-More information, related to docker, can be found in the README.md file of the API-Engine-disto module.
+More information, related to docker, can be found in the README.md file of the t1g-distro module.
 
 ### Pull a Cassandra container
 ```sh
@@ -93,7 +93,7 @@ $ docker run -d --name kong --link cassandra:cassandra -p 8000:8000 -p 8443:8443
 ```
 
 ### Build docker container
-In the API-Engine-distro target folder, go to the docker-postgres folder and execute:
+In the t1g-distro target folder, go to the docker-postgres folder and execute:
 ```sh
 $ docker build -t api-db .
 ``` 
@@ -108,15 +108,15 @@ Remark: You'll see an image for api-db and for postgres (where it depends on)
 ### Run docker container
 Run the Postgres container:
 ```sh
-$ docker run -p 5432:5432 --name api-engine-db -t api-db
+$ docker run -p 5432:5432 --name api-gateway-db -t api-db
 ``` 
 If you have already a container with this name you can easily remove it with:
 ```sh
-$ docker rm api-engine-db
+$ docker rm api-gateway-db
 ```
 or inspect more info
 ```sh
-$ docker inspect api-engine-db
+$ docker inspect api-gateway-db
 ```
 
 ### Verify running docker containers
@@ -125,14 +125,14 @@ $ docker ps
 ```
 
 ### Build Apiengine in target folder
-In the API-Engine-distro target folder, go to the docker folder and execute:
+In the t1g-distro target folder, go to the docker folder and execute:
 ```sh
-$ docker build -t api-engine .
+$ docker build -t api-gateway .
 ```
 
 ### Run and connect API Engine to the running postgres instance
 ```sh
-$ docker run -p 8080:8080 -p 9990:9990  --name api-engine-inst1 --link api-engine-db:postgres --link kong:kong -d api-engine
+$ docker run -p 8080:8080 -p 9990:9990  --name api-gateway-inst1 --link api-gateway-db:postgres --link kong:kong -d api-gateway
 ```
 
 ### Verify your ip of the running machine
@@ -141,14 +141,14 @@ $ docker-machine ip apiengine
 ```
 By default the management console is enabled.
 Management console on IP:9990 username:admin password:admin123!
-Web API on IP:8080/API-Engine-web
-Auth API on IP:8080/API-Engine-auth
+Web API on IP:8080/t1g-web
+Auth API on IP:8080/t1g-auth
 
 ### remove a running container and its image
 ```sh
-$ docker stop api-engine-inst1
-$ docker rm api-engine-inst1
-$ docker rmi api-engine
+$ docker stop api-gateway-inst1
+$ docker rm api-gateway-inst1
+$ docker rmi api-gateway
 ```
 Using the API Marketplace
 -------------------------
@@ -158,6 +158,56 @@ $ docker run --add-host=localhost:84.198.85.191 -d --name konglocal --link cassa
 ```
 
 See [Docker-info](https://docs.docker.com/engine/reference/commandline/run/#add-entries-to-container-hosts-file-add-host)
+
+Release notes - Trust1Gateway - Version T1G-APIM-v0.9.9
+=======================================================
+
+## Sub-task
+
+*   [[T1G-355](https://trust1t.atlassian.net/browse/T1G-355)] - Modify the Marketplace/Publisher to allow an OIDC login flow
+*   [[T1G-407](https://trust1t.atlassian.net/browse/T1G-407)] - Create table/entity for allowed IDP issuers
+*   [[T1G-408](https://trust1t.atlassian.net/browse/T1G-408)] - Add endpoint to exchange IDP JWT for T1G signed JWT
+*   [[T1G-409](https://trust1t.atlassian.net/browse/T1G-409)] - Remove organization/application KC realm/client creation
+*   [[T1G-411](https://trust1t.atlassian.net/browse/T1G-411)] - Add endpoint to refresh T1G token
+
+## Bug
+
+*   [[T1G-243](https://trust1t.atlassian.net/browse/T1G-243)] - Service version cannot be updated
+*   [[T1G-247](https://trust1t.atlassian.net/browse/T1G-247)] - BE crashes when Terms of Service text has a ’ character in it
+*   [[T1G-252](https://trust1t.atlassian.net/browse/T1G-252)] - Logout redirects to Google, but should redirect to <baseUrl>/#/logout
+*   [[T1G-261](https://trust1t.atlassian.net/browse/T1G-261)] - in the header field of swagger http is taken as a scheme while it should be https - like correctly mentioned in the service URL
+*   [[T1G-270](https://trust1t.atlassian.net/browse/T1G-270)] - Market info followers statistic is never updated when a follower is added/removed --> remove from stats?
+*   [[T1G-302](https://trust1t.atlassian.net/browse/T1G-302)] - Marketplace : Download as Json, download as XML does not work in API's tab.
+*   [[T1G-315](https://trust1t.atlassian.net/browse/T1G-315)] - Engine startup fails when gateway is unresponsive
+
+## Story
+
+*   [[T1G-15](https://trust1t.atlassian.net/browse/T1G-15)] - As a developer I would like to have a Java tutorial upon how to create/generate an API
+*   [[T1G-62](https://trust1t.atlassian.net/browse/T1G-62)] - As an deployer I want to have a cookbook for the deployment of the gateway (Kong)
+*   [[T1G-63](https://trust1t.atlassian.net/browse/T1G-63)] - As a deploy I want to have a cookbook for the deployment of the API Engine.
+*   [[T1G-64](https://trust1t.atlassian.net/browse/T1G-64)] - As a deployer I want a cookbook for the installation of the Marketplace Angularjs application.
+*   [[T1G-65](https://trust1t.atlassian.net/browse/T1G-65)] - As a deployer I want to have a cookbook for the deployment of the Publisher API Angularjs web application.
+*   [[T1G-97](https://trust1t.atlassian.net/browse/T1G-97)] - As an API consumer I want to be able to subscribe on an API service in order be notified when changes occur
+*   [[T1G-172](https://trust1t.atlassian.net/browse/T1G-172)] - As an system administrator I want the user updates to be synchronized - both ways - with the IDP using SCIM v1.1 protocol
+*   [[T1G-205](https://trust1t.atlassian.net/browse/T1G-205)] - As a User I want to manage my authorization credentials provisions by the API gateway
+*   [[T1G-224](https://trust1t.atlassian.net/browse/T1G-224)] - As a developer publishing services I want to add JWT policy to a service
+*   [[T1G-225](https://trust1t.atlassian.net/browse/T1G-225)] - As a consumer for the API Marketplace I want to have an overview of my different credentials and manage them
+*   [[T1G-230](https://trust1t.atlassian.net/browse/T1G-230)] - As a developer I want to be able publishing public services without any authentication policy applied
+*   [[T1G-231](https://trust1t.atlassian.net/browse/T1G-231)] - As a developer for the API Engine I want to retrieve consumer information from the IDP - at least the user email for notification purposes
+*   [[T1G-235](https://trust1t.atlassian.net/browse/T1G-235)] - Migration Kong 0.5.0
+*   [[T1G-236](https://trust1t.atlassian.net/browse/T1G-236)] - As a developer I want to be able requesting membership to an organization
+*   [[T1G-245](https://trust1t.atlassian.net/browse/T1G-245)] - As a integration developer I want to have example code available for API integration
+*   [[T1G-249](https://trust1t.atlassian.net/browse/T1G-249)] - As a developer I want to be able transferring an organization to another user
+*   [[T1G-250](https://trust1t.atlassian.net/browse/T1G-250)] - As a developer I want to enable explicitly a service to be exposed on the marketplace view scoped for external users
+*   [[T1G-274](https://trust1t.atlassian.net/browse/T1G-274)] - Implement RS256 for incoming authorization bearer
+*   [[T1G-298](https://trust1t.atlassian.net/browse/T1G-298)] - Remove the oauth_apps table from the API Engine DB scheme
+*   [[T1G-303](https://trust1t.atlassian.net/browse/T1G-303)] - As a developer I want to investigate the Kong policy framework making a HAL/JSON policy
+*   [[T1G-314](https://trust1t.atlassian.net/browse/T1G-314)] - Add cluster info on gateway (without going through API Engine)
+*   [[T1G-361](https://trust1t.atlassian.net/browse/T1G-361)] - MKT/PUB provide NodeJS backend
+*   [[T1G-380](https://trust1t.atlassian.net/browse/T1G-380)] - Remove/replace the consent managed application
+*   [[T1G-388](https://trust1t.atlassian.net/browse/T1G-388)] - Remove key_mappings table from DB schema/Engine
+*   [[T1G-405](https://trust1t.atlassian.net/browse/T1G-405)] - Exchange IDP JWT for T1G signed JWT
+*   [[T1G-406](https://trust1t.atlassian.net/browse/T1G-406)] - Store consumer PEM public key in Cassandra database for JWT issuance
 
 Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.8
 =======================================================
@@ -184,15 +234,15 @@ Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.6
 *   [[T1G-336](https://trust1t.atlassian.net/browse/T1G-336)] - Transaction times out when backing up/restoring large amount of tokens
 
 Release Notes - Trust1Gateway - Version T1G-APIM-v0.9.5
--------------------------------------------------------
+========================================================
 
 ## Bug
 
 *   [[T1G-294](https://trust1t.atlassian.net/browse/T1G-294)] - Syncing does not take into account whether or not an application already has an oauth credential id
 *   [[T1G-295](https://trust1t.atlassian.net/browse/T1G-295)] - Syncing users and applications does not take into account existing JWT keys and secrets
 
-Release Notes - APIe - Version API/SDK engine 0.8.0
----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.8.0
+========================================================
 
 ## Bug
 
@@ -222,8 +272,8 @@ Release Notes - APIe - Version API/SDK engine 0.8.0
 *   [[APIE-969](https://jira.antwerpen.be/browse/APIE-969)] - As a developer I don't want to see private orgs when 'search orgs'
 *   [[APIE-986](https://jira.antwerpen.be/browse/APIE-986)] - UI tweaks for new layout
 
-Release Notes - APIe - Version API/SDK engine 0.7.1
----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.7.1
+========================================================
 
 ## Test
 
@@ -280,8 +330,8 @@ Release Notes - APIe - Version API/SDK engine 0.7.1
 *   [[APIE-842](https://jira.antwerpen.be/browse/APIE-842)] - Migration to Kong 8.1
 *   [[APIE-874](https://jira.antwerpen.be/browse/APIE-874)] - Move JWT refresh endpoint to JWT protected API
 
-Release Notes - APIe - Version API/SDK engine 0.7.0
----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.7.0
+========================================================
 
 ## Story
 
@@ -290,8 +340,8 @@ Release Notes - APIe - Version API/SDK engine 0.7.0
 *   [[APIE-815](https://jira.antwerpen.be/browse/APIE-815)] - Integrate consent page
 *   [[APIE-816](https://jira.antwerpen.be/browse/APIE-816)] - Introduce token issuance flow
 
-Release Notes - APIe - Version API/SDK engine 0.6.4
----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.6.4
+========================================================
 
 ## Bug
 
@@ -311,8 +361,8 @@ Release Notes - APIe - Version API/SDK engine 0.6.4
 *   [[APIE-468](https://jira.antwerpen.be/browse/APIE-468)] - Extra info over de consumers van mijn service
 *   [[APIE-565](https://jira.antwerpen.be/browse/APIE-565)] - Gateway policy - OAuth -> JWT
 
-Release Notes - APIe - Version API/SDK engine 0.6.3
----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.6.3
+========================================================
 
 ## Sub-task
 
@@ -382,8 +432,8 @@ Release Notes - APIe - Version API/SDK engine 0.6.3
 
 *   [[APIE-506](https://jira.antwerpen.be/browse/APIE-506)] - JWT token not sent and internal error is shown when Relaystate:https%3A%2F%2Fapi-pub-a.antwerpen.be
 
-Release Notes - APIe - Version API/SDK engine 0.6.0
----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.6.0
+========================================================
 
 ## Sub-task
 
@@ -435,8 +485,8 @@ Release Notes - APIe - Version API/SDK engine 0.6.0
 
 *   [[APIE-506](https://jira.antwerpen.be/browse/APIE-506)] - JWT token not sent and internal error is shown when Relaystate:https%3A%2F%2Fapi-pub-a.antwerpen.be
 
-Release Notes - Digipolis-APIM - Version APIM-v0.5.2
-----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.5.2
+========================================================
 
 ## Sub-task
 
@@ -462,8 +512,8 @@ Release Notes - Digipolis-APIM - Version APIM-v0.5.2
 *   [[APIE-272](https://jira.antwerpen.be/browse/APIE-272)] - Geautomatiseerde installatie van de API Mgr in de verschillende omgevingen
 *   [[APIE-278](https://jira.antwerpen.be/browse/APIE-278)] - Identity server heeft meerdere identiteit bronnen
 
-Release Notes - Digipolis-APIM - Version APIM-v0.5.1
-----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.5.1
+========================================================
 ## Bug
 
 *   [[APIE-402](https://jira.antwerpen.be/browse/APIE-402)] - Connectiestring tussen Kong en Cassandra was plots verdwenen
@@ -477,8 +527,8 @@ Release Notes - Digipolis-APIM - Version APIM-v0.5.1
 
 *   [[APIE-475](https://jira.antwerpen.be/browse/APIE-475)] - Wijzigingen in IDP config en user attributen
 
-Release Notes - Digipolis-APIM - Version APIM-v0.5.0
-----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.5.0
+========================================================
 
 ## Bug
 
@@ -496,14 +546,14 @@ Release Notes - Digipolis-APIM - Version APIM-v0.5.0
 *   [[DPAPIM-231](https://trust1t.atlassian.net/browse/DPAPIM-231)] - As a developer for the API Engine I want to retrieve consumer information from the IDP - at least the user email for notification purposes
 *   [[DPAPIM-235](https://trust1t.atlassian.net/browse/DPAPIM-235)] - Migration Kong 0.5.0
 *   [[DPAPIM-245](https://trust1t.atlassian.net/browse/DPAPIM-245)] - As a integration developer I want to have example code available for API integration
-*   [[DPAPIM-250](https://trust1t.atlassian.net/browse/DPAPIM-250)] - As a Digipolis develop I want to enable explicitly a service to be exposed on the marketplace view scoped for external users
+*   [[DPAPIM-250](https://trust1t.atlassian.net/browse/DPAPIM-250)] - As a Trust1Team develop I want to enable explicitly a service to be exposed on the marketplace view scoped for external users
 *   [[DPAPIM-264](https://trust1t.atlassian.net/browse/DPAPIM-264)] - As a developer of the publisher i want an alternative validation for my swagger file, in order to be less restrictive
 *   [[DPAPIM-265](https://trust1t.atlassian.net/browse/DPAPIM-265)] - As an integrator I want to integrate a first Engine
 *   [[DPAPIM-266](https://trust1t.atlassian.net/browse/DPAPIM-266)] - As a developer I want to integrate my API on the API Engine
 *   [[DPAPIM-268](https://trust1t.atlassian.net/browse/DPAPIM-268)] - Double login causes error
 
-Release Notes - Digipolis-APIM - Version APIM-v0.0.2
-----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.0.2
+========================================================
 
 ## Bug
 
@@ -524,8 +574,8 @@ Release Notes - Digipolis-APIM - Version APIM-v0.0.2
 *   [[DPAPIM-254](https://trust1t.atlassian.net/browse/DPAPIM-254)] - As an developer I want to integrate the ME service using an existing client application
 *   [[DPAPIM-255](https://trust1t.atlassian.net/browse/DPAPIM-255)] - As a developer I want to support the integration of an authentication/authorization application
 
-Release Notes - Digipolis-APIM - Version APIM-v0.5.0
-----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.5.0
+========================================================
 
 ## Bug
 
@@ -543,14 +593,14 @@ Release Notes - Digipolis-APIM - Version APIM-v0.5.0
 *   [[DPAPIM-231](https://trust1t.atlassian.net/browse/DPAPIM-231)] - As a developer for the API Engine I want to retrieve consumer information from the IDP - at least the user email for notification purposes
 *   [[DPAPIM-235](https://trust1t.atlassian.net/browse/DPAPIM-235)] - Migration Kong 0.5.0
 *   [[DPAPIM-245](https://trust1t.atlassian.net/browse/DPAPIM-245)] - As a integration developer I want to have example code available for API integration
-*   [[DPAPIM-250](https://trust1t.atlassian.net/browse/DPAPIM-250)] - As a Digipolis develop I want to enable explicitly a service to be exposed on the marketplace view scoped for external users
+*   [[DPAPIM-250](https://trust1t.atlassian.net/browse/DPAPIM-250)] - As a Trust1Team develop I want to enable explicitly a service to be exposed on the marketplace view scoped for external users
 *   [[DPAPIM-264](https://trust1t.atlassian.net/browse/DPAPIM-264)] - As a developer of the publisher i want an alternative validation for my swagger file, in order to be less restrictive
 *   [[DPAPIM-265](https://trust1t.atlassian.net/browse/DPAPIM-265)] - As an integrator I want to integrate a first Engine
 *   [[DPAPIM-266](https://trust1t.atlassian.net/browse/DPAPIM-266)] - As a developer I want to integrate my API on the API Engine
 *   [[DPAPIM-268](https://trust1t.atlassian.net/browse/DPAPIM-268)] - Double login causes error
 
-Release Notes - Digipolis-APIM - Version APIM-v0.0.2
-----------------------------------------------------
+Release Notes - Trust1Gateway - Version T1G-APIM-v0.0.2
+========================================================
 
 ## Bug
 
@@ -571,8 +621,8 @@ Release Notes - Digipolis-APIM - Version APIM-v0.0.2
 *   [[DPAPIM-254](https://trust1t.atlassian.net/browse/DPAPIM-254)] - As an developer I want to integrate the ME service using an existing client application
 *   [[DPAPIM-255](https://trust1t.atlassian.net/browse/DPAPIM-255)] - As a developer I want to support the integration of an authentication/authorization application
 
-Releases - Digipolis-APIM - Version APIM-v0.0.1
-------------------------------------------------
+Releases Notes - Trust1Gateway - Version T1G-APIM-v0.0.1
+========================================================
 
 ## Bug
 
@@ -678,7 +728,7 @@ Releases - Digipolis-APIM - Version APIM-v0.0.1
 *   [[DPAPIM-177](https://trust1t.atlassian.net/browse/DPAPIM-177)] - As a developer I want to analyse my API metrics using Mashape analytics
 *   [[DPAPIM-188](https://trust1t.atlassian.net/browse/DPAPIM-188)] - As a user I want to see the version, status and possible actions on the plans
 *   [[DPAPIM-190](https://trust1t.atlassian.net/browse/DPAPIM-190)] - as a user I require to be guided through the process of service creation.
-*   [[DPAPIM-200](https://trust1t.atlassian.net/browse/DPAPIM-200)] - As a user I want to be able using a dev environment at Digipolis to test
+*   [[DPAPIM-200](https://trust1t.atlassian.net/browse/DPAPIM-200)] - As a user I want to be able using a dev environment at Trust1Team to test
 *   [[DPAPIM-207](https://trust1t.atlassian.net/browse/DPAPIM-207)] - As a developer I want to use the application API key instead of the logged user api key in the try-out documentation (in the context of an selected application)
 *   [[DPAPIM-208](https://trust1t.atlassian.net/browse/DPAPIM-208)] - As a developer I want to see oauth fields in my application when contracted a oauth enabled service
 *   [[DPAPIM-209](https://trust1t.atlassian.net/browse/DPAPIM-209)] - As a developer I want to use OAuth2 in the documentation overview of a service version

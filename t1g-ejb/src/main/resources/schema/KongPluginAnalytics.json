@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "javaInterfaces": [
+    "com.t1t.kong.model.KongConfigValue"
+  ],
+  "properties": {
+    "environment": {
+      "type": "string",
+      "required": true
+    },
+    "retry_count": {
+      "type": "integer",
+      "required": false
+    },
+    "queue_size": {
+      "type": "integer",
+      "required": false
+    },
+    "flush_timeout": {
+      "type": "integer",
+      "required": false
+    },
+    "log_bodies": {
+      "type": "boolean",
+      "required": false
+    },
+    "service_token": {
+      "type": "string",
+      "required": true
+    },
+    "connection_timeout": {
+      "type": "integer",
+      "required": false
+    },
+    "host": {
+      "type": "string",
+      "default": "collector.galileo.mashape.com",
+      "required": true
+    },
+    "port": {
+      "type": "integer",
+      "default": 443,
+      "required": true
+    },
+    "https": {
+      "type": "boolean",
+      "default": true,
+      "required": false
+    },
+    "https_verify": {
+      "type": "boolean",
+      "default": false,
+      "required": false
+    }
+  }
+}
