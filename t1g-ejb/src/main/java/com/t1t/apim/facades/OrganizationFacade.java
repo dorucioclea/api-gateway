@@ -1295,7 +1295,7 @@ public class OrganizationFacade {
             }
             if (AuditUtils.valueChanged(svb.getUpstreamPath(), bean.getUpstreamPath())) {
                 data.addChange("upstreamPath", svb.getUpstreamPath() == null ? null : svb.getUpstreamPath().toString(), bean.getUpstreamPath() == null ? null : bean.getUpstreamPath().toString());
-                svb.setUpstreamPath(bean.getUpstreamPath());
+                svb.setUpstreamPath(URIUtils.uriLeadingSlashPrepender(bean.getUpstreamPath()));
                 gwValueChanged = true;
             }
             if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
@@ -1451,7 +1451,7 @@ public class OrganizationFacade {
         newService.setName(bean.getName());
         newService.setDescription(bean.getDescription());
         newService.setId(BeanUtils.idFromName(bean.getName()));
-        newService.setBasepaths(bean.getBasepaths());
+        newService.setBasepaths(bean.getBasepaths().stream().map(URIUtils::uriLeadingSlashPrepender).collect(Collectors.toSet()));
         newService.setCategories(bean.getCategories());
         newService.setBase64logo(bean.getBase64logo());
         newService.setCreatedOn(new Date());
@@ -2309,8 +2309,8 @@ public class OrganizationFacade {
                 List<String> oauthAuths = new ArrayList<>();
                 List<String> oauthTokens = new ArrayList<>();
                 GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepaths(), version).forEach(basePath -> {
-                    StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
-                            .append(URIUtils.uriBackslashAppender(basePath))
+                    StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriFinalslashRemover(gateway.getEndpoint()))
+                            .append(URIUtils.uriFinalslashAppender(basePath))
                             .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
                     oauthAuths.add(targetURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_AUTH).toString());
                     oauthTokens.add(targetURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN).toString());
@@ -2323,7 +2323,7 @@ public class OrganizationFacade {
                         List<String> brOauthAuths = new ArrayList<>();
                         List<String> brOauthTokens = new ArrayList<>();
                         endpoint.getManagedEndpoints().forEach(basePath -> {
-                            StringBuilder brandedURI = new StringBuilder(URIUtils.uriBackslashAppender(basePath))
+                            StringBuilder brandedURI = new StringBuilder(URIUtils.uriFinalslashAppender(basePath))
                                     .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
                             brOauthAuths.add(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_AUTH).toString());
                             brOauthTokens.add(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN).toString());

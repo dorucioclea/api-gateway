@@ -847,7 +847,7 @@ public class GatewayClient {
         } else {
             upstreamUrl = URIUtils.buildEndpoint(svb.getUpstreamScheme(), apiId, null, svb.getUpstreamPath());
         }
-        api.setUpstreamUrl(URIUtils.uriBackslashRemover(upstreamUrl));
+        api.setUpstreamUrl(URIUtils.uriFinalslashRemover(upstreamUrl));
         api.setHosts(svb.getHostnames() == null ? Collections.emptyList() : new ArrayList<>(svb.getHostnames()));
         api.setUris(GatewayPathUtilities.generateGatewayContextPath(svb.getService().getOrganization().getId(), svb.getService().getBasepaths(), svb.getVersion()));
         api.setUpstreamConnectTimeout(svb.getUpstreamConnectTimeout());
@@ -1060,7 +1060,7 @@ public class GatewayClient {
         try {
             if (CollectionUtils.isEmpty(api.getHosts())) api.setHosts(null);
             if (CollectionUtils.isEmpty(api.getMethods())) api.setMethods(null);
-            api.setUpstreamUrl(URIUtils.uriBackslashRemover(api.getUpstreamUrl()));
+            api.setUpstreamUrl(URIUtils.uriFinalslashRemover(api.getUpstreamUrl()));
             return httpClient.addApi(api);
         } catch (RetrofitError ex) {
             return null;
@@ -1068,7 +1068,7 @@ public class GatewayClient {
     }
 
     public KongApi updateApi(KongApi api) {
-        api.setUpstreamUrl(URIUtils.uriBackslashRemover(api.getUpstreamUrl()));
+        api.setUpstreamUrl(URIUtils.uriFinalslashRemover(api.getUpstreamUrl()));
         return httpClient.updateOrCreateApi(api);
     }
 

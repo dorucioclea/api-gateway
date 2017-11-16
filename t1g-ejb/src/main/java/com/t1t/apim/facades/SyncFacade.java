@@ -11,7 +11,6 @@ import com.t1t.apim.beans.services.SchemeType;
 import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.core.IApiKeyGenerator;
-import com.t1t.apim.core.IIdmStorage;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
@@ -111,7 +110,7 @@ public class SyncFacade {
                                                 .withPreserveHost(false)
                                                 .withHosts(new ArrayList<>(svb.getHostnames()))
                                                 .withUris(requestPaths)
-                                                .withUpstreamUrl(URIUtils.uriBackslashRemover(upstreamUrl))
+                                                .withUpstreamUrl(URIUtils.uriFinalslashRemover(upstreamUrl))
                                                 .withName(apiId));
                                         log.info("== API {} MISSING ON GATEWAY {}, CREATED ==", apiId, gw.getGatewayId());
                                     } else {

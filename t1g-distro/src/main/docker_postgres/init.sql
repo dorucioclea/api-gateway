@@ -1117,7 +1117,7 @@ INSERT INTO users (username, email, full_name, joined_on, admin, pic)
 VALUES ('admin', 'admin@example.org', 'Admin', CURRENT_DATE, TRUE, NULL);
 
 INSERT INTO organizations (id, description, name, created_by, created_on, modified_by, modified_on)
-VALUES ('Digipolis', 'Digipolis', 'Digipolis', 'admin', CURRENT_DATE, 'admin', CURRENT_DATE);
+VALUES ('Trust1Team', 'Trust1Team', 'Trust1Team', 'admin', CURRENT_DATE, 'admin', CURRENT_DATE);
 
 INSERT INTO memberships (id, created_on, org_id, role_id, user_id)
-VALUES (999, CURRENT_DATE, 'Digipolis', 'Owner', 'admin');
+VALUES (999, CURRENT_DATE, 'Trust1Team', 'Owner', 'admin');
