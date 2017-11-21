@@ -26,10 +26,12 @@ import java.util.List;
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class RoleFacade {
 
-    @Inject private ISecurityContext securityContext;
-    @Inject private IIdmStorage idmStorage;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private IIdmStorage idmStorage;
 
-    public RoleBean create(NewRoleBean bean){
+    public RoleBean create(NewRoleBean bean) {
         RoleBean role = new RoleBean();
         role.setAutoGrant(bean.getAutoGrant());
         role.setCreatedBy(securityContext.getCurrentUser());
@@ -49,7 +51,7 @@ public class RoleFacade {
         }
     }
 
-    public RoleBean get(String roleId){
+    public RoleBean get(String roleId) {
         try {
             RoleBean role = idmStorage.getRole(roleId);
             if (role == null) {
@@ -61,7 +63,7 @@ public class RoleFacade {
         }
     }
 
-    public void update(String roleId, UpdateRoleBean bean){
+    public void update(String roleId, UpdateRoleBean bean) {
         try {
             RoleBean role = idmStorage.getRole(roleId);
             if (role == null) {
@@ -86,7 +88,7 @@ public class RoleFacade {
         }
     }
 
-    public void delete(String roleId){
+    public void delete(String roleId) {
         RoleBean bean = get(roleId);
         try {
             idmStorage.deleteRole(bean);
@@ -95,7 +97,7 @@ public class RoleFacade {
         }
     }
 
-    public List<RoleBean> list(){
+    public List<RoleBean> list() {
         try {
             SearchCriteriaBean criteria = new SearchCriteriaBean();
             criteria.setOrder("name", true); //$NON-NLS-1$
@@ -105,7 +107,7 @@ public class RoleFacade {
         }
     }
 
-    public SearchResultsBean<RoleBean> search(SearchCriteriaBean criteria){
+    public SearchResultsBean<RoleBean> search(SearchCriteriaBean criteria) {
         try {
             return idmStorage.findRoles(criteria);
         } catch (StorageException e) {

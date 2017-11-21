@@ -14,15 +14,17 @@ import java.util.stream.Collectors;
 public class ServiceScopeUtil {
     /**
      * Utility to filter a list of service beans based on a predefined scope (consumer application scope).
+     *
      * @param svbList
      * @param consumerType
      * @return
      */
-    public static List<ServiceVersionBean> resolveSVBScope(List<ServiceVersionBean> svbList, String consumerType, boolean admin){
+    public static List<ServiceVersionBean> resolveSVBScope(List<ServiceVersionBean> svbList, String consumerType, boolean admin) {
         List<ServiceVersionBean> allServicesByStatusFiltered = new ArrayList<>();
-        if(!StringUtils.isEmpty(consumerType)){
-            for(ServiceVersionBean svb:svbList){
-                if((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(consumerType) && (svbVis.getShow() || (!svbVis.getShow() && admin)))).collect(Collectors.toList())).size()>0) allServicesByStatusFiltered.add(svb);
+        if (!StringUtils.isEmpty(consumerType)) {
+            for (ServiceVersionBean svb : svbList) {
+                if ((svb.getVisibility().stream().filter(svbVis -> (svbVis.getCode().equalsIgnoreCase(consumerType) && (svbVis.getShow() || (!svbVis.getShow() && admin)))).collect(Collectors.toList())).size() > 0)
+                    allServicesByStatusFiltered.add(svb);
             }
         }
         return allServicesByStatusFiltered;

@@ -6,7 +6,7 @@
     "group": {
       "id": "group",
       "type": "string"
-      },
+    },
     "consumer_id": {
       "id": "consumer_id",
       "type": "string"

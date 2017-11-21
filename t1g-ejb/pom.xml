@@ -15,14 +15,14 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <artifactId>api-gateway</artifactId>
         <groupId>com.t1t</groupId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>0.10.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>t1g-ejb</artifactId>
@@ -344,19 +344,9 @@
             <artifactId>bcprov-jdk15on</artifactId>
         </dependency>
 
-        <!-- Keycloak -->
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-admin-client</artifactId>
-        </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.jboss.resteasy/resteasy-client -->
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-client</artifactId>
         </dependency>
 
 
@@ -447,9 +437,12 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthEnhanced.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRateLimiting.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestSizeLimiting.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerModification.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformerModification.json
+                        </sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginRequestTransformer.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformerModification.json</sourcePath>
+                        <sourcePath>
+                            ${basedir}/src/main/resources/schema/KongPluginResponseTransformerModification.json
+                        </sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginResponseTransformer.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginSchema.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginSSL.json</sourcePath>
@@ -461,12 +454,16 @@
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginAnalytics.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponse.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponseList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginBasicAuthResponseList.json
+                        </sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongOAuthToken.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongOAuthTokenList.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerRequest.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponse.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerRequest.json
+                        </sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponse.json
+                        </sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseList.json
+                        </sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTResponse.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTRequest.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginJWTResponseList.json</sourcePath>
@@ -475,13 +472,20 @@
                         <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUser.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema_scim/SCIMUserList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginLDAP.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginJsonThreatProtection.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginJsonThreatProtection.json
+                        </sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginEmptyConfig.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongClusterItem.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongCluster.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/DataDogMetricsSeries.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/DataDogMetricsQuery.json</sourcePath>
-                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseDTO.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginOAuthConsumerResponseDTO.json
+                        </sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongPluginAWSLambda.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongUpstream.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongUpstreamList.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongUpstreamTarget.json</sourcePath>
+                        <sourcePath>${basedir}/src/main/resources/schema/KongUpstreamTargetList.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/KongPluginDataDog.json</sourcePath>
                         <sourcePath>${basedir}/src/main/resources/schema/DataDogAvailableMetrics.json</sourcePath>
                     </sourcePaths>
@@ -519,19 +523,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <!-- The default profile skips all tests, though you can tune it 
-                to run just unit tests based on a custom pattern -->
-            <id>default</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <appconfig.file>application</appconfig.file>
-            </properties>
-        </profile>
-    </profiles>
-
 </project>

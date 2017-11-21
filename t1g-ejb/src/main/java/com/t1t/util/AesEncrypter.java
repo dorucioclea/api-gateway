@@ -28,7 +28,8 @@ public final class AesEncrypter {
         secretKeySpec = new SecretKeySpec(ivraw, AES);
     }
 
-    private AesEncrypter() {}
+    private AesEncrypter() {
+    }
 
     /**
      * Encrypt.

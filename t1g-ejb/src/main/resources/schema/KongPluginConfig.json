@@ -21,7 +21,9 @@
     },
     "config": {
       "id": "config",
-      "javaInterfaces" : ["com.t1t.kong.model.KongConfigValue"]
+      "javaInterfaces": [
+        "com.t1t.kong.model.KongConfigValue"
+      ]
     },
     "enabled": {
       "id": "enabled",

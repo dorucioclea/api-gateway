@@ -11,38 +11,38 @@ import java.util.Date;
 /**
  * A Contract links an application version to a service version through
  * a plan version.  :)
- *
+ * <p>
  * This is how application owners/developers configure their application
  * to allow it to invoke managed services.
- *
  */
 @Entity
 @Table(name = "contracts",
-       uniqueConstraints = { @UniqueConstraint(columnNames = { "appv_id", "svcv_id", "planv_id" }) })
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"appv_id", "svcv_id", "planv_id"})})
 public class ContractBean implements Serializable {
 
     private static final long serialVersionUID = -8534463608508756791L;
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="appv_id", referencedColumnName="id")
+            @JoinColumn(name = "appv_id", referencedColumnName = "id")
     })
     private ApplicationVersionBean application;
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="svcv_id", referencedColumnName="id")
+            @JoinColumn(name = "svcv_id", referencedColumnName = "id")
     })
     private ServiceVersionBean service;
     @ManyToOne
     @JoinColumns({
-        @JoinColumn(name="planv_id", referencedColumnName="id")
+            @JoinColumn(name = "planv_id", referencedColumnName = "id")
     })
     private PlanVersionBean plan;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
     @Column(name = "terms_agreed")
     private Boolean termsAgreed;

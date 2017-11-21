@@ -3,7 +3,6 @@ package com.t1t.apim.exceptions;
 
 /**
  * Thrown when trying to get a resource from a plugin.
- *
  */
 public class PluginResourceNotFoundException extends AbstractNotFoundException {
 
@@ -14,15 +13,16 @@ public class PluginResourceNotFoundException extends AbstractNotFoundException {
      */
     public PluginResourceNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public PluginResourceNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -30,7 +30,7 @@ public class PluginResourceNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.PLUGIN_RESOURCE_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

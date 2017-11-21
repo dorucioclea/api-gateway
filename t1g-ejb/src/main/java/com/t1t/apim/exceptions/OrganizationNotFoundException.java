@@ -1,10 +1,8 @@
 package com.t1t.apim.exceptions;
 
 
-
 /**
  * Thrown when trying to get, update, or remove an organization that does not exist.
- *
  */
 public class OrganizationNotFoundException extends AbstractNotFoundException {
 
@@ -15,15 +13,16 @@ public class OrganizationNotFoundException extends AbstractNotFoundException {
      */
     public OrganizationNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public OrganizationNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -31,7 +30,7 @@ public class OrganizationNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.ORG_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

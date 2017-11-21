@@ -2,10 +2,9 @@ package com.t1t.apim.exceptions;
 
 /**
  * Base class for "already exists" exceptions.
- *
  */
 public abstract class AbstractAlreadyExistsException extends AbstractUserException {
-    
+
     private static final long serialVersionUID = 1345772129352225376L;
 
     /**
@@ -16,12 +15,13 @@ public abstract class AbstractAlreadyExistsException extends AbstractUserExcepti
 
     /**
      * Constructor.
+     *
      * @param message the message
      */
     public AbstractAlreadyExistsException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getHttpCode()
      */

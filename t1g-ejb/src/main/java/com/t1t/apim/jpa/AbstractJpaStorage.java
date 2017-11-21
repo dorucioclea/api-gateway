@@ -26,7 +26,8 @@ import java.util.List;
 public abstract class AbstractJpaStorage {
     private static Logger log = LoggerFactory.getLogger(AbstractJpaStorage.class.getName());
 
-    @PersistenceContext protected EntityManager em;
+    @PersistenceContext
+    protected EntityManager em;
 
     /**
      * @return the thread's entity manager
@@ -170,26 +171,26 @@ public abstract class AbstractJpaStorage {
         return results;
     }
 
-    protected List<ServiceVersionBean> findAllServicesByStatus(ServiceStatus status){
+    protected List<ServiceVersionBean> findAllServicesByStatus(ServiceStatus status) {
         Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.status LIKE :status").setParameter("status", status);
         return (List<ServiceVersionBean>) query.getResultList();
     }
 
-    protected List<ServiceBean> findAllServiceDefinitions(){
+    protected List<ServiceBean> findAllServiceDefinitions() {
         Query query = em.createQuery("SELECT e FROM ServiceBean e");
         return (List<ServiceBean>) query.getResultList();
     }
 
-    protected List<ServiceVersionBean> findAllServiceVersionsInCategory(List<String> categories)throws StorageException{
-        List<ServiceBean>services = findAllServiceDefinitions();
+    protected List<ServiceVersionBean> findAllServiceVersionsInCategory(List<String> categories) throws StorageException {
+        List<ServiceBean> services = findAllServiceDefinitions();
         List<ServiceBean> filteredServices = new ArrayList<>();
-        for (ServiceBean service:services){
-            for(String cat:categories){
-                if(service.getCategories().contains(cat))filteredServices.add(service);
+        for (ServiceBean service : services) {
+            for (String cat : categories) {
+                if (service.getCategories().contains(cat)) filteredServices.add(service);
             }
         }
         //get all service verisons with parent id
-        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.service IN :services AND e.status = :status").setParameter("services",filteredServices).setParameter("status",ServiceStatus.Published);
+        Query query = em.createQuery("SELECT e FROM ServiceVersionBean e WHERE e.service IN :services AND e.status = :status").setParameter("services", filteredServices).setParameter("status", ServiceStatus.Published);
         return (List<ServiceVersionBean>) query.getResultList();
     }
 

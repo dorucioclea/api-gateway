@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class ConsumerConventionUtil {
 
-    public static String createAppConsumerUnqiueId(String orgId, String appId, String appVersionId, String userId){
+    public static String createAppConsumerUnqiueId(String orgId, String appId, String appVersionId, String userId) {
         StringBuilder uniqueName = new StringBuilder("");
         uniqueName.append(orgId)
                 .append(".")
@@ -22,7 +22,7 @@ public class ConsumerConventionUtil {
         return uniqueName.toString().toLowerCase();
     }
 
-    public static String createAppUniqueId(String orgId, String appId, String appVersionId){
+    public static String createAppUniqueId(String orgId, String appId, String appVersionId) {
         StringBuilder uniqueName = new StringBuilder("");
         uniqueName.append(orgId)
                 .append(".")
@@ -37,7 +37,7 @@ public class ConsumerConventionUtil {
                 avb.getApplication().getId(), avb.getVersion());
     }
 
-    public static String createAppVersionlessId(String orgId, String appId){
+    public static String createAppVersionlessId(String orgId, String appId) {
         StringBuilder uniqueName = new StringBuilder("");
         uniqueName.append(orgId)
                 .append(".")
@@ -62,22 +62,23 @@ public class ConsumerConventionUtil {
      * The application identifier denotes the consuming application of the service.
      * In order to support scoped marketplaces/publishers; a scope will be set if the unique appId contains a known prefix.
      * The known prefixes are in configuration to avoid table lookups.
+     *
      * @param appId
      * @return
      */
-    public static AppIdentifier parseApplicationIdentifier(String appId){
-        if(StringUtils.isEmpty(appId))return null;//normally shouldn't be null
+    public static AppIdentifier parseApplicationIdentifier(String appId) {
+        if (StringUtils.isEmpty(appId)) return null;//normally shouldn't be null
         AppIdentifier appIdBean = new AppIdentifier();
         String[] splitResult = appId.split("\\.");
-        if(splitResult.length==3){
+        if (splitResult.length == 3) {
             //set optional marketplace scope
             appIdBean.setPrefix(splitResult[0]);
             appIdBean.setAppId(splitResult[1]);
             appIdBean.setVersion(splitResult[2]);
-        }else if (splitResult.length == 2){
+        } else if (splitResult.length == 2) {
             appIdBean.setPrefix(splitResult[0]);
             appIdBean.setAppId(splitResult[1]);
-        }else {
+        } else {
             return null;
         }
         return appIdBean;

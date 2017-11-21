@@ -34,16 +34,21 @@ import static org.mockito.Mockito.*;
  * Created by michallispashidis on 21/10/15.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class    RoleFacadeTest {
+public class RoleFacadeTest {
     private static final Logger _LOG = LoggerFactory.getLogger(RoleFacadeTest.class.getName());
 
-    @Rule public ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
-    @Mock private EntityManager em;
-    @Mock private ISecurityContext securityContext;
-    @Mock private IIdmStorage idmStorage;
+    @Mock
+    private EntityManager em;
+    @Mock
+    private ISecurityContext securityContext;
+    @Mock
+    private IIdmStorage idmStorage;
 
-    @InjectMocks private RoleFacade roleFacade;
+    @InjectMocks
+    private RoleFacade roleFacade;
 
     @Test
     public void sanity() throws Exception {
@@ -147,7 +152,7 @@ public class    RoleFacadeTest {
         return newRoleBean;
     }
 
-    private RoleBean getDummyRoleBean(Set<PermissionType>permissions){
+    private RoleBean getDummyRoleBean(Set<PermissionType> permissions) {
         RoleBean roleBean = new RoleBean();
         roleBean.setAutoGrant(true);
         roleBean.setDescription("SomeRole");
@@ -158,7 +163,7 @@ public class    RoleFacadeTest {
         return roleBean;
     }
 
-    private Set<PermissionType> getDefaultPermissionSet(){
+    private Set<PermissionType> getDefaultPermissionSet() {
         Set<PermissionType> permissions = new HashSet<>();
         permissions.add(PermissionType.appAdmin);
         permissions.add(PermissionType.appEdit);

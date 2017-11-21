@@ -7,7 +7,7 @@
       "id": "kongClusterItem",
       "type": "array",
       "items": {
-        "$ref":"KongClusterItem.json"
+        "$ref": "KongClusterItem.json"
       }
     },
     "total": {

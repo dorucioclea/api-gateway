@@ -14,15 +14,19 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.persistence.EntityManager;
 
 import static org.mockito.Mockito.*;
+
 /**
  * Created by michallispashidis on 2/03/16.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(UserFacade.class)
 public class JpaIdmStorageTest {
-    @Rule public ExpectedException thrown = ExpectedException.none();
-    @Mock private EntityManager em;
-    @InjectMocks private JpaIdmStorage storage;
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+    @Mock
+    private EntityManager em;
+    @InjectMocks
+    private JpaIdmStorage storage;
 
     @Test
     public void testCreateUser() throws Exception {
@@ -42,9 +46,9 @@ public class JpaIdmStorageTest {
 
     @Test
     public void testGetUser() throws Exception {
-        when(em.find(anyObject(),anyObject())).thenReturn(new UserBean());
+        when(em.find(anyObject(), anyObject())).thenReturn(new UserBean());
         storage.getUser("anystring");
-        verify(em).find(anyObject(),anyObject());
+        verify(em).find(anyObject(), anyObject());
     }
 
     @Test

@@ -4,11 +4,10 @@ import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.brandings.NewServiceBrandingBean;
 import com.t1t.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.apim.beans.brandings.ServiceBrandingSummaryBean;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.NotAuthorizedException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.BrandingFacade;
-import com.t1t.apim.rest.resources.IBrandingResource;
 import com.t1t.apim.security.ISecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,14 +28,14 @@ import java.util.Set;
 @Api(value = "/brandings", description = "The Branding API.")
 @Path("/brandings")
 @ApplicationScoped
-public class BrandingResource implements IBrandingResource {
+public class BrandingResource {
 
     @Inject
     private BrandingFacade brandingFacade;
     @Inject
     private ISecurityContext security;
 
-    @Override
+
     @ApiOperation("Get service branding")
     @ApiResponses({
             @ApiResponse(code = 200, response = ServiceBrandingSummaryBean.class, message = "Service Branding")
@@ -49,7 +48,7 @@ public class BrandingResource implements IBrandingResource {
         return brandingFacade.getServiceBranding(id);
     }
 
-    @Override
+
     @ApiOperation("Create service branding")
     @ApiResponses({
             @ApiResponse(code = 200, response = ServiceBrandingSummaryBean.class, message = "Service Branding")
@@ -67,7 +66,7 @@ public class BrandingResource implements IBrandingResource {
         return brandingFacade.createServiceBranding(branding);
     }
 
-    @Override
+
     @ApiOperation("Delete service branding")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Service Branding deleted")
@@ -84,7 +83,7 @@ public class BrandingResource implements IBrandingResource {
         brandingFacade.deleteServiceBranding(id);
     }
 
-    @Override
+
     @ApiOperation("Retrieve available service brandings")
     @ApiResponses({
             @ApiResponse(code = 200, responseContainer = "List", response = ServiceBrandingSummaryBean.class, message = "Service Brandings")

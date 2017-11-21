@@ -1,9 +1,11 @@
 package com.t1t.apim.auth.rest.resources;
 
 import com.google.common.base.Preconditions;
-import com.t1t.apim.beans.authorization.*;
-import com.t1t.apim.core.i18n.Messages;
+import com.t1t.apim.beans.authorization.OAuthApplicationResponse;
+import com.t1t.apim.beans.authorization.OAuthConsumerRequestBean;
+import com.t1t.apim.beans.authorization.OAuthServiceScopeResponse;
 import com.t1t.apim.exceptions.OAuthException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.OAuthFacade;
 import com.t1t.kong.model.KongPluginOAuthConsumerResponse;
 import io.swagger.annotations.Api;
@@ -25,7 +27,8 @@ import javax.ws.rs.core.MediaType;
 @ApplicationScoped
 public class OAuthResource implements IOAuth2Authorization {
 
-    @Inject private OAuthFacade oAuthFacade;
+    @Inject
+    private OAuthFacade oAuthFacade;
 
     @ApiOperation(value = "Enable an application consumer for OAuth2 in the context of the application.",
             notes = "The client application is identified with a client_id and client_password. Both are needed to provide the application name and redirect URL in order to register a consumer for OAuth2.")
@@ -57,7 +60,7 @@ public class OAuthResource implements IOAuth2Authorization {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
-    public OAuthApplicationResponse getApplicationInfo(@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version) throws OAuthException {
+    public OAuthApplicationResponse getApplicationInfo(@PathParam("clientId") String oauthClientId, @PathParam("orgId") String orgId, @PathParam("serviceId") String serviceId, @PathParam("version") String version) throws OAuthException {
         Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId), Messages.i18n.format("emptyValue", "OAuth client ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
@@ -65,34 +68,10 @@ public class OAuthResource implements IOAuth2Authorization {
         return oAuthFacade.getApplicationOAuthInformation(oauthClientId, orgId.toLowerCase(), serviceId.toLowerCase(), version.toLowerCase());
     }
 
-    @ApiOperation(value = "Utility endpoint to composes a redirect request for user authorization.",
-            notes = "Returns a redirect URI that will forward the user to an authorization page (Authorization/Implicit Grant). The response type can be - code - for Authorization Code Grant; or - token - for Implicit Grant ")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = String.class, message = "The authorization redirect URI."),
-            @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
-    })
-    @POST
-    @Path("/redirect/{responseType}/user/{userId}/application/{clientId}/target/organization/{orgId}/service/{serviceId}/version/{version}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
-    @Override
-    public String getAuthorizationRedirect(@PathParam("responseType")OAuthResponseType responseType, @PathParam("userId")String authenticatedUserId , @PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version, OAuthServiceScopeRequest requestScopes) throws OAuthException{
-        Preconditions.checkArgument(!StringUtils.isEmpty(authenticatedUserId), Messages.i18n.format("emptyValue", "Authenticated user id"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId), Messages.i18n.format("emptyValue", "OAuth client ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
-        Preconditions.checkArgument(!StringUtils.isEmpty(version), Messages.i18n.format("emptyValue", "Service version"));
-        Preconditions.checkNotNull(responseType, Messages.i18n.format("nullValue", "Response type"));
-        Preconditions.checkNotNull(requestScopes, Messages.i18n.format("nullValue", "Request scopes"));
-        Preconditions.checkNotNull(requestScopes.getScopes(), Messages.i18n.format("nullValue", "Request scopes"));
-        Preconditions.checkArgument(requestScopes.getScopes().size()>0, Messages.i18n.format("emptyValue", "Request scopes"));
-        return oAuthFacade.getAuthorizationRedirect(responseType, authenticatedUserId ,oauthClientId, orgId, serviceId, version, requestScopes.getScopes());
-    }
-
     @ApiOperation(value = "Information endpoint to retrieve service version scopes.",
             notes = "Returns a list of string values representing available service versions copes")
     @ApiResponses({
-            @ApiResponse(code = 200,response = OAuthServiceScopeResponse.class, message = "list of service version scopes."),
+            @ApiResponse(code = 200, response = OAuthServiceScopeResponse.class, message = "list of service version scopes."),
             @ApiResponse(code = 409, response = String.class, message = "Conflict error.")
     })
     @GET
@@ -100,7 +79,7 @@ public class OAuthResource implements IOAuth2Authorization {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Override
-    public OAuthServiceScopeResponse getServiceVersionScopes(@PathParam("clientId")String oauthClientId, @PathParam("orgId")String orgId, @PathParam("serviceId")String serviceId, @PathParam("version")String version){
+    public OAuthServiceScopeResponse getServiceVersionScopes(@PathParam("clientId") String oauthClientId, @PathParam("orgId") String orgId, @PathParam("serviceId") String serviceId, @PathParam("version") String version) {
         Preconditions.checkArgument(!StringUtils.isEmpty(oauthClientId), Messages.i18n.format("emptyValue", "OAuth client ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(orgId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));

@@ -15,20 +15,23 @@ import javax.inject.Inject;
  */
 @ApplicationScoped
 public class GatewayLinkFactory implements IGatewayLinkFactory {
-    @Inject private IStorage storage;
-    @Inject private AppConfig config;
-    @Inject private GatewayValidation gatewayValidation;
-    
+    @Inject
+    private IStorage storage;
+    @Inject
+    private AppConfig config;
+    @Inject
+    private GatewayValidation gatewayValidation;
+
     /**
      * @see IGatewayLinkFactory#create(GatewayBean)
      */
     @Override
     public IGatewayLink create(GatewayBean gateway) {
         if (gateway.getType() == GatewayType.REST) {
-            return new RestGatewayLink(gateway,storage,config,gatewayValidation);
+            return new RestGatewayLink(gateway, storage, config, gatewayValidation);
         } else {
             throw new IllegalArgumentException();
         }
     }
-    
+
 }

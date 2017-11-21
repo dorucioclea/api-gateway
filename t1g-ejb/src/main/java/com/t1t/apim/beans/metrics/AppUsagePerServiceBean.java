@@ -9,7 +9,6 @@ import java.util.Map;
 
 /**
  * Bean returned for the "Usage per Service" metric for an app.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AppUsagePerServiceBean implements Serializable {

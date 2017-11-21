@@ -12,7 +12,7 @@
 
     <logger name="com.t1t">
         <level value="DEBUG"/>
-        <appender-ref ref="console" />
+        <appender-ref ref="console"/>
     </logger>
 
     <root>

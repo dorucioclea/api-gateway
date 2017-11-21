@@ -4,12 +4,11 @@ import java.io.Serializable;
 
 /**
  * A simple bean showing system status.
- *
  */
 public class SystemStatus implements Serializable {
-    
+
     private static final long serialVersionUID = -4419061594392797017L;
-    
+
     private String id;
     private String name;
     private String description;
@@ -82,6 +81,13 @@ public class SystemStatus implements Serializable {
         return description;
     }
 
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public String getInfo() {
         return info;
     }
@@ -104,13 +110,6 @@ public class SystemStatus implements Serializable {
 
     public void setCluster(String cluster) {
         this.cluster = cluster;
-    }
-
-    /**
-     * @param description the description to set
-     */
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     @Override

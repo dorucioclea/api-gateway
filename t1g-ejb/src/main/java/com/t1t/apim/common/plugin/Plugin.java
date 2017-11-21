@@ -4,30 +4,30 @@ import java.net.URL;
 import java.util.List;
 
 /**
- * An apiman plugin.  This represents a plugin that has been downloaded to some local 
+ * An apiman plugin.  This represents a plugin that has been downloaded to some local
  * registry and successfully loaded.  A plugin must contain at least the following
  * file:
- * 
+ * <p>
  * META-INF/apiman/plugin.json
- * 
+ * <p>
  * It may also contain java classes, resources, and other configuration files.
- * 
+ * <p>
  * For example, multiple policy definition files may exist here:
- * 
+ * <p>
  * META-INF/apiman/policyDefs/*.json
- *
  */
 public class Plugin {
-    
+
     private PluginSpec spec;
     private PluginCoordinates coordinates;
     private PluginClassLoader loader;
-    
+
     /**
      * Constructor.
-     * @param spec the plugin's specification
+     *
+     * @param spec        the plugin's specification
      * @param coordinates the plugin's coordinates
-     * @param loader the plugin's classloader
+     * @param loader      the plugin's classloader
      */
     public Plugin(PluginSpec spec, PluginCoordinates coordinates, PluginClassLoader loader) {
         setSpec(spec);

@@ -1,7 +1,8 @@
 package com.t1t.apim.facades;
 
 import com.google.gson.Gson;
-import com.t1t.apim.AppConfig;
+import com.t1t.apim.AppConfigBean;
+import com.t1t.apim.T1G;
 import com.t1t.apim.beans.BeanUtils;
 import com.t1t.apim.beans.announcements.AnnouncementBean;
 import com.t1t.apim.beans.announcements.NewAnnouncementBean;
@@ -20,16 +21,15 @@ import com.t1t.apim.beans.categories.TagBean;
 import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.contracts.NewContractBean;
 import com.t1t.apim.beans.contracts.NewContractRequestBean;
+import com.t1t.apim.beans.dto.ServiceUpstreamsDtoBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.events.NewEventBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.idm.*;
-import com.t1t.apim.beans.idp.KeystoreBean;
 import com.t1t.apim.beans.jwt.IJWT;
-import com.t1t.apim.beans.jwt.JWTResponse;
+import com.t1t.apim.beans.jwt.JWT;
 import com.t1t.apim.beans.jwt.ServiceAccountTokenRequest;
-import com.t1t.apim.beans.mail.MailProviderBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.members.MemberBean;
@@ -63,10 +63,7 @@ import com.t1t.apim.gateway.IGatewayLinkFactory;
 import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.apim.gateway.rest.GatewayValidation;
-import com.t1t.apim.idp.IDPClient;
-import com.t1t.apim.idp.IDPLinkFactory;
-import com.t1t.apim.idp.dto.RealmClient;
-import com.t1t.apim.kong.KongConstants;
+import com.t1t.apim.rest.KongConstants;
 import com.t1t.apim.security.ISecurityAppContext;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.kong.model.*;
@@ -78,7 +75,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 import org.jose4j.jwt.JwtClaims;
-import org.jose4j.lang.JoseException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,7 +88,6 @@ import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -105,30 +100,46 @@ import static com.t1t.util.ServiceConventionUtil.generateServiceUniqueName;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class OrganizationFacade {
-    private static final Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
-    @Inject private ISecurityContext securityContext;
-    @Inject private ISecurityAppContext appContext;
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private IIdmStorage idmStorage;
-    @Inject private IApiKeyGenerator apiKeyGenerator;
-    @Inject private IApplicationValidator applicationValidator;
-    @Inject private IServiceValidator serviceValidator;
-    @Inject private MetricsService metrics;
-    @Inject private GatewayFacade gatewayFacade;
-    @Inject private IGatewayLinkFactory gatewayLinkFactory;
-    @Inject private UserFacade userFacade;
-    @Inject private RoleFacade roleFacade;
-    @Inject private BrandingFacade brandingFacade;
-    @Inject private AppConfig config;
-    @Inject private Event<NewEventBean> event;
-    @Inject private Event<AnnouncementBean> announcement;
-    @Inject private GatewayValidation gatewayValidation;
-    @Inject private IDPLinkFactory idpFactory;
-
     public final static String MARKET_SEPARATOR = "-";
-
     public static final String PLACEHOLDER_CALLBACK_URI = "http://localhost/";
+    private static final Logger log = LoggerFactory.getLogger(OrganizationFacade.class.getName());
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private ISecurityAppContext appContext;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private IIdmStorage idmStorage;
+    @Inject
+    private IApiKeyGenerator apiKeyGenerator;
+    @Inject
+    private IApplicationValidator applicationValidator;
+    @Inject
+    private IServiceValidator serviceValidator;
+    @Inject
+    private MetricsService metrics;
+    @Inject
+    private GatewayFacade gatewayFacade;
+    @Inject
+    private IGatewayLinkFactory gatewayLinkFactory;
+    @Inject
+    private UserFacade userFacade;
+    @Inject
+    private RoleFacade roleFacade;
+    @Inject
+    private BrandingFacade brandingFacade;
+    @Inject
+    @T1G
+    private AppConfigBean config;
+    @Inject
+    private Event<NewEventBean> event;
+    @Inject
+    private Event<AnnouncementBean> announcement;
+    @Inject
+    private GatewayValidation gatewayValidation;
 
     //create organization
     public OrganizationBean create(NewOrganizationBean bean) throws StorageException {
@@ -154,7 +165,7 @@ public class OrganizationFacade {
         //verify if organization is created in marketplace (aka not publisher or consent type)
         ManagedApplicationBean managedApp = query.findManagedApplication(appContext.getApplicationPrefix());
         if (managedApp != null && (
-                        managedApp.getType().equals(ManagedApplicationTypes.InternalMarketplace) ||
+                managedApp.getType().equals(ManagedApplicationTypes.InternalMarketplace) ||
                         managedApp.getType().equals(ManagedApplicationTypes.ExternalMarketplace)
         )) {
             //the request comes from a marketplace => prefix the org
@@ -171,30 +182,6 @@ public class OrganizationFacade {
         orgBean.setModifiedBy(securityContext.getCurrentUser());
         orgBean.setOrganizationPrivate(bean.getOrganizationPrivate() == null ? true : bean.getOrganizationPrivate());
 
-        MailProviderBean mpb;
-        if (bean.getMailProviderId() != null) {
-            mpb = storage.getMailProvider(bean.getMailProviderId());
-            if (mpb == null) {
-                throw ExceptionFactory.mailProviderNotFoundException(bean.getMailProviderId());
-            }
-        }
-        else {
-            mpb = query.getDefaultMailProvider();
-        }
-        orgBean.setMailProviderId(mpb.getId());
-
-        KeystoreBean kpb;
-        if (bean.getKeystoreKid() != null) {
-            kpb = storage.getKeystore(bean.getKeystoreKid());
-            if (kpb == null) {
-                throw ExceptionFactory.keystoreNotFoundException(bean.getKeystoreKid());
-            }
-        }
-        else {
-            kpb = query.getDefaultKeystore();
-        }
-        orgBean.setKeystoreKid(kpb.getKid());
-
         if (bean.getFriendlyName() != null) {
             if (!securityContext.isAdmin()) {
                 throw ExceptionFactory.notAuthorizedException();
@@ -208,9 +195,6 @@ public class OrganizationFacade {
             }
             storage.createOrganization(orgBean);
             storage.createAuditEntry(AuditUtils.organizationCreated(orgBean, securityContext));
-            //Create the corresponding realm on the IDP
-            IDPClient idp = idpFactory.getDefaultIDPClient();
-            idp.createRealm(orgBean, kpb, mpb);
 
             // Auto-grant memberships in roles to the creator of the organization
             for (RoleBean roleBean : autoGrantedRoles) {
@@ -358,8 +342,7 @@ public class OrganizationFacade {
                         ncb.setServiceVersion(contract.getServiceVersion());
                         ncb.setTermsAgreed(contract.getTermsAgreed());
                         createContract(organizationId, applicationId, newVersion.getVersion(), ncb);
-                    }
-                    else {
+                    } else {
                         NewContractRequestBean request = new NewContractRequestBean();
                         request.setTermsAgreed(true);
                         request.setApplicationOrg(organizationId);
@@ -390,17 +373,18 @@ public class OrganizationFacade {
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if (avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
             for (String redirectURI : uri.getUris()) {
-                if (!ValidationUtils.isValidAbsoluteURI(redirectURI)) throw ExceptionFactory.invalidArgumentException("invalidAbsoluteURI", redirectURI);
+                if (!ValidationUtils.isValidAbsoluteURI(redirectURI))
+                    throw ExceptionFactory.invalidArgumentException("invalidAbsoluteURI", redirectURI);
             }
             Set<String> previousURIs = avb.getOauthClientRedirects();
             avb.setOauthClientRedirects(uri.getUris());
             //register application credentials for OAuth2
             //create OAuth2 application credentials on the application consumer - should only been done once for this application
-            if (avb != null && !StringUtils.isEmpty(avb.getoAuthClientId())) {
+            if (avb != null && !StringUtils.isEmpty(avb.getOauthClientSecret())) {
                 String appConsumerName = ConsumerConventionUtil.createAppUniqueId(organizationId, applicationId, version);
                 //String uniqueUserId = securityContext.getCurrentUser();
                 KongPluginOAuthConsumerRequest OAuthRequest = new KongPluginOAuthConsumerRequest()
-                        .withClientId(avb.getoAuthClientId())
+                        .withClientId(appConsumerName)
                         .withClientSecret(avb.getOauthClientSecret())
                         .withName(avb.getApplication().getName())
                         .withRedirectUri(avb.getOauthClientRedirects())
@@ -605,8 +589,7 @@ public class OrganizationFacade {
                             doCreatePolicy(organizationId, applicationId, version, npb, PolicyType.Contract);
                         }
                     }
-                }
-                catch (StorageException | GatewayAuthenticationException ex) {
+                } catch (StorageException | GatewayAuthenticationException ex) {
                     throw ExceptionFactory.systemErrorException(ex);
                 }
             });
@@ -881,8 +864,6 @@ public class OrganizationFacade {
             }
             // Delete related application events
             query.deleteAllEventsForEntity(ConsumerConventionUtil.createAppUniqueId(avb));
-            // Delete the client on the IDP
-            idpFactory.getDefaultIDPClient().deleteClient(avb);
             // Finally delete the application
             storage.deleteApplicationVersion(avb);
         } catch (StorageException ex) {
@@ -1037,8 +1018,7 @@ public class OrganizationFacade {
             //policy.setConfiguration(newPolicy.getPolicyJsonConfig());
             try {
                 storage.updatePolicy(policy);
-            }
-            catch (StorageException ex) {
+            } catch (StorageException ex) {
                 throw ExceptionFactory.systemErrorException(ex);
             }
         }
@@ -1074,8 +1054,7 @@ public class OrganizationFacade {
     public EnrichedPolicySummaryBean getServicePolicy(String organizationId, String serviceId, String version, long policyId) {
         try {
             return scrubPolicy(getServicePolicyInternal(organizationId, serviceId, version, policyId));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -1087,16 +1066,237 @@ public class OrganizationFacade {
         return rval;
     }
 
+    public ServiceUpstreamsDtoBean getServiceUpstreamTargets(String organizationId, String serviceId, String version) {
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        return DtoFactory.createServiceUpstreamDtoBean(svb);
+    }
+
+    public ServiceUpstreamsDtoBean addServiceUpstreamTarget(String organizationId, String serviceId, String version, ServiceUpstreamRequest request) {
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        if (svb.getStatus().equals(ServiceStatus.Retired)) throw ExceptionFactory.invalidServiceStatusException();
+
+        ServiceUpstreamTargetBean target = new ServiceUpstreamTargetBean();
+        target.setPort(request.getPort());
+        target.setWeight(request.getWeight());
+        target.setTarget(request.getTarget());
+        svb.getUpstreamTargets().add(target);
+
+        if (svb.getStatus().equals(ServiceStatus.Deprecated) || svb.getStatus().equals(ServiceStatus.Published)) {
+            String gwId = ServiceConventionUtil.generateServiceUniqueName(svb);
+            List<IGatewayLink> serviceGatewayLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
+            // If the service is published/deprecated on the gateway, it should already have at least one upstream
+            for (IGatewayLink gw : serviceGatewayLinks) {
+                try {
+                    if (svb.getUpstreamTargets().size() == 2) {
+                        //This means that there was previously only one upstream and that no virtual host was set
+                        gw.createServiceUpstream(organizationId, serviceId, version);
+                        gw.updateServiceVersionOnGateway(svb);
+                    }
+                    gw.createOrUpdateServiceUpstreamTarget(gwId, target);
+                } catch (Exception ex) {
+
+                }
+            }
+        } else {
+            try {
+                if (serviceValidator.isReady(svb)) {
+                    svb.setStatus(ServiceStatus.Ready);
+                }
+            } catch (Exception ex) {
+                log.error("Error validating service readiness: {}", ex);
+            }
+        }
+        try {
+            storage.updateServiceVersion(svb);
+        } catch (StorageException e) {
+            throw ExceptionFactory.systemErrorException(e);
+        }
+        return DtoFactory.createServiceUpstreamDtoBean(svb);
+    }
+
+    public void removeServiceUpstreamTarget(String organizationId, String serviceId, String version, ServiceUpstreamRequest request) {
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        if (svb.getStatus().equals(ServiceStatus.Retired)) throw ExceptionFactory.invalidServiceStatusException();
+
+        ServiceUpstreamTargetBean targetToBeRemoved = new ServiceUpstreamTargetBean();
+        targetToBeRemoved.setPort(request.getPort());
+        targetToBeRemoved.setTarget(request.getTarget());
+
+        if (svb.getStatus().equals(ServiceStatus.Deprecated) || svb.getStatus().equals(ServiceStatus.Published)) {
+
+            String gwId = ServiceConventionUtil.generateServiceUniqueName(svb);
+            List<IGatewayLink> serviceGatewayLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
+
+            switch (svb.getUpstreamTargets().size()) {
+                case 1:
+                    // There must be at least one upstream target defined for the service
+                    throw ExceptionFactory.invalidServiceStatusException();
+                case 2:
+                    svb.getUpstreamTargets().remove(targetToBeRemoved);
+                    serviceGatewayLinks.forEach(gw -> {
+                        gw.updateServiceVersionOnGateway(svb);
+                        gw.deleteServiceUpstream(gwId);
+                    });
+                    break;
+                default:
+                    svb.getUpstreamTargets().remove(targetToBeRemoved);
+                    serviceGatewayLinks.forEach(gw -> {
+                        targetToBeRemoved.setWeight(0L);
+                        gw.createOrUpdateServiceUpstreamTarget(gwId, targetToBeRemoved);
+                    });
+                    break;
+            }
+        } else {
+            svb.getUpstreamTargets().remove(targetToBeRemoved);
+            try {
+                if (serviceValidator.isReady(svb)) {
+                    svb.setStatus(ServiceStatus.Ready);
+                }
+            } catch (Exception ex) {
+                log.error("Error validating service readiness: {}", ex);
+            }
+        }
+        try {
+            storage.updateServiceVersion(svb);
+        } catch (StorageException e) {
+            throw ExceptionFactory.systemErrorException(e);
+        }
+    }
+
+    /*public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) {
+        ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+        if (svb.getStatus() == ServiceStatus.Retired) throw ExceptionFactory.invalidServiceStatusException();
+        EntityUpdatedData data = new EntityUpdatedData();
+        boolean targetsChanged = false;
+        boolean gwUpdateNecessary = false;
+        if (AuditUtils.valueChanged(svb.getCustomLoadBalancing(), bean.getCustomLoadBalancing())) {
+            //if enabled, check if at least one upstream target is specified
+            if (bean.getCustomLoadBalancing() && (svb.getUpstreamTargets() == null || svb.getUpstreamTargets().isEmpty()) && (bean.getUpstreamTargets() == null || bean.getUpstreamTargets().isEmpty())) {
+                throw ExceptionFactory.invalidLoadBalancingConfigurationException(Messages.i18n.format("lbNoTargets"));
+            }
+            if (svb.getCustomLoadBalancing() && !bean.getCustomLoadBalancing() && StringUtils.isEmpty(bean.getEndpoint())) {
+                throw ExceptionFactory.invalidLoadBalancingConfigurationException(Messages.i18n.format("lbNewEndpointConfig"));
+            }
+            data.addChange("customLoadBalancing", String.valueOf(svb.getCustomLoadBalancing()), String.valueOf(bean.getCustomLoadBalancing()));
+        }
+        if (bean.getUpstreamTargets() != null && !bean.getUpstreamTargets().isEmpty() && AuditUtils.valueChanged(svb.getUpstreamTargets(), bean.getUpstreamTargets())) {
+            for (ServiceUpstreamTargetBean target : bean.getUpstreamTargets()) {
+                if (StringUtils.isEmpty(target.getTarget())) throw ExceptionFactory.invalidLoadBalancingConfigurationException("emptyTarget");
+                if (target.getWeight() != null && (target.getWeight() < 0 || target.getWeight() > 1000)) throw ExceptionFactory.invalidLoadBalancingConfigurationException("invalidWeight");
+            }
+            data.addChange("loadBalancingTargets", svb.getUpstreamTargets().toString(), bean.getUpstreamTargets().toString());
+            targetsChanged = true;
+        }
+        if (svb.getCustomLoadBalancing() && !bean.getCustomLoadBalancing()) {
+            svb.setCustomLoadBalancing(bean.getCustomLoadBalancing());
+            svb.setEndpoint(bean.getEndpoint());
+            svb.setUpstreamTargets(Collections.emptySet());
+        }
+        else if (!svb.getCustomLoadBalancing() && bean.getCustomLoadBalancing()) {
+            //Replace the service endpoint host with the virtual DNS
+            String virtualEndpoint = URIUtils.setVirtualHost(svb.getEndpoint(), ServiceConventionUtil.generateServiceUniqueName(svb));
+            if (virtualEndpoint != null) {
+                svb.setEndpoint(virtualEndpoint);
+                svb.setCustomLoadBalancing(bean.getCustomLoadBalancing());
+                svb.setUpstreamTargets(bean.getUpstreamTargets());
+            }
+            else {
+                throw ExceptionFactory.invalidLoadBalancingConfigurationException(Messages.i18n.format("invalidVirtualHost"));
+            }
+        }
+        if (svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) {
+            List<IGatewayLink> gwLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
+            if (svb.getCustomLoadBalancing() && !bean.getCustomLoadBalancing()) {
+                gwLinks.forEach(gw -> gw.deleteServiceUpstream(ServiceConventionUtil.generateServiceUniqueName(svb)));
+                gwUpdateNecessary = true;
+            }
+            else if (!svb.getCustomLoadBalancing() && bean.getCustomLoadBalancing()) {
+                //Replace the service endpoint host with the virtual DNS
+                String virtualEndpoint = URIUtils.setVirtualHost(svb.getEndpoint(), ServiceConventionUtil.generateServiceUniqueName(svb));
+                if (virtualEndpoint != null) {
+                    gwLinks.forEach(gw -> gw.createServiceUpstream(organizationId, serviceId, version, bean.getUpstreamTargets()));
+                    gwUpdateNecessary = true;
+                }
+                else {
+                    throw ExceptionFactory.invalidLoadBalancingConfigurationException(Messages.i18n.format("invalidVirtualHost"));
+                }
+            }
+            //Check the difference between the existing set of targets and the new one
+            if (svb.getCustomLoadBalancing() && targetsChanged) {
+                Set<ServiceUpstreamTargetBean> processedTargets = new HashSet<>(bean.getUpstreamTargets());
+                Set<ServiceUpstreamTargetBean> current = svb.getUpstreamTargets();
+                Set<String> targets = processedTargets.stream().map(ServiceUpstreamTargetBean::getTarget).collect(Collectors.toSet());
+                for (ServiceUpstreamTargetBean oldTarget : current) {
+                    if (!targets.contains(oldTarget.getTarget())) {
+                        //Targets are not deleted from the gateway, to "delete" one, the weight must be set to 0
+                        ServiceUpstreamTargetBean targetToRemove = new ServiceUpstreamTargetBean();
+                        targetToRemove.setTarget(oldTarget.getTarget());
+                        targetToRemove.setWeight(0L);
+                        processedTargets.add(targetToRemove);
+                    }
+                }
+                svb.setUpstreamTargets(bean.getUpstreamTargets());
+                gwLinks.forEach(gw -> {
+                    gw.createOrUpdateServiceUpstreamTarget(ServiceConventionUtil.generateServiceUniqueName(svb), processedTargets);
+                });
+
+            }
+            if (gwUpdateNecessary) gwLinks.forEach(gw -> gw.updateServiceVersionOnGateway(svb));
+        }
+        if (svb.getCustomLoadBalancing())
+        try {
+            storage.updateServiceVersion(svb);
+            AuditEntryBean entry = AuditUtils.serviceVersionUpdated(svb, data, securityContext);
+            if (entry != null) {
+                storage.createAuditEntry(entry);
+            }
+        }
+        catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }*/
+
     public ServiceVersionBean updateServiceVersion(String organizationId, String serviceId, String version, UpdateServiceVersionBean bean) throws StorageException {
         ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
         EntityUpdatedData data = new EntityUpdatedData();
+        boolean gwValueChanged = false;
         if (svb.getStatus() != ServiceStatus.Retired) {
-            if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
+            /*if (AuditUtils.valueChanged(svb.getEndpoint(), bean.getEndpoint())) {
                 data.addChange("endpoint", svb.getEndpoint(), bean.getEndpoint()); //$NON-NLS-1$
-                svb.setEndpoint(bean.getEndpoint());
+                svb.setEndpoint(URIUtils.uriBackslashRemover(bean.getEndpoint()));
                 //If the service is already published, update the upstream URL's on the gateways the service is published on
-                updateServiceVersionEndpoint(svb);
+                gwValueChanged = true;
                 log.debug("BEAN ENDPOINT UPDATED");
+            }*/
+            if (AuditUtils.valueChanged(svb.getHostnames(), bean.getHostnames())) {
+                data.addChange("hostnames", svb.getHostnames() == null ? "" : svb.getHostnames().toString(), bean.getHostnames() == null ? "" : bean.getHostnames().toString());
+                svb.setHostnames(bean.getHostnames());
+                gwValueChanged = true;
+            }
+            if (AuditUtils.valueChanged(svb.getUpstreamConnectTimeout(), bean.getUpstreamConnectTimeout())) {
+                data.addChange("upstreamConnectTimeout", svb.getUpstreamConnectTimeout() == null ? null : svb.getUpstreamConnectTimeout().toString(), bean.getUpstreamConnectTimeout() == null ? null : bean.getUpstreamConnectTimeout().toString());
+                svb.setUpstreamConnectTimeout(bean.getUpstreamConnectTimeout());
+                gwValueChanged = true;
+            }
+            if (AuditUtils.valueChanged(svb.getUpstreamReadTimeout(), bean.getUpstreamReadTimeout())) {
+                data.addChange("upstreamReadTimeout", svb.getUpstreamReadTimeout() == null ? null : svb.getUpstreamReadTimeout().toString(), bean.getUpstreamReadTimeout() == null ? null : bean.getUpstreamReadTimeout().toString());
+                svb.setUpstreamReadTimeout(bean.getUpstreamReadTimeout());
+                gwValueChanged = true;
+            }
+            if (AuditUtils.valueChanged(svb.getUpstreamSendTimeout(), bean.getUpstreamSendTimeout())) {
+                data.addChange("upstreamSendTimeout", svb.getUpstreamSendTimeout() == null ? null : svb.getUpstreamSendTimeout().toString(), bean.getUpstreamSendTimeout() == null ? null : bean.getUpstreamSendTimeout().toString());
+                svb.setUpstreamSendTimeout(bean.getUpstreamSendTimeout());
+                gwValueChanged = true;
+            }
+            if (AuditUtils.valueChanged(svb.getUpstreamScheme(), bean.getUpstreamScheme())) {
+                data.addChange("upstreamScheme", svb.getUpstreamScheme() == null ? null : svb.getUpstreamScheme().toString(), bean.getUpstreamScheme() == null ? null : bean.getUpstreamScheme().toString());
+                svb.setUpstreamScheme(bean.getUpstreamScheme());
+                gwValueChanged = true;
+            }
+            if (AuditUtils.valueChanged(svb.getUpstreamPath(), bean.getUpstreamPath())) {
+                data.addChange("upstreamPath", svb.getUpstreamPath() == null ? null : svb.getUpstreamPath().toString(), bean.getUpstreamPath() == null ? null : bean.getUpstreamPath().toString());
+                svb.setUpstreamPath(URIUtils.uriLeadingSlashPrepender(bean.getUpstreamPath()));
+                gwValueChanged = true;
             }
             if (AuditUtils.valueChanged(svb.getEndpointType(), bean.getEndpointType())) {
                 data.addChange("endpointType", svb.getEndpointType(), bean.getEndpointType()); //$NON-NLS-1$
@@ -1124,28 +1324,6 @@ public class OrganizationFacade {
                 }
                 data.addChange("visibility", String.valueOf(svb.getVisibility()), String.valueOf(bean.getVisibility())); //$NON-NLS-1$
                 svb.setVisibility(bean.getVisibility());
-                //add implicitly the IP Restriction when: External available and hide = false
-                //Legacy - we added implicitly an IPRestriction policy, we remove this because OR it should be on a separate gateway, or the load balancer should deal with it.
-/*                    KongPluginIPRestriction defaultIPRestriction = PolicyUtil.createDefaultIPRestriction(IPRestrictionFlavor.WHITELIST, query.listWhitelistRecords());
-                    boolean enableIPR = ServiceImplicitPolicies.verifyIfIPRestrictionShouldBeSet(svb);
-                    if (defaultIPRestriction != null && enableIPR) {
-                        Gson gson = new Gson();
-                        NewPolicyBean npb = new NewPolicyBean();
-                        npb.setDefinitionId("IPRestriction");
-                        npb.setConfiguration(gson.toJson(defaultIPRestriction));
-                        try {
-                            createServicePolicy(organizationId, serviceId, version, npb);
-                        } catch (PolicyDefinitionAlreadyExistsException pdex) {
-                            ;
-                        }//ignore if policy already exists
-                    } else {
-                        //remove eventual policies already added
-                        List<PolicySummaryBean> policies = listServicePolicies(organizationId, serviceId, version);
-                        for (PolicySummaryBean psb : policies) {
-                            psb.getPolicyDefinitionId().equalsIgnoreCase("IPRestriction");
-                            deleteServicePolicy(organizationId, serviceId, version, psb.getId());
-                        }
-                    }*/
                 log.debug("BEAN VISIBILITY UPDATED");
             }
             //Set auto accept to false no matter what when the service is an admin service
@@ -1252,6 +1430,9 @@ public class OrganizationFacade {
                 if (entry != null) {
                     storage.createAuditEntry(entry);
                 }
+                if ((svb.getStatus() == ServiceStatus.Deprecated || svb.getStatus() == ServiceStatus.Published) && gwValueChanged) {
+                    updateServiceVersionOnGateway(svb);
+                }
                 log.debug(String.format("Successfully updated Service Version: %s", svb)); //$NON-NLS-1$
                 decryptEndpointProperties(svb);
                 return svb;
@@ -1270,7 +1451,7 @@ public class OrganizationFacade {
         newService.setName(bean.getName());
         newService.setDescription(bean.getDescription());
         newService.setId(BeanUtils.idFromName(bean.getName()));
-        newService.setBasepath(bean.getBasepath());
+        newService.setBasepaths(bean.getBasepaths().stream().map(URIUtils::uriLeadingSlashPrepender).collect(Collectors.toSet()));
         newService.setCategories(bean.getCategories());
         newService.setBase64logo(bean.getBase64logo());
         newService.setCreatedOn(new Date());
@@ -1288,9 +1469,7 @@ public class OrganizationFacade {
             if (storage.getService(orgBean.getId(), newService.getId()) != null) {
                 throw ExceptionFactory.serviceAlreadyExistsException(bean.getName());
             }
-            if (query.getServiceByBasepath(organizationId, bean.getBasepath()) != null) {
-                throw ExceptionFactory.serviceBasepathAlreadyInUseException(orgBean.getName(), bean.getBasepath().substring(1));
-            }
+            validateServiceBasepaths(orgBean, newService.getBasepaths());
             newService.setBrandings(validateServiceBrandings(newService, bean.getBrandings()));
             newService.setOrganization(orgBean);
             // Store/persist the new service
@@ -1310,9 +1489,17 @@ public class OrganizationFacade {
         }
     }
 
+    private void validateServiceBasepaths(OrganizationBean org, Set<String> basepaths) throws StorageException {
+        for (String basepath : basepaths) {
+            if (query.getServiceByBasepath(org.getId(), basepath) != null) {
+                throw ExceptionFactory.serviceBasepathAlreadyInUseException(org.getName(), basepath.substring(1));
+            }
+        }
+    }
+
     private ServiceBrandingBean validateServiceBranding(ServiceBean service, String branding) {
         ServiceBrandingBean rval = null;
-        Set<ServiceBrandingBean> validatedBranding =  validateServiceBrandings(service, new HashSet<>(Collections.singleton(branding)));
+        Set<ServiceBrandingBean> validatedBranding = validateServiceBrandings(service, new HashSet<>(Collections.singleton(branding)));
         if (!validatedBranding.isEmpty()) {
             rval = validatedBranding.iterator().next();
         }
@@ -1374,9 +1561,14 @@ public class OrganizationFacade {
                 UpdateServiceVersionBean updatedService = new UpdateServiceVersionBean();
                 updatedService.setReadme(cloneSource.getReadme());
                 updatedService.setTermsAgreementRequired(cloneSource.getTermsAgreementRequired());
-                updatedService.setEndpoint(cloneSource.getEndpoint());
+                updatedService.setUpstreamScheme(cloneSource.getUpstreamScheme());
+                updatedService.setUpstreamPath(cloneSource.getUpstreamPath());
                 updatedService.setEndpointType(cloneSource.getEndpointType());
                 updatedService.setEndpointProperties(cloneSource.getEndpointProperties());
+                updatedService.setHostnames(cloneSource.getHostnames());
+                updatedService.setUpstreamConnectTimeout(cloneSource.getUpstreamConnectTimeout());
+                updatedService.setUpstreamReadTimeout(cloneSource.getUpstreamReadTimeout());
+                updatedService.setUpstreamSendTimeout(cloneSource.getUpstreamSendTimeout());
 
                 updatedService.setOnlinedoc(cloneSource.getOnlinedoc());
                 updatedService.setPublicService(cloneSource.isPublicService());
@@ -1414,8 +1606,7 @@ public class OrganizationFacade {
                     e = (Exception) t;
                 }
             }
-        }
-        else {
+        } else {
             createDefaultServicePolicies(newVersion, false);
         }
         return newVersion;
@@ -1459,14 +1650,14 @@ public class OrganizationFacade {
         log.debug(String.format("Updated service definition for %s", serviceId)); //$NON-NLS-1$
     }
 
-    private void updateServiceVersionEndpoint(ServiceVersionBean svb) {
+    private void updateServiceVersionOnGateway(ServiceVersionBean svb) {
         if (svb.getStatus() == ServiceStatus.Retired) {
             throw ExceptionFactory.invalidServiceStatusException();
         }
         if (svb.getStatus() == ServiceStatus.Published || svb.getStatus() == ServiceStatus.Deprecated) {
             svb.getGateways().forEach(svcGateway -> {
                 IGatewayLink gateway = createGatewayLink(svcGateway.getGatewayId());
-                gateway.updateApiUpstreamURL(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), svb.getEndpoint());
+                gateway.updateServiceVersionOnGateway(svb);
             });
         }
     }
@@ -1531,8 +1722,7 @@ public class OrganizationFacade {
                 KongConsumer consumer = gw.getConsumer(ConsumerConventionUtil.createAppUniqueId(contract.getApplication()));
                 if (consumer != null && StringUtils.isNotEmpty(consumer.getId())) {
                     return DtoFactory.createApplicationVersionSummarBeanWithConsumerId(contract.getApplication(), consumer.getId());
-                }
-                else return null;
+                } else return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
             ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(getServiceVersion(organizationId, serviceId, version), consumers, from, to);
             if (serviceMetrics != null) {
@@ -1540,8 +1730,7 @@ public class OrganizationFacade {
             } else {
                 throw ExceptionFactory.metricsUnavailableException();
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -1555,8 +1744,7 @@ public class OrganizationFacade {
             marketInfo.setFollowers(svb.getService().getFollowers().size());
             marketInfo.setDistinctUsers(query.getServiceContracts(organizationId, serviceId, version).size());
             return marketInfo;
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -1633,15 +1821,13 @@ public class OrganizationFacade {
                     query.getApplicationVersionContractPolicies(organizationId, applicationId, version, contractId)
                             .stream().filter(policy -> policy.getGatewayId().equals(gw.getGatewayId()))
                             .forEach(policy -> {
-                        try {
-                            deleteContractPolicy(contract, policy, gw);
-                        }
-                        catch (StorageException ex) {
-                            throw ExceptionFactory.systemErrorException(ex);
-                        }
-                    });
-                }
-                catch (StorageException ex) {
+                                try {
+                                    deleteContractPolicy(contract, policy, gw);
+                                } catch (StorageException ex) {
+                                    throw ExceptionFactory.systemErrorException(ex);
+                                }
+                            });
+                } catch (StorageException ex) {
                     throw ExceptionFactory.systemErrorException(ex);
                 }
             });
@@ -1813,12 +1999,10 @@ public class OrganizationFacade {
         try {
             if (query.getPlanVersions(organizationId, planId).size() == 1) {
                 deletePlan(organizationId, planId);
-            }
-            else {
+            } else {
                 deletePlanVersionInternal(pvb);
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -1878,13 +2062,11 @@ public class OrganizationFacade {
         try {
             if (query.getServiceVersions(organizationId, serviceId).size() == 1) {
                 deleteService(organizationId, serviceId);
-            }
-            else {
+            } else {
                 ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
                 deleteServiceVersionInternal(svb);
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -1998,12 +2180,43 @@ public class OrganizationFacade {
                 }
                 serviceForUpdate.setAdmin(bean.isAdmin());
             }
+            if (AuditUtils.valueChanged(serviceForUpdate.getBasepaths(), bean.getBasepaths())) {
+                validateServiceBasepaths(serviceForUpdate.getOrganization(), bean.getBasepaths());
+                auditData.addChange("basepaths", serviceForUpdate.getBasepaths().toString(), bean.getBasepaths().toString());
+                serviceForUpdate.setBasepaths(bean.getBasepaths());
+                updateServiceBasepaths(serviceForUpdate);
+            }
             storage.updateService(serviceForUpdate);
             storage.createAuditEntry(AuditUtils.serviceUpdated(serviceForUpdate, auditData, securityContext));
         } catch (AbstractRestException e) {
             throw e;
         } catch (Exception e) {
             throw new SystemErrorException(e);
+        }
+    }
+
+    public ServiceBean updateServiceBasepaths(String organizationId, String serviceId) {
+        try {
+            return updateServiceBasepaths(storage.getService(organizationId, serviceId));
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
+    public ServiceBean updateServiceBasepaths(ServiceBean service) {
+        try {
+            Set<ServiceStatus> presentOnGateway = new HashSet<>();
+            presentOnGateway.add(ServiceStatus.Deprecated);
+            presentOnGateway.add(ServiceStatus.Published);
+            List<ServiceVersionBean> gwServiceVersions = query.getServiceVersionByStatusForService(presentOnGateway, service);
+            for (ServiceVersionBean svb : gwServiceVersions) {
+                for (ServiceGatewayBean gwsvb : svb.getGateways()) {
+                    gatewayFacade.createGatewayLink(gwsvb.getGatewayId()).updateServiceVersionOnGateway(svb);
+                }
+            }
+            return service;
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
@@ -2022,7 +2235,7 @@ public class OrganizationFacade {
                         svc.setServiceId(serviceId);
                         svc.setOrganizationId(organizationId);
                         svc.setVersion(svb.getVersion());
-                        svc.setBasepath(service.getBasepath());
+                        svc.setBasepaths(service.getBasepaths());
                         for (ServiceGatewayBean svcGw : svb.getGateways()) {
                             gatewayFacade.createGatewayLink(svcGw.getGatewayId()).createServiceBranding(svc, newBranding);
                         }
@@ -2038,8 +2251,7 @@ public class OrganizationFacade {
                 storage.updateService(service);
                 storage.createAuditEntry(AuditUtils.serviceUpdated(service, data, securityContext));
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -2068,8 +2280,7 @@ public class OrganizationFacade {
             data.addChange("brandings", originalSet, service.getBrandings().toString());
             storage.updateService(service);
             storage.createAuditEntry(AuditUtils.serviceUpdated(service, data, securityContext));
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
 
         }
 
@@ -2088,33 +2299,46 @@ public class OrganizationFacade {
             //path starts always with '\'
             String gatewayEndpoint = ((gateway.getEndpoint().endsWith("\\") ? gateway.getEndpoint().substring(0, gateway.getEndpoint().length() - 1) : gateway.getEndpoint()));
             ServiceVersionEndpointSummaryBean rval = new ServiceVersionEndpointSummaryBean();
-            rval.setManagedEndpoint(gatewayEndpoint + GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), version));
+            rval.setManagedEndpoints(GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepaths(), version).stream().map(contextPath -> gatewayEndpoint + contextPath).collect(Collectors.toList()));
             if (serviceVersion.getService().getBrandings() != null && !serviceVersion.getService().getBrandings().isEmpty()) {
-                rval.setBrandingEndpoints(serviceVersion.getService().getBrandings().stream().map(branding -> new ServiceVersionEndpointSummaryBean().withManagedEndpoint(gatewayEndpoint + GatewayPathUtilities.generateGatewayContextPath(branding.getId(), serviceVersion.getService().getBasepath(), version))).collect(Collectors.toSet()));
+                rval.setBrandingEndpoints(serviceVersion.getService().getBrandings().stream().map(branding -> new ServiceVersionEndpointSummaryBean().withManagedEndpoints(GatewayPathUtilities.generateGatewayContextPath(branding.getId(), serviceVersion.getService().getBasepaths(), version).stream().map(contextPath -> gatewayEndpoint + contextPath).collect(Collectors.toList()))).collect(Collectors.toSet()));
             }
             //get oauth endpoints if needed
             if (!StringUtils.isEmpty(serviceVersion.getProvisionKey())) {
                 //construct the target url
-                StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriBackslashRemover(gateway.getEndpoint()))
-                        .append(URIUtils.uriBackslashAppender(GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), version)))
-                        .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
-                rval.setOauth2AuthorizeEndpoint(targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_AUTH);
-                rval.setOauth2TokenEndpoint(targetURI.toString() + KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN);
+                List<String> oauthAuths = new ArrayList<>();
+                List<String> oauthTokens = new ArrayList<>();
+                GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepaths(), version).forEach(basePath -> {
+                    StringBuilder targetURI = new StringBuilder("").append(URIUtils.uriFinalslashRemover(gateway.getEndpoint()))
+                            .append(URIUtils.uriFinalslashAppender(basePath))
+                            .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
+                    oauthAuths.add(targetURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_AUTH).toString());
+                    oauthTokens.add(targetURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN).toString());
+                });
+
+                rval.setOauth2AuthorizeEndpoints(oauthAuths);
+                rval.setOauth2TokenEndpoints(oauthTokens);
                 if (rval.getBrandingEndpoints() != null && !rval.getBrandingEndpoints().isEmpty()) {
                     rval.getBrandingEndpoints().forEach(endpoint -> {
-                        StringBuilder brandedURI = new StringBuilder(URIUtils.uriBackslashAppender(endpoint.getManagedEndpoint()))
-                                .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
-                        endpoint.setOauth2AuthorizeEndpoint(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_AUTH).toString());
-                        endpoint.setOauth2TokenEndpoint(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN).toString());
+                        List<String> brOauthAuths = new ArrayList<>();
+                        List<String> brOauthTokens = new ArrayList<>();
+                        endpoint.getManagedEndpoints().forEach(basePath -> {
+                            StringBuilder brandedURI = new StringBuilder(URIUtils.uriFinalslashAppender(basePath))
+                                    .append(KongConstants.KONG_OAUTH_ENDPOINT + "/");
+                            brOauthAuths.add(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_AUTH).toString());
+                            brOauthTokens.add(brandedURI.append(KongConstants.KONG_OAUTH2_ENDPOINT_TOKEN).toString());
+                        });
+                        endpoint.setOauth2AuthorizeEndpoints(brOauthAuths);
+                        endpoint.setOauth2TokenEndpoints(brOauthTokens);
                     });
                 }
             } else {
-                rval.setOauth2AuthorizeEndpoint("");
-                rval.setOauth2TokenEndpoint("");
+                rval.setOauth2AuthorizeEndpoints(Collections.emptyList());
+                rval.setOauth2TokenEndpoints(Collections.emptyList());
                 if (rval.getBrandingEndpoints() != null && !rval.getBrandingEndpoints().isEmpty()) {
                     rval.getBrandingEndpoints().forEach(endpoint -> {
-                        endpoint.setOauth2TokenEndpoint("");
-                        endpoint.setOauth2AuthorizeEndpoint("");
+                        endpoint.setOauth2TokenEndpoints(Collections.emptyList());
+                        endpoint.setOauth2AuthorizeEndpoints(Collections.emptyList());
                     });
                 }
             }
@@ -2843,29 +3067,19 @@ public class OrganizationFacade {
         newVersion.setVersion(bean.getVersion());
         newVersion.setApikey(apiKeyGenerator.generate());
         String appConsumerName = ConsumerConventionUtil.createAppUniqueId(newVersion);
-
-        //TODO - remove the oauth client id property once backwards compatability is no longer required
-        newVersion.setoAuthClientId(appConsumerName);
         newVersion.setOauthClientRedirects(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI)));
-
-        //Create the corresponding IDP client and set the app version idp id
-        IDPClient idpClient = idpFactory.getDefaultIDPClient();
-        RealmClient rc = idpClient.createClient(newVersion);
-        newVersion.setIdpClientId(rc.getId());
-
-        newVersion.setOauthClientSecret(rc.getSecret());
 
         //create consumer on gateway
         //We create the new application version consumer
         IGatewayLink gateway = gatewayFacade.createGatewayLink(gatewayFacade.getDefaultGateway().getId());
 
         gateway.createConsumer(appConsumerName, appConsumerName);
-        KongPluginJWTResponse jwtCred = gateway.addConsumerJWT(appConsumerName, idpClient.getRealmPublicKeyInPemFormat(application.getOrganization()));
-        newVersion.setJwtKey(jwtCred.getKey());
-        newVersion.setJwtSecret(jwtCred.getSecret());
+        KongPluginJWTResponse jwtCred = gateway.addConsumerJWT(appConsumerName, gatewayFacade.getDefaultGatewayPublicKey());
+        //newVersion.setJwtKey(jwtCred.getKey());
+        //newVersion.setJwtSecret(jwtCred.getSecret());
         gateway.addConsumerKeyAuth(appConsumerName, newVersion.getApikey());
         KongPluginOAuthConsumerResponse response = gateway.enableConsumerForOAuth(appConsumerName, new KongPluginOAuthConsumerRequest()
-                .withClientId(newVersion.getoAuthClientId())
+                .withClientId(appConsumerName)
                 .withClientSecret(newVersion.getOauthClientSecret())
                 .withName(application.getName())
                 .withRedirectUri(new HashSet<>(Collections.singletonList(PLACEHOLDER_CALLBACK_URI))));
@@ -3152,6 +3366,7 @@ public class OrganizationFacade {
 
     /**
      * create the default service policies
+     *
      * @param svb
      */
     public void createDefaultServicePolicies(ServiceVersionBean svb, boolean checkForConflicts) {
@@ -3165,7 +3380,7 @@ public class OrganizationFacade {
                     if (checkForConflicts &&
                             type == Policies.KEYAUTHENTICATION &&
                             !query.getEntityPoliciesByDefinitionId(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion(), PolicyType.Service, Policies.OAUTH2).isEmpty()) {
-                            continue;
+                        continue;
                     }
 
                     String policyJsonConfig;
@@ -3204,8 +3419,7 @@ public class OrganizationFacade {
                     storage.createAuditEntry(AuditUtils.policyAdded(policy, PolicyType.Service, securityContext));
                 }
             }
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -3230,8 +3444,8 @@ public class OrganizationFacade {
                 storage.updateServiceVersion(serviceVersion);
             }
             storage.createAuditEntry(AuditUtils.serviceDefinitionUpdated(serviceVersion, securityContext));
-            String svPath = GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepath(), serviceVersion.getVersion());
-            localData = transformJSONObjectDef(localData, serviceVersion, svPath);
+            List<String> svPath = GatewayPathUtilities.generateGatewayContextPath(organizationId, serviceVersion.getService().getBasepaths(), serviceVersion.getVersion());
+            localData = transformJSONObjectDef(localData, serviceVersion, svPath.get(0));
             //safety check
             if (localData == null) throw new DefinitionException("The Swagger data returned is invalid");
             storage.updateServiceDefinition(serviceVersion, localData);
@@ -3265,7 +3479,7 @@ public class OrganizationFacade {
 
             //empty host
             json.remove("host");
-            json.put("host", config.getKongHost());
+            json.put("host", gatewayFacade.getDefaultGatewayHost());
 
             //add only https schema
             json.remove("schemes");
@@ -3403,7 +3617,7 @@ public class OrganizationFacade {
                     gatewayLinks.put(gatewayId, link);
                 }
                 ServiceBean service = storage.getService(api.getServiceOrgId(), api.getServiceId());
-                ServiceEndpoint se = link.getServiceEndpoint(service.getBasepath(), api.getServiceOrgId(), api.getServiceId(), api.getServiceVersion());
+                ServiceEndpoint se = link.getServiceEndpoint(service.getBasepaths(), api.getServiceOrgId(), api.getServiceId(), api.getServiceVersion());
                 String apiEndpoint = se.getEndpoint();
                 api.setHttpEndpoint(apiEndpoint);
             }
@@ -3785,7 +3999,7 @@ public class OrganizationFacade {
      * This implementation deletes an organization only when no services or applications are present,
      * All plans must be removed as well.
      * The method will remove the organization and the existing memberships from users.
-     *
+     * <p>
      * TODO implement method that cleansup an organization when no contracts are present.
      *
      * @param orgId
@@ -3827,11 +4041,7 @@ public class OrganizationFacade {
                 }
             }
             deleteOrganizationInternal(org);
-
-            //Finally, delete the corresponding realm
-            idpFactory.getDefaultIDPClient().deleteRealm(org);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
 
@@ -3923,7 +4133,7 @@ public class OrganizationFacade {
     public NewOAuthCredentialsBean reissueApplicationVersionOAuthCredentials(ApplicationVersionBean avb) {
         try {
             //Check if the app version has Oauthcredentials
-            if (avb.getoAuthClientId() == null || avb.getOauthClientSecret() == null) {
+            if (avb.getOauthClientSecret() == null) {
                 return null;
             }
             //Check if the app has a callback uri, if it doesn't it isn't a consumer on the gateway(s), but we still want to
@@ -3932,15 +4142,13 @@ public class OrganizationFacade {
             rval.setOrganizationId(avb.getApplication().getOrganization().getId());
             rval.setApplicationId(avb.getApplication().getId());
             rval.setVersion(avb.getVersion());
-            rval.setRevokedClientId(avb.getoAuthClientId());
             rval.setRevokedClientSecret(avb.getOauthClientSecret());
-            avb.setoAuthClientId(apiKeyGenerator.generate());
             avb.setOauthClientSecret(apiKeyGenerator.generate());
-            rval.setNewClientId(avb.getoAuthClientId());
             rval.setNewClientSecret(avb.getOauthClientSecret());
+            String appConsumerName = ConsumerConventionUtil.createAppUniqueId(avb);
             if (!(avb.getOauthClientRedirects() == null || avb.getOauthClientRedirects().stream().filter(ValidationUtils::isValidAbsoluteURI).collect(Collectors.toSet()).isEmpty())) {
                 KongPluginOAuthConsumerRequest oAuthConsumerRequest = new KongPluginOAuthConsumerRequest()
-                        .withClientId(avb.getoAuthClientId())
+                        .withClientId(appConsumerName)
                         .withClientSecret(avb.getOauthClientSecret())
                         .withRedirectUri(avb.getOauthClientRedirects())
                         .withName(avb.getApplication().getName())
@@ -3974,7 +4182,6 @@ public class OrganizationFacade {
                 }
             }
             EntityUpdatedData data = new EntityUpdatedData();
-            data.addChange("OAuth2 Client ID", rval.getRevokedClientId(), rval.getNewClientId());
             data.addChange("OAuth2 Client Secret", rval.getRevokedClientSecret(), rval.getNewClientSecret());
             storage.updateApplicationVersion(avb);
             storage.createAuditEntry(AuditUtils.credentialsReissue(avb, data, AuditEntryType.OAuth2Reissuance, securityContext));
@@ -4050,8 +4257,7 @@ public class OrganizationFacade {
             try {
                 storage.updateService(service);
                 storage.createAuditEntry(entry);
-            }
-            catch (StorageException ex) {
+            } catch (StorageException ex) {
                 throw ExceptionFactory.systemErrorException(ex);
             }
         }
@@ -4074,12 +4280,10 @@ public class OrganizationFacade {
                 svb.setProvisionKey(null);
             }*/
             return svb;
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
-
 
 
     public OAuth2TokenPaginationBean getApplicationVersionOAuthTokens(String organizationId, String applicationId, String version, String offset) {
@@ -4087,7 +4291,7 @@ public class OrganizationFacade {
         Set<OAuth2Token> tmpResults = new HashSet<>();
         ApplicationVersionBean avb = getAppVersion(organizationId, applicationId, version);
         try {
-            Map<String, Set<String>> credentialIds =  new HashMap<>();
+            Map<String, Set<String>> credentialIds = new HashMap<>();
             Map<String, String> offsets = StringUtils.isEmpty(offset) ? new HashMap<>() : GatewayPaginationUtil.decodeOffsets(offset);
             Map<String, String> nextOffsets = new HashMap<>();
             //create gatewayclients for every gateway the application is registered on
@@ -4101,9 +4305,8 @@ public class OrganizationFacade {
                                 KongOAuthTokenList gwResult = null;
                                 if (!offsets.isEmpty()) {
                                     if (offsets.containsKey(gwId))
-                                    gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, offsets.get(gwId));
-                                }
-                                else {
+                                        gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, offsets.get(gwId));
+                                } else {
                                     gwResult = gateways.get(gwId).getConsumerOAuthTokenList(credId, null);
                                 }
                                 if (gwResult != null) {
@@ -4122,8 +4325,7 @@ public class OrganizationFacade {
                 rval.setNextPage(nextOffsets.isEmpty() ? null : GatewayPaginationUtil.encodeOffsets(nextOffsets));
             }
             rval.setData(tmpResults);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
         return rval;
@@ -4159,7 +4361,7 @@ public class OrganizationFacade {
     }
 
     public void deleteContractsForSummaries(List<ContractSummaryBean> contractBeans) {
-        for(ContractSummaryBean contractSumBean:contractBeans){
+        for (ContractSummaryBean contractSumBean : contractBeans) {
             ContractBean contract = null;
             try {
                 contract = storage.getContract(contractSumBean.getContractId());
@@ -4188,12 +4390,12 @@ public class OrganizationFacade {
         return split == null ? null : getServiceVersion(split[0], split[1], split[2]);
     }
 
-    public JWTResponse getApplicationJWT(ServiceAccountTokenRequest request) {
+    public JWT getApplicationJWT(ServiceAccountTokenRequest request) {
         try {
             log.info("Non-managed app context:{}", appContext.getNonManagedApplication());
             if (StringUtils.isNotEmpty(appContext.getNonManagedApplication())) {
                 ApplicationVersionBean avb = getApplicationVersionByUniqueId(appContext.getNonManagedApplication());
-                JWTResponse rval = new JWTResponse();
+                JWT rval = new JWT();
                 GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
                 IGatewayLink gateway = gatewayFacade.getDefaultGatewayLink();
                 JwtClaims claims = new JwtClaims();
@@ -4206,22 +4408,19 @@ public class OrganizationFacade {
                     claims.setStringClaim(IJWT.IMPERSONATE_USER, request.getImpersonateUser());
                     try {
                         UserBean user = userFacade.get(request.getImpersonateUser());
-                    }
-                    catch (UserNotFoundException ex) {
+                    } catch (UserNotFoundException ex) {
                         log.info("User to impersonate not found, creating now: {}", request.getImpersonateUser());
                         userFacade.initNewUser(new NewUserBean().withAdmin(false).withUsername((request.getImpersonateUser())));
                     }
                 }
                 claims.setSubject(appContext.getNonManagedApplication());
                 claims.setIssuer(gateway.getConsumerJWT(appContext.getNonManagedApplication()).getData().stream().filter(cred -> cred.getRsaPublicKey().equals(gatewayBean.getJWTPubKey())).map(KongPluginJWTResponse::getKey).collect(CustomCollectors.getFirstResult()));
-                rval.setToken(JWTUtils.getJwtWithExpirationTime(claims, gatewayBean.getJWTExpTime(), KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint(), JWTUtils.JWT_RS256));
+                rval.setToken(JWTUtils.getJwtWithExpirationTime(claims, gatewayBean.getJWTExpTime(), KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint() + gatewayBean.getJWTPubKeyEndpoint(), JWTUtils.JWT_RS256));
                 return rval;
-            }
-            else {
+            } else {
                 throw ExceptionFactory.actionException(Messages.i18n.format("ResolveApiKeyError"));
             }
-        }
-        catch (UnsupportedEncodingException | JoseException | StorageException ex){
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -4230,8 +4429,7 @@ public class OrganizationFacade {
         String[] split = UID.split("\\.");
         if (split.length != 3) {
             return null;
-        }
-        else {
+        } else {
             return split;
         }
     }
@@ -4249,5 +4447,46 @@ public class OrganizationFacade {
         paging.setPage(pg);
         paging.setPageSize(pgSize);
         return paging;
+    }
+
+    public void toggleRateLimitForApplicationVersion(String serviceOrganizationId, String serviceId, String serviceVersion, RateLimitToggleRequest request) {
+        ServiceVersionBean svb = getServiceVersion(serviceOrganizationId, serviceId, serviceVersion);
+        ApplicationVersionBean avb = getAppVersion(request.getOrganizationId(), request.getApplicationId(), request.getApplicationVersion());
+        String apiId = ServiceConventionUtil.generateServiceUniqueName(svb);
+        String consumerId = ConsumerConventionUtil.createAppUniqueId(avb);
+        try {
+            PolicyDefinitionBean polDef = storage.getPolicyDefinition(Policies.RATELIMITING.getPolicyDefId());
+            PolicyBean rateLimitPolicy = query.getContractPolicyForServiceVersionByDefinition(svb, avb, polDef);
+            if (rateLimitPolicy != null) {
+                svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).forEach(gw -> {
+                    Boolean enabled = gw.togglePlugin(rateLimitPolicy.getKongPluginId());
+                    if (enabled == null) {
+                        log.warn("Plugin was not found on gateway, created now: {}", rateLimitPolicy.getKongPluginId());
+                        KongConsumer consumer = gw.getConsumer(consumerId);
+                        KongApi api = gw.getApi(apiId);
+                        if (consumer != null) {
+                            if (api != null) {
+                                KongPluginConfig newPlugin = new KongPluginConfig()
+                                        .withConsumerId(consumer.getId())
+                                        .withId(rateLimitPolicy.getKongPluginId())
+                                        .withName(Policies.RATELIMITING.getKongIdentifier())
+                                        .withApiId(api.getId())
+                                        .withEnabled(!rateLimitPolicy.isEnabled())
+                                        .withConfig(new Gson().fromJson(rateLimitPolicy.getConfiguration(), Policies.RATELIMITING.getClazz()));
+                                gw.createApiPlugin(apiId, newPlugin);
+                            } else {
+                                log.error("API missing on gateway: {}", apiId);
+                            }
+                        } else {
+                            log.error("Consumer missing on gateway: {}", consumerId);
+                        }
+                    }
+                });
+                rateLimitPolicy.setEnabled(!rateLimitPolicy.isEnabled());
+                storage.updatePolicy(rateLimitPolicy);
+            }
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
     }
 }

@@ -1,10 +1,8 @@
 package com.t1t.apim.exceptions;
 
 
-
 /**
  * Thrown when trying to get, update, or remove a plan that does not exist.
- *
  */
 public class PlanCannotBeDeletedException extends AbstractNotFoundException {
 
@@ -18,12 +16,13 @@ public class PlanCannotBeDeletedException extends AbstractNotFoundException {
 
     /**
      * Constructor.
+     *
      * @param message exception message
      */
     public PlanCannotBeDeletedException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -31,7 +30,7 @@ public class PlanCannotBeDeletedException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.PLAN_CANNOT_BE_DELETED;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

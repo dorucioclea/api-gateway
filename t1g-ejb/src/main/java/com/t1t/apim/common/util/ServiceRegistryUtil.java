@@ -4,7 +4,6 @@ import java.util.*;
 
 /**
  * Provides simple access to services.
- *
  */
 public class ServiceRegistryUtil {
 
@@ -12,6 +11,7 @@ public class ServiceRegistryUtil {
 
     /**
      * Gets a single service by its interface.
+     *
      * @param serviceInterface the service interface
      * @throws IllegalStateException method has been invoked at an illegal or inappropriate time
      */
@@ -21,7 +21,7 @@ public class ServiceRegistryUtil {
         // for multiple services
         T rval = null;
         Set<T> services = getServices(serviceInterface);
-        
+
         if (services.size() > 1) {
             throw new IllegalStateException("Multiple implementations found of " + serviceInterface); //$NON-NLS-1$
         } else if (!services.isEmpty()) {
@@ -32,16 +32,17 @@ public class ServiceRegistryUtil {
 
     /**
      * Get a set of service implementations for a given interface.
+     *
      * @param serviceInterface the service interface
      * @return the set of services
      */
     @SuppressWarnings("unchecked")
     public static <T> Set<T> getServices(Class<T> serviceInterface) {
-        synchronized(servicesCache) {
+        synchronized (servicesCache) {
             if (servicesCache.containsKey(serviceInterface)) {
                 return (Set<T>) servicesCache.get(serviceInterface);
             }
-    
+
             Set<T> services = new LinkedHashSet<>();
             try {
                 for (T service : ServiceLoader.load(serviceInterface)) {

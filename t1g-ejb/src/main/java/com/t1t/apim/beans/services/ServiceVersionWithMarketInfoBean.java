@@ -14,7 +14,6 @@ public class ServiceVersionWithMarketInfoBean extends ServiceVersionBean {
         this.setAutoAcceptContracts(svb.getAutoAcceptContracts());
         this.setOauthScopes(svb.getOauthScopes());
         this.setEndpointType(svb.getEndpointType());
-        this.setEndpoint(svb.getEndpoint());
         this.setEndpointProperties(svb.getEndpointProperties());
         this.setCreatedBy(svb.getCreatedBy());
         this.setCreatedOn(svb.getCreatedOn());

@@ -7,14 +7,14 @@ import java.util.Set;
 /**
  * Wrapper around a map so that mvel doesn't fail when a property is missing.  Instead it
  * will get a 'null' value.
- *
  */
 public class PolicyConfigMap implements Map<String, Object> {
-    
+
     private Map<String, Object> delegate;
-    
+
     /**
      * Constructor.
+     *
      * @param delegate the delegate map
      */
     public PolicyConfigMap(Map<String, Object> delegate) {

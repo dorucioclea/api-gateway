@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * Models a user's membership in a role for a given organization.
- *
  */
 public class MemberRoleBean implements Serializable {
 

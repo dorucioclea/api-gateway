@@ -23,8 +23,7 @@ public class GatewayPaginationUtil {
                 rval.put(parsed[0], parsed[1]);
             }
             return rval;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             throw ExceptionFactory.invalidArgumentException("invalidOffset");
         }
     }

@@ -6,7 +6,7 @@ import java.util.Map;
  * Created by michallispashidis on 2/10/15.
  */
 public class OAuthServiceScopeResponse {
-    private Map<String,String> scopes;
+    private Map<String, String> scopes;
 
     public OAuthServiceScopeResponse() {
     }

@@ -1,8 +1,8 @@
 package com.t1t.apim.auth.rest.impl.mappers;
 
 import com.t1t.apim.beans.exceptions.ErrorBean;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.ErrorCodes;
+import com.t1t.apim.exceptions.i18n.Messages;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.enterprise.context.ApplicationScoped;

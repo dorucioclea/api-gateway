@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * Bean used when updating a policy.
- *
  */
 public class UpdatePolicyBean implements Serializable {
 

@@ -10,9 +10,13 @@ public class AppIdentifier implements Serializable {
     private String appId;
     private String version;
 
-    public String getPrefix() {return prefix;}
+    public String getPrefix() {
+        return prefix;
+    }
 
-    public void setPrefix(String prefix) {this.prefix = prefix;}
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
 
     public String getAppId() {
         return appId;

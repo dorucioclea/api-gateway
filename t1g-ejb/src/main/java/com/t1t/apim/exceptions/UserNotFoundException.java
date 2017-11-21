@@ -6,21 +6,22 @@ package com.t1t.apim.exceptions;
 public class UserNotFoundException extends AbstractNotFoundException {
 
     private static final long serialVersionUID = 8937297365588151067L;
-    
+
     /**
      * Constructor.
      */
     public UserNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public UserNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -28,7 +29,7 @@ public class UserNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.USER_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

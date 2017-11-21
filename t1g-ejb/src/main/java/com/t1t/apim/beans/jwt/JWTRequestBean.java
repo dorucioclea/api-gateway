@@ -1,6 +1,7 @@
 package com.t1t.apim.beans.jwt;
 
 import java.util.Map;
+
 /**
  * Created by michallispashidis on 23/11/15.
  */
@@ -19,7 +20,7 @@ public class JWTRequestBean {
     private String email;
 
     //optional claims
-    private Map<String,String>optionalClaims;
+    private Map<String, String> optionalClaims;
 
     public Integer getExpirationTimeSeconds() {
         return expirationTimeSeconds;

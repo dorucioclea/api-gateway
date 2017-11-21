@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 /**
  * A simple bean used to return system status information.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SystemStatusBean implements Serializable {
@@ -26,6 +25,10 @@ public class SystemStatusBean implements Serializable {
     private Boolean maintenanceModeEnabled;
     private String maintenanceMessage;
     private boolean up;
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
 
     /**
      * @return the version
@@ -118,8 +121,11 @@ public class SystemStatusBean implements Serializable {
         return moreInfo;
     }
 
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
+    /**
+     * @param moreInfo the moreInfo to set
+     */
+    public void setMoreInfo(String moreInfo) {
+        this.moreInfo = moreInfo;
     }
 
     public String getKongInfo() {
@@ -160,13 +166,6 @@ public class SystemStatusBean implements Serializable {
 
     public void setMaintenanceMessage(String maintenanceMessage) {
         this.maintenanceMessage = maintenanceMessage;
-    }
-
-    /**
-     * @param moreInfo the moreInfo to set
-     */
-    public void setMoreInfo(String moreInfo) {
-        this.moreInfo = moreInfo;
     }
 
     public String getEnvironment() {

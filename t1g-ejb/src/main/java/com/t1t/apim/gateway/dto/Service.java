@@ -1,27 +1,33 @@
 package com.t1t.apim.gateway.dto;
 
+import com.t1t.apim.beans.services.SchemeType;
+import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
+
 import java.io.Serializable;
 import java.util.*;
 
 /**
  * Models a Service published to the API Management runtime.
- *
  */
 public class Service implements Serializable {
 
     private static final long serialVersionUID = -294764695917891050L;
-    
+
     private boolean publicService;
     private String organizationId;
     private String serviceId;
     private String version;
     private String endpointType;
-    private String endpoint;
-    private String basepath;
+    private SchemeType upstreamScheme;
+    private String upstreamPath;
+    private Set<String> basepaths;
+    private Set<String> hosts;
     private Map<String, String> endpointProperties = new HashMap<>();
     private List<Policy> servicePolicies = new ArrayList<>();
     private Set<String> brandings;
-    
+    private boolean customLoadBalancing;
+    private List<ServiceUpstreamTargetBean> upstreamTargets;
+
     /**
      * Constructor.
      */
@@ -30,6 +36,7 @@ public class Service implements Serializable {
 
     /**
      * Parametrized constructor
+     *
      * @param organizationId
      * @param serviceId
      * @param version
@@ -83,17 +90,31 @@ public class Service implements Serializable {
     }
 
     /**
-     * @return the endpoint
+     * @return the upstream scheme
      */
-    public String getEndpoint() {
-        return endpoint;
+    public SchemeType getUpstreamScheme() {
+        return upstreamScheme;
     }
 
     /**
-     * @param endpoint the endpoint to set
+     * @param upstreamScheme the upstream scheme to set
      */
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
+    public void setUpstreamScheme(SchemeType upstreamScheme) {
+        this.upstreamScheme = upstreamScheme;
+    }
+
+    /**
+     * @return the upstream path
+     */
+    public String getUpstreamPath() {
+        return upstreamPath;
+    }
+
+    /**
+     * @param upstreamPath the upstream path to set
+     */
+    public void setUpstreamPath(String upstreamPath) {
+        this.upstreamPath = upstreamPath;
     }
 
     /**
@@ -153,17 +174,17 @@ public class Service implements Serializable {
     }
 
     /**
-     * @return the basepath
+     * @return the basepaths
      */
-    public String getBasepath() {
-        return basepath;
+    public Set<String> getBasepaths() {
+        return basepaths;
     }
 
     /**
-     * @param basepath the basepath to set
+     * @param basepath the basepaths to set
      */
-    public void setBasepath(String basepath) {
-        this.basepath = basepath;
+    public void setBasepaths(Set<String> basepaths) {
+        this.basepaths = basepaths;
     }
 
     /**
@@ -178,6 +199,48 @@ public class Service implements Serializable {
      */
     public void setBrandings(Set<String> brandings) {
         this.brandings = brandings;
+    }
+
+    /**
+     * @return the hosts
+     */
+    public Set<String> getHosts() {
+        return hosts;
+    }
+
+    /**
+     * @param hosts the hosts to set
+     */
+    public void setHosts(Set<String> hosts) {
+        this.hosts = hosts;
+    }
+
+    /**
+     * @return the custom load balancing value
+     */
+    public boolean isCustomLoadBalancing() {
+        return customLoadBalancing;
+    }
+
+    /**
+     * @param customLoadBalancing the custom load balancing value to set
+     */
+    public void setCustomLoadBalancing(boolean customLoadBalancing) {
+        this.customLoadBalancing = customLoadBalancing;
+    }
+
+    /**
+     * @return the upstream targets
+     */
+    public List<ServiceUpstreamTargetBean> getUpstreamTargets() {
+        return upstreamTargets;
+    }
+
+    /**
+     * @param upstreamTargets the upstream targets to set
+     */
+    public void setUpstreamTargets(List<ServiceUpstreamTargetBean> upstreamTargets) {
+        this.upstreamTargets = upstreamTargets;
     }
 
     /**
@@ -231,11 +294,15 @@ public class Service implements Serializable {
                 ", serviceId='" + serviceId + '\'' +
                 ", version='" + version + '\'' +
                 ", endpointType='" + endpointType + '\'' +
-                ", endpoint='" + endpoint + '\'' +
-                ", basepath='" + basepath + '\'' +
+                ", upstreamScheme=" + upstreamScheme +
+                ", upstreamPath='" + upstreamPath + '\'' +
+                ", basepaths=" + basepaths +
+                ", hosts=" + hosts +
                 ", endpointProperties=" + endpointProperties +
                 ", servicePolicies=" + servicePolicies +
                 ", brandings=" + brandings +
+                ", customLoadBalancing=" + customLoadBalancing +
+                ", upstreamTargets=" + upstreamTargets +
                 '}';
     }
 }

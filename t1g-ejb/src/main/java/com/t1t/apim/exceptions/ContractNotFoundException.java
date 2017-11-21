@@ -1,10 +1,8 @@
 package com.t1t.apim.exceptions;
 
 
-
 /**
  * Thrown when trying to get, update, or remove a contract that does not exist.
- *
  */
 public class ContractNotFoundException extends AbstractNotFoundException {
 
@@ -15,15 +13,16 @@ public class ContractNotFoundException extends AbstractNotFoundException {
      */
     public ContractNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the message
      */
     public ContractNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see io.apiman.manager.api.rest.contract.exceptions.AbstractRestException#getErrorCode()
      */
@@ -31,7 +30,7 @@ public class ContractNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.CONTRACT_NOT_FOUND;
     }
-    
+
     /**
      * @see io.apiman.manager.api.rest.contract.exceptions.AbstractRestException#getMoreInfoUrl()
      */

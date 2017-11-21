@@ -2,7 +2,9 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "id": "/",
   "type": "object",
-  "javaInterfaces" : ["com.t1t.kong.model.KongConfigValue"],
+  "javaInterfaces": [
+    "com.t1t.kong.model.KongConfigValue"
+  ],
   "properties": {
     "id": {
       "id": "id",
@@ -29,7 +31,7 @@
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "type":"string"
+        "type": "string"
       }
     },
     "created_at": {

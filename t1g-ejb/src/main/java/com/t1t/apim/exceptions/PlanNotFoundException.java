@@ -1,10 +1,8 @@
 package com.t1t.apim.exceptions;
 
 
-
 /**
  * Thrown when trying to get, update, or remove a plan that does not exist.
- *
  */
 public class PlanNotFoundException extends AbstractNotFoundException {
 
@@ -15,15 +13,16 @@ public class PlanNotFoundException extends AbstractNotFoundException {
      */
     public PlanNotFoundException() {
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message exception message
      */
     public PlanNotFoundException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -31,7 +30,7 @@ public class PlanNotFoundException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.PLAN_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

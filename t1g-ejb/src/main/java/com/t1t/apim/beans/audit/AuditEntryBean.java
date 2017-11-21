@@ -11,13 +11,12 @@ import java.util.Date;
  * happens to an entity in the management layer.  For example, when the
  * implementation of a Service is changed, an AuditEntry would be created
  * to indicate:
- *
+ * <p>
  * 1) who made the change
  * 2) when the change was made
  * 3) what changed
  * 4) the old value
  * 5) the new value
- *
  */
 @Entity
 @Table(name = "auditlog")
@@ -25,26 +24,27 @@ public class AuditEntryBean implements Serializable {
 
     private static final long serialVersionUID = -2523995385388505492L;
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
-    @Column(updatable=false, nullable=false)
+    @Column(updatable = false, nullable = false)
     private String who;
-    @Column(name= "organization_id", updatable=false, nullable=false)
+    @Column(name = "organization_id", updatable = false, nullable = false)
     private String organizationId;
-    @Column(name = "entity_type", updatable=false, nullable=false)
+    @Column(name = "entity_type", updatable = false, nullable = false)
     @Enumerated(EnumType.STRING)
     private AuditEntityType entityType;
-    @Column(name = "entity_id", updatable=false)
+    @Column(name = "entity_id", updatable = false)
     private String entityId;
-    @Column(name = "entity_version", updatable=false)
+    @Column(name = "entity_version", updatable = false)
     private String entityVersion;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(updatable=false, nullable=false)
+    @Column(updatable = false, nullable = false)
     @Enumerated(EnumType.STRING)
     private AuditEntryType what;
     @Lob
-    @Column(updatable=false, nullable=true)
+    @Column(updatable = false, nullable = true)
     @Type(type = "org.hibernate.type.TextType")
     private String data;
 

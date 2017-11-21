@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * The result of testing a gateway configuration.
- *
  */
 public class GatewayTestResultBean implements Serializable {
 

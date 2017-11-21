@@ -11,16 +11,43 @@
       "id": "name",
       "type": "string"
     },
-    "request_host": {
-      "id": "request_host",
-      "type": "string"
+    "created_at": {
+      "id": "created_at",
+      "type": "number"
     },
-    "request_path": {
-      "id": "request_path",
-      "type": "string"
+    "hosts": {
+      "id": "hosts",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
-    "strip_request_path": {
-      "id": "strip_request_path",
+    "uris": {
+      "id": "uris",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "methods": {
+      "id": "hosts",
+      "type": "array",
+      "items": {
+        "enum": [
+          "HEAD",
+          "GET",
+          "POST",
+          "PUT",
+          "PATCH",
+          "DELETE",
+          "OPTIONS",
+          "CONNECT",
+          "TRACE"
+        ]
+      }
+    },
+    "strip_uri": {
+      "id": "strip_uri",
       "type": "boolean"
     },
     "preserve_host": {
@@ -31,9 +58,29 @@
       "id": "upstream_url",
       "type": "string"
     },
-    "created_at": {
-      "id": "created_at",
-      "type": "number"
+    "retries": {
+      "id": "retries",
+      "type": "integer"
+    },
+    "upstream_connect_timeout": {
+      "id": "upstream_connect_timeout",
+      "type": "integer"
+    },
+    "upstream_send_timeout": {
+      "id": "upstream_send_timeout",
+      "type": "integer"
+    },
+    "upstream_read_timeout": {
+      "id": "upstream_read_timeout",
+      "type": "integer"
+    },
+    "https_only": {
+      "id": "https_only",
+      "type": "boolean"
+    },
+    "http_if_terminated": {
+      "id": "http_if_terminated",
+      "type": "boolean"
     }
   }
 }

@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * The bean used to create a new contract.
- *
  */
 public class NewContractBean implements Serializable {
 

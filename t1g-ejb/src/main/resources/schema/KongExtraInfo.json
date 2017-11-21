@@ -11,11 +11,7 @@
         "pending": {
           "type": "integer"
         }
-      },
-      "required": [
-        "running",
-        "pending"
-      ]
+      }
     },
     "version": {
       "type": "string"
@@ -23,61 +19,279 @@
     "configuration": {
       "type": "object",
       "properties": {
-        "send_anonymous_reports": {
-          "type": "boolean"
-        },
-        "dns_resolver": {
+        "nginx_acc_logs": {
           "type": "string"
         },
-        "postgres": {
-          "type": "object",
-          "properties": {
-            "host": {
-              "type": "string"
-            },
-            "database": {
-              "type": "string"
-            },
-            "user": {
-              "type": "string"
-            },
-            "port": {
-              "type": "integer"
-            }
-          },
-          "required": [
-            "host",
-            "database",
-            "user",
-            "port"
-          ]
-        },
-        "cluster_listen": {
+        "cassandra_lb_policy": {
           "type": "string"
         },
-        "cluster": {
-          "type": "object",
-          "properties": {
-            "auto-join": {
-              "type": "boolean"
-            },
-            "profile": {
-              "type": "string"
-            },
-            "ttl_on_failure": {
-              "type": "integer"
-            }
-          },
-          "required": [
-            "auto-join",
-            "profile",
-            "ttl_on_failure"
-          ]
+        "cassandra_port": {
+          "type": "integer"
+        },
+        "serf_path": {
+          "type": "string"
+        },
+        "nginx_kong_conf": {
+          "type": "string"
         },
         "proxy_listen": {
           "type": "string"
         },
-        "nginx": {
+        "ssl_cert": {
+          "type": "string"
+        },
+        "lua_ssl_verify_depth": {
+          "type": "integer"
+        },
+        "admin_listen": {
+          "type": "string"
+        },
+        "admin_listen_ssl": {
+          "type": "string"
+        },
+        "ssl_cert_default": {
+          "type": "string"
+        },
+        "cassandra_repl_factor": {
+          "type": "integer"
+        },
+        "cluster_profile": {
+          "type": "string"
+        },
+        "upstream_keepalive": {
+          "type": "integer"
+        },
+        "lua_package_cpath": {
+          "type": "string"
+        },
+        "cassandra_consistency": {
+          "type": "string"
+        },
+        "admin_ssl_cert_default": {
+          "type": "string"
+        },
+        "pg_host": {
+          "type": "string"
+        },
+        "pg_port": {
+          "type": "integer"
+        },
+        "cluster_ttl_on_failure": {
+          "type": "integer"
+        },
+        "nginx_err_logs": {
+          "type": "string"
+        },
+        "plugins": {
+          "type": "object",
+          "properties": {
+            "syslog": {
+              "type": "boolean"
+            },
+            "ldap-auth": {
+              "type": "boolean"
+            },
+            "rate-limiting": {
+              "type": "boolean"
+            },
+            "correlation-id": {
+              "type": "boolean"
+            },
+            "jwt": {
+              "type": "boolean"
+            },
+            "runscope": {
+              "type": "boolean"
+            },
+            "hmac-auth": {
+              "type": "boolean"
+            },
+            "http-log": {
+              "type": "boolean"
+            },
+            "tcp-log": {
+              "type": "boolean"
+            },
+            "response-transformer": {
+              "type": "boolean"
+            },
+            "statsd": {
+              "type": "boolean"
+            },
+            "basic-auth": {
+              "type": "boolean"
+            },
+            "request-transformer": {
+              "type": "boolean"
+            },
+            "bot-detection": {
+              "type": "boolean"
+            },
+            "request-size-limiting": {
+              "type": "boolean"
+            },
+            "galileo": {
+              "type": "boolean"
+            },
+            "datadog": {
+              "type": "boolean"
+            },
+            "acl": {
+              "type": "boolean"
+            },
+            "file-log": {
+              "type": "boolean"
+            },
+            "ip-restriction": {
+              "type": "boolean"
+            },
+            "udp-log": {
+              "type": "boolean"
+            },
+            "cors": {
+              "type": "boolean"
+            },
+            "loggly": {
+              "type": "boolean"
+            },
+            "aws-lambda": {
+              "type": "boolean"
+            },
+            "oauth2": {
+              "type": "boolean"
+            },
+            "response-ratelimiting": {
+              "type": "boolean"
+            },
+            "key-auth": {
+              "type": "boolean"
+            },
+            "jwt-up": {
+              "type": "boolean"
+            },
+            "hal": {
+              "type": "boolean"
+            },
+            "json-threat-protection": {
+              "type": "boolean"
+            }
+          }
+        },
+        "nginx_optimizations": {
+          "type": "boolean"
+        },
+        "cassandra_keyspace": {
+          "type": "string"
+        },
+        "cassandra_data_centers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ssl_cert_key": {
+          "type": "string"
+        },
+        "ssl": {
+          "type": "boolean"
+        },
+        "cassandra_ssl": {
+          "type": "boolean"
+        },
+        "admin_ssl": {
+          "type": "boolean"
+        },
+        "ssl_cert_key_default": {
+          "type": "string"
+        },
+        "anonymous_reports": {
+          "type": "boolean"
+        },
+        "kong_env": {
+          "type": "string"
+        },
+        "serf_log": {
+          "type": "string"
+        },
+        "log_level": {
+          "type": "string"
+        },
+        "proxy_listen_ssl": {
+          "type": "string"
+        },
+        "nginx_worker_processes": {
+          "type": "string"
+        },
+        "cassandra_contact_points": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "proxy_ip": {
+          "type": "string"
+        },
+        "pg_ssl": {
+          "type": "boolean"
+        },
+        "proxy_ssl_port": {
+          "type": "number"
+        },
+        "pg_database": {
+          "type": "string"
+        },
+        "admin_ip": {
+          "type": "string"
+        },
+        "database": {
+          "type": "string"
+        },
+        "proxy_port": {
+          "type": "number"
+        },
+        "admin_ssl_port": {
+          "type": "number"
+        },
+        "nginx_pid": {
+          "type": "string"
+        },
+        "proxy_ssl_ip": {
+          "type": "string"
+        },
+        "admin_ssl_cert_key_default": {
+          "type": "string"
+        },
+        "dns_resolver": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "admin_port": {
+          "type": "number"
+        },
+        "cassandra_repl_strategy": {
+          "type": "string"
+        },
+        "cluster_listen": {
+          "type": "string"
+        },
+        "admin_ssl_cert": {
+          "type": "string"
+        },
+        "dns_hostsfile": {
+          "type": "string"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "lua_package_path": {
+          "type": "string"
+        },
+        "admin_ssl_cert_key": {
+          "type": "string"
+        },
+        "nginx_daemon": {
           "type": "string"
         },
         "custom_plugins": {
@@ -86,241 +300,58 @@
             "type": "string"
           }
         },
-        "proxy_listen_ssl": {
+        "pg_ssl_verify": {
+          "type": "boolean"
+        },
+        "serf_pid": {
           "type": "string"
         },
-        "dns_resolvers_available": {
-          "type": "object",
-          "properties": {
-            "server": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "address"
-              ]
-            },
-            "dnsmasq": {
-              "type": "object",
-              "properties": {
-                "port": {
-                  "type": "integer"
-                }
-              },
-              "required": [
-                "port"
-              ]
-            }
-          },
-          "required": [
-            "server",
-            "dnsmasq"
-          ]
+        "lua_socket_pool_size": {
+          "type": "number"
         },
-        "plugins": {
-          "type": "object",
-          "properties": {
-            "key-auth": "boolean",
-            "ldap-auth": "boolean",
-            "hal": "boolean",
-            "cors": "boolean",
-            "jwt-up": "boolean",
-            "jwt": "boolean",
-            "request-transformer": "boolean",
-            "json-threat-protection": "boolean",
-            "oauth2": "boolean",
-            "http-log": "boolean",
-            "acl": "boolean",
-            "syslog": "boolean",
-            "rate-limiting": "boolean",
-            "correlation-id": "boolean",
-            "udp-log": "boolean",
-            "runscope": "boolean",
-            "tcp-log": "boolean",
-            "hmac-auth": "boolean",
-            "response-transformer": "boolean",
-            "basic-auth": "boolean",
-            "galileo": "boolean",
-            "file-log": "boolean",
-            "ip-restriction": "boolean",
-            "request-size-limiting": "boolean",
-            "ssl": "boolean",
-            "datadog": "boolean",
-            "loggly": "boolean",
-            "statsd": "boolean",
-            "response-ratelimiting": "boolean",
-            "bot-detection": "boolean"
-          }
-        },
-        "pid_file": {
+        "lua_code_cache": {
           "type": "string"
         },
-        "dao_config": {
-          "type": "object",
-          "properties": {
-            "timeout": {
-              "type": "integer"
-            },
-            "data_centers": {
-              "type": "object",
-              "properties": {}
-            },
-            "port": {
-              "type": "integer"
-            },
-            "ssl": {
-              "type": "object",
-              "properties": {
-                "verify": {
-                  "type": "boolean"
-                },
-                "enabled": {
-                  "type": "boolean"
-                }
-              },
-              "required": [
-                "verify",
-                "enabled"
-              ]
-            },
-            "consistency": {
-              "type": "string"
-            },
-            "contact_points": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "replication_strategy": {
-              "type": "string"
-            },
-            "replication_factor": {
-              "type": "integer"
-            },
-            "keyspace": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "timeout",
-            "data_centers",
-            "port",
-            "ssl",
-            "consistency",
-            "contact_points",
-            "replication_strategy",
-            "replication_factor",
-            "keyspace"
-          ]
-        },
-        "nginx_working_dir": {
+        "cassandra_username": {
           "type": "string"
         },
-        "admin_api_listen": {
+        "pg_user": {
           "type": "string"
         },
-        "cassandra": {
-          "type": "object",
-          "properties": {
-            "timeout": {
-              "type": "integer"
-            },
-            "data_centers": {
-              "type": "object",
-              "properties": {}
-            },
-            "port": {
-              "type": "integer"
-            },
-            "ssl": {
-              "type": "object",
-              "properties": {
-                "verify": {
-                  "type": "boolean"
-                },
-                "enabled": {
-                  "type": "boolean"
-                }
-              },
-              "required": [
-                "verify",
-                "enabled"
-              ]
-            },
-            "consistency": {
-              "type": "string"
-            },
-            "contact_points": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "replication_strategy": {
-              "type": "string"
-            },
-            "replication_factor": {
-              "type": "integer"
-            },
-            "keyspace": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "timeout",
-            "data_centers",
-            "port",
-            "ssl",
-            "consistency",
-            "contact_points",
-            "replication_strategy",
-            "replication_factor",
-            "keyspace"
-          ]
+        "cassandra_timeout": {
+          "type": "number"
         },
-        "ssl_key_path": {
+        "mem_cache_size": {
           "type": "string"
         },
-        "ssl_cert_path": {
+        "cassandra_ssl_verify": {
+          "type": "boolean"
+        },
+        "ssl_cert_csr_default": {
           "type": "string"
         },
-        "database": {
+        "nginx_conf": {
           "type": "string"
         },
-        "memory_cache_size": {
-          "type": "integer"
+        "serf_node_id": {
+          "type": "string"
+        },
+        "serf_event": {
+          "type": "string"
+        },
+        "admin_ssl_ip": {
+          "type": "string"
+        },
+        "admin_ssl_cert_csr_default": {
+          "type": "string"
+        },
+        "nginx_admin_acc_logs": {
+          "type": "string"
         },
         "cluster_listen_rpc": {
           "type": "string"
         }
-      },
-      "required": [
-        "send_anonymous_reports",
-        "dns_resolver",
-        "postgres",
-        "cluster_listen",
-        "cluster",
-        "proxy_listen",
-        "nginx",
-        "custom_plugins",
-        "proxy_listen_ssl",
-        "dns_resolvers_available",
-        "plugins",
-        "pid_file",
-        "dao_config",
-        "nginx_working_dir",
-        "admin_api_listen",
-        "cassandra",
-        "ssl_key_path",
-        "ssl_cert_path",
-        "database",
-        "memory_cache_size",
-        "cluster_listen_rpc"
-      ]
+      }
     },
     "lua_version": {
       "type": "string"
@@ -343,36 +374,96 @@
         "available_on_server": {
           "type": "object",
           "properties": {
-            "key-auth": "boolean",
-            "ldap-auth": "boolean",
-            "hal": "boolean",
-            "cors": "boolean",
-            "jwt-up": "boolean",
-            "jwt": "boolean",
-            "request-transformer": "boolean",
-            "json-threat-protection": "boolean",
-            "oauth2": "boolean",
-            "http-log": "boolean",
-            "acl": "boolean",
-            "syslog": "boolean",
-            "rate-limiting": "boolean",
-            "correlation-id": "boolean",
-            "udp-log": "boolean",
-            "runscope": "boolean",
-            "tcp-log": "boolean",
-            "hmac-auth": "boolean",
-            "response-transformer": "boolean",
-            "basic-auth": "boolean",
-            "galileo": "boolean",
-            "file-log": "boolean",
-            "ip-restriction": "boolean",
-            "request-size-limiting": "boolean",
-            "ssl": "boolean",
-            "datadog": "boolean",
-            "loggly": "boolean",
-            "statsd": "boolean",
-            "response-ratelimiting": "boolean",
-            "bot-detection": "boolean"
+            "syslog": {
+              "type": "boolean"
+            },
+            "ldap-auth": {
+              "type": "boolean"
+            },
+            "rate-limiting": {
+              "type": "boolean"
+            },
+            "correlation-id": {
+              "type": "boolean"
+            },
+            "jwt": {
+              "type": "boolean"
+            },
+            "runscope": {
+              "type": "boolean"
+            },
+            "request-transformer": {
+              "type": "boolean"
+            },
+            "http-log": {
+              "type": "boolean"
+            },
+            "loggly": {
+              "type": "boolean"
+            },
+            "response-transformer": {
+              "type": "boolean"
+            },
+            "basic-auth": {
+              "type": "boolean"
+            },
+            "tcp-log": {
+              "type": "boolean"
+            },
+            "key-auth": {
+              "type": "boolean"
+            },
+            "oauth2": {
+              "type": "boolean"
+            },
+            "acl": {
+              "type": "boolean"
+            },
+            "galileo": {
+              "type": "boolean"
+            },
+            "udp-log": {
+              "type": "boolean"
+            },
+            "cors": {
+              "type": "boolean"
+            },
+            "file-log": {
+              "type": "boolean"
+            },
+            "ip-restriction": {
+              "type": "boolean"
+            },
+            "datadog": {
+              "type": "boolean"
+            },
+            "request-size-limiting": {
+              "type": "boolean"
+            },
+            "bot-detection": {
+              "type": "boolean"
+            },
+            "aws-lambda": {
+              "type": "boolean"
+            },
+            "statsd": {
+              "type": "boolean"
+            },
+            "response-ratelimiting": {
+              "type": "boolean"
+            },
+            "hmac-auth": {
+              "type": "boolean"
+            },
+            "jwt-up": {
+              "type": "boolean"
+            },
+            "json-threat-protection": {
+              "type": "boolean"
+            },
+            "hal": {
+              "type": "boolean"
+            }
           }
         }
       },

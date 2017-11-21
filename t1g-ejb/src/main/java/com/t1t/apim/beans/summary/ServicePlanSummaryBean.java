@@ -5,7 +5,6 @@ import java.io.Serializable;
 /**
  * Models a plan+version that is available for use with a particular Service.  Also
  * includes extra information such as the plan name.
- *
  */
 public class ServicePlanSummaryBean implements Serializable {
 

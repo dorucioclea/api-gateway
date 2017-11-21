@@ -10,12 +10,7 @@ import com.t1t.apim.beans.contracts.ContractBean;
 import com.t1t.apim.beans.events.EventBean;
 import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.gateways.GatewayBean;
-import com.t1t.apim.beans.idp.IDPBean;
-import com.t1t.apim.beans.idp.KeyMappingBean;
-import com.t1t.apim.beans.idp.KeystoreBean;
-import com.t1t.apim.beans.iprestriction.BlacklistBean;
-import com.t1t.apim.beans.iprestriction.WhitelistBean;
-import com.t1t.apim.beans.mail.MailProviderBean;
+import com.t1t.apim.beans.idp.IdpIssuerBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
 import com.t1t.apim.beans.operation.OperatingBean;
@@ -44,7 +39,6 @@ import java.util.Set;
 
 /**
  * Specific querying of the storage layer.
- *
  */
 public interface IStorageQuery {
 
@@ -457,26 +451,6 @@ public interface IStorageQuery {
     public List<ManagedApplicationBean> listAvailableMarkets() throws StorageException;
 
     /**
-     * Returns the default whitelist records. This can be used for an implicit IP Restriction policy.
-     * This is the case for example when exposing services, that are not visible in the API marketplace, but should
-     * be exposed to the outside world with IP restrictions.
-     *
-     * @return
-     * @throws StorageException
-     */
-    public List<WhitelistBean> listWhitelistRecords() throws StorageException;
-
-    /**
-     * Returns the default blacklist records. This can be used for an implicit IP Restriction policy.
-     * This is the case for example when exposing services, that are not visible in the API marketplace, but should
-     * be exposed to the outside world with IP restrictions.
-     *
-     * @return
-     * @throws StorageException
-     */
-    public List<BlacklistBean> listBlacklistRecords() throws StorageException;
-
-    /**
      * Returns an ACL policybean for a given application
      *
      * @param organizationId
@@ -517,6 +491,7 @@ public interface IStorageQuery {
 
     /**
      * Returns a list of all non-retired service versions
+     *
      * @return
      * @throws StorageException
      */
@@ -885,25 +860,6 @@ public interface IStorageQuery {
     public List<OrganizationBean> getAllOrgs() throws StorageException;
 
     /**
-     * Returns all key mapping available for all registered specifications
-     *
-     * @return
-     * @throws StorageException
-     */
-    public List<KeyMappingBean> getAllKeyMapping() throws StorageException;
-
-    /**
-     * Returns key mapping collection for given fromSpec, toSpec.
-     * This returns for example all key/claim mappings needed from SAML to JWT.
-     *
-     * @param fromSpec
-     * @param toSpec
-     * @return
-     * @throws StorageException
-     */
-    public List<KeyMappingBean> getKeyMapping(String fromSpec, String toSpec) throws StorageException;
-
-    /**
      * Return prefixes for managed applications of given types
      *
      * @param types
@@ -914,6 +870,7 @@ public interface IStorageQuery {
 
     /**
      * Returns managed applications for give types
+     *
      * @param types
      * @return
      * @throws StorageException
@@ -1059,6 +1016,7 @@ public interface IStorageQuery {
 
     /**
      * Returns a list of all unpublished policies (i.e. policies that do not have a kong plugin id value)
+     *
      * @return
      * @throws StorageException
      */
@@ -1066,18 +1024,21 @@ public interface IStorageQuery {
 
     /**
      * Delete all tokens that are backed up
+     *
      * @throws StorageException
      */
     public void deleteAllOAuthTokens() throws StorageException;
 
     /**
      * Retrieves all oauth tokens
+     *
      * @throws StorageException
      */
     public List<OAuth2TokenBean> getAllOAuthTokens() throws StorageException;
 
     /**
      * Returns a list of services that are either published or deprecated
+     *
      * @return
      * @throws StorageException
      */
@@ -1085,6 +1046,7 @@ public interface IStorageQuery {
 
     /**
      * Retrieves a list of acl policies for consent apps
+     *
      * @return
      * @throws StorageException
      */
@@ -1092,6 +1054,7 @@ public interface IStorageQuery {
 
     /**
      * Returns a list of gateways with services  where an application
+     *
      * @param avb
      * @return
      * @throws StorageException
@@ -1100,6 +1063,7 @@ public interface IStorageQuery {
 
     /**
      * Retrieves all policies for a given type
+     *
      * @param type
      * @return
      * @throws StorageException
@@ -1108,6 +1072,7 @@ public interface IStorageQuery {
 
     /**
      * Retrieve policies associated with a contract
+     *
      * @param contractId
      * @return
      * @throws StorageException
@@ -1116,6 +1081,7 @@ public interface IStorageQuery {
 
     /**
      * Retrieve a list of contract policies that correspond to a plan policy
+     *
      * @param planPolicyId
      * @param policyDefinition
      * @return
@@ -1125,6 +1091,7 @@ public interface IStorageQuery {
 
     /**
      * Retrtieve a map of plan versions and the contracts that use the plan
+     *
      * @return
      * @throws StorageException
      */
@@ -1132,6 +1099,7 @@ public interface IStorageQuery {
 
     /**
      * Get all policies for a given plan
+     *
      * @param pvb
      * @return
      * @throws StorageException
@@ -1140,6 +1108,7 @@ public interface IStorageQuery {
 
     /**
      * Returns a list of all contracts
+     *
      * @return
      * @throws StorageException
      */
@@ -1147,6 +1116,7 @@ public interface IStorageQuery {
 
     /**
      * Get a policy for an entity based on contract id and definition
+     *
      * @param organizationId
      * @param entityId
      * @param version
@@ -1160,6 +1130,7 @@ public interface IStorageQuery {
 
     /**
      * Get policy based in the Kong plugin ID
+     *
      * @param kongPluginId
      * @return
      * @throws StorageException
@@ -1168,37 +1139,36 @@ public interface IStorageQuery {
 
     /**
      * Get a count for the number of tokens that are backed up
+     *
      * @return
      * @throws StorageException
      */
     public Long getOAuth2TokenCount() throws StorageException;
 
     /**
-     * Returns the default IDP
-     * @return
-     * @throws StorageException
-     */
-    public IDPBean getDefaultIdp() throws StorageException;
-
-    /**
-     * Returns the default keystore
-     * @return
-     * @throws StorageException
-     */
-    public KeystoreBean getDefaultKeystore()throws StorageException;
-
-    /**
-     * Returns the default mail provider
-     * @return
-     * @throws StorageException
-     */
-    public MailProviderBean getDefaultMailProvider() throws StorageException;
-
-    /**
      * Returns a string with the JSON default policy config for the given policy definition ID
+     *
      * @param policyDefId
      * @return
      * @throws StorageException
      */
     public String getPolicyDefinitionDefaultConfig(String policyDefId) throws StorageException;
+
+    /**
+     * Returns the contract policies between a service version and an application version for a given policy definition
+     *
+     * @param svb
+     * @param avb
+     * @param polDef
+     * @return
+     * @throws StorageException
+     */
+    public PolicyBean getContractPolicyForServiceVersionByDefinition(ServiceVersionBean svb, ApplicationVersionBean avb, PolicyDefinitionBean polDef) throws StorageException;
+
+    /**
+     * Returns a list of all trusted IDP issuers
+     *
+     * @throws StorageException
+     */
+    List<IdpIssuerBean> getAllIdpIssuers() throws StorageException;
 }

@@ -5,7 +5,6 @@ import org.apache.commons.configuration.interpol.ConfigurationInterpolator;
 
 /**
  * Factory for creating a configuration object from apiman.properties.
- *
  */
 public class ConfigFactory {
 

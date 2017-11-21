@@ -12,7 +12,7 @@
     "series": {
       "type": "array",
       "items": {
-        "$ref":"DataDogMetricsSeries.json"
+        "$ref": "DataDogMetricsSeries.json"
       }
     },
     "from_date": {
@@ -21,7 +21,7 @@
     "group_by": {
       "type": "array",
       "items": {
-        "type":"Object"
+        "type": "Object"
       }
     },
     "to_date": {

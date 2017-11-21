@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * Composite key for entities that are owned by an organization.
- *
  */
 public class OrganizationBasedCompositeId implements Serializable {
 
@@ -21,8 +20,9 @@ public class OrganizationBasedCompositeId implements Serializable {
 
     /**
      * Constructor.
+     *
      * @param organization the organization
-     * @param id the id
+     * @param id           the id
      */
     public OrganizationBasedCompositeId(OrganizationBean organization, String id) {
         this.setOrganization(organization);

@@ -10,11 +10,12 @@ public class ReflectionUtils {
 
     /**
      * Call a method if it exists. Use very sparingly and generally prefer interfaces.
-     * @param object The object
+     *
+     * @param object     The object
      * @param methodName Method name to call on the object
-     * @throws SecurityException reflection - security manager to indicate a security violation
-     * @throws IllegalAccessException reflection - does not allow access
-     * @throws IllegalArgumentException reflection - argument not allowed
+     * @throws SecurityException         reflection - security manager to indicate a security violation
+     * @throws IllegalAccessException    reflection - does not allow access
+     * @throws IllegalArgumentException  reflection - argument not allowed
      * @throws InvocationTargetException reflection - exception thrown by an invoked method or constructor
      */
     public static <T> void callIfExists(T object, String methodName) throws SecurityException,
@@ -28,20 +29,30 @@ public class ReflectionUtils {
 
     /**
      * Loads a class.
+     *
      * @param classname
      */
     public static Class<?> loadClass(String classname) {
         Class<?> c = null;
 
         // First try a simple Class.forName()
-        try { c = Class.forName(classname); } catch (ClassNotFoundException e) { }
+        try {
+            c = Class.forName(classname);
+        } catch (ClassNotFoundException e) {
+        }
         // Didn't work?  Try using this class's classloader.
         if (c == null) {
-            try { c = ReflectionUtils.class.getClassLoader().loadClass(classname); } catch (ClassNotFoundException e) { }
+            try {
+                c = ReflectionUtils.class.getClassLoader().loadClass(classname);
+            } catch (ClassNotFoundException e) {
+            }
         }
         // Still didn't work?  Try the thread's context classloader.
         if (c == null) {
-            try { c = Thread.currentThread().getContextClassLoader().loadClass(classname); } catch (ClassNotFoundException e) { }
+            try {
+                c = Thread.currentThread().getContextClassLoader().loadClass(classname);
+            } catch (ClassNotFoundException e) {
+            }
         }
 
         return c;
@@ -49,6 +60,7 @@ public class ReflectionUtils {
 
     /**
      * Squishy way to find a setter method.
+     *
      * @param theClass
      */
     public static Method findSetter(Class<?> onClass, Class<?> targetClass) {

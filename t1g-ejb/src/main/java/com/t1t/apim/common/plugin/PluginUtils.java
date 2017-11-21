@@ -10,13 +10,13 @@ import java.util.Set;
 
 /**
  * Some generally useful static methods.
- *
  */
 public class PluginUtils {
 
     public static final String PLUGIN_SPEC_PATH = "META-INF/apiman/plugin.json"; //$NON-NLS-1$
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final Set<URL> MAVEN_REPOSITORIES = new HashSet<>();
+
     static {
         try {
             MAVEN_REPOSITORIES.add(new URL("https://repo1.maven.org/maven2/")); //$NON-NLS-1$
@@ -24,22 +24,22 @@ public class PluginUtils {
             throw new IllegalArgumentException(e);
         }
     }
-    
+
     /**
      * @return a set of default maven repositories to search for plugins
      */
     public static Set<URL> getDefaultMavenRepositories() {
         return MAVEN_REPOSITORIES;
     }
-    
+
     /**
      * Returns the relative path (within a plugin registry's plugins directory) where
      * the plugin with the given coordinates can be found.  For example, if the plugin
-     * coordinate are "io.apiman.sample:sample-plugin:1.0.1:classifier:war" then the 
+     * coordinate are "io.apiman.sample:sample-plugin:1.0.1:classifier:war" then the
      * path will be:
-     * 
+     * <p>
      * io.apiman.sample/sample-plugin/1.0.1/sample-plugin-classifier.war/
-     * 
+     *
      * @param coordinates the coordinates
      * @return plugin's relative path
      */
@@ -59,12 +59,13 @@ public class PluginUtils {
         pluginRelativePath.append(coordinates.getType());
         return pluginRelativePath.toString();
     }
-    
+
     /**
      * Reads a plugin spec file and returns a {@link PluginSpec}.
+     *
      * @param pluginSpec the plugin spec
-     * @throws Exception when an unhandled exception occurs
      * @return plugin's specification
+     * @throws Exception when an unhandled exception occurs
      */
     public static PluginSpec readPluginSpecFile(URL pluginSpec) throws Exception {
         PluginSpec spec = (PluginSpec) mapper.reader(PluginSpec.class).readValue(pluginSpec);
@@ -73,7 +74,7 @@ public class PluginUtils {
 
     /**
      * Gets the user's local m2 directory or null if not found.
-     * 
+     *
      * @return user's M2 repo
      */
     public static File getUserM2Repository() {
@@ -92,7 +93,8 @@ public class PluginUtils {
 
     /**
      * Find the plugin artifact in the local .m2 directory.
-     * @param m2Dir the maven m2 directory
+     *
+     * @param m2Dir       the maven m2 directory
      * @param coordinates the coordinates
      * @return the M2 path
      */
@@ -101,9 +103,10 @@ public class PluginUtils {
         File artifactFile = new File(m2Dir, artifactSubPath);
         return artifactFile;
     }
-    
+
     /**
      * Calculates the relative path of the artifact from the given coordinates.
+     *
      * @param coordinates the coordinates
      * @return the maven path
      */

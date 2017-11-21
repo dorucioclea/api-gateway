@@ -24,8 +24,6 @@ import java.security.interfaces.RSAPublicKey;
 
 import static org.junit.Assert.*;
 
-import static org.junit.Assert.*;
-
 /**
  * Created by michallispashidis on 11/11/15.
  */
@@ -36,7 +34,7 @@ public class JWTClaimTest {
     private static final String JWT_TOKEN_RS = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0MjYzZmJmM2ViYWY0Y2I2ODgzMDc1MGFmNDI2MmNkNiIsImF1ZCI6Imh0dHBzOi8vZGV2bWt0LnQxdC5iZSIsImV4cCI6MTQ2MzU2NDAyMSwianRpIjoiSVUzV09MSmEwVkhoaUNIX1pJOG9zQSIsImlhdCI6MTQ2MzU2MDQyMSwibmJmIjoxNDYzNTQ5NjIxLCJzdWIiOiJtaWNoYWxsaXNAdHJ1c3QxdGVhbS5jb20iLCJuYW1lIjoiIiwic3VybmFtZSI6IlBhc2hpZGlzIiwiZ2l2ZW5uYW1lIjoiTWljaGFsbGlzIn0.uYgaBb1Z1Mze-zGZikZdm2t9K1Si_G5ZzkizJiW01fONTl_SX37vMx7_NTAuYkb3yRGw7JKnd2v6HqDk1gc6VII5_Jj6P2_ivGABs2i3NQOjahO_CCY67ZvhRCGrXV5OTBY3L-d28_aRhoVaHXZHsCMjhMo757sTaM82GrG0JdmS8YmmS8tEE1WFD-_n8Zh2rTEcmeLCbrrioXXy2AAmc9v6Ih4nQeJMXqb5GHb3oQVGlNawcvIH9tiJ9oc-5zakZbl7sM30iN_iT7-o-wP4GeYxCG8OOv6HzTZG4JjTVKi1wtyJ11PeFjTocmf6rDj9zUkEbryiQFuVbyB6O5u-Ug";
 
     @Test
-    public void validateRsJWT()throws Exception{
+    public void validateRsJWT() throws Exception {
         RsaJsonWebKey rsaJsonWebKey = new RsaJsonWebKey((RSAPublicKey) KeyUtils.getKey("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy5MMbLY62zFu4nvYsEbk\n" +
                 "I1oSMgAnaTJAysT+jScIW7hosh1eAMqOpcdWJqvXB7R0eCHFmTu4YwoUgSRLeNsJ\n" +
                 "JYk0Fzv/3bTN/2vtGNyCdNSj9LVFd/JcNpvNYKFq5AhZxrJ9rWLYS8+Q9HDA/lve\n" +
@@ -61,14 +59,14 @@ public class JWTClaimTest {
 
 
         assertNotNull(claims);//this means, it validates
-        _LOG.info("Extracted claims:{}",claims);
-        _LOG.info("Claim names:{}",claims.getClaimNames());
-        _LOG.info("Name:{}",claims.getClaimValue("name"));
+        _LOG.info("Extracted claims:{}", claims);
+        _LOG.info("Claim names:{}", claims.getClaimNames());
+        _LOG.info("Name:{}", claims.getClaimValue("name"));
     }
 
     @Test
-    public void retrieveJWTPubKey()throws Exception{
-        RsaJsonWebKey rsaJsonWebKey = new RsaJsonWebKey((RSAPublicKey)KeyUtils.getKey("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy5MMbLY62zFu4nvYsEbk\n" +
+    public void retrieveJWTPubKey() throws Exception {
+        RsaJsonWebKey rsaJsonWebKey = new RsaJsonWebKey((RSAPublicKey) KeyUtils.getKey("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy5MMbLY62zFu4nvYsEbk\n" +
                 "I1oSMgAnaTJAysT+jScIW7hosh1eAMqOpcdWJqvXB7R0eCHFmTu4YwoUgSRLeNsJ\n" +
                 "JYk0Fzv/3bTN/2vtGNyCdNSj9LVFd/JcNpvNYKFq5AhZxrJ9rWLYS8+Q9HDA/lve\n" +
                 "M9MIS3JMMa72FXOtCcHIruE7AjVSdq7Wc9M+ZE6M3qpiLlYpylfd3+PI6qSigP/G\n" +
@@ -82,16 +80,17 @@ public class JWTClaimTest {
         VerificationJwkSelector jwkSelector = new VerificationJwkSelector();
         JsonWebKey jwk = jwkSelector.select(jws, jsonWebKeySet.getJsonWebKeys());
         Gson gson = new Gson();
-        _LOG.info("Extracted JWK:{}",gson.toJson(jwk));
-        _LOG.info("Extracted public key:{}",jwk.getKey());
+        _LOG.info("Extracted JWK:{}", gson.toJson(jwk));
+        _LOG.info("Extracted public key:{}", jwk.getKey());
     }
 
     /**
      * Test a JWT RSA-256 signed
+     *
      * @throws Exception
      */
     @Test
-    public void validateJWT()throws Exception{
+    public void validateJWT() throws Exception {
         // Sometimes X509 certificate(s) are provided out-of-band somehow by the signer/issuer
         // and the X509VerificationKeyResolver is helpful for that situation. It will use
         // the X.509 Certificate Thumbprint Headers (x5t or x5t#S256) from the JWS/JWT to
@@ -132,13 +131,13 @@ public class JWTClaimTest {
                 .build(); // create the JwtConsumer instance
         JwtClaims claims = jwtConsumer.processToClaims(JWT_TOKEN);
         assertNotNull(claims);//this means, it validates
-        _LOG.info("Extracted claims:{}",claims);
-        _LOG.info("Claim names:{}",claims.getClaimNames());
-        _LOG.info("Name:{}",claims.getClaimValue("name"));
+        _LOG.info("Extracted claims:{}", claims);
+        _LOG.info("Claim names:{}", claims.getClaimNames());
+        _LOG.info("Name:{}", claims.getClaimValue("name"));
     }
 
     @Test
-    public void issueJWT() throws Exception{
+    public void issueJWT() throws Exception {
         final String JWT_KEY = "7da8cb6408bb42a4c27785c2c5b467b2";
         final String JWT_SECRET = "ddfd1beb178d449fc4603bec701abb96";
         /*final PrivateKey privateKey = KeyUtils.getPrivateKey("-----BEGIN RSA PRIVATE KEY-----\n" +
@@ -187,13 +186,13 @@ public class JWTClaimTest {
         }
         assertNotNull(jwt);
         assertTrue(!StringUtils.isEmpty(jwt));
-        _LOG.info("Generated JWT:{}",jwt);
+        _LOG.info("Generated JWT:{}", jwt);
 
         //validate
         try {
             JwtContext jwtContext = JWTUtils.validateHMACToken(jwt, JWT_SECRET, JWT_KEY, JWT_AUDIENCE, Boolean.FALSE);
             _LOG.info("JWT validation succeeded.");
-            _LOG.info("Claim names:{}",jwtContext.getJwtClaims().getClaimsMap());
+            _LOG.info("Claim names:{}", jwtContext.getJwtClaims().getClaimsMap());
         } catch (InvalidJwtException e) {
             fail();
         }

@@ -6,6 +6,7 @@ package com.t1t.apim.gateway.dto.exceptions;
 public class ConsumerAlreadyExistsException extends AbstractEngineException {
     /**
      * Constructor.
+     *
      * @param componentType the component type
      */
     public ConsumerAlreadyExistsException(String componentType) {
@@ -14,8 +15,9 @@ public class ConsumerAlreadyExistsException extends AbstractEngineException {
 
     /**
      * Constructor.
+     *
      * @param componentType the component type
-     * @param cause the exception cause the root cause
+     * @param cause         the exception cause the root cause
      */
     public ConsumerAlreadyExistsException(String componentType, Throwable cause) {
         super("Consumer already exists: " + componentType, cause); //$NON-NLS-1$

@@ -1,4 +1,5 @@
 package com.t1t.apim.beans.dto;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.Serializable;
@@ -12,7 +13,6 @@ import java.util.Date;
 public class UserDtoBean implements Serializable {
 
     private String username;
-    private String kongUsername;
     private String fullName;
     private String email;
     private Date joinedOn;
@@ -22,8 +22,6 @@ public class UserDtoBean implements Serializable {
     private String website;
     private String bio;
     private String base64pic;
-    private String jwtKey;
-    private String jwtSecret;
 
     public String getUsername() {
         return username;
@@ -31,14 +29,6 @@ public class UserDtoBean implements Serializable {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getKongUsername() {
-        return kongUsername;
-    }
-
-    public void setKongUsername(String kongUsername) {
-        this.kongUsername = kongUsername;
     }
 
     public String getFullName() {
@@ -113,22 +103,6 @@ public class UserDtoBean implements Serializable {
         this.base64pic = base64pic;
     }
 
-    public String getJwtKey() {
-        return jwtKey;
-    }
-
-    public void setJwtKey(String jwtKey) {
-        this.jwtKey = jwtKey;
-    }
-
-    public String getJwtSecret() {
-        return jwtSecret;
-    }
-
-    public void setJwtSecret(String jwtSecret) {
-        this.jwtSecret = jwtSecret;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -148,7 +122,6 @@ public class UserDtoBean implements Serializable {
     public String toString() {
         return "UserDtoBean{" +
                 "username='" + username + '\'' +
-                ", kongUsername='" + kongUsername + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
                 ", joinedOn=" + joinedOn +
@@ -158,8 +131,6 @@ public class UserDtoBean implements Serializable {
                 ", website='" + website + '\'' +
                 ", bio='" + bio + '\'' +
                 ", base64pic='" + base64pic + '\'' +
-                ", jwtKey='" + jwtKey + '\'' +
-                ", jwtSecret='" + jwtSecret + '\'' +
                 '}';
     }
 }

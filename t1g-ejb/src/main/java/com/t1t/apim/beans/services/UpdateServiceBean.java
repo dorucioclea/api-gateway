@@ -18,6 +18,7 @@ public class UpdateServiceBean implements Serializable {
     private String base64logo;
     private Set<String> categories;
     private Boolean admin;
+    private Set<String> basepaths;
 
     /**
      * @return the description
@@ -89,6 +90,20 @@ public class UpdateServiceBean implements Serializable {
         this.admin = admin;
     }
 
+    /**
+     * @return the basepaths
+     */
+    public Set<String> getBasepaths() {
+        return basepaths;
+    }
+
+    /**
+     * @param basepaths the basepaths to set
+     */
+    public void setBasepaths(Set<String> basepaths) {
+        this.basepaths = basepaths;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -122,6 +137,7 @@ public class UpdateServiceBean implements Serializable {
                 ", base64logo='" + base64logo + '\'' +
                 ", categories=" + categories +
                 ", admin=" + admin +
+                ", basepaths=" + basepaths +
                 '}';
     }
 }

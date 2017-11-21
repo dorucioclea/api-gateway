@@ -7,7 +7,6 @@ import java.io.Serializable;
 
 /**
  * A single entry in the {@link ApiRegistryBean}.
- *
  */
 @XmlRootElement(name = "api")
 @JsonInclude(JsonInclude.Include.NON_NULL)

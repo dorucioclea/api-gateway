@@ -30,15 +30,15 @@ public class OAuth2TokenRevokeBean implements Serializable {
         this.credentialId = credentialId;
     }
 
+    public OAuth2TokenRevokeBean() {
+    }
+
     public String getAuthenticatedUserId() {
         return authenticatedUserId;
     }
 
     public void setAuthenticatedUserId(String authenticatedUserId) {
         this.authenticatedUserId = authenticatedUserId;
-    }
-
-    public OAuth2TokenRevokeBean() {
     }
 
     public String getOrganizationId() {

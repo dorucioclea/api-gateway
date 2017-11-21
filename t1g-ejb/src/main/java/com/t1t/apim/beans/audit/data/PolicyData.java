@@ -5,7 +5,6 @@ import java.io.Serializable;
 /**
  * The data saved along with the audit entry when a policy is added to
  * an entity.
- *
  */
 public class PolicyData implements Serializable {
 

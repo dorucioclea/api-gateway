@@ -13,11 +13,10 @@ import com.t1t.apim.beans.summary.ApplicationSummaryBean;
 import com.t1t.apim.beans.summary.OrganizationSummaryBean;
 import com.t1t.apim.beans.summary.ServiceSummaryBean;
 import com.t1t.apim.core.exceptions.StorageException;
-import com.t1t.apim.core.i18n.Messages;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.NotAuthorizedException;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.UserFacade;
-import com.t1t.apim.rest.resources.IUserResource;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.util.DtoFactory;
 import io.swagger.annotations.Api;
@@ -36,10 +35,12 @@ import java.util.List;
 @Api(value = "/users", description = "The User API.")
 @Path("/users")
 @ApplicationScoped
-public class UserResource implements IUserResource {
+public class UserResource {
 
-    @Inject private ISecurityContext securityContext;
-    @Inject private UserFacade userFacade;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private UserFacade userFacade;
 
     /**
      * Constructor.
@@ -58,18 +59,14 @@ public class UserResource implements IUserResource {
     public UserDtoBean get(@PathParam("userId") String userId) throws UserNotFoundException {
         Preconditions.checkArgument(!StringUtils.isEmpty(userId), Messages.i18n.format("emptyValue", "User ID"));
         UserDtoBean rval = DtoFactory.createUserDtoBean(userFacade.get(userId));
-        if (!securityContext.isAdmin()) {
-            rval.setJwtKey(null);
-            rval.setJwtSecret(null);
-        }
         return rval;
     }
 
     @ApiOperation(value = "Get Admin users",
-                  notes = "Use this endpoint to get users who are granted with admin priviledges.")
+            notes = "Use this endpoint to get users who are granted with admin priviledges.")
     @ApiResponses({
-                          @ApiResponse(code = 200,responseContainer = "List", response = UserBean.class, message = "Admin users.")
-                  })
+            @ApiResponse(code = 200, responseContainer = "List", response = UserBean.class, message = "Admin users.")
+    })
     @GET
     @Path("/admins")
     @Produces(MediaType.APPLICATION_JSON)
@@ -80,10 +77,10 @@ public class UserResource implements IUserResource {
     }
 
     @ApiOperation(value = "Delete admin priviledges for user",
-                  notes = "Use this endpoint to remove admin priviledges from user.")
+            notes = "Use this endpoint to remove admin priviledges from user.")
     @ApiResponses({
-                          @ApiResponse(code = 204, response = Response.class, message = "Admin priviledges removed.")
-                  })
+            @ApiResponse(code = 204, response = Response.class, message = "Admin priviledges removed.")
+    })
     @DELETE
     @Path("/admins/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -94,10 +91,10 @@ public class UserResource implements IUserResource {
     }
 
     @ApiOperation(value = "Add admin priviledges for user",
-                  notes = "Use this endpoint to add admin priviledges for user. If the user doesn't exist, user will be created.")
+            notes = "Use this endpoint to add admin priviledges for user. If the user doesn't exist, user will be created.")
     @ApiResponses({
-                          @ApiResponse(code = 204, response = Response.class, message = "Admin priviledges added.")
-                  })
+            @ApiResponse(code = 204, response = Response.class, message = "Admin priviledges added.")
+    })
     @POST
     @Path("/admins/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -190,11 +187,11 @@ public class UserResource implements IUserResource {
     }
 
     @ApiOperation(value = "Create a new user (admin)",
-                  notes = "Use this endpoint to create.  You must have admin privileges to create a new user.")
+            notes = "Use this endpoint to create.  You must have admin privileges to create a new user.")
     @ApiResponses({
-                          @ApiResponse(code = 204, message = "successful, no content"),
-                          @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
-                  })
+            @ApiResponse(code = 204, message = "successful, no content"),
+            @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict error.")
+    })
     @PUT
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -207,10 +204,10 @@ public class UserResource implements IUserResource {
     }
 
     @ApiOperation(value = "Delete user (admin)",
-                  notes = "Use this endpoint to delete a user. When a user has still ownership on an organization an error message will be thrown. You must have admin privileges to delete an user.")
+            notes = "Use this endpoint to delete a user. When a user has still ownership on an organization an error message will be thrown. You must have admin privileges to delete an user.")
     @ApiResponses({
-                          @ApiResponse(code = 204, message = "successful, no content")
-                  })
+            @ApiResponse(code = 204, message = "successful, no content")
+    })
     @PUT
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)

@@ -14,13 +14,6 @@ public class OwnershipTransferData implements Serializable {
     private String newOwnerId;
 
     /**
-     * @param previousOwnerId the userId of the previous organization owner
-     */
-    public void setPreviousOwnerId(String previousOwnerId) {
-        this.previousOwnerId = previousOwnerId;
-    }
-
-    /**
      * @return the userId of the previous organization owner
      */
     public String getPreviousOwnerId() {
@@ -28,10 +21,10 @@ public class OwnershipTransferData implements Serializable {
     }
 
     /**
-     * @param newOwnerId the userId of the new organization owner
+     * @param previousOwnerId the userId of the previous organization owner
      */
-    public void setNewOwnerId(String newOwnerId) {
-        this.newOwnerId = newOwnerId;
+    public void setPreviousOwnerId(String previousOwnerId) {
+        this.previousOwnerId = previousOwnerId;
     }
 
     /**
@@ -39,6 +32,13 @@ public class OwnershipTransferData implements Serializable {
      */
     public String getNewOwnerId() {
         return newOwnerId;
+    }
+
+    /**
+     * @param newOwnerId the userId of the new organization owner
+     */
+    public void setNewOwnerId(String newOwnerId) {
+        this.newOwnerId = newOwnerId;
     }
 
     /* (non-Javadoc)

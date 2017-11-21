@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 /**
  * Bean used when creating an application.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NewApplicationBean implements Serializable {

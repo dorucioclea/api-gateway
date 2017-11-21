@@ -4,12 +4,11 @@ import java.io.Serializable;
 
 /**
  * Models a policy.
- *
  */
 public class Policy implements Serializable {
 
     private static final long serialVersionUID = -5945877012261045491L;
-    
+
     private String policyJsonConfig; //config_info json str
     private String policyImpl; //Reference to policy def id
     private String kongPluginId;

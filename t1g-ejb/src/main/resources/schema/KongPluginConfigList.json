@@ -4,10 +4,10 @@
   "type": "object",
   "properties": {
     "data": {
-      "id":"kongPluginConfig",
-      "type":"array",
-      "items":{
-        "$ref":"KongPluginConfig.json"
+      "id": "kongPluginConfig",
+      "type": "array",
+      "items": {
+        "$ref": "KongPluginConfig.json"
       }
     },
     "next": {

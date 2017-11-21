@@ -4,14 +4,18 @@
   "type": "object",
   "properties": {
     "headers": {
-      "id":"headers",
+      "id": "headers",
       "type": "array",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     },
     "json": {
-      "id":"json",
+      "id": "json",
       "type": "array",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

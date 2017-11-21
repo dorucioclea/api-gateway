@@ -2,10 +2,9 @@ package com.t1t.apim.exceptions;
 
 /**
  * Base class for "not found" exceptions.
- *
  */
 public abstract class AbstractNotFoundException extends AbstractUserException {
-    
+
     private static final long serialVersionUID = -196398343525920762L;
 
     /**
@@ -16,6 +15,7 @@ public abstract class AbstractNotFoundException extends AbstractUserException {
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public AbstractNotFoundException(String message) {
@@ -24,21 +24,23 @@ public abstract class AbstractNotFoundException extends AbstractUserException {
 
     /**
      * Constructor.
+     *
      * @param cause the exception cause
      */
     public AbstractNotFoundException(Throwable cause) {
         super(cause);
     }
-    
+
     /**
      * Constructor.
+     *
      * @param message the exception message
-     * @param cause the exception cause
+     * @param cause   the exception cause
      */
     public AbstractNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
-    
+
     /**
      * @see AbstractRestException#getHttpCode()
      */

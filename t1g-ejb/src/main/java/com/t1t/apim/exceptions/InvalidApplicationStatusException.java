@@ -3,21 +3,20 @@ package com.t1t.apim.exceptions;
 /**
  * Thrown when the user attempts some action on the application when it is
  * not in an appropriate state/status.
- *
-
  */
 public class InvalidApplicationStatusException extends AbstractUserException {
-    
+
     private static final long serialVersionUID = -7586934307005501785L;
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public InvalidApplicationStatusException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -33,7 +32,7 @@ public class InvalidApplicationStatusException extends AbstractUserException {
     public int getHttpCode() {
         return ErrorCodes.HTTP_STATUS_CODE_INVALID_STATE;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

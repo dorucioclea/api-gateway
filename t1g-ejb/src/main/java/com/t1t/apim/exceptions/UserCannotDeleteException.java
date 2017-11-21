@@ -15,12 +15,13 @@ public class UserCannotDeleteException extends AbstractNotFoundException {
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public UserCannotDeleteException(String message) {
         super(message);
     }
-    
+
     /**
      * @see AbstractRestException#getErrorCode()
      */
@@ -28,7 +29,7 @@ public class UserCannotDeleteException extends AbstractNotFoundException {
     public int getErrorCode() {
         return ErrorCodes.USER_NOT_FOUND;
     }
-    
+
     /**
      * @see AbstractRestException#getMoreInfoUrl()
      */

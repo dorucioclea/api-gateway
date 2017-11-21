@@ -8,7 +8,7 @@ public interface IJWT {
     String HEADER_TYPE = "typ";
     String HEADER_TYPE_VALUE = "JWT";
     String HEADER_X5U = "x5u";
-    String AUDIENCE_CLAIM = "aud";
+    String ISSUER_CLAIM = "iss";
     String EXPIRATION_CLAIM = "exp";
     //JWT keys
     String NAME = "name";

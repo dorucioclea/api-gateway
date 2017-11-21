@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 /**
  * A summary of an individual application version.
- *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApplicationVersionSummaryBean implements Serializable {

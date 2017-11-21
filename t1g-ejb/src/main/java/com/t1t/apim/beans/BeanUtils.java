@@ -2,7 +2,6 @@ package com.t1t.apim.beans;
 
 /**
  * Some simple bean utils.
- *
  */
 public class BeanUtils {
     /**
@@ -10,7 +9,7 @@ public class BeanUtils {
      * non "word" characters from the name.
      * Hypens are not allowed, because they are reserved in order to append a prefix for an organization,
      * depending on the scope (marketplace where the org has been created).
-     * 
+     *
      * @param name the name
      * @return the id
      */
@@ -22,6 +21,7 @@ public class BeanUtils {
     /**
      * Validates that a version string is OK - doesn't contain any
      * illegal characters.
+     *
      * @param version the version
      * @return true if valid, else false
      */

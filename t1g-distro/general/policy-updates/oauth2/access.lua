@@ -53,7 +53,7 @@ local function generate_token(conf, credential, authenticated_userid, scope, sta
         expires_in = token_expiration,
         refresh_token = refresh_token,
         scope = scope
-    }, {ttl = token_expiration > 0 and 1209600 or nil}) -- Access tokens (and their associated refresh token) are being
+    }, { ttl = token_expiration > 0 and 1209600 or nil }) -- Access tokens (and their associated refresh token) are being
     -- permanently deleted after 14 days (1209600 seconds)
 
     if err then
@@ -73,7 +73,7 @@ local function get_redirect_uri(client_id)
     local client
     if client_id then
         client = cache.get_or_set(cache.oauth2_credential_key(client_id), function()
-            local credentials, err = singletons.dao.oauth2_credentials:find_all {client_id = client_id}
+            local credentials, err = singletons.dao.oauth2_credentials:find_all { client_id = client_id }
             local result
             if err then
                 return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
@@ -109,13 +109,13 @@ local function retrieve_scopes(parameters, conf)
     if conf.scopes and scope then
         for v in scope:gmatch("%S+") do
             if not utils.table_contains(conf.scopes, v) then
-                return false, {[ERROR] = "invalid_scope", error_description = "\""..v.."\" is an invalid "..SCOPE}
+                return false, { [ERROR] = "invalid_scope", error_description = "\"" .. v .. "\" is an invalid " .. SCOPE }
             else
                 table.insert(scopes, v)
             end
         end
     elseif not scope and conf.mandatory_scope then
-        return false, {[ERROR] = "invalid_scope", error_description = "You must specify a "..SCOPE}
+        return false, { [ERROR] = "invalid_scope", error_description = "You must specify a " .. SCOPE }
     end
 
     return true, scopes
@@ -130,17 +130,17 @@ local function authorize(conf)
 
     local is_https, err = check_https(conf.accept_http_if_already_terminated)
     if not is_https then
-        response_params = {[ERROR] = "access_denied", error_description = err or "You must use HTTPS"}
+        response_params = { [ERROR] = "access_denied", error_description = err or "You must use HTTPS" }
     else
         if conf.provision_key ~= parameters.provision_key then
-            response_params = {[ERROR] = "invalid_provision_key", error_description = "Invalid provision_key"}
+            response_params = { [ERROR] = "invalid_provision_key", error_description = "Invalid provision_key" }
         elseif not parameters.authenticated_userid or utils.strip(parameters.authenticated_userid) == "" then
-            response_params = {[ERROR] = "invalid_authenticated_userid", error_description = "Missing authenticated_userid parameter"}
+            response_params = { [ERROR] = "invalid_authenticated_userid", error_description = "Missing authenticated_userid parameter" }
         else
             local response_type = parameters[RESPONSE_TYPE]
             -- Check response_type
             if not ((response_type == CODE and conf.enable_authorization_code) or (conf.enable_implicit_grant and response_type == TOKEN)) then -- Authorization Code Grant (http://tools.ietf.org/html/rfc6749#section-4.1.1)
-                response_params = {[ERROR] = "unsupported_response_type", error_description = "Invalid "..RESPONSE_TYPE}
+                response_params = { [ERROR] = "unsupported_response_type", error_description = "Invalid " .. RESPONSE_TYPE }
             end
 
             -- Check scopes
@@ -153,12 +153,12 @@ local function authorize(conf)
             allowed_redirect_uris, client = get_redirect_uri(parameters[CLIENT_ID])
 
             if not allowed_redirect_uris then
-                response_params = {[ERROR] = "invalid_client", error_description = "Invalid client authentication" }
+                response_params = { [ERROR] = "invalid_client", error_description = "Invalid client authentication" }
             else
                 redirect_uri = parameters[REDIRECT_URI] and parameters[REDIRECT_URI] or allowed_redirect_uris[1]
 
                 if not utils.table_contains(allowed_redirect_uris, redirect_uri) then
-                    response_params = {[ERROR] = "invalid_request", error_description = "Invalid "..REDIRECT_URI.. " that does not match with any redirect_uri created with the application" }
+                    response_params = { [ERROR] = "invalid_request", error_description = "Invalid " .. REDIRECT_URI .. " that does not match with any redirect_uri created with the application" }
                     -- redirect_uri used in this case is the first one registered with the application
                     redirect_uri = allowed_redirect_uris[1]
                 end
@@ -173,7 +173,7 @@ local function authorize(conf)
                         credential_id = client.id,
                         authenticated_userid = parameters[AUTHENTICATED_USERID],
                         scope = table.concat(scopes, " ")
-                    }, {ttl = 300})
+                    }, { ttl = 300 })
 
                     if err then
                         return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
@@ -184,7 +184,7 @@ local function authorize(conf)
                     }
                 else
                     -- Implicit grant, override expiration to zero
-                    response_params = generate_token(conf, client, parameters[AUTHENTICATED_USERID],  table.concat(scopes, " "), state, nil, true)
+                    response_params = generate_token(conf, client, parameters[AUTHENTICATED_USERID], table.concat(scopes, " "), state, nil, true)
                     is_implicit_grant = true
                 end
             end
@@ -196,11 +196,9 @@ local function authorize(conf)
 
     -- Appending kong generated params to redirect_uri query string
     if parsed_redirect_uri then
-        local encoded_params = utils.encode_args(utils.table_merge(ngx.decode_args(
-            (is_implicit_grant and
-                    (parsed_redirect_uri.fragment and parsed_redirect_uri.fragment or "") or
-                    (parsed_redirect_uri.query and parsed_redirect_uri.query or "")
-            )), response_params))
+        local encoded_params = utils.encode_args(utils.table_merge(ngx.decode_args((is_implicit_grant and
+                (parsed_redirect_uri.fragment and parsed_redirect_uri.fragment or "") or
+                (parsed_redirect_uri.query and parsed_redirect_uri.query or ""))), response_params))
         if is_implicit_grant then
             parsed_redirect_uri.fragment = encoded_params
         else
@@ -259,14 +257,14 @@ local function issue_token(conf)
 
     local is_https, err = check_https(conf.accept_http_if_already_terminated)
     if not is_https then
-        response_params = {[ERROR] = "access_denied", error_description = err or "You must use HTTPS"}
+        response_params = { [ERROR] = "access_denied", error_description = err or "You must use HTTPS" }
     else
         local grant_type = parameters[GRANT_TYPE]
         if not (grant_type == GRANT_AUTHORIZATION_CODE or
                 grant_type == GRANT_REFRESH_TOKEN or
                 (conf.enable_client_credentials and grant_type == GRANT_CLIENT_CREDENTIALS) or
                 (conf.enable_password_grant and grant_type == GRANT_PASSWORD)) then
-            response_params = {[ERROR] = "unsupported_grant_type", error_description = "Invalid "..GRANT_TYPE}
+            response_params = { [ERROR] = "unsupported_grant_type", error_description = "Invalid " .. GRANT_TYPE }
         end
 
         local client_id, client_secret, from_authorization_header = retrieve_client_credentials(parameters)
@@ -274,40 +272,40 @@ local function issue_token(conf)
         -- Check client_id and redirect_uri
         local allowed_redirect_uris, client = get_redirect_uri(client_id)
         if not allowed_redirect_uris then
-            response_params = {[ERROR] = "invalid_client", error_description = "Invalid client authentication"}
+            response_params = { [ERROR] = "invalid_client", error_description = "Invalid client authentication" }
             if from_authorization_header then
-                invalid_client_properties = { status = 401, www_authenticate = "Basic realm=\"OAuth2.0\""}
+                invalid_client_properties = { status = 401, www_authenticate = "Basic realm=\"OAuth2.0\"" }
             end
         else
             local redirect_uri = parameters[REDIRECT_URI] and parameters[REDIRECT_URI] or allowed_redirect_uris[1]
             if not utils.table_contains(allowed_redirect_uris, redirect_uri) then
-                response_params = {[ERROR] = "invalid_request", error_description = "Invalid "..REDIRECT_URI.. " that does not match with any redirect_uri created with the application" }
+                response_params = { [ERROR] = "invalid_request", error_description = "Invalid " .. REDIRECT_URI .. " that does not match with any redirect_uri created with the application" }
             end
         end
 
         if client and client.client_secret ~= client_secret then
-            response_params = {[ERROR] = "invalid_client", error_description = "Invalid client authentication"}
+            response_params = { [ERROR] = "invalid_client", error_description = "Invalid client authentication" }
             if from_authorization_header then
-                invalid_client_properties = { status = 401, www_authenticate = "Basic realm=\"OAuth2.0\""}
+                invalid_client_properties = { status = 401, www_authenticate = "Basic realm=\"OAuth2.0\"" }
             end
         end
 
         if not response_params[ERROR] then
             if grant_type == GRANT_AUTHORIZATION_CODE then
                 local code = parameters[CODE]
-                local authorization_code = code and singletons.dao.oauth2_authorization_codes:find_all({code = code})[1]
+                local authorization_code = code and singletons.dao.oauth2_authorization_codes:find_all({ code = code })[1]
                 if not authorization_code then
-                    response_params = {[ERROR] = "invalid_request", error_description = "Invalid "..CODE}
+                    response_params = { [ERROR] = "invalid_request", error_description = "Invalid " .. CODE }
                 elseif authorization_code.credential_id ~= client.id then
-                    response_params = {[ERROR] = "invalid_request", error_description = "Invalid "..CODE}
+                    response_params = { [ERROR] = "invalid_request", error_description = "Invalid " .. CODE }
                 else
                     response_params = generate_token(conf, client, authorization_code.authenticated_userid, authorization_code.scope, state)
-                    singletons.dao.oauth2_authorization_codes:delete({id=authorization_code.id}) -- Delete authorization code so it cannot be reused
+                    singletons.dao.oauth2_authorization_codes:delete({ id = authorization_code.id }) -- Delete authorization code so it cannot be reused
                 end
             elseif grant_type == GRANT_CLIENT_CREDENTIALS then
                 -- Only check the provision_key if the authenticated_userid is being set
                 if parameters.authenticated_userid and conf.provision_key ~= parameters.provision_key then
-                    response_params = {[ERROR] = "invalid_provision_key", error_description = "Invalid provision_key"}
+                    response_params = { [ERROR] = "invalid_provision_key", error_description = "Invalid provision_key" }
                 else
                     -- Check scopes
                     local ok, scopes = retrieve_scopes(parameters, conf)
@@ -320,9 +318,9 @@ local function issue_token(conf)
             elseif grant_type == GRANT_PASSWORD then
                 -- Check that it comes from the right client
                 if conf.provision_key ~= parameters.provision_key then
-                    response_params = {[ERROR] = "invalid_provision_key", error_description = "Invalid provision_key"}
+                    response_params = { [ERROR] = "invalid_provision_key", error_description = "Invalid provision_key" }
                 elseif not parameters.authenticated_userid or utils.strip(parameters.authenticated_userid) == "" then
-                    response_params = {[ERROR] = "invalid_authenticated_userid", error_description = "Missing authenticated_userid parameter"}
+                    response_params = { [ERROR] = "invalid_authenticated_userid", error_description = "Missing authenticated_userid parameter" }
                 else
                     -- Check scopes
                     local ok, scopes = retrieve_scopes(parameters, conf)
@@ -334,12 +332,12 @@ local function issue_token(conf)
                 end
             elseif grant_type == GRANT_REFRESH_TOKEN then
                 local refresh_token = parameters[REFRESH_TOKEN]
-                local token = refresh_token and singletons.dao.oauth2_tokens:find_all({refresh_token = refresh_token})[1]
+                local token = refresh_token and singletons.dao.oauth2_tokens:find_all({ refresh_token = refresh_token })[1]
                 if not token then
-                    response_params = {[ERROR] = "invalid_request", error_description = "Invalid "..REFRESH_TOKEN}
+                    response_params = { [ERROR] = "invalid_request", error_description = "Invalid " .. REFRESH_TOKEN }
                 else
                     response_params = generate_token(conf, client, token.authenticated_userid, token.scope, state)
-                    singletons.dao.oauth2_tokens:delete({id=token.id}) -- Delete old token
+                    singletons.dao.oauth2_tokens:delete({ id = token.id }) -- Delete old token
                 end
             end
         end
@@ -431,25 +429,25 @@ function _M.execute(conf)
 
     local accessToken = parse_access_token(conf);
     if not accessToken then
-        return responses.send_HTTP_UNAUTHORIZED({[ERROR] = "invalid_request", error_description = "The access token is missing"}, {["WWW-Authenticate"] = 'Bearer realm="service"'})
+        return responses.send_HTTP_UNAUTHORIZED({ [ERROR] = "invalid_request", error_description = "The access token is missing" }, { ["WWW-Authenticate"] = 'Bearer realm="service"' })
     end
 
     local token = retrieve_token(accessToken)
     if not token then
-        return responses.send_HTTP_UNAUTHORIZED({[ERROR] = "invalid_token", error_description = "The access token is invalid or has expired"}, {["WWW-Authenticate"] = 'Bearer realm="service" error="invalid_token" error_description="The access token is invalid or has expired"'})
+        return responses.send_HTTP_UNAUTHORIZED({ [ERROR] = "invalid_token", error_description = "The access token is invalid or has expired" }, { ["WWW-Authenticate"] = 'Bearer realm="service" error="invalid_token" error_description="The access token is invalid or has expired"' })
     end
 
     -- Check expiration date
     if token.expires_in > 0 then -- zero means the token never expires
         local now = timestamp.get_utc()
         if now - token.created_at > (token.expires_in * 1000) then
-            return responses.send_HTTP_UNAUTHORIZED({[ERROR] = "invalid_token", error_description = "The access token is invalid or has expired"}, {["WWW-Authenticate"] = 'Bearer realm="service" error="invalid_token" error_description="The access token is invalid or has expired"'})
+            return responses.send_HTTP_UNAUTHORIZED({ [ERROR] = "invalid_token", error_description = "The access token is invalid or has expired" }, { ["WWW-Authenticate"] = 'Bearer realm="service" error="invalid_token" error_description="The access token is invalid or has expired"' })
         end
     end
 
     -- Retrive the credential from the token
     local credential = cache.get_or_set(cache.oauth2_credential_key(token.credential_id), function()
-        local result, err = singletons.dao.oauth2_credentials:find {id = token.credential_id}
+        local result, err = singletons.dao.oauth2_credentials:find { id = token.credential_id }
         if err then
             return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
         end
@@ -458,7 +456,7 @@ function _M.execute(conf)
 
     -- Retrive the consumer from the credential
     local consumer = cache.get_or_set(cache.consumer_key(credential.consumer_id), function()
-        local result, err = singletons.dao.consumers:find {id = credential.consumer_id}
+        local result, err = singletons.dao.consumers:find { id = credential.consumer_id }
         if err then
             return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
         end

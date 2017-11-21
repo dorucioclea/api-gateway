@@ -16,6 +16,7 @@ public class ServiceAlreadyExistsException extends AbstractAlreadyExistsExceptio
 
     /**
      * Constructor.
+     *
      * @param message the exception message
      */
     public ServiceAlreadyExistsException(String message) {

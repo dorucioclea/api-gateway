@@ -31,8 +31,7 @@ public class MaintenanceController {
     public void getStatus() {
         try {
             maintenanceMode = query.getMaintenanceModeStatus();
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
@@ -53,8 +52,7 @@ public class MaintenanceController {
         maintenanceMode.setMessage(message);
         try {
             storage.updateOperatingBean(maintenanceMode);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             maintenanceMode.setEnabled(false);
             throw ExceptionFactory.systemErrorException(ex);
         }
@@ -68,8 +66,7 @@ public class MaintenanceController {
             maintenanceMode.setEnabled(false);
             try {
                 storage.updateOperatingBean(maintenanceMode);
-            }
-            catch (StorageException ex) {
+            } catch (StorageException ex) {
                 maintenanceMode.setEnabled(true);
                 maintenanceMode.setMessage(oldMessage);
                 throw ExceptionFactory.systemErrorException(ex);
@@ -82,8 +79,7 @@ public class MaintenanceController {
         try {
             maintenanceMode.setMessage(message);
             storage.updateOperatingBean(maintenanceMode);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

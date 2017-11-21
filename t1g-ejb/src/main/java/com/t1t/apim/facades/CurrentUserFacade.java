@@ -32,21 +32,25 @@ import javax.inject.Inject;
 import java.util.*;
 
 /**
- *
- * @author  michallispashidis
+ * @author michallispashidis
  * @since 2015
  */
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class CurrentUserFacade {
     private static final Logger log = LoggerFactory.getLogger(CurrentUserFacade.class.getName());
-    @Inject private ISecurityContext securityContext;
-    @Inject private IStorageQuery query;
-    @Inject private IIdmStorage idmStorage;
-    @Inject private IStorage storage;
-    @Inject private GatewayFacade gatewayFacade;
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private IIdmStorage idmStorage;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private GatewayFacade gatewayFacade;
 
-    public CurrentUserBean getInfo(){
+    public CurrentUserBean getInfo() {
         String userId = securityContext.getCurrentUser();
         try {
             CurrentUserBean rval = new CurrentUserBean();
@@ -76,9 +80,9 @@ public class CurrentUserFacade {
             } else {
                 rval.initFromUser(user);
                 Set<PermissionBean> permissions = idmStorage.getPermissions(userId);
-                if(securityContext.isAdmin()){
+                if (securityContext.isAdmin()) {
                     rval.setPermissions(idmStorage.getAllPermissions());
-                }else{
+                } else {
                     rval.setPermissions(permissions);
                 }
                 rval.setAdmin(securityContext.isAdmin());
@@ -91,20 +95,21 @@ public class CurrentUserFacade {
         }
     }
 
-    public void updateInfo(UpdateUserBean info){
+    public void updateInfo(UpdateUserBean info) {
         try {
             String username = securityContext.getCurrentUser();
             UserBean user = idmStorage.getUser(username);
             if (user == null) {
                 throw new StorageException("User not found: " + username); //$NON-NLS-1$
             }
-            if (info.getEmail() != null)user.setEmail(info.getEmail());
-            if (info.getFullName() != null)user.setFullName(info.getFullName());
-            if (info.getPic() != null)user.setBase64pic(info.getPic());else user.setBase64pic("");
+            if (info.getEmail() != null) user.setEmail(info.getEmail());
+            if (info.getFullName() != null) user.setFullName(info.getFullName());
+            if (info.getPic() != null) user.setBase64pic(info.getPic());
+            else user.setBase64pic("");
             if (info.getCompany() != null) user.setCompany(info.getCompany());
-            if (info.getLocation()!=null)user.setLocation(info.getLocation());
-            if (info.getWebsite()!=null) user.setWebsite(info.getWebsite());
-            if (info.getBio()!=null)user.setBio(info.getBio());
+            if (info.getLocation() != null) user.setLocation(info.getLocation());
+            if (info.getWebsite() != null) user.setWebsite(info.getWebsite());
+            if (info.getBio() != null) user.setBio(info.getBio());
 
             idmStorage.updateUser(user);
             log.debug(String.format("Successfully updated user %s: %s", user.getUsername(), user)); //$NON-NLS-1$
@@ -113,7 +118,7 @@ public class CurrentUserFacade {
         }
     }
 
-    public List<OrganizationSummaryBean> getAppOrganizations(){
+    public List<OrganizationSummaryBean> getAppOrganizations() {
         try {
             return enrichOrgCounters(query.getOrgs(getPermittedOrganizations(PermissionType.appView)));
         } catch (StorageException e) {
@@ -121,7 +126,7 @@ public class CurrentUserFacade {
         }
     }
 
-    public List<OrganizationSummaryBean> getPlanOrganizations(){
+    public List<OrganizationSummaryBean> getPlanOrganizations() {
         try {
             return query.getOrgs(getPermittedOrganizations(PermissionType.planView));
         } catch (StorageException e) {
@@ -129,7 +134,7 @@ public class CurrentUserFacade {
         }
     }
 
-    public List<OrganizationSummaryBean> getServiceOrganizations(){
+    public List<OrganizationSummaryBean> getServiceOrganizations() {
         try {
             return enrichOrgCounters(query.getOrgs(getPermittedOrganizations(PermissionType.svcView)));
         } catch (StorageException e) {
@@ -137,7 +142,7 @@ public class CurrentUserFacade {
         }
     }
 
-    public List<ApplicationSummaryBean> getApplications(){
+    public List<ApplicationSummaryBean> getApplications() {
         try {
             return query.getApplicationsInOrgs(getPermittedOrganizations(PermissionType.appView));
         } catch (StorageException e) {
@@ -145,7 +150,7 @@ public class CurrentUserFacade {
         }
     }
 
-    public List<ServiceSummaryBean> getServices(){
+    public List<ServiceSummaryBean> getServices() {
         try {
             return query.getServicesInOrgs(getPermittedOrganizations(PermissionType.svcView));
         } catch (StorageException e) {
@@ -156,18 +161,19 @@ public class CurrentUserFacade {
     /**
      * Adds org counters for:
      * <ul>
-     *     <li>member count</li>
-     *     <li>locked plan count</li>
-     *     <li>published services</li>
-     *     <li>registered apps</li>
-     *     <li>events destination org</li>
+     * <li>member count</li>
+     * <li>locked plan count</li>
+     * <li>published services</li>
+     * <li>registered apps</li>
+     * <li>events destination org</li>
      * </ul>
+     *
      * @param organizationSummaryList
      * @return
      */
     private List<OrganizationSummaryBean> enrichOrgCounters(List<OrganizationSummaryBean> organizationSummaryList) throws StorageException {
-        if(organizationSummaryList!=null&&organizationSummaryList.size()>0){
-            for(OrganizationSummaryBean orgSumBean:organizationSummaryList){
+        if (organizationSummaryList != null && organizationSummaryList.size() > 0) {
+            for (OrganizationSummaryBean orgSumBean : organizationSummaryList) {
                 final Integer eventCountForOrg = query.getEventCountForOrg(orgSumBean.getId());
                 final Integer memberCountForOrg = query.getMemberCountForOrg(orgSumBean.getId());
                 final Integer lockedPlanCountForOrg = query.getLockedPlanCountForOrg(orgSumBean.getId());
@@ -186,6 +192,7 @@ public class CurrentUserFacade {
 
     /**
      * Returns an authenticated user's oauth2 tokens
+     *
      * @return
      */
     public OAuth2TokenPaginationBean getCurrentUserOAuth2Tokens(String offset) {
@@ -203,8 +210,7 @@ public class CurrentUserFacade {
                     if (offsets.containsKey(gatewayBean.getId())) {
                         tokens = gateway.getConsumerOAuthTokenListByUserId(securityContext.getCurrentUser(), offsets.get(gateway.getGatewayId()));
                     }
-                }
-                else {
+                } else {
                     tokens = gateway.getConsumerOAuthTokenListByUserId(securityContext.getCurrentUser(), null);
                 }
                 if (tokens != null) {
@@ -232,8 +238,7 @@ public class CurrentUserFacade {
                 rval.setNextPage(nextOffsets.isEmpty() ? null : GatewayPaginationUtil.encodeOffsets(nextOffsets));
             }
             rval.setData(tmpResult);
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
         return rval;
@@ -245,8 +250,7 @@ public class CurrentUserFacade {
         for (KongOAuthToken gwToken : gwTokenList.getData()) {
             if (securityContext.getCurrentUser().equals(gwToken.getAuthenticatedUserid())) {
                 gateway.revokeOAuthToken(token.getId());
-            }
-            else throw ExceptionFactory.notAuthorizedException();
+            } else throw ExceptionFactory.notAuthorizedException();
         }
     }
 
@@ -254,9 +258,9 @@ public class CurrentUserFacade {
         String currentUser = securityContext.getCurrentUser();
         Set<String> rval;
         try {
-            if(!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()){
+            if (!StringUtils.isEmpty(currentUser) && idmStorage.getUser(currentUser).getAdmin()) {
                 rval = storage.getAllOrganizations();
-            }else{
+            } else {
                 rval = securityContext.getPermittedOrganizations(type);
             }
         } catch (StorageException e) {

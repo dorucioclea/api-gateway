@@ -15,7 +15,7 @@
       "id": "KongOAuthToken",
       "type": "array",
       "items": {
-        "$ref":"KongOAuthToken.json"
+        "$ref": "KongOAuthToken.json"
       }
     },
     "total": {

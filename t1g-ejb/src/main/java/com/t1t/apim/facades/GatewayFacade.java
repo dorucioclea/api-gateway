@@ -44,15 +44,18 @@ import java.util.stream.Collectors;
 @Stateless
 @TransactionManagement(TransactionManagementType.CONTAINER)
 public class GatewayFacade {
-    private static Logger log = LoggerFactory.getLogger(GatewayFacade.class.getName());
-    @Inject private ISecurityContext securityContext;
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
-    @Inject private IGatewayLinkFactory gatewayLinkFactory;
-
     private static final ObjectMapper mapper = new ObjectMapper();
+    private static Logger log = LoggerFactory.getLogger(GatewayFacade.class.getName());
+    @Inject
+    private ISecurityContext securityContext;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
+    @Inject
+    private IGatewayLinkFactory gatewayLinkFactory;
 
-    public GatewayTestResultBean test(NewGatewayBean bean){
+    public GatewayTestResultBean test(NewGatewayBean bean) {
         GatewayTestResultBean rval = new GatewayTestResultBean();
         try {
             GatewayBean testGateway = new GatewayBean();
@@ -74,7 +77,7 @@ public class GatewayFacade {
         return rval;
     }
 
-    public List<GatewaySummaryBean> list(){
+    public List<GatewaySummaryBean> list() {
         try {
             return query.listGateways();
         } catch (StorageException e) {
@@ -82,7 +85,7 @@ public class GatewayFacade {
         }
     }
 
-    public GatewayBean create(NewGatewayBean bean){
+    public GatewayBean create(NewGatewayBean bean) {
         Date now = new Date();
         GatewayBean gateway = new GatewayBean();
         gateway.setId(BeanUtils.idFromName(bean.getName()));
@@ -111,7 +114,7 @@ public class GatewayFacade {
         return gateway;
     }
 
-    public GatewayBean get(String gatewayId){
+    public GatewayBean get(String gatewayId) {
         try {
             GatewayBean bean = storage.getGateway(gatewayId);
             if (bean == null) {
@@ -132,7 +135,7 @@ public class GatewayFacade {
         }
     }
 
-    public void update(String gatewayId, UpdateGatewayBean bean){
+    public void update(String gatewayId, UpdateGatewayBean bean) {
         try {
             Date now = new Date();
             GatewayBean gbean = storage.getGateway(gatewayId);
@@ -159,7 +162,7 @@ public class GatewayFacade {
         }
     }
 
-    public void remove(String gatewayId){
+    public void remove(String gatewayId) {
         try {
             GatewayBean gbean = storage.getGateway(gatewayId);
             if (gbean == null) {
@@ -186,7 +189,7 @@ public class GatewayFacade {
      */
     public GatewaySummaryBean getDefaultGateway() throws StorageException {
         final List<GatewaySummaryBean> gatewaySummaryBeen = query.listGateways();
-        if(gatewaySummaryBeen!=null&&gatewaySummaryBeen.size()>0)return query.listGateways().get(0);
+        if (gatewaySummaryBeen != null && gatewaySummaryBeen.size() > 0) return query.listGateways().get(0);
         else return null;
     }
 
@@ -213,53 +216,81 @@ public class GatewayFacade {
 
     /**
      * Returns the private key of the default gateway
+     *
      * @return
      */
     public PrivateKey getDefaultGatewayPrivateKey() {
         try {
             return KeyUtils.getPrivateKey(get(getDefaultGateway().getId()).getJWTPrivKey());
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
-        catch (StorageException ex) {
+    }
+
+    /**
+     * Get the default gateway's host
+     *
+     * @return
+     */
+    public String getDefaultGatewayHost() {
+        try {
+            return get(getDefaultGateway().getId()).getEndpoint();
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
     /**
      * Returns the public key of the default gateway
+     *
      * @return
      */
     public String getDefaultGatewayPublicKey() {
         try {
             return get(getDefaultGateway().getId()).getJWTPubKey();
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
         }
-        catch (StorageException ex) {
+    }
+
+    /**
+     * Returns the JWT expiration value for the default gateway
+     *
+     * @return
+     */
+    public Integer getDefaultGatewayJwtExpirationTime() {
+        try {
+            return get(getDefaultGateway().getId()).getJWTExpTime();
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
     /**
      * Returns the public key endpoint for the default gateway
+     *
      * @return
      */
     public String getDefaultGatewayPublicKeyEnpoint() {
         try {
             GatewayBean gatewayBean = get(getDefaultGateway().getId());
-            return gatewayBean.getEndpoint()+gatewayBean.getJWTPubKeyEndpoint();
-        }
-        catch (StorageException ex) {
+            String host = gatewayBean.getEndpoint();
+            String path = gatewayBean.getJWTPubKeyEndpoint();
+            return host + path;
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
     /**
      * Returns a gatewaylink for the default gateway
+     *
      * @return
      */
-    public IGatewayLink getDefaultGatewayLink(){
+    public IGatewayLink getDefaultGatewayLink() {
         try {
             return createGatewayLink(getDefaultGateway().getId());
-        }
-        catch (StorageException ex) {
+        } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }

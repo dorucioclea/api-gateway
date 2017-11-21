@@ -26,15 +26,17 @@ import java.util.*;
 /**
  * A JPA implementation of the role storage interface {@link IIdmStorage}.
  * We apply a consumer filter based on its scope.
- *
  */
 @ApplicationScoped
 @Default
 public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
 
-    @Inject private ISecurityAppContext appContext;
-    @Inject private IStorage storage;
-    @Inject private IStorageQuery query;
+    @Inject
+    private ISecurityAppContext appContext;
+    @Inject
+    private IStorage storage;
+    @Inject
+    private IStorageQuery query;
 
     /**
      * @see IIdmStorage#createUser(UserBean)
@@ -114,7 +116,7 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         EntityManager entityManager = getActiveEntityManager();
         Query query = entityManager.createQuery("SELECT u from UserBean u WHERE u.email = :mail").setParameter("mail", mail);
         final List<UserBean> resultList = query.getResultList();
-        if(resultList.size()>0) return resultList.get(0);
+        if (resultList.size() > 0) return resultList.get(0);
         else return null;
     }
 
@@ -198,10 +200,11 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         criteriaQuery.where(builder.equal(from.get("userId"), userId)); //$NON-NLS-1$
         TypedQuery<RoleMembershipBean> typedQuery = entityManager.createQuery(criteriaQuery);
         List<RoleMembershipBean> resultList = typedQuery.getResultList();
-        for(RoleMembershipBean rmb:resultList){
+        for (RoleMembershipBean rmb : resultList) {
             final String organizationId = rmb.getOrganizationId();
             final OrganizationBean organization = storage.getOrganization(organizationId);
-            if(organization!=null && organization.getContext().equals(appContext.getApplicationPrefix())) memberships.add(rmb);
+            if (organization != null && organization.getContext().equals(appContext.getApplicationPrefix()))
+                memberships.add(rmb);
         }
         //memberships.addAll(resultList);
         return memberships;
@@ -263,7 +266,7 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
             String qualifier = membership.getOrganizationId();
             //apply app scope - checking org
             final OrganizationBean organization = storage.getOrganization(qualifier);
-            if(organization.getContext().equals(appContext.getApplicationPrefix()) || adminPrefixes.contains(appContext.getApplicationPrefix())) {
+            if (organization.getContext().equals(appContext.getApplicationPrefix()) || adminPrefixes.contains(appContext.getApplicationPrefix())) {
                 for (PermissionType permission : role.getPermissions()) {
                     PermissionBean p = new PermissionBean();
                     p.setName(permission);
@@ -284,14 +287,13 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
         if (!this.query.getManagedAppPrefixesForTypes(Collections.singletonList(ManagedApplicationTypes.Admin)).contains(appContext.getApplicationPrefix())) {
             query = em.createQuery("SELECT o FROM OrganizationBean o WHERE o.context = :oContext");
             query.setParameter("oContext", appContext.getApplicationPrefix());
-        }
-        else {
+        } else {
             query = em.createQuery("SELECT o FROM OrganizationBean o");
         }
         List<OrganizationBean> orgs = (List<OrganizationBean>) query.getResultList();
-        for(OrganizationBean org:orgs){
+        for (OrganizationBean org : orgs) {
             PermissionType[] ptypes = PermissionType.values();
-            for(PermissionType ptunit:ptypes){
+            for (PermissionType ptunit : ptypes) {
                 PermissionBean p = new PermissionBean();
                 p.setName(ptunit);
                 p.setOrganizationId(org.getId());
@@ -304,13 +306,13 @@ public class JpaIdmStorage extends AbstractJpaStorage implements IIdmStorage {
     public List<UserBean> getAllUsers() throws StorageException {
         EntityManager em = getActiveEntityManager();
         Query query = em.createQuery("SELECT u FROM UserBean u");
-        return (List<UserBean>)query.getResultList();
+        return (List<UserBean>) query.getResultList();
     }
 
     public List<UserBean> getAdminUsers() throws StorageException {
         EntityManager em = getActiveEntityManager();
         Query query = em.createQuery("SELECT u FROM UserBean u WHERE u.admin = true");
-        return (List<UserBean>)query.getResultList();
+        return (List<UserBean>) query.getResultList();
     }
 
     /**

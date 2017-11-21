@@ -10,7 +10,6 @@ import java.util.Set;
  * role is automatically granted to the user creating an org, as well as
  * the specific permissions granted to users who are members of organizations
  * via the role.
- *
  */
 @Entity
 @Table(name = "roles")
@@ -21,16 +20,16 @@ public class RoleBean implements Serializable {
     @Id
     private String id;
     private String name;
-    @Column(updatable=true, nullable=true, length=512)
+    @Column(updatable = true, nullable = true, length = 512)
     private String description;
-    @Column(name = "created_by", updatable=false, nullable=false)
+    @Column(name = "created_by", updatable = false, nullable = false)
     private String createdBy;
-    @Column(name = "created_on", updatable=false, nullable=false)
+    @Column(name = "created_on", updatable = false, nullable = false)
     private Date createdOn;
-    @Column(name = "auto_grant", updatable=true, nullable=true)
+    @Column(name = "auto_grant", updatable = true, nullable = true)
     private Boolean autoGrant = Boolean.FALSE;
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(name="permissions", joinColumns=@JoinColumn(name="role_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "permissions", joinColumns = @JoinColumn(name = "role_id"))
     private Set<PermissionType> permissions;
 
     /**

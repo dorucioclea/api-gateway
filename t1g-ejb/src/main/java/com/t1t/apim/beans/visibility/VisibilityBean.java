@@ -21,9 +21,9 @@ import java.io.Serializable;
 @Embeddable
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class VisibilityBean implements Serializable {
-    @Column(name = "code", nullable=false)
+    @Column(name = "code", nullable = false)
     private String code;
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Boolean show;
     @Transient
     private String name;

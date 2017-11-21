@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 /**
  * Bean used when creating a new policy for a plan, service, or app.
- *
  */
 public class NewPolicyBean implements Serializable {
 
@@ -52,7 +51,6 @@ public class NewPolicyBean implements Serializable {
     }
 
     /**
-     *
      * @return the kongPluginId
      */
     public String getKongPluginId() {
@@ -60,7 +58,6 @@ public class NewPolicyBean implements Serializable {
     }
 
     /**
-     *
      * @param kongPluginId the kongPluginId to set
      */
     public void setKongPluginId(String kongPluginId) {

@@ -5,7 +5,6 @@ import java.util.Date;
 
 /**
  * Summary of policy info.
- *
  */
 public class PolicySummaryBean implements Serializable {
 

@@ -87,13 +87,11 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
         //calling get to perform a validation
         try {
             return getCurrentUser();
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             try {
                 userFacade.initNewUser(claims, validatedUser);
                 return currentUser;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw ExceptionFactory.userNotFoundException(currentUser);
             }
         }

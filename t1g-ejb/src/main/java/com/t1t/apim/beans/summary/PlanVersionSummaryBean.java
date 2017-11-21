@@ -7,7 +7,6 @@ import java.io.Serializable;
 
 /**
  * A summary of an individual plan version.
- *
  */
 public class PlanVersionSummaryBean implements Serializable {
 

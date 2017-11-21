@@ -9,7 +9,7 @@ import java.io.Serializable;
  * @since 2016
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ServiceBrandingSummaryBean implements Serializable{
+public class ServiceBrandingSummaryBean implements Serializable {
 
     private String id;
     private String name;
