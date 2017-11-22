@@ -1185,9 +1185,9 @@ VALUES (903, 'Publisher', 'v1', 'Publisher', 'pub', TRUE, FALSE, 'publisher');
 INSERT INTO managed_applications (id, name, version, type, prefix, activated, restricted, app_id)
 VALUES (905, 'Admin Application', 'v1', 'Admin', 'admin', TRUE, FALSE, 'adminapp');
 
-INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (901, '***REMOVED***');
-INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (902, '***REMOVED***');
-INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (903, '***REMOVED***');
+INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (901, 'FILL_IN_KEY');
+INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (902, 'FILL_IN_KEY');
+INSERT INTO managed_application_keys (managed_app_id, api_key) VALUES (903, 'FILL_IN_KEY');
 
 -- INSERT default templates
 INSERT INTO mail_templates (topic, subject, content, created_on, updated_on) VALUES

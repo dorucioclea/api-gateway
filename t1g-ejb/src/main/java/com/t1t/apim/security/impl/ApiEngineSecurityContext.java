@@ -3,10 +3,13 @@ package com.t1t.apim.security.impl;
 import com.t1t.apim.beans.idm.UserBean;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
+import com.t1t.apim.exceptions.UserNotFoundException;
 import com.t1t.apim.facades.UserFacade;
 import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Default;
@@ -19,7 +22,7 @@ import javax.inject.Inject;
 @Default
 public class ApiEngineSecurityContext extends AbstractSecurityContext {
 
-    private static final String HEADER_CREDENTIAL_USERNAME = "X-Credential-Username";
+    private static final Logger log = LoggerFactory.getLogger(ApiEngineSecurityContext.class);
 
     @Inject
     private UserFacade userFacade;
@@ -88,10 +91,12 @@ public class ApiEngineSecurityContext extends AbstractSecurityContext {
         try {
             return getCurrentUser();
         } catch (Exception ex) {
+            log.warn("User not found, attempting to initialize new user: ", ex);
             try {
                 userFacade.initNewUser(claims, validatedUser);
                 return currentUser;
             } catch (Exception e) {
+                log.error("Could not initialize new user: ", e);
                 throw ExceptionFactory.userNotFoundException(currentUser);
             }
         }
