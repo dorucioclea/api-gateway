@@ -164,16 +164,18 @@ public class OrganizationFacade {
 
         //verify if organization is created in marketplace (aka not publisher or consent type)
         ManagedApplicationBean managedApp = query.findManagedApplication(appContext.getApplicationPrefix());
-        if (managedApp != null && (
-                managedApp.getType().equals(ManagedApplicationTypes.InternalMarketplace) ||
-                        managedApp.getType().equals(ManagedApplicationTypes.ExternalMarketplace)
-        )) {
-            //the request comes from a marketplace => prefix the org
-            orgUniqueId = managedApp.getPrefix() + MARKET_SEPARATOR + orgUniqueId;
+        if (managedApp != null){
+            if (managedApp.getType().equals(ManagedApplicationTypes.InternalMarketplace) || managedApp.getType().equals(ManagedApplicationTypes.ExternalMarketplace)) {
+                //the request comes from a marketplace => prefix the org
+                orgUniqueId = managedApp.getPrefix() + MARKET_SEPARATOR + orgUniqueId;
+            } else if (managedApp.getType().equals(ManagedApplicationTypes.Admin) && StringUtils.isNotEmpty(bean.getOptionalTargetContext())){
+                //admin managed application type can provide a target context
+                orgUniqueId = bean.getOptionalTargetContext().toLowerCase().trim() + MARKET_SEPARATOR + orgUniqueId;
+            }
         }
         OrganizationBean orgBean = new OrganizationBean();
         orgBean.setName(bean.getName());
-        orgBean.setContext(appContext.getApplicationPrefix());
+        orgBean.setContext((managedApp.getType().equals(ManagedApplicationTypes.Admin) && StringUtils.isNotEmpty(bean.getOptionalTargetContext()))?bean.getOptionalTargetContext():appContext.getApplicationPrefix());
         orgBean.setDescription(bean.getDescription());
         orgBean.setId(orgUniqueId);
         orgBean.setCreatedOn(new Date());
@@ -181,13 +183,8 @@ public class OrganizationFacade {
         orgBean.setModifiedOn(new Date());
         orgBean.setModifiedBy(securityContext.getCurrentUser());
         orgBean.setOrganizationPrivate(bean.getOrganizationPrivate() == null ? true : bean.getOrganizationPrivate());
+        if (StringUtils.isNotEmpty(bean.getFriendlyName())) {orgBean.setFriendlyName(bean.getFriendlyName());}
 
-        if (bean.getFriendlyName() != null) {
-            if (!securityContext.isAdmin()) {
-                throw ExceptionFactory.notAuthorizedException();
-            }
-            orgBean.setFriendlyName(bean.getFriendlyName());
-        }
         try {
             // Store/persist the new organization
             if (storage.getOrganization(orgBean.getId()) != null || storage.getBranding(orgUniqueId) != null) {
@@ -276,8 +273,15 @@ public class OrganizationFacade {
     }
 
     public ApplicationBean createApp(String organizationId, NewApplicationBean bean) {
-        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId))
-            throw ExceptionFactory.notAuthorizedException();
+        if (!securityContext.hasPermission(PermissionType.appEdit, organizationId)) throw ExceptionFactory.notAuthorizedException();
+        //verify if organization is created in marketplace (aka not publisher or consent type)
+        ManagedApplicationBean managedApp = null;
+        try {
+            managedApp = query.findManagedApplication(appContext.getApplicationPrefix());
+        } catch (StorageException e) {
+            throw ExceptionFactory.invalidApplicationStatusException();
+        }
+
         ApplicationBean newApp = new ApplicationBean();
         newApp.setId(BeanUtils.idFromName(bean.getName()));
         newApp.setName(bean.getName());
@@ -285,7 +289,7 @@ public class OrganizationFacade {
         newApp.setDescription(bean.getDescription());
         newApp.setCreatedBy(securityContext.getCurrentUser());
         newApp.setCreatedOn(new Date());
-        newApp.setContext(appContext.getApplicationIdentifier().getPrefix());
+        newApp.setContext((managedApp.getType().equals(ManagedApplicationTypes.Admin) && StringUtils.isNotEmpty(bean.getOptionalTargetContext()))?bean.getOptionalTargetContext():appContext.getApplicationIdentifier().getPrefix());
         newApp.setEmail(bean.getEmail());
         try {
             // Store/persist the new application

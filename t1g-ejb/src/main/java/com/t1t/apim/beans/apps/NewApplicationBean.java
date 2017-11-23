@@ -17,6 +17,7 @@ public class NewApplicationBean implements Serializable {
     private String initialVersion;
     private String base64logo;
     private String email;
+    private String optionalTargetContext;
 
     /**
      * Constructor.
@@ -94,6 +95,13 @@ public class NewApplicationBean implements Serializable {
         this.email = email;
     }
 
+    public String getOptionalTargetContext() {return optionalTargetContext;}
+
+    /**
+     * @param optionalTargetContext context where to create the application (must be the prefix of a managed application)
+     */
+    public void setOptionalTargetContext(String optionalTargetContext) {this.optionalTargetContext = optionalTargetContext;}
+
     @Override
     public String toString() {
         return "NewApplicationBean{" +
@@ -102,6 +110,7 @@ public class NewApplicationBean implements Serializable {
                 ", initialVersion='" + initialVersion + '\'' +
                 ", base64logo='" + base64logo + '\'' +
                 ", email='" + email + '\'' +
+                ", optionalTargetContext='" + optionalTargetContext + '\'' +
                 '}';
     }
 }

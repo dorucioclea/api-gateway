@@ -15,6 +15,7 @@ public class NewOrganizationBean implements Serializable {
     private String name;
     private String description;
     private String friendlyName;
+    private String optionalTargetContext;
     private Boolean organizationPrivate;
 
     /**
@@ -72,4 +73,11 @@ public class NewOrganizationBean implements Serializable {
     public void setOrganizationPrivate(Boolean organizationPrivate) {
         this.organizationPrivate = organizationPrivate;
     }
+
+    public String getOptionalTargetContext() {return optionalTargetContext;}
+
+    /**
+     * @param optionalTargetContext optional target context, must be a prefix from a managed application
+     */
+    public void setOptionalTargetContext(String optionalTargetContext) {this.optionalTargetContext = optionalTargetContext;}
 }
