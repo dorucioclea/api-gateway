@@ -51,17 +51,8 @@ public class AppConfigTest {
     }
 
     @Test
-    public void testGetDataDogMetricsApiKey() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsApiKey()));
-    }
-
-    @Test
     public void testGetDataDogMetricsURI() throws Exception {
         assertFalse(StringUtils.isEmpty(config.getDataDogMetricsUri()));
     }
 
-    @Test
-    public void testGetDataDogMetricsApplicationKey() throws Exception {
-        assertFalse(StringUtils.isEmpty(config.getDataDogMetricsApplicationKey()));
-    }
 }

@@ -42,23 +42,6 @@ public class SwaggerUtilsTest {
     };*/
 
     @Test
-    public void testGetSwaggerPaths() throws Exception {
-        Swagger swaggerdefs = SwaggerUtils.getSwaggerObject(getClass().getResourceAsStream("/swaggerdefs/swagger_security.json"));
-        assertNotNull(swaggerdefs);
-        SwaggerUtils.printSwaggerPaths(swaggerdefs);
-        SwaggerUtils.printSwaggerSecurity(swaggerdefs);
-    }
-
-    @Test
-    public void testGetSwaggerSecurity() throws Exception {
-        Swagger swaggerdefs = SwaggerUtils.getSwaggerObject(getClass().getResourceAsStream("/swaggerdefs/swagger_simple.json"));
-        assertNotNull(swaggerdefs);
-        SwaggerUtils.printSwaggerPaths(swaggerdefs);
-        thrown.expect(NullPointerException.class);
-        SwaggerUtils.printSwaggerSecurity(swaggerdefs);
-    }
-
-    @Test
     public void testPrintSwaggerPaths() throws Exception {
         InputStream is = getClass().getResourceAsStream("/swaggerdefs/swagger_translation.json");
         String jsonTxt = IOUtils.toString(is);

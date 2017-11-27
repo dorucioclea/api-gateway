@@ -175,7 +175,7 @@ public class OrganizationFacade {
         }
         OrganizationBean orgBean = new OrganizationBean();
         orgBean.setName(bean.getName());
-        orgBean.setContext((managedApp.getType().equals(ManagedApplicationTypes.Admin) && StringUtils.isNotEmpty(bean.getOptionalTargetContext()))?bean.getOptionalTargetContext():appContext.getApplicationPrefix());
+        orgBean.setContext(managedApp!=null && (managedApp.getType().equals(ManagedApplicationTypes.Admin) && StringUtils.isNotEmpty(bean.getOptionalTargetContext()))?bean.getOptionalTargetContext():appContext.getApplicationPrefix());
         orgBean.setDescription(bean.getDescription());
         orgBean.setId(orgUniqueId);
         orgBean.setCreatedOn(new Date());
@@ -289,7 +289,7 @@ public class OrganizationFacade {
         newApp.setDescription(bean.getDescription());
         newApp.setCreatedBy(securityContext.getCurrentUser());
         newApp.setCreatedOn(new Date());
-        newApp.setContext((managedApp.getType().equals(ManagedApplicationTypes.Admin) && StringUtils.isNotEmpty(bean.getOptionalTargetContext()))?bean.getOptionalTargetContext():appContext.getApplicationIdentifier().getPrefix());
+        newApp.setContext(managedApp!=null && (managedApp.getType().equals(ManagedApplicationTypes.Admin) && StringUtils.isNotEmpty(bean.getOptionalTargetContext()))?bean.getOptionalTargetContext():appContext.getApplicationIdentifier().getPrefix());
         newApp.setEmail(bean.getEmail());
         try {
             // Store/persist the new application
@@ -376,6 +376,7 @@ public class OrganizationFacade {
             log.debug("Enter updateAppversionURI:{}", uri);
             ApplicationVersionBean avb = storage.getApplicationVersion(organizationId, applicationId, version);
             if (avb == null) throw ExceptionFactory.applicationNotFoundException(applicationId);
+            if(uri != null && uri.getUris() !=null && uri.getUris().size()>0)
             for (String redirectURI : uri.getUris()) {
                 if (!ValidationUtils.isValidAbsoluteURI(redirectURI))
                     throw ExceptionFactory.invalidArgumentException("invalidAbsoluteURI", redirectURI);
