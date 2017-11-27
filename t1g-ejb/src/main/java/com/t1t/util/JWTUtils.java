@@ -255,7 +255,7 @@ public class JWTUtils {
         return issuedJwt;
     }
 
-    public static String composeJWT(JWTRequestBean jwtRequestBean, Integer jwtExpTime, Key privateKey, String pubKeyEnpoint) throws JoseException, UnsupportedEncodingException {
+    public static String composeJWT(JWTRequestBean jwtRequestBean, Integer jwtExpTime, Key privateKey, String pubKeyEnpoint, String algorithm) throws JoseException, UnsupportedEncodingException {
         // Create the Claims, which will be the content of the JWT
         JwtClaims claims = new JwtClaims();
         //add optional claims
@@ -275,7 +275,7 @@ public class JWTUtils {
         claims.setClaim(IJWT.NAME, jwtRequestBean.getName());//unique username
         claims.setClaim(IJWT.SURNAME, jwtRequestBean.getSurname());
         claims.setClaim(IJWT.GIVEN_NAME, jwtRequestBean.getGivenName());
-        return composeJWT(claims, privateKey, pubKeyEnpoint, AlgorithmIdentifiers.RSA_USING_SHA256);
+        return composeJWT(claims, privateKey, pubKeyEnpoint, algorithm);
     }
 
     /**

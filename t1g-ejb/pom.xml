@@ -496,9 +496,10 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <goals>
+                        <!--Uncomment the goal in order to generate kong model-->
+<!--                        <goals>
                             <goal>generate</goal>
-                        </goals>
+                        </goals>-->
                     </execution>
                 </executions>
             </plugin>
