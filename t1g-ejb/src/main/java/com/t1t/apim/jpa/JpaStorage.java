@@ -1023,20 +1023,20 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     }
 
     /**
-     * @see IStorageQuery#getApplicationsInOrg(String)
+     * @see IStorageQuery#getApplicationsInOrg(String, boolean)
      */
     @Override
-    public List<ApplicationSummaryBean> getApplicationsInOrg(String orgId) throws StorageException {
+    public List<ApplicationSummaryBean> getApplicationsInOrg(String orgId, boolean filterByContext) throws StorageException {
         Set<String> orgIds = new HashSet<>();
         orgIds.add(orgId);
-        return getApplicationsInOrgs(orgIds);
+        return getApplicationsInOrgs(orgIds, filterByContext);
     }
 
     /**
-     * @see IStorageQuery#getApplicationsInOrgs(Set)
+     * @see IStorageQuery#getApplicationsInOrgs(Set, boolean)
      */
     @Override
-    public List<ApplicationSummaryBean> getApplicationsInOrgs(Set<String> orgIds) throws StorageException {
+    public List<ApplicationSummaryBean> getApplicationsInOrgs(Set<String> orgIds, boolean filterByContext) throws StorageException {
         List<ApplicationSummaryBean> rval = new ArrayList<>();
         if (orgIds != null && orgIds.size() > 0) {
             EntityManager entityManager = getActiveEntityManager();
@@ -1047,7 +1047,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             if (resultList.size() > 0) {
                 List<ApplicationBean> qr = (List<ApplicationBean>) query.getResultList();
                 List<ApplicationBean> qrFiltered = new ArrayList<>();
-                if (!StringUtils.isEmpty(appContext.getApplicationPrefix())) {
+                if (filterByContext && !StringUtils.isEmpty(appContext.getApplicationPrefix())) {
                     qrFiltered = qr.stream().filter(app -> app.getContext().equalsIgnoreCase(appContext.getApplicationPrefix())).collect(Collectors.toList());
                 } else qrFiltered = qr;
 

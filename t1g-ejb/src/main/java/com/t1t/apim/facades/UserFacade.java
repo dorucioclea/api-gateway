@@ -205,7 +205,7 @@ public class UserFacade implements Serializable {
                     permittedOrganizations.add(permission.getOrganizationId());
                 }
             }
-            return query.getApplicationsInOrgs(permittedOrganizations);
+            return query.getApplicationsInOrgs(permittedOrganizations, true);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }

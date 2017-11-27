@@ -202,16 +202,17 @@ public interface IStorageQuery {
      * @return list of applications in orgs
      * @throws StorageException if a storage problem occurs while storing a bean.
      */
-    public List<ApplicationSummaryBean> getApplicationsInOrgs(Set<String> organizationIds) throws StorageException;
+    public List<ApplicationSummaryBean> getApplicationsInOrgs(Set<String> organizationIds, boolean filterByContext) throws StorageException;
 
     /**
      * Returns summary info for all applications in the given organization.
      *
      * @param organizationId the organization id
+     * @param filterByContext filter applications by context
      * @return list of applications
      * @throws StorageException if a storage problem occurs while storing a bean.
      */
-    public List<ApplicationSummaryBean> getApplicationsInOrg(String organizationId) throws StorageException;
+    public List<ApplicationSummaryBean> getApplicationsInOrg(String organizationId, boolean filterByContext) throws StorageException;
 
     /**
      * Returns all application versions for a given app.

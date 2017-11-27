@@ -144,7 +144,7 @@ public class CurrentUserFacade {
 
     public List<ApplicationSummaryBean> getApplications() {
         try {
-            return query.getApplicationsInOrgs(getPermittedOrganizations(PermissionType.appView));
+            return query.getApplicationsInOrgs(getPermittedOrganizations(PermissionType.appView), true);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }

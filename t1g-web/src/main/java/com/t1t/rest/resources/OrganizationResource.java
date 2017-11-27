@@ -852,11 +852,19 @@ public class OrganizationResource {
     @Path("/{organizationId}/services/{serviceId}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deleteService(@PathParam("organizationId") String organizationId,
-                              @PathParam("serviceId") String serviceId)
+                              @PathParam("serviceId") String serviceId,
+                              @QueryParam("force") Boolean force)
             throws ServiceNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         Preconditions.checkArgument(!StringUtils.isEmpty(serviceId), Messages.i18n.format("emptyValue", "Service ID"));
-        orgFacade.deleteService(organizationId, serviceId);
+        boolean forceDeletion = false;
+        if (force != null) {
+            forceDeletion = force;
+            if (forceDeletion && !securityContext.isAdmin()) {
+                throw ExceptionFactory.notAuthorizedException();
+            }
+        }
+        orgFacade.deleteService(organizationId, serviceId, forceDeletion);
     }
 
     @ApiOperation(value = "Get Service Activity",
@@ -2070,12 +2078,20 @@ public class OrganizationResource {
     @DELETE
     @Path("/{organizationId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteOrganization(@PathParam("organizationId") String organizationId) throws OrganizationNotFoundException, NotAuthorizedException {
+    public void deleteOrganization(@PathParam("organizationId") String organizationId,
+                                   @QueryParam("force") Boolean force) throws OrganizationNotFoundException, NotAuthorizedException {
         Preconditions.checkArgument(!StringUtils.isEmpty(organizationId), Messages.i18n.format("emptyValue", "Organization ID"));
         if (!securityContext.hasPermission(PermissionType.orgAdmin, organizationId)) {
             throw ExceptionFactory.notAuthorizedException();
         }
-        orgFacade.deleteOrganization(organizationId);
+        boolean forceDeletion = false;
+        if (force != null) {
+            forceDeletion = force;
+            if (forceDeletion && !securityContext.isAdmin()) {
+                throw ExceptionFactory.notAuthorizedException();
+            }
+        }
+        orgFacade.deleteOrganization(organizationId, forceDeletion);
     }
 
     @ApiOperation(value = "Request membership for organization",
