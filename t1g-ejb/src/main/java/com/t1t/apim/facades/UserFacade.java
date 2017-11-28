@@ -27,7 +27,6 @@ import com.t1t.kong.model.KongPluginJWTResponse;
 import com.t1t.util.ConsumerConventionUtil;
 import com.t1t.util.CustomCollectors;
 import com.t1t.util.JWTUtils;
-import com.t1t.util.KeyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jose4j.jwk.HttpsJwks;
 import org.jose4j.jwt.JwtClaims;

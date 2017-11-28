@@ -7,6 +7,7 @@ import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jwk.VerificationJwkSelector;
+import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.consumer.InvalidJwtException;
@@ -180,7 +181,7 @@ public class JWTClaimTest {
         jwtRequestBean.setSubject("ex02393");
         String jwt = null;
         try {
-            jwt = JWTUtils.composeJWT(jwtRequestBean, 60, new HmacKey(JWT_SECRET.getBytes("UTF-8")), "somenendpoint");
+            jwt = JWTUtils.composeJWT(jwtRequestBean, 60, new HmacKey(JWT_SECRET.getBytes("UTF-8")), "somenendpoint", JWTUtils.JWT_HS256);
         } catch (JoseException e) {
             fail();
         }

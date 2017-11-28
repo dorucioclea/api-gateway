@@ -10,6 +10,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by michallispashidis on 8/09/15.
  */
+
 public class GatewayPathUtilitiesTest {
     private static final String PATH = "/orgid/servicebasepath/v1";
     private static final String ORGID = "orgid";
@@ -22,11 +23,11 @@ public class GatewayPathUtilitiesTest {
         tempService.setOrganizationId(ORGID);
         tempService.setBasepaths(Collections.singleton(BASEPATH));
         tempService.setVersion(VERSION);
-        assertEquals(GatewayPathUtilities.generateGatewayContextPath(tempService), PATH);
+        assertEquals(PATH,GatewayPathUtilities.generateGatewayContextPath(tempService).get(0));
     }
 
     @Test
     public void testGenerateGatewayContextPathByStringParams() throws Exception {
-        assertEquals(GatewayPathUtilities.generateGatewayContextPath(ORGID, Collections.singleton(BASEPATH), VERSION), PATH);
+        assertEquals(PATH,GatewayPathUtilities.generateGatewayContextPath(ORGID, Collections.singleton(BASEPATH), VERSION).get(0));
     }
 }

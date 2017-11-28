@@ -1,5 +1,7 @@
 Trust1Gateway: API Management Services based on open source KONG gateway
 ========================================================================
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/23b9a7b26ef44a2b886221fea10a70c7)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Trust1Team/api-gateway&amp;utm_campaign=Badge_Grade)
+
 [![][t1g-logo]][Trust1Gateway-url]
 
 Summary: Open source API manager build on [Kong](https://getkong.org/)
