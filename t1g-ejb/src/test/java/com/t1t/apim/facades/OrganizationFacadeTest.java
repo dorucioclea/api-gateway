@@ -454,9 +454,9 @@ public class OrganizationFacadeTest {
         OrganizationBean ob = new OrganizationBean();
         ob.setName("someorg");
         when(storage.getOrganization(anyString())).thenReturn(ob);
-        when(query.getApplicationsInOrg(anyString())).thenReturn(new ArrayList<>());
+        when(query.getApplicationsInOrg(anyString(), true)).thenReturn(new ArrayList<>());
         orgFacade.listApps("someorg");
-        verify(query).getApplicationsInOrg("someorg");
+        verify(query).getApplicationsInOrg("someorg", true);
     }
 
     @Test

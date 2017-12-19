@@ -171,9 +171,9 @@ public class UserFacadeTest extends TestCase {
         PermissionBean perm = new PermissionBean();
         perm.setName(PermissionType.appView);
         when(idmStorage.getPermissions(anyString())).thenReturn(permissions);
-        when(query.getApplicationsInOrg(anyObject())).thenReturn(new ArrayList<ApplicationSummaryBean>());
+        when(query.getApplicationsInOrg(anyObject(),true)).thenReturn(new ArrayList<ApplicationSummaryBean>());
         userFacade.getApplications("someapp");
-        verify(query).getApplicationsInOrgs(anyObject());
+        verify(query).getApplicationsInOrgs(anyObject(), true);
     }
 
     public void testGetServices() throws Exception {

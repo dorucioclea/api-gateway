@@ -68,6 +68,7 @@ import com.t1t.apim.security.ISecurityAppContext;
 import com.t1t.apim.security.ISecurityContext;
 import com.t1t.kong.model.*;
 import com.t1t.util.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.gateway.GatewayException;
@@ -842,6 +843,14 @@ public class OrganizationFacade {
         try {
             List<ContractSummaryBean> summaries = query.getApplicationContracts(organizationId, applicationId, version);
 
+            //Delete policies before deleting contracts
+            for (ContractSummaryBean sum : summaries) {
+                List<PolicyBean> policies = query.getApplicationVersionContractPolicies(organizationId, applicationId, version, sum.getContractId());
+                for (PolicyBean policy : policies) {
+                    storage.deletePolicy(policy);
+                }
+            }
+
             //Delete the contracts
             deleteContractsForSummaries(summaries);
 
@@ -891,7 +900,7 @@ public class OrganizationFacade {
     public List<ApplicationSummaryBean> listApps(String organizationId) {
         get(organizationId);
         try {
-            return query.getApplicationsInOrg(organizationId);
+            return query.getApplicationsInOrg(organizationId, true);
         } catch (StorageException e) {
             throw new SystemErrorException(e);
         }
@@ -2018,10 +2027,14 @@ public class OrganizationFacade {
         if (planVersionContracts != null && planVersionContracts.size() > 0) {
             throw ExceptionFactory.planCannotBeDeleted("Plan still has contracts linked");
         }
+        //Delete plan policies
+        for (PolicyBean policy : query.getPlanPolicies(pvb)) {
+            storage.deletePolicy(policy);
+        }
         storage.deletePlanVersion(pvb);
     }
 
-    public void deleteService(String organizationId, String serviceId) {
+    public void deleteService(String organizationId, String serviceId, boolean force) {
         if (!securityContext.hasPermission(PermissionType.svcAdmin, organizationId))
             throw ExceptionFactory.notAuthorizedException();
         try {
@@ -2029,14 +2042,6 @@ public class OrganizationFacade {
             ServiceBean serviceBean = storage.getService(organizationId, serviceId);
             if (serviceBean == null) {
                 throw ExceptionFactory.serviceNotFoundException(serviceId);
-            }
-            if (query.getServiceContracts(serviceBean).size() > 0) {
-                throw ExceptionFactory.serviceCannotDeleteException("Service still has contracts");
-            }
-            // Get Service versions
-            List<ServiceVersionSummaryBean> svsbs = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
-            for (ServiceVersionSummaryBean svsb : svsbs) {
-                deleteServiceVersionInternal(getServiceVersionInternal(svsb.getOrganizationId(), svsb.getId(), svsb.getVersion()));
             }
 
             // Remove support entries
@@ -2050,6 +2055,13 @@ public class OrganizationFacade {
             announcements.stream().forEach(announcement -> {
                 deleteServiceAnnouncement(organizationId, serviceId, announcement.getId());
             });
+
+            // Get Service versions
+            List<ServiceVersionSummaryBean> svsbs = query.getServiceVersions(serviceBean.getOrganization().getId(), serviceBean.getId());
+            for (ServiceVersionSummaryBean svsb : svsbs) {
+                deleteServiceVersionInternal(getServiceVersionInternal(svsb.getOrganizationId(), svsb.getId(), svsb.getVersion()), force);
+            }
+
 
             //Service announcement events have a organizationid.serviceid nomenclature, so delete those events
             query.deleteAllEventsForEntity(new StringBuilder(organizationId).append(".").append(serviceId).toString());
@@ -2066,23 +2078,31 @@ public class OrganizationFacade {
     public void deleteServiceVersion(String organizationId, String serviceId, String version) {
         try {
             if (query.getServiceVersions(organizationId, serviceId).size() == 1) {
-                deleteService(organizationId, serviceId);
+                deleteService(organizationId, serviceId, false);
             } else {
                 ServiceVersionBean svb = getServiceVersionInternal(organizationId, serviceId, version);
-                deleteServiceVersionInternal(svb);
+                deleteServiceVersionInternal(svb, false);
             }
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
     }
 
-    private void deleteServiceVersionInternal(ServiceVersionBean svb) throws StorageException {
+    private void deleteServiceVersionInternal(ServiceVersionBean svb, boolean force) throws StorageException {
         String organizationId = svb.getService().getOrganization().getId();
         String serviceId = svb.getService().getId();
         String version = svb.getVersion();
-        //Check for existing contrasts, throw error if there still are any.
-        if (query.getServiceContracts(organizationId, serviceId, version).size() > 0) {
-            throw ExceptionFactory.serviceCannotDeleteException("Service version still has contracts");
+        List<ContractBean> contracts = query.getServiceContracts(organizationId, serviceId, version);
+        //Check for existing contrasts, throw error if there still are any unless force deletion is true
+        if (CollectionUtils.isNotEmpty(contracts)) {
+            if (!force) {
+                throw ExceptionFactory.serviceCannotDeleteException("Service version still has contracts");
+            }
+            else {
+                for (ContractBean contract : contracts) {
+                    deleteContract(contract.getApplication().getApplication().getOrganization().getId(), contract.getApplication().getApplication().getId(), contract.getApplication().getVersion(), contract.getId());
+                }
+            }
         }
 
         // Remove service definition if found
@@ -4009,12 +4029,40 @@ public class OrganizationFacade {
      *
      * @param orgId
      */
-    public void deleteOrganization(String orgId) {
+    public void deleteOrganization(String orgId, boolean force) {
         //remove memberships
         //leave audit and add closure
         //remove organization
         OrganizationBean org = get(orgId);
-        try {
+        // If the user is an administrator, force delete everything
+        if (securityContext.isAdmin()) {
+            try {
+
+                // Start by deleting applications if applicable
+                deleteApplicationsInOrganization(orgId);
+
+                // Start service removal
+                List<ServiceSummaryBean> orgServices = query.getServicesInOrg(orgId);
+                for (ServiceSummaryBean svcSummary : orgServices) {
+                    deleteService(orgId, svcSummary.getId(), force);
+                }
+
+                // Start plan removal
+                List<PlanSummaryBean> plans = query.getPlansInOrg(orgId);
+                for (PlanSummaryBean planSummary : plans) {
+                    // At this point, the plans should no longer have any contracts
+                    deletePlan(orgId, planSummary.getId());
+                }
+
+                // Delete the organization
+                deleteOrganizationInternal(org);
+            }
+            catch (StorageException ex) {
+                throw ExceptionFactory.systemErrorException(ex);
+            }
+        }
+
+        else try {
             List<ServiceSummaryBean> services = query.getServicesInOrg(orgId);
             if (!services.isEmpty()) {
                 if (!query.getServiceVersionsInOrgByStatus(orgId, ServiceStatus.Published).isEmpty() || !query.getServiceVersionsInOrgByStatus(orgId, ServiceStatus.Deprecated).isEmpty()) {
@@ -4039,17 +4087,21 @@ public class OrganizationFacade {
                 throw ExceptionFactory.orgCannotBeDeleted("The organization still has plans");
             }
             //By now we can assume that either an exception has been thrown or the organization doesnt't have any services left
-            List<ApplicationSummaryBean> apps = query.getApplicationsInOrg(orgId);
-            if (!apps.isEmpty()) {
-                for (ApplicationSummaryBean appSumm : apps) {
-                    deleteApp(orgId, appSumm.getId());
-                }
-            }
+            deleteApplicationsInOrganization(orgId);
             deleteOrganizationInternal(org);
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
+    }
 
+    private void deleteApplicationsInOrganization(String orgId) throws StorageException {
+        List<ApplicationSummaryBean> apps = query.getApplicationsInOrg(orgId, false);
+
+        if (!apps.isEmpty()) {
+            for (ApplicationSummaryBean appSumm : apps) {
+                deleteApp(orgId, appSumm.getId());
+            }
+        }
     }
 
     private void deleteOrganizationInternal(OrganizationBean org) throws StorageException {
