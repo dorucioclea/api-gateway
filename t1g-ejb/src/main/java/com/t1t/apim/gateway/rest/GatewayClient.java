@@ -16,7 +16,7 @@ import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.BrandingNotAvailableException;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.SystemErrorException;
-import com.t1t.apim.gateway.GatewayAuthenticationException;
+import com.t1t.apim.exceptions.GatewayAuthenticationException;
 import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.PublishingException;
 import com.t1t.apim.gateway.dto.exceptions.RegistrationException;

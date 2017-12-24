@@ -18,7 +18,7 @@ import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.GatewayType;
 import com.t1t.apim.beans.idm.PermissionType;
-import com.t1t.apim.beans.idp.IdpIssuerBean;
+import com.t1t.apim.beans.idm.IdpIssuerBean;
 import com.t1t.apim.beans.mail.MailTemplateBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;

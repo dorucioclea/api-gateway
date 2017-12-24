@@ -8,7 +8,7 @@ import com.t1t.apim.beans.system.SystemStatusBean;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
-import com.t1t.apim.gateway.GatewayAuthenticationException;
+import com.t1t.apim.exceptions.GatewayAuthenticationException;
 import com.t1t.apim.gateway.IGatewayLink;
 import com.t1t.apim.gateway.dto.SystemStatus;
 import com.t1t.apim.maintenance.MaintenanceController;

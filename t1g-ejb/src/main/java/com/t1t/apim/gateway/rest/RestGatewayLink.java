@@ -12,7 +12,7 @@ import com.t1t.apim.core.IStorage;
 import com.t1t.apim.exceptions.ErrorCodes;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.i18n.Messages;
-import com.t1t.apim.gateway.GatewayAuthenticationException;
+import com.t1t.apim.exceptions.GatewayAuthenticationException;
 import com.t1t.apim.gateway.IGatewayLink;
 import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;

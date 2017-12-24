@@ -171,6 +171,7 @@ public class StartupService {
         return existingApi;
     }
 
+    //TODO clean up duplicate code and elaborate on logic
     private void verifyPlugins(IGatewayLink gw, KongApi api, List<Policies> policies) {
         KongPluginConfigList plugins = gw.getServicePlugins(api.getName());
         if (plugins != null && !plugins.getData().isEmpty()) {

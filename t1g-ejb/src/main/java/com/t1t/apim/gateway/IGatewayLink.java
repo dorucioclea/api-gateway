@@ -5,6 +5,7 @@ import com.t1t.apim.beans.brandings.ServiceBrandingBean;
 import com.t1t.apim.beans.gateways.Gateway;
 import com.t1t.apim.beans.services.ServiceUpstreamTargetBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
+import com.t1t.apim.exceptions.GatewayAuthenticationException;
 import com.t1t.apim.gateway.dto.*;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerAlreadyExistsException;
 import com.t1t.apim.gateway.dto.exceptions.ConsumerException;
@@ -125,7 +126,7 @@ public interface IGatewayLink {
     /**
      * Gets the service endpoint from the gateway.
      *
-     * @param basePath       the base path declared in the service definition
+     * @param basePaths      the set of base paths declared in the service definition
      * @param organizationId the org id
      * @param serviceId      the service id
      * @param version        the version
@@ -422,10 +423,7 @@ public interface IGatewayLink {
     /**
      * update an API's upstream URL
      *
-     * @param organizationId
-     * @param serviceId
-     * @param version
-     * @param upstreamURL
+     * @param svb
      * @return KongApi
      */
     public KongApi updateServiceVersionOnGateway(ServiceVersionBean svb);

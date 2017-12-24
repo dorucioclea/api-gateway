@@ -17,7 +17,7 @@ import com.t1t.apim.beans.summary.PolicySummaryBean;
 import com.t1t.apim.core.*;
 import com.t1t.apim.core.metrics.MetricsService;
 import com.t1t.apim.exceptions.*;
-import com.t1t.apim.facades.audit.AuditUtils;
+import com.t1t.util.AuditUtils;
 import com.t1t.apim.gateway.IGatewayLinkFactory;
 import com.t1t.apim.gateway.dto.Policy;
 import com.t1t.apim.gateway.rest.GatewayValidation;

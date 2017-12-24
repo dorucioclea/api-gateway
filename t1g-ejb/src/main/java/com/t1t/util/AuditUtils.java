@@ -1,4 +1,4 @@
-package com.t1t.apim.facades.audit;
+package com.t1t.util;
 
 import com.t1t.apim.beans.apps.ApplicationBean;
 import com.t1t.apim.beans.apps.ApplicationVersionBean;

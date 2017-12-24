@@ -15,7 +15,7 @@ import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.exceptions.GatewayNotFoundException;
 import com.t1t.apim.exceptions.SystemErrorException;
 import com.t1t.apim.exceptions.i18n.Messages;
-import com.t1t.apim.gateway.GatewayAuthenticationException;
+import com.t1t.apim.exceptions.GatewayAuthenticationException;
 import com.t1t.apim.gateway.IGatewayLink;
 import com.t1t.apim.gateway.IGatewayLinkFactory;
 import com.t1t.apim.gateway.dto.SystemStatus;
