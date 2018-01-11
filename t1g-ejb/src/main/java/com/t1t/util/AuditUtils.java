@@ -18,6 +18,7 @@ import com.t1t.apim.beans.services.ServicePlanBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.exceptions.ExceptionFactory;
 import com.t1t.apim.security.ISecurityContext;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.util.*;
@@ -925,7 +926,10 @@ public class AuditUtils {
         entry.setOrganizationId(orgId);
         entry.setEntityType(type);
         entry.setCreatedOn(new Date());
-        if (!implicit) entry.setWho(securityContext.getCurrentUser());
+        if (!implicit) {
+            String who = StringUtils.isEmpty(securityContext.getEmail()) ? securityContext.getCurrentUser() : securityContext.getEmail();
+            entry.setWho(who);
+        }
         else entry.setWho("admin");//TODO hardcoded user -> should change
         return entry;
     }
@@ -991,5 +995,4 @@ public class AuditUtils {
         }
         return builder.toString();
     }
-
 }
