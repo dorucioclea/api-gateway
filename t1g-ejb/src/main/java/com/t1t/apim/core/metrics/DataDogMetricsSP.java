@@ -33,6 +33,7 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
     private static final String REQUEST_STATUS = "request.status.";
     private static final String AVG_PREFIX = "avg";
     private static final String QUERY = "%s:%s{env:%s}";
+    private static final String QUERY_AS_COUNT = "%s:%s{env:%s}.as_count()";
     private static final String CUMSUM_QUERY = "cumsum(%s)";
     private static final String QUERY_SEPARATOR = ",";
 
@@ -182,7 +183,13 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
         StringBuilder rval = new StringBuilder();
         for (String query : queries) {
             if (rval.length() != 0) rval.append(QUERY_SEPARATOR);
-            rval.append(String.format(QUERY, AVG_PREFIX, query, environment));
+            String queryTemplate;
+            if (query.contains(REQUEST_COUNT) || query.contains(REQUEST_STATUS)) {
+                queryTemplate = QUERY_AS_COUNT;
+            } else {
+                queryTemplate = QUERY;
+            }
+            rval.append(String.format(queryTemplate, AVG_PREFIX, query, environment));
         }
         String returnValue = rval.toString();
         log.info("Consolidated queries: {}", returnValue);
