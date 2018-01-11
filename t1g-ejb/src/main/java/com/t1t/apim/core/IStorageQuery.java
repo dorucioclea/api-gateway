@@ -179,12 +179,12 @@ public interface IStorageQuery {
     /**
      * Gets the audit log for a user.
      *
-     * @param userId the user id
+     * @param userEmail the user e-mail
      * @param paging the paging specification
      * @return audit user
      * @throws StorageException if a storage problem occurs while storing a bean.
      */
-    public <T> SearchResultsBean<AuditEntryBean> auditUser(String userId, PagingBean paging) throws StorageException;
+    public <T> SearchResultsBean<AuditEntryBean> auditUser(String userEmail, PagingBean paging) throws StorageException;
 
     /**
      * Returns summary info for all organizations in the given set.

@@ -1,0 +1,14 @@
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b') WHERE who = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e') WHERE who = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'fa72af2c-c866-42ed-985d-7c7c2999713b') WHERE who = 'fa72af2c-c866-42ed-985d-7c7c2999713b';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324') WHERE who = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195') WHERE who = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c') WHERE who = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659') WHERE who = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '210007ae-c737-44fc-a7e1-de6970693679') WHERE who = '210007ae-c737-44fc-a7e1-de6970693679';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624') WHERE who = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '997aa54c-b2ff-42cf-9d28-538de5373c4b') WHERE who = '997aa54c-b2ff-42cf-9d28-538de5373c4b';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'de35aea6-3afb-4782-b515-a7da38ded85d') WHERE who = 'de35aea6-3afb-4782-b515-a7da38ded85d';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'c45b7361-5372-4a26-96c6-48bbb329f07f') WHERE who = 'c45b7361-5372-4a26-96c6-48bbb329f07f';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22') WHERE who = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '36bad832-332d-4e09-b787-a464d25b3dcf') WHERE who = '36bad832-332d-4e09-b787-a464d25b3dcf';
