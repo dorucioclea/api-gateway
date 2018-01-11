@@ -1740,9 +1740,12 @@ public class OrganizationFacade {
             }).filter(Objects::nonNull).collect(Collectors.toList());
             log.info("Number of applications available for metrics: {}", consumers.size());
             ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(getServiceVersion(organizationId, serviceId, version), consumers, from, to);
-            if (serviceMetrics != null) {
+            if (serviceMetrics != null && serviceMetrics.getException() == null) {
                 return serviceMetrics;
             } else {
+                if (serviceMetrics.getException() != null) {
+                    throw serviceMetrics.getException();
+                }
                 log.info("Service metrics are null");
                 throw ExceptionFactory.metricsUnavailableException();
             }

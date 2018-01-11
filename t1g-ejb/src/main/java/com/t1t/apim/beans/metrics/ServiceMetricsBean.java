@@ -2,6 +2,7 @@ package com.t1t.apim.beans.metrics;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
+import com.t1t.apim.exceptions.AbstractRestException;
 
 import java.io.Serializable;
 import java.util.List;
@@ -16,6 +17,7 @@ public class ServiceMetricsBean implements Serializable {
 
     private List<String> serviceData;
     private Map<ApplicationVersionSummaryBean, List<String>> applicationData;
+    private AbstractRestException exception = null;
 
     public List<String> getServiceData() {
         return serviceData;
@@ -31,6 +33,14 @@ public class ServiceMetricsBean implements Serializable {
 
     public void setApplicationData(Map<ApplicationVersionSummaryBean, List<String>> applicationData) {
         this.applicationData = applicationData;
+    }
+
+    public AbstractRestException getException() {
+        return exception;
+    }
+
+    public void setException(AbstractRestException exception) {
+        this.exception = exception;
     }
 
     @Override

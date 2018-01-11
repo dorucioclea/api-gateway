@@ -9,6 +9,7 @@ import com.netflix.hystrix.HystrixCommandGroupKey;
  */
 public abstract class AbstractHystrixMetricsCommand<R> extends HystrixCommand<R> {
     private MetricsSPI spi;
+    private Integer timeout;
 
     public AbstractHystrixMetricsCommand(HystrixCommandGroupKey group, int executionIsolationThreadTimeoutInMilliseconds) {
         super(group, executionIsolationThreadTimeoutInMilliseconds);
@@ -25,5 +26,13 @@ public abstract class AbstractHystrixMetricsCommand<R> extends HystrixCommand<R>
 
     public void setSpi(MetricsSPI spi) {
         this.spi = spi;
+    }
+
+    public Integer getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(Integer timeout) {
+        this.timeout = timeout;
     }
 }

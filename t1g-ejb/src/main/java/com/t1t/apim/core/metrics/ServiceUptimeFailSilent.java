@@ -15,7 +15,6 @@ public class ServiceUptimeFailSilent extends AbstractHystrixMetricsCommand<Integ
 
     private final ServiceVersionBean service;
 
-
     public ServiceUptimeFailSilent(ServiceVersionBean service, Integer timeout) {
         super(HystrixCommandGroupKey.Factory.asKey("ServiceMarketInfo"), timeout != null ? timeout : 200);
 

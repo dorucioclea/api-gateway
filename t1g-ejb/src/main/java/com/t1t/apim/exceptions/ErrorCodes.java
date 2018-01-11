@@ -16,6 +16,7 @@ public final class ErrorCodes {
     public static final int HTTP_STATUS_CODE_UNAUTHORIZED                       = 401;
     public static final int HTTP_STATUS_CODE_FORBIDDEN                          = 403;
     public static final int HTTP_STATUS_CODE_NOT_FOUND                          = 404;
+    public static final int HTTP_STATUS_CODE_REQUEST_TIMEOUT                    = 408;
     public static final int HTTP_STATUS_CODE_ALREADY_EXISTS                     = 409;
     public static final int HTTP_STATUS_CODE_INVALID_STATE                      = 409;
     public static final int HTTP_STATUS_CODE_SYSTEM_ERROR                       = 500;
@@ -203,8 +204,10 @@ public final class ErrorCodes {
 
     public static final int METRIC_CRITERIA_INVALID                             = 13001;
     public static final int METRIC_UNAVAILABLE                                  = 13003;
+    public static final int METRIC_TIMEOUT                                      = 13004;
 
     public static final String METRIC_CRITERIA_INVALID_INFO                     = null;
+    public static final String METRIC_TIMEOUT_INFO                              = null;
 
     //
     // General cross-cutting errors
@@ -305,4 +308,5 @@ public final class ErrorCodes {
     public static final String ISSUER_ALREADY_EXISTS_MSG                        = "issuerAlreadyExists";
     public static final String ISSUER_NOT_FOUND_MSG                             = "issuerNotFound";
     public static final String DATADOG_ENVIRONMENT_UNDEFINED                    = "envUndefinedForDataDog";
+    public static final String METRIC_TIMEOUT_MSG                               = "metricsTimeOut";
 }
