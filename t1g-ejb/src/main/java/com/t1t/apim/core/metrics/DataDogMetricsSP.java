@@ -59,7 +59,7 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
             String serializedSeries = new Gson().toJson(series);
             Boolean added = false;
             for (ApplicationVersionSummaryBean sum : applications) {
-                String id = sum.getKongConsumerId();
+                String id = sum.getKongConsumerId().replaceAll("-", "_");
                 if (!added && series.getMetric().contains(id)) {
                     if (sorted.containsKey(sum)) {
                         sorted.get(sum).add(serializedSeries);
