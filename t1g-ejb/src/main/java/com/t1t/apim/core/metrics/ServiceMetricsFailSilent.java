@@ -5,6 +5,8 @@ import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -13,6 +15,8 @@ import java.util.List;
  * @since 2017
  */
 public class ServiceMetricsFailSilent extends AbstractHystrixMetricsCommand<ServiceMetricsBean> {
+
+    private static final Logger log = LoggerFactory.getLogger(ServiceMetricsFailSilent.class);
 
     private ServiceVersionBean service;
     private List<ApplicationVersionSummaryBean> applications;
@@ -36,6 +40,7 @@ public class ServiceMetricsFailSilent extends AbstractHystrixMetricsCommand<Serv
 
     @Override
     protected ServiceMetricsBean getFallback() {
+        log.info("Hystrix fallback method called for Service Uptime Metrics");
         return null;
     }
 }

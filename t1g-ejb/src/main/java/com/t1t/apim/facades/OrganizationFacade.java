@@ -1738,10 +1738,12 @@ public class OrganizationFacade {
                     return DtoFactory.createApplicationVersionSummarBeanWithConsumerId(contract.getApplication(), consumer.getId());
                 } else return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
+            log.info("Number of applications available for metrics: {}", consumers.size());
             ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(getServiceVersion(organizationId, serviceId, version), consumers, from, to);
             if (serviceMetrics != null) {
                 return serviceMetrics;
             } else {
+                log.info("Service metrics are null");
                 throw ExceptionFactory.metricsUnavailableException();
             }
         } catch (StorageException ex) {

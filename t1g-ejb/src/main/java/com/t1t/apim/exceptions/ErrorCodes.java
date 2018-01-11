@@ -304,4 +304,5 @@ public final class ErrorCodes {
     public static final String EMPTY_FIELD                                      = "emptyField";
     public static final String ISSUER_ALREADY_EXISTS_MSG                        = "issuerAlreadyExists";
     public static final String ISSUER_NOT_FOUND_MSG                             = "issuerNotFound";
+    public static final String DATADOG_ENVIRONMENT_UNDEFINED                    = "envUndefinedForDataDog";
 }
