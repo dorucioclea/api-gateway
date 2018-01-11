@@ -10,7 +10,7 @@ import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.ExceptionFactory;
-import com.t1t.apim.facades.audit.AuditUtils;
+import com.t1t.util.AuditUtils;
 import com.t1t.apim.security.ISecurityContext;
 
 import javax.ejb.Stateless;

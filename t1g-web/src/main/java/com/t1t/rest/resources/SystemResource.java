@@ -7,7 +7,7 @@ import com.t1t.apim.exceptions.GatewayNotFoundException;
 import com.t1t.apim.exceptions.InvalidServiceStatusException;
 import com.t1t.apim.exceptions.ServiceVersionNotFoundException;
 import com.t1t.apim.facades.SystemFacade;
-import com.t1t.apim.gateway.GatewayAuthenticationException;
+import com.t1t.apim.exceptions.GatewayAuthenticationException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;

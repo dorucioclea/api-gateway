@@ -6,7 +6,7 @@ import com.t1t.apim.beans.apps.NewApiKeyBean;
 import com.t1t.apim.beans.apps.NewOAuthCredentialsBean;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.UpdateGatewayBean;
-import com.t1t.apim.beans.idp.IdpIssuerBean;
+import com.t1t.apim.beans.idm.IdpIssuerBean;
 import com.t1t.apim.core.IStorage;
 import com.t1t.apim.core.IStorageQuery;
 import com.t1t.apim.core.exceptions.StorageException;

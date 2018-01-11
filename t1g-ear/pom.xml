@@ -22,7 +22,7 @@
     <parent>
         <artifactId>api-gateway</artifactId>
         <groupId>com.t1t</groupId>
-        <version>0.10.1</version>
+        <version>0.10.2</version>
     </parent>
 
     <artifactId>t1g-ear</artifactId>

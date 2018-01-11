@@ -1,4 +1,4 @@
-package com.t1t.apim.beans.idp;
+package com.t1t.apim.beans.idm;
 
 import javax.persistence.*;
 

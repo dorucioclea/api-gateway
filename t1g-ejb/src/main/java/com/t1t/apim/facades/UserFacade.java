@@ -5,7 +5,7 @@ import com.t1t.apim.beans.audit.AuditEntryBean;
 import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.events.NewEventBean;
 import com.t1t.apim.beans.idm.*;
-import com.t1t.apim.beans.idp.IdpIssuerBean;
+import com.t1t.apim.beans.idm.IdpIssuerBean;
 import com.t1t.apim.beans.jwt.IJWT;
 import com.t1t.apim.beans.jwt.JWT;
 import com.t1t.apim.beans.search.PagingBean;

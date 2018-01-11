@@ -18,7 +18,7 @@ import com.t1t.apim.beans.events.EventType;
 import com.t1t.apim.beans.gateways.GatewayBean;
 import com.t1t.apim.beans.gateways.GatewayType;
 import com.t1t.apim.beans.idm.PermissionType;
-import com.t1t.apim.beans.idp.IdpIssuerBean;
+import com.t1t.apim.beans.idm.IdpIssuerBean;
 import com.t1t.apim.beans.mail.MailTemplateBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationBean;
 import com.t1t.apim.beans.managedapps.ManagedApplicationTypes;
@@ -867,7 +867,7 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
      * @see IStorageQuery#auditUser(String, PagingBean)
      */
     @Override
-    public <T> SearchResultsBean<AuditEntryBean> auditUser(String userId, PagingBean paging)
+    public <T> SearchResultsBean<AuditEntryBean> auditUser(String userEmail, PagingBean paging)
             throws StorageException {
         SearchCriteriaBean criteria = new SearchCriteriaBean();
         if (paging != null) {
@@ -877,8 +877,8 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
             criteria.setPageSize(20);
         }
         criteria.setOrder("createdOn", false); //$NON-NLS-1$
-        if (userId != null) {
-            criteria.addFilter("who", userId, SearchCriteriaFilterOperator.eq); //$NON-NLS-1$
+        if (userEmail != null) {
+            criteria.addFilter("who", userEmail, SearchCriteriaFilterOperator.eq); //$NON-NLS-1$
         }
 
         return find(criteria, AuditEntryBean.class);

@@ -1,16 +1,20 @@
 package com.t1t.apim.core.metrics;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.t1t.apim.AppConfigBean;
 import com.t1t.apim.beans.metrics.ServiceMetricsBean;
 import com.t1t.apim.beans.services.ServiceVersionBean;
 import com.t1t.apim.beans.summary.ApplicationVersionSummaryBean;
 import com.t1t.apim.exceptions.ErrorCodes;
+import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.kong.model.DataDogMetricsQuery;
 import com.t1t.kong.model.DataDogMetricsSeries;
 import com.t1t.util.ServiceConventionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -22,6 +26,8 @@ import static com.t1t.util.TimeUtil.convertDateTimeToSecondsString;
  * Created by michallispashidis on 07/09/16.
  */
 public class DataDogMetricsSP implements Serializable, MetricsSPI {
+
+    private static final Logger log = LoggerFactory.getLogger(DataDogMetricsSP.class);
 
     private static final String REQUEST_COUNT = "request.count";
     private static final String REQUEST_STATUS = "request.status.";
@@ -38,8 +44,12 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
         ServiceMetricsBean rval = new ServiceMetricsBean();
         String[] ids = ServiceConventionUtil.getOrgSvcVersionIds(service);
         List<String> availableQueries = getAvailableMetrics(ids[0], ids[1], ids[2]);
-        if (availableQueries.isEmpty()) return null;
+        if (availableQueries.isEmpty()) {
+            log.info("No available queries for service: {}", service.getId());
+            return null;
+        }
         List<String> filteredQueries = filterConsumerMetrics(ServiceConventionUtil.getDatadogUniqueName(ids[0], ids[1], ids[2]), availableQueries, applications.stream().map(ApplicationVersionSummaryBean::getKongConsumerId).collect(Collectors.toList()));
+        log.info("Available queries: {}", filteredQueries);
         String finalQuery = consolidateQueries(filteredQueries);
         DataDogMetricsQuery results = query(from, to, finalQuery);
         List<String> general = new ArrayList<>();
@@ -49,7 +59,7 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
             String serializedSeries = new Gson().toJson(series);
             Boolean added = false;
             for (ApplicationVersionSummaryBean sum : applications) {
-                String id = sum.getKongConsumerId();
+                String id = sum.getKongConsumerId().replaceAll("-", "_");
                 if (!added && series.getMetric().contains(id)) {
                     if (sorted.containsKey(sum)) {
                         sorted.get(sum).add(serializedSeries);
@@ -81,7 +91,10 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
         List<String> errorQueries = new ArrayList<>();
         String totalQuery = null;
         List<String> availableQueries = getAvailableMetrics(organizationId, serviceId, version);
-        if (availableQueries.isEmpty()) return null;
+        if (availableQueries.isEmpty()) {
+            log.info("No queries available for service uptime: {}", availableQueries);
+            return null;
+        }
         for (String query : availableQueries) {
             if (query.contains(REQUEST_STATUS)) {
                 Long httpStatusCode = Long.valueOf(query.substring(query.lastIndexOf(".") + 1));
@@ -122,7 +135,8 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
             this.httpClient = new RestDataDogMetricsBuilder().getService(config.getDataDogMetricsUri(), config.getDataDogMetricsApiKey(), config.getDataDogMetricsApplicationKey(), DataDogMetricsClient.class);
         }
         if (StringUtils.isEmpty(this.environment)) {
-            this.environment = config.getEnvironment();
+            Preconditions.checkArgument(StringUtils.isNotEmpty(config.getEnvironment()), Messages.i18n.format(ErrorCodes.DATADOG_ENVIRONMENT_UNDEFINED));
+            this.environment = config.getEnvironment().toLowerCase();
         }
     }
 
@@ -155,7 +169,8 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
                     return true;
                 } else {
                     //Given query "kong.<api>.<consumer>.request.count", get the consumer id
-                    if (consumerIds.contains(query.split("\\.")[2])) {
+                    //Kong consumer ID in available queries has no dashes, replaced with underscores
+                    if (consumerIds.contains(query.split("\\.")[2].replaceAll("_", "-"))) {
                         return true;
                     } else return false;
                 }
@@ -169,6 +184,8 @@ public class DataDogMetricsSP implements Serializable, MetricsSPI {
             if (rval.length() != 0) rval.append(QUERY_SEPARATOR);
             rval.append(String.format(QUERY, AVG_PREFIX, query, environment));
         }
-        return rval.toString();
+        String returnValue = rval.toString();
+        log.info("Consolidated queries: {}", returnValue);
+        return returnValue;
     }
 }

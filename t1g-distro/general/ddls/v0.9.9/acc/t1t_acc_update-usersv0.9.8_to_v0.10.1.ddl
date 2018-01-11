@@ -4,7 +4,7 @@ UPDATE announcements SET created_by = '36bad832-332d-4e09-b787-a464d25b3dcf' WHE
 UPDATE application_versions SET created_by = '36bad832-332d-4e09-b787-a464d25b3dcf' WHERE created_by = '5603153c-afb8-4489-9592-f64b406dae51';
 UPDATE application_versions SET modified_by = '36bad832-332d-4e09-b787-a464d25b3dcf' WHERE modified_by = '5603153c-afb8-4489-9592-f64b406dae51';
 UPDATE applications SET created_by = '36bad832-332d-4e09-b787-a464d25b3dcf' WHERE created_by = '5603153c-afb8-4489-9592-f64b406dae51';
-UPDATE auditlog SET who = '36bad832-332d-4e09-b787-a464d25b3dcf' WHERE who = '5603153c-afb8-4489-9592-f64b406dae51';
+a
 UPDATE contracts SET created_by = '36bad832-332d-4e09-b787-a464d25b3dcf' WHERE created_by = '5603153c-afb8-4489-9592-f64b406dae51';
 UPDATE events SET origin_id = '36bad832-332d-4e09-b787-a464d25b3dcf' WHERE origin_id = '5603153c-afb8-4489-9592-f64b406dae51';
 UPDATE events SET destination_id = '36bad832-332d-4e09-b787-a464d25b3dcf' WHERE destination_id = '5603153c-afb8-4489-9592-f64b406dae51';
@@ -31,7 +31,7 @@ UPDATE announcements SET created_by = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22' WHE
 UPDATE application_versions SET created_by = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22' WHERE created_by = 'guycastle';
 UPDATE application_versions SET modified_by = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22' WHERE modified_by = 'guycastle';
 UPDATE applications SET created_by = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22' WHERE created_by = 'guycastle';
-UPDATE auditlog SET who = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22' WHERE who = 'guycastle';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22') WHERE who = 'guycastle';
 UPDATE contracts SET created_by = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22' WHERE created_by = 'guycastle';
 UPDATE events SET origin_id = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22' WHERE origin_id = 'guycastle';
 UPDATE events SET destination_id = 'c9f3c7fd-0e09-4580-a1d7-89499e4fab22' WHERE destination_id = 'guycastle';
@@ -58,7 +58,7 @@ UPDATE announcements SET created_by = 'c45b7361-5372-4a26-96c6-48bbb329f07f' WHE
 UPDATE application_versions SET created_by = 'c45b7361-5372-4a26-96c6-48bbb329f07f' WHERE created_by = 'maarten.somers@trust1team.com';
 UPDATE application_versions SET modified_by = 'c45b7361-5372-4a26-96c6-48bbb329f07f' WHERE modified_by = 'maarten.somers@trust1team.com';
 UPDATE applications SET created_by = 'c45b7361-5372-4a26-96c6-48bbb329f07f' WHERE created_by = 'maarten.somers@trust1team.com';
-UPDATE auditlog SET who = 'c45b7361-5372-4a26-96c6-48bbb329f07f' WHERE who = 'maarten.somers@trust1team.com';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'c45b7361-5372-4a26-96c6-48bbb329f07f') WHERE who = 'maarten.somers@trust1team.com';
 UPDATE contracts SET created_by = 'c45b7361-5372-4a26-96c6-48bbb329f07f' WHERE created_by = 'maarten.somers@trust1team.com';
 UPDATE events SET origin_id = 'c45b7361-5372-4a26-96c6-48bbb329f07f' WHERE origin_id = 'maarten.somers@trust1team.com';
 UPDATE events SET destination_id = 'c45b7361-5372-4a26-96c6-48bbb329f07f' WHERE destination_id = 'maarten.somers@trust1team.com';
@@ -85,7 +85,7 @@ UPDATE announcements SET created_by = 'de35aea6-3afb-4782-b515-a7da38ded85d' WHE
 UPDATE application_versions SET created_by = 'de35aea6-3afb-4782-b515-a7da38ded85d' WHERE created_by = 'jonas@trust1team.com';
 UPDATE application_versions SET modified_by = 'de35aea6-3afb-4782-b515-a7da38ded85d' WHERE modified_by = 'jonas@trust1team.com';
 UPDATE applications SET created_by = 'de35aea6-3afb-4782-b515-a7da38ded85d' WHERE created_by = 'jonas@trust1team.com';
-UPDATE auditlog SET who = 'de35aea6-3afb-4782-b515-a7da38ded85d' WHERE who = 'jonas@trust1team.com';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'de35aea6-3afb-4782-b515-a7da38ded85d') WHERE who = 'jonas@trust1team.com';
 UPDATE contracts SET created_by = 'de35aea6-3afb-4782-b515-a7da38ded85d' WHERE created_by = 'jonas@trust1team.com';
 UPDATE events SET origin_id = 'de35aea6-3afb-4782-b515-a7da38ded85d' WHERE origin_id = 'jonas@trust1team.com';
 UPDATE events SET destination_id = 'de35aea6-3afb-4782-b515-a7da38ded85d' WHERE destination_id = 'jonas@trust1team.com';
@@ -112,7 +112,7 @@ UPDATE announcements SET created_by = '997aa54c-b2ff-42cf-9d28-538de5373c4b' WHE
 UPDATE application_versions SET created_by = '997aa54c-b2ff-42cf-9d28-538de5373c4b' WHERE created_by = 'thibaut@trust1team.com';
 UPDATE application_versions SET modified_by = '997aa54c-b2ff-42cf-9d28-538de5373c4b' WHERE modified_by = 'thibaut@trust1team.com';
 UPDATE applications SET created_by = '997aa54c-b2ff-42cf-9d28-538de5373c4b' WHERE created_by = 'thibaut@trust1team.com';
-UPDATE auditlog SET who = '997aa54c-b2ff-42cf-9d28-538de5373c4b' WHERE who = 'thibaut@trust1team.com';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '997aa54c-b2ff-42cf-9d28-538de5373c4b') WHERE who = 'thibaut@trust1team.com';
 UPDATE contracts SET created_by = '997aa54c-b2ff-42cf-9d28-538de5373c4b' WHERE created_by = 'thibaut@trust1team.com';
 UPDATE events SET origin_id = '997aa54c-b2ff-42cf-9d28-538de5373c4b' WHERE origin_id = 'thibaut@trust1team.com';
 UPDATE events SET destination_id = '997aa54c-b2ff-42cf-9d28-538de5373c4b' WHERE destination_id = 'thibaut@trust1team.com';
@@ -139,7 +139,7 @@ UPDATE announcements SET created_by = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624' WHE
 UPDATE application_versions SET created_by = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624' WHERE created_by = 'diego@trust1team.com';
 UPDATE application_versions SET modified_by = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624' WHERE modified_by = 'diego@trust1team.com';
 UPDATE applications SET created_by = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624' WHERE created_by = 'diego@trust1team.com';
-UPDATE auditlog SET who = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624' WHERE who = 'diego@trust1team.com';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624') WHERE who = 'diego@trust1team.com';
 UPDATE contracts SET created_by = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624' WHERE created_by = 'diego@trust1team.com';
 UPDATE events SET origin_id = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624' WHERE origin_id = 'diego@trust1team.com';
 UPDATE events SET destination_id = 'b13a59b5-fbb0-46ec-aff0-1b40d8eb9624' WHERE destination_id = 'diego@trust1team.com';
@@ -166,7 +166,7 @@ UPDATE announcements SET created_by = '210007ae-c737-44fc-a7e1-de6970693679' WHE
 UPDATE application_versions SET created_by = '210007ae-c737-44fc-a7e1-de6970693679' WHERE created_by = 'michallis@trust1team.com';
 UPDATE application_versions SET modified_by = '210007ae-c737-44fc-a7e1-de6970693679' WHERE modified_by = 'michallis@trust1team.com';
 UPDATE applications SET created_by = '210007ae-c737-44fc-a7e1-de6970693679' WHERE created_by = 'michallis@trust1team.com';
-UPDATE auditlog SET who = '210007ae-c737-44fc-a7e1-de6970693679' WHERE who = 'michallis@trust1team.com';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '210007ae-c737-44fc-a7e1-de6970693679') WHERE who = 'michallis@trust1team.com';
 UPDATE contracts SET created_by = '210007ae-c737-44fc-a7e1-de6970693679' WHERE created_by = 'michallis@trust1team.com';
 UPDATE events SET origin_id = '210007ae-c737-44fc-a7e1-de6970693679' WHERE origin_id = 'michallis@trust1team.com';
 UPDATE events SET destination_id = '210007ae-c737-44fc-a7e1-de6970693679' WHERE destination_id = 'michallis@trust1team.com';
@@ -193,7 +193,7 @@ UPDATE announcements SET created_by = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659' WHE
 UPDATE application_versions SET created_by = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659' WHERE created_by = 'carolina@trust1team.com';
 UPDATE application_versions SET modified_by = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659' WHERE modified_by = 'carolina@trust1team.com';
 UPDATE applications SET created_by = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659' WHERE created_by = 'carolina@trust1team.com';
-UPDATE auditlog SET who = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659' WHERE who = 'carolina@trust1team.com';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659') WHERE who = 'carolina@trust1team.com';
 UPDATE contracts SET created_by = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659' WHERE created_by = 'carolina@trust1team.com';
 UPDATE events SET origin_id = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659' WHERE origin_id = 'carolina@trust1team.com';
 UPDATE events SET destination_id = 'd3868f1e-6945-4e8a-bb5b-8ede711d5659' WHERE destination_id = 'carolina@trust1team.com';
@@ -220,7 +220,7 @@ UPDATE announcements SET created_by = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c' WHE
 UPDATE application_versions SET created_by = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c' WHERE created_by = 'provant-acc';
 UPDATE application_versions SET modified_by = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c' WHERE modified_by = 'provant-acc';
 UPDATE applications SET created_by = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c' WHERE created_by = 'provant-acc';
-UPDATE auditlog SET who = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c' WHERE who = 'provant-acc';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c') WHERE who = 'provant-acc';
 UPDATE contracts SET created_by = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c' WHERE created_by = 'provant-acc';
 UPDATE events SET origin_id = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c' WHERE origin_id = 'provant-acc';
 UPDATE events SET destination_id = 'd7691d26-88f5-4fd2-bb08-88038b2d2d3c' WHERE destination_id = 'provant-acc';
@@ -247,7 +247,7 @@ UPDATE announcements SET created_by = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195' WHE
 UPDATE application_versions SET created_by = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195' WHERE created_by = 'provant-prd';
 UPDATE application_versions SET modified_by = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195' WHERE modified_by = 'provant-prd';
 UPDATE applications SET created_by = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195' WHERE created_by = 'provant-prd';
-UPDATE auditlog SET who = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195' WHERE who = 'provant-prd';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195') WHERE who = 'provant-prd';
 UPDATE contracts SET created_by = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195' WHERE created_by = 'provant-prd';
 UPDATE events SET origin_id = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195' WHERE origin_id = 'provant-prd';
 UPDATE events SET destination_id = '443b75d7-99e4-47f8-ae67-d8f2c3fa4195' WHERE destination_id = 'provant-prd';
@@ -274,7 +274,7 @@ UPDATE announcements SET created_by = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324' WHE
 UPDATE application_versions SET created_by = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324' WHERE created_by = 'daan.kets@belfius.be';
 UPDATE application_versions SET modified_by = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324' WHERE modified_by = 'daan.kets@belfius.be';
 UPDATE applications SET created_by = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324' WHERE created_by = 'daan.kets@belfius.be';
-UPDATE auditlog SET who = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324' WHERE who = 'daan.kets@belfius.be';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324') WHERE who = 'daan.kets@belfius.be';
 UPDATE contracts SET created_by = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324' WHERE created_by = 'daan.kets@belfius.be';
 UPDATE events SET origin_id = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324' WHERE origin_id = 'daan.kets@belfius.be';
 UPDATE events SET destination_id = 'e7f6a196-ac14-4aa6-ac35-9b57633c0324' WHERE destination_id = 'daan.kets@belfius.be';
@@ -301,7 +301,7 @@ UPDATE announcements SET created_by = 'fa72af2c-c866-42ed-985d-7c7c2999713b' WHE
 UPDATE application_versions SET created_by = 'fa72af2c-c866-42ed-985d-7c7c2999713b' WHERE created_by = 'daankets@deltasource.eu';
 UPDATE application_versions SET modified_by = 'fa72af2c-c866-42ed-985d-7c7c2999713b' WHERE modified_by = 'daankets@deltasource.eu';
 UPDATE applications SET created_by = 'fa72af2c-c866-42ed-985d-7c7c2999713b' WHERE created_by = 'daankets@deltasource.eu';
-UPDATE auditlog SET who = 'fa72af2c-c866-42ed-985d-7c7c2999713b' WHERE who = 'daankets@deltasource.eu';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = 'fa72af2c-c866-42ed-985d-7c7c2999713b') WHERE who = 'daankets@deltasource.eu';
 UPDATE contracts SET created_by = 'fa72af2c-c866-42ed-985d-7c7c2999713b' WHERE created_by = 'daankets@deltasource.eu';
 UPDATE events SET origin_id = 'fa72af2c-c866-42ed-985d-7c7c2999713b' WHERE origin_id = 'daankets@deltasource.eu';
 UPDATE events SET destination_id = 'fa72af2c-c866-42ed-985d-7c7c2999713b' WHERE destination_id = 'daankets@deltasource.eu';
@@ -328,7 +328,7 @@ UPDATE announcements SET created_by = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e' WHE
 UPDATE application_versions SET created_by = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e' WHERE created_by = 'ctie_user_1_admin';
 UPDATE application_versions SET modified_by = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e' WHERE modified_by = 'ctie_user_1_admin';
 UPDATE applications SET created_by = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e' WHERE created_by = 'ctie_user_1_admin';
-UPDATE auditlog SET who = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e' WHERE who = 'ctie_user_1_admin';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e') WHERE who = 'ctie_user_1_admin';
 UPDATE contracts SET created_by = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e' WHERE created_by = 'ctie_user_1_admin';
 UPDATE events SET origin_id = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e' WHERE origin_id = 'ctie_user_1_admin';
 UPDATE events SET destination_id = '3f4a750e-d3a6-4da0-8bc6-4c2af4d1825e' WHERE destination_id = 'ctie_user_1_admin';
@@ -355,7 +355,7 @@ UPDATE announcements SET created_by = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b' WHE
 UPDATE application_versions SET created_by = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b' WHERE created_by = 'ctie_user_1';
 UPDATE application_versions SET modified_by = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b' WHERE modified_by = 'ctie_user_1';
 UPDATE applications SET created_by = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b' WHERE created_by = 'ctie_user_1';
-UPDATE auditlog SET who = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b' WHERE who = 'ctie_user_1';
+UPDATE auditlog SET who = (SELECT email FROM users WHERE username = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b') WHERE who = 'ctie_user_1';
 UPDATE contracts SET created_by = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b' WHERE created_by = 'ctie_user_1';
 UPDATE events SET origin_id = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b' WHERE origin_id = 'ctie_user_1';
 UPDATE events SET destination_id = '98faa3f7-5ad9-4322-bfcf-5b4bf4c4836b' WHERE destination_id = 'ctie_user_1';

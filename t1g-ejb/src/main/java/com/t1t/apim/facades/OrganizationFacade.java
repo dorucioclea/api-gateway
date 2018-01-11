@@ -56,8 +56,8 @@ import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.core.metrics.MetricsService;
 import com.t1t.apim.exceptions.*;
 import com.t1t.apim.exceptions.i18n.Messages;
-import com.t1t.apim.facades.audit.AuditUtils;
-import com.t1t.apim.gateway.GatewayAuthenticationException;
+import com.t1t.util.AuditUtils;
+import com.t1t.apim.exceptions.GatewayAuthenticationException;
 import com.t1t.apim.gateway.IGatewayLink;
 import com.t1t.apim.gateway.IGatewayLinkFactory;
 import com.t1t.apim.gateway.dto.*;
@@ -1738,10 +1738,15 @@ public class OrganizationFacade {
                     return DtoFactory.createApplicationVersionSummarBeanWithConsumerId(contract.getApplication(), consumer.getId());
                 } else return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
+            log.info("Number of applications available for metrics: {}", consumers.size());
             ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(getServiceVersion(organizationId, serviceId, version), consumers, from, to);
-            if (serviceMetrics != null) {
+            if (serviceMetrics != null && serviceMetrics.getException() == null) {
                 return serviceMetrics;
             } else {
+                if (serviceMetrics.getException() != null) {
+                    throw serviceMetrics.getException();
+                }
+                log.info("Service metrics are null");
                 throw ExceptionFactory.metricsUnavailableException();
             }
         } catch (StorageException ex) {

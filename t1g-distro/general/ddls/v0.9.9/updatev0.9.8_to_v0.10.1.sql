@@ -1,4 +1,4 @@
---------- UPGRADE TO 1.0.0 STARTS HERE ----------
+--------- UPGRADE TO 0.10.1 STARTS HERE ----------
 
 CREATE TABLE service_basepaths AS
   SELECT

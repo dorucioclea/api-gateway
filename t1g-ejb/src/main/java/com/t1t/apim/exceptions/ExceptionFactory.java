@@ -818,4 +818,14 @@ public final class ExceptionFactory {
     public static IdpIssuerAlreadyExistsException idpIssuerAlreadyExistsException(String issuerId) {
         return new IdpIssuerAlreadyExistsException(Messages.i18n.format(ErrorCodes.ISSUER_ALREADY_EXISTS_MSG, issuerId));
     }
+
+    /**
+     * Creates an exception
+     *
+     * @param timeout
+     * @return
+     */
+    public static MetricsQueryTimeOutException metricsQueryTimeOutException(Integer timeout) {
+        return new MetricsQueryTimeOutException(Messages.i18n.format(ErrorCodes.METRIC_TIMEOUT_MSG, timeout));
+    }
 }
