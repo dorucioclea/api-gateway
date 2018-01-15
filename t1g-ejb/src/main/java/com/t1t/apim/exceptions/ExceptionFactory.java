@@ -1,6 +1,7 @@
 package com.t1t.apim.exceptions;
 
 import com.t1t.apim.common.plugin.PluginCoordinates;
+import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.i18n.Messages;
 
 /**
@@ -827,5 +828,14 @@ public final class ExceptionFactory {
      */
     public static MetricsQueryTimeOutException metricsQueryTimeOutException(Integer timeout) {
         return new MetricsQueryTimeOutException(Messages.i18n.format(ErrorCodes.METRIC_TIMEOUT_MSG, timeout));
+    }
+
+    /**
+     * Creates an exception
+     *
+     * @return
+     */
+    public static NoMetricsEnabledException noMetricsEnabledException() {
+        return new NoMetricsEnabledException(Messages.i18n.format(ErrorCodes.NO_METRICS_ENABLED_MSG));
     }
 }
