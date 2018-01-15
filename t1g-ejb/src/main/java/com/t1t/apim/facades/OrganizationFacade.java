@@ -1726,6 +1726,14 @@ public class OrganizationFacade {
         return appUsagePerService;
     }
 
+    private void serviceHasMetricsPolicy(ServiceVersionBean serviceVersion) throws StorageException {
+        boolean serviceHasMetricsPolicy = !query.getEntityPoliciesByDefinitionId(serviceVersion.getService().getOrganization().getId(), serviceVersion.getService().getId(), serviceVersion.getVersion(), PolicyType.Service, Policies.DATADOG).isEmpty();
+        // Add checks for other metrics policies here
+        if (!serviceHasMetricsPolicy) {
+            throw ExceptionFactory.noMetricsEnabledException();
+        }
+    }
+
     public ServiceMetricsBean getServiceUsage(String organizationId, String serviceId, String version, String fromDate, String toDate) {
         DateTime from = parseFromDate(fromDate);
         DateTime to = parseToDate(toDate);
@@ -1739,7 +1747,9 @@ public class OrganizationFacade {
                 } else return null;
             }).filter(Objects::nonNull).collect(Collectors.toList());
             log.info("Number of applications available for metrics: {}", consumers.size());
-            ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(getServiceVersion(organizationId, serviceId, version), consumers, from, to);
+            ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
+            serviceHasMetricsPolicy(svb);
+            ServiceMetricsBean serviceMetrics = metrics.getServiceMetrics(svb, consumers, from, to);
             if (serviceMetrics != null && serviceMetrics.getException() == null) {
                 return serviceMetrics;
             } else {

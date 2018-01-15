@@ -205,9 +205,11 @@ public final class ErrorCodes {
     public static final int METRIC_CRITERIA_INVALID                             = 13001;
     public static final int METRIC_UNAVAILABLE                                  = 13003;
     public static final int METRIC_TIMEOUT                                      = 13004;
+    public static final int NO_METRICS_ENABLED                                  = 13005;
 
     public static final String METRIC_CRITERIA_INVALID_INFO                     = null;
     public static final String METRIC_TIMEOUT_INFO                              = null;
+    public static final String NO_METRICS_ENABLED_INFO                          = null;
 
     //
     // General cross-cutting errors
@@ -309,4 +311,5 @@ public final class ErrorCodes {
     public static final String ISSUER_NOT_FOUND_MSG                             = "issuerNotFound";
     public static final String DATADOG_ENVIRONMENT_UNDEFINED                    = "envUndefinedForDataDog";
     public static final String METRIC_TIMEOUT_MSG                               = "metricsTimeOut";
+    public static final String NO_METRICS_ENABLED_MSG                           = "noMetricsEnabled";
 }
