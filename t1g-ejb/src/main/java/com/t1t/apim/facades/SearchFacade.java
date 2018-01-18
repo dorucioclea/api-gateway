@@ -231,7 +231,8 @@ public class SearchFacade {
         List<ServiceVersionWithMarketInfoBean> svmibs = new ArrayList<>();
         svbs.forEach(svb -> {
             ServiceVersionWithMarketInfoBean svmib = new ServiceVersionWithMarketInfoBean(svb);
-            svmib.setMarketInfo(orgFacade.getMarketInfo(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()));
+            // We no longer enrich the service info -> this causes too much lag when querying the metrics
+            //svmib.setMarketInfo(orgFacade.getMarketInfo(svb.getService().getOrganization().getId(), svb.getService().getId(), svb.getVersion()));
             svmibs.add(svmib);
         });
         return svmibs;
