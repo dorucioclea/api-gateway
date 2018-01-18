@@ -4,13 +4,19 @@ Trust1Gateway: API Management Services based on open source KONG gateway
 
 [![][t1g-logo]][Trust1Gateway-url]
 
-Summary: Open source API manager build on [Kong](https://getkong.org/)
+Summary: Open source API manager build on [Kong](https://getkong.org/) and [Keycloak](http://www.keycloak.org/)
 
+Trust1Gateway has the following components:
+- API Engine - management layer on top of Kong CE
+- API Marketplace - open source front-end as developer portal
+- API Publisher - open source front-end as portal to register new API's
 
 
 Github project
 --------------
-Source: <https://github.com/Trust1Team/api-gateway>
+- [API Engine source](https://github.com/Trust1Team/api-gateway)
+- [API Marketplace source](https://github.com/Trust1Team/api-market)
+- [API Publisher source](https://github.com/Trust1Team/api-publisher)
 
 Kong version
 ------------
@@ -21,8 +27,29 @@ Using the open source Kong 0.10.1 (CE)
 
 Documentation
 -------------
-We are working on the Trust1Gateway documentation:
-[Trust1Gateway - Documentation](https://www.gitbook.com/book/t1t/trust1gateway-marketplace-guide/details)
+The Trust1Gateway product is an open source API Gateway built from the ground as a light-weight API Gateway with ease of use from a developer perspective, fast, scalable and resilient. The Trust1Gateway contains a developer portal, API management dashboard and much more. The Trust1Gateway provides a REST API on a business level in order to expose and consume API's fast and easy.
+
+The Trust1Gateway uses components like Kong API Gateway, as the operational gateway build on NGINX; and Keycloak as the identity broker. The reason why Trust1Gateway integrated those components is to differentiate between:
+- API gateway functionality
+- IAM or IDP functionality
+
+Both the API Gateway and IDP are orchestrated through the API Engine. The Trust1Gateway provides an administration UI on KONG CE. 
+A full REST API is exposed to automate your product/service lifecycle completely or use the open source developer portals (marketplace and publisher). 
+The API Engine provides a higher level of services registered:
+
+- API versioning mechanism (deprecation, retirement, ..)
+- API management for multiple organisations
+- API branding
+- API information, notification and light-weight issues management
+- Marketplace management (multiple marketplaces can be provided depending on your needs)
+- Policy management and configuration on consumer, service and plan level
+- API monetization
+- Private and public API's
+
+The Trust1Gateway is oper source, and community ideas and support are very welcome. 
+
+Marketplace documentation: [Trust1Gateway - Documentation](https://www.gitbook.com/book/t1t/trust1gateway-marketplace-guide/details)
+Publisher documentation: [Trust1Gateway - Documentation](https://www.gitbook.com/book/t1t/trust1gateway-marketplace-guide/details)
 
 
 Build
