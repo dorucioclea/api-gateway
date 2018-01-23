@@ -43,10 +43,7 @@
         <class>com.t1t.apim.beans.policies.PolicyBean</class>
         <class>com.t1t.apim.beans.audit.AuditEntryBean</class>
         <class>com.t1t.apim.beans.gateways.GatewayBean</class>
-        <class>com.t1t.apim.beans.plugins.PluginBean</class>
         <class>com.t1t.apim.beans.brandings.NewServiceBrandingBean</class>
-        <class>com.t1t.apim.beans.iprestriction.BlacklistBean</class>
-        <class>com.t1t.apim.beans.iprestriction.WhitelistBean</class>
         <class>com.t1t.apim.beans.managedapps.ManagedApplicationBean</class>
         <class>com.t1t.apim.beans.events.EventBean</class>
         <properties>
