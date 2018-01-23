@@ -134,7 +134,9 @@ public class LoginResource {
     @Path("/idp/token/refresh")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
     public Response refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
+        //TODO - DO NOT, I REPEAT, NOT, REMOVE THIS ENDPOINT BEFORE CHECKING WITH PROJECT LEAD!!!
         Preconditions.checkNotNull(jwtRefreshRequestBean, Messages.i18n.format("nullValue", "JWT refresh request"));
         Preconditions.checkArgument(!StringUtils.isEmpty(jwtRefreshRequestBean.getOriginalJWT()), Messages.i18n.format("emptyValue", "Original JWT"));
         return Response.ok().entity(userFacade.refreshToken(jwtRefreshRequestBean.getOriginalJWT())).build();
