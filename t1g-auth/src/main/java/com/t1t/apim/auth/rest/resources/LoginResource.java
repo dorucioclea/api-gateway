@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.exceptions.ErrorBean;
 import com.t1t.apim.beans.idm.ExternalUserBean;
 import com.t1t.apim.beans.jwt.JWT;
+import com.t1t.apim.beans.jwt.JWTRefreshRequestBean;
+import com.t1t.apim.beans.jwt.JWTRefreshResponseBean;
 import com.t1t.apim.beans.jwt.ServiceAccountTokenRequest;
 import com.t1t.apim.beans.scim.ExternalUserRequest;
 import com.t1t.apim.exceptions.ErrorCodes;
@@ -120,6 +122,24 @@ public class LoginResource {
         Preconditions.checkNotNull(jwt, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
         Preconditions.checkArgument(StringUtils.isNotBlank(jwt.getToken()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "token"));
         return Response.ok().entity(userFacade.refreshToken(jwt.getToken())).build();
+    }
+
+    @ApiOperation(value = "Refresh an existing valid JWT",
+            notes = "Use this endpoint to refresh and prolong your JWT expiration time. When no expiration time is provided, default applies. If 0 is provided as expiration configuration, the JWT will be indefinitely valid.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = JWT.class, message = "Refreshed JWT."),
+            @ApiResponse(code = 500, response = String.class, message = "Server error while refreshing token")
+    })
+    @POST
+    @Path("/idp/token/refresh")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Deprecated
+    public Response refreshToken(JWTRefreshRequestBean jwtRefreshRequestBean) {
+        //TODO - DO NOT, I REPEAT, NOT, REMOVE THIS ENDPOINT BEFORE CHECKING WITH PROJECT LEAD!!!
+        Preconditions.checkNotNull(jwtRefreshRequestBean, Messages.i18n.format("nullValue", "JWT refresh request"));
+        Preconditions.checkArgument(!StringUtils.isEmpty(jwtRefreshRequestBean.getOriginalJWT()), Messages.i18n.format("emptyValue", "Original JWT"));
+        return Response.ok().entity(userFacade.refreshToken(jwtRefreshRequestBean.getOriginalJWT())).build();
     }
 
 }
