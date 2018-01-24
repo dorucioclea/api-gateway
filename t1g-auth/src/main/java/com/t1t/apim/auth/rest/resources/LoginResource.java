@@ -127,7 +127,7 @@ public class LoginResource {
     @ApiOperation(value = "Refresh an existing valid JWT",
             notes = "Use this endpoint to refresh and prolong your JWT expiration time. When no expiration time is provided, default applies. If 0 is provided as expiration configuration, the JWT will be indefinitely valid.")
     @ApiResponses({
-            @ApiResponse(code = 200, response = JWTRefreshResponseBean.class, message = "Refreshed JWT."),
+            @ApiResponse(code = 200, response = JWT.class, message = "Refreshed JWT."),
             @ApiResponse(code = 500, response = String.class, message = "Server error while refreshing token")
     })
     @POST
