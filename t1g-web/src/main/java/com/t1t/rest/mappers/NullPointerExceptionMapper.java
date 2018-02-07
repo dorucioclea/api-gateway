@@ -17,24 +17,5 @@ import javax.ws.rs.ext.Provider;
  */
 @Provider
 @ApplicationScoped
-public class NullPointerExceptionMapper implements ExceptionMapper<NullPointerException> {
-
-    /**
-     * @see ExceptionMapper#toResponse(Throwable)
-     */
-    @Override
-    public Response toResponse(NullPointerException data) {
-
-        ErrorBean error = new ErrorBean();
-        error.setMessage(data.getMessage());
-        if (!StringUtils.isEmpty(data.getMessage())) {
-            error.setMessage(data.getMessage());
-        } else {
-            error.setMessage(Messages.i18n.format("InvalidInput"));
-        }
-        error.setErrorCode(ErrorCodes.HTTP_STATUS_CODE_INVALID_INPUT);
-        Response.ResponseBuilder builder = Response.status(ErrorCodes.HTTP_STATUS_CODE_INVALID_INPUT).header("X-ApiEngine-Error", "true");
-        builder.type(MediaType.APPLICATION_JSON_TYPE);
-        return builder.entity(error).build();
-    }
+public class NullPointerExceptionMapper extends AbstractExceptionMapper<NullPointerException> {
 }

@@ -1172,4 +1172,12 @@ public interface IStorageQuery {
      * @throws StorageException
      */
     List<IdpIssuerBean> getAllIdpIssuers() throws StorageException;
+
+    /**
+     * Returns an application version that correlates to the requested domain
+     * @param domain the domain name
+     * @return the application version
+     * @throws StorageException
+     */
+    ApplicationVersionBean getApplicationVersionForDomain(String domain) throws StorageException;
 }

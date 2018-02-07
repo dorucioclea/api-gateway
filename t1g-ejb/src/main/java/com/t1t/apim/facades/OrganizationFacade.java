@@ -4497,6 +4497,35 @@ public class OrganizationFacade {
         }
     }
 
+    public JWT getDomainCorrelatedToken(ServiceVersionSummaryBean svcSummary, String domain) {
+        try {
+            JWT returnValue = new JWT();
+            ServiceVersionBean svc = getServiceVersionInternal(svcSummary.getOrganizationId(), svcSummary.getId(), svcSummary.getVersion());
+            ApplicationVersionBean requestingApp = getApplicationVersionByUniqueId(appContext.getNonManagedApplication());
+            ApplicationVersionBean correlatedDomainAppVersion = query.getApplicationVersionForDomain(domain);
+            if (correlatedDomainAppVersion == null) {
+                throw ExceptionFactory.applicationVersionNotFoundException(Messages.i18n.format(ErrorCodes.MSG_DOMAIN_NOT_FOUND, domain));
+            }
+            Set<ApplicationVersionBean> serviceContractHolders = query.getAppVersionContractHoldersForServiceVersion(svc);
+            if (!serviceContractHolders.contains(requestingApp) || !serviceContractHolders.contains(correlatedDomainAppVersion)) {
+                throw ExceptionFactory.notAuthorizedException(Messages.i18n.format(ErrorCodes.MSG_DOMAIN_CORRELATION_ERROR, domain));
+            }
+            String correlatedDomainAppVersionId = ConsumerConventionUtil.createAppUniqueId(correlatedDomainAppVersion);
+            JwtClaims claims = new JwtClaims();
+            claims.setClaim(IJWT.SERVICE_ACCOUNT, true);
+            claims.setSubject(correlatedDomainAppVersionId);
+            claims.setIssuer(correlatedDomainAppVersionId);
+            if (StringUtils.isNotEmpty(correlatedDomainAppVersion.getApplication().getEmail())) {
+                claims.setClaim(IJWT.EMAIL, correlatedDomainAppVersion.getApplication().getEmail());
+            }
+            GatewayBean gatewayBean = gatewayFacade.get(gatewayFacade.getDefaultGateway().getId());
+            returnValue.setToken(JWTUtils.getJwtWithExpirationTime(claims, gatewayBean.getJWTExpTime(), KeyUtils.getPrivateKey(gatewayBean.getJWTPrivKey()), gatewayBean.getEndpoint() + gatewayBean.getJWTPubKeyEndpoint(), JWTUtils.JWT_RS256));
+            return returnValue;
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+    }
+
     private String[] splitUID(String UID) {
         String[] split = UID.split("\\.");
         if (split.length != 3) {
@@ -4560,5 +4589,27 @@ public class OrganizationFacade {
         } catch (StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);
         }
+    }
+
+    public ApplicationVersionBean updateAppVersionDomains(String orgId, String appId, String version, UpdateApplicationVersionDomainsBean request) {
+        try {
+            ApplicationVersionBean avb = getAppVersion(orgId, appId, version);
+            Set<String> previousValues = avb.getDomains();
+            for (String domain : request.getDomains()) {
+                ApplicationVersionBean existingAssociation = query.getApplicationVersionForDomain(domain);
+                if (existingAssociation != null && !existingAssociation.equals(avb)) {
+                    throw ExceptionFactory.domainAlreadyAssociated(domain, existingAssociation.getApplication().getName(), existingAssociation.getVersion());
+                }
+            }
+            avb.setDomains(request.getDomains());
+            EntityUpdatedData data = new EntityUpdatedData();
+            data.addChange("Updated application version domains", String.valueOf(previousValues), String.valueOf(request.getDomains()));
+            storage.updateApplicationVersion(avb);
+            storage.createAuditEntry(AuditUtils.applicationVersionUpdated(avb, data, securityContext));
+            return avb;
+        } catch (StorageException ex) {
+            throw ExceptionFactory.systemErrorException(ex);
+        }
+
     }
 }
