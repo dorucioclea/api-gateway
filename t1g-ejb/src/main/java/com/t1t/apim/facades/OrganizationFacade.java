@@ -4501,15 +4501,20 @@ public class OrganizationFacade {
         try {
             JWT returnValue = new JWT();
             ServiceVersionBean svc = getServiceVersionInternal(svcSummary.getOrganizationId(), svcSummary.getId(), svcSummary.getVersion());
+            // This is the application version making the request
             ApplicationVersionBean requestingApp = getApplicationVersionByUniqueId(appContext.getNonManagedApplication());
+            // This is the application version that correlates to the domain for which a token is being requested
             ApplicationVersionBean correlatedDomainAppVersion = query.getApplicationVersionForDomain(domain);
             if (correlatedDomainAppVersion == null) {
                 throw ExceptionFactory.applicationVersionNotFoundException(Messages.i18n.format(ErrorCodes.MSG_DOMAIN_NOT_FOUND, domain));
             }
+            // Both the requesting application version and the application version that correlates to the requested domain must have a
+            // contract with the service version specified in the request.
             Set<ApplicationVersionBean> serviceContractHolders = query.getAppVersionContractHoldersForServiceVersion(svc);
             if (!serviceContractHolders.contains(requestingApp) || !serviceContractHolders.contains(correlatedDomainAppVersion)) {
                 throw ExceptionFactory.notAuthorizedException(Messages.i18n.format(ErrorCodes.MSG_DOMAIN_CORRELATION_ERROR, domain));
             }
+            // If both conditions are met then, and only then, issue a token for the correlated application version
             String correlatedDomainAppVersionId = ConsumerConventionUtil.createAppUniqueId(correlatedDomainAppVersion);
             JwtClaims claims = new JwtClaims();
             claims.setClaim(IJWT.SERVICE_ACCOUNT, true);
