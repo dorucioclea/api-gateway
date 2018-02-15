@@ -19,12 +19,19 @@ public final class ErrorCodes {
     public static final int HTTP_STATUS_CODE_REQUEST_TIMEOUT                    = 408;
     public static final int HTTP_STATUS_CODE_ALREADY_EXISTS                     = 409;
     public static final int HTTP_STATUS_CODE_INVALID_STATE                      = 409;
+    public static final int HTTP_STATUS_CODE_PRECONDITION_FAILED                = 412;
     public static final int HTTP_STATUS_CODE_SYSTEM_ERROR                       = 500;
     public static final int HTTP_STATUS_CODE_UNAVAILABLE                        = 503;
     public static final int HTTP_STATUS_CODE_NETWORK_CONNECT_TIMEOUT_ERROR      = 599;
 
     public static final String HTTP_STATUS_CODE_INVALID_INPUT_INFO              = null;
     public static final String HTTP_STATUS_CODE_UNAVAILABLE_INFO                = null;
+
+    //
+    // Preconditions Related
+    //
+
+    public static final int ERROR_PRECONDITIONS_FAILED                          = 1000;
 
     //
     // User API related
@@ -85,6 +92,7 @@ public final class ErrorCodes {
     public static final int TERMS_AGREEMENT_MISSING                             = 4009;
     public static final int APP_OAUTH_INFO_NOT_FOUND                            = 4010;
     public static final int MISSING_APP_CONTEXT_ERROR                           = 4011;
+    public static final int ERROR_DOMAIN_ALREADY_IN_USE                         = 4012;
 
     public static final String APP_ALREADY_EXISTS_INFO                          = null;
     public static final String APP_NOT_FOUND_INFO                               = null;
@@ -96,6 +104,7 @@ public final class ErrorCodes {
     public static final String TERMS_AGREEMENT_MISSING_INFO                     = null;
     public static final String APP_OAUTH_INFO_NOT_FOUND_INFO                    = null;
     public static final String MISSING_APP_CONTEXT_INFO                         = null;
+    public static final String INFO_DOMAIN_ALREADY_IN_USE                       = null;
 
     //
     // Service API related
@@ -312,4 +321,7 @@ public final class ErrorCodes {
     public static final String DATADOG_ENVIRONMENT_UNDEFINED                    = "envUndefinedForDataDog";
     public static final String METRIC_TIMEOUT_MSG                               = "metricsTimeOut";
     public static final String NO_METRICS_ENABLED_MSG                           = "noMetricsEnabled";
+    public static final String MSG_DOMAIN_NOT_FOUND                             = "domainNotFound";
+    public static final String MSG_DOMAIN_CORRELATION_ERROR                     = "domainCorrelationError";
+    public static final String MSG_DOMAIN_ALREADY_IN_USE                        = "domainInUse";
 }

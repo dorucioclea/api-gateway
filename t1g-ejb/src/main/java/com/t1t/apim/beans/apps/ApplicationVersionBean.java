@@ -58,6 +58,10 @@ public class ApplicationVersionBean implements Serializable {
     private String apikey;
     @Column(name = "oauth_credential_id")
     private String oauthCredentialId;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "application_version_domains", joinColumns = @JoinColumn(name = "application_version_id"))
+    @Column(name = "domain")
+    private Set<String> domains;
 
 
     /**
@@ -263,6 +267,22 @@ public class ApplicationVersionBean implements Serializable {
     }
 
     /**
+     * The list of associated domains
+     * @return List of domains
+     */
+    public Set<String> getDomains() {
+        return domains;
+    }
+
+    /**
+     * Sets the list of domains
+     * @param domains set of domains to set
+     */
+    public void setDomains(Set<String> domains) {
+        this.domains = domains;
+    }
+
+    /**
      * @see Object#hashCode()
      */
     @Override
@@ -306,9 +326,11 @@ public class ApplicationVersionBean implements Serializable {
                 ", modifiedOn=" + modifiedOn +
                 ", publishedOn=" + publishedOn +
                 ", retiredOn=" + retiredOn +
+                ", oauthClientSecret='" + oauthClientSecret + '\'' +
                 ", oauthClientRedirects=" + oauthClientRedirects +
                 ", apikey='" + apikey + '\'' +
                 ", oauthCredentialId='" + oauthCredentialId + '\'' +
+                ", domains=" + domains +
                 '}';
     }
 }

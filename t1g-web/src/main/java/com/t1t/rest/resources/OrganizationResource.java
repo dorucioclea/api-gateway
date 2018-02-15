@@ -319,6 +319,27 @@ public class OrganizationResource {
         return orgFacade.updateAppVersionURI(orgId, appId, version, updateAppUri);
     }
 
+    @ApiOperation(value = "Update Application Version Domains",
+            notes = "Use this endpoint to update the set of domains associated with the application version. A domain can only be associated with a single application version")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = ApplicationVersionBean.class, message = "Updated Application Version."),
+            @ApiResponse(code = 404, response = ErrorBean.class, message = "Application not found"),
+            @ApiResponse(code = 412, response = ErrorBean.class, message = "Precondition failed"),
+            @ApiResponse(code = 409, response = ErrorBean.class, message = "Conflict")
+    })
+    @PUT
+    @Path("/{organizationId}/applications/{applicationId}/versions/{version}/domains")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateAppVersionCallbackURI(@PathParam("organizationId") String orgId, @PathParam("applicationId") String appId, @PathParam("version") String version, UpdateApplicationVersionDomainsBean request) {
+
+        if (!securityContext.hasPermission(PermissionType.appEdit, orgId))
+            throw ExceptionFactory.notAuthorizedException();
+        Preconditions.checkNotNull(request, Messages.i18n.format(ErrorCodes.REQUEST_NULL, "Request body"));
+        Preconditions.checkNotNull(request.getDomains(), Messages.i18n.format(ErrorCodes.REQUEST_NULL, "\"domains\""));
+        return Response.ok().entity(orgFacade.updateAppVersionDomains(orgId, appId, version, request)).build();
+    }
+
 
     @ApiOperation(value = "Reissue Application version's API key",
             notes = "Use this endpoint to revoke the application version's current API key and assign a new one")

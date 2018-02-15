@@ -39,6 +39,15 @@ public final class ExceptionFactory {
     }
 
     /**
+     * Creates a not authorized exception.
+     *
+     * @return the exception
+     */
+    public static final NotAuthorizedException notAuthorizedException(String message) {
+        return new NotAuthorizedException(message); //$NON-NLS-1$
+    }
+
+    /**
      * Creates an exception from an organization name.
      *
      * @param organizationName the organization name
@@ -837,5 +846,17 @@ public final class ExceptionFactory {
      */
     public static NoMetricsEnabledException noMetricsEnabledException() {
         return new NoMetricsEnabledException(Messages.i18n.format(ErrorCodes.NO_METRICS_ENABLED_MSG));
+    }
+
+    /**
+     * Creates an exception
+     *
+     * @param domain
+     * @param name
+     * @param version
+     * @return
+     */
+    public static DomainInUseException domainAlreadyAssociated(String domain, String name, String version) {
+        return new DomainInUseException(Messages.i18n.format(ErrorCodes.MSG_DOMAIN_ALREADY_IN_USE, domain, name, version));
     }
 }
