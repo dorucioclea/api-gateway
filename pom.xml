@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.t1t</groupId>
     <artifactId>api-gateway</artifactId>
-    <version>0.10.5-SNAPSHOT</version>
+    <version>0.10.5</version>
     <packaging>pom</packaging>
 
     <description>
