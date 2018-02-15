@@ -5,7 +5,7 @@
     <parent>
         <artifactId>api-gateway</artifactId>
         <groupId>com.t1t</groupId>
-        <version>0.10.5</version>
+        <version>0.10.6-SNAPSHOT</version>
     </parent>
 
     <artifactId>t1g-auth</artifactId>
