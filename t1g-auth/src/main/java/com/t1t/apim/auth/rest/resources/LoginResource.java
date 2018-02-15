@@ -3,15 +3,15 @@ package com.t1t.apim.auth.rest.resources;
 import com.google.common.base.Preconditions;
 import com.t1t.apim.beans.exceptions.ErrorBean;
 import com.t1t.apim.beans.idm.ExternalUserBean;
-import com.t1t.apim.beans.jwt.JWT;
-import com.t1t.apim.beans.jwt.JWTRefreshRequestBean;
-import com.t1t.apim.beans.jwt.JWTRefreshResponseBean;
-import com.t1t.apim.beans.jwt.ServiceAccountTokenRequest;
+import com.t1t.apim.beans.jwt.*;
 import com.t1t.apim.beans.scim.ExternalUserRequest;
+import com.t1t.apim.beans.summary.ServiceVersionSummaryBean;
 import com.t1t.apim.exceptions.ErrorCodes;
 import com.t1t.apim.exceptions.i18n.Messages;
 import com.t1t.apim.facades.OrganizationFacade;
 import com.t1t.apim.facades.UserFacade;
+import com.t1t.util.GatewayUtils;
+import com.t1t.util.ServiceConventionUtil;
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -92,6 +92,27 @@ public class LoginResource {
         return orgFacade.getApplicationJWT(request);
     }
 
+    @ApiOperation(value = "Retrieve Domain-correlated JWT",
+            notes = "This endpoint can be used to to generate a JWT for an application version. The application version will be selected by correlating against the requested domain and the possession of a contract with the requested service version. The requesting application must also be in possession of a contract with the desired service version.")
+    @ApiResponses({
+            @ApiResponse(code = 200, response = JWT.class, message = "Application JWT"),
+            @ApiResponse(code = 400, response = ErrorBean.class, message = "Invalid request"),
+            @ApiResponse(code = 404, response = ErrorBean.class, message = "Not found"),
+            @ApiResponse(code = 412, response = ErrorBean.class, message = "Precondition failed"),
+            @ApiResponse(code = 500, response = ErrorBean.class, message = "System error"),
+    })
+    @POST
+    @Path("/application/token/domain")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDomainCorrelatedToken(@ApiParam DomainCorrelationRequest request) {
+        Preconditions.checkNotNull(request, Messages.i18n.format(ErrorCodes.REQUEST_NULL, "Request body"));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(request.getDomain()), Messages.i18n.format(ErrorCodes.EMPTY_VALUE, "domain"));
+        Preconditions.checkArgument(StringUtils.isNotEmpty(request.getServiceId()), Messages.i18n.format(ErrorCodes.EMPTY_VALUE, "serviceId"));
+        ServiceVersionSummaryBean svcSummary = ServiceConventionUtil.getServiceVersionSummaryFromUniqueName(request.getServiceId());
+        return Response.ok().entity(orgFacade.getDomainCorrelatedToken(svcSummary, request.getDomain())).build();
+    }
+
     @ApiOperation(value = "Exchange external JWT",
             notes = "Use this endpoint to exchange a JWT from an authorized IDP into a valid T1G token.")
     @ApiResponses({
@@ -141,5 +162,6 @@ public class LoginResource {
         Preconditions.checkArgument(!StringUtils.isEmpty(jwtRefreshRequestBean.getOriginalJWT()), Messages.i18n.format("emptyValue", "Original JWT"));
         return Response.ok().entity(userFacade.refreshToken(jwtRefreshRequestBean.getOriginalJWT())).build();
     }
+
 
 }

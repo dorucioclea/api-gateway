@@ -2787,4 +2787,16 @@ public class JpaStorage extends AbstractJpaStorage implements IStorage, IStorage
     public List<IdpIssuerBean> getAllIdpIssuers() throws StorageException {
         return getActiveEntityManager().createQuery("SELECT i FROM IdpIssuerBean i", IdpIssuerBean.class).getResultList();
     }
+
+    @Override
+    public ApplicationVersionBean getApplicationVersionForDomain(String domain) throws StorageException {
+        try {
+            return getActiveEntityManager()
+                    .createQuery("SELECT a FROM ApplicationVersionBean a WHERE :domain MEMBER OF a.domains", ApplicationVersionBean.class)
+                    .setParameter("domain", domain)
+                    .getSingleResult();
+        } catch (NoResultException | NonUniqueResultException ex) {
+            return null;
+        }
+    }
 }
