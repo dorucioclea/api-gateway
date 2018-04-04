@@ -236,7 +236,7 @@ public class UpdateServiceVersionBean implements Serializable {
     }
 
     /**
-     * @param upstreamConnectTimeout the upstream send timeout to set
+     * @param upstreamSendTimeout the upstream send timeout to set
      */
     public void setUpstreamSendTimeout(Long upstreamSendTimeout) {
         this.upstreamSendTimeout = upstreamSendTimeout;
@@ -250,7 +250,7 @@ public class UpdateServiceVersionBean implements Serializable {
     }
 
     /**
-     * @param upstreamConnectTimeout the upstream read timeout to set
+     * @param upstreamReadTimeout the upstream read timeout to set
      */
     public void setUpstreamReadTimeout(Long upstreamReadTimeout) {
         this.upstreamReadTimeout = upstreamReadTimeout;

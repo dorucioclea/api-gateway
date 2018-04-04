@@ -5,7 +5,7 @@ docker build -t trust1gateway:latest .
 
 # Run container
 ```bash
-docker run -dit -p 127.0.0.1:5433:5432 -p 127.0.0.1:3000:3000 -p 127.0.0.1:3003:3003 -p 127.0.0.1:8443:8443 -p 127.0.0.1:8000:8000 -p 127.0.0.1:8001:8001 -p 127.0.0.1:28080:28080 -p 127.0.0.1:28443:28443 -p 127.0.0.1:29990:29990 -p 127.0.0.1:29993:29993 --name t1g-docker trust1gateway:latest /tmp/start.sh
+docker run -dit -p 127.0.0.1:5433:5432 -p 127.0.0.1:3000:3000 -p 127.0.0.1:3003:3003 -p 127.0.0.1:8443:8443 -p 127.0.0.1:8000:8000 -p 127.0.0.1:8001:8001 -p 127.0.0.1:28080:28080 -p 127.0.0.1:28443:28443 -p 127.0.0.1:29990:29990 -p 127.0.0.1:29993:29993 --name t1g-docker trust1gateway:latest
 docker start t1g-docker
 ```
 
@@ -29,10 +29,10 @@ PostgreSQL server available on port `5433`
 
 ### Master Realm
 
-username: t1gadmin
+username: kc-admin
 password: admin
 
 ### Trust1Gateway Realm
 
-username: t1guser
-password: user
+username: t1g-admin
+password: admin
