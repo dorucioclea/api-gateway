@@ -29,8 +29,11 @@
         "type": "string"
       }
     },
-    "origin": {
-      "type": "string"
+    "origins": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "max_age": {
       "type": "integer"

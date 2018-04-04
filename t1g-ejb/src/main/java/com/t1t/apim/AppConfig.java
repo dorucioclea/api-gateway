@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.inject.Produces;
@@ -51,6 +53,7 @@ public class AppConfig implements Serializable {
 
     @Produces
     @T1G
+    @Lock(LockType.READ)
     public AppConfigBean getConfig() {
         return configBean;
     }

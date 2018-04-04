@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+service wildfly stop && rm -rf /var/run/wildfly && service postgresql start && kong start --vv && service wildfly start && pm2 start /opt/api-publisher/app.js && pm2 start /opt/api-market/app.js && tail -f /opt/wildfly/standalone/log/server.log
