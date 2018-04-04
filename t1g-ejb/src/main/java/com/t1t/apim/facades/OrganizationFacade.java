@@ -1177,6 +1177,8 @@ public class OrganizationFacade {
         }
     }
 
+
+
     /*public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);
         if (svb.getStatus() == ServiceStatus.Retired) throw ExceptionFactory.invalidServiceStatusException();
