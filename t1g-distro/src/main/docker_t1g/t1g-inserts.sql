@@ -1193,18 +1193,7 @@ HI5PPa7GK7nyyLGCpfARLMcnVTK6F94UAf1N6uH3uruOvYnWLW9lNCWVahBMsR0X
 -----END PRIVATE KEY-----');
 
 INSERT INTO users (username, email, full_name, joined_on, admin, pic)
-VALUES ('admin', 'admin@example.org', 'Admin', CURRENT_DATE, TRUE, NULL);
-INSERT INTO organizations (id, created_by, created_on, description, modified_by, modified_on, name, friendly_name)
-VALUES ('trust1team', 'admin', CURRENT_DATE, 'Trust1Team', 'admin', CURRENT_DATE, 'Trust1Team', NULL);
-INSERT INTO memberships (id, created_on, org_id, role_id, user_id)
-VALUES (999, CURRENT_DATE, 'trust1team', 'Owner', 'admin');
-
-INSERT INTO users (username, email, full_name, joined_on, admin)
-VALUES ('guillaume@trust1team.com', 'guillaume@trust1team.com', 'Guillaume Vandecasteele', CURRENT_DATE, TRUE);
-INSERT INTO users (username, email, full_name, joined_on, admin)
-VALUES ('michallis@trust1team.com', 'michallis@trust1team.com', 'Michallis Pashidis', CURRENT_DATE, TRUE);
-INSERT INTO users (username, email, full_name, joined_on, admin)
-VALUES ('maarten.somers@trust1team.com', 'maarten.somers@trust1team.com', 'Maarten Somers', CURRENT_DATE, TRUE);
+VALUES ('ad955d6f-c15a-4ab2-adfd-fbde8251a032', 'dummy-mail@dummy-domain.com', 'Admin', CURRENT_DATE, TRUE, NULL);
 
 INSERT INTO managed_applications (id, name, version, type, prefix, activated, restricted, app_id)
 VALUES (901, 'External Marketplace', 'v1', 'ExternalMarketplace', 'ext', TRUE, FALSE, 'marketplace');

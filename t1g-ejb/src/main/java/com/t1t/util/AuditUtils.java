@@ -168,7 +168,7 @@ public class AuditUtils {
         if (before == null && after != null) {
             return true;
         }
-        return (before.equals(after));
+        return (!before.equals(after));
     }
 
     /**
