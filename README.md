@@ -84,61 +84,55 @@ In the target folder of t1g-distro you can find 2 artifacts:
 - docker
 - docker-postgres
 
-Off course first you should provide a postgres container, a kong container, and after that run an api-gateway container linked to the postgres container.
 ### Prerequisites
 Install docker on your machine
 
 * [Mac OSX](https://docs.docker.com/engine/installation/mac/)
 * [Windows](https://docs.docker.com/engine/installation/windows/)
 
-### Create a new docker-machine (virtual image)
+### Pull the image
 ```sh
-$ docker-machine create --driver virtualbox apiengine
+docker pull trust1team/trust1gateway-with-ui
 ```
-### Login to your docker-machine
+
+### Run the container image
 ```sh
-$ docker-machine ls
-$ docker-machine env apiengine
-$ eval $(docker-machine env apiengine)
+docker run -dit -p 127.0.0.1:5433:5432 -p 127.0.0.1:8443:8443 -p 127.0.0.1:8000:8000 -p 127.0.0.1:8001:8001 -p 127.0.0.1:28080:28080 -p 127.0.0.1:28443:28443 -p 127.0.0.1:29990:29990 -p 127.0.0.1:29993:29993 -p 127.0.0.1:3000:3000 -p 127.0.0.1:3003:3003 --name t1g-ui trust1team/trust1gateway-with-ui
 ```
+
+If you have already a container with this name you can easily remove it with:
+```sh
+$ docker rm t1g-ui
+```
+or inspect more info
+```sh
+$ docker inspect t1g-ui
+```
+
+### Login to your docker container
+```sh
+docker exec -u 0 -it t1g-ui /bin/bash
+```
+
+#### Container URLs
+
+* Keycloak: http://localhost:28080/auth
+* T1G Engine Web Swagger: http://localhost:28080/t1g-web
+* T1G Engine Auth Swagger: http://localhost:28080/t1g-auth
+* T1G Publisher: http://localhost:3003
+* T1G Marketplace: http://localhost:3000
+* Wildfly: http://localhost:28080
+* Kong Gateway: http://localhost:8000
+* Kong Gateway Admin: http://localhost:8001
+* PostgreSQL server available on port 5433
 
 ### More information
 More information, related to docker, can be found in the README.md file of the t1g-distro module.
 
-### Pull a Cassandra container
-```sh
-$ docker pull cassandra:2.2.4
-``` 
-
-### Pull a Kong container
-```sh
-$ docker pull mashape/kong
-```
-
-### Start Cassandra
-```sh
-$ docker run -p 9042:9042 -d --name cassandra cassandra:2.2.4
-```
-
-### Start and link Kong to Cassandra
-```sh
-$ docker run -d --name kong \
-            --link cassandra:cassandra \
-            -p 8000:8000 \
-            -p 8443:8443 \
-            -p 8001:8001 \
-            -p 7946:7946 \
-            -p 7946:7946/udp \
-            mashape/kong
-```
-```sh
-$ docker run -d --name kong --link cassandra:cassandra -p 8000:8000 -p 8443:8443 -p 8001:8001 -p 7946:7946 -p 7946:7946/udp mashape/kong
-```
-
 ### Build docker container
-In the t1g-distro target folder, go to the docker-postgres folder and execute:
+In the t1g-distro target folder, go to the docker_t1g folder and execute:
 ```sh
-$ docker build -t api-db .
+docker build -t trust1team/trust1gateway-with-ui:latest .
 ``` 
 
 ### See images
@@ -146,58 +140,17 @@ Verify the images has been created
 ```sh
 $ docker images
 ```
-Remark: You'll see an image for api-db and for postgres (where it depends on)
-
-### Run docker container
-Run the Postgres container:
-```sh
-$ docker run -p 5432:5432 --name api-gateway-db -t api-db
-``` 
-If you have already a container with this name you can easily remove it with:
-```sh
-$ docker rm api-gateway-db
-```
-or inspect more info
-```sh
-$ docker inspect api-gateway-db
-```
 
 ### Verify running docker containers
 ```sh
 $ docker ps
 ```
 
-### Build Apiengine in target folder
-In the t1g-distro target folder, go to the docker folder and execute:
-```sh
-$ docker build -t api-gateway .
-```
-
-### Run and connect API Engine to the running postgres instance
-```sh
-$ docker run -p 8080:8080 -p 9990:9990  --name api-gateway-inst1 --link api-gateway-db:postgres --link kong:kong -d api-gateway
-```
-
-### Verify your ip of the running machine
-```sh
-$ docker-machine ip apiengine
-```
-By default the management console is enabled.
-Management console on IP:9990 username:admin password:admin123!
-Web API on IP:8080/t1g-web
-Auth API on IP:8080/t1g-auth
-
 ### remove a running container and its image
 ```sh
-$ docker stop api-gateway-inst1
-$ docker rm api-gateway-inst1
-$ docker rmi api-gateway
-```
-Using the API Marketplace
--------------------------
-Start your Kong container by adding your localhost IP:
-```sh
-$ docker run --add-host=localhost:84.198.85.191 -d --name konglocal --link cassandra:cassandra -p 8000:8000 -p 8443:8443 -p 8001:8001 -p 7946:7946 -p 7946:7946/udp mashape/kong 
+$ docker stop t1g-ui
+$ docker rm t1g-ui
+$ docker rmi trust1team/trust1gateway-with-yu
 ```
 
 See [Docker-info](https://docs.docker.com/engine/reference/commandline/run/#add-entries-to-container-hosts-file-add-host)
