@@ -1,5 +1,7 @@
 package com.t1t.apim;
 
+import org.joda.time.DateTime;
+
 /**
  * @author Guillaume Vandecasteele
  * @since 2017
@@ -36,6 +38,7 @@ public class AppConfigBean {
     private String clusterInfoRequestPath;
     private String clusterInfoUpstreamUrl;
     private Boolean clusterInfoStripRequestPath;
+    private DateTime startupDate;
 
     public String getConfigPath() {
         return configPath;
@@ -277,6 +280,14 @@ public class AppConfigBean {
         this.clusterInfoStripRequestPath = clusterInfoStripRequestPath;
     }
 
+    public DateTime getStartupDate() {
+        return startupDate;
+    }
+
+    public void setStartupDate(DateTime startupDate) {
+        this.startupDate = startupDate;
+    }
+
     @Override
     public String toString() {
         return "AppConfigBean{" +
@@ -310,6 +321,7 @@ public class AppConfigBean {
                 ", clusterInfoRequestPath='" + clusterInfoRequestPath + '\'' +
                 ", clusterInfoUpstreamUrl='" + clusterInfoUpstreamUrl + '\'' +
                 ", clusterInfoStripRequestPath=" + clusterInfoStripRequestPath +
+                ", startupDate=" + startupDate +
                 '}';
     }
 }
