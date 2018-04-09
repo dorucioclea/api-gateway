@@ -6,10 +6,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Models a single version of a service "impl".  Every service in
@@ -113,7 +110,7 @@ public class ServiceVersionBean implements Serializable {
     private String upstreamPath;
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "service_upstream_targets", joinColumns = @JoinColumn(name = "service_version_id"))
-    private Set<ServiceUpstreamTargetBean> upstreamTargets;
+    private List<ServiceUpstreamTargetBean> upstreamTargets;
 
     /**
      * @return the id
@@ -474,7 +471,7 @@ public class ServiceVersionBean implements Serializable {
     }
 
     /**
-     * @param serviceHosts the service hosts to set
+     * @param hostnames the service hosts to set
      */
     public void setHostnames(Set<String> hostnames) {
         this.hostnames = hostnames;
@@ -502,7 +499,7 @@ public class ServiceVersionBean implements Serializable {
     }
 
     /**
-     * @param upstreamConnectTimeout the upstream send timeout to set
+     * @param upstreamSendTimeout the upstream send timeout to set
      */
     public void setUpstreamSendTimeout(Long upstreamSendTimeout) {
         this.upstreamSendTimeout = upstreamSendTimeout;
@@ -516,7 +513,7 @@ public class ServiceVersionBean implements Serializable {
     }
 
     /**
-     * @param upstreamConnectTimeout the upstream read timeout to set
+     * @param upstreamReadTimeout the upstream read timeout to set
      */
     public void setUpstreamReadTimeout(Long upstreamReadTimeout) {
         this.upstreamReadTimeout = upstreamReadTimeout;
@@ -539,14 +536,14 @@ public class ServiceVersionBean implements Serializable {
     /**
      * @return the upstream targets
      */
-    public Set<ServiceUpstreamTargetBean> getUpstreamTargets() {
+    public List<ServiceUpstreamTargetBean> getUpstreamTargets() {
         return upstreamTargets;
     }
 
     /**
      * @param upstreamTargets the upstream targets to set
      */
-    public void setUpstreamTargets(Set<ServiceUpstreamTargetBean> upstreamTargets) {
+    public void setUpstreamTargets(List<ServiceUpstreamTargetBean> upstreamTargets) {
         this.upstreamTargets = upstreamTargets;
     }
 
