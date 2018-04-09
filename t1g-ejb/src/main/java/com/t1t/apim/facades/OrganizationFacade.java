@@ -1093,37 +1093,38 @@ public class OrganizationFacade {
         target.setPort(request.getPort());
         target.setWeight(request.getWeight());
         target.setTarget(request.getTarget());
-        svb.getUpstreamTargets().add(target);
+        if (!svb.getUpstreamTargets().contains(target)) {
+            svb.getUpstreamTargets().add(target);
+            if (svb.getStatus().equals(ServiceStatus.Deprecated) || svb.getStatus().equals(ServiceStatus.Published)) {
+                String gwId = ServiceConventionUtil.generateServiceUniqueName(svb);
+                List<IGatewayLink> serviceGatewayLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
+                // If the service is published/deprecated on the gateway, it should already have at least one upstream
+                for (IGatewayLink gw : serviceGatewayLinks) {
+                    try {
+                        if (svb.getUpstreamTargets().size() == 2) {
+                            //This means that there was previously only one upstream and that no virtual host was set
+                            gw.createServiceUpstream(organizationId, serviceId, version);
+                            gw.updateServiceVersionOnGateway(svb);
+                        }
+                        gw.createOrUpdateServiceUpstreamTarget(gwId, target);
+                    } catch (Exception ex) {
 
-        if (svb.getStatus().equals(ServiceStatus.Deprecated) || svb.getStatus().equals(ServiceStatus.Published)) {
-            String gwId = ServiceConventionUtil.generateServiceUniqueName(svb);
-            List<IGatewayLink> serviceGatewayLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
-            // If the service is published/deprecated on the gateway, it should already have at least one upstream
-            for (IGatewayLink gw : serviceGatewayLinks) {
-                try {
-                    if (svb.getUpstreamTargets().size() == 2) {
-                        //This means that there was previously only one upstream and that no virtual host was set
-                        gw.createServiceUpstream(organizationId, serviceId, version);
-                        gw.updateServiceVersionOnGateway(svb);
                     }
-                    gw.createOrUpdateServiceUpstreamTarget(gwId, target);
+                }
+            } else {
+                try {
+                    if (serviceValidator.isReady(svb)) {
+                        svb.setStatus(ServiceStatus.Ready);
+                    }
                 } catch (Exception ex) {
-
+                    log.error("Error validating service readiness: {}", ex);
                 }
             }
-        } else {
             try {
-                if (serviceValidator.isReady(svb)) {
-                    svb.setStatus(ServiceStatus.Ready);
-                }
-            } catch (Exception ex) {
-                log.error("Error validating service readiness: {}", ex);
+                storage.updateServiceVersion(svb);
+            } catch (StorageException e) {
+                throw ExceptionFactory.systemErrorException(e);
             }
-        }
-        try {
-            storage.updateServiceVersion(svb);
-        } catch (StorageException e) {
-            throw ExceptionFactory.systemErrorException(e);
         }
         return DtoFactory.createServiceUpstreamDtoBean(svb);
     }
@@ -1135,49 +1136,48 @@ public class OrganizationFacade {
         ServiceUpstreamTargetBean targetToBeRemoved = new ServiceUpstreamTargetBean();
         targetToBeRemoved.setPort(request.getPort());
         targetToBeRemoved.setTarget(request.getTarget());
+        if (svb.getUpstreamTargets().contains(targetToBeRemoved)) {
+            if (svb.getStatus().equals(ServiceStatus.Deprecated) || svb.getStatus().equals(ServiceStatus.Published)) {
 
-        if (svb.getStatus().equals(ServiceStatus.Deprecated) || svb.getStatus().equals(ServiceStatus.Published)) {
+                String gwId = ServiceConventionUtil.generateServiceUniqueName(svb);
+                List<IGatewayLink> serviceGatewayLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
 
-            String gwId = ServiceConventionUtil.generateServiceUniqueName(svb);
-            List<IGatewayLink> serviceGatewayLinks = svb.getGateways().stream().map(svcGw -> gatewayFacade.createGatewayLink(svcGw.getGatewayId())).collect(Collectors.toList());
-
-            switch (svb.getUpstreamTargets().size()) {
-                case 1:
-                    // There must be at least one upstream target defined for the service
-                    throw ExceptionFactory.invalidServiceStatusException();
-                case 2:
-                    svb.getUpstreamTargets().remove(targetToBeRemoved);
-                    serviceGatewayLinks.forEach(gw -> {
-                        gw.updateServiceVersionOnGateway(svb);
-                        gw.deleteServiceUpstream(gwId);
-                    });
-                    break;
-                default:
-                    svb.getUpstreamTargets().remove(targetToBeRemoved);
-                    serviceGatewayLinks.forEach(gw -> {
-                        targetToBeRemoved.setWeight(0L);
-                        gw.createOrUpdateServiceUpstreamTarget(gwId, targetToBeRemoved);
-                    });
-                    break;
-            }
-        } else {
-            svb.getUpstreamTargets().remove(targetToBeRemoved);
-            try {
-                if (serviceValidator.isReady(svb)) {
-                    svb.setStatus(ServiceStatus.Ready);
+                switch (svb.getUpstreamTargets().size()) {
+                    case 1:
+                        // There must be at least one upstream target defined for the service
+                        throw ExceptionFactory.invalidServiceStatusException();
+                    case 2:
+                        svb.getUpstreamTargets().remove(targetToBeRemoved);
+                        serviceGatewayLinks.forEach(gw -> {
+                            gw.updateServiceVersionOnGateway(svb);
+                            gw.deleteServiceUpstream(gwId);
+                        });
+                        break;
+                    default:
+                        svb.getUpstreamTargets().remove(targetToBeRemoved);
+                        serviceGatewayLinks.forEach(gw -> {
+                            targetToBeRemoved.setWeight(0L);
+                            gw.createOrUpdateServiceUpstreamTarget(gwId, targetToBeRemoved);
+                        });
+                        break;
                 }
-            } catch (Exception ex) {
-                log.error("Error validating service readiness: {}", ex);
+            } else {
+                svb.getUpstreamTargets().remove(targetToBeRemoved);
+                try {
+                    if (serviceValidator.isReady(svb)) {
+                        svb.setStatus(ServiceStatus.Ready);
+                    }
+                } catch (Exception ex) {
+                    log.error("Error validating service readiness: {}", ex);
+                }
             }
-        }
-        try {
-            storage.updateServiceVersion(svb);
-        } catch (StorageException e) {
-            throw ExceptionFactory.systemErrorException(e);
+            try {
+                storage.updateServiceVersion(svb);
+            } catch (StorageException e) {
+                throw ExceptionFactory.systemErrorException(e);
+            }
         }
     }
-
-
 
     /*public void updateServiceVersionLoadBalancing(String organizationId, String serviceId, String version, ServiceLoadBalancingConfigurationBean bean) {
         ServiceVersionBean svb = getServiceVersion(organizationId, serviceId, version);

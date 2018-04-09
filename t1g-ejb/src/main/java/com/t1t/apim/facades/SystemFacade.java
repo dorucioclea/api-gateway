@@ -12,6 +12,7 @@ import com.t1t.apim.exceptions.GatewayAuthenticationException;
 import com.t1t.apim.gateway.IGatewayLink;
 import com.t1t.apim.gateway.dto.SystemStatus;
 import com.t1t.apim.maintenance.MaintenanceController;
+import com.t1t.util.TimeUtil;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionManagement;
@@ -67,6 +68,8 @@ public class SystemFacade {
         if (rval.getMaintenanceModeEnabled()) {
             rval.setMaintenanceMessage(maintenance.getMessage());
         }
+        rval.setStartupDate(TimeUtil.getFormattedDateTime(config.getStartupDate()));
+        rval.setUptime(TimeUtil.getFormattedIntervalBetweenThenAndNow(config.getStartupDate()));
         return rval;
     }
 

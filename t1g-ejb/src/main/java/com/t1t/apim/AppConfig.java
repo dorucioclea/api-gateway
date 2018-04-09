@@ -9,6 +9,7 @@ import com.t1t.apim.exceptions.i18n.Messages;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,6 +127,7 @@ public class AppConfig implements Serializable {
             configBean.setClusterInfoRequestPath(getClusterInfoRequestPath());
             configBean.setClusterInfoStripRequestPath(getClusterInfoStripRequestPath());
             configBean.setClusterInfoUpstreamUrl(getClusterInfoUpstreamUrl());
+            configBean.setStartupDate(DateTime.now());
 
 
             try {

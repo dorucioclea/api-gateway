@@ -4,6 +4,8 @@ ENV LC_ALL C
 ENV PG_VERSION 9.6
 ENV KEYCLOAK_VERSION 3.4.3.Final
 ENV KONG_VERSION 0.10.1
+ENV MKT_VERSION_TAG acc
+ENV PUB_VERSION_TAG acc
 
 USER root
 
@@ -19,11 +21,16 @@ ADD start.sh /tmp
 ADD application.conf /tmp
 ADD wildfly_install.sh /tmp
 ADD t1g-ear.ear /tmp
-ADD api-market.zip /tmp
-ADD api-publisher.zip /tmp
 ADD kc-db-export.json /tmp
 ADD wildfly-kc-import-service.sh /tmp
 ADD wildfly-kc-no-import-service.sh /tmp
+ADD key-auth-handler.lua /tmp
+ADD fixtures.lua /tmp
+ADD bower-mkt.json /tmp
+ADD bower-pub.json /tmp
+ADD config-mkt.yml /tmp
+ADD config-pub.yml /tmp
+ADD keycloak.json /tmp
 
 RUN apt-get -y update
 RUN apt-get -y upgrade
@@ -76,16 +83,36 @@ RUN /etc/init.d/postgresql start && \
     wget https://github.com/Kong/kong/releases/download/$KONG_VERSION/kong-$KONG_VERSION.trusty_all.deb && \
     sudo dpkg -i kong-$KONG_VERSION.trusty_all.deb && \
     mv /tmp/kong.conf /etc/kong/kong.conf && \
-    kong start
+    # Install custom plugins
+    luarocks install kong-plugin-jwt-up && \
+    # HAL & JSON Threat protection plugins must be updated to replace Stringy dependency
+    #    luarocks install kong-plugin-hal && \
+    #    luarocks install kong-plugin-json-threat-protection && \
+    mv /tmp/fixtures.lua /usr/local/share/lua/5.1/kong/plugins/jwt-up && \
+    mv /tmp/key-auth-handler.lua /usr/local/share/lua/5.1/kong/plugins/key-auth/handler.lua && \
+    kong start --vv
 
-RUN mv /tmp/api-market.zip /opt && \
-    mv /tmp/api-publisher.zip /opt && \
-    unzip /opt/api-market.zip -d /opt/ && \
-    unzip /opt/api-publisher.zip -d /opt/ && \
-    rm /opt/api-publisher.zip && \
-    rm /opt/api-market.zip && \
+# Install Marketplace + overwrite bower.json to correct Keycloak version
+
+RUN wget https://github.com/Trust1Team/api-market/archive/$MKT_VERSION_TAG.zip && \
+    unzip /tmp/$MKT_VERSION_TAG.zip -d /opt/ && \
+    mv /opt/api-market-$MKT_VERSION_TAG /opt/api-market && \
+    mv /tmp/bower-mkt.json /opt/api-market/bower.json && \
+    cp /tmp/keycloak.json /opt/api-market/config && \
+    mv /tmp/config-mkt.yml /opt/api-market/config/config.yml && \
+    rm -rf /tmp/$MKT_VERSION_TAG.zip && \
     cd /opt/api-market && \
-    npm run deploy && \
+    npm run deploy
+
+# Install Publisher  + overwrite bower.json to correct Keycloak version
+
+RUN wget https://github.com/Trust1Team/api-publisher/archive/$PUB_VERSION_TAG.zip && \
+    unzip /tmp/$PUB_VERSION_TAG.zip -d /opt/ && \
+    mv /opt/api-publisher-$PUB_VERSION_TAG /opt/api-publisher && \
+    mv /tmp/bower-pub.json /opt/api-publisher/bower.json && \
+    cp /tmp/keycloak.json /opt/api-publisher/config && \
+    mv /tmp/config-pub.yml /opt/api-publisher/config/config.yml && \
+    rm -rf /tmp/$PUB_VERSION_TAG.zip && \
     cd /opt/api-publisher && \
     npm run deploy
 
