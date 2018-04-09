@@ -170,7 +170,7 @@ public class PolicyUtil {
     private static void modifyKeyMapForCorsPopover(Map<String, String> keyMap, KongConfigValue config) {
         KongPluginCors cors = (KongPluginCors) config;
         keyMap.put("methods", isCollectionEmpty(cors.getMethods()) ? NOT_CONFIGURED : convertToCommaSeparatedString(cors.getMethods().stream().map(method -> method.toString()).collect(Collectors.toList())));
-        keyMap.put("origin", StringUtils.isEmpty(cors.getOrigin()) ? NOT_CONFIGURED : cors.getOrigin());
+        keyMap.put("origin", isCollectionEmpty(cors.getOrigins()) ? NOT_CONFIGURED : convertToCommaSeparatedString(cors.getOrigins().stream().map(method -> method.toString()).collect(Collectors.toList())));
     }
 
     private static void modifyKeyMapForIpRestrictionPopover(Map<String, String> keyMap, KongConfigValue config) {

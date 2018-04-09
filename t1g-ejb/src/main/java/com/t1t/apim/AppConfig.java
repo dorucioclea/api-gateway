@@ -9,10 +9,13 @@ import com.t1t.apim.exceptions.i18n.Messages;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.enterprise.inject.Produces;
@@ -51,6 +54,7 @@ public class AppConfig implements Serializable {
 
     @Produces
     @T1G
+    @Lock(LockType.READ)
     public AppConfigBean getConfig() {
         return configBean;
     }
@@ -123,6 +127,7 @@ public class AppConfig implements Serializable {
             configBean.setClusterInfoRequestPath(getClusterInfoRequestPath());
             configBean.setClusterInfoStripRequestPath(getClusterInfoStripRequestPath());
             configBean.setClusterInfoUpstreamUrl(getClusterInfoUpstreamUrl());
+            configBean.setStartupDate(DateTime.now());
 
 
             try {

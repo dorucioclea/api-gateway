@@ -25,6 +25,8 @@ public class SystemStatusBean implements Serializable {
     private Boolean maintenanceModeEnabled;
     private String maintenanceMessage;
     private boolean up;
+    private String startupDate;
+    private String uptime;
 
     public static long getSerialVersionUID() {
         return serialVersionUID;
@@ -176,6 +178,22 @@ public class SystemStatusBean implements Serializable {
         this.environment = environment;
     }
 
+    public String getStartupDate() {
+        return startupDate;
+    }
+
+    public void setStartupDate(String startupDate) {
+        this.startupDate = startupDate;
+    }
+
+    public String getUptime() {
+        return uptime;
+    }
+
+    public void setUptime(String uptime) {
+        this.uptime = uptime;
+    }
+
     @Override
     public String toString() {
         return "SystemStatusBean{" +
@@ -192,6 +210,8 @@ public class SystemStatusBean implements Serializable {
                 ", maintenanceModeEnabled=" + maintenanceModeEnabled +
                 ", maintenanceMessage='" + maintenanceMessage + '\'' +
                 ", up=" + up +
+                ", startupDate='" + startupDate + '\'' +
+                ", uptime='" + uptime + '\'' +
                 '}';
     }
 }
