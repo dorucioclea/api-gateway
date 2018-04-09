@@ -23,9 +23,9 @@ public class KongPluginCors implements KongConfigValue
     @SerializedName("exposed_headers")
     @Expose
     private List<String> exposedHeaders = new ArrayList<String>();
-    @SerializedName("origin")
+    @SerializedName("origins")
     @Expose
-    private String origin;
+    private List<String> origins = new ArrayList<String>();
     @SerializedName("max_age")
     @Expose
     private Long maxAge;
@@ -108,23 +108,23 @@ public class KongPluginCors implements KongConfigValue
     /**
      * 
      * @return
-     *     The origin
+     *     The origins
      */
-    public String getOrigin() {
-        return origin;
+    public List<String> getOrigins() {
+        return origins;
     }
 
     /**
      * 
-     * @param origin
-     *     The origin
+     * @param origins
+     *     The origins
      */
-    public void setOrigin(String origin) {
-        this.origin = origin;
+    public void setOrigins(List<String> origins) {
+        this.origins = origins;
     }
 
-    public KongPluginCors withOrigin(String origin) {
-        this.origin = origin;
+    public KongPluginCors withOrigins(List<String> origins) {
+        this.origins = origins;
         return this;
     }
 
@@ -204,7 +204,7 @@ public class KongPluginCors implements KongConfigValue
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(methods).append(credentials).append(exposedHeaders).append(origin).append(maxAge).append(preflightContinue).append(headers).toHashCode();
+        return new HashCodeBuilder().append(methods).append(credentials).append(exposedHeaders).append(origins).append(maxAge).append(preflightContinue).append(headers).toHashCode();
     }
 
     @Override
@@ -216,7 +216,7 @@ public class KongPluginCors implements KongConfigValue
             return false;
         }
         KongPluginCors rhs = ((KongPluginCors) other);
-        return new EqualsBuilder().append(methods, rhs.methods).append(credentials, rhs.credentials).append(exposedHeaders, rhs.exposedHeaders).append(origin, rhs.origin).append(maxAge, rhs.maxAge).append(preflightContinue, rhs.preflightContinue).append(headers, rhs.headers).isEquals();
+        return new EqualsBuilder().append(methods, rhs.methods).append(credentials, rhs.credentials).append(exposedHeaders, rhs.exposedHeaders).append(origins, rhs.origins).append(maxAge, rhs.maxAge).append(preflightContinue, rhs.preflightContinue).append(headers, rhs.headers).isEquals();
     }
 
 }

@@ -1,0 +1,8 @@
+{
+  "realm": "Trust1Gateway",
+  "auth-server-url": "http://localhost:28080/auth",
+  "ssl-required": "none",
+  "resource": "trust1gateway",
+  "public-client": true,
+  "confidential-port": 0
+}

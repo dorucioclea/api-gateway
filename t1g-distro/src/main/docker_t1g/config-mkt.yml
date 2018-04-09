@@ -1,0 +1,33 @@
+default:
+  appName: "api-market"
+  port: 3000
+  environment: "docker"
+  redirect:
+    scheme: "http"
+    domain: "localhost"
+    port: 3000
+  gw:
+    auth:
+      uri: "http://localhost:8000/apiengineauth/v1"
+    web:
+      uri: "http://localhost:8000/apiengine/v1"
+    apikey: "int-mkt-api-key"
+  orgFriendlyName: true
+  showApiDeveloperNameInStore: false
+  disableAnnouncements: true
+  disableSupport: true
+  storage:
+    local: "t1g-"
+    session: "t1g-session-"
+  kong:
+    host: "localhost:8000"
+
+test:
+  appName: "api-market"
+  scheme: "http"
+  port: 3001
+  environment: "TEST"
+  redirect:
+    scheme: "http"
+    domain: "localhost"
+    port: 3001

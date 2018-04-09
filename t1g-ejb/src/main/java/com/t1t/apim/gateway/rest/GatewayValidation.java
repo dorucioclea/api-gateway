@@ -350,7 +350,7 @@ public class GatewayValidation {
         res.setCredentials(req.getCredentials());
         res.setMaxAge(req.getMaxAge() == null || req.getMaxAge() == 0 ? 3600 : req.getMaxAge());
         res.setPreflightContinue(req.getPreflightContinue());
-        res.setOrigin(req.getOrigin());
+        res.setOrigins(req.getOrigins());
         Policy responsePolicy = new Policy();
         responsePolicy.setPolicyImpl(policy.getPolicyImpl());
         responsePolicy.setPolicyJsonConfig(gson.toJson(res));
