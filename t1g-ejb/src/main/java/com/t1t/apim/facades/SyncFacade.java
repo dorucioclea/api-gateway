@@ -83,7 +83,7 @@ public class SyncFacade {
                             ServiceUpstreamTargetBean target = new ServiceUpstreamTargetBean();
                             target.setTarget(endpoint.getHost());
                             target.setPort(endpoint.getPort() == -1 ? svb.getUpstreamScheme().getPort() : Long.valueOf(endpoint.getPort()));
-                            if (svb.getUpstreamTargets() == null) svb.setUpstreamTargets(new HashSet<>());
+                            if (svb.getUpstreamTargets() == null) svb.setUpstreamTargets(new ArrayList<>());
                             svb.getUpstreamTargets().add(target);
                             storage.updateServiceVersion(svb);
                         } catch (Exception ex) {

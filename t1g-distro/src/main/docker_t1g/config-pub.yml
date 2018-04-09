@@ -1,0 +1,30 @@
+default:
+  appName: "api-publisher"
+  port: 3003
+  environment: "docker"
+  redirect:
+    scheme: "http"
+    domain: "localhost"
+    port: 3003
+  gw:
+    auth:
+      uri: "http://localhost:8000/apiengineauth/v1"
+    web:
+      uri: "http://localhost:8000/apiengine/v1"
+    apikey: "pub-api-key"
+  orgFriendlyName: true
+  storage:
+    local: "t1g-"
+    session: "t1g-session-"
+  kong:
+    host: "localhost:8000"
+
+test:
+  appName: "api-publisher"
+  scheme: "http"
+  port: 3001
+  environment: "TEST"
+  redirect:
+    scheme: "http"
+    domain: "localhost"
+    port: 3001
