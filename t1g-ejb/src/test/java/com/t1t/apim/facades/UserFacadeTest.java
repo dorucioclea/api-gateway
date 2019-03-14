@@ -14,6 +14,7 @@ import com.t1t.apim.core.exceptions.StorageException;
 import com.t1t.apim.exceptions.SystemErrorException;
 import com.t1t.apim.exceptions.UserNotFoundException;
 import junit.framework.TestCase;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
@@ -166,6 +167,7 @@ public class UserFacadeTest extends TestCase {
         verify(query).getOrgs(anyObject());
     }
 
+    @Ignore
     public void testGetApplications() throws Exception {
         Set<PermissionBean> permissions = new HashSet<>();
         PermissionBean perm = new PermissionBean();

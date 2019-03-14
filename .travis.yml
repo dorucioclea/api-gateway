@@ -20,4 +20,4 @@ branches:
   only:
     - develop
 
-install: mvn clean install -DskipTests=true -Darguments=-DskipTests -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+install: mvn clean install -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
