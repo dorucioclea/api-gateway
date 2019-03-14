@@ -164,7 +164,7 @@ public class SecurityFacade {
 
     public IdpIssuerBean createIdpIssuer(final IdpIssuerBean idpIssuer) {
         try {
-            if (getIdpIssuer(idpIssuer.getIssuer()) != null) {
+            if (storage.getIdpIssuer(idpIssuer.getIssuer()) != null) {
                 throw ExceptionFactory.idpIssuerAlreadyExistsException(idpIssuer.getIssuer());
             }
             storage.createIdpIssuer(idpIssuer);
@@ -185,9 +185,9 @@ public class SecurityFacade {
         }
     }
 
-    public void deleteIdpIssuer(final String issuerId) {
+    public void deleteIdpIssuer(final IdpIssuerBean issuer) {
         try {
-            final IdpIssuerBean idpIssuer = getIdpIssuer(issuerId);
+            final IdpIssuerBean idpIssuer = getIdpIssuer(issuer.getIssuer());
             storage.deleteIdpIssuer(idpIssuer);
         } catch (final StorageException ex) {
             throw ExceptionFactory.systemErrorException(ex);

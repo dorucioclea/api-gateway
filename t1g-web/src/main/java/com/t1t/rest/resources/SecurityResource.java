@@ -195,19 +195,6 @@ public class SecurityResource {
         return Response.ok().entity(securityFacade.getIdpIssuers()).build();
     }
 
-    @ApiOperation(value = "Get trusted IDP issuer")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = IdpIssuerBean.class, message = "Trusted issuer")
-    })
-    @GET
-    @Path("/idp/issuers/{issuerId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getIdpIssuer(@PathParam("issuerId") String issuerId) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(issuerId), Messages.i18n.format(ErrorCodes.EMPTY_VALUE, "Issuer ID"));
-        if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        return Response.ok().entity(securityFacade.getIdpIssuer(issuerId)).build();
-    }
-
     @ApiOperation(value = "Create trusted IDP issuer")
     @ApiResponses({
             @ApiResponse(code = 200, response = IdpIssuerBean.class, message = "Created")
@@ -217,9 +204,7 @@ public class SecurityResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createIdpIssuer(@ApiParam IdpIssuerBean idpIssuer) {
-        Preconditions.checkNotNull(idpIssuer, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
-        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getIssuer()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
-        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getJwksUri()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
+        validateIdpIssuer(idpIssuer);
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         return Response.ok().entity(securityFacade.createIdpIssuer(idpIssuer)).build();
     }
@@ -232,10 +217,8 @@ public class SecurityResource {
     @Path("/idp/issuers")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateIdpIssuer(@ApiParam IdpIssuerBean idpIssuer) {
-        Preconditions.checkNotNull(idpIssuer, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
-        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getIssuer()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
-        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getJwksUri()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
+    public Response updateIdpIssuer(@ApiParam final IdpIssuerBean idpIssuer) {
+        validateIdpIssuer(idpIssuer);
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         return Response.ok().entity(securityFacade.updateIdpIssuer(idpIssuer)).build();
     }
@@ -245,11 +228,18 @@ public class SecurityResource {
             @ApiResponse(code = 204, response = IdpIssuerBean.class, message = "Updated")
     })
     @DELETE
-    @Path("/idp/issuers/{idpIssuer}")
-    public Response updateIdpIssuer(@PathParam("idpIssuer") String issuerId) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(issuerId), Messages.i18n.format(ErrorCodes.EMPTY_VALUE, "Issuer ID"));
+    @Path("/idp/issuers/delete")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response deleteIssuer(@ApiParam final IdpIssuerBean issuer) {
+        validateIdpIssuer(issuer);
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
-        securityFacade.deleteIdpIssuer(issuerId);
+        securityFacade.deleteIdpIssuer(issuer);
         return Response.noContent().build();
+    }
+
+    private void validateIdpIssuer(final IdpIssuerBean idpIssuer) {
+        Preconditions.checkNotNull(idpIssuer, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
+        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getIssuer()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
+        Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getJwksUri()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "jwksUri"));
     }
 }

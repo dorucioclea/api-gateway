@@ -53,8 +53,6 @@ import java.util.Set;
 public class SecurityResource {
     @Inject
     private SecurityFacade securityFacade;
-    @Inject
-    private ISecurityAppContext appContext;
 
 
     @ApiOperation(value = "Get trusted IDP issuers")
@@ -67,18 +65,6 @@ public class SecurityResource {
     public Response getIdpIssuers() {
         if (!securityFacade.isAdminApp()) throw ExceptionFactory.notAuthorizedException();
         return Response.ok().entity( securityFacade.getIdpIssuers()).build();
-    }
-
-    @ApiOperation(value = "Get trusted IDP issuer")
-    @ApiResponses({
-            @ApiResponse(code = 200, response = IdpIssuerBean.class, message = "Trusted issuer")
-    })
-    @GET
-    @Path("/idp/issuers/{issuerId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getIdpIssuer(@PathParam("issuerId") final String issuerId) {
-        if (!securityFacade.isAdminApp()) throw ExceptionFactory.notAuthorizedException();
-        return Response.ok().entity(securityFacade.getIdpIssuer(issuerId)).build();
     }
 
     @ApiOperation(value = "Create trusted IDP issuer")
@@ -114,10 +100,12 @@ public class SecurityResource {
             @ApiResponse(code = 204, response = IdpIssuerBean.class, message = "Updated")
     })
     @DELETE
-    @Path("/idp/issuers/{idpIssuer}")
-    public Response deleteIdpIssuer(@PathParam("idpIssuer") final String issuerId) {
+    @Path("/idp/issuers/delete")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response deleteIdpIssuer(@ApiParam final IdpIssuerBean issuer) {
+        validateIdpIssuer(issuer);
         if (!securityFacade.isAdminApp()) throw ExceptionFactory.notAuthorizedException();
-        securityFacade.deleteIdpIssuer(issuerId);
+        securityFacade.deleteIdpIssuer(issuer);
         return Response.noContent().build();
     }
 
