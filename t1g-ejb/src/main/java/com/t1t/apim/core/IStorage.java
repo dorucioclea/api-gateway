@@ -41,210 +41,210 @@ public interface IStorage {
      * Various creation methods.  These are called by the REST layer to create stuff.
      */
 
-    public void createOrganization(OrganizationBean organization) throws StorageException;
+    void createOrganization(OrganizationBean organization) throws StorageException;
 
-    public void createApplication(ApplicationBean application) throws StorageException;
+    void createApplication(ApplicationBean application) throws StorageException;
 
-    public void createApplicationVersion(ApplicationVersionBean version) throws StorageException;
+    void createApplicationVersion(ApplicationVersionBean version) throws StorageException;
 
-    public void createContract(ContractBean contract) throws StorageException;
+    void createContract(ContractBean contract) throws StorageException;
 
-    public void createService(ServiceBean service) throws StorageException;
+    void createService(ServiceBean service) throws StorageException;
 
-    public void createServiceVersion(ServiceVersionBean version) throws StorageException;
+    void createServiceVersion(ServiceVersionBean version) throws StorageException;
 
-    public void createPlan(PlanBean plan) throws StorageException;
+    void createPlan(PlanBean plan) throws StorageException;
 
-    public void createPlanVersion(PlanVersionBean version) throws StorageException;
+    void createPlanVersion(PlanVersionBean version) throws StorageException;
 
-    public void createPolicy(PolicyBean policy) throws StorageException;
+    void createPolicy(PolicyBean policy) throws StorageException;
 
-    public void createGateway(GatewayBean gateway) throws StorageException;
+    void createGateway(GatewayBean gateway) throws StorageException;
 
-    public void createPolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
+    void createPolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
 
-    public void createAuditEntry(AuditEntryBean entry) throws StorageException;
+    void createAuditEntry(AuditEntryBean entry) throws StorageException;
 
-    public void createServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
+    void createServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
 
-    public void createServiceSupport(SupportBean supportBean) throws StorageException;
+    void createServiceSupport(SupportBean supportBean) throws StorageException;
 
-    public void createServiceSupportComment(SupportComment commentBean) throws StorageException;
+    void createServiceSupportComment(SupportComment commentBean) throws StorageException;
 
-    public void createEvent(EventBean eventBean) throws StorageException;
+    void createEvent(EventBean eventBean) throws StorageException;
 
-    public void createMailTemplate(MailTemplateBean mailTemplateBean) throws Exception;
+    void createMailTemplate(MailTemplateBean mailTemplateBean) throws Exception;
 
-    public void createManagedApplication(ManagedApplicationBean manapp) throws Exception;
+    void createManagedApplication(ManagedApplicationBean manapp) throws Exception;
 
-    public void createDefaults(DefaultsBean defaultsBean) throws StorageException;
+    void createDefaults(DefaultsBean defaultsBean) throws StorageException;
 
-    public void createConfig(ConfigBean config) throws StorageException;
+    void createConfig(ConfigBean config) throws StorageException;
 
-    public void createBranding(ServiceBrandingBean branding) throws StorageException;
+    void createBranding(ServiceBrandingBean branding) throws StorageException;
 
-    public void createOAuth2Token(OAuth2TokenBean token) throws StorageException;
+    void createOAuth2Token(OAuth2TokenBean token) throws StorageException;
 
-    public void createIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException;
+    void createIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException;
 
     /*
      * Various update methods.  These are called by the REST layer to update stuff.
      */
 
-    public void updateOrganization(OrganizationBean organization) throws StorageException;
+    void updateOrganization(OrganizationBean organization) throws StorageException;
 
-    public void updateApplication(ApplicationBean application) throws StorageException;
+    void updateApplication(ApplicationBean application) throws StorageException;
 
-    public void updateApplicationVersion(ApplicationVersionBean version) throws StorageException;
+    void updateApplicationVersion(ApplicationVersionBean version) throws StorageException;
 
-    public void updateService(ServiceBean service) throws StorageException;
+    void updateService(ServiceBean service) throws StorageException;
 
-    public void updateServiceVersion(ServiceVersionBean version) throws StorageException;
+    void updateServiceVersion(ServiceVersionBean version) throws StorageException;
 
-    public void updateServiceDefinition(ServiceVersionBean version, InputStream definitionStream) throws StorageException;
+    void updateServiceDefinition(ServiceVersionBean version, InputStream definitionStream) throws StorageException;
 
-    public void updatePlan(PlanBean plan) throws StorageException;
+    void updatePlan(PlanBean plan) throws StorageException;
 
-    public void updatePlanVersion(PlanVersionBean version) throws StorageException;
+    void updatePlanVersion(PlanVersionBean version) throws StorageException;
 
-    public void updatePolicy(PolicyBean policy) throws StorageException;
+    void updatePolicy(PolicyBean policy) throws StorageException;
 
-    public void updateGateway(GatewayBean gateway) throws StorageException;
+    void updateGateway(GatewayBean gateway) throws StorageException;
 
-    public void updatePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
+    void updatePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
 
-    public void updateServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
+    void updateServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
 
-    public void updateServiceSupport(SupportBean supportBean) throws StorageException;
+    void updateServiceSupport(SupportBean supportBean) throws StorageException;
 
-    public void updateServiceSupportComment(SupportComment commentBean) throws StorageException;
+    void updateServiceSupportComment(SupportComment commentBean) throws StorageException;
 
-    public void updateContract(ContractBean contractBean) throws StorageException;
+    void updateContract(ContractBean contractBean) throws StorageException;
 
-    public void updateMailTemplate(MailTemplateBean mailTemplateBean) throws StorageException;
+    void updateMailTemplate(MailTemplateBean mailTemplateBean) throws StorageException;
 
-    public void updateEvent(EventBean event) throws StorageException;
+    void updateEvent(EventBean event) throws StorageException;
 
-    public void updateManagedApplication(ManagedApplicationBean manapp) throws StorageException;
+    void updateManagedApplication(ManagedApplicationBean manapp) throws StorageException;
 
-    public void updateAuditEntry(AuditEntryBean audit) throws StorageException;
+    void updateAuditEntry(AuditEntryBean audit) throws StorageException;
 
-    public void updateDefaults(DefaultsBean defaultsBean) throws StorageException;
+    void updateDefaults(DefaultsBean defaultsBean) throws StorageException;
 
-    public void updateConfig(ConfigBean config) throws StorageException;
+    void updateConfig(ConfigBean config) throws StorageException;
 
-    public void updateBranding(ServiceBrandingBean branding) throws StorageException;
+    void updateBranding(ServiceBrandingBean branding) throws StorageException;
 
-    public void updateOperatingBean(OperatingBean operatingBean) throws StorageException;
+    void updateOperatingBean(OperatingBean operatingBean) throws StorageException;
 
-    public void updateOAuth2TokenBean(OAuth2TokenBean token) throws StorageException;
+    void updateOAuth2TokenBean(OAuth2TokenBean token) throws StorageException;
 
-    public void updateIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException;
+    void updateIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException;
 
     /*
      * Various delete methods.  These are called by the REST layer to delete stuff.
      */
 
-    public void deleteOrganization(OrganizationBean organization) throws StorageException;
+    void deleteOrganization(OrganizationBean organization) throws StorageException;
 
-    public void deleteApplication(ApplicationBean application) throws StorageException;
+    void deleteApplication(ApplicationBean application) throws StorageException;
 
-    public void deleteApplicationVersion(ApplicationVersionBean version) throws StorageException;
+    void deleteApplicationVersion(ApplicationVersionBean version) throws StorageException;
 
-    public void deleteContract(ContractBean contract) throws StorageException;
+    void deleteContract(ContractBean contract) throws StorageException;
 
-    public void deleteService(ServiceBean service) throws StorageException;
+    void deleteService(ServiceBean service) throws StorageException;
 
-    public void deleteServiceVersion(ServiceVersionBean version) throws StorageException;
+    void deleteServiceVersion(ServiceVersionBean version) throws StorageException;
 
-    public void deleteServiceDefinition(ServiceVersionBean version) throws StorageException;
+    void deleteServiceDefinition(ServiceVersionBean version) throws StorageException;
 
-    public void deletePlan(PlanBean plan) throws StorageException;
+    void deletePlan(PlanBean plan) throws StorageException;
 
-    public void deletePlanVersion(PlanVersionBean version) throws StorageException;
+    void deletePlanVersion(PlanVersionBean version) throws StorageException;
 
-    public void deletePolicy(PolicyBean policy) throws StorageException;
+    void deletePolicy(PolicyBean policy) throws StorageException;
 
-    public void deleteGateway(GatewayBean gateway) throws StorageException;
+    void deleteGateway(GatewayBean gateway) throws StorageException;
 
-    public void deletePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
+    void deletePolicyDefinition(PolicyDefinitionBean policyDef) throws StorageException;
 
-    public void deleteServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
+    void deleteServiceAnnouncement(AnnouncementBean announcement) throws StorageException;
 
-    public void deleteServiceSupport(SupportBean supportBean) throws StorageException;
+    void deleteServiceSupport(SupportBean supportBean) throws StorageException;
 
-    public void deleteServiceSupportComment(SupportComment commentBean) throws StorageException;
+    void deleteServiceSupportComment(SupportComment commentBean) throws StorageException;
 
-    public void deleteEvent(EventBean eventBean) throws StorageException;
+    void deleteEvent(EventBean eventBean) throws StorageException;
 
-    public void deleteMailTemplate(MailTemplateBean mailTemplateBean) throws StorageException;
+    void deleteMailTemplate(MailTemplateBean mailTemplateBean) throws StorageException;
 
-    public void deleteManagedApplication(ManagedApplicationBean manapp) throws StorageException;
+    void deleteManagedApplication(ManagedApplicationBean manapp) throws StorageException;
 
-    public void deleteDefaults(DefaultsBean defaultsBean) throws StorageException;
+    void deleteDefaults(DefaultsBean defaultsBean) throws StorageException;
 
-    public void deleteConfig(ConfigBean configBean) throws StorageException;
+    void deleteConfig(ConfigBean configBean) throws StorageException;
 
-    public void deleteBranding(ServiceBrandingBean branding) throws StorageException;
+    void deleteBranding(ServiceBrandingBean branding) throws StorageException;
 
-    public void deleteOAuth2Token(OAuth2TokenBean token) throws StorageException;
+    void deleteOAuth2Token(OAuth2TokenBean token) throws StorageException;
 
-    public void deleteIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException;
+    void deleteIdpIssuer(IdpIssuerBean idpIssuer) throws StorageException;
 
     /*
      * Various get methods.  These are called by the REST layer to get stuff.
      */
 
-    public OrganizationBean getOrganization(String id) throws StorageException;
+    OrganizationBean getOrganization(String id) throws StorageException;
 
-    public ApplicationBean getApplication(String organizationId, String id) throws StorageException;
+    ApplicationBean getApplication(String organizationId, String id) throws StorageException;
 
-    public ApplicationVersionBean getApplicationVersion(String organizationId, String applicationId, String version) throws StorageException;
+    ApplicationVersionBean getApplicationVersion(String organizationId, String applicationId, String version) throws StorageException;
 
-    public ContractBean getContract(Long id) throws StorageException;
+    ContractBean getContract(Long id) throws StorageException;
 
-    public ServiceBean getService(String organizationId, String id) throws StorageException;
+    ServiceBean getService(String organizationId, String id) throws StorageException;
 
-    public ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version) throws StorageException;
+    ServiceVersionBean getServiceVersion(String organizationId, String serviceId, String version) throws StorageException;
 
-    public InputStream getServiceDefinition(ServiceVersionBean serviceVersion) throws StorageException;
+    InputStream getServiceDefinition(ServiceVersionBean serviceVersion) throws StorageException;
 
-    public PlanBean getPlan(String organizationId, String id) throws StorageException;
+    PlanBean getPlan(String organizationId, String id) throws StorageException;
 
-    public PlanVersionBean getPlanVersion(String organizationId, String planId, String version) throws StorageException;
+    PlanVersionBean getPlanVersion(String organizationId, String planId, String version) throws StorageException;
 
-    public PolicyBean getPolicy(PolicyType type, String organizationId, String entityId, String version, Long id) throws StorageException;
+    PolicyBean getPolicy(PolicyType type, String organizationId, String entityId, String version, Long id) throws StorageException;
 
-    public GatewayBean getGateway(String id) throws StorageException;
+    GatewayBean getGateway(String id) throws StorageException;
 
-    public PolicyDefinitionBean getPolicyDefinition(String id) throws StorageException;
+    PolicyDefinitionBean getPolicyDefinition(String id) throws StorageException;
 
-    public AnnouncementBean getServiceAnnouncement(Long id) throws StorageException;
+    AnnouncementBean getServiceAnnouncement(Long id) throws StorageException;
 
-    public SupportBean getServiceSupport(Long id) throws StorageException;
+    SupportBean getServiceSupport(Long id) throws StorageException;
 
-    public SupportComment getServiceSupportComment(Long id) throws StorageException;
+    SupportComment getServiceSupportComment(Long id) throws StorageException;
 
-    public EventBean getEvent(Long id) throws StorageException;
+    EventBean getEvent(Long id) throws StorageException;
 
-    public MailTemplateBean getMailTemplate(MailTopic mailTopic) throws StorageException;
+    MailTemplateBean getMailTemplate(MailTopic mailTopic) throws StorageException;
 
-    public ManagedApplicationBean getManagedApplicationBean(Long id) throws StorageException;
+    ManagedApplicationBean getManagedApplicationBean(Long id) throws StorageException;
 
-    public ManagedApplicationBean getManagedApplicationBean(AppIdentifier app) throws StorageException;
+    ManagedApplicationBean getManagedApplicationBean(AppIdentifier app) throws StorageException;
 
-    public DefaultsBean getDefaults(String id) throws StorageException;
+    DefaultsBean getDefaults(String id) throws StorageException;
 
-    public List<ConfigBean> getDefaultConfig() throws StorageException;
+    List<ConfigBean> getDefaultConfig() throws StorageException;
 
-    public ServiceBrandingBean getBranding(String id) throws StorageException;
+    ServiceBrandingBean getBranding(String id) throws StorageException;
 
-    public IdpIssuerBean getIdpIssuer(String id) throws StorageException;
+    IdpIssuerBean getIdpIssuer(String id) throws StorageException;
 
     /*
      * Anything that doesn't fall into the above categories!
      */
-    public void reorderPolicies(PolicyType type, String organizationId, String entityId, String entityVersion, List<Long> newOrder) throws StorageException;
+    void reorderPolicies(PolicyType type, String organizationId, String entityId, String entityVersion, List<Long> newOrder) throws StorageException;
 
     /**
      * Returns all organizations, this method is exceptional list of orgs for logged-in admin.
@@ -253,7 +253,7 @@ public interface IStorage {
      * @return
      * @throws StorageException
      */
-    public Set<String> getAllOrganizations() throws StorageException;
+    Set<String> getAllOrganizations() throws StorageException;
 
     /**
      * Returns all brandings
@@ -261,5 +261,5 @@ public interface IStorage {
      * @return a set of ServiceBrandingBeans
      * @throws StorageException
      */
-    public Set<ServiceBrandingBean> getAllBrandings() throws StorageException;
+    Set<ServiceBrandingBean> getAllBrandings() throws StorageException;
 }

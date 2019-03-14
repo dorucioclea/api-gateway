@@ -43,6 +43,7 @@ public class JaxRsActivator extends Application {
         resources.add(SearchResource.class);
         resources.add(GatewayResource.class);
         resources.add(RestExceptionMapper.class);
+        resources.add(SecurityResource.class);
         resources.add(SystemResource.class);
 
         resources.add(IllegalArgumentExceptionMapper.class);

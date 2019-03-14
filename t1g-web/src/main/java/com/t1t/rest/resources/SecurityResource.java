@@ -189,6 +189,7 @@ public class SecurityResource {
     })
     @GET
     @Path("/idp/issuers")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getIdpIssuers() {
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
         return Response.ok().entity(securityFacade.getIdpIssuers()).build();
@@ -200,6 +201,7 @@ public class SecurityResource {
     })
     @GET
     @Path("/idp/issuers/{issuerId}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getIdpIssuer(@PathParam("issuerId") String issuerId) {
         Preconditions.checkArgument(StringUtils.isNotBlank(issuerId), Messages.i18n.format(ErrorCodes.EMPTY_VALUE, "Issuer ID"));
         if (!securityContext.isAdmin()) throw ExceptionFactory.notAuthorizedException();
@@ -212,6 +214,8 @@ public class SecurityResource {
     })
     @POST
     @Path("/idp/issuers")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response createIdpIssuer(@ApiParam IdpIssuerBean idpIssuer) {
         Preconditions.checkNotNull(idpIssuer, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
         Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getIssuer()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));
@@ -226,6 +230,8 @@ public class SecurityResource {
     })
     @PUT
     @Path("/idp/issuers")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response updateIdpIssuer(@ApiParam IdpIssuerBean idpIssuer) {
         Preconditions.checkNotNull(idpIssuer, Messages.i18n.format(ErrorCodes.REQUEST_NULL), "Request body");
         Preconditions.checkArgument(StringUtils.isNotBlank(idpIssuer.getIssuer()), Messages.i18n.format(ErrorCodes.EMPTY_FIELD, "issuer"));

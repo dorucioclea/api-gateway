@@ -13,16 +13,16 @@ public interface ISecurityAppContext {
     /**
      * @return the authenticated application consumer.
      */
-    public String getApplication();
+    String getApplication();
 
-    public String setCurrentApplication(String application) throws StorageException;
+    String setCurrentApplication(String application) throws StorageException;
 
-    public AppIdentifier getApplicationIdentifier();
+    AppIdentifier getApplicationIdentifier();
 
-    public String getApplicationPrefix();
+    String getApplicationPrefix();
 
-    public String getNonManagedApplication();
+    String getNonManagedApplication();
 
-    public String setNonManagedApplication(String application);
+    String setNonManagedApplication(String application);
 
 }
